@@ -1,0 +1,19 @@
+CREATE TABLE IF NOT EXISTS orders (
+  id TEXT PRIMARY KEY,
+  temp_id TEXT,
+  is_proforma BOOLEAN NOT NULL DEFAULT FALSE,
+  type TEXT NOT NULL,
+  status TEXT NOT NULL,
+  customer TEXT,
+  phone TEXT,
+  data JSONB NOT NULL DEFAULT '{}',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS orders_status_idx ON orders (status);
+CREATE INDEX IF NOT EXISTS orders_type_idx ON orders (type);
+
+CREATE SEQUENCE IF NOT EXISTS yfj_seq START 1;
+CREATE SEQUENCE IF NOT EXISTS pf_seq START 1;
+CREATE SEQUENCE IF NOT EXISTS rn_seq START 1;

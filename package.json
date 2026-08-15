@@ -1,0 +1,9 @@
+{
+  "name": "yamie-order-desk-app",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@netlify/database": "*",
+    "@netlify/functions": "*"
+  }
+}

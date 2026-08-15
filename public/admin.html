@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yamie Order Desk — Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<div id="pinScreen" class="splash-screen">
+  <div class="splash-card">
+    <div class="splash-brand">Yamie Fine Jewellery</div>
+    <div class="splash-sub">Admin</div>
+    <div class="field"><label>Admin PIN</label><input type="password" id="pin_input"></div>
+    <button class="btn-primary" style="width:100%;" onclick="checkPin()">Enter</button>
+    <div id="pinError" class="splash-error"></div>
+  </div>
+</div>
+
+<header id="mainHeader">
+  <div class="brand">Yamie Order Desk<span>Admin</span></div>
+  <div class="header-actions">
+    <a href="/index.html" class="btn-ghost btn-sm" style="text-decoration:none;display:inline-block;">Back to order board</a>
+  </div>
+</header>
+
+<main style="padding:24px;">
+  <div style="max-width:1000px;margin:0 auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h2 style="font-family:'Playfair Display',serif;color:var(--maroon-dark);margin:0;">All orders &amp; repairs</h2>
+      <button class="btn-danger btn-sm" onclick="clearAllData()">Clear all data</button>
+    </div>
+    <div style="overflow-x:auto;">
+      <table id="adminTable" style="width:100%;border-collapse:collapse;font-size:13px;background:#fff;border-radius:8px;overflow:hidden;"></table>
+    </div>
+  </div>
+</main>
+
+<script src="/admin.js"></script>
+</body>
+</html>

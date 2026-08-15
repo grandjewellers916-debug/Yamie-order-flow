@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yamie Order Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<header id="mainHeader">
+  <div class="brand">Yamie Order Desk<span>Yamie Fine Jewellery</span></div>
+  <div class="header-actions">
+    <a href="/admin.html" class="btn-ghost btn-sm" style="text-decoration:none;display:inline-block;">Admin</a>
+    <button class="btn-primary" onclick="openNewOrder()">+ New order</button>
+  </div>
+</header>
+
+<div class="tab-bar">
+  <button class="tab-btn active" id="tabOrders" onclick="setTab('orders')">Orders</button>
+  <button class="tab-btn" id="tabRepairs" onclick="setTab('repairs')">Repairs</button>
+</div>
+
+<main><div class="board" id="board"></div></main>
+
+<!-- New order modal -->
+<div class="overlay" id="newOrderOverlay">
+  <div class="modal">
+    <button class="close-x" onclick="closeOverlay('newOrderOverlay')">&times;</button>
+    <h2 id="newOrderTitle">New order</h2>
+    <div class="field-row">
+      <div class="field"><label>Customer name</label><input type="text" id="f_customer"></div>
+      <div class="field"><label>Phone</label><input type="tel" id="f_phone"></div>
+    </div>
+    <div class="field">
+      <label>Order type</label>
+      <select id="f_type" onchange="onTypeChange()">
+        <option value="custom">Custom / made-to-order</option>
+        <option value="reservation">Ready-stock reservation</option>
+        <option value="repair">Repair / alteration</option>
+      </select>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Item</label><input type="text" id="f_item" placeholder="Ring, Necklace, Bangle..."></div>
+      <div class="field"><label>Purity</label>
+        <select id="f_purity">
+          <option>22K</option><option>18K</option><option>14K</option><option>9K</option>
+          <option>925 Silver</option><option>950 Platinum</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-row" id="pricingRow">
+      <div class="field"><label>Weight (g)</label><input type="number" step="0.01" id="f_weight"></div>
+      <div class="field"><label>Rate (₹/g)</label><input type="number" id="f_rate"></div>
+    </div>
+    <div class="field-row" id="pricingRow2">
+      <div class="field"><label>Making %</label><input type="number" step="0.1" id="f_making"></div>
+      <div class="field"><label>Stone charges (₹)</label><input type="number" id="f_stoneCharges" value="0"></div>
+    </div>
+    <div class="field">
+      <label>Approx. price (incl. 3% GST)</label>
+      <input type="text" id="f_approxPrice" readonly style="background:var(--champagne-light);font-weight:700;">
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Quoted amount (₹)</label><input type="number" id="f_quote"></div>
+      <div class="field"><label>Advance received (₹)</label><input type="number" id="f_advance" value="0"></div>
+    </div>
+    <div class="field">
+      <label>Advance payment mode</label>
+      <select id="f_paymentMode">
+        <option>Cash</option><option>UPI</option><option>Online</option>
+        <option>Bank Transfer</option><option>URD</option><option>Sales Return</option>
+      </select>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Expected delivery date</label><input type="date" id="f_date"></div>
+      <div class="field"><label>Staff</label><input type="text" id="f_staff"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-outline" onclick="closeOverlay('newOrderOverlay')">Cancel</button>
+      <button class="btn-primary" onclick="submitNewOrder()">Save order</button>
+    </div>
+  </div>
+</div>
+
+<!-- Detail modal -->
+<div class="overlay" id="detailOverlay">
+  <div class="modal">
+    <button class="close-x" onclick="closeOverlay('detailOverlay')">&times;</button>
+    <h2 id="d_title"></h2>
+    <div class="sub" id="d_sub"></div>
+    <div class="detail-grid" id="d_grid"></div>
+    <div class="field"><label>Status</label><div class="status-row" id="d_statusRow"></div></div>
+    <ul class="timeline" id="d_timeline"></ul>
+    <div class="field">
+      <label>Add note</label>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="d_note">
+        <button class="btn-outline btn-sm" onclick="addNote()">Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>
