@@ -54,10 +54,34 @@
     // SKU: letters followed by digits, e.g. STD1543, NLC-532, DIA 1164
     const skuRe=/\b([A-Z]{2,4})\s?-?\s?([0-9]{3,5})\b/g;let s;
     while((s=skuRe.exec(U))){
-      const pre=s[1];if(['HUID','RS','INR','MRP','PT','NET','GWT','NWT','DWT','KT','CT','CTS','GM','GMS'].includes(pre))continue;
+      const pre=s[1];if(['HUID','RS','INR','MRP','PT','NET','GWT','NWT','SWT','SPR','FPR','MP','DWT','KT','CT','CTS','GM','GMS'].includes(pre))continue;
       if(out.huid&&(pre+s[2]).includes(out.huid))continue;
       out.sku=pre+s[2];out.found.push('SKU');break;
     }
+
+    // ---- Yamie / Grand Jewellers tag codes (take priority over generic labels) ----
+    const V='\\s*[:=\\-.]?\\s*(?:RS\\.?|₹)?\\s*([0-9OoIlSB]{1,6}(?:[.,][0-9OoIlSB]{1,4})?)';
+    const code=k=>{const m=U.match(new RegExp('\\b'+k+V));return m?toNum(m[1]):null};
+    const gwt=code('GWT'),nwt=code('NWT'),swt=code('SWT'),spr=code('SPR'),mp=code('MP'),fpr=code('FPR');
+    if(gwt!=null){out.gw=gwt;if(!out.found.includes('gross'))out.found.push('gross')}
+    if(nwt!=null){out.nw=nwt;if(!out.found.includes('net'))out.found.push('net')}
+    if(swt!=null){out.sw=swt;if(!out.found.includes('stone'))out.found.push('stone')}
+    if(spr!=null){out.stoneVal=spr;if(!out.found.includes('stone value'))out.found.push('stone value')}
+    if(fpr!=null||mp!=null){
+      out.mk=fpr!=null?fpr:mp;
+      out.mkType=out.mk>100?(out.mk>3000?'flat':'pg'):'pct';
+      out.mpBefore=mp;out.makingFinal=fpr!=null;
+      if(!out.found.includes('making'))out.found.push('making');
+    }
+    // Category from the SKU prefix
+    const CAT={CHN:'Chain',BGL:'Bangle',BRC:'Bracelet',PND:'Pendant',DIA:'Diamond ornament',RST:'Jewellery set',FRG:'Finger ring',STD:'Earrings',NSP:'Nose pin',FIN:'Findings'};
+    const catM=U.match(/\b(CHN|BGL|BRC|PND|DIA|RST|FRG|STD|NSP|FIN)\s?-?\s?([0-9]{2,6})\b/);
+    if(catM){out.sku=catM[1]+catM[2];out.item=CAT[catM[1]];if(!out.found.includes('SKU'))out.found.push('SKU')}
+    if(out.tagPrice!=null&&(out.tagPrice===spr||out.tagPrice===fpr||out.tagPrice===mp)){out.tagPrice=null;out.found=out.found.filter(f=>f!=='price')}
+    // Sanity: a SKU number is never a weight
+    if(out.sw!=null&&out.sw>100)out.sw=null;
+    if(out.gw!=null&&out.gw>1000)out.gw=null;
+    if(out.nw!=null&&out.nw>1000)out.nw=null;
 
     // Unlabelled weights: decimals with 2–3 places that we haven't used
     if(out.gw==null||out.nw==null){

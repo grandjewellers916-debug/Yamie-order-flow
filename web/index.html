@@ -444,13 +444,15 @@ async function handleFile(file,input){
 function applyText(text){
   const r=parseTag(text);
   if(!r.found.length){setStatus('No tag details found in that photo. Retake it closer, in good light, or type them below.','err');return}
-  const o={sku:r.sku,item:null,purity:r.purity||$('purity').value,gw:r.gw,nw:r.nw,sw:r.sw,swUnit:r.swUnit,stoneVal:r.stoneVal,mk:r.mk,mkType:r.mkType,tagPrice:r.tagPrice,huid:r.huid};
+  const o={sku:r.sku,item:r.item,purity:r.purity||$('purity').value,gw:r.gw,nw:r.nw,sw:r.sw,swUnit:r.swUnit,stoneVal:r.stoneVal,mk:r.mk,mkType:r.mkType,tagPrice:r.tagPrice,huid:r.huid};
   isExample=false;$('exFlag').hidden=true;overrides={};
-  setFields(o,true);$('item').value='';
+  setFields(o,true);if(!r.item){$('item').value='';$('item').classList.remove('read')}
   if(!r.purity)$('purity').classList.remove('read');
   const guessed=r.found.some(f=>f.endsWith('?'));
   const missing=[];if(r.gw==null&&r.nw==null)missing.push('weight');if(!r.purity)missing.push('purity');if(r.mk==null)missing.push('making');
   let msg=`Read ${r.found.length} details.`;
+  if(r.makingFinal&&r.mpBefore!=null)msg+=` Making uses FPR ${r.mk} (MP before discount ${r.mpBefore}).`;
+  else if(r.mpBefore!=null&&!r.makingFinal)msg+=' Only MP (before discount) found; check the final making.';
   if(guessed)msg+=' Weights were not labelled, so check gross and net.';
   if(missing.length)msg+=` Not found: ${missing.join(', ')}.`;
   setStatus(msg,missing.length||guessed?'err':'ok');
