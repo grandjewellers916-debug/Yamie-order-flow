@@ -1,0 +1,63 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'com.yamie.pricecheck'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.yamie.pricecheck'
+        minSdk 24
+        targetSdk 34
+        versionCode Integer.parseInt(System.getenv('GITHUB_RUN_NUMBER') ?: '1')
+        versionName "1.0." + (System.getenv('GITHUB_RUN_NUMBER') ?: '0')
+    }
+
+    // Fixed key so each new APK installs over the previous one without uninstalling
+    signingConfigs {
+        sideload {
+            storeFile file('yamie-sideload.keystore')
+            storePassword 'yamieprice'
+            keyAlias 'yamie'
+            keyPassword 'yamieprice'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.sideload
+        }
+        debug {
+            signingConfig signingConfigs.sideload
+        }
+    }
+
+    // The web app in ../../web is bundled as the app's screens
+    sourceSets {
+        main {
+            assets.srcDirs = ['src/main/assets', '../../web']
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.activity:activity-ktx:1.9.1'
+    implementation 'androidx.webkit:webkit:1.11.0'
+    implementation 'com.google.mlkit:text-recognition:16.0.1'
+}

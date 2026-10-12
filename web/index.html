@@ -1,0 +1,469 @@
+<title>Yamie Price Check</title>
+<meta name="theme-color" content="#8F171B">
+<meta name="description" content="Photograph a jewellery tag and price it at today's gold rate.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: single phone column — maroon rate band, tag scanner, editable tag fields, price ticket with breakdown, recent scans */
+:root{
+  --bg:#FBF9F6; --surface:#FFFFFF; --sunk:#F3EEE8; --fg:#2A1B1B; --muted:#7A6866; --line:#E7DED6;
+  --maroon:#8F171B; --maroon-ink:#FFFFFF; --band:#6E1115; --band-fg:#F6E9DF; --gold:#B8862B;
+  --good:#2F7A4B; --warn:#B26A00; --bad:#B3261E;
+  --display:"Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --body:"Jost", "Segoe UI", system-ui, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#171112; --surface:#211819; --sunk:#2B2021; --fg:#F2E8E2; --muted:#B3A29E; --line:#3A2C2D;
+  --maroon:#C8474B; --maroon-ink:#FFFFFF; --band:#4A0D10; --band-fg:#F6E9DF; --gold:#D9A94E;
+  --good:#5DBB82; --warn:#E3A33B; --bad:#F07A72; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#171112; --surface:#211819; --sunk:#2B2021; --fg:#F2E8E2; --muted:#B3A29E; --line:#3A2C2D;
+  --maroon:#C8474B; --maroon-ink:#FFFFFF; --band:#4A0D10; --band-fg:#F6E9DF; --gold:#D9A94E;
+  --good:#5DBB82; --warn:#E3A33B; --bad:#F07A72; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45}
+.wrap{max-width:560px;margin:0 auto;padding-inline:16px;padding-block:0 40px;display:flex;flex-direction:column;gap:18px}
+header.top{display:flex;align-items:baseline;justify-content:space-between;padding-top:16px;gap:12px}
+.brand{font-family:var(--display);font-size:28px;font-weight:700;color:var(--maroon);letter-spacing:.01em;line-height:1}
+.brand small{display:block;font-family:var(--body);font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.btn{font:500 14px var(--body);border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:9px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;justify-content:center}
+.btn:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.btn.primary{background:var(--maroon);border-color:var(--maroon);color:var(--maroon-ink)}
+.btn:disabled{opacity:.55;cursor:default}
+.btn.sm{padding:6px 11px;font-size:13px}
+
+/* Rate band */
+.band{background:var(--band);color:var(--band-fg);border-radius:14px;padding:14px 14px 12px}
+.band-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
+.band .eyebrow{color:var(--band-fg);opacity:.8}
+.src{font-size:12px;opacity:.85;text-align:right}
+.src b{font-weight:600}
+.rates{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.rate{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:7px 8px;min-width:0}
+.rate label{display:block;font-size:11px;letter-spacing:.08em;opacity:.8}
+.rate input{width:100%;background:transparent;border:0;color:var(--band-fg);font:500 15px var(--mono);font-variant-numeric:tabular-nums;padding:2px 0 0}
+.rate.on{border-color:var(--gold);background:rgba(217,169,78,.16)}
+.rate.edited input{color:#FFD58A}
+.band-foot{display:flex;justify-content:space-between;gap:8px;margin-top:10px;font-size:12px;opacity:.85;flex-wrap:wrap}
+.band-foot button{background:none;border:0;color:var(--band-fg);font:500 12px var(--body);text-decoration:underline;cursor:pointer;padding:0}
+
+/* Scanner */
+.scan{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.scan-row{display:flex;gap:12px;align-items:center}
+.thumb{width:84px;height:84px;border-radius:10px;background:var(--sunk);flex:none;overflow:hidden;display:grid;place-items:center;color:var(--muted);font-size:11px;text-align:center;border:1px dashed var(--line)}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.scan-actions{display:flex;flex-wrap:wrap;gap:8px;min-width:0}
+.status{font-size:13px;color:var(--muted);min-height:1.2em}
+.status.err{color:var(--bad)}
+.status.ok{color:var(--good)}
+.hidden-input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+
+/* Fields */
+h2{font-family:var(--display);font-size:22px;font-weight:600;margin:0;text-wrap:balance}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.sec-head .note{font-size:12px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px}
+.f{display:flex;flex-direction:column;gap:4px;min-width:0}
+.f.full{grid-column:1/-1}
+.f label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.f input,.f select{width:100%;font:500 15px var(--body);color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 10px}
+.f input.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.f .unit{display:flex;gap:6px}
+.f .unit select{flex:0 0 92px}
+.f input.read{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 9%,var(--surface))}
+details.settings{border-top:1px solid var(--line);padding-top:10px}
+details.settings summary{cursor:pointer;font-size:13px;color:var(--muted);font-weight:500}
+details.settings .grid{margin-top:10px}
+
+/* Ticket */
+.ticket{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.ticket-top{padding:16px 16px 12px;border-bottom:1px dashed var(--line);position:relative}
+.ticket-top .eyebrow{color:var(--muted)}
+.final{font-family:var(--display);font-weight:700;font-size:46px;line-height:1.05;color:var(--maroon);font-variant-numeric:lining-nums tabular-nums;margin-top:2px}
+.sub{font-size:13px;color:var(--muted)}
+.cmp{margin-top:8px;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;padding:4px 10px;border-radius:999px;background:var(--sunk)}
+.cmp.good{color:var(--good)} .cmp.warn{color:var(--warn)} .cmp.bad{color:var(--bad)}
+.lines{padding:10px 16px 6px;display:flex;flex-direction:column}
+.line{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}
+.line:last-child{border-bottom:0}
+.line span:first-child{color:var(--muted);min-width:0}
+.line span:last-child{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.line.total span{color:var(--fg);font-weight:600}
+.ticket-actions{display:flex;gap:8px;padding:12px 16px 16px;flex-wrap:wrap}
+.ticket-actions .btn{flex:1 1 140px}
+.example-flag{position:absolute;top:14px;right:14px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--warn);border:1px solid currentColor;border-radius:999px;padding:2px 8px}
+
+/* History */
+.hist{display:flex;flex-direction:column;gap:8px}
+.h-item{display:grid;grid-template-columns:1fr auto;gap:2px 10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%}
+.h-item b{font-weight:600}
+.h-item .p{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:500;color:var(--maroon)}
+.h-item .m{font-size:12px;color:var(--muted);grid-column:1/-1}
+.empty{font-size:13px;color:var(--muted);padding:6px 0}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:13px;z-index:9}
+@media (max-width:380px){.rates{grid-template-columns:repeat(2,minmax(0,1fr))}.final{font-size:40px}}
+@media (prefers-reduced-motion:no-preference){.btn{transition:transform .12s}.btn:active{transform:scale(.97)}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">Yamie<small>Tag price check</small></div>
+    <button class="btn sm" id="newBtn" type="button">New tag</button>
+  </header>
+
+  <section class="band" aria-label="Today's rates">
+    <div class="band-head">
+      <span class="eyebrow">Rate per gram · ₹</span>
+      <span class="src" id="rateSrc">Saved rates</span>
+    </div>
+    <div class="rates" id="rates"></div>
+    <div class="band-foot">
+      <span id="rateHint">Tap a rate to override it for this check.</span>
+      <button type="button" id="rateReset" hidden>Use live rates</button>
+    </div>
+  </section>
+
+  <section class="scan" aria-label="Scan price tag">
+    <div class="scan-row">
+      <div class="thumb" id="thumb">No photo yet</div>
+      <div class="scan-actions">
+        <button class="btn primary" id="camBtn" type="button">Photograph tag</button>
+        <button class="btn" id="galBtn" type="button">From gallery</button>
+      </div>
+    </div>
+    <input class="hidden-input" id="camInput" type="file" accept="image/*" capture="environment" aria-label="Take tag photo">
+    <input class="hidden-input" id="galInput" type="file" accept="image/*" aria-label="Choose tag photo">
+    <div class="status" id="status" role="status">Snap the tag close and flat. Weights, purity and making are read on this phone; check them below.</div>
+  </section>
+
+  <section class="scan" aria-label="Tag details">
+    <div class="sec-head"><h2>Tag details</h2><span class="note" id="readNote">Gold outline = read from photo</span></div>
+    <div class="grid">
+      <div class="f"><label for="sku">SKU / tag no.</label><input id="sku" autocomplete="off"></div>
+      <div class="f"><label for="purity">Metal</label>
+        <select id="purity">
+          <option value="22k">Gold 22K (916)</option>
+          <option value="18k">Gold 18K (750)</option>
+          <option value="14k">Gold 14K (585)</option>
+          <option value="9k">Gold 9K (375)</option>
+          <option value="platinum">Platinum (950)</option>
+          <option value="silver">Silver (925)</option>
+        </select></div>
+      <div class="f full"><label for="item">Item</label><input id="item" autocomplete="off"></div>
+      <div class="f"><label for="gw">Gross wt (g)</label><input class="num" id="gw" inputmode="decimal"></div>
+      <div class="f"><label for="nw">Net wt (g)</label><input class="num" id="nw" inputmode="decimal"></div>
+      <div class="f"><label for="sw">Diamond / stone</label>
+        <div class="unit"><input class="num" id="sw" inputmode="decimal"><select id="swUnit" aria-label="Stone unit"><option value="ct">ct</option><option value="g">g</option></select></div></div>
+      <div class="f"><label for="stoneVal">Stone value ₹</label><input class="num" id="stoneVal" inputmode="decimal" placeholder="auto"></div>
+      <div class="f"><label for="mk">Making</label>
+        <div class="unit"><input class="num" id="mk" inputmode="decimal"><select id="mkType" aria-label="Making type"><option value="pct">%</option><option value="pg">₹/g</option><option value="flat">₹ flat</option></select></div></div>
+      <div class="f"><label for="tagPrice">Printed price ₹</label><input class="num" id="tagPrice" inputmode="decimal" placeholder="if on tag"></div>
+      <div class="f full"><label for="huid">HUID</label><input id="huid" autocomplete="off"></div>
+    </div>
+    <details class="settings">
+      <summary>Pricing settings</summary>
+      <div class="grid">
+        <div class="f"><label for="stoneRate">Diamond rate ₹/ct</label><input class="num" id="stoneRate" inputmode="decimal"></div>
+        <div class="f"><label for="disc">Making discount %</label><input class="num" id="disc" inputmode="decimal"></div>
+        <div class="f"><label for="gst">GST %</label><input class="num" id="gst" inputmode="decimal"></div>
+        <div class="f"><label for="round">Round up to ₹</label><input class="num" id="round" inputmode="numeric"></div>
+        <div class="f full"><label for="mkBase">Making % applies to</label>
+          <select id="mkBase"><option value="both">Metal + stone (Yamie workbook)</option><option value="metal">Metal only</option></select></div>
+      </div>
+    </details>
+  </section>
+
+  <section class="ticket" aria-label="Price">
+    <div class="ticket-top">
+      <span class="example-flag" id="exFlag">Example</span>
+      <span class="eyebrow">Price today</span>
+      <div class="final" id="final">₹0</div>
+      <div class="sub" id="finalSub"></div>
+      <div class="cmp" id="cmp" hidden></div>
+    </div>
+    <div class="lines" id="lines"></div>
+    <div class="ticket-actions">
+      <button class="btn" id="copyBtn" type="button">Copy quote</button>
+      <a class="btn" id="waBtn" href="#" target="_blank" rel="noopener">WhatsApp</a>
+      <button class="btn primary" id="saveBtn" type="button">Save to recent</button>
+    </div>
+  </section>
+
+  <section aria-label="Recent checks" class="hist">
+    <div class="sec-head"><h2>Recent checks</h2><span class="note">This phone only</span></div>
+    <div id="hist"></div>
+  </section>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="parser.js"></script>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const NATIVE=window.YamieNative||null;   // present inside the Android app (ML Kit OCR, direct rates)
+const store={get(k,d){try{const v=localStorage.getItem('ypc_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('ypc_'+k,JSON.stringify(v))}catch(e){}}};
+
+const RATE_KEYS=[
+  {id:'22k',label:'22K',mf:'gold_rate_22k'},{id:'18k',label:'18K',mf:'gold_rate_18k'},
+  {id:'14k',label:'14K',mf:'gold_rate_14k'},{id:'9k',label:'9K',mf:'gold_rate_9k'},
+  {id:'platinum',label:'PT',mf:'gold_rate_platinum'},{id:'silver',label:'Silver',mf:'gold_rate_silver'}];
+let live=store.get('live',null);           // {rates:{}, diamond, at}
+let overrides={};                           // per-check manual overrides
+let fromPhoto=new Set();
+let isExample=false;
+
+// ---------- rates UI ----------
+const ratesEl=$('rates');
+RATE_KEYS.forEach(r=>{
+  const d=document.createElement('div');d.className='rate';d.dataset.k=r.id;
+  d.innerHTML=`<label for="r_${r.id}">${r.label}</label><input id="r_${r.id}" inputmode="decimal" autocomplete="off">`;
+  ratesEl.appendChild(d);
+  d.querySelector('input').addEventListener('input',e=>{overrides[r.id]=num(e.target.value);paintRates();calc()});
+});
+function baseRate(k){return live&&live.rates&&live.rates[k]!=null?live.rates[k]:null}
+function rateFor(k){return overrides[k]!=null&&!isNaN(overrides[k])?overrides[k]:baseRate(k)}
+function paintRates(){
+  const p=$('purity').value;
+  RATE_KEYS.forEach(r=>{
+    const box=ratesEl.querySelector(`[data-k="${r.id}"]`),inp=box.querySelector('input');
+    if(document.activeElement!==inp){const v=rateFor(r.id);inp.value=v==null?'':fmtN(v)}
+    box.classList.toggle('on',r.id===p);
+    box.classList.toggle('edited',overrides[r.id]!=null);
+  });
+  $('rateReset').hidden=!Object.keys(overrides).length;
+}
+$('rateReset').onclick=()=>{overrides={};paintRates();calc()};
+function setSrc(text){$('rateSrc').innerHTML=text}
+
+function whenText(iso){if(!iso)return'';const d=new Date(iso);return d.toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})}
+const RATES_URL=(location.protocol==='https:'?'':'https://yamie-price-check.netlify.app')+'/api/rates';
+let rateTimer=null;
+function nativeRates(){return new Promise((res,rej)=>{window.onNativeRates=t=>{try{t?res(JSON.parse(t)):rej(new Error('native'))}catch(e){rej(e)}};NATIVE.fetchRates();setTimeout(()=>rej(new Error('timeout')),15000)})}
+async function loadRates(){
+  if(!navigator.onLine){setSrc(live&&live.at?`Offline · saved ${whenText(live.at)}`:'Offline · enter rates');return}
+  try{
+    let j;
+    if(NATIVE)j=await nativeRates();
+    else{
+      let r=await fetch(RATES_URL,{cache:'no-store'}).catch(()=>null);
+      if(!r||!r.ok)r=await fetch('https://grandjewellers.com/api/kiosk-rates',{cache:'no-store'});
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      j=await r.json();
+    }
+    const rates={};
+    const map={'22k':j.r22,'18k':j.r18,'14k':j.r14,'9k':j.r9,platinum:j.platinum,silver:j.silver};
+    Object.keys(map).forEach(k=>{const v=num(map[k]);if(!isNaN(v)&&v>0)rates[k]=v});
+    if(!Object.keys(rates).length)throw new Error('empty');
+    live={rates,diamond:live&&live.diamond,at:j.updated_at||new Date().toISOString()};
+    store.set('live',live);
+    setSrc(`<b>Today's rate</b> · ${whenText(live.at)}`);
+    $('rateHint').textContent='Tap a rate to override it for this check.';
+    paintRates();calc();
+  }catch(e){
+    setSrc(live&&live.at?`Saved · ${whenText(live.at)}`:'Enter rates');
+    $('rateHint').textContent='Could not load today\'s rate. Using the last saved rate; check before quoting.';
+  }
+}
+function hookLiveRates(){
+  loadRates();
+  clearInterval(rateTimer);rateTimer=setInterval(()=>{if(!document.hidden)loadRates()},5*60*1000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadRates()});
+  window.addEventListener('online',loadRates);
+}
+
+// ---------- settings ----------
+const settings=Object.assign({stoneRate:100000,disc:0,gst:3,round:50,mkBase:'both'},store.get('settings',{}));
+const userTouched={};
+['stoneRate','disc','gst','round','mkBase'].forEach(k=>{
+  const el=$(k);el.value=k==='mkBase'?settings[k]:fmtN(settings[k]);
+  el.addEventListener('input',()=>{userTouched[k]=true;settings[k]=k==='mkBase'?el.value:num(el.value);store.set('settings',settings);calc()});
+});
+if(live&&!isNaN(live.diamond)&&!store.get('settings',{}).stoneRate)$('stoneRate').value=fmtN(live.diamond);
+
+// ---------- fields ----------
+const FIELDS=['sku','item','purity','gw','nw','sw','swUnit','stoneVal','mk','mkType','tagPrice','huid'];
+FIELDS.forEach(k=>$(k).addEventListener('input',()=>{
+  if(isExample){isExample=false;$('exFlag').hidden=true}
+  $(k).classList.remove('read');if(k==='purity')paintRates();calc()}));
+function setFields(o,mark){
+  fromPhoto=new Set();
+  FIELDS.forEach(k=>{const el=$(k);let v=o[k];
+    if(v==null||v===''){if(mark&&!['purity','swUnit','mkType'].includes(k))el.value='';el.classList.remove('read');return}
+    el.value=String(v);
+    if(mark&&!['swUnit','mkType'].includes(k)){el.classList.add('read');fromPhoto.add(k)}else el.classList.remove('read');
+  });
+  paintRates();calc();
+}
+function getFields(){const o={};FIELDS.forEach(k=>o[k]=$(k).value);return o}
+
+// ---------- calculation (Yamie workbook flow) ----------
+function num(v){if(v==null)return NaN;const s=String(v).replace(/[,₹\s]/g,'').replace(/[^0-9.\-]/g,'');return s===''?NaN:parseFloat(s)}
+function fmtN(v){return isNaN(v)||v==null?'':String(Math.round(v*1000)/1000)}
+const inr=v=>'₹'+Math.round(v).toLocaleString('en-IN');
+const inr2=v=>'₹'+(Math.round(v*100)/100).toLocaleString('en-IN',{minimumFractionDigits:0,maximumFractionDigits:2});
+let last=null;
+function calc(){
+  const f=getFields(),p=f.purity,rate=rateFor(p);
+  const nw=num(f.nw),gw=num(f.gw);
+  const w=!isNaN(nw)?nw:gw;
+  const sw=num(f.sw),stoneValIn=num(f.stoneVal),stoneRate=num($('stoneRate').value);
+  const mk=num(f.mk),disc=num($('disc').value)||0,gst=num($('gst').value),round=num($('round').value)||1;
+  const lines=[];
+  if(rate==null||isNaN(rate)||isNaN(w)){
+    $('final').textContent='—';
+    $('finalSub').textContent=rate==null||isNaN(rate)?`Enter the ${p.toUpperCase()} rate above.`:'Enter net weight to price this tag.';
+    $('lines').innerHTML='';$('cmp').hidden=true;last=null;return;
+  }
+  const metal=w*rate;
+  let stone=0,stoneNote='';
+  if(!isNaN(stoneValIn)){stone=stoneValIn;stoneNote='from tag'}
+  else if(!isNaN(sw)&&sw>0){
+    const ct=f.swUnit==='g'?sw*5:sw;stone=ct*(isNaN(stoneRate)?0:stoneRate);
+    stoneNote=`${fmtN(ct)} ct × ${inr(stoneRate)}`;
+  }
+  const effMk=isNaN(mk)?0:mk*(1-disc/100);
+  let making=0,mkNote='';
+  if(f.mkType==='pct'){const base=$('mkBase').value==='metal'?metal:metal+stone;making=base*effMk/100;mkNote=`${fmtN(effMk)}% of ${$('mkBase').value==='metal'?'metal':'metal + stone'}`}
+  else if(f.mkType==='pg'){making=effMk*w;mkNote=`${inr(effMk)}/g × ${fmtN(w)} g`}
+  else{making=effMk;mkNote='flat'}
+  const total=metal+stone+making;
+  const gstAmt=total*(isNaN(gst)?0:gst)/100;
+  const net=total+gstAmt;
+  const final=Math.ceil(net/round)*round;
+  const pLabel=$('purity').selectedOptions[0].textContent;
+  lines.push(['Metal · '+fmtN(w)+' g × '+inr(rate)+(isNaN(nw)?' (gross)':''),inr2(metal)]);
+  if(stone)lines.push(['Stone · '+stoneNote,inr2(stone)]);
+  if(making)lines.push(['Making · '+mkNote+(disc?` (after ${fmtN(disc)}% off)`:''),inr2(making)]);
+  lines.push(['Value before tax',inr2(total)]);
+  lines.push([`GST ${fmtN(gst)}%`,inr2(gstAmt)]);
+  lines.push([`Rounded up to ₹${fmtN(round)}`,inr(final)]);
+  $('lines').innerHTML=lines.map((l,i)=>`<div class="line${i===lines.length-1?' total':''}"><span>${esc(l[0])}</span><span>${esc(l[1])}</span></div>`).join('');
+  $('final').textContent=inr(final);
+  $('finalSub').textContent=[f.sku,pLabel,f.item].filter(Boolean).join(' · ');
+  const tp=num(f.tagPrice),cmp=$('cmp');
+  if(!isNaN(tp)&&tp>0){
+    const diff=final-tp,pct=diff/tp*100;
+    cmp.hidden=false;
+    cmp.className='cmp '+(Math.abs(pct)<1?'good':pct>0?'warn':'bad');
+    cmp.textContent=Math.abs(pct)<1?`Matches printed ${inr(tp)}`:`${diff>0?'Up':'Down'} ${inr(Math.abs(diff))} (${Math.abs(pct).toFixed(1)}%) vs printed ${inr(tp)}`;
+  }else cmp.hidden=true;
+  last={final,lines,f,pLabel,rate,at:Date.now()};
+  const msg=quoteText();$('waBtn').href='https://wa.me/?text='+encodeURIComponent(msg);
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function quoteText(){
+  if(!last)return'';const f=last.f;
+  return ['Yamie Fine Jewellery',[f.sku,last.pLabel].filter(Boolean).join(' · '),f.item||'',
+    `Net wt: ${fmtN(num(f.nw)||num(f.gw))} g`+(f.sw?` · Stone: ${f.sw} ${f.swUnit}`:''),
+    `Rate: ${inr(last.rate)}/g (${new Date().toLocaleDateString('en-IN')})`,
+    `Price incl. GST: ${inr(last.final)}`].filter(Boolean).join('\n');
+}
+
+// ---------- toast / actions ----------
+let tt;function toast(t){const el=$('toast');el.textContent=t;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>el.hidden=true,2200)}
+$('copyBtn').onclick=()=>{const t=quoteText();if(!t)return;
+  if(window.YamieNative&&window.YamieNative.copy){window.YamieNative.copy(t);toast('Quote copied');return}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>toast('Quote copied'),()=>toast('Copy blocked here. Long-press the price to select.'))}else toast('Copy blocked here.')};
+$('saveBtn').onclick=()=>{
+  if(!last){toast('Nothing to save yet');return}
+  const h=store.get('hist',[]);h.unshift({f:last.f,final:last.final,rate:last.rate,at:Date.now(),ex:isExample});store.set('hist',h.slice(0,30));
+  paintHist();toast('Saved to recent');
+};
+$('newBtn').onclick=()=>{isExample=false;$('exFlag').hidden=true;overrides={};
+  setFields({sku:'',item:'',purity:'22k',gw:'',nw:'',sw:'',swUnit:'ct',stoneVal:'',mk:'',mkType:'pct',tagPrice:'',huid:''},false);
+  $('thumb').innerHTML='No photo yet';setStatus('Ready for the next tag.');};
+function paintHist(){
+  const h=store.get('hist',[]),el=$('hist');
+  if(!h.length){el.innerHTML='<div class="empty">Saved checks appear here with the rate used, so you can re-price them later.</div>';return}
+  el.innerHTML=h.map((x,i)=>`<button class="h-item" type="button" data-i="${i}"><b>${esc(x.f.sku||x.f.item||'Tag')}${x.ex?' (example)':''}</b><span class="p">${inr(x.final)}</span><span class="m">${esc(x.f.purity.toUpperCase())} · ${esc(x.f.nw||x.f.gw)} g · at ${inr(x.rate)}/g · ${new Date(x.at).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})}</span></button>`).join('');
+  el.querySelectorAll('.h-item').forEach(b=>b.onclick=()=>{const x=h[+b.dataset.i];isExample=!!x.ex;$('exFlag').hidden=!isExample;setFields(x.f,false);window.scrollTo({top:0,behavior:'smooth'});toast('Re-priced at today\'s rate')});
+}
+
+// ---------- reading the tag (on-device OCR) ----------
+function setStatus(t,cls){const s=$('status');s.textContent=t;s.className='status'+(cls?' '+cls:'')}
+let reading=false,tessWorker=null;
+
+$('camBtn').onclick=()=>{if(NATIVE){NATIVE.scan('camera')}else $('camInput').click()};
+$('galBtn').onclick=()=>{if(NATIVE){NATIVE.scan('gallery')}else $('galInput').click()};
+$('camInput').onchange=e=>handleFile(e.target.files[0],e.target);
+$('galInput').onchange=e=>handleFile(e.target.files[0],e.target);
+
+// Called by the Android app after ML Kit reads the photo
+window.onNativeScan=function(res){
+  try{
+    if(typeof res==='string')res=JSON.parse(res);
+    if(res.thumb)$('thumb').innerHTML=`<img alt="Tag photo" src="${res.thumb}">`;
+    if(res.error){setStatus(res.error,'err');return}
+    applyText(res.text||'');
+  }catch(e){setStatus('Could not read that photo. Try again.','err')}
+};
+window.onNativeScanStart=function(){setStatus('Reading tag…')};
+
+// Grayscale, stretch contrast and upscale small tags before OCR
+async function prep(file){
+  const url=URL.createObjectURL(file);
+  try{
+    const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url});
+    const long=Math.max(img.width,img.height),sc=long<1400?1400/long:Math.min(1,2200/long);
+    const c=document.createElement('canvas');c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);
+    const g=c.getContext('2d');g.drawImage(img,0,0,c.width,c.height);
+    const d=g.getImageData(0,0,c.width,c.height),p=d.data;let lo=255,hi=0;
+    for(let i=0;i<p.length;i+=4){const v=.299*p[i]+.587*p[i+1]+.114*p[i+2];p[i]=v;if(v<lo)lo=v;if(v>hi)hi=v}
+    const k=255/Math.max(1,hi-lo);
+    for(let i=0;i<p.length;i+=4){const v=(p[i]-lo)*k;p[i]=p[i+1]=p[i+2]=v}
+    g.putImageData(d,0,0);return c;
+  }finally{URL.revokeObjectURL(url)}
+}
+async function getWorker(){
+  if(tessWorker)return tessWorker;
+  setStatus('Loading text reader (first time only, about 5 MB)…');
+  if(!window.Tesseract)await new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';sc.onload=res;sc.onerror=()=>rej(new Error('ocr_missing'));document.head.appendChild(sc)});
+  tessWorker=await Tesseract.createWorker('eng');
+  await tessWorker.setParameters({tessedit_pageseg_mode:'11',preserve_interword_spaces:'1'});
+  return tessWorker;
+}
+async function handleFile(file,input){
+  if(!file)return;input.value='';
+  const url=URL.createObjectURL(file);$('thumb').innerHTML=`<img alt="Tag photo" src="${url}">`;
+  if(reading)return;reading=true;$('camBtn').disabled=$('galBtn').disabled=true;
+  try{
+    const w=await getWorker();
+    setStatus('Reading tag…');
+    const canvas=await prep(file);
+    const r=await w.recognize(canvas);
+    applyText(r.data.text||'');
+  }catch(e){
+    setStatus(e&&e.message==='ocr_missing'||!navigator.onLine?'The text reader needs internet the first time. Connect once, then it works offline.':'Could not read that photo. Retake it closer and flat, or type the details below.','err');
+  }finally{reading=false;$('camBtn').disabled=$('galBtn').disabled=false}
+}
+function applyText(text){
+  const r=parseTag(text);
+  if(!r.found.length){setStatus('No tag details found in that photo. Retake it closer, in good light, or type them below.','err');return}
+  const o={sku:r.sku,item:null,purity:r.purity||$('purity').value,gw:r.gw,nw:r.nw,sw:r.sw,swUnit:r.swUnit,stoneVal:r.stoneVal,mk:r.mk,mkType:r.mkType,tagPrice:r.tagPrice,huid:r.huid};
+  isExample=false;$('exFlag').hidden=true;overrides={};
+  setFields(o,true);$('item').value='';
+  if(!r.purity)$('purity').classList.remove('read');
+  const guessed=r.found.some(f=>f.endsWith('?'));
+  const missing=[];if(r.gw==null&&r.nw==null)missing.push('weight');if(!r.purity)missing.push('purity');if(r.mk==null)missing.push('making');
+  let msg=`Read ${r.found.length} details.`;
+  if(guessed)msg+=' Weights were not labelled, so check gross and net.';
+  if(missing.length)msg+=` Not found: ${missing.join(', ')}.`;
+  setStatus(msg,missing.length||guessed?'err':'ok');
+}
+
+// ---------- boot with a marked example ----------
+if(!live)live={rates:{},diamond:NaN,at:null};
+isExample=true;
+setFields({sku:'EX-001',item:'Diamond stud earrings',purity:'18k',gw:'2.46',nw:'2.30',sw:'0.32',swUnit:'ct',stoneVal:'',mk:'14',mkType:'pct',tagPrice:'',huid:''},false);
+$('exFlag').hidden=false;
+paintRates();paintHist();
+if(!Object.keys(live.rates).length)setSrc('Loading…');
+hookLiveRates();
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+})();
+</script>
