@@ -109,7 +109,7 @@
       }
     }
     // Only the four gold purities are sold
-    if(out.purity&&!['22k','18k','14k','9k'].includes(out.purity)){out.purity=null;out.found=out.found.filter(f=>f!=='purity')}
+    if(out.purity&&!['22k','18k','14k','9k','platinum','silver'].includes(out.purity)){out.purity=null;out.found=out.found.filter(f=>f!=='purity')}
     return out;
   }
   root.parseTag=parseTag;
