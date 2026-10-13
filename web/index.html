@@ -249,7 +249,7 @@ details.settings .grid{margin-top:10px}
       <div class="f"><label for="gw">GWT · gross (g)</label><input class="num" id="gw" inputmode="decimal"></div>
       <div class="f"><label for="sw">SWT · stone</label><input class="num" id="sw" inputmode="decimal"></div>
       <div class="f"><label for="nw" class="req">NWT · net gold (g)</label><input class="num" id="nw" inputmode="decimal"></div>
-      <div class="f"><label for="spr">SPR · stone price ₹</label><input class="num" id="spr" inputmode="decimal"></div>
+      <div class="f"><label for="spr" id="sprLbl">SPR / SA · stone price ₹</label><input class="num" id="spr" inputmode="decimal"></div>
     </div>
 
     <div class="making" id="makingBox">
@@ -451,11 +451,13 @@ function makingFor(t,type,v){const r=rateFor(t.purity),w=num(t.nw);
   if(!(w>0))return NaN;
   if(type==='pergram')return v*w;
   return r==null?NaN:w*r*v/100}
+function isDiamond(t){return /^DIA/i.test(String(t.sku||'').trim())||t.item==='Diamond'}
 function missing(t){
   const m=[],p=priceTag(t);
   if(!t.purity)m.push({k:'purity',t:'Purity'});
   else if(p.rate==null)m.push({k:'rate',t:`${PLABEL[t.purity]} gold rate`});
   if(!(num(t.nw)>0))m.push({k:'nw',t:'Net gold weight (NWT)'});
+  if(isDiamond(t)&&!(num(t.spr)>0))m.push({k:'spr',t:'Stone price (SPR/SA) for diamond item'});
   if(!p.hasMk)m.push({k:'making',t:'Making charge'});
   return m;
 }
@@ -497,7 +499,7 @@ FIELDS.forEach(k=>$(k).addEventListener('input',()=>{
   cur[k]=$(k).value;unread(k);cur.touched=true;
   if(k==='item')cur.itemAuto=!cur.item;
   if(k==='sku'&&cur.itemAuto){cur.item=itemFromSku(cur.sku);$('item').value=cur.item;paintItem()}
-  saveDraft();if(k==='nw')paintChips();renderPreview();
+  saveDraft();if(k==='nw')paintChips();renderPreview();renderValidation();
 }));
 $('mkVal').addEventListener('input',()=>{cur.mkVal=$('mkVal').value;unread('making');cur.touched=true;saveDraft();paintChips();renderPreview()});
 $('huidMinus').onclick=()=>{cur.huidCount=Math.max(0,(cur.huidCount|0)-1);unread('huid');cur.touched=true;saveDraft();renderEditor()};
@@ -530,6 +532,8 @@ function renderMakingHint(){renderValidation()}
 function renderValidation(shake){
   const m=missing(cur),keys=m.map(x=>x.k),show=!!cur.touched;
   $('nw').classList.toggle('miss',show&&keys.includes('nw'));
+  $('spr').classList.toggle('miss',show&&keys.includes('spr'));
+  $('sprLbl').classList.toggle('req',isDiamond(cur));
   $('puritySeg').classList.toggle('miss',show&&keys.includes('purity'));
   $('mkSeg').classList.toggle('miss',show&&keys.includes('making'));
   $('huidStep').classList.toggle('zero',show&&!((cur.huidCount|0)>0));
@@ -578,7 +582,7 @@ function renderPreview(){
   const m=missing(cur),complete=p.ok&&!m.length;
   $('priceBox').classList.toggle('incomplete',!complete);
   $('priceAmt').textContent=p.ok?inr(p.value*(1+gstP/100)):'—';
-  $('priceSub').textContent=complete?`Before GST ${inr(p.value)}`:(m.length?'Needs: '+m.map(x=>({nw:'NWT',rate:'gold rate',huid:'HUID',purity:'purity',making:'making'})[x.k]).join(', '):'');
+  $('priceSub').textContent=complete?`Before GST ${inr(p.value)}`:(m.length?'Needs: '+m.map(x=>({nw:'NWT',spr:'stone price',rate:'gold rate',huid:'HUID',purity:'purity',making:'making'})[x.k]).join(', '):'');
   renderValidation();
 }
 $('clearTag').onclick=()=>{cur=blankTag();editingId=null;thumbs={front:null,back:null};saveDraft();setStatus('Scan the front of the tag. Scan the back too if details are printed there.');renderEditor()};
@@ -589,7 +593,7 @@ $('addTag').onclick=()=>{
     const msg='Required: '+m.map(x=>x.t).join(', ');
     setStatus(msg,'err');toast('Cannot add tag. '+msg,null,true);
     try{navigator.vibrate&&navigator.vibrate(150)}catch(e){}
-    const first={nw:'nw',purity:'puritySeg',making:'makingBox',rate:'rates'}[m[0].k];
+    const first={nw:'nw',spr:'spr',purity:'puritySeg',making:'makingBox',rate:'rates'}[m[0].k];
     if($(first))$(first).scrollIntoView({behavior:'smooth',block:'center'});
     return;
   }
@@ -688,7 +692,7 @@ function applyText(text,side){
   put('gw',r.gw);put('sw',r.sw);put('nw',r.nw);put('spr',r.stoneVal);
   if(r.mk!=null&&(side==='front'||!cur.mkType)){
     cur.mkType=MKMAP[r.mkType]||'pct';cur.mkVal=fmtN(r.mk);
-    cur.mkTag=r.makingFinal?`From tag: FPR ${fmtN(r.mk)}${r.mpBefore!=null?` (MP ${fmtN(r.mpBefore)})`:''}`:'From tag: MP (before discount)';
+    cur.mkTag=r.perPiece?`From tag: MCT ${inr(r.mk)} per piece`:r.makingFinal?`From tag: FPR ${fmtN(r.mk)}${r.mpBefore!=null?` (MP ${fmtN(r.mpBefore)})`:''}`:'From tag: MP (before discount)';
     mark('making');
   }
   if(r.huids&&r.huids.length){
@@ -697,7 +701,7 @@ function applyText(text,side){
     mark('huid');
   }
   saveDraft();renderEditor();
-  const miss=missing(cur).map(x=>x.k==='nw'?'NWT':x.k==='rate'?'gold rate':x.k==='huid'?'HUID':x.k);
+  const miss=missing(cur).map(x=>({nw:'NWT',spr:'stone price (SPR/SA)',rate:'gold rate',huid:'HUID'})[x.k]||x.k);
   if(!cur.sku)miss.unshift('barcode');
   const guessed=r.found.some(f=>f.endsWith('?'));
   let msg=`Read the ${side}.`;
