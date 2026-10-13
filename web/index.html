@@ -1,13 +1,17 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Yamie Price Check</title>
 <meta name="theme-color" content="#8F171B">
-<meta name="description" content="Photograph a jewellery tag and price it at today's gold rate.">
+<meta name="description" content="Scan jewellery tags, build a bill at today's gold rate, deduct old gold and returns.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: single phone column — maroon rate band, tag scanner, editable tag fields, price ticket with breakdown, recent scans */
+/* Layout: one phone column — rate band, tag editor (scan front/back, fields, making, HUID), bill (items, old gold, returns, totals), sticky net-payable bar */
 :root{
   --bg:#FBF9F6; --surface:#FFFFFF; --sunk:#F3EEE8; --fg:#2A1B1B; --muted:#7A6866; --line:#E7DED6;
   --maroon:#8F171B; --maroon-ink:#FFFFFF; --band:#6E1115; --band-fg:#F6E9DF; --gold:#B8862B;
@@ -15,189 +19,268 @@
   --display:"Cormorant Garamond", Georgia, "Times New Roman", serif;
   --body:"Jost", "Segoe UI", system-ui, sans-serif;
   --mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+  color-scheme:light;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#171112; --surface:#211819; --sunk:#2B2021; --fg:#F2E8E2; --muted:#B3A29E; --line:#3A2C2D;
-  --maroon:#C8474B; --maroon-ink:#FFFFFF; --band:#4A0D10; --band-fg:#F6E9DF; --gold:#D9A94E;
+  --maroon:#D0575B; --maroon-ink:#FFFFFF; --band:#4A0D10; --band-fg:#F6E9DF; --gold:#D9A94E;
   --good:#5DBB82; --warn:#E3A33B; --bad:#F07A72; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#171112; --surface:#211819; --sunk:#2B2021; --fg:#F2E8E2; --muted:#B3A29E; --line:#3A2C2D;
-  --maroon:#C8474B; --maroon-ink:#FFFFFF; --band:#4A0D10; --band-fg:#F6E9DF; --gold:#D9A94E;
+  --maroon:#D0575B; --maroon-ink:#FFFFFF; --band:#4A0D10; --band-fg:#F6E9DF; --gold:#D9A94E;
   --good:#5DBB82; --warn:#E3A33B; --bad:#F07A72; color-scheme:dark}
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45}
-.wrap{max-width:560px;margin:0 auto;padding-inline:16px;padding-block:0 40px;display:flex;flex-direction:column;gap:18px}
-header.top{display:flex;align-items:baseline;justify-content:space-between;padding-top:16px;gap:12px}
-.brand{font-family:var(--display);font-size:28px;font-weight:700;color:var(--maroon);letter-spacing:.01em;line-height:1}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45;padding-top:env(safe-area-inset-top,0px)}
+[hidden]{display:none!important}
+img{max-width:100%}
+.wrap{max-width:560px;margin:0 auto;padding-inline:16px;padding-block:0 120px;display:flex;flex-direction:column;gap:16px}
+header.top{display:flex;align-items:center;justify-content:space-between;padding-top:14px;gap:12px}
+.brand{font-family:var(--display);font-size:28px;font-weight:700;color:var(--maroon);line-height:1}
 .brand small{display:block;font-family:var(--body);font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:4px}
-.btn{font:500 14px var(--body);border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:9px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;justify-content:center}
-.btn:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+button{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
+.btn{font:500 14px var(--body);border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:9px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;justify-content:center;text-decoration:none;min-height:40px}
+.btn:focus-visible,input:focus-visible,select:focus-visible,.chip:focus-visible,.seg button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .btn.primary{background:var(--maroon);border-color:var(--maroon);color:var(--maroon-ink)}
-.btn:disabled{opacity:.55;cursor:default}
-.btn.sm{padding:6px 11px;font-size:13px}
+.btn.ghost{background:transparent}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.sm{padding:6px 11px;font-size:13px;min-height:34px}
+.linkbtn{background:none;border:0;padding:4px 0;color:var(--maroon);font:500 14px var(--body);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 
 /* Rate band */
-.band{background:var(--band);color:var(--band-fg);border-radius:14px;padding:14px 14px 12px}
-.band-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.band{background:var(--band);color:var(--band-fg);border-radius:14px;padding:12px 12px 10px}
+.band-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
 .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
-.band .eyebrow{color:var(--band-fg);opacity:.8}
+.band .eyebrow{opacity:.8}
 .src{font-size:12px;opacity:.85;text-align:right}
-.src b{font-weight:600}
 .rates{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
-.rate{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:7px 8px;min-width:0}
-.rate label{display:block;font-size:11px;letter-spacing:.08em;opacity:.8}
-.rate input{width:100%;background:transparent;border:0;color:var(--band-fg);font:500 15px var(--mono);font-variant-numeric:tabular-nums;padding:2px 0 0}
-.rate.on{border-color:var(--gold);background:rgba(217,169,78,.16)}
+.rate{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:6px 8px;min-width:0}
+.rate label{display:block;font-size:12px;font-weight:600;letter-spacing:.06em;opacity:.85}
+.rate input{width:100%;background:transparent;border:0;color:var(--band-fg);font:500 15px var(--mono);font-variant-numeric:tabular-nums;padding:2px 0 0;min-width:0}
+.rate.edited{border-color:var(--gold)}
 .rate.edited input{color:#FFD58A}
-.band-foot{display:flex;justify-content:space-between;gap:8px;margin-top:10px;font-size:12px;opacity:.85;flex-wrap:wrap}
+.band-foot{display:flex;justify-content:space-between;gap:8px;margin-top:8px;font-size:12px;opacity:.85;flex-wrap:wrap}
 .band-foot button{background:none;border:0;color:var(--band-fg);font:500 12px var(--body);text-decoration:underline;cursor:pointer;padding:0}
 
-/* Scanner */
-.scan{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:12px}
-.scan-row{display:flex;gap:12px;align-items:center}
-.thumb{width:84px;height:84px;border-radius:10px;background:var(--sunk);flex:none;overflow:hidden;display:grid;place-items:center;color:var(--muted);font-size:11px;text-align:center;border:1px dashed var(--line)}
-.thumb img{width:100%;height:100%;object-fit:cover}
-.scan-actions{display:flex;flex-wrap:wrap;gap:8px;min-width:0}
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:12px}
+h2{font-family:var(--display);font-size:23px;font-weight:600;margin:0;line-height:1.1;text-wrap:balance}
+h3{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:0}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.note{font-size:12px;color:var(--muted)}
+
+/* Scan tiles */
+.sides{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.side{border:1px dashed var(--line);border-radius:12px;padding:8px;display:flex;flex-direction:column;gap:8px;min-width:0;background:var(--sunk)}
+.side .thumb{aspect-ratio:4/3;border-radius:8px;background:var(--surface);display:grid;place-items:center;color:var(--muted);font-size:12px;overflow:hidden;max-width:100%}
+.side .thumb img{width:100%;height:100%;object-fit:cover}
+.side .acts{display:flex;gap:6px}
+.side .acts .btn{flex:1;padding:6px 8px;font-size:13px;min-height:36px}
+.side .lbl{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .status{font-size:13px;color:var(--muted);min-height:1.2em}
-.status.err{color:var(--bad)}
+.status.err{color:var(--warn)}
 .status.ok{color:var(--good)}
 .hidden-input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 
 /* Fields */
-h2{font-family:var(--display);font-size:22px;font-weight:600;margin:0;text-wrap:balance}
-.sec-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
-.sec-head .note{font-size:12px;color:var(--muted)}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px}
 .f{display:flex;flex-direction:column;gap:4px;min-width:0}
 .f.full{grid-column:1/-1}
-.f label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
-.f input,.f select{width:100%;font:500 15px var(--body);color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 10px}
+.f label,.flabel{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.f input,.f select{width:100%;font:500 16px var(--body);color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 10px;min-height:42px}
 .f input.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
-.f .unit{display:flex;gap:6px}
-.f .unit select{flex:0 0 92px}
-.f input.read{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 9%,var(--surface))}
-details.settings{border-top:1px solid var(--line);padding-top:10px}
-details.settings summary{cursor:pointer;font-size:13px;color:var(--muted);font-weight:500}
-details.settings .grid{margin-top:10px}
+.f input.read{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 10%,var(--surface))}
 
-/* Ticket */
-.ticket{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
-.ticket-top{padding:16px 16px 12px;border-bottom:1px dashed var(--line);position:relative}
-.ticket-top .eyebrow{color:var(--muted)}
-.final{font-family:var(--display);font-weight:700;font-size:46px;line-height:1.05;color:var(--maroon);font-variant-numeric:lining-nums tabular-nums;margin-top:2px}
-.sub{font-size:13px;color:var(--muted)}
-.cmp{margin-top:8px;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;padding:4px 10px;border-radius:999px;background:var(--sunk)}
-.cmp.good{color:var(--good)} .cmp.warn{color:var(--warn)} .cmp.bad{color:var(--bad)}
-.lines{padding:10px 16px 6px;display:flex;flex-direction:column}
-.line{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}
+/* Segmented + chips */
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--sunk);border-radius:12px;padding:3px;gap:3px}
+.seg button{border:0;background:transparent;padding:9px 4px;border-radius:9px;font:500 14px var(--body);color:var(--muted);cursor:pointer;min-height:40px}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--maroon);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.seg.read{outline:1px solid var(--gold);outline-offset:1px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;font:500 15px var(--mono);font-variant-numeric:tabular-nums;color:var(--fg);cursor:pointer;min-height:40px}
+.chip[aria-pressed="true"]{background:var(--maroon);color:var(--maroon-ink);border-color:var(--maroon)}
+.making{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line);padding-top:12px}
+.making.need .seg{outline:2px solid var(--warn);outline-offset:1px}
+.mk-custom{display:flex;align-items:center;gap:8px}
+.mk-custom input{flex:1;min-width:0;font:500 16px var(--mono);border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:var(--surface);color:var(--fg);min-height:42px}
+.mk-custom .unit{font-size:14px;color:var(--muted);min-width:34px}
+.mk-tag{font-size:12px;color:var(--gold);font-weight:500;text-align:right}
+.hint{font-size:13px;color:var(--warn)}
+
+.huid-row{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid var(--line);padding-top:12px}
+.huid-row .codes{font:400 12px var(--mono);color:var(--muted);word-break:break-all}
+.stepper{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden;flex:none}
+.stepper button{width:42px;height:42px;border:0;background:var(--sunk);font-size:20px;cursor:pointer;color:var(--fg)}
+.stepper output{min-width:40px;text-align:center;font:500 16px var(--mono)}
+.stepper.read{border-color:var(--gold)}
+.stepper.zero{border-color:var(--warn)}
+
+/* Line breakdown */
+.lines{display:flex;flex-direction:column}
+.line{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:14px}
 .line:last-child{border-bottom:0}
 .line span:first-child{color:var(--muted);min-width:0}
 .line span:last-child{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
-.line.total span{color:var(--fg);font-weight:600}
-.ticket-actions{display:flex;gap:8px;padding:12px 16px 16px;flex-wrap:wrap}
-.ticket-actions .btn{flex:1 1 140px}
-.example-flag{position:absolute;top:14px;right:14px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--warn);border:1px solid currentColor;border-radius:999px;padding:2px 8px}
+.line.strong span{color:var(--fg);font-weight:600}
+.line.minus span:last-child{color:var(--good)}
+.preview{background:var(--sunk);border-radius:12px;padding:6px 12px}
+.editor-acts{display:flex;gap:8px;flex-wrap:wrap}
+.editor-acts .btn{flex:1 1 120px}
 
-/* History */
-.hist{display:flex;flex-direction:column;gap:8px}
-.h-item{display:grid;grid-template-columns:1fr auto;gap:2px 10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%}
-.h-item b{font-weight:600}
-.h-item .p{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:500;color:var(--maroon)}
-.h-item .m{font-size:12px;color:var(--muted);grid-column:1/-1}
-.empty{font-size:13px;color:var(--muted);padding:6px 0}
-.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:13px;z-index:9}
-@media (max-width:380px){.rates{grid-template-columns:repeat(2,minmax(0,1fr))}.final{font-size:40px}}
-@media (prefers-reduced-motion:no-preference){.btn{transition:transform .12s}.btn:active{transform:scale(.97)}}
+/* Bill items */
+.items{display:flex;flex-direction:column;gap:8px}
+.item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface)}
+.item b{font-weight:600}
+.item .kind{color:var(--muted);font-size:13px}
+.item .meta{grid-column:1/-1;font:400 12px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.item .val{font:600 16px var(--mono);font-variant-numeric:tabular-nums;color:var(--maroon);text-align:right}
+.item .acts{grid-column:1/-1;display:flex;gap:16px}
+.item.bad{border-color:var(--warn)}
+.empty{font-size:14px;color:var(--muted);padding:6px 0}
+.ded-list{display:flex;flex-direction:column;gap:10px}
+.ded{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) auto;gap:8px;align-items:end}
+.ded.ret{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) auto}
+.ded .f input,.ded .f select{padding:8px;font-size:15px}
+.ded .x{border:0;background:none;color:var(--bad);font-size:24px;width:36px;height:42px;cursor:pointer}
+.ded-val{grid-column:1/-1;font:400 12px var(--mono);color:var(--muted);margin-top:-2px}
+.net{display:flex;justify-content:space-between;align-items:baseline;gap:10px;border-top:2px solid var(--maroon);padding-top:10px;margin-top:4px}
+.net span:first-child{font-weight:600}
+.net strong{font-family:var(--display);font-size:38px;color:var(--maroon);font-variant-numeric:lining-nums tabular-nums;line-height:1}
+.bill-acts{display:flex;gap:8px;flex-wrap:wrap}
+.bill-acts .btn{flex:1 1 120px}
+
+/* Saved bills */
+.recent{display:flex;flex-direction:column;gap:8px}
+.r-item{display:flex;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface);text-align:left;cursor:pointer;width:100%}
+.r-item .p{font:500 15px var(--mono);color:var(--maroon)}
+.r-item .m{font-size:12px;color:var(--muted)}
+details.settings summary{cursor:pointer;font-size:14px;color:var(--muted);font-weight:500;padding:4px 0}
+details.settings .grid{margin-top:10px}
+
+/* Sticky total bar */
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));z-index:5;box-shadow:0 -4px 16px rgba(0,0,0,.06)}
+.bar-in{max-width:560px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.bar .t{font-size:12px;color:var(--muted)}
+.bar .v{font:600 22px var(--mono);font-variant-numeric:tabular-nums;color:var(--maroon);line-height:1.1}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:14px;z-index:9;display:flex;gap:14px;align-items:center;max-width:calc(100% - 32px)}
+.toast button{background:none;border:0;color:var(--gold);font-weight:600;cursor:pointer;padding:0}
+@media (max-width:380px){.rates{grid-template-columns:repeat(2,minmax(0,1fr))}.ded{grid-template-columns:1fr 1fr}.ded .x{justify-self:end}}
+@media (prefers-reduced-motion:no-preference){.btn,.chip{transition:transform .1s}.btn:active,.chip:active{transform:scale(.97)}}
 </style>
-
+</head>
+<body>
 <div class="wrap">
   <header class="top">
-    <div class="brand">Yamie<small>Tag price check</small></div>
-    <button class="btn sm" id="newBtn" type="button">New tag</button>
+    <div class="brand">Yamie<small>Price check &amp; bill</small></div>
+    <button class="btn sm" id="newBillBtn" type="button">New bill</button>
   </header>
 
   <section class="band" aria-label="Today's rates">
     <div class="band-head">
-      <span class="eyebrow">Rate per gram · ₹</span>
-      <span class="src" id="rateSrc">Saved rates</span>
+      <span class="eyebrow">Gold rate per gram · ₹</span>
+      <span class="src" id="rateSrc">Loading…</span>
     </div>
     <div class="rates" id="rates"></div>
     <div class="band-foot">
-      <span id="rateHint">Tap a rate to override it for this check.</span>
-      <button type="button" id="rateReset" hidden>Use live rates</button>
+      <span id="rateHint">Tap a rate to change it for this bill.</span>
+      <button type="button" id="rateReset" hidden>Use today's rates</button>
     </div>
   </section>
 
-  <section class="scan" aria-label="Scan price tag">
-    <div class="scan-row">
-      <div class="thumb" id="thumb">No photo yet</div>
-      <div class="scan-actions">
-        <button class="btn primary" id="camBtn" type="button">Photograph tag</button>
-        <button class="btn" id="galBtn" type="button">From gallery</button>
+  <!-- Tag editor -->
+  <section class="card" id="editor" aria-label="Tag">
+    <div class="sec-head"><h2 id="edTitle">Tag 1</h2><span class="note">Gold outline = read from tag</span></div>
+    <div class="sides">
+      <div class="side">
+        <span class="lbl">Front</span>
+        <div class="thumb" id="thumbFront">No photo</div>
+        <div class="acts"><button class="btn primary" type="button" data-scan="front" data-src="camera">Scan</button><button class="btn" type="button" data-scan="front" data-src="gallery" aria-label="Front from gallery">Photo</button></div>
+      </div>
+      <div class="side">
+        <span class="lbl">Back (if needed)</span>
+        <div class="thumb" id="thumbBack">No photo</div>
+        <div class="acts"><button class="btn" type="button" data-scan="back" data-src="camera">Scan</button><button class="btn" type="button" data-scan="back" data-src="gallery" aria-label="Back from gallery">Photo</button></div>
       </div>
     </div>
     <input class="hidden-input" id="camInput" type="file" accept="image/*" capture="environment" aria-label="Take tag photo">
     <input class="hidden-input" id="galInput" type="file" accept="image/*" aria-label="Choose tag photo">
-    <div class="status" id="status" role="status">Snap the tag close and flat. Weights, purity and making are read on this phone; check them below.</div>
+    <div class="status" id="status" role="status">Scan the front of the tag. Scan the back too if details are printed there.</div>
+
+    <div class="grid">
+      <div class="f"><label for="sku">Barcode no.</label><input id="sku" autocomplete="off" autocapitalize="characters" spellcheck="false"></div>
+      <div class="f"><label for="item">Item</label><input id="item" autocomplete="off"></div>
+      <div class="f full"><span class="flabel">Purity</span><div class="seg" id="puritySeg" role="group" aria-label="Purity"></div></div>
+      <div class="f"><label for="gw">GWT · gross (g)</label><input class="num" id="gw" inputmode="decimal"></div>
+      <div class="f"><label for="sw">SWT · stone</label><input class="num" id="sw" inputmode="decimal"></div>
+      <div class="f"><label for="nw">NWT · net gold (g)</label><input class="num" id="nw" inputmode="decimal"></div>
+      <div class="f"><label for="spr">SPR · stone price ₹</label><input class="num" id="spr" inputmode="decimal"></div>
+    </div>
+
+    <div class="making" id="makingBox">
+      <div class="sec-head"><span class="flabel">Making charge</span><span class="mk-tag" id="mkTag"></span></div>
+      <div class="seg" id="mkSeg" role="group" aria-label="Making charge type"></div>
+      <div class="chips" id="mkChips"></div>
+      <div class="mk-custom" id="mkCustomRow" hidden>
+        <input id="mkVal" inputmode="decimal" aria-label="Making charge, manual entry" placeholder="Other amount">
+        <span class="unit" id="mkUnit"></span>
+      </div>
+      <div class="hint" id="mkHint" hidden>Making is not on the tag. Pick a type and amount.</div>
+    </div>
+
+    <div class="huid-row">
+      <div style="min-width:0">
+        <span class="flabel">HUID count</span>
+        <div class="codes" id="huidCodes">No HUID read</div>
+      </div>
+      <div class="stepper" id="huidStep"><button type="button" id="huidMinus" aria-label="One less HUID">−</button><output id="huidCount">0</output><button type="button" id="huidPlus" aria-label="One more HUID">+</button></div>
+    </div>
+
+    <div class="preview"><div class="lines" id="preview"></div></div>
+    <div class="editor-acts">
+      <button class="btn ghost" type="button" id="clearTag">Clear tag</button>
+      <button class="btn primary" type="button" id="addTag">Add to bill</button>
+    </div>
   </section>
 
-  <section class="scan" aria-label="Tag details">
-    <div class="sec-head"><h2>Tag details</h2><span class="note" id="readNote">Gold outline = read from photo</span></div>
-    <div class="grid">
-      <div class="f"><label for="sku">SKU / tag no.</label><input id="sku" autocomplete="off"></div>
-      <div class="f"><label for="purity">Metal</label>
-        <select id="purity">
-          <option value="22k">Gold 22K (916)</option>
-          <option value="18k">Gold 18K (750)</option>
-          <option value="14k">Gold 14K (585)</option>
-          <option value="9k">Gold 9K (375)</option>
-          <option value="platinum">Platinum (950)</option>
-          <option value="silver">Silver (925)</option>
-        </select></div>
-      <div class="f full"><label for="item">Item</label><input id="item" autocomplete="off"></div>
-      <div class="f"><label for="gw">Gross wt (g)</label><input class="num" id="gw" inputmode="decimal"></div>
-      <div class="f"><label for="nw">Net wt (g)</label><input class="num" id="nw" inputmode="decimal"></div>
-      <div class="f"><label for="sw">Diamond / stone</label>
-        <div class="unit"><input class="num" id="sw" inputmode="decimal"><select id="swUnit" aria-label="Stone unit"><option value="ct">ct</option><option value="g">g</option></select></div></div>
-      <div class="f"><label for="stoneVal">Stone value ₹</label><input class="num" id="stoneVal" inputmode="decimal" placeholder="auto"></div>
-      <div class="f"><label for="mk">Making</label>
-        <div class="unit"><input class="num" id="mk" inputmode="decimal"><select id="mkType" aria-label="Making type"><option value="pct">%</option><option value="pg">₹/g</option><option value="flat">₹ flat</option></select></div></div>
-      <div class="f"><label for="tagPrice">Printed price ₹</label><input class="num" id="tagPrice" inputmode="decimal" placeholder="if on tag"></div>
-      <div class="f full"><label for="huid">HUID</label><input id="huid" autocomplete="off"></div>
+  <!-- Bill -->
+  <section class="card" id="bill" aria-label="Bill">
+    <div class="sec-head"><h2>Bill</h2><span class="note" id="billCount">No tags yet</span></div>
+    <div class="items" id="items"></div>
+
+    <div class="ded-list">
+      <div class="sec-head"><h3>Old gold</h3><button class="linkbtn" type="button" id="addOld">+ Add old gold</button></div>
+      <div id="oldList" class="ded-list"></div>
+      <div class="sec-head"><h3>Sales return</h3><button class="linkbtn" type="button" id="addRet">+ Add return</button></div>
+      <div id="retList" class="ded-list"></div>
     </div>
+
+    <div class="lines" id="totals"></div>
+    <div class="net"><span id="netLabel">Net payable</span><strong id="net">₹0</strong></div>
+    <div class="bill-acts">
+      <button class="btn" type="button" id="copyBtn">Copy</button>
+      <a class="btn" id="waBtn" href="#" target="_blank" rel="noopener">WhatsApp</a>
+      <button class="btn primary" type="button" id="saveBill">Save bill</button>
+    </div>
+  </section>
+
+  <section class="card" aria-label="Saved bills">
+    <div class="sec-head"><h2>Saved bills</h2><span class="note">This phone only</span></div>
+    <div class="recent" id="recent"></div>
     <details class="settings">
-      <summary>Pricing settings</summary>
+      <summary>Charges settings</summary>
       <div class="grid">
-        <div class="f"><label for="stoneRate">Diamond rate ₹/ct</label><input class="num" id="stoneRate" inputmode="decimal"></div>
-        <div class="f"><label for="disc">Making discount %</label><input class="num" id="disc" inputmode="decimal"></div>
-        <div class="f"><label for="gst">GST %</label><input class="num" id="gst" inputmode="decimal"></div>
-        <div class="f"><label for="round">Round up to ₹</label><input class="num" id="round" inputmode="numeric"></div>
-        <div class="f full"><label for="mkBase">Making % applies to</label>
-          <select id="mkBase"><option value="both">Metal + stone (Yamie workbook)</option><option value="metal">Metal only</option></select></div>
+        <div class="f"><label for="setGst">GST %</label><input class="num" id="setGst" inputmode="decimal"></div>
+        <div class="f"><label for="setHuid">₹ per HUID</label><input class="num" id="setHuid" inputmode="decimal"></div>
       </div>
     </details>
   </section>
+</div>
 
-  <section class="ticket" aria-label="Price">
-    <div class="ticket-top">
-      <span class="example-flag" id="exFlag">Example</span>
-      <span class="eyebrow">Price today</span>
-      <div class="final" id="final">₹0</div>
-      <div class="sub" id="finalSub"></div>
-      <div class="cmp" id="cmp" hidden></div>
-    </div>
-    <div class="lines" id="lines"></div>
-    <div class="ticket-actions">
-      <button class="btn" id="copyBtn" type="button">Copy quote</button>
-      <a class="btn" id="waBtn" href="#" target="_blank" rel="noopener">WhatsApp</a>
-      <button class="btn primary" id="saveBtn" type="button">Save to recent</button>
-    </div>
-  </section>
-
-  <section aria-label="Recent checks" class="hist">
-    <div class="sec-head"><h2>Recent checks</h2><span class="note">This phone only</span></div>
-    <div id="hist"></div>
-  </section>
+<div class="bar" id="bar">
+  <div class="bar-in">
+    <div><div class="t" id="barT">Net payable</div><div class="v" id="barV">₹0</div></div>
+    <button class="btn sm" type="button" id="barBtn">View bill</button>
+  </div>
 </div>
 <div class="toast" id="toast" hidden></div>
 
@@ -205,206 +288,244 @@ details.settings .grid{margin-top:10px}
 <script>
 (function(){
 const $=id=>document.getElementById(id);
-const NATIVE=window.YamieNative||null;   // present inside the Android app (ML Kit OCR, direct rates)
+const NATIVE=window.YamieNative||null;   // inside the Android app: ML Kit OCR, direct rates, clipboard
 const store={get(k,d){try{const v=localStorage.getItem('ypc_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('ypc_'+k,JSON.stringify(v))}catch(e){}}};
 
-const RATE_KEYS=[
-  {id:'22k',label:'22K',mf:'gold_rate_22k'},{id:'18k',label:'18K',mf:'gold_rate_18k'},
-  {id:'14k',label:'14K',mf:'gold_rate_14k'},{id:'9k',label:'9K',mf:'gold_rate_9k'},
-  {id:'platinum',label:'PT',mf:'gold_rate_platinum'},{id:'silver',label:'Silver',mf:'gold_rate_silver'}];
-let live=store.get('live',null);           // {rates:{}, diamond, at}
-let overrides={};                           // per-check manual overrides
-let fromPhoto=new Set();
-let isExample=false;
+const PURITIES=[{id:'22k',label:'22K',src:'r22'},{id:'18k',label:'18K',src:'r18'},{id:'14k',label:'14K',src:'r14'},{id:'9k',label:'9K',src:'r9'}];
+const PLABEL={'22k':'22K','18k':'18K','14k':'14K','9k':'9K'};
+const CAT=window.YAMIE_CATEGORIES||{};
+const MK={
+  fixed:  {label:'Fixed',       unit:'₹',   presets:[1500,2000,2500,3000]},
+  pergram:{label:'Per gram',    unit:'₹/g', presets:[2000,2400,3000,4000]},
+  pct:    {label:'% of net wt', unit:'%',   presets:[28,32,38,40,45,50]}};
 
-// ---------- rates UI ----------
+// ---------- helpers ----------
+function num(v){if(v==null)return NaN;const s=String(v).replace(/[,₹\s]/g,'').replace(/[^0-9.\-]/g,'');return s===''?NaN:parseFloat(s)}
+function fmtN(v){return v==null||isNaN(v)?'':String(Math.round(v*1000)/1000)}
+const fmtW=v=>isNaN(v)?'—':(Math.round(v*1000)/1000).toFixed(3);
+const inr=v=>(v<0?'−':'')+'₹'+Math.round(Math.abs(v)).toLocaleString('en-IN');
+const inr2=v=>'₹'+(Math.round(v*100)/100).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,9);
+const clone=o=>JSON.parse(JSON.stringify(o));
+function whenText(iso){if(!iso)return'';return new Date(iso).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})}
+function itemFromSku(sku){const m=String(sku||'').toUpperCase().match(/^([A-Z]{3})/);return m&&CAT[m[1]]?CAT[m[1]]:''}
+
+// ---------- state ----------
+let live=store.get('live',{rates:{},at:null});
+if(!live||!live.rates)live={rates:{},at:null};
+const settings=Object.assign({gst:3,huid:80},store.get('settings2',{}));
+function newBill(){return {items:[],oldGold:[],returns:[],overrides:{},started:Date.now()}}
+let bill=store.get('bill',null)||newBill();
+if(!bill.overrides)bill.overrides={};
+function blankTag(){return {id:uid(),sku:'',item:'',itemAuto:true,purity:'22k',gw:'',sw:'',nw:'',spr:'',huids:[],huidCount:0,mkType:'',mkVal:'',mkTag:'',read:[]}}
+const draft=store.get('draft',null);
+let cur=draft&&draft.cur?draft.cur:blankTag();
+let editingId=draft&&draft.editingId||null;
+let thumbs={front:null,back:null};
+let scanSide='front';
+function saveBill(){store.set('bill',bill)}
+function saveDraft(){store.set('draft',{cur,editingId})}
+
+// ---------- rates ----------
+function rateFor(p){const o=bill.overrides[p];if(o!=null&&!isNaN(o))return o;const r=live.rates[p];return r==null||isNaN(r)?null:r}
 const ratesEl=$('rates');
-RATE_KEYS.forEach(r=>{
-  const d=document.createElement('div');d.className='rate';d.dataset.k=r.id;
-  d.innerHTML=`<label for="r_${r.id}">${r.label}</label><input id="r_${r.id}" inputmode="decimal" autocomplete="off">`;
+PURITIES.forEach(p=>{
+  const d=document.createElement('div');d.className='rate';d.dataset.k=p.id;
+  d.innerHTML=`<label for="r_${p.id}">${p.label}</label><input id="r_${p.id}" inputmode="decimal" autocomplete="off">`;
   ratesEl.appendChild(d);
-  d.querySelector('input').addEventListener('input',e=>{overrides[r.id]=num(e.target.value);paintRates();calc()});
-});
-function baseRate(k){return live&&live.rates&&live.rates[k]!=null?live.rates[k]:null}
-function rateFor(k){return overrides[k]!=null&&!isNaN(overrides[k])?overrides[k]:baseRate(k)}
-function paintRates(){
-  const p=$('purity').value;
-  RATE_KEYS.forEach(r=>{
-    const box=ratesEl.querySelector(`[data-k="${r.id}"]`),inp=box.querySelector('input');
-    if(document.activeElement!==inp){const v=rateFor(r.id);inp.value=v==null?'':fmtN(v)}
-    box.classList.toggle('on',r.id===p);
-    box.classList.toggle('edited',overrides[r.id]!=null);
+  d.querySelector('input').addEventListener('input',e=>{
+    const v=num(e.target.value);
+    if(isNaN(v))delete bill.overrides[p.id];else bill.overrides[p.id]=v;
+    saveBill();paintRates();renderPreview();renderBill(true);
   });
-  $('rateReset').hidden=!Object.keys(overrides).length;
+});
+function paintRates(){
+  PURITIES.forEach(p=>{
+    const box=ratesEl.querySelector(`[data-k="${p.id}"]`),inp=box.querySelector('input');
+    if(document.activeElement!==inp){const v=rateFor(p.id);inp.value=v==null?'':v.toLocaleString('en-IN')}
+    box.classList.toggle('edited',bill.overrides[p.id]!=null);
+  });
+  $('rateReset').hidden=!Object.keys(bill.overrides).length;
 }
-$('rateReset').onclick=()=>{overrides={};paintRates();calc()};
-function setSrc(text){$('rateSrc').innerHTML=text}
+$('rateReset').onclick=()=>{bill.overrides={};saveBill();paintRates();renderEditor();renderBill()};
+function setSrc(t){$('rateSrc').textContent=t}
 
-function whenText(iso){if(!iso)return'';const d=new Date(iso);return d.toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})}
-const RATES_URL=(location.protocol==='https:'?'':'https://yamie-price-check.netlify.app')+'/api/rates';
-let rateTimer=null;
 function nativeRates(){return new Promise((res,rej)=>{window.onNativeRates=t=>{try{t?res(JSON.parse(t)):rej(new Error('native'))}catch(e){rej(e)}};NATIVE.fetchRates();setTimeout(()=>rej(new Error('timeout')),15000)})}
 async function loadRates(){
-  if(!navigator.onLine){setSrc(live&&live.at?`Offline · saved ${whenText(live.at)}`:'Offline · enter rates');return}
+  if(!navigator.onLine){setSrc(live.at?`Offline · saved ${whenText(live.at)}`:'Offline');return}
   try{
     let j;
     if(NATIVE)j=await nativeRates();
     else{
-      let r=await fetch(RATES_URL,{cache:'no-store'}).catch(()=>null);
+      let r=await fetch('https://yamie-price-check.netlify.app/api/rates',{cache:'no-store'}).catch(()=>null);
       if(!r||!r.ok)r=await fetch('https://grandjewellers.com/api/kiosk-rates',{cache:'no-store'});
       if(!r.ok)throw new Error('HTTP '+r.status);
       j=await r.json();
     }
     const rates={};
-    const map={'22k':j.r22,'18k':j.r18,'14k':j.r14,'9k':j.r9,platinum:j.platinum,silver:j.silver};
-    Object.keys(map).forEach(k=>{const v=num(map[k]);if(!isNaN(v)&&v>0)rates[k]=v});
+    PURITIES.forEach(p=>{const v=num(j[p.src]);if(!isNaN(v)&&v>0)rates[p.id]=v});
     if(!Object.keys(rates).length)throw new Error('empty');
-    live={rates,diamond:live&&live.diamond,at:j.updated_at||new Date().toISOString()};
-    store.set('live',live);
-    setSrc(`<b>Today's rate</b> · ${whenText(live.at)}`);
-    $('rateHint').textContent='Tap a rate to override it for this check.';
-    paintRates();calc();
+    live={rates,at:j.updated_at||new Date().toISOString()};store.set('live',live);
+    setSrc(`Today · ${whenText(live.at)}`);
+    $('rateHint').textContent='Tap a rate to change it for this bill.';
+    paintRates();renderPreview();renderBill(true);
   }catch(e){
-    setSrc(live&&live.at?`Saved · ${whenText(live.at)}`:'Enter rates');
-    $('rateHint').textContent='Could not load today\'s rate. Using the last saved rate; check before quoting.';
+    setSrc(live.at?`Saved · ${whenText(live.at)}`:'Not loaded');
+    $('rateHint').textContent=live.at?'Could not load today\'s rate. Showing the last saved rate; check before billing.':'Could not load rates. Type them in to continue.';
   }
 }
-function hookLiveRates(){
+function hookRates(){
   loadRates();
-  clearInterval(rateTimer);rateTimer=setInterval(()=>{if(!document.hidden)loadRates()},5*60*1000);
+  setInterval(()=>{if(!document.hidden)loadRates()},5*60*1000);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadRates()});
   window.addEventListener('online',loadRates);
 }
 
-// ---------- settings ----------
-const settings=Object.assign({stoneRate:100000,disc:0,gst:3,round:50,mkBase:'both'},store.get('settings',{}));
-const userTouched={};
-['stoneRate','disc','gst','round','mkBase'].forEach(k=>{
-  const el=$(k);el.value=k==='mkBase'?settings[k]:fmtN(settings[k]);
-  el.addEventListener('input',()=>{userTouched[k]=true;settings[k]=k==='mkBase'?el.value:num(el.value);store.set('settings',settings);calc()});
-});
-if(live&&!isNaN(live.diamond)&&!store.get('settings',{}).stoneRate)$('stoneRate').value=fmtN(live.diamond);
-
-// ---------- fields ----------
-const FIELDS=['sku','item','purity','gw','nw','sw','swUnit','stoneVal','mk','mkType','tagPrice','huid'];
-FIELDS.forEach(k=>$(k).addEventListener('input',()=>{
-  if(isExample){isExample=false;$('exFlag').hidden=true}
-  $(k).classList.remove('read');if(k==='purity')paintRates();calc()}));
-function setFields(o,mark){
-  fromPhoto=new Set();
-  FIELDS.forEach(k=>{const el=$(k);let v=o[k];
-    if(v==null||v===''){if(mark&&!['purity','swUnit','mkType'].includes(k))el.value='';el.classList.remove('read');return}
-    el.value=String(v);
-    if(mark&&!['swUnit','mkType'].includes(k)){el.classList.add('read');fromPhoto.add(k)}else el.classList.remove('read');
-  });
-  paintRates();calc();
-}
-function getFields(){const o={};FIELDS.forEach(k=>o[k]=$(k).value);return o}
-
-// ---------- calculation (Yamie workbook flow) ----------
-function num(v){if(v==null)return NaN;const s=String(v).replace(/[,₹\s]/g,'').replace(/[^0-9.\-]/g,'');return s===''?NaN:parseFloat(s)}
-function fmtN(v){return isNaN(v)||v==null?'':String(Math.round(v*1000)/1000)}
-const inr=v=>'₹'+Math.round(v).toLocaleString('en-IN');
-const inr2=v=>'₹'+(Math.round(v*100)/100).toLocaleString('en-IN',{minimumFractionDigits:0,maximumFractionDigits:2});
-let last=null;
-function calc(){
-  const f=getFields(),p=f.purity,rate=rateFor(p);
-  const nw=num(f.nw),gw=num(f.gw);
+// ---------- pricing ----------
+function priceTag(t){
+  const rate=rateFor(t.purity);
+  const nw=num(t.nw),gw=num(t.gw);
   const w=!isNaN(nw)?nw:gw;
-  const sw=num(f.sw),stoneValIn=num(f.stoneVal),stoneRate=num($('stoneRate').value);
-  const mk=num(f.mk),disc=num($('disc').value)||0,gst=num($('gst').value),round=num($('round').value)||1;
-  const lines=[];
-  if(rate==null||isNaN(rate)||isNaN(w)){
-    $('final').textContent='—';
-    $('finalSub').textContent=rate==null||isNaN(rate)?`Enter the ${p.toUpperCase()} rate above.`:'Enter net weight to price this tag.';
-    $('lines').innerHTML='';$('cmp').hidden=true;last=null;return;
+  const usedGross=isNaN(nw)&&!isNaN(gw);
+  const gold=(isNaN(w)||rate==null)?NaN:w*rate;
+  const sprN=num(t.spr),stone=isNaN(sprN)?0:sprN;
+  const mv=num(t.mkVal);
+  let making=0,mkLabel='';
+  const hasMk=!!t.mkType&&!isNaN(mv);
+  if(hasMk){
+    if(t.mkType==='fixed'){making=mv;mkLabel=`Fixed ${inr(mv)}`}
+    else if(t.mkType==='pergram'){making=isNaN(w)?NaN:mv*w;mkLabel=`${inr(mv)}/g × ${fmtW(w)} g`}
+    else {making=isNaN(gold)?NaN:gold*mv/100;mkLabel=`${fmtN(mv)}% of gold value`}
   }
-  const metal=w*rate;
-  let stone=0,stoneNote='';
-  if(!isNaN(stoneValIn)){stone=stoneValIn;stoneNote='from tag'}
-  else if(!isNaN(sw)&&sw>0){
-    const ct=f.swUnit==='g'?sw*5:sw;stone=ct*(isNaN(stoneRate)?0:stoneRate);
-    stoneNote=`${fmtN(ct)} ct × ${inr(stoneRate)}`;
-  }
-  const effMk=isNaN(mk)?0:mk*(1-disc/100);
-  let making=0,mkNote='';
-  if(f.mkType==='pct'){const base=$('mkBase').value==='metal'?metal:metal+stone;making=base*effMk/100;mkNote=`${fmtN(effMk)}% of ${$('mkBase').value==='metal'?'metal':'metal + stone'}`}
-  else if(f.mkType==='pg'){making=effMk*w;mkNote=`${inr(effMk)}/g × ${fmtN(w)} g`}
-  else{making=effMk;mkNote='flat'}
-  const total=metal+stone+making;
-  const gstAmt=total*(isNaN(gst)?0:gst)/100;
-  const net=total+gstAmt;
-  const final=Math.ceil(net/round)*round;
-  const pLabel=$('purity').selectedOptions[0].textContent;
-  lines.push(['Metal · '+fmtN(w)+' g × '+inr(rate)+(isNaN(nw)?' (gross)':''),inr2(metal)]);
-  if(stone)lines.push(['Stone · '+stoneNote,inr2(stone)]);
-  if(making)lines.push(['Making · '+mkNote+(disc?` (after ${fmtN(disc)}% off)`:''),inr2(making)]);
-  lines.push(['Value before tax',inr2(total)]);
-  lines.push([`GST ${fmtN(gst)}%`,inr2(gstAmt)]);
-  lines.push([`Rounded up to ₹${fmtN(round)}`,inr(final)]);
-  $('lines').innerHTML=lines.map((l,i)=>`<div class="line${i===lines.length-1?' total':''}"><span>${esc(l[0])}</span><span>${esc(l[1])}</span></div>`).join('');
-  $('final').textContent=inr(final);
-  $('finalSub').textContent=[f.sku,pLabel,f.item].filter(Boolean).join(' · ');
-  const tp=num(f.tagPrice),cmp=$('cmp');
-  if(!isNaN(tp)&&tp>0){
-    const diff=final-tp,pct=diff/tp*100;
-    cmp.hidden=false;
-    cmp.className='cmp '+(Math.abs(pct)<1?'good':pct>0?'warn':'bad');
-    cmp.textContent=Math.abs(pct)<1?`Matches printed ${inr(tp)}`:`${diff>0?'Up':'Down'} ${inr(Math.abs(diff))} (${Math.abs(pct).toFixed(1)}%) vs printed ${inr(tp)}`;
-  }else cmp.hidden=true;
-  last={final,lines,f,pLabel,rate,at:Date.now()};
-  const msg=quoteText();$('waBtn').href='https://wa.me/?text='+encodeURIComponent(msg);
+  const huidN=Math.max(0,t.huidCount|0),huid=huidN*settings.huid;
+  const value=gold+stone+making+huid;
+  return {rate,w,usedGross,gold,stone,making,mkLabel,hasMk,huidN,huid,value,ok:!isNaN(value)};
 }
-function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
-function quoteText(){
-  if(!last)return'';const f=last.f;
-  return ['Yamie Fine Jewellery',[f.sku,last.pLabel].filter(Boolean).join(' · '),f.item||'',
-    `Net wt: ${fmtN(num(f.nw)||num(f.gw))} g`+(f.sw?` · Stone: ${f.sw} ${f.swUnit}`:''),
-    `Rate: ${inr(last.rate)}/g (${new Date().toLocaleDateString('en-IN')})`,
-    `Price incl. GST: ${inr(last.final)}`].filter(Boolean).join('\n');
+function oldRate(o){const r=num(o.rate);return !isNaN(r)?r:rateFor(o.purity)}
+function oldValue(o){const w=num(o.wt),r=oldRate(o);return isNaN(w)||r==null?NaN:w*r}
+function totals(){
+  const s={gold:0,stone:0,making:0,huid:0,huidN:0,sub:0,bad:0};
+  bill.items.forEach(t=>{const p=priceTag(t);if(!p.ok){s.bad++;return}s.gold+=p.gold;s.stone+=p.stone;s.making+=p.making;s.huid+=p.huid;s.huidN+=p.huidN;s.sub+=p.value});
+  const gstP=num(settings.gst)||0;
+  s.gst=s.sub*gstP/100;s.total=s.sub+s.gst;
+  s.old=0;s.oldW=0;
+  bill.oldGold.forEach(o=>{const v=oldValue(o);if(!isNaN(v)){s.old+=v;s.oldW+=num(o.wt)}});
+  s.ret=0;bill.returns.forEach(r=>{const v=num(r.amount);if(!isNaN(v))s.ret+=v});
+  s.net=Math.round(s.total-s.old-s.ret);
+  return s;
 }
 
-// ---------- toast / actions ----------
-let tt;function toast(t){const el=$('toast');el.textContent=t;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>el.hidden=true,2200)}
-$('copyBtn').onclick=()=>{const t=quoteText();if(!t)return;
-  if(window.YamieNative&&window.YamieNative.copy){window.YamieNative.copy(t);toast('Quote copied');return}
-  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>toast('Quote copied'),()=>toast('Copy blocked here. Long-press the price to select.'))}else toast('Copy blocked here.')};
-$('saveBtn').onclick=()=>{
-  if(!last){toast('Nothing to save yet');return}
-  const h=store.get('hist',[]);h.unshift({f:last.f,final:last.final,rate:last.rate,at:Date.now(),ex:isExample});store.set('hist',h.slice(0,30));
-  paintHist();toast('Saved to recent');
+// ---------- editor UI ----------
+const FIELDS=['sku','item','gw','sw','nw','spr'];
+PURITIES.forEach(p=>{const b=document.createElement('button');b.type='button';b.textContent=p.label;b.dataset.p=p.id;b.onclick=()=>{cur.purity=p.id;unread('purity');saveDraft();renderEditor()};$('puritySeg').appendChild(b)});
+Object.keys(MK).forEach(k=>{const b=document.createElement('button');b.type='button';b.textContent=MK[k].label;b.dataset.k=k;
+  b.onclick=()=>{if(cur.mkType!==k){cur.mkType=k;cur.mkVal=''}unread('making');saveDraft();renderEditor()};$('mkSeg').appendChild(b)});
+FIELDS.forEach(k=>$(k).addEventListener('input',()=>{
+  cur[k]=$(k).value;unread(k);
+  if(k==='item')cur.itemAuto=!cur.item;
+  if(k==='sku'&&cur.itemAuto){cur.item=itemFromSku(cur.sku);$('item').value=cur.item}
+  saveDraft();renderPreview();renderMakingHint();
+}));
+$('mkVal').addEventListener('input',()=>{cur.mkVal=$('mkVal').value;unread('making');saveDraft();paintChips();renderPreview();renderMakingHint()});
+$('huidMinus').onclick=()=>{cur.huidCount=Math.max(0,(cur.huidCount|0)-1);unread('huid');saveDraft();renderEditor()};
+$('huidPlus').onclick=()=>{cur.huidCount=(cur.huidCount|0)+1;unread('huid');saveDraft();renderEditor()};
+function unread(k){cur.read=(cur.read||[]).filter(x=>x!==k)}
+function isRead(k){return (cur.read||[]).includes(k)}
+
+function paintChips(){
+  const box=$('mkChips');box.innerHTML='';
+  const t=cur.mkType;$('mkCustomRow').hidden=!t;
+  if(!t)return;
+  const v=num(cur.mkVal);
+  MK[t].presets.forEach(p=>{
+    const b=document.createElement('button');b.type='button';b.className='chip';
+    b.textContent=t==='pct'?p+'%':p.toLocaleString('en-IN');
+    b.setAttribute('aria-pressed',String(v===p));
+    b.onclick=()=>{cur.mkVal=String(p);unread('making');saveDraft();renderEditor()};
+    box.appendChild(b);
+  });
+  $('mkUnit').textContent=MK[t].unit;
+  const isPreset=MK[t].presets.includes(v);
+  if(document.activeElement!==$('mkVal'))$('mkVal').value=(!isNaN(v)&&!isPreset)?fmtN(v):'';
+}
+function renderMakingHint(){
+  const p=priceTag(cur);
+  const hasWeight=!isNaN(num(cur.nw))||!isNaN(num(cur.gw));
+  const need=hasWeight&&!p.hasMk;
+  $('makingBox').classList.toggle('need',need);
+  $('mkHint').hidden=!need;
+}
+function renderEditor(){
+  const idx=editingId?bill.items.findIndex(x=>x.id===editingId):-1;
+  if(editingId&&idx<0)editingId=null;
+  $('edTitle').textContent=idx>=0?`Editing tag ${idx+1}`:`Tag ${bill.items.length+1}`;
+  $('addTag').textContent=idx>=0?'Update tag':'Add to bill';
+  $('clearTag').textContent=idx>=0?'Cancel edit':'Clear tag';
+  FIELDS.forEach(k=>{const el=$(k);if(document.activeElement!==el)el.value=cur[k]||'';el.classList.toggle('read',isRead(k))});
+  [...$('puritySeg').children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.p===cur.purity)));
+  $('puritySeg').classList.toggle('read',isRead('purity'));
+  [...$('mkSeg').children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.k===cur.mkType)));
+  $('mkSeg').classList.toggle('read',isRead('making'));
+  $('mkTag').textContent=cur.mkTag&&isRead('making')?cur.mkTag:'';
+  paintChips();
+  $('huidCount').textContent=cur.huidCount|0;
+  $('huidStep').classList.toggle('read',isRead('huid'));
+  $('huidStep').classList.toggle('zero',(cur.huidCount|0)===0&&(!isNaN(num(cur.nw))||!isNaN(num(cur.gw))));
+  $('huidCodes').textContent=(cur.huids&&cur.huids.length?cur.huids.join(', '):'None read')+` · ${inr(settings.huid)} each`;
+  $('thumbFront').innerHTML=thumbs.front?`<img alt="Front of tag" src="${thumbs.front}">`:'No photo';
+  $('thumbBack').innerHTML=thumbs.back?`<img alt="Back of tag" src="${thumbs.back}">`:'No photo';
+  renderPreview();renderMakingHint();
+}
+function renderPreview(){
+  const p=priceTag(cur),L=[];
+  if(p.rate==null)L.push([`${PLABEL[cur.purity]} rate`,'enter rate above']);
+  else if(isNaN(p.w))L.push(['Gold','enter NWT']);
+  else L.push([`Gold · ${fmtW(p.w)} g${p.usedGross?' (GWT)':''} × ${inr(p.rate)}`,inr2(p.gold)]);
+  if(p.stone)L.push(['Stone price (SPR)',inr2(p.stone)]);
+  L.push(['Making'+(p.hasMk?' · '+p.mkLabel:''),p.hasMk&&!isNaN(p.making)?inr2(p.making):'—']);
+  L.push([`HUID · ${p.huidN} × ${inr(settings.huid)}`,inr2(p.huid)]);
+  L.push(['Tag value before GST',p.ok?inr2(p.value):'—']);
+  $('preview').innerHTML=L.map((l,i)=>`<div class="line${i===L.length-1?' strong':''}"><span>${esc(l[0])}</span><span>${esc(l[1])}</span></div>`).join('');
+}
+$('clearTag').onclick=()=>{cur=blankTag();editingId=null;thumbs={front:null,back:null};saveDraft();setStatus('Scan the front of the tag. Scan the back too if details are printed there.');renderEditor()};
+$('addTag').onclick=()=>{
+  const p=priceTag(cur);
+  if(p.rate==null){setStatus(`Enter today's ${PLABEL[cur.purity]} rate at the top first.`,'err');return}
+  if(isNaN(p.w)||p.w<=0){setStatus('Enter the net gold weight (NWT).','err');$('nw').focus();return}
+  if(!p.hasMk){setStatus('Choose the making charge type and amount.','err');$('makingBox').scrollIntoView({behavior:'smooth',block:'center'});return}
+  const t=clone(cur);
+  const i=bill.items.findIndex(x=>x.id===editingId);
+  if(i>=0)bill.items[i]=t;else bill.items.push(t);
+  const wasEdit=i>=0;
+  cur=blankTag();editingId=null;thumbs={front:null,back:null};
+  saveBill();saveDraft();renderEditor();renderBill();
+  setStatus(wasEdit?'Tag updated.':`Added. ${bill.items.length} tag${bill.items.length>1?'s':''} in the bill. Scan the next tag.`,'ok');
+  toast(wasEdit?'Tag updated':'Added to bill');
+  window.scrollTo({top:$('editor').offsetTop-10,behavior:'smooth'});
 };
-$('newBtn').onclick=()=>{isExample=false;$('exFlag').hidden=true;overrides={};
-  setFields({sku:'',item:'',purity:'22k',gw:'',nw:'',sw:'',swUnit:'ct',stoneVal:'',mk:'',mkType:'pct',tagPrice:'',huid:''},false);
-  $('thumb').innerHTML='No photo yet';setStatus('Ready for the next tag.');};
-function paintHist(){
-  const h=store.get('hist',[]),el=$('hist');
-  if(!h.length){el.innerHTML='<div class="empty">Saved checks appear here with the rate used, so you can re-price them later.</div>';return}
-  el.innerHTML=h.map((x,i)=>`<button class="h-item" type="button" data-i="${i}"><b>${esc(x.f.sku||x.f.item||'Tag')}${x.ex?' (example)':''}</b><span class="p">${inr(x.final)}</span><span class="m">${esc(x.f.purity.toUpperCase())} · ${esc(x.f.nw||x.f.gw)} g · at ${inr(x.rate)}/g · ${new Date(x.at).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})}</span></button>`).join('');
-  el.querySelectorAll('.h-item').forEach(b=>b.onclick=()=>{const x=h[+b.dataset.i];isExample=!!x.ex;$('exFlag').hidden=!isExample;setFields(x.f,false);window.scrollTo({top:0,behavior:'smooth'});toast('Re-priced at today\'s rate')});
-}
 
-// ---------- reading the tag (on-device OCR) ----------
+// ---------- scanning ----------
 function setStatus(t,cls){const s=$('status');s.textContent=t;s.className='status'+(cls?' '+cls:'')}
 let reading=false,tessWorker=null;
-
-$('camBtn').onclick=()=>{if(NATIVE){NATIVE.scan('camera')}else $('camInput').click()};
-$('galBtn').onclick=()=>{if(NATIVE){NATIVE.scan('gallery')}else $('galInput').click()};
+document.querySelectorAll('[data-scan]').forEach(b=>b.onclick=()=>{
+  if(reading)return;
+  scanSide=b.dataset.scan;
+  if(NATIVE)NATIVE.scan(b.dataset.src);
+  else $(b.dataset.src==='camera'?'camInput':'galInput').click();
+});
 $('camInput').onchange=e=>handleFile(e.target.files[0],e.target);
 $('galInput').onchange=e=>handleFile(e.target.files[0],e.target);
-
-// Called by the Android app after ML Kit reads the photo
+window.onNativeScanStart=function(){reading=true;setStatus(`Reading ${scanSide} of tag…`)};
 window.onNativeScan=function(res){
+  reading=false;
   try{
     if(typeof res==='string')res=JSON.parse(res);
-    if(res.thumb)$('thumb').innerHTML=`<img alt="Tag photo" src="${res.thumb}">`;
-    if(res.error){setStatus(res.error,'err');return}
-    applyText(res.text||'');
+    if(res.thumb)thumbs[scanSide]=res.thumb;
+    if(res.error){renderEditor();setStatus(res.error,'err');return}
+    applyText(res.text||'',scanSide);
   }catch(e){setStatus('Could not read that photo. Try again.','err')}
 };
-window.onNativeScanStart=function(){setStatus('Reading tag…')};
-
-// Grayscale, stretch contrast and upscale small tags before OCR
 async function prep(file){
   const url=URL.createObjectURL(file);
   try{
@@ -416,7 +537,10 @@ async function prep(file){
     for(let i=0;i<p.length;i+=4){const v=.299*p[i]+.587*p[i+1]+.114*p[i+2];p[i]=v;if(v<lo)lo=v;if(v>hi)hi=v}
     const k=255/Math.max(1,hi-lo);
     for(let i=0;i<p.length;i+=4){const v=(p[i]-lo)*k;p[i]=p[i+1]=p[i+2]=v}
-    g.putImageData(d,0,0);return c;
+    g.putImageData(d,0,0);
+    const t=document.createElement('canvas'),ts=240/long;t.width=Math.round(img.width*ts);t.height=Math.round(img.height*ts);
+    t.getContext('2d').drawImage(img,0,0,t.width,t.height);
+    return {canvas:c,thumb:t.toDataURL('image/jpeg',.8)};
   }finally{URL.revokeObjectURL(url)}
 }
 async function getWorker(){
@@ -429,43 +553,219 @@ async function getWorker(){
 }
 async function handleFile(file,input){
   if(!file)return;input.value='';
-  const url=URL.createObjectURL(file);$('thumb').innerHTML=`<img alt="Tag photo" src="${url}">`;
-  if(reading)return;reading=true;$('camBtn').disabled=$('galBtn').disabled=true;
+  if(reading)return;reading=true;
   try{
+    const pr=await prep(file);thumbs[scanSide]=pr.thumb;renderEditor();
     const w=await getWorker();
-    setStatus('Reading tag…');
-    const canvas=await prep(file);
-    const r=await w.recognize(canvas);
-    applyText(r.data.text||'');
+    setStatus(`Reading ${scanSide} of tag…`);
+    const r=await w.recognize(pr.canvas);
+    applyText(r.data.text||'',scanSide);
   }catch(e){
-    setStatus(e&&e.message==='ocr_missing'||!navigator.onLine?'The text reader needs internet the first time. Connect once, then it works offline.':'Could not read that photo. Retake it closer and flat, or type the details below.','err');
-  }finally{reading=false;$('camBtn').disabled=$('galBtn').disabled=false}
+    setStatus((e&&e.message==='ocr_missing')||!navigator.onLine?'The text reader needs internet the first time. Connect once, then it works offline.':'Could not read that photo. Retake it closer and flat, or type the details.','err');
+  }finally{reading=false}
 }
-function applyText(text){
+const MKMAP={flat:'fixed',pg:'pergram',pct:'pct'};
+function applyText(text,side){
   const r=parseTag(text);
-  if(!r.found.length){setStatus('No tag details found in that photo. Retake it closer, in good light, or type them below.','err');return}
-  const o={sku:r.sku,item:r.item,purity:r.purity||$('purity').value,gw:r.gw,nw:r.nw,sw:r.sw,swUnit:r.swUnit,stoneVal:r.stoneVal,mk:r.mk,mkType:r.mkType,tagPrice:r.tagPrice,huid:r.huid};
-  isExample=false;$('exFlag').hidden=true;overrides={};
-  setFields(o,true);if(!r.item){$('item').value='';$('item').classList.remove('read')}
-  if(!r.purity)$('purity').classList.remove('read');
+  if(!r.found.length){renderEditor();setStatus(`Nothing readable on the ${side}. Retake it closer, in good light, or type the details.`,'err');return}
+  // Front fills and corrects; back only fills gaps. HUIDs from both sides add up.
+  const mark=k=>{if(!cur.read.includes(k))cur.read.push(k)};
+  const put=(k,v)=>{if(v==null||v==='')return;const empty=cur[k]===''||cur[k]==null;if(side==='front'||empty){cur[k]=typeof v==='number'?fmtN(v):String(v);mark(k)}};
+  put('sku',r.sku);
+  if(r.item&&(cur.itemAuto||!cur.item)){cur.item=r.item;cur.itemAuto=true;mark('item')}
+  else if(cur.itemAuto&&cur.sku)cur.item=itemFromSku(cur.sku);
+  if(r.purity&&(side==='front'||!isRead('purity'))){cur.purity=r.purity;mark('purity')}
+  put('gw',r.gw);put('sw',r.sw);put('nw',r.nw);put('spr',r.stoneVal);
+  if(r.mk!=null&&(side==='front'||!cur.mkType)){
+    cur.mkType=MKMAP[r.mkType]||'pct';cur.mkVal=fmtN(r.mk);
+    cur.mkTag=r.makingFinal?`From tag: FPR ${fmtN(r.mk)}${r.mpBefore!=null?` (MP ${fmtN(r.mpBefore)})`:''}`:'From tag: MP (before discount)';
+    mark('making');
+  }
+  if(r.huids&&r.huids.length){
+    r.huids.forEach(h=>{if(!cur.huids.includes(h))cur.huids.push(h)});
+    cur.huidCount=Math.max(cur.huidCount|0,cur.huids.length);
+    mark('huid');
+  }
+  saveDraft();renderEditor();
+  const p=priceTag(cur),miss=[];
+  if(!cur.sku)miss.push('barcode');
+  if(isNaN(num(cur.nw)))miss.push('NWT');
+  if(!isRead('purity'))miss.push('purity');
+  if(!p.hasMk)miss.push('making');
+  if(!(cur.huidCount|0))miss.push('HUID');
   const guessed=r.found.some(f=>f.endsWith('?'));
-  const missing=[];if(r.gw==null&&r.nw==null)missing.push('weight');if(!r.purity)missing.push('purity');if(r.mk==null)missing.push('making');
-  let msg=`Read ${r.found.length} details.`;
-  if(r.makingFinal&&r.mpBefore!=null)msg+=` Making uses FPR ${r.mk} (MP before discount ${r.mpBefore}).`;
-  else if(r.mpBefore!=null&&!r.makingFinal)msg+=' Only MP (before discount) found; check the final making.';
-  if(guessed)msg+=' Weights were not labelled, so check gross and net.';
-  if(missing.length)msg+=` Not found: ${missing.join(', ')}.`;
-  setStatus(msg,missing.length||guessed?'err':'ok');
+  let msg=`Read the ${side}.`;
+  if(r.makingFinal===false&&r.mpBefore!=null)msg+=' Only MP (before discount) was on the tag; check the making.';
+  if(guessed)msg+=' Weights were not labelled; check GWT and NWT.';
+  if(miss.length)msg+=` Missing: ${miss.join(', ')}.`+(side==='front'?' Scan the back or fill them in.':' Fill these in below.');
+  else msg+=' All details found.';
+  setStatus(msg,miss.length||guessed?'err':'ok');
 }
 
-// ---------- boot with a marked example ----------
-if(!live)live={rates:{},diamond:NaN,at:null};
-isExample=true;
-setFields({sku:'EX-001',item:'Diamond stud earrings',purity:'18k',gw:'2.46',nw:'2.30',sw:'0.32',swUnit:'ct',stoneVal:'',mk:'14',mkType:'pct',tagPrice:'',huid:''},false);
-$('exFlag').hidden=false;
-paintRates();paintHist();
-if(!Object.keys(live.rates).length)setSrc('Loading…');
-hookLiveRates();
-if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+// ---------- bill UI ----------
+function renderBill(keepInputs){
+  const s=totals();
+  const n=bill.items.length;
+  $('billCount').textContent=n?`${n} tag${n>1?'s':''}`:'No tags yet';
+  $('items').innerHTML=n?bill.items.map((t,i)=>{
+    const p=priceTag(t);
+    const mv=num(t.mkVal);
+    const mk=!p.hasMk?'no making':t.mkType==='pct'?`${fmtN(mv)}%`:t.mkType==='pergram'?`${inr(mv)}/g`:`${inr(mv)} fixed`;
+    return `<div class="item${p.ok?'':' bad'}">
+      <div><b>${i+1}. ${esc(t.sku||'No barcode')}</b> <span class="kind">${esc(t.item||'')} · ${PLABEL[t.purity]}</span></div>
+      <div class="val">${p.ok?inr(p.value):'—'}</div>
+      <div class="meta">GWT ${fmtW(num(t.gw))} · SWT ${t.sw?esc(t.sw):'—'} · NWT ${fmtW(num(t.nw))}${p.stone?` · SPR ${inr(p.stone)}`:''} · MC ${esc(mk)} · HUID ${p.huidN}</div>
+      <div class="acts"><button class="linkbtn" type="button" data-edit="${t.id}">Edit</button><button class="linkbtn" type="button" data-del="${t.id}" style="color:var(--bad)">Remove</button></div>
+    </div>`}).join(''):'<div class="empty">Scanned tags appear here. Add as many as the customer is buying.</div>';
+  $('items').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{
+    const t=bill.items.find(x=>x.id===b.dataset.edit);if(!t)return;
+    cur=clone(t);editingId=t.id;thumbs={front:null,back:null};saveDraft();renderEditor();
+    setStatus('Editing this tag. Change any field, then tap Update tag.');
+    window.scrollTo({top:$('editor').offsetTop-10,behavior:'smooth'});
+  });
+  $('items').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{
+    const i=bill.items.findIndex(x=>x.id===b.dataset.del);if(i<0)return;
+    const [gone]=bill.items.splice(i,1);
+    if(editingId===gone.id){editingId=null;cur=blankTag()}
+    saveBill();saveDraft();renderEditor();renderBill();
+    toast('Tag removed',()=>{bill.items.splice(i,0,gone);saveBill();renderEditor();renderBill()});
+  });
+
+  if(!keepInputs)renderDeductions();else refreshDeductionValues();
+
+  const L=[];
+  L.push(['Gold value',inr2(s.gold)]);
+  if(s.stone)L.push(['Stone price (SPR)',inr2(s.stone)]);
+  L.push(['Making charges',inr2(s.making)]);
+  L.push([`HUID · ${s.huidN} × ${inr(settings.huid)}`,inr2(s.huid)]);
+  L.push(['Subtotal',inr2(s.sub),'strong']);
+  L.push([`GST ${fmtN(num(settings.gst))}%`,inr2(s.gst)]);
+  L.push(['Total',inr2(s.total),'strong']);
+  if(s.old)L.push([`Less old gold · ${fmtW(s.oldW)} g`,'−'+inr2(s.old),'minus']);
+  if(s.ret)L.push(['Less sales return','−'+inr2(s.ret),'minus']);
+  if(s.bad)L.push([`${s.bad} tag${s.bad>1?'s':''} not priced (missing rate or weight)`,'']);
+  $('totals').innerHTML=L.map(l=>`<div class="line ${l[2]||''}"><span>${esc(l[0])}</span><span>${esc(l[1])}</span></div>`).join('');
+  const refund=s.net<0;
+  $('netLabel').textContent=refund?'Refund to customer':'Net payable';
+  $('net').textContent=inr(Math.abs(s.net));
+  $('barT').textContent=(n?`${n} tag${n>1?'s':''} · `:'')+(refund?'Refund':'Net payable');
+  $('barV').textContent=inr(Math.abs(s.net));
+  $('waBtn').href='https://wa.me/?text='+encodeURIComponent(shareText());
+  renderRecent();
+}
+function oldLine(o){const v=oldValue(o),r=oldRate(o);return isNaN(v)?'Enter net weight':`${fmtW(num(o.wt))} g × ${inr(r)} = ${inr2(v)}`}
+function renderDeductions(){
+  const og=$('oldList');
+  og.innerHTML=bill.oldGold.map(o=>{const r=oldRate(o);
+    return `<div class="ded" data-id="${o.id}">
+      <div class="f"><label for="op_${o.id}">Purity</label><select id="op_${o.id}" data-k="purity">${PURITIES.map(p=>`<option value="${p.id}"${p.id===o.purity?' selected':''}>${p.label}</option>`).join('')}</select></div>
+      <div class="f"><label for="ow_${o.id}">Net wt (g)</label><input class="num" id="ow_${o.id}" data-k="wt" inputmode="decimal" value="${esc(o.wt)}"></div>
+      <div class="f"><label for="or_${o.id}">Rate ₹/g</label><input class="num" id="or_${o.id}" data-k="rate" inputmode="decimal" value="${esc(o.rate)}" placeholder="${r==null?'':r}"></div>
+      <button class="x" type="button" data-x aria-label="Remove old gold">×</button>
+      <div class="ded-val" data-val>${esc(oldLine(o))}</div>
+    </div>`}).join('');
+  og.querySelectorAll('.ded').forEach(row=>{
+    const o=bill.oldGold.find(x=>x.id===row.dataset.id);
+    row.querySelectorAll('[data-k]').forEach(el=>el.addEventListener(el.tagName==='SELECT'?'change':'input',()=>{o[el.dataset.k]=el.value;saveBill();renderBill(true)}));
+    row.querySelector('[data-x]').onclick=()=>{bill.oldGold=bill.oldGold.filter(x=>x!==o);saveBill();renderBill()};
+  });
+  const rl=$('retList');
+  rl.innerHTML=bill.returns.map(r=>`<div class="ded ret" data-id="${r.id}">
+      <div class="f"><label for="rn_${r.id}">Return details</label><input id="rn_${r.id}" data-k="note" value="${esc(r.note)}" placeholder="Bill no. / item"></div>
+      <div class="f"><label for="ra_${r.id}">Value ₹</label><input class="num" id="ra_${r.id}" data-k="amount" inputmode="decimal" value="${esc(r.amount)}"></div>
+      <button class="x" type="button" data-x aria-label="Remove return">×</button>
+    </div>`).join('');
+  rl.querySelectorAll('.ded').forEach(row=>{
+    const r=bill.returns.find(x=>x.id===row.dataset.id);
+    row.querySelectorAll('[data-k]').forEach(el=>el.addEventListener('input',()=>{r[el.dataset.k]=el.value;saveBill();renderBill(true)}));
+    row.querySelector('[data-x]').onclick=()=>{bill.returns=bill.returns.filter(x=>x!==r);saveBill();renderBill()};
+  });
+}
+// Update values beside the inputs without rebuilding them (keeps the keyboard open)
+function refreshDeductionValues(){
+  $('oldList').querySelectorAll('.ded').forEach(row=>{
+    const o=bill.oldGold.find(x=>x.id===row.dataset.id);if(!o)return;
+    row.querySelector('[data-val]').textContent=oldLine(o);
+    const r=oldRate(o);row.querySelector('[data-k="rate"]').placeholder=r==null?'':r;
+  });
+}
+$('addOld').onclick=()=>{const o={id:uid(),purity:'22k',wt:'',rate:''};bill.oldGold.push(o);saveBill();renderBill();const el=$('ow_'+o.id);if(el)el.focus()};
+$('addRet').onclick=()=>{const r={id:uid(),note:'',amount:''};bill.returns.push(r);saveBill();renderBill();const el=$('ra_'+r.id);if(el)el.focus()};
+
+function shareText(){
+  const s=totals();
+  const out=['*Yamie Fine Jewellery*',`Estimate · ${new Date().toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'})}`,
+    'Rate/g: '+PURITIES.map(p=>{const r=rateFor(p.id);return `${p.label} ${r==null?'—':inr(r)}`}).join(' · '),''];
+  bill.items.forEach((t,i)=>{const p=priceTag(t);
+    out.push(`${i+1}. ${t.sku||'—'} ${t.item||''} ${PLABEL[t.purity]}`);
+    out.push(`   GWT ${fmtW(num(t.gw))} · NWT ${fmtW(num(t.nw))}${t.sw?` · SWT ${t.sw}`:''}`);
+    out.push(`   Gold ${inr(p.gold)}${p.stone?` + Stone ${inr(p.stone)}`:''} + MC ${inr(p.making)} + HUID ${inr(p.huid)} = ${p.ok?inr(p.value):'—'}`);
+  });
+  out.push('',`Subtotal ${inr(s.sub)}`,`GST ${fmtN(num(settings.gst))}% ${inr(s.gst)}`,`Total ${inr(s.total)}`);
+  bill.oldGold.forEach(o=>{const v=oldValue(o);if(!isNaN(v))out.push(`Less old gold ${PLABEL[o.purity]} ${fmtW(num(o.wt))} g × ${inr(oldRate(o))}: −${inr(v)}`)});
+  bill.returns.forEach(r=>{const v=num(r.amount);if(!isNaN(v))out.push(`Less sales return${r.note?` (${r.note})`:''}: −${inr(v)}`)});
+  out.push(`*${s.net<0?'Refund':'Net payable'}: ${inr(Math.abs(s.net))}*`);
+  return out.join('\n');
+}
+
+// ---------- actions ----------
+let tt;
+function toast(t,undo){
+  const el=$('toast');el.innerHTML='';const sp=document.createElement('span');sp.textContent=t;el.appendChild(sp);
+  if(undo){const b=document.createElement('button');b.type='button';b.textContent='Undo';b.onclick=()=>{undo();el.hidden=true};el.appendChild(b)}
+  el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>el.hidden=true,undo?5000:2200);
+}
+$('copyBtn').onclick=()=>{
+  if(!bill.items.length){toast('Add a tag first');return}
+  const t=shareText();
+  if(NATIVE&&NATIVE.copy){NATIVE.copy(t);toast('Bill copied');return}
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>toast('Bill copied'),()=>toast('Copy blocked here'));
+  else toast('Copy blocked here');
+};
+$('waBtn').addEventListener('click',e=>{if(!bill.items.length){e.preventDefault();toast('Add a tag first')}});
+$('barBtn').onclick=()=>window.scrollTo({top:$('bill').offsetTop-10,behavior:'smooth'});
+function billIsEmpty(){return !bill.items.length&&!bill.oldGold.length&&!bill.returns.length}
+let armNew=0;
+function resetAll(msg){
+  bill=newBill();cur=blankTag();editingId=null;thumbs={front:null,back:null};
+  saveBill();saveDraft();paintRates();renderEditor();renderBill();setStatus(msg,'ok');window.scrollTo({top:0,behavior:'smooth'});
+}
+$('newBillBtn').onclick=()=>{
+  if(!billIsEmpty()&&Date.now()-armNew>3000){armNew=Date.now();toast('Tap New bill again to clear this bill');return}
+  armNew=0;resetAll('New bill. Scan the first tag.');
+};
+$('saveBill').onclick=()=>{
+  if(!bill.items.length){toast('Add a tag first');return}
+  const s=totals();
+  const saved=store.get('bills',[]);
+  saved.unshift({id:uid(),at:Date.now(),bill:clone(bill),net:s.net,rates:PURITIES.reduce((a,p)=>(a[p.id]=rateFor(p.id),a),{})});
+  store.set('bills',saved.slice(0,40));
+  resetAll('Bill saved. Scan the first tag of the next bill.');toast('Bill saved');
+};
+function renderRecent(){
+  const saved=store.get('bills',[]),el=$('recent');
+  if(!saved.length){el.innerHTML='<div class="empty">Saved bills appear here. Tap one to open it again.</div>';return}
+  el.innerHTML=saved.map(b=>{const first=b.bill.items[0]||{};const n=b.bill.items.length;
+    return `<button class="r-item" type="button" data-open="${b.id}"><span><b>${esc(first.sku||'Bill')}${n>1?` + ${n-1} more`:''}</b><br><span class="m">${new Date(b.at).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})} · ${n} tag${n>1?'s':''}</span></span><span class="p">${inr(Math.abs(b.net))}</span></button>`}).join('');
+  el.querySelectorAll('[data-open]').forEach(btn=>btn.onclick=()=>{
+    if(!billIsEmpty()){toast('Save or clear the current bill first');return}
+    const b=saved.find(x=>x.id===btn.dataset.open);if(!b)return;
+    bill=clone(b.bill);bill.overrides={};
+    PURITIES.forEach(p=>{if(b.rates&&b.rates[p.id]!=null)bill.overrides[p.id]=b.rates[p.id]});
+    saveBill();paintRates();renderEditor();renderBill();
+    toast('Opened at the rates it was saved with');
+    window.scrollTo({top:$('bill').offsetTop-10,behavior:'smooth'});
+  });
+}
+[['gst','setGst'],['huid','setHuid']].forEach(([k,id])=>{const el=$(id);el.value=settings[k];
+  el.addEventListener('input',()=>{const v=num(el.value);if(!isNaN(v)){settings[k]=v;store.set('settings2',settings);renderEditor();renderBill(true)}})});
+
+// ---------- boot ----------
+paintRates();renderEditor();renderBill();
+setSrc(live.at?`Saved · ${whenText(live.at)}`:'Loading…');
+hookRates();
+if('serviceWorker' in navigator&&location.protocol==='https:'&&!NATIVE)navigator.serviceWorker.register('sw.js').catch(()=>{});
 })();
 </script>
+</body>
+</html>

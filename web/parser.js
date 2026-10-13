@@ -1,5 +1,6 @@
 /* Yamie Price Check — reads jewellery tag text (from OCR) into fields. */
 (function(root){
+  root.YAMIE_CATEGORIES={CHN:'Chain / Anklet',BGL:'Bangle',BRC:'Bracelet',PND:'Pendant',DIA:'Diamond',RST:'Jewelry set',NLC:'Necklace',STD:'Earrings',FRG:'Finger ring',NSP:'Nose pin',FIN:'Findings'};
   // OCR often swaps letters and digits inside numbers
   function fixDigits(s){return s.replace(/[Oo]/g,'0').replace(/[Il|]/g,'1').replace(/[Ss]/g,'5').replace(/B/g,'8').replace(/,/g,'.')}
   const NUM='([0-9OoIlSB]{1,4}[.,][0-9OoIlSB]{1,4}|[0-9]{1,4})';
@@ -7,7 +8,7 @@
   function find(text,re){const m=text.match(re);return m||null}
 
   function parseTag(raw){
-    const out={sku:null,item:null,purity:null,gw:null,nw:null,sw:null,swUnit:'ct',stoneVal:null,mk:null,mkType:'pct',tagPrice:null,huid:null,found:[]};
+    const out={sku:null,item:null,purity:null,gw:null,nw:null,sw:null,swUnit:'ct',stoneVal:null,mk:null,mkType:'pct',tagPrice:null,huid:null,huids:[],found:[]};
     if(!raw)return out;
     let t=String(raw).replace(/\r/g,'').replace(/[“”"]/g,'').replace(/[ \t]+/g,' ');
     const U=t.toUpperCase();
@@ -47,15 +48,22 @@
     const prM=find(U,/\b(?:MRP|PRICE|TOTAL|AMT|AMOUNT|RS|INR)\.?\s*[:=\-]?\s*(?:RS\.?|₹|INR)?\s*([0-9]{1,3}(?:,[0-9]{2,3})+|[0-9]{4,7})(?:\.[0-9]{1,2})?\b/)||find(U,/₹\s*([0-9]{1,3}(?:,[0-9]{2,3})+|[0-9]{4,7})/);
     if(prM){const v=toNum(prM[1].replace(/,/g,''));if(v&&v>=500){out.tagPrice=v;out.found.push('price')}}
 
-    // HUID: 6 chars, letters and digits mixed
-    const huM=find(U,/\bHUID\s*[:=\-]?\s*([A-Z0-9]{6})\b/);
-    if(huM){out.huid=huM[1];out.found.push('HUID')}
+    // HUIDs: every 6-character letter+digit code after a HUID label (a tag can carry several)
+    out.huids=[];
+    const hre=/\bH\.?U\.?I\.?D\s*(?:NO\.?|#)?\s*[:=\-]?\s*([A-Z0-9 ,\/]{6,80})/g;let h;
+    while((h=hre.exec(U))){
+      for(const tk of h[1].trim().split(/[\s,\/]+/)){
+        if(/^[A-Z0-9]{6}$/.test(tk)&&/[A-Z]/.test(tk)&&/[0-9]/.test(tk)){if(!out.huids.includes(tk))out.huids.push(tk)}
+        else if(tk.length)break;
+      }
+    }
+    if(out.huids.length){out.huid=out.huids[0];out.found.push('HUID')}
 
     // SKU: letters followed by digits, e.g. STD1543, NLC-532, DIA 1164
     const skuRe=/\b([A-Z]{2,4})\s?-?\s?([0-9]{3,5})\b/g;let s;
     while((s=skuRe.exec(U))){
       const pre=s[1];if(['HUID','RS','INR','MRP','PT','NET','GWT','NWT','SWT','SPR','FPR','MP','DWT','KT','CT','CTS','GM','GMS'].includes(pre))continue;
-      if(out.huid&&(pre+s[2]).includes(out.huid))continue;
+      if(out.huids.some(x=>(pre+s[2]).includes(x)||x.includes(pre)))continue;
       out.sku=pre+s[2];out.found.push('SKU');break;
     }
 
@@ -74,8 +82,8 @@
       if(!out.found.includes('making'))out.found.push('making');
     }
     // Category from the SKU prefix
-    const CAT={CHN:'Chain',BGL:'Bangle',BRC:'Bracelet',PND:'Pendant',DIA:'Diamond ornament',RST:'Jewellery set',FRG:'Finger ring',STD:'Earrings',NSP:'Nose pin',FIN:'Findings'};
-    const catM=U.match(/\b(CHN|BGL|BRC|PND|DIA|RST|FRG|STD|NSP|FIN)\s?-?\s?([0-9]{2,6})\b/);
+    const CAT=root.YAMIE_CATEGORIES;
+    const catM=U.match(/\b(CHN|BGL|BRC|PND|DIA|RST|NLC|FRG|STD|NSP|FIN)\s?-?\s?([0-9]{2,6})\b/);
     if(catM){out.sku=catM[1]+catM[2];out.item=CAT[catM[1]];if(!out.found.includes('SKU'))out.found.push('SKU')}
     if(out.tagPrice!=null&&(out.tagPrice===spr||out.tagPrice===fpr||out.tagPrice===mp)){out.tagPrice=null;out.found=out.found.filter(f=>f!=='price')}
     // Sanity: a SKU number is never a weight
@@ -94,8 +102,10 @@
         out.gw=s2[0];if(s2[1]!=null)out.nw=s2[1];out.found.push('weights?');
       }
     }
+    // Only the four gold purities are sold
+    if(out.purity&&!['22k','18k','14k','9k'].includes(out.purity)){out.purity=null;out.found=out.found.filter(f=>f!=='purity')}
     return out;
   }
   root.parseTag=parseTag;
-  if(typeof module!=='undefined')module.exports={parseTag};
+  if(typeof module!=='undefined')module.exports={parseTag,CATEGORIES:root.YAMIE_CATEGORIES};
 })(typeof window!=='undefined'?window:globalThis);
