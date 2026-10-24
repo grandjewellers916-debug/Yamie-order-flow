@@ -252,6 +252,10 @@ details.settings .grid{margin-top:10px}
 .cam-view{width:100%;border-radius:12px;overflow:hidden;background:#000;min-height:220px}
 .cam-view video{width:100%!important;height:auto!important;display:block}
 .locked-ico{font-size:13px;margin-right:2px}
+.sync-dot{font-weight:600;letter-spacing:.04em}
+.sync-dot[data-s=ok]{color:var(--good)}
+.sync-dot[data-s=err]{color:var(--warn)}
+.sync-dot[data-s=off]{color:var(--muted)}
 .datacard{padding:0;gap:0}
 .datacard>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:14px;cursor:pointer}
 .datacard>summary::-webkit-details-marker{display:none}
@@ -309,7 +313,7 @@ details.settings .grid{margin-top:10px}
 <body>
 <div class="wrap">
   <header class="top">
-    <div class="brand">Yamie<small>Price check &amp; bill · <span id="appVer"></span></small></div>
+    <div class="brand">Yamie<small>Price check &amp; bill · <span id="appVer"></span> <span class="sync-dot" id="syncDot" hidden></span></small></div>
     <div class="hdr-acts"><button class="btn sm admin-pill" id="adminPill" type="button" hidden>Admin ✕</button><button class="btn sm" id="stockBtn" type="button">Stock</button><button class="btn sm primary" id="goBill" type="button">Bill ↓</button><button id="newBillBtn" type="button" hidden>Clear bill</button></div>
   </header>
 
@@ -434,6 +438,11 @@ details.settings .grid{margin-top:10px}
       <div class="tbl" id="tblDia"></div>
       <button class="linkbtn" type="button" id="addDia">+ Add diamond row</button>
       <div style="margin-top:10px"><button class="btn sm" type="button" id="resetTbl">Reset helper to Yamie table</button></div>
+      <h3 style="margin-top:16px">Shared database</h3>
+      <p class="note" style="margin-block:4px 0">Connect every phone with the same shop key to share stock, day's rates, the making helper and the admin PIN.</p>
+      <div class="f full" style="margin-top:8px"><label for="syncKey">Shop key</label><input id="syncKey" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX"></div>
+      <div class="rs-acts" style="margin-top:8px"><button class="btn primary" type="button" id="syncConnect">Connect</button><button class="btn" type="button" id="syncNow">Sync now</button></div>
+      <div class="status" id="syncStatus">Not connected. This phone keeps its own data.</div>
       <h3 style="margin-top:16px">Admin PIN</h3>
       <div class="grid">
         <div class="f"><label for="pinNew">New PIN</label><input class="num" id="pinNew" type="password" inputmode="numeric" autocomplete="new-password" maxlength="8"></div>
@@ -562,6 +571,87 @@ let scanSide='front';
 function saveBill(){store.set('bill',bill)}
 function saveDraft(){store.set('draft',{cur,editingId})}
 
+// ---------- shared database (Netlify) ----------
+const SYNC_BASE=(location.protocol==='https:'&&/netlify\.app$/.test(location.hostname))?'':'https://yamie-price-check.netlify.app';
+const sync={key:store.get('syncKey',''),v:Object.assign({stock:0,rates:0,settings:0},store.get('syncV',{})),q:store.get('syncQ',[]),dirtySettings:store.get('syncDirty',false),state:'',at:0,busy:false};
+let adminPinPlain='';
+function saveSyncState(){store.set('syncV',sync.v);store.set('syncQ',sync.q);store.set('syncDirty',sync.dirtySettings)}
+async function syncApi(op,method,body,pin){
+  const h={'x-shop-key':sync.key};if(body)h['content-type']='application/json';if(pin)h['x-admin-pin']=pin;
+  const r=await fetch(SYNC_BASE+'/api/sync?op='+op,{method:method||'GET',headers:h,body:body?JSON.stringify(body):undefined,cache:'no-store'});
+  let j=null;try{j=await r.json()}catch(e){}
+  if(!r.ok){const e=new Error((j&&j.error)||('http_'+r.status));e.status=r.status;throw e}
+  return j;
+}
+function syncMsg(state,text){
+  sync.state=state;
+  const el=document.getElementById('syncDot');if(el){el.hidden=!sync.key;el.textContent=state==='ok'?'● Synced':state==='busy'?'● Syncing…':state==='off'?'● Offline':'● Not synced';el.dataset.s=state}
+  const st=document.getElementById('syncStatus');if(st&&text){st.textContent=text;st.className='status'+(state==='ok'?' ok':state==='err'?' err':'')}
+}
+function syncErrText(e){return e&&e.status===401?'Wrong shop key. Check it and connect again.':e&&e.status===503?'The shared database is not set up on Netlify yet.':e&&e.message==='bad_pin'?'Admin PIN not accepted by the shared database.':'Could not reach the shared database. Changes stay on this phone and sync later.'}
+async function pullAll(force){
+  if(!sync.key||sync.busy)return;
+  if(!navigator.onLine){syncMsg('off','Offline. This phone works on its saved copy and syncs when back online.');return}
+  sync.busy=true;syncMsg('busy');
+  try{
+    // send anything waiting first
+    while(sync.q.length){const e=sync.q[0];const r=await syncApi('rate','POST',{entry:e});sync.v.rates=Math.max(sync.v.rates,r.v||0);sync.q.shift();saveSyncState()}
+    if(sync.dirtySettings&&adminPinPlain){await pushSettingsNow()}
+    const m=await syncApi('meta');
+    if(force||m.stock>sync.v.stock){
+      const d=await syncApi('stock');
+      try{await IDB.putMany(d.rows,true)}catch(e){}
+      stockMap.clear();altMap.clear();d.rows.forEach(indexRec);
+      stockMeta.history=d.history||m.history||[];store.set('stockMeta',stockMeta);
+      sync.v.stock=d.v;paintStockSummary();
+      if(cur.sku&&!cur.stockKey)lookupTyped(true);
+    }
+    if(force||m.rates>sync.v.rates){
+      const d=await syncApi('rates');
+      if(Array.isArray(d.log)){rateLog=d.log;store.set('rateLog',rateLog)}
+      sync.v.rates=d.v;paintRates();renderPreview();renderBill(true);
+    }
+    if((force||m.settings>sync.v.settings)&&!sync.dirtySettings){
+      const d=await syncApi('settings');
+      if(d.settings){applyRemoteSettings(d.settings)}
+      sync.v.settings=d.v;
+    }
+    saveSyncState();sync.at=Date.now();
+    syncMsg('ok',`Connected. ${stockMap.size.toLocaleString('en-IN')} stock items · synced ${new Date(sync.at).toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'})}.`);
+  }catch(e){syncMsg(e&&e.status===401?'err':'err',syncErrText(e))}
+  finally{sync.busy=false}
+}
+function applyRemoteSettings(rs){
+  if(rs.mkTable&&Array.isArray(rs.mkTable.cz))settings.mkTable=rs.mkTable;
+  if(rs.gst!=null)settings.gst=rs.gst;if(rs.huid!=null)settings.huid=rs.huid;
+  store.set('settings2',settings);
+  try{renderTable('cz');renderTable('dia');$('setGst').value=settings.gst;$('setHuid').value=settings.huid;renderEditor();renderBill(true)}catch(e){}
+}
+let settingsTimer=null;
+function saveSettings(){store.set('settings2',settings);if(!sync.key)return;sync.dirtySettings=true;saveSyncState();clearTimeout(settingsTimer);settingsTimer=setTimeout(()=>{if(adminPinPlain)pushSettingsNow().catch(e=>syncMsg('err',syncErrText(e)))},1500)}
+async function pushSettingsNow(){
+  const r=await syncApi('settings','POST',{settings:{gst:settings.gst,huid:settings.huid,mkTable:settings.mkTable}},adminPinPlain);
+  sync.v.settings=r.v;sync.dirtySettings=false;saveSyncState();syncMsg('ok','Settings saved to the shared database.');
+}
+async function pushRate(entry){
+  if(!sync.key)return;
+  if(!navigator.onLine){sync.q.push(entry);saveSyncState();syncMsg('off','Rates saved on this phone. They sync when back online.');return}
+  try{const r=await syncApi('rate','POST',{entry});sync.v.rates=r.v;saveSyncState();syncMsg('ok','Day\'s rates shared with all phones.');toast('Rates shared with all phones')}
+  catch(e){sync.q.push(entry);saveSyncState();syncMsg('err',syncErrText(e))}
+}
+async function pushStock(mode,rows,file,skipped){
+  if(!sync.key)return;
+  impStatus('Sending stock to the shared database…');
+  try{
+    const r=await syncApi('stock','POST',{mode,rows,file,skipped},adminPinPlain);
+    sync.v.stock=r.v;saveSyncState();
+    if(r.history){stockMeta.history=r.history;store.set('stockMeta',stockMeta)}
+    paintStockSummary();
+    impStatus(`Shared with all phones: ${r.added.toLocaleString('en-IN')} new, ${r.updated.toLocaleString('en-IN')} updated · ${r.count.toLocaleString('en-IN')} items in total.`,'ok');
+    syncMsg('ok');
+  }catch(e){impStatus('Saved on this phone only. '+syncErrText(e),'err');syncMsg('err')}
+}
+
 // ---------- rates ----------
 // Day's rates set on this phone (with history) come first; the kiosk feed fills anything not set today.
 let rateLog=store.get('rateLog',[]);if(!Array.isArray(rateLog))rateLog=[];
@@ -632,6 +722,7 @@ $('rsSave').onclick=()=>{
     rateLog=rateLog.filter(e=>!(e.day===dayKey()&&e.rates&&JSON.stringify(e.rates)===JSON.stringify(rates)));
     rateLog.unshift({id:uid(),at:Date.now(),day:dayKey(),rates});
     rateLog=rateLog.slice(0,500);store.set('rateLog',rateLog);
+    pushRate(rateLog[0]);
     closeRates();paintRates();renderEditor();renderBill();
     toast('Day\'s rates saved');
   };
@@ -1237,7 +1328,7 @@ function renderRecent(){
   });
 }
 [['gst','setGst'],['huid','setHuid']].forEach(([k,id])=>{const el=$(id);el.value=settings[k];
-  el.addEventListener('input',()=>{const v=num(el.value);if(!isNaN(v)){settings[k]=v;store.set('settings2',settings);renderEditor();renderBill(true)}})});
+  el.addEventListener('input',()=>{const v=num(el.value);if(!isNaN(v)){settings[k]=v;saveSettings();renderEditor();renderBill(true)}})});
 
 // ---------- making helper (Yamie making table) ----------
 function parseVal(str){
@@ -1335,15 +1426,15 @@ function renderTable(kind){
     rows.map((x,i)=>`<div class="tbl-row" data-i="${i}"><select data-k="purity" aria-label="Purity">${PURITIES.map(p=>`<option value="${p.id}"${p.id===x.purity?' selected':''}>${p.label}</option>`).join('')}</select><input data-k="slab" value="${esc(x.slab)}" aria-label="${kind==='cz'?'Slab':'Item'}"><input data-k="mbd" value="${esc(x.mbd)}" aria-label="Making before discount"><input data-k="mad" value="${esc(x.mad)}" aria-label="Making after discount"><input data-k="rate" inputmode="decimal" value="${esc(x.rate)}" aria-label="Stone rate"><button class="x" type="button" aria-label="Remove row">×</button></div>`).join('');
   el.querySelectorAll('.tbl-row[data-i]').forEach(row=>{
     const i=+row.dataset.i;
-    row.querySelectorAll('[data-k]').forEach(inp=>inp.addEventListener(inp.tagName==='SELECT'?'change':'input',()=>{settings.mkTable[kind][i][inp.dataset.k]=inp.value;store.set('settings2',settings);paintGuide()}));
-    row.querySelector('.x').onclick=()=>{settings.mkTable[kind].splice(i,1);store.set('settings2',settings);renderTable(kind);paintGuide()};
+    row.querySelectorAll('[data-k]').forEach(inp=>inp.addEventListener(inp.tagName==='SELECT'?'change':'input',()=>{settings.mkTable[kind][i][inp.dataset.k]=inp.value;saveSettings();paintGuide()}));
+    row.querySelector('.x').onclick=()=>{settings.mkTable[kind].splice(i,1);saveSettings();renderTable(kind);paintGuide()};
   });
 }
 renderTable('cz');renderTable('dia');
-$('addCz').onclick=()=>{settings.mkTable.cz.push({purity:'18k',slab:'',mbd:'',mad:'',rate:'2500'});store.set('settings2',settings);renderTable('cz')};
-$('addDia').onclick=()=>{settings.mkTable.dia.push({purity:'18k',slab:'',mbd:'',mad:'',rate:'100000'});store.set('settings2',settings);renderTable('dia')};
+$('addCz').onclick=()=>{settings.mkTable.cz.push({purity:'18k',slab:'',mbd:'',mad:'',rate:'2500'});saveSettings();renderTable('cz')};
+$('addDia').onclick=()=>{settings.mkTable.dia.push({purity:'18k',slab:'',mbd:'',mad:'',rate:'100000'});saveSettings();renderTable('dia')};
 $('resetTbl').onclick=()=>showModal('Reset the making helper?','Your edits to both tables will be replaced by the Yamie CZ and diamond tables.',[
-  {label:'Reset tables',cls:'danger',run:()=>{settings.mkTable=JSON.parse(JSON.stringify(DEF_TABLE));store.set('settings2',settings);renderTable('cz');renderTable('dia');paintGuide();toast('Helper reset')}},{label:'Cancel',cls:'ghost'}]);
+  {label:'Reset tables',cls:'danger',run:()=>{settings.mkTable=JSON.parse(JSON.stringify(DEF_TABLE));saveSettings();renderTable('cz');renderTable('dia');paintGuide();toast('Helper reset')}},{label:'Cancel',cls:'ghost'}]);
 
 // ---------- stock list (Excel import, barcode lookup) ----------
 const stockMap=new Map(),altMap=new Map();
@@ -1439,6 +1530,7 @@ $('ssFile').addEventListener('change',async e=>{
     stockMeta.history=stockMeta.history.slice(0,100);store.set('stockMeta',stockMeta);
     impStatus(`${importMode==='replace'?'Full stock imported':'New stock added'}: ${added.toLocaleString('en-IN')} new, ${updated.toLocaleString('en-IN')} updated`+(res.skipped?`, ${res.skipped} row${res.skipped>1?'s':''} without a barcode skipped`:'')+(res.dups>0?`, ${res.dups} repeated barcodes (last row kept)`:'')+'.'+(miss.length?` Columns not found: ${miss.join(', ')}.`:''),'ok');
     paintStockSummary();toast('Stock list updated');
+    if(sync.key)withPin('Enter the admin PIN to share this stock with all phones.',()=>pushStock(importMode,res.rows,f.name,res.skipped));
     if(cur.sku&&!cur.stockKey)lookupTyped(true);
   }catch(err){
     impStatus(err&&err.message==='no_header'?'No "BarCode" column found. Check the first rows of the sheet have the column names.':err&&err.message==='xlsx_missing'?'The Excel reader did not load. Update the app and try again.':'Could not read that file. Save it as .xlsx and try again.','err');
@@ -1520,13 +1612,18 @@ $('appVer').textContent='v'+(APP_VERSION.includes('__')?'dev':APP_VERSION);
 const DEFAULT_PIN='1986';
 let adminUntil=0;try{adminUntil=+sessionStorage.getItem('ypc_admin')||0}catch(e){}
 function isAdmin(){return Date.now()<adminUntil}
-function setAdmin(on){adminUntil=on?Date.now()+15*60*1000:0;try{sessionStorage.setItem('ypc_admin',String(adminUntil))}catch(e){}paintAdmin()}
+function setAdmin(on){if(!on)adminPinPlain='';adminUntil=on?Date.now()+15*60*1000:0;try{sessionStorage.setItem('ypc_admin',String(adminUntil))}catch(e){}paintAdmin()}
 async function pinHash(p){
   const txt='yamie-pc:'+p;
   try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(txt));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
   catch(e){let h=0;for(const c of txt)h=(h*31+c.charCodeAt(0))|0;return 'x'+h}
 }
-async function checkPin(p){return settings.adminPin?(await pinHash(p))===settings.adminPin:p===DEFAULT_PIN}
+async function checkPin(p){
+  const tryKey=sync.key||($('syncKey')&&$('syncKey').value.trim().toUpperCase())||'';
+  if(tryKey&&navigator.onLine){const keep=sync.key;sync.key=tryKey;try{const r=await syncApi('pin','POST',{},p);sync.key=keep;if(r&&typeof r.ok==='boolean'){if(r.ok&&r.hash){settings.adminPin=r.hash;store.set('settings2',settings)}return r.ok}}catch(e){sync.key=keep}}
+  return settings.adminPin?(await pinHash(p))===settings.adminPin:p===DEFAULT_PIN}
+// Some shared-database writes need the PIN itself (not just an unlocked screen)
+function withPin(why,fn){if(isAdmin()&&adminPinPlain){fn();return}adminUntil=0;requireAdmin(why,fn)}
 let pinNext=null;
 function requireAdmin(why,fn){
   if(isAdmin()){adminUntil=Date.now()+15*60*1000;fn();return}
@@ -1535,7 +1632,7 @@ function requireAdmin(why,fn){
 }
 $('pinForm').addEventListener('submit',async e=>{
   e.preventDefault();
-  if(await checkPin($('pinIn').value)){$('pinModal').hidden=true;setAdmin(true);const f=pinNext;pinNext=null;f&&f();toast('Admin unlocked for 15 minutes')}
+  if(await checkPin($('pinIn').value)){adminPinPlain=$('pinIn').value;$('pinModal').hidden=true;setAdmin(true);const f=pinNext;pinNext=null;f&&f();toast('Admin unlocked for 15 minutes')}
   else{$('pinErr').textContent='Wrong PIN. Try again.';$('pinIn').value='';try{navigator.vibrate&&navigator.vibrate(120)}catch(_){}}
 });
 $('pinCancel').onclick=()=>{$('pinModal').hidden=true;pinNext=null};
@@ -1563,15 +1660,49 @@ $('pinSave').onclick=async()=>{
   if(!isAdmin()){requireAdmin('Enter the current admin PIN.',()=>$('pinSave').click());return}
   if(!/^[0-9]{4,8}$/.test(a)){st.className='status err';st.textContent='Use 4 to 8 digits.';return}
   if(a!==b){st.className='status err';st.textContent='The two PINs do not match.';return}
-  settings.adminPin=await pinHash(a);store.set('settings2',settings);
-  $('pinNew').value=$('pinNew2').value='';st.className='status ok';st.textContent='Admin PIN changed.';toast('Admin PIN changed');
+  if(!adminPinPlain){withPin('Enter the current admin PIN.',()=>$('pinSave').click());return}
+  if(sync.key){try{await syncApi('setpin','POST',{newPin:a},adminPinPlain)}catch(e){st.className='status err';st.textContent='PIN not changed. '+syncErrText(e);return}}
+  settings.adminPin=await pinHash(a);store.set('settings2',settings);adminPinPlain=a;
+  $('pinNew').value=$('pinNew2').value='';st.className='status ok';st.textContent=sync.key?'Admin PIN changed on all phones.':'Admin PIN changed on this phone.';toast('Admin PIN changed');
 };
 paintAdmin();
+$('syncKey').value=sync.key;
+$('syncConnect').onclick=()=>withPin('Enter the admin PIN to connect this phone.',async()=>{
+  const k=$('syncKey').value.trim().toUpperCase();
+  if(!k){sync.key='';store.set('syncKey','');syncMsg('','Not connected. This phone keeps its own data.');$('syncDot').hidden=true;return}
+  const prevKey=sync.key;sync.key=k;
+  try{
+    syncMsg('busy','Connecting…');
+    const m=await syncApi('meta');
+    // This phone's PIN must match the shared admin PIN (it may have been changed on another phone)
+    const pc=await syncApi('pin','POST',{},adminPinPlain);
+    if(!pc.ok){sync.key=prevKey;adminPinPlain='';adminUntil=0;syncMsg('err','Shop key accepted. Enter the shared admin PIN used on the other phones.');
+      requireAdmin('Enter the shared admin PIN (the one used on the other phones).',()=>$('syncConnect').click());return}
+    if(pc.hash){settings.adminPin=pc.hash;store.set('settings2',settings)}
+    store.set('syncKey',k);
+    const serverEmpty=!m.stock&&!m.rates&&!m.settings;
+    if(serverEmpty&&(stockMap.size||rateLog.length)){
+      // First phone: upload this phone's data to start the shared database
+      if(stockMap.size)await syncApi('stock','POST',{mode:'replace',rows:[...stockMap.values()],file:'First upload from this phone',skipped:0},adminPinPlain);
+      if(rateLog.length)await syncApi('ratelog','POST',{log:rateLog},adminPinPlain);
+      await pushSettingsNow();
+      sync.v={stock:0,rates:0,settings:0};
+    }else sync.v={stock:0,rates:0,settings:0};
+    sync.dirtySettings=false;saveSyncState();
+    await pullAll(true);
+    toast(serverEmpty?'Shared database started from this phone':'Connected to the shared database');
+  }catch(e){sync.key=prevKey;syncMsg('err',syncErrText(e))}
+});
+$('syncNow').onclick=()=>{if(!sync.key){syncMsg('','Enter the shop key and tap Connect first.');return}pullAll(true)};
+if(sync.key){syncMsg('',`Connected with shop key. Syncing…`);}
+setInterval(()=>{if(!document.hidden)pullAll()},2*60*1000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)pullAll()});
+window.addEventListener('online',()=>pullAll());
 
 // ---------- boot ----------
 paintRates();renderEditor();renderBill();
 hookRates();
-loadStock().then(()=>{if(cur.sku&&!cur.stockKey)lookupTyped(true)});
+loadStock().then(()=>{if(cur.sku&&!cur.stockKey)lookupTyped(true);pullAll()});
 if('serviceWorker' in navigator&&location.protocol==='https:'&&!NATIVE)navigator.serviceWorker.register('sw.js').catch(()=>{});
 })();
 </script>

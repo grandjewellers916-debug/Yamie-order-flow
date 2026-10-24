@@ -65,3 +65,13 @@ The web version runs on iPhone as a home-screen app (no App Store needed).
 3. Open it from the home screen. Allow the camera the first time **Scan** is used.
 
 Barcode scanning uses a live camera scanner (bundled, works offline). Stock data, rates and bills are stored on each iPhone, like the Android app.
+
+## Shared database (all phones)
+
+Netlify function `/api/sync` stores one shared copy (Netlify Blobs) of: stock list, day's rates + history, making helper + charges, and the admin PIN.
+
+- Netlify env vars: `SHOP_KEY` (shop key every phone enters once) and `ADMIN_PIN` (starting PIN). Both secret, Functions scope.
+- On each phone: Admin settings → Shared database → enter the shop key → Connect. The first phone with data starts the shared copy; later phones download it.
+- Phones keep a local copy and work offline; they sync on open, every 2 minutes, and when back online. Rates saved offline are sent later.
+- Stock imports, making helper/charges edits and PIN changes need the admin PIN; day's rates need only the shop key.
+- Saved bills stay on each phone.
