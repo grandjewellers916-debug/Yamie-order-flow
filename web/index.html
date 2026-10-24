@@ -243,6 +243,8 @@ details.settings .grid{margin-top:10px}
 .rs-head{justify-content:flex-start!important}
 .rs-tt{min-width:0}
 .btn.back{font-weight:600}
+.datacard .btn.back-app{width:calc(100% - 28px)}
+.btn.back-app{width:100%;min-height:48px;font-weight:700;font-size:15px;border:2px solid var(--maroon);color:var(--maroon);background:var(--surface)}
 .admin-pill{background:var(--good);border-color:var(--good);color:#fff;font-weight:600}
 .pin-in{width:100%;font:700 26px var(--mono);letter-spacing:.4em;text-align:center;padding:12px;border:2px solid var(--line);border-radius:12px;background:var(--surface);color:var(--fg)}
 .pin-in:focus{border-color:var(--gold);outline:none}
@@ -412,13 +414,14 @@ details.settings .grid{margin-top:10px}
 
   <details class="card datacard" id="dataCard">
     <summary><span class="dc-t">Stock data</span><span class="dc-s" id="dataMini">No stock loaded</span><span class="dc-chev" aria-hidden="true">▾</span></summary>
-    <div class="sec-head"><button class="btn sm back" type="button" id="dataBack">‹ Back</button><button class="linkbtn" type="button" id="dataOpen">Find / history</button></div>
+    <div class="sec-head"><button class="btn sm back" type="button" id="dataBack">‹ Back to app</button><button class="linkbtn" type="button" id="dataOpen">Find / history</button></div>
     <div><div class="ss-count" id="dataCount">0 items</div><div class="note" id="dataSummary">No stock loaded yet.</div></div>
     <div class="rs-acts">
       <button class="btn primary" type="button" id="dataFull">Import stock Excel</button>
       <button class="btn" type="button" id="dataAdd">Add new stock</button>
     </div>
     <div class="status" id="dataStatus">Import stock Excel loads the full current stock (replaces the list). Add new stock adds or updates items from a later sheet.</div>
+    <button class="btn back-app" type="button" id="dataBack2">‹ Back to app</button>
   </details>
 
   <details class="card datacard" id="adminCard">
@@ -462,7 +465,7 @@ details.settings .grid{margin-top:10px}
 <div class="toast" id="toast" hidden></div>
 <div class="rsheet" id="ssheet" hidden role="dialog" aria-modal="true" aria-labelledby="ssTitle">
   <div class="in">
-    <div class="rs-head"><button class="btn sm back" type="button" id="ssClose">‹ Back</button><div class="rs-tt"><h2 id="ssTitle">Stock list</h2><div class="note">Barcode lookup for billing</div></div></div>
+    <div class="rs-head"><button class="btn sm back" type="button" id="ssClose">‹ Back to app</button><div class="rs-tt"><h2 id="ssTitle">Stock list</h2><div class="note">Barcode lookup for billing</div></div></div>
     <div class="card">
       <div><div class="ss-count" id="ssCount">0</div><div class="note" id="ssSummary">No stock loaded yet.</div></div>
       <input class="hidden-input" id="ssFile" type="file" accept=".xlsx,.xls,.xlsm,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" aria-label="Choose stock Excel file">
@@ -471,6 +474,7 @@ details.settings .grid{margin-top:10px}
         <button class="btn" type="button" id="ssReplace">Import stock Excel (replace)</button>
       </div>
       <div class="status" id="ssStatus">Columns read: BarCode, Item, Category, Carret, Gross Wt, Net Wt, Stone Wt, Diamond Wt, Diamond Qty, StoneAmount, Serial, Label, Location, Pcs, Stone Qty, Supplier.</div>
+      <button class="btn back-app" type="button" id="ssBack2">‹ Back to app</button>
     </div>
     <div class="card">
       <div class="f"><label for="ssFind">Find a barcode</label><input id="ssFind" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. DIA1164"></div>
@@ -478,6 +482,7 @@ details.settings .grid{margin-top:10px}
     </div>
     <div class="sec-head"><h2>Imports</h2><span class="note">This phone</span></div>
     <div class="hist" id="ssHist"></div>
+    <button class="btn back-app" type="button" id="ssBack3">‹ Back to app</button>
   </div>
 </div>
 <div class="rsheet" id="rsheet" hidden role="dialog" aria-modal="true" aria-labelledby="rsTitle">
@@ -1654,7 +1659,8 @@ $('adminLock').onclick=()=>{setAdmin(false);toast('Admin locked')};
   });
 });
 function backFrom(id){$(id).open=false;window.scrollTo({top:0,behavior:'smooth'})}
-$('dataBack').onclick=()=>backFrom('dataCard');$('adminBack').onclick=()=>backFrom('adminCard');
+$('dataBack').onclick=()=>backFrom('dataCard');$('dataBack2').onclick=()=>backFrom('dataCard');
+$('ssBack2').onclick=()=>{closeStock();window.scrollTo({top:0,behavior:'smooth'})};$('ssBack3').onclick=()=>{closeStock();window.scrollTo({top:0,behavior:'smooth'})};$('adminBack').onclick=()=>backFrom('adminCard');
 $('pinSave').onclick=async()=>{
   const a=$('pinNew').value,b=$('pinNew2').value,st=$('pinStatus');
   if(!isAdmin()){requireAdmin('Enter the current admin PIN.',()=>$('pinSave').click());return}
