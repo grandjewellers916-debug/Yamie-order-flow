@@ -25,6 +25,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.webkit.WebViewAssetLoader
 import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
@@ -168,6 +170,22 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        // Live barcode scanner (Google Play services). Falls back to a photo if unavailable.
+        @JavascriptInterface
+        fun scanBarcode() {
+            runOnUiThread {
+                try {
+                    val opts = GmsBarcodeScannerOptions.Builder().enableAutoZoom().build()
+                    GmsBarcodeScanning.getClient(this@MainActivity, opts).startScan()
+                        .addOnSuccessListener { b -> sendBarcode(b.rawValue ?: "", null) }
+                        .addOnCanceledListener { sendBarcode("", "cancelled") }
+                        .addOnFailureListener { sendBarcode("", "fallback") }
+                } catch (e: Exception) {
+                    sendBarcode("", "fallback")
+                }
+            }
+        }
+
         @JavascriptInterface
         fun copy(text: String) {
             val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -219,6 +237,12 @@ class MainActivity : ComponentActivity() {
         val bytes = ByteArrayOutputStream()
         bmp.compress(Bitmap.CompressFormat.JPEG, 80, bytes)
         return "data:image/jpeg;base64," + Base64.encodeToString(bytes.toByteArray(), Base64.NO_WRAP)
+    }
+
+    private fun sendBarcode(code: String, err: String?) {
+        val c = JSONObject.quote(code)
+        val e = if (err == null) "null" else JSONObject.quote(err)
+        runOnUiThread { web.evaluateJavascript("window.onNativeBarcode && window.onNativeBarcode($c,$e)", null) }
     }
 
     private fun sendScan(json: JSONObject) {

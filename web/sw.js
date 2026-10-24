@@ -1,5 +1,5 @@
 // Yamie Price Check — offline shell. Rates are always fetched fresh; the app falls back to the last saved rate.
-const CACHE = 'ypc-v10';
+const CACHE = 'ypc-v11';
 const SHELL = ['./', 'index.html', 'parser.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', e => {

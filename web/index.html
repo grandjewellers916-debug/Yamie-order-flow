@@ -217,6 +217,15 @@ details.settings .grid{margin-top:10px}
 .mk-label{font-size:14px;background:var(--sunk);border-radius:8px;padding:6px 10px}
 .mk-label b{font:700 15px var(--mono);color:var(--maroon)}
 .guide{display:flex;flex-direction:column;gap:6px}
+.bc{display:flex;align-items:stretch;gap:8px}
+.bc-pre{display:flex;align-items:center;justify-content:center;min-width:64px;padding:0 10px;border-radius:10px;background:var(--maroon);color:var(--maroon-ink);font:700 17px var(--mono);letter-spacing:.04em}
+.bc-pre.none{background:var(--sunk);color:var(--muted)}
+.bc input{flex:1;min-width:0;font:600 18px var(--mono)!important;letter-spacing:.04em}
+.bc input.read{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 10%,var(--surface))}
+.bc-scan{flex:none;min-width:72px}
+.guide .chip .mad{display:block;font:600 11px var(--mono);color:var(--muted);margin-top:2px}
+.guide .chip[aria-pressed="true"] .mad{color:var(--maroon-ink);opacity:.85}
+.line.staff span{color:var(--muted)!important;font-style:italic;font-weight:500!important;font-size:13px}
 .helper-btn{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"t go" "s go";align-items:center;gap:2px 10px;width:100%;text-align:left;border:2px solid var(--gold);background:color-mix(in srgb,var(--gold) 10%,var(--surface));color:var(--fg);border-radius:12px;padding:10px 14px;cursor:pointer;min-height:56px}
 .helper-btn .hb-t{grid-area:t;font:700 15px var(--body)}
 .helper-btn .hb-s{grid-area:s;font:500 13px var(--mono);color:var(--maroon);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -283,26 +292,17 @@ details.settings .grid{margin-top:10px}
 
   <!-- Tag editor -->
   <section class="card" id="editor" aria-label="Tag">
-    <div class="sec-head"><h2 id="edTitle">Tag 1</h2><span class="note">Gold outline = read from tag</span></div>
-    <div class="sides">
-      <div class="side">
-        <span class="lbl">Front</span>
-        <div class="thumb" id="thumbFront">No photo</div>
-        <div class="acts"><button class="btn primary" type="button" data-scan="front" data-src="camera">Scan</button><button class="btn" type="button" data-scan="front" data-src="gallery" aria-label="Front from gallery">Photo</button></div>
-      </div>
-      <div class="side">
-        <span class="lbl">Back (if needed)</span>
-        <div class="thumb" id="thumbBack">No photo</div>
-        <div class="acts"><button class="btn" type="button" data-scan="back" data-src="camera">Scan</button><button class="btn" type="button" data-scan="back" data-src="gallery" aria-label="Back from gallery">Photo</button></div>
-      </div>
-    </div>
+    <div class="sec-head"><h2 id="edTitle">Tag 1</h2><span class="note">Gold outline = from stock</span></div>
     <input class="hidden-input" id="camInput" type="file" accept="image/*" capture="environment" aria-label="Take tag photo">
     <input class="hidden-input" id="galInput" type="file" accept="image/*" aria-label="Choose tag photo">
-    <div class="status" id="status" role="status">Scan the front of the tag. Scan the back too if details are printed there.</div>
+    <div class="status" id="status" role="status">Select the item, then type the barcode number.</div>
 
     <div class="grid">
-      <div class="f"><label for="sku">Barcode no.</label><input id="sku" autocomplete="off" autocapitalize="characters" spellcheck="false"></div>
-      <div class="f"><label for="itemSel">Item</label><select id="itemSel"></select><input id="item" autocomplete="off" placeholder="Type item name" hidden></div>
+      <div class="f full"><label for="itemSel">Item</label><select id="itemSel"></select><input id="item" autocomplete="off" placeholder="Type item name" hidden></div>
+      <div class="f full"><label for="bcNum">Barcode</label>
+        <div class="bc"><span class="bc-pre" id="bcPre">—</span><input id="bcNum" class="num" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="Number"><button class="btn bc-scan" type="button" id="scanBc" hidden aria-label="Scan barcode with camera">Scan</button></div>
+        <input id="sku" type="hidden">
+      </div>
       <div class="f full"><span class="flabel req">Purity</span><div class="seg" id="puritySeg" role="group" aria-label="Purity"></div></div>
       <div class="f"><label for="gw">GWT · gross (g)</label><input class="num" id="gw" inputmode="decimal"></div>
       <div class="f"><label for="sw">SWT · stone</label><input class="num" id="sw" inputmode="decimal"></div>
@@ -365,6 +365,16 @@ details.settings .grid{margin-top:10px}
     </div>
   </section>
 
+  <section class="card" id="dataCard" aria-label="Stock data import">
+    <div class="sec-head"><h2>Stock data</h2><button class="linkbtn" type="button" id="dataOpen">Find / history</button></div>
+    <div><div class="ss-count" id="dataCount">0 items</div><div class="note" id="dataSummary">No stock loaded yet.</div></div>
+    <div class="rs-acts">
+      <button class="btn primary" type="button" id="dataFull">Import stock Excel</button>
+      <button class="btn" type="button" id="dataAdd">Add new stock</button>
+    </div>
+    <div class="status" id="dataStatus">Import stock Excel loads the full current stock (replaces the list). Add new stock adds or updates items from a later sheet.</div>
+  </section>
+
   <section class="card" aria-label="Saved bills">
     <div class="sec-head"><h2>Saved bills</h2><span class="note">This phone only</span></div>
     <div class="recent" id="recent"></div>
@@ -401,8 +411,8 @@ details.settings .grid{margin-top:10px}
       <div><div class="ss-count" id="ssCount">0</div><div class="note" id="ssSummary">No stock loaded yet.</div></div>
       <input class="hidden-input" id="ssFile" type="file" accept=".xlsx,.xls,.xlsm,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" aria-label="Choose stock Excel file">
       <div class="rs-acts">
-        <button class="btn primary" type="button" id="ssAdd">Add / update from Excel</button>
-        <button class="btn" type="button" id="ssReplace">Replace all stock</button>
+        <button class="btn primary" type="button" id="ssAdd">Add new stock</button>
+        <button class="btn" type="button" id="ssReplace">Import stock Excel (replace)</button>
       </div>
       <div class="status" id="ssStatus">Columns read: BarCode, Item, Category, Carret, Gross Wt, Net Wt, Stone Wt, Diamond Wt, Diamond Qty, StoneAmount, Serial, Label, Location, Pcs, Stone Qty, Supplier.</div>
     </div>
@@ -434,7 +444,7 @@ details.settings .grid{margin-top:10px}
     <div class="rs-head"><h4 id="helperTitle">Making helper</h4><button class="btn sm" type="button" id="helperClose">Close</button></div>
     <p id="mkGuideT"></p>
     <div class="chips" id="mkGuideChips"></div>
-    <p class="note" id="helperNote">Billed at MAD (after discount). MBD is shown struck through.</p>
+    <p class="note" id="helperNote">Customer price uses MBD. <b>Staff only:</b> MAD is the lowest making allowed after discount.</p>
   </div>
 </div>
 <div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modalTitle">
@@ -630,9 +640,10 @@ function priceTag(t){
   }
   const huidN=Math.max(0,t.huidCount|0),huid=huidN*settings.huid;
   const value=gold+stone+making+huid;
-  const mkBefore=hasMk&&t.mkMbd?makingFor(t,t.mkMbd.type,t.mkMbd.val):NaN;
-  const mkSave=!isNaN(mkBefore)&&!isNaN(making)&&mkBefore>making?mkBefore-making:0;
-  return {rate,w,usedGross,gold,stone,making,mkLabel,hasMk,huidN,huid,value,mkBefore,mkSave,ok:!isNaN(value)};
+  // MAD (after discount) is the staff-only floor; the customer price uses the chosen (MBD) making
+  const madAmt=hasMk&&t.mkMad?makingFor(t,t.mkMad.type,t.mkMad.val):NaN;
+  const madValue=!isNaN(madAmt)&&madAmt<making?value-making+madAmt:NaN;
+  return {rate,w,usedGross,gold,stone,making,mkLabel,hasMk,huidN,huid,value,madAmt,madValue,ok:!isNaN(value)};
 }
 function makingFor(t,type,v){const r=rateFor(t.purity),w=num(t.nw);
   if(type==='fixed')return v;
@@ -653,7 +664,7 @@ function oldRate(o){const r=num(o.rate);return !isNaN(r)?r:rateFor(o.purity)}
 function oldValue(o){const w=num(o.wt),r=oldRate(o);return isNaN(w)||r==null?NaN:w*r}
 function totals(){
   const s={gold:0,stone:0,making:0,huid:0,huidN:0,sub:0,bad:0};
-  bill.items.forEach(t=>{const p=priceTag(t);if(!p.ok){s.bad++;return}s.gold+=p.gold;s.stone+=p.stone;s.making+=p.making;s.huid+=p.huid;s.huidN+=p.huidN;s.sub+=p.value;s.mkSave=(s.mkSave||0)+p.mkSave});
+  bill.items.forEach(t=>{const p=priceTag(t);if(!p.ok){s.bad++;return}s.gold+=p.gold;s.stone+=p.stone;s.making+=p.making;s.huid+=p.huid;s.huidN+=p.huidN;s.sub+=p.value;s.madSub=(s.madSub||0)+(isNaN(p.madValue)?p.value:p.madValue);if(!isNaN(p.madValue))s.hasMad=true});
   const gstP=num(settings.gst)||0;
   s.gst=s.sub*gstP/100;s.total=s.sub+s.gst;
   s.old=0;s.oldW=0;
@@ -671,7 +682,30 @@ $('itemSel').addEventListener('change',()=>{
   const v=$('itemSel').value;cur.touched=true;cur.itemAuto=false;unread('item');
   if(v==='__other'){cur.item=ITEMS.includes(cur.item)?'':cur.item;$('item').hidden=false;$('item').value=cur.item;$('item').focus()}
   else{cur.item=v;$('item').hidden=true}
-  saveDraft();renderPreview();
+  const code=curCode();
+  if(code){const sp=bcSplit(cur.sku);cur.sku=code+(sp.pre===code||!sp.pre?sp.rest:'');if(code==='MMP'&&!cur.purity)cur.purity='platinum'}
+  saveDraft();renderEditor();lookupTyped();
+  if(code)setTimeout(()=>$('bcNum').focus(),30);
+});
+const CODE_OF={};Object.entries(CAT).forEach(([c,n])=>CODE_OF[n]=c);
+function bcSplit(sku){const k=keyOf(sku),m=k.match(/^([A-Z]+)(.*)$/);return m?{pre:m[1],rest:m[2]}:{pre:'',rest:k}}
+function curCode(){return CODE_OF[cur.item]||''}
+function paintBarcode(){
+  const code=curCode(),sp=bcSplit(cur.sku),pre=$('bcPre'),inp=$('bcNum');
+  pre.textContent=code||'—';pre.classList.toggle('none',!code);
+  inp.inputMode=code?'numeric':'text';inp.placeholder=code?'Number':'Full barcode';
+  if(document.activeElement!==inp)inp.value=code?(sp.pre===code?sp.rest:(sp.pre?'':sp.rest)):keyOf(cur.sku);
+  inp.classList.toggle('read',isRead('sku'));
+}
+$('bcNum').addEventListener('input',()=>{
+  let v=$('bcNum').value.toUpperCase().replace(/[^A-Z0-9]/g,'');
+  const m=v.match(/^([A-Z]{3})([0-9]*)$/);
+  if(m&&CAT[m[1]]){cur.item=CAT[m[1]];cur.itemAuto=false;v=m[2];$('bcNum').value=v;paintItem()}
+  const code=curCode();
+  cur.sku=code?code+v:v;unread('sku');cur.touched=true;
+  if(code==='MMP'&&!cur.purity)cur.purity='platinum';
+  saveDraft();$('bcPre').textContent=code||'—';
+  renderPreview();lookupTyped();
 });
 function paintItem(){
   const sel=$('itemSel'),inp=$('item');
@@ -679,10 +713,11 @@ function paintItem(){
   else if(ITEMS.includes(cur.item)){sel.value=cur.item;inp.hidden=true}
   else{sel.value='__other';inp.hidden=false}
   sel.classList.toggle('read',isRead('item'));
+  paintBarcode();
 }
 PURITIES.forEach(p=>{const b=document.createElement('button');b.type='button';b.textContent=p.label;b.dataset.p=p.id;b.onclick=()=>{cur.purity=p.id;unread('purity');cur.touched=true;saveDraft();paintRates();renderEditor()};$('puritySeg').appendChild(b)});
 Object.keys(MK).forEach(k=>{const b=document.createElement('button');b.type='button';b.textContent=MK[k].label;b.dataset.k=k;
-  b.onclick=()=>{if(cur.mkType!==k){cur.mkType=k;cur.mkVal='';cur.mkMbd=null;cur.mkRow=''}unread('making');cur.touched=true;saveDraft();renderEditor()};$('mkSeg').appendChild(b)});
+  b.onclick=()=>{if(cur.mkType!==k){cur.mkType=k;cur.mkVal='';cur.mkMad=null;cur.mkRow=''}unread('making');cur.touched=true;saveDraft();renderEditor()};$('mkSeg').appendChild(b)});
 FIELDS.forEach(k=>$(k).addEventListener('input',()=>{
   cur[k]=$(k).value;unread(k);cur.touched=true;
   if(k==='item')cur.itemAuto=!cur.item;
@@ -690,7 +725,7 @@ FIELDS.forEach(k=>$(k).addEventListener('input',()=>{
   if(k==='sku')lookupTyped();
   saveDraft();if(k==='nw')paintChips();else if(k==='sw'||k==='spr'||k==='item')paintGuide();renderPreview();renderValidation();
 }));
-$('mkVal').addEventListener('input',()=>{cur.mkVal=$('mkVal').value;cur.mkMbd=null;cur.mkRow='';unread('making');cur.touched=true;saveDraft();paintChips();renderPreview()});
+$('mkVal').addEventListener('input',()=>{cur.mkVal=$('mkVal').value;cur.mkMad=null;cur.mkRow='';unread('making');cur.touched=true;saveDraft();paintChips();renderPreview()});
 $('huidMinus').onclick=()=>{cur.huidCount=Math.max(0,(cur.huidCount|0)-1);unread('huid');cur.touched=true;saveDraft();renderEditor()};
 $('huidPlus').onclick=()=>{cur.huidCount=(cur.huidCount|0)+1;unread('huid');cur.touched=true;saveDraft();renderEditor()};
 function unread(k){cur.read=(cur.read||[]).filter(x=>x!==k)}
@@ -708,7 +743,7 @@ function paintChips(){
     b.innerHTML=`${esc(label)}${t!=='fixed'?`<small>${isNaN(amt)?'enter NWT':inr(amt)}</small>`:''}`;
     b.setAttribute('aria-pressed',String(v===p));
     b.setAttribute('aria-label',label+(t!=='fixed'&&!isNaN(amt)?', making '+inr(amt):''));
-    b.onclick=()=>{cur.mkVal=String(p);cur.mkMbd=null;cur.mkRow='';unread('making');cur.touched=true;saveDraft();renderEditor()};
+    b.onclick=()=>{cur.mkVal=String(p);cur.mkMad=null;cur.mkRow='';unread('making');cur.touched=true;saveDraft();renderEditor()};
     box.appendChild(b);
   });
   $('mkUnit').textContent=MK[t].unit;
@@ -753,8 +788,8 @@ function renderEditor(){
   $('huidStep').classList.toggle('read',isRead('huid'));
 
   $('huidCodes').textContent=(cur.huids&&cur.huids.length?cur.huids.join(', '):'None read')+` · ${inr(settings.huid)} each`;
-  $('thumbFront').innerHTML=thumbs.front?`<img alt="Front of tag" src="${thumbs.front}">`:'No photo';
-  $('thumbBack').innerHTML=thumbs.back?`<img alt="Back of tag" src="${thumbs.back}">`:'No photo';
+  if($('thumbFront'))$('thumbFront').innerHTML=thumbs.front?`<img alt="Front of tag" src="${thumbs.front}">`:'No photo';
+  if($('thumbBack'))$('thumbBack').innerHTML=thumbs.back?`<img alt="Back of tag" src="${thumbs.back}">`:'No photo';
   renderPreview();renderMakingHint();
 }
 function renderPreview(){
@@ -764,14 +799,14 @@ function renderPreview(){
   else if(isNaN(p.w))L.push(['Gold','enter NWT']);
   else L.push([`Gold · ${fmtW(p.w)} g × ${inr(p.rate)}`,inr2(p.gold)]);
   if(p.stone)L.push(['Stone price (SPR)',inr2(p.stone)]);
-  if(p.mkSave)L.push([`Making before discount (MBD)`,inr2(p.mkBefore)]);
-  L.push([(p.mkSave?'Making after discount (MAD)':'Making')+(p.hasMk?' · '+p.mkLabel:''),p.hasMk&&!isNaN(p.making)?inr2(p.making):'—']);
-  if(p.mkSave)L.push(['You save on making','−'+inr2(p.mkSave)]);
+  L.push([(cur.mkMad?'Making (MBD)':'Making')+(p.hasMk?' · '+p.mkLabel:''),p.hasMk&&!isNaN(p.making)?inr2(p.making):'—']);
   L.push([`HUID · ${p.huidN} × ${inr(settings.huid)}`,inr2(p.huid)]);
   const gstP=num(settings.gst)||0;
   L.push(['Value before GST',p.ok?inr2(p.value):'—']);
   L.push([`GST ${fmtN(gstP)}%`,p.ok?inr2(p.value*gstP/100):'—']);
-  $('preview').innerHTML=L.map((l,i)=>`<div class="line${i>=L.length-2?' strong':''}"><span>${esc(l[0])}</span><span>${esc(l[1])}</span></div>`).join('');
+  const nMain=L.length;
+  if(!isNaN(p.madAmt)&&p.madAmt<p.making)L.push([`Staff only · MAD ${valText(cur.mkMad)} = ${inr(p.madAmt)} · lowest price`,inr(p.madValue*(1+gstP/100)),'staff']);
+  $('preview').innerHTML=L.map((l,i)=>`<div class="line${l[2]==='staff'?' staff':(i>=nMain-2&&i<nMain?' strong':'')}"><span>${esc(l[0])}</span><span>${esc(l[1])}</span></div>`).join('');
   const m=missing(cur),complete=p.ok&&!m.length;
   $('priceBox').classList.toggle('incomplete',!complete);
   $('priceAmt').textContent=p.ok?inr(p.value*(1+gstP/100)):'—';
@@ -823,6 +858,27 @@ document.querySelectorAll('[data-scan]').forEach(b=>b.onclick=()=>{
 });
 $('camInput').onchange=e=>handleFile(e.target.files[0],e.target);
 $('galInput').onchange=e=>handleFile(e.target.files[0],e.target);
+// Barcode camera: native scanner in the app, BarcodeDetector in Chrome; hidden when neither exists
+const canNativeBc=!!(NATIVE&&NATIVE.scanBarcode);
+let canWebBc=false,bcMode=false;
+$('scanBc').hidden=!canNativeBc;
+try{if(!NATIVE&&'BarcodeDetector' in window)BarcodeDetector.getSupportedFormats().then(f=>{canWebBc=f.length>0;$('scanBc').hidden=!canWebBc}).catch(()=>{})}catch(e){}
+$('scanBc').onclick=()=>{
+  if(canNativeBc){NATIVE.scanBarcode();return}
+  if(canWebBc){bcMode=true;$('camInput').click()}
+};
+function useScannedCode(code){
+  const k=keyOf(code);if(!k){setStatus('No barcode read. Try again or type the number.','err');return}
+  if(editingId||(cur.touched&&cur.stockKey&&cur.stockKey!==k)){cur=blankTag();editingId=null}
+  const rec=findStock(k);
+  if(rec){applyStock(rec);setStatus(`Found ${rec.barcode} in stock.`+(missing(cur).some(x=>x.k==='making')?(rec.label?' Pick the making from the label.':' Pick the making.'):''),'ok')}
+  else{cur.sku=k;const it=itemFromSku(k);if(it){cur.item=it;cur.itemAuto=false}cur.touched=true;saveDraft();renderEditor();setStatus(`${k} is not in the stock list. Enter the details by hand.`,'err')}
+}
+window.onNativeBarcode=function(code,err){
+  if(code){useScannedCode(code);return}
+  if(err==='fallback'){toast('Opening camera…');scanSide='front';NATIVE.scan('camera');return}
+  if(err&&err!=='cancelled')setStatus(err,'err');
+};
 window.onNativeScanStart=function(){reading=true;setStatus(`Reading ${scanSide} of tag…`)};
 window.onNativeScan=function(res){
   reading=false;
@@ -860,6 +916,11 @@ async function getWorker(){
 }
 async function handleFile(file,input){
   if(!file)return;input.value='';
+  if(bcMode){bcMode=false;
+    try{const bmp=await createImageBitmap(file);const codes=await new BarcodeDetector().detect(bmp);
+      if(codes.length)useScannedCode(codes[0].rawValue);else setStatus('No barcode found in that photo. Hold the tag closer and try again.','err')}
+    catch(e){setStatus('Could not read a barcode here. Type the number instead.','err')}
+    return}
   if(reading)return;reading=true;
   try{
     const pr=await prep(file);thumbs[scanSide]=pr.thumb;renderEditor();
@@ -946,13 +1007,13 @@ function renderBill(keepInputs){
   L.push(['Gold value',inr2(s.gold)]);
   if(s.stone)L.push(['Stone price (SPR)',inr2(s.stone)]);
   L.push(['Making charges',inr2(s.making)]);
-  if(s.mkSave)L.push(['Making discount included',`saved ${inr(s.mkSave)}`]);
   L.push([`HUID · ${s.huidN} × ${inr(settings.huid)}`,inr2(s.huid)]);
   L.push(['Subtotal',inr2(s.sub),'strong']);
   L.push([`GST ${fmtN(num(settings.gst))}%`,inr2(s.gst)]);
   L.push(['Total',inr2(s.total),'strong']);
   if(s.old)L.push([`Less old gold · ${fmtW(s.oldW)} g`,'−'+inr2(s.old),'minus']);
   if(s.ret)L.push(['Less sales return','−'+inr2(s.ret),'minus']);
+  if(s.hasMad)L.push(['Staff only · lowest total at MAD (incl. GST)',inr(Math.round((s.madSub*(1+(num(settings.gst)||0)/100))-s.old-s.ret)),'staff']);
   if(s.bad)L.push([`${s.bad} tag${s.bad>1?'s':''} not priced (missing rate or weight)`,'']);
   $('totals').innerHTML=L.map(l=>`<div class="line ${l[2]||''}"><span>${esc(l[0])}</span><span>${esc(l[1])}</span></div>`).join('');
   const refund=s.net<0;
@@ -1010,9 +1071,8 @@ function shareText(){
   bill.items.forEach((t,i)=>{const p=priceTag(t);
     out.push(`${i+1}. ${t.sku||'—'} ${t.item||''} ${PLABEL[t.purity]}`);
     out.push(`   GWT ${fmtW(num(t.gw))} · NWT ${fmtW(num(t.nw))}${t.sw?` · SWT ${t.sw}`:''}`);
-    out.push(`   Gold ${inr(p.gold)}${p.stone?` + Stone ${inr(p.stone)}`:''} + MC ${inr(p.making)}${p.mkSave?` (MBD ${inr(p.mkBefore)})`:''} + HUID ${inr(p.huid)} = ${p.ok?inr(p.value):'—'}`);
+    out.push(`   Gold ${inr(p.gold)}${p.stone?` + Stone ${inr(p.stone)}`:''} + MC ${inr(p.making)} + HUID ${inr(p.huid)} = ${p.ok?inr(p.value):'—'}`);
   });
-  if(s.mkSave)out.push('',`Making discount: you save ${inr(s.mkSave)}`);
   out.push('',`Subtotal ${inr(s.sub)}`,`GST ${fmtN(num(settings.gst))}% ${inr(s.gst)}`,`Total ${inr(s.total)}`);
   bill.oldGold.forEach(o=>{const v=oldValue(o);if(!isNaN(v))out.push(`Less old gold ${PLABEL[o.purity]} ${fmtW(num(o.wt))} g × ${inr(oldRate(o))}: −${inr(v)}`)});
   bill.returns.forEach(r=>{const v=num(r.amount);if(!isNaN(v))out.push(`Less sales return${r.note?` (${r.note})`:''}: −${inr(v)}`)});
@@ -1096,9 +1156,10 @@ function parseVal(str){
 }
 function valText(o){return !o?'—':o.type==='pct'?fmtN(o.val)+'%':o.type==='pergram'?'₹'+o.val.toLocaleString('en-IN')+'/g':'₹'+o.val.toLocaleString('en-IN')}
 const letters=x=>String(x||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+function isDiaTable(t){return isDiamond(t)||/^LDJ/i.test(String(t.sku||''))||t.item==='CVD'}
 function helperRows(t){
   if(!t.purity)return {dia:false,rows:[],sugg:[]};
-  const dia=isDiamond(t),tb=settings.mkTable[dia?'dia':'cz']||[];
+  const dia=isDiaTable(t),tb=settings.mkTable[dia?'dia':'cz']||[];
   const rows=tb.map((x,i)=>({...x,i})).filter(x=>x.purity===t.purity&&parseVal(x.mad));
   let sugg=[];
   if(dia){
@@ -1112,7 +1173,7 @@ function helperRows(t){
   return {dia,rows,sugg:sugg.map(x=>x.i)};
 }
 function stoneRateFor(t){
-  if(!t.purity)return null;const dia=isDiamond(t);
+  if(!t.purity)return null;const dia=isDiaTable(t);
   const row=(settings.mkTable[dia?'dia':'cz']||[]).find(x=>x.purity===t.purity&&num(x.rate)>0);
   return row?{rate:num(row.rate),dia}:null;
 }
@@ -1120,27 +1181,27 @@ function paintGuide(){
   const {dia,rows,sugg}=helperRows(cur);
   $('helperBtn').hidden=!rows.length;
   if(rows.length){
-    $('mkGuideT').textContent=`${dia?'Diamond':'CZ'} jewellery · ${PLABEL[cur.purity]} making (after discount)`+(sugg.length?' · ★ suggested':'');
+    $('mkGuideT').textContent=`${dia?'Diamond':'CZ'} jewellery · ${PLABEL[cur.purity]} making`+(sugg.length?' · ★ suggested':'');
     const box=$('mkGuideChips');box.innerHTML='';
     rows.forEach(x=>{
-      const mad=parseVal(x.mad),mbd=parseVal(x.mbd);
-      const amt=makingFor(cur,mad.type,mad.val);
+      const mad=parseVal(x.mad),mbd=parseVal(x.mbd)||mad;
+      const amt=makingFor(cur,mbd.type,mbd.val),madA=makingFor(cur,mad.type,mad.val);
       const b=document.createElement('button');b.type='button';b.className='chip'+(sugg.includes(x.i)?' sugg':'');
       const nm=dia?x.slab:`Slab ${x.slab}`;
-      b.innerHTML=`<span class="nm">${esc(nm)}</span>${esc(valText(mad))}${mbd?`<span class="mbd">MBD ${esc(valText(mbd))}</span>`:''}${mad.type==='fixed'?'<small>per piece</small>':`<small>${isNaN(amt)?'enter NWT':inr(amt)}</small>`}`;
+      b.innerHTML=`<span class="nm">${esc(nm)}</span>${esc(valText(mbd))}${mbd.type==='fixed'?'<small>per piece</small>':`<small>${isNaN(amt)?'enter NWT':inr(amt)}</small>`}<span class="mad">Staff MAD ${esc(valText(mad))}${mad.type!=='fixed'&&!isNaN(madA)?' = '+inr(madA):''}</span>`;
       b.setAttribute('aria-pressed',String(cur.mkRow===(dia?'d':'c')+x.i));
       b.onclick=()=>{
-        cur.mkType=mad.type;cur.mkVal=String(mad.val);
-        cur.mkMbd=mbd&&mbd.type===mad.type?mbd:null;
+        cur.mkType=mbd.type;cur.mkVal=String(mbd.val);
+        cur.mkMad=mad;
         cur.mkRow=(dia?'d':'c')+x.i;
-        cur.mkTag=`${dia?'Diamond':'CZ'} ${PLABEL[cur.purity]} ${nm}: MBD ${valText(mbd)} → MAD ${valText(mad)}`;
+        cur.mkTag=`${dia?'Diamond':'CZ'} ${PLABEL[cur.purity]} ${nm}: MBD ${valText(mbd)}`;
         unread('making');cur.read.push('making');cur.touched=true;saveDraft();closeHelper();renderEditor();
-        toast(`Making: ${nm} ${valText(mad)}`);
+        toast(`Making: ${nm} ${valText(mbd)}`);
       };
       box.appendChild(b);
     });
     const sel=rows.find(x=>cur.mkRow===(dia?'d':'c')+x.i),sg=rows.find(x=>sugg.includes(x.i));
-    const pick=sel||sg,pv=pick?parseVal(pick.mad):null,pa=pv?makingFor(cur,pv.type,pv.val):NaN;
+    const pick=sel||sg,pv=pick?(parseVal(pick.mbd)||parseVal(pick.mad)):null,pa=pv?makingFor(cur,pv.type,pv.val):NaN;
     $('helperSum').textContent=pick?`${sel?'✓':'★'} ${dia?pick.slab:'Slab '+pick.slab} · ${valText(pv)}${pv.type!=='fixed'&&!isNaN(pa)?' = '+inr(pa):''}`:`${rows.length} ${dia?'diamond':'CZ'} options for ${PLABEL[cur.purity]}`;
   }
   // Stone price helper when the tag/stock has a stone weight but no stone price
@@ -1241,31 +1302,35 @@ async function readSheet(file){
 }
 let importMode='add';
 function pickStock(mode){importMode=mode;$('ssFile').value='';$('ssFile').click()}
-$('ssAdd').onclick=()=>pickStock('add');
-$('ssReplace').onclick=()=>showModal('Replace the whole stock list?',`All ${stockMap.size.toLocaleString('en-IN')} items on this phone will be replaced by the file you choose.`,[
-  {label:'Choose file and replace',cls:'danger',run:()=>pickStock('replace')},{label:'Cancel',cls:'ghost'}]);
+function askReplace(){
+  if(!stockMap.size){pickStock('replace');return}
+  showModal('Import full stock?',`The ${stockMap.size.toLocaleString('en-IN')} items now on this phone will be replaced by the file you choose. Use Add new stock for later additions.`,[
+    {label:'Choose file and replace',cls:'danger',run:()=>pickStock('replace')},{label:'Cancel',cls:'ghost'}]);
+}
+$('ssAdd').onclick=()=>pickStock('add');$('dataAdd').onclick=()=>pickStock('add');
+$('ssReplace').onclick=askReplace;$('dataFull').onclick=askReplace;
+$('dataOpen').onclick=()=>openStock();
+function impStatus(t,cls){[$('ssStatus'),$('dataStatus')].forEach(el=>{el.className='status'+(cls?' '+cls:'');el.textContent=t})}
 $('ssFile').addEventListener('change',async e=>{
   const f=e.target.files&&e.target.files[0];if(!f)return;
-  const st=$('ssStatus');st.className='status';st.textContent=`Reading ${f.name}…`;
+  impStatus(`Reading ${f.name}…`);
   try{
     const res=await readSheet(f);
-    if(!res.rows.length){st.className='status err';st.textContent='No rows with a barcode were found in that file.';return}
+    if(!res.rows.length){impStatus('No rows with a barcode were found in that file.','err');return}
     let added=0,updated=0;
     if(importMode==='replace'){added=res.rows.length}else res.rows.forEach(x=>stockMap.has(x.key)?updated++:added++);
     const at=Date.now();res.rows.forEach(x=>x.at=at);
-    try{await IDB.putMany(res.rows,importMode==='replace')}catch(err){st.className='status err';st.textContent='Could not save the stock on this phone. Free some space and try again.';return}
+    try{await IDB.putMany(res.rows,importMode==='replace')}catch(err){impStatus('Could not save the stock on this phone. Free some space and try again.','err');return}
     if(importMode==='replace'){stockMap.clear();altMap.clear()}
     res.rows.forEach(indexRec);
     const miss=['barcode','item','carat','gw','nw','sa'].filter(c=>!res.cols.includes(c));
     stockMeta.history.unshift({at,file:f.name,sheet:res.sheet,rows:res.rows.length,added,updated,skipped:res.skipped,mode:importMode,missing:miss});
     stockMeta.history=stockMeta.history.slice(0,100);store.set('stockMeta',stockMeta);
-    st.className='status ok';
-    st.textContent=`${importMode==='replace'?'Replaced':'Imported'}: ${added.toLocaleString('en-IN')} new, ${updated.toLocaleString('en-IN')} updated`+(res.skipped?`, ${res.skipped} row${res.skipped>1?'s':''} without a barcode skipped`:'')+(res.dups>0?`, ${res.dups} repeated barcodes (last row kept)`:'')+'.'+(miss.length?` Columns not found: ${miss.join(', ')}.`:'');
+    impStatus(`${importMode==='replace'?'Full stock imported':'New stock added'}: ${added.toLocaleString('en-IN')} new, ${updated.toLocaleString('en-IN')} updated`+(res.skipped?`, ${res.skipped} row${res.skipped>1?'s':''} without a barcode skipped`:'')+(res.dups>0?`, ${res.dups} repeated barcodes (last row kept)`:'')+'.'+(miss.length?` Columns not found: ${miss.join(', ')}.`:''),'ok');
     paintStockSummary();toast('Stock list updated');
     if(cur.sku&&!cur.stockKey)lookupTyped(true);
   }catch(err){
-    st.className='status err';
-    st.textContent=err&&err.message==='no_header'?'No "BarCode" column found. Check the first rows of the sheet have the column names.':err&&err.message==='xlsx_missing'?'The Excel reader did not load. Update the app and try again.':'Could not read that file. Save it as .xlsx and try again.';
+    impStatus(err&&err.message==='no_header'?'No "BarCode" column found. Check the first rows of the sheet have the column names.':err&&err.message==='xlsx_missing'?'The Excel reader did not load. Update the app and try again.':'Could not read that file. Save it as .xlsx and try again.','err');
   }
 });
 function paintStockSummary(){
@@ -1273,6 +1338,7 @@ function paintStockSummary(){
   $('ssCount').textContent=n.toLocaleString('en-IN')+' items';
   $('ssSummary').textContent=last?`Last import ${new Date(last.at).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})} · ${last.file}`:'No stock loaded yet. Import the stock Excel sheet.';
   $('stockBtn').textContent=n?`Stock · ${n.toLocaleString('en-IN')}`:'Stock';
+  $('dataCount').textContent=$('ssCount').textContent;$('dataSummary').textContent=$('ssSummary').textContent;
   const h=$('ssHist');
   h.innerHTML=stockMeta.history.length?stockMeta.history.map(x=>`<div class="h-row"><div class="d">${esc(x.file)}<small>${new Date(x.at).toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'})}</small></div><span class="note">${x.mode==='replace'?'Replaced':'Added'}</span><div class="vals" style="grid-template-columns:1fr">${x.rows.toLocaleString('en-IN')} rows · ${x.added.toLocaleString('en-IN')} new · ${x.updated.toLocaleString('en-IN')} updated${x.skipped?` · ${x.skipped} skipped`:''}</div></div>`).join(''):'<div class="empty">Each Excel import is listed here.</div>';
 }
@@ -1289,7 +1355,8 @@ function applyStock(rec){
   cur.stockKey=rec.key;cur.stock={...rec};cur.touched=true;
   const mark=k=>{if(!cur.read.includes(k))cur.read.push(k)};
   cur.sku=rec.barcode;mark('sku');
-  const nm=itemName(rec.item)||itemFromSku(rec.barcode);if(nm){cur.item=nm;cur.itemAuto=false;mark('item')}
+  const nm=itemFromSku(rec.barcode)||itemName(rec.item);if(nm){cur.item=nm;cur.itemAuto=false;mark('item')}
+  if(!caratToPurity(rec.carat)&&/^MMP/.test(rec.key))cur.purity='platinum';
   const pu=caratToPurity(rec.carat);if(pu){cur.purity=pu;mark('purity')}
   if(rec.gw>0){cur.gw=fmtN(rec.gw);mark('gw')}
   if(rec.nw>0){cur.nw=fmtN(rec.nw);mark('nw')}

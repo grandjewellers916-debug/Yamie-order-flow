@@ -47,3 +47,11 @@ Netlify project `yamie-price-check` is created. Link it to this repo and branch 
 - Stored on the phone (IndexedDB). Each phone imports its own copy.
 
 Typing a barcode, or scanning a tag (the printed barcode is read too), fills item, purity, GWT, NWT, stone weight (Diamond Wt if present), and stone price (StoneAmount). Making is picked by hand from the Label; the **making guide** (Charges settings) shows usual options per purity.
+
+## Billing flow (v11)
+
+1. Select the **Item**: its barcode prefix fills in (Stud STD, Ring FRG, Necklace NLC, Pendant PND, Bangle BGL, Bracelet BRC, Nosepin NSP, Diamond DIA, CVD LDJ, Findings FIN, Chain CHN, Jewelry set RST, Platinum MMP).
+2. Type the barcode **number**: the full barcode is looked up in the stock list and the tag fills in. Or tap **Scan** to read the barcode with the camera.
+3. Open **Making helper** and pick the row. Customer prices use **MBD**; **MAD** is shown to staff only (lowest allowed) and never appears in shared bills.
+
+**Stock data** card: *Import stock Excel* replaces the list with a full stock file; *Add new stock* adds or updates items from later sheets.
