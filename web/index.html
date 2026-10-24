@@ -217,6 +217,15 @@ details.settings .grid{margin-top:10px}
 .mk-label{font-size:14px;background:var(--sunk);border-radius:8px;padding:6px 10px}
 .mk-label b{font:700 15px var(--mono);color:var(--maroon)}
 .guide{display:flex;flex-direction:column;gap:6px}
+.helper-btn{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"t go" "s go";align-items:center;gap:2px 10px;width:100%;text-align:left;border:2px solid var(--gold);background:color-mix(in srgb,var(--gold) 10%,var(--surface));color:var(--fg);border-radius:12px;padding:10px 14px;cursor:pointer;min-height:56px}
+.helper-btn .hb-t{grid-area:t;font:700 15px var(--body)}
+.helper-btn .hb-s{grid-area:s;font:500 13px var(--mono);color:var(--maroon);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.helper-btn .hb-go{grid-area:go;font-size:28px;color:var(--gold);line-height:1}
+#helper{z-index:18}
+#helper .sheet{max-height:85vh;overflow-y:auto}
+#helper .chips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#helper .chip{min-height:84px;padding:10px 12px;font-size:17px}
+#helper p{margin:0}
 .guide .chips .chip{border-style:dashed;border-color:var(--gold);text-align:left}
 .guide .chip .nm{display:block;font:600 11px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .guide .chip[aria-pressed="true"] .nm{color:var(--maroon-ink)}
@@ -306,7 +315,7 @@ details.settings .grid{margin-top:10px}
     <div class="making" id="makingBox">
       <div class="sec-head"><span class="flabel req">Making charge</span><span class="mk-tag" id="mkTag"></span></div>
       <div class="mk-label" id="mkLabel" hidden></div>
-      <div class="guide" id="mkGuide" hidden><span class="note" id="mkGuideT"></span><div class="chips" id="mkGuideChips"></div></div>
+      <button class="helper-btn" id="helperBtn" type="button" hidden><span class="hb-t">Making helper</span><span class="hb-s" id="helperSum"></span><span class="hb-go" aria-hidden="true">›</span></button>
       <div class="seg" id="mkSeg" role="group" aria-label="Making charge type"></div>
       <div class="chips" id="mkChips"></div>
       <div class="mk-custom" id="mkCustomRow" hidden>
@@ -418,6 +427,14 @@ details.settings .grid{margin-top:10px}
     </div>
     <div class="sec-head"><h2>Rate history</h2><span class="note">This phone</span></div>
     <div class="hist" id="rsHist"></div>
+  </div>
+</div>
+<div class="modal" id="helper" hidden role="dialog" aria-modal="true" aria-labelledby="helperTitle">
+  <div class="sheet guide">
+    <div class="rs-head"><h4 id="helperTitle">Making helper</h4><button class="btn sm" type="button" id="helperClose">Close</button></div>
+    <p id="mkGuideT"></p>
+    <div class="chips" id="mkGuideChips"></div>
+    <p class="note" id="helperNote">Billed at MAD (after discount). MBD is shown struck through.</p>
   </div>
 </div>
 <div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modalTitle">
@@ -1101,7 +1118,7 @@ function stoneRateFor(t){
 }
 function paintGuide(){
   const {dia,rows,sugg}=helperRows(cur);
-  $('mkGuide').hidden=!rows.length;
+  $('helperBtn').hidden=!rows.length;
   if(rows.length){
     $('mkGuideT').textContent=`${dia?'Diamond':'CZ'} jewellery · ${PLABEL[cur.purity]} making (after discount)`+(sugg.length?' · ★ suggested':'');
     const box=$('mkGuideChips');box.innerHTML='';
@@ -1117,10 +1134,14 @@ function paintGuide(){
         cur.mkMbd=mbd&&mbd.type===mad.type?mbd:null;
         cur.mkRow=(dia?'d':'c')+x.i;
         cur.mkTag=`${dia?'Diamond':'CZ'} ${PLABEL[cur.purity]} ${nm}: MBD ${valText(mbd)} → MAD ${valText(mad)}`;
-        unread('making');cur.read.push('making');cur.touched=true;saveDraft();renderEditor();
+        unread('making');cur.read.push('making');cur.touched=true;saveDraft();closeHelper();renderEditor();
+        toast(`Making: ${nm} ${valText(mad)}`);
       };
       box.appendChild(b);
     });
+    const sel=rows.find(x=>cur.mkRow===(dia?'d':'c')+x.i),sg=rows.find(x=>sugg.includes(x.i));
+    const pick=sel||sg,pv=pick?parseVal(pick.mad):null,pa=pv?makingFor(cur,pv.type,pv.val):NaN;
+    $('helperSum').textContent=pick?`${sel?'✓':'★'} ${dia?pick.slab:'Slab '+pick.slab} · ${valText(pv)}${pv.type!=='fixed'&&!isNaN(pa)?' = '+inr(pa):''}`:`${rows.length} ${dia?'diamond':'CZ'} options for ${PLABEL[cur.purity]}`;
   }
   // Stone price helper when the tag/stock has a stone weight but no stone price
   const sh=$('stoneHint'),sr=stoneRateFor(cur),sw=num(cur.sw);
@@ -1131,6 +1152,12 @@ function paintGuide(){
     $('useStone').onclick=()=>{cur.spr=String(v);unread('spr');cur.touched=true;saveDraft();renderEditor()};
   }else sh.hidden=true;
 }
+function openHelper(){paintGuide();$('helper').hidden=false;try{history.pushState({hp:1},'')}catch(e){}setTimeout(()=>{const f=$('mkGuideChips').querySelector('.sugg')||$('mkGuideChips').querySelector('button');f&&f.focus()},30)}
+function closeHelper(fromPop){if($('helper').hidden)return;$('helper').hidden=true;if(!fromPop){try{if(history.state&&history.state.hp)history.back()}catch(e){}}}
+window.addEventListener('popstate',()=>closeHelper(true));
+$('helperBtn').onclick=openHelper;$('helperClose').onclick=()=>closeHelper();
+$('helper').addEventListener('click',e=>{if(e.target===$('helper'))closeHelper()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('helper').hidden)closeHelper()});
 function renderTable(kind){
   const el=$(kind==='cz'?'tblCz':'tblDia'),rows=settings.mkTable[kind];
   el.innerHTML=`<div class="tbl-row head"><span>Purity</span><span>${kind==='cz'?'Slab':'Item'}</span><span>MBD</span><span>MAD</span><span>${kind==='cz'?'Stone':'Diamond'}</span><span></span></div>`+
