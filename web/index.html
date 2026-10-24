@@ -277,6 +277,15 @@ details.settings .grid{margin-top:10px}
 .role.admin{background:var(--maroon);color:var(--maroon-ink)}
 .user-form{border:1.5px solid var(--gold);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px;margin-top:8px}
 .chk{flex-direction:row!important;align-items:center;gap:8px!important;font-size:14px}
+.sold{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:10px}
+.sold .bc input{border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:var(--surface);color:var(--fg);min-height:44px}
+.sold-list{display:flex;flex-direction:column;gap:6px}
+.s-row{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:7px 10px;font-size:14px}
+.s-row b{font-family:var(--mono)}
+.s-row .m{font-size:12px;color:var(--muted)}
+.s-row.miss{border-color:var(--warn)}
+.s-row.miss .m{color:var(--warn)}
+.s-row .x{border:0;background:none;color:var(--bad);font-size:20px;cursor:pointer;padding:0 4px}
 .datacard{padding:0;gap:0}
 .datacard>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:14px;cursor:pointer}
 .datacard>summary::-webkit-details-marker{display:none}
@@ -440,12 +449,21 @@ details.settings .grid{margin-top:10px}
       <button class="btn" type="button" id="dataAdd">Add new stock</button>
     </div>
     <div class="status" id="dataStatus">Import stock Excel loads the full current stock (replaces the list). Add new stock adds or updates items from a later sheet.</div>
+    <div class="sold">
+      <h3>Remove sold tags</h3>
+      <p class="note" style="margin-block:4px 0">Scan or type the barcodes of sold items, then delete them from the stock list.</p>
+      <div class="bc"><input id="soldIn" class="num" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="e.g. DIA1164"><button class="btn" type="button" id="soldAdd">Add</button><button class="btn bc-scan" type="button" id="soldScan" hidden>Scan</button></div>
+      <div class="sold-list" id="soldList"></div>
+      <input class="hidden-input" id="soldFileIn" type="file" accept=".xlsx,.xls,.xlsm,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" aria-label="Choose sold tags Excel">
+      <div class="rs-acts"><button class="btn danger" type="button" id="soldDel" disabled>Delete tags</button><button class="btn" type="button" id="soldFile">From Excel list</button></div>
+      <div class="status" id="soldStatus"></div>
+    </div>
     <button class="btn back-app" type="button" id="dataBack2">‹ Back to app</button>
   </details>
 
   <details class="card datacard" id="adminCard">
     <summary><span class="dc-t">Admin settings</span><span class="dc-s" id="adminMini">Locked</span><span class="dc-chev" aria-hidden="true">▾</span></summary>
-    <div class="sec-head"><span class="note">Charges, making helper and admin PIN</span><button class="btn sm back" type="button" id="adminBack">‹ Back</button></div>
+    <div class="sec-head"><span class="note">Charges, making helper, shared database and users</span><button class="btn sm back" type="button" id="adminBack">‹ Back</button></div>
     <h3>Charges</h3>
       <div class="grid">
         <div class="f"><label for="setGst">GST %</label><input class="num" id="setGst" inputmode="decimal"></div>
@@ -1105,7 +1123,9 @@ async function closeCamScan(fromPop){
 }
 $('camCancel').onclick=()=>closeCamScan();
 window.addEventListener('popstate',()=>closeCamScan(true));
+let scanTarget='';
 function useScannedCode(code){
+  if(scanTarget==='sold'){scanTarget='';addSold(code);return}
   const k=keyOf(code);if(!k){setStatus('No barcode read. Try again or type the number.','err');return}
   if(editingId||(cur.touched&&cur.stockKey&&cur.stockKey!==k)){cur=blankTag();editingId=null}
   const rec=findStock(k);
@@ -1346,6 +1366,7 @@ $('copyBtn').onclick=()=>{
 $('waBtn').addEventListener('click',e=>{if(!bill.items.length){e.preventDefault();toast('Add a tag first')}});
 $('goBill').onclick=()=>window.scrollTo({top:$('bill').offsetTop-10,behavior:'smooth'});
 $('barBtn').onclick=()=>window.scrollTo({top:$('bill').offsetTop-10,behavior:'smooth'});
+const n0=()=>new Date().toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'});
 function billIsEmpty(){return !bill.items.length&&!bill.oldGold.length&&!bill.returns.length}
 let armNew=0;
 function resetAll(msg){
@@ -1367,7 +1388,11 @@ $('saveBill').onclick=()=>{
   const saved=store.get('bills',[]);
   saved.unshift({id:uid(),at:Date.now(),by:curUser?curUser.name:'',bill:clone(bill),net:s.net,rates:PURITIES.reduce((a,p)=>(a[p.id]=rateFor(p.id),a),{})});
   store.set('bills',saved.slice(0,40));
+  const billKeys=bill.items.map(t=>t.stockKey).filter(k=>k&&stockMap.has(k));
   resetAll('Bill saved. Scan the first tag of the next bill.');toast('Bill saved');
+  if(billKeys.length&&isAdmin())setTimeout(()=>showModal(`Remove ${billKeys.length} sold tag${billKeys.length>1?'s':''} from stock?`,`${billKeys.join(', ')} ${billKeys.length>1?'were':'was'} on this bill.`,[
+    {label:'Remove from stock',cls:'danger',run:()=>withPin('Log in as an admin to delete stock.',async()=>{const n=await removeStock(billKeys,`Sold on bill (${n0()})`);toast(`${n} tag${n>1?'s':''} removed from stock`)})},
+    {label:'Keep in stock',cls:'ghost'}]),400);
 };
 function renderRecent(){
   const saved=store.get('bills',[]),el=$('recent');
@@ -1501,6 +1526,7 @@ const altOf=k=>k.replace(/^([A-Z]+)0+(?=[0-9])/,'$1');
 const IDB={_db:null,
   open(){if(this._db)return Promise.resolve(this._db);return new Promise((res,rej)=>{if(!window.indexedDB)return rej(new Error('no_idb'));const q=indexedDB.open('ypc-stock',1);q.onupgradeneeded=()=>q.result.createObjectStore('stock',{keyPath:'key'});q.onsuccess=()=>{this._db=q.result;res(q.result)};q.onerror=()=>rej(q.error)})},
   async all(){const db=await this.open();return new Promise((res,rej)=>{const q=db.transaction('stock','readonly').objectStore('stock').getAll();q.onsuccess=()=>res(q.result||[]);q.onerror=()=>rej(q.error)})},
+  async deleteMany(keys){const db=await this.open();return new Promise((res,rej)=>{const t=db.transaction('stock','readwrite'),st=t.objectStore('stock');keys.forEach(k=>st.delete(k));t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})},
   async putMany(rows,clear){const db=await this.open();return new Promise((res,rej)=>{const t=db.transaction('stock','readwrite'),st=t.objectStore('stock');if(clear)st.clear();rows.forEach(x=>st.put(x));t.oncomplete=()=>res();t.onerror=()=>rej(t.error);t.onabort=()=>rej(t.error)})}
 };
 function indexRec(x){stockMap.set(x.key,x);altMap.set(altOf(x.key),x.key)}
@@ -1601,7 +1627,7 @@ function paintStockSummary(){
   $('dataCount').textContent=$('ssCount').textContent;$('dataSummary').textContent=$('ssSummary').textContent;
   $('dataMini').textContent=n?`${n.toLocaleString('en-IN')} items${last?' · '+new Date(last.at).toLocaleDateString('en-IN',{day:'numeric',month:'short'}):''}`:'No stock loaded';
   const h=$('ssHist');
-  h.innerHTML=stockMeta.history.length?stockMeta.history.map(x=>`<div class="h-row"><div class="d">${esc(x.file)}<small>${new Date(x.at).toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'})}</small></div><span class="note">${x.mode==='replace'?'Replaced':'Added'}</span><div class="vals" style="grid-template-columns:1fr">${x.rows.toLocaleString('en-IN')} rows · ${x.added.toLocaleString('en-IN')} new · ${x.updated.toLocaleString('en-IN')} updated${x.skipped?` · ${x.skipped} skipped`:''}</div></div>`).join(''):'<div class="empty">Each Excel import is listed here.</div>';
+  h.innerHTML=stockMeta.history.length?stockMeta.history.map(x=>`<div class="h-row"><div class="d">${esc(x.file)}<small>${new Date(x.at).toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'})}</small></div><span class="note">${x.mode==='replace'?'Replaced':x.mode==='sold'?'Sold':'Added'}</span><div class="vals" style="grid-template-columns:1fr">${x.mode==='sold'?`${(x.removed||x.rows).toLocaleString('en-IN')} tags removed`:`${x.rows.toLocaleString('en-IN')} rows · ${x.added.toLocaleString('en-IN')} new · ${x.updated.toLocaleString('en-IN')} updated${x.skipped?` · ${x.skipped} skipped`:''}`}</div></div>`).join(''):'<div class="empty">Each Excel import is listed here.</div>';
 }
 const REC_LABELS=[['barcode','BarCode'],['item','Item'],['category','Category'],['carat','Carret'],['gw','Gross Wt'],['nw','Net Wt'],['sw','Stone Wt'],['dw','Diamond Wt'],['dq','Diamond Qty'],['sa','StoneAmount'],['serial','Serial'],['label','Label'],['location','Location'],['pcs','Pcs'],['sq','Stone Qty'],['supplier','Supplier']];
 $('ssFind').addEventListener('input',()=>{
@@ -1868,6 +1894,58 @@ if(sync.key){syncMsg('',`Connected with shop key. Syncing…`);}
 setInterval(()=>{if(!document.hidden)pullAll()},2*60*1000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pullAll()});
 window.addEventListener('online',()=>pullAll());
+
+// ---------- remove sold tags (admin) ----------
+let soldKeys=[];
+function addSold(code){
+  const k=keyOf(code);if(!k)return;
+  const rec=findStock(k),key=rec?rec.key:k;
+  if(soldKeys.includes(key)){toast(`${key} is already in the list`);return}
+  soldKeys.push(key);$('soldIn').value='';paintSold();
+}
+function paintSold(){
+  const el=$('soldList');
+  el.innerHTML=soldKeys.map(k=>{const r=stockMap.get(k);return `<div class="s-row${r?'':' miss'}"><div><b>${esc(r?r.barcode:k)}</b><div class="m">${r?esc([itemFromSku(r.barcode)||r.item,r.carat,r.nw!=null?fmtN(r.nw)+' g':''].filter(Boolean).join(' · ')):'Not in stock list'}</div></div><button class="x" type="button" data-k="${esc(k)}" aria-label="Remove from list">×</button></div>`}).join('');
+  el.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{soldKeys=soldKeys.filter(x=>x!==b.dataset.k);paintSold()});
+  const n=soldKeys.filter(k=>stockMap.has(k)).length;
+  $('soldDel').disabled=!n;$('soldDel').textContent=n?`Delete ${n} tag${n>1?'s':''}`:'Delete tags';
+}
+$('soldAdd').onclick=()=>addSold($('soldIn').value);
+$('soldIn').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addSold($('soldIn').value)}});
+$('soldScan').hidden=!(canNativeBc||canWebBc);
+$('soldScan').onclick=()=>{scanTarget='sold';if(canNativeBc)NATIVE.scanBarcode();else if(canWebBc)openCamScan()};
+$('soldFile').onclick=()=>{$('soldFileIn').value='';$('soldFileIn').click()};
+$('soldFileIn').addEventListener('change',async e=>{
+  const f=e.target.files&&e.target.files[0];if(!f)return;
+  const st=$('soldStatus');st.className='status';st.textContent=`Reading ${f.name}…`;
+  try{const res=await readSheet(f);res.rows.forEach(x=>{if(!soldKeys.includes(x.key))soldKeys.push(x.key)});paintSold();
+    st.textContent=`${res.rows.length} barcodes read from ${f.name}. Check the list, then delete.`}
+  catch(err){st.className='status err';st.textContent=err&&err.message==='no_header'?'No "BarCode" column found in that file.':'Could not read that file.'}
+});
+async function removeStock(keys,note){
+  keys=keys.filter(k=>stockMap.has(k));if(!keys.length)return 0;
+  try{await IDB.deleteMany(keys)}catch(e){}
+  keys.forEach(k=>{const r=stockMap.get(k);stockMap.delete(k);if(r)altMap.delete(altOf(r.key))});
+  stockMeta.history.unshift({at:Date.now(),file:note,rows:keys.length,added:0,updated:0,removed:keys.length,mode:'sold'});
+  stockMeta.history=stockMeta.history.slice(0,100);store.set('stockMeta',stockMeta);
+  paintStockSummary();
+  if(sync.key){
+    try{const r=await syncApi('stockdel','POST',{keys,note},adminCreds);sync.v.stock=r.v;saveSyncState();if(r.history){stockMeta.history=r.history;store.set('stockMeta',stockMeta);paintStockSummary()}}
+    catch(e){$('soldStatus').className='status err';$('soldStatus').textContent='Removed on this phone only. '+syncErrText(e);return keys.length}
+  }
+  return keys.length;
+}
+$('soldDel').onclick=()=>{
+  const keys=soldKeys.filter(k=>stockMap.has(k));if(!keys.length)return;
+  showModal(`Delete ${keys.length} sold tag${keys.length>1?'s':''}?`,`${keys.slice(0,6).join(', ')}${keys.length>6?` and ${keys.length-6} more`:''} will be removed from the stock list${sync.key?' on all phones':''}.`,[
+    {label:'Delete from stock',cls:'danger',run:()=>withPin('Log in as an admin to delete stock.',async()=>{
+      const n=await removeStock(keys,`${keys.length} sold tag${keys.length>1?'s':''} removed`);
+      soldKeys=soldKeys.filter(k=>!keys.includes(k));paintSold();
+      if(!$('soldStatus').className.includes('err')){$('soldStatus').className='status ok';$('soldStatus').textContent=`${n} tag${n>1?'s':''} deleted from stock${sync.key?' on all phones':''}.`}
+      toast(`${n} sold tag${n>1?'s':''} deleted`);
+    })},{label:'Cancel',cls:'ghost'}]);
+};
+paintSold();
 
 // ---------- boot ----------
 paintRates();renderEditor();renderBill();

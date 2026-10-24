@@ -150,6 +150,20 @@ export default async (req: Request) => {
       return json(req, { v: meta.stock, count: all.length, added, updated, history: meta.history })
     }
 
+    if (op === "stockdel") {
+      // Remove sold tags (admin)
+      const keys = new Set((Array.isArray(body?.keys) ? body.keys : []).slice(0, 20000).map((k: any) => String(k || "").toUpperCase().replace(/[^A-Z0-9]/g, "")).filter(Boolean))
+      if (!keys.size) return json(req, { error: "no_keys" }, 400)
+      const cur: any[] = ((await st.get("stock", { type: "json" })) as any[]) || []
+      const left = cur.filter((r) => !keys.has(r.key))
+      const removed = cur.length - left.length
+      await st.setJSON("stock", left)
+      meta.stock = Date.now(); meta.count = left.length
+      meta.history = [{ at: meta.stock, file: cleanStr(body.note, 80) || "Sold tags removed", rows: removed, added: 0, updated: 0, removed, skipped: 0, mode: "sold" }, ...(meta.history || [])].slice(0, 100)
+      await saveMeta()
+      return json(req, { v: meta.stock, count: left.length, removed, history: meta.history })
+    }
+
     if (op === "ratelog") {
       // One-time seeding of rate history from a phone (admin)
       const log = (Array.isArray(body?.log) ? body.log : []).map((e: any) => ({ id: cleanStr(e?.id, 20), at: cleanNum(e?.at) || 0, day: cleanStr(e?.day, 10), rates: cleanRates(e?.rates) })).filter((e: any) => e.id && e.at && e.rates["22k"])
