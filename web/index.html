@@ -1692,7 +1692,7 @@ const APP_VERSION='1.0.__BUILD__';
 $('appVer').textContent='v'+(APP_VERSION.includes('__')?'dev':APP_VERSION);
 
 // ---------- users and login ----------
-const DEFAULT_PIN='1986';
+const DEFAULT_PIN_HASH='70249d509e52362f5d41ae4cc1bfeabc6af135b10b4c2ba234fdf87639485ccf'; // starting admin PIN (stored as a hash only)
 let users=store.get('users',[]);if(!Array.isArray(users))users=[];
 let curUser=null;{const ss=store.get('session',null);if(ss)curUser=users.find(u=>u.id===ss.id&&u.active!==false)||null}
 let adminUntil=0; // admin override on a staff login (15 minutes)
@@ -1706,7 +1706,7 @@ async function pbkdf(pin,saltHex){
 }
 const newSalt=()=>hex(crypto.getRandomValues(new Uint8Array(16)));
 async function pinHash(p){try{return hex(await crypto.subtle.digest('SHA-256',new TextEncoder().encode('yamie-pc:'+p)))}catch(e){return ''}}
-async function legacyPinOk(p){return settings.adminPin?(await pinHash(p))===settings.adminPin:p===DEFAULT_PIN}
+async function legacyPinOk(p){return (await pinHash(p))===(settings.adminPin||DEFAULT_PIN_HASH)}
 function saveUsersLocal(){store.set('users',users)}
 function upsertUser(u){const i=users.findIndex(x=>x.id===u.id);if(i>=0)users[i]={...users[i],...u};else users.push(u);saveUsersLocal()}
 function mergeRemoteUsers(list){

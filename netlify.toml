@@ -3,6 +3,10 @@
   functions = "netlify/functions"
   command = "sed -i \"s/1.0.__BUILD__/web-${COMMIT_REF:0:7}/\" web/index.html"
 
+# ADMIN_PIN is only the first-login starting PIN (changed after setup); a 4-digit value also matches digits inside bundled libraries
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "ADMIN_PIN"
+
 [[headers]]
   for = "/sw.js"
   [headers.values]
