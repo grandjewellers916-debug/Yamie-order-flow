@@ -1,6 +1,7 @@
 [build]
   publish = "web"
   functions = "netlify/functions"
+  command = "sed -i \"s/1.0.__BUILD__/web-${COMMIT_REF:0:7}/\" web/index.html"
 
 [[headers]]
   for = "/sw.js"

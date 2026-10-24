@@ -55,3 +55,13 @@ Typing a barcode, or scanning a tag (the printed barcode is read too), fills ite
 3. Open **Making helper** and pick the row. Customer prices use **MBD**; **MAD** is shown to staff only (lowest allowed) and never appears in shared bills.
 
 **Stock data** card: *Import stock Excel* replaces the list with a full stock file; *Add new stock* adds or updates items from later sheets.
+
+## iPhone (home-screen app)
+
+The web version runs on iPhone as a home-screen app (no App Store needed).
+
+1. Netlify → project **yamie-price-check** → Project configuration → Build & deploy → **Link repository** → GitHub → `Yamie-order-flow`, branch **price-check**. `netlify.toml` sets the rest. Every push redeploys.
+2. On the iPhone open **https://yamie-price-check.netlify.app** in **Safari** → Share → **Add to Home Screen**.
+3. Open it from the home screen. Allow the camera the first time **Scan** is used.
+
+Barcode scanning uses a live camera scanner (bundled, works offline). Stock data, rates and bills are stored on each iPhone, like the Android app.

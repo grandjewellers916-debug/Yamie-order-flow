@@ -8,7 +8,12 @@
 <meta name="description" content="Scan jewellery tags, build a bill at today's gold rate, deduct old gold and returns.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Price Check">
+<meta name="format-detection" content="telephone=no">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: one phone column — rate band, tag editor (scan front/back, fields, making, HUID), bill (items, old gold, returns, totals), sticky net-payable bar */
@@ -243,6 +248,9 @@ details.settings .grid{margin-top:10px}
 .pin-in:focus{border-color:var(--gold);outline:none}
 .pin-err{color:var(--bad);font-weight:600;min-height:1.2em}
 #pinModal{z-index:30}
+#camScan{z-index:25}
+.cam-view{width:100%;border-radius:12px;overflow:hidden;background:#000;min-height:220px}
+.cam-view video{width:100%!important;height:auto!important;display:block}
 .locked-ico{font-size:13px;margin-right:2px}
 .datacard{padding:0;gap:0}
 .datacard>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:14px;cursor:pointer}
@@ -486,6 +494,13 @@ details.settings .grid{margin-top:10px}
     <p class="note" id="helperNote">Customer price uses MBD. <b>Staff only:</b> MAD is the lowest making allowed after discount.</p>
   </div>
 </div>
+<div class="modal" id="camScan" hidden role="dialog" aria-modal="true" aria-labelledby="camTitle">
+  <div class="sheet">
+    <div class="rs-head"><button class="btn sm back" type="button" id="camCancel">‹ Back</button><h4 id="camTitle">Scan barcode</h4></div>
+    <div id="camView" class="cam-view"></div>
+    <p class="note" id="camMsg">Point the camera at the barcode on the tag.</p>
+  </div>
+</div>
 <div class="modal" id="pinModal" hidden role="dialog" aria-modal="true" aria-labelledby="pinTitle">
   <form class="sheet" id="pinForm">
     <h4 id="pinTitle">Admin PIN</h4>
@@ -649,7 +664,7 @@ async function loadRates(){
     let j;
     if(NATIVE)j=await nativeRates();
     else{
-      let r=await fetch('https://yamie-price-check.netlify.app/api/rates',{cache:'no-store'}).catch(()=>null);
+      let r=await fetch(location.protocol==='https:'?'/api/rates':'https://yamie-price-check.netlify.app/api/rates',{cache:'no-store'}).catch(()=>null);
       if(!r||!r.ok)r=await fetch('https://grandjewellers.com/api/kiosk-rates',{cache:'no-store'});
       if(!r.ok)throw new Error('HTTP '+r.status);
       j=await r.json();
@@ -909,13 +924,39 @@ $('camInput').onchange=e=>handleFile(e.target.files[0],e.target);
 $('galInput').onchange=e=>handleFile(e.target.files[0],e.target);
 // Barcode camera: native scanner in the app, BarcodeDetector in Chrome; hidden when neither exists
 const canNativeBc=!!(NATIVE&&NATIVE.scanBarcode);
-let canWebBc=false,bcMode=false;
-$('scanBc').hidden=!canNativeBc;
-try{if(!NATIVE&&'BarcodeDetector' in window)BarcodeDetector.getSupportedFormats().then(f=>{canWebBc=f.length>0;$('scanBc').hidden=!canWebBc}).catch(()=>{})}catch(e){}
+let bcMode=false;
+const canWebBc=!NATIVE&&window.isSecureContext&&!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia);
+$('scanBc').hidden=!(canNativeBc||canWebBc);
 $('scanBc').onclick=()=>{
   if(canNativeBc){NATIVE.scanBarcode();return}
-  if(canWebBc){bcMode=true;$('camInput').click()}
+  if(canWebBc)openCamScan();
 };
+// Live camera scanner for iPhone and browsers (bundled html5-qrcode)
+let qrLibP=null,qr=null;
+function loadQr(){if(window.__Html5QrcodeLibrary__)return Promise.resolve();if(!qrLibP)qrLibP=new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='vendor/html5-qrcode.min.js';sc.onload=res;sc.onerror=()=>{qrLibP=null;rej(new Error('lib'))};document.head.appendChild(sc)});return qrLibP}
+async function openCamScan(){
+  $('camScan').hidden=false;$('camMsg').textContent='Starting camera…';
+  try{history.pushState({cam:1},'')}catch(e){}
+  try{
+    await loadQr();
+    const L=window.__Html5QrcodeLibrary__,F=L.Html5QrcodeSupportedFormats;
+    const fmts=['CODE_128','CODE_39','CODE_93','EAN_13','EAN_8','UPC_A','UPC_E','ITF','CODABAR','QR_CODE','DATA_MATRIX'].map(k=>F[k]).filter(x=>x!=null);
+    qr=new L.Html5Qrcode('camView',{formatsToSupport:fmts,verbose:false});
+    await qr.start({facingMode:'environment'},{fps:12,qrbox:(w,h)=>({width:Math.min(300,w*0.9),height:Math.min(140,h*0.5)})},
+      text=>{closeCamScan();try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}useScannedCode(text)},()=>{});
+    $('camMsg').textContent='Point the camera at the barcode on the tag.';
+  }catch(e){
+    const denied=e&&(/Permission|NotAllowed/i.test(String(e.name||e)+String(e.message||e)));
+    $('camMsg').textContent=denied?'Camera access is off. Allow the camera for this app in Settings, then try again.':'Could not start the camera. Type the barcode instead.';
+  }
+}
+async function closeCamScan(fromPop){
+  if($('camScan').hidden)return;$('camScan').hidden=true;
+  try{if(qr){const q=qr;qr=null;if(q.isScanning)await q.stop();q.clear()}}catch(e){}
+  if(!fromPop){try{if(history.state&&history.state.cam)history.back()}catch(e){}}
+}
+$('camCancel').onclick=()=>closeCamScan();
+window.addEventListener('popstate',()=>closeCamScan(true));
 function useScannedCode(code){
   const k=keyOf(code);if(!k){setStatus('No barcode read. Try again or type the number.','err');return}
   if(editingId||(cur.touched&&cur.stockKey&&cur.stockKey!==k)){cur=blankTag();editingId=null}
