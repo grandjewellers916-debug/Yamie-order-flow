@@ -234,6 +234,16 @@ details.settings .grid{margin-top:10px}
 .guide .chip .mad{display:block;font:600 11px var(--mono);color:var(--muted);margin-top:2px}
 .guide .chip[aria-pressed="true"] .mad{color:var(--maroon-ink);opacity:.85}
 .line.staff span{color:var(--muted)!important;font-style:italic;font-weight:500!important;font-size:13px}
+.rs-head .back,.sec-head .back{flex:none}
+.rs-head{justify-content:flex-start!important}
+.rs-tt{min-width:0}
+.btn.back{font-weight:600}
+.admin-pill{background:var(--good);border-color:var(--good);color:#fff;font-weight:600}
+.pin-in{width:100%;font:700 26px var(--mono);letter-spacing:.4em;text-align:center;padding:12px;border:2px solid var(--line);border-radius:12px;background:var(--surface);color:var(--fg)}
+.pin-in:focus{border-color:var(--gold);outline:none}
+.pin-err{color:var(--bad);font-weight:600;min-height:1.2em}
+#pinModal{z-index:30}
+.locked-ico{font-size:13px;margin-right:2px}
 .datacard{padding:0;gap:0}
 .datacard>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:14px;cursor:pointer}
 .datacard>summary::-webkit-details-marker{display:none}
@@ -291,8 +301,8 @@ details.settings .grid{margin-top:10px}
 <body>
 <div class="wrap">
   <header class="top">
-    <div class="brand">Yamie<small>Price check &amp; bill</small></div>
-    <div class="hdr-acts"><button class="btn sm" id="stockBtn" type="button">Stock</button><button class="btn sm primary" id="goBill" type="button">Bill ↓</button><button id="newBillBtn" type="button" hidden>Clear bill</button></div>
+    <div class="brand">Yamie<small>Price check &amp; bill · <span id="appVer"></span></small></div>
+    <div class="hdr-acts"><button class="btn sm admin-pill" id="adminPill" type="button" hidden>Admin ✕</button><button class="btn sm" id="stockBtn" type="button">Stock</button><button class="btn sm primary" id="goBill" type="button">Bill ↓</button><button id="newBillBtn" type="button" hidden>Clear bill</button></div>
   </header>
 
   <section class="band" id="band" aria-label="Day's rates" role="button" tabindex="0">
@@ -386,33 +396,43 @@ details.settings .grid{margin-top:10px}
   <section class="card" aria-label="Saved bills">
     <div class="sec-head"><h2>Saved bills</h2><span class="note">This phone only</span></div>
     <div class="recent" id="recent"></div>
-    <details class="settings">
-      <summary>Charges settings</summary>
-      <div class="grid">
-        <div class="f"><label for="setGst">GST %</label><input class="num" id="setGst" inputmode="decimal"></div>
-        <div class="f"><label for="setHuid">₹ per HUID</label><input class="num" id="setHuid" inputmode="decimal"></div>
-      </div>
-      <h3 style="margin-top:16px">Making helper · CZ jewellery</h3>
-      <p class="note" style="margin:4px 0 0">MBD = before discount, MAD = after discount (billed). Values: <b>35%</b>, <b>1700</b> (per piece), <b>1700 PG</b> (per gram). Stone = ₹ per unit of SWT.</p>
-      <div class="tbl" id="tblCz"></div>
-      <button class="linkbtn" type="button" id="addCz">+ Add CZ row</button>
-      <h3 style="margin-top:16px">Making helper · Diamond jewellery</h3>
-      <p class="note" style="margin:4px 0 0">Item can be Nosepin, Other Jewellery, or a supplier / item name (e.g. MANOJ) to match. Diamond = ₹ per carat.</p>
-      <div class="tbl" id="tblDia"></div>
-      <button class="linkbtn" type="button" id="addDia">+ Add diamond row</button>
-      <div style="margin-top:10px"><button class="btn sm" type="button" id="resetTbl">Reset helper to Yamie table</button></div>
-    </details>
   </section>
 
   <details class="card datacard" id="dataCard">
     <summary><span class="dc-t">Stock data</span><span class="dc-s" id="dataMini">No stock loaded</span><span class="dc-chev" aria-hidden="true">▾</span></summary>
-    <div class="sec-head"><span class="note">Upload stock Excel sheets</span><button class="linkbtn" type="button" id="dataOpen">Find / history</button></div>
+    <div class="sec-head"><button class="btn sm back" type="button" id="dataBack">‹ Back</button><button class="linkbtn" type="button" id="dataOpen">Find / history</button></div>
     <div><div class="ss-count" id="dataCount">0 items</div><div class="note" id="dataSummary">No stock loaded yet.</div></div>
     <div class="rs-acts">
       <button class="btn primary" type="button" id="dataFull">Import stock Excel</button>
       <button class="btn" type="button" id="dataAdd">Add new stock</button>
     </div>
     <div class="status" id="dataStatus">Import stock Excel loads the full current stock (replaces the list). Add new stock adds or updates items from a later sheet.</div>
+  </details>
+
+  <details class="card datacard" id="adminCard">
+    <summary><span class="dc-t">Admin settings</span><span class="dc-s" id="adminMini">Locked</span><span class="dc-chev" aria-hidden="true">▾</span></summary>
+    <div class="sec-head"><span class="note">Charges, making helper and admin PIN</span><button class="btn sm back" type="button" id="adminBack">‹ Back</button></div>
+    <h3>Charges</h3>
+      <div class="grid">
+        <div class="f"><label for="setGst">GST %</label><input class="num" id="setGst" inputmode="decimal"></div>
+        <div class="f"><label for="setHuid">₹ per HUID</label><input class="num" id="setHuid" inputmode="decimal"></div>
+      </div>
+      <h3 style="margin-top:16px">Making helper · CZ jewellery</h3>
+      <p class="note" style="margin-block:4px 0">MBD = customer price (before discount), MAD = staff lowest (after discount). Values: <b>35%</b>, <b>1700</b> (per piece), <b>1700 PG</b> (per gram). Stone = ₹ per unit of SWT.</p>
+      <div class="tbl" id="tblCz"></div>
+      <button class="linkbtn" type="button" id="addCz">+ Add CZ row</button>
+      <h3 style="margin-top:16px">Making helper · Diamond jewellery</h3>
+      <p class="note" style="margin-block:4px 0">Item can be Nosepin, Other Jewellery, or a supplier / item name (e.g. MANOJ) to match. Diamond = ₹ per carat.</p>
+      <div class="tbl" id="tblDia"></div>
+      <button class="linkbtn" type="button" id="addDia">+ Add diamond row</button>
+      <div style="margin-top:10px"><button class="btn sm" type="button" id="resetTbl">Reset helper to Yamie table</button></div>
+      <h3 style="margin-top:16px">Admin PIN</h3>
+      <div class="grid">
+        <div class="f"><label for="pinNew">New PIN</label><input class="num" id="pinNew" type="password" inputmode="numeric" autocomplete="new-password" maxlength="8"></div>
+        <div class="f"><label for="pinNew2">Repeat PIN</label><input class="num" id="pinNew2" type="password" inputmode="numeric" autocomplete="new-password" maxlength="8"></div>
+      </div>
+      <div class="rs-acts" style="margin-top:8px"><button class="btn" type="button" id="pinSave">Change PIN</button><button class="btn" type="button" id="adminLock">Lock now</button></div>
+      <div class="status" id="pinStatus">Admin unlock lasts 15 minutes.</div>
   </details>
 </div>
 
@@ -425,7 +445,7 @@ details.settings .grid{margin-top:10px}
 <div class="toast" id="toast" hidden></div>
 <div class="rsheet" id="ssheet" hidden role="dialog" aria-modal="true" aria-labelledby="ssTitle">
   <div class="in">
-    <div class="rs-head"><div><h2 id="ssTitle">Stock list</h2><div class="note">Barcode lookup for billing</div></div><button class="btn sm" type="button" id="ssClose">Close</button></div>
+    <div class="rs-head"><button class="btn sm back" type="button" id="ssClose">‹ Back</button><div class="rs-tt"><h2 id="ssTitle">Stock list</h2><div class="note">Barcode lookup for billing</div></div></div>
     <div class="card">
       <div><div class="ss-count" id="ssCount">0</div><div class="note" id="ssSummary">No stock loaded yet.</div></div>
       <input class="hidden-input" id="ssFile" type="file" accept=".xlsx,.xls,.xlsm,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" aria-label="Choose stock Excel file">
@@ -445,7 +465,7 @@ details.settings .grid{margin-top:10px}
 </div>
 <div class="rsheet" id="rsheet" hidden role="dialog" aria-modal="true" aria-labelledby="rsTitle">
   <div class="in">
-    <div class="rs-head"><div><h2 id="rsTitle">Day's rates</h2><div class="note" id="rsDate"></div></div><button class="btn sm" type="button" id="rsClose">Close</button></div>
+    <div class="rs-head"><button class="btn sm back" type="button" id="rsClose">‹ Back</button><div class="rs-tt"><h2 id="rsTitle">Day's rates</h2><div class="note" id="rsDate"></div></div></div>
     <div class="card">
       <div class="rs-grid" id="rsGrid"></div>
       <div class="status" id="rsStatus">Enter today's rate per gram. 22K, 18K, 14K and 9K are required.</div>
@@ -465,6 +485,15 @@ details.settings .grid{margin-top:10px}
     <div class="chips" id="mkGuideChips"></div>
     <p class="note" id="helperNote">Customer price uses MBD. <b>Staff only:</b> MAD is the lowest making allowed after discount.</p>
   </div>
+</div>
+<div class="modal" id="pinModal" hidden role="dialog" aria-modal="true" aria-labelledby="pinTitle">
+  <form class="sheet" id="pinForm">
+    <h4 id="pinTitle">Admin PIN</h4>
+    <p id="pinWhy">Enter the admin PIN to continue.</p>
+    <input class="pin-in" id="pinIn" type="password" inputmode="numeric" autocomplete="off" maxlength="8" aria-label="Admin PIN">
+    <p class="pin-err" id="pinErr" role="alert"></p>
+    <div class="acts"><button class="btn primary" type="submit">Unlock</button><button class="btn ghost" type="button" id="pinCancel">Cancel</button></div>
+  </form>
 </div>
 <div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modalTitle">
   <div class="sheet"><h4 id="modalTitle"></h4><p id="modalBody"></p><div class="acts" id="modalActs"></div></div>
@@ -1347,8 +1376,9 @@ function askReplace(){
   showModal('Import full stock?',`The ${stockMap.size.toLocaleString('en-IN')} items now on this phone will be replaced by the file you choose. Use Add new stock for later additions.`,[
     {label:'Choose file and replace',cls:'danger',run:()=>pickStock('replace')},{label:'Cancel',cls:'ghost'}]);
 }
-$('ssAdd').onclick=()=>pickStock('add');$('dataAdd').onclick=()=>pickStock('add');
-$('ssReplace').onclick=askReplace;$('dataFull').onclick=askReplace;
+const lockMsg='Enter the admin PIN to upload stock data.';
+$('ssAdd').onclick=()=>requireAdmin(lockMsg,()=>pickStock('add'));$('dataAdd').onclick=()=>requireAdmin(lockMsg,()=>pickStock('add'));
+$('ssReplace').onclick=()=>requireAdmin(lockMsg,askReplace);$('dataFull').onclick=()=>requireAdmin(lockMsg,askReplace);
 $('dataOpen').onclick=()=>openStock();
 function impStatus(t,cls){[$('ssStatus'),$('dataStatus')].forEach(el=>{el.className='status'+(cls?' '+cls:'');el.textContent=t})}
 $('ssFile').addEventListener('change',async e=>{
@@ -1440,6 +1470,62 @@ function openStock(){paintStockSummary();$('ssheet').hidden=false;document.body.
 function closeStock(fromPop){if($('ssheet').hidden)return;$('ssheet').hidden=true;document.body.style.overflow='';if(!fromPop){try{if(history.state&&history.state.ss)history.back()}catch(e){}}}
 window.addEventListener('popstate',()=>closeStock(true));
 $('stockBtn').onclick=openStock;$('ssClose').onclick=()=>closeStock();
+
+// ---------- version ----------
+const APP_VERSION='1.0.__BUILD__';
+$('appVer').textContent='v'+(APP_VERSION.includes('__')?'dev':APP_VERSION);
+
+// ---------- admin lock ----------
+const DEFAULT_PIN='1986';
+let adminUntil=0;try{adminUntil=+sessionStorage.getItem('ypc_admin')||0}catch(e){}
+function isAdmin(){return Date.now()<adminUntil}
+function setAdmin(on){adminUntil=on?Date.now()+15*60*1000:0;try{sessionStorage.setItem('ypc_admin',String(adminUntil))}catch(e){}paintAdmin()}
+async function pinHash(p){
+  const txt='yamie-pc:'+p;
+  try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(txt));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+  catch(e){let h=0;for(const c of txt)h=(h*31+c.charCodeAt(0))|0;return 'x'+h}
+}
+async function checkPin(p){return settings.adminPin?(await pinHash(p))===settings.adminPin:p===DEFAULT_PIN}
+let pinNext=null;
+function requireAdmin(why,fn){
+  if(isAdmin()){adminUntil=Date.now()+15*60*1000;fn();return}
+  pinNext=fn;$('pinWhy').textContent=why||'Enter the admin PIN to continue.';$('pinErr').textContent='';$('pinIn').value='';
+  $('pinModal').hidden=false;setTimeout(()=>$('pinIn').focus(),40);
+}
+$('pinForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  if(await checkPin($('pinIn').value)){$('pinModal').hidden=true;setAdmin(true);const f=pinNext;pinNext=null;f&&f();toast('Admin unlocked for 15 minutes')}
+  else{$('pinErr').textContent='Wrong PIN. Try again.';$('pinIn').value='';try{navigator.vibrate&&navigator.vibrate(120)}catch(_){}}
+});
+$('pinCancel').onclick=()=>{$('pinModal').hidden=true;pinNext=null};
+function paintAdmin(){
+  const on=isAdmin();
+  $('adminPill').hidden=!on;
+  $('adminMini').textContent=on?'Unlocked':'🔒 Locked';
+  if(!on){$('adminCard').open=false;$('dataCard').open=false}
+  $('dataMini').dataset.lock=on?'':'1';
+}
+setInterval(()=>{if(adminUntil&&!isAdmin())setAdmin(false)},20000);
+$('adminPill').onclick=()=>{setAdmin(false);toast('Admin locked')};
+$('adminLock').onclick=()=>{setAdmin(false);toast('Admin locked')};
+// Locked cards open only after the PIN
+[['adminCard','Enter the admin PIN to change charges and the making helper.'],['dataCard','Enter the admin PIN to upload stock data.']].forEach(([id,why])=>{
+  $(id).querySelector('summary').addEventListener('click',e=>{
+    if($(id).open)return; // closing is always allowed
+    if(!isAdmin()){e.preventDefault();requireAdmin(why,()=>{$(id).open=true;$(id).scrollIntoView({behavior:'smooth',block:'start'})})}
+  });
+});
+function backFrom(id){$(id).open=false;window.scrollTo({top:0,behavior:'smooth'})}
+$('dataBack').onclick=()=>backFrom('dataCard');$('adminBack').onclick=()=>backFrom('adminCard');
+$('pinSave').onclick=async()=>{
+  const a=$('pinNew').value,b=$('pinNew2').value,st=$('pinStatus');
+  if(!isAdmin()){requireAdmin('Enter the current admin PIN.',()=>$('pinSave').click());return}
+  if(!/^[0-9]{4,8}$/.test(a)){st.className='status err';st.textContent='Use 4 to 8 digits.';return}
+  if(a!==b){st.className='status err';st.textContent='The two PINs do not match.';return}
+  settings.adminPin=await pinHash(a);store.set('settings2',settings);
+  $('pinNew').value=$('pinNew2').value='';st.className='status ok';st.textContent='Admin PIN changed.';toast('Admin PIN changed');
+};
+paintAdmin();
 
 // ---------- boot ----------
 paintRates();renderEditor();renderBill();

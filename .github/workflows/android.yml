@@ -23,6 +23,9 @@ jobs:
         with:
           gradle-version: '8.7'
 
+      - name: Stamp version
+        run: sed -i "s/1.0.__BUILD__/1.0.${{ github.run_number }}/" web/index.html
+
       - name: Build APK
         run: gradle -p android assembleRelease --no-daemon
 
