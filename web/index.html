@@ -258,6 +258,25 @@ details.settings .grid{margin-top:10px}
 .sync-dot[data-s=ok]{color:var(--good)}
 .sync-dot[data-s=err]{color:var(--warn)}
 .sync-dot[data-s=off]{color:var(--muted)}
+.login{position:fixed;inset:0;z-index:40;background:var(--bg);overflow-y:auto;padding-top:env(safe-area-inset-top,0px)}
+.login-in{max-width:420px;margin:0 auto;padding:40px 20px 30px;display:flex;flex-direction:column;gap:14px}
+.login-in .brand{margin-bottom:10px}
+.login-in .f input{width:100%;font:500 17px var(--body);border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:var(--surface);color:var(--fg)}
+.login-in .pin-in{font:700 26px var(--mono)!important;letter-spacing:.4em;text-align:center}
+.login-go{min-height:52px;font-size:17px}
+.user-pick{display:flex;flex-wrap:wrap;gap:8px}
+.user-pick button{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:9px 14px;font:600 15px var(--body);cursor:pointer}
+.user-pick button[aria-pressed="true"]{background:var(--maroon);border-color:var(--maroon);color:var(--maroon-ink)}
+.user-chip{max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.users{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.u-row{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--surface)}
+.u-row b{font-weight:600}
+.u-row .m{font-size:12px;color:var(--muted)}
+.u-row.off{opacity:.55}
+.role{font:700 10px var(--body);letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:var(--sunk);color:var(--muted);margin-left:6px}
+.role.admin{background:var(--maroon);color:var(--maroon-ink)}
+.user-form{border:1.5px solid var(--gold);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px;margin-top:8px}
+.chk{flex-direction:row!important;align-items:center;gap:8px!important;font-size:14px}
 .datacard{padding:0;gap:0}
 .datacard>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:14px;cursor:pointer}
 .datacard>summary::-webkit-details-marker{display:none}
@@ -316,7 +335,7 @@ details.settings .grid{margin-top:10px}
 <div class="wrap">
   <header class="top">
     <div class="brand">Yamie<small>Price check &amp; bill · <span id="appVer"></span> <span class="sync-dot" id="syncDot" hidden></span></small></div>
-    <div class="hdr-acts"><button class="btn sm admin-pill" id="adminPill" type="button" hidden>Admin ✕</button><button class="btn sm" id="stockBtn" type="button">Stock</button><button class="btn sm primary" id="goBill" type="button">Bill ↓</button><button id="newBillBtn" type="button" hidden>Clear bill</button></div>
+    <div class="hdr-acts"><button class="btn sm admin-pill" id="adminPill" type="button" hidden>Admin ✕</button><button class="btn sm user-chip" id="userChip" type="button" hidden></button><button class="btn sm" id="stockBtn" type="button">Stock</button><button class="btn sm primary" id="goBill" type="button">Bill ↓</button><button id="newBillBtn" type="button" hidden>Clear bill</button></div>
   </header>
 
   <section class="band" id="band" aria-label="Day's rates" role="button" tabindex="0">
@@ -442,17 +461,28 @@ details.settings .grid{margin-top:10px}
       <button class="linkbtn" type="button" id="addDia">+ Add diamond row</button>
       <div style="margin-top:10px"><button class="btn sm" type="button" id="resetTbl">Reset helper to Yamie table</button></div>
       <h3 style="margin-top:16px">Shared database</h3>
-      <p class="note" style="margin-block:4px 0">Connect every phone with the same shop key to share stock, day's rates, the making helper and the admin PIN.</p>
+      <p class="note" style="margin-block:4px 0">Connect every phone with the same shop key to share stock, day's rates, the making helper and users.</p>
       <div class="f full" style="margin-top:8px"><label for="syncKey">Shop key</label><input id="syncKey" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX"></div>
       <div class="rs-acts" style="margin-top:8px"><button class="btn primary" type="button" id="syncConnect">Connect</button><button class="btn" type="button" id="syncNow">Sync now</button></div>
       <div class="status" id="syncStatus">Not connected. This phone keeps its own data.</div>
-      <h3 style="margin-top:16px">Admin PIN</h3>
-      <div class="grid">
-        <div class="f"><label for="pinNew">New PIN</label><input class="num" id="pinNew" type="password" inputmode="numeric" autocomplete="new-password" maxlength="8"></div>
-        <div class="f"><label for="pinNew2">Repeat PIN</label><input class="num" id="pinNew2" type="password" inputmode="numeric" autocomplete="new-password" maxlength="8"></div>
+      <h3 style="margin-top:16px">Users</h3>
+      <p class="note" style="margin-block:4px 0">Everyone logs in with their own name and PIN. Admins can upload stock and change settings.</p>
+      <div class="users" id="userList"></div>
+      <button class="linkbtn" type="button" id="userAdd">+ Add user</button>
+      <div class="user-form" id="userForm" hidden>
+        <h3 id="userFormT">New user</h3>
+        <div class="grid">
+          <div class="f"><label for="uName">Name</label><input id="uName" autocomplete="off" maxlength="40"></div>
+          <div class="f"><label for="uUser">Username</label><input id="uUser" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="30"></div>
+          <div class="f full"><span class="flabel">Role</span><div class="seg" id="uRole"><button type="button" data-r="staff">Staff</button><button type="button" data-r="admin">Admin</button></div></div>
+          <div class="f"><label for="uPin">PIN</label><input class="num" id="uPin" type="password" inputmode="numeric" maxlength="8" autocomplete="new-password"></div>
+          <div class="f"><label for="uPin2">Repeat PIN</label><input class="num" id="uPin2" type="password" inputmode="numeric" maxlength="8" autocomplete="new-password"></div>
+          <label class="f full chk"><input type="checkbox" id="uActive" checked> Active (can log in)</label>
+        </div>
+        <div class="rs-acts" style="margin-top:8px"><button class="btn primary" type="button" id="uSave">Save user</button><button class="btn" type="button" id="uCancel">Cancel</button></div>
+        <button class="linkbtn" type="button" id="uDelete" style="color:var(--bad)" hidden>Delete this user</button>
       </div>
-      <div class="rs-acts" style="margin-top:8px"><button class="btn" type="button" id="pinSave">Change PIN</button><button class="btn" type="button" id="adminLock">Lock now</button></div>
-      <div class="status" id="pinStatus">Admin unlock lasts 15 minutes.</div>
+      <div class="status" id="userStatus"></div>
   </details>
 </div>
 
@@ -514,6 +544,22 @@ details.settings .grid{margin-top:10px}
     <div id="camView" class="cam-view"></div>
     <p class="note" id="camMsg">Point the camera at the barcode on the tag.</p>
   </div>
+</div>
+<div class="login" id="login" hidden role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+  <form class="login-in" id="loginForm" autocomplete="off">
+    <div class="brand">Yamie<small>Price check &amp; bill · <span id="loginVer"></span></small></div>
+    <h2 id="loginTitle">Log in</h2>
+    <p class="note" id="loginWhy"></p>
+    <div class="f"><label for="loginUser">User</label>
+      <div class="user-pick" id="userPick"></div>
+      <input id="loginUser" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Username">
+    </div>
+    <div class="f"><label for="loginPin">PIN</label><input id="loginPin" type="password" inputmode="numeric" maxlength="8" class="pin-in" autocomplete="current-password"></div>
+    <p class="pin-err" id="loginErr" role="alert"></p>
+    <button class="btn primary login-go" type="submit">Log in</button>
+    <button class="btn ghost" type="button" id="loginCancel" hidden>Cancel</button>
+    <p class="note" id="loginHint"></p>
+  </form>
 </div>
 <div class="modal" id="pinModal" hidden role="dialog" aria-modal="true" aria-labelledby="pinTitle">
   <form class="sheet" id="pinForm">
@@ -578,11 +624,11 @@ function saveDraft(){store.set('draft',{cur,editingId})}
 
 // ---------- shared database (Netlify) ----------
 const SYNC_BASE=(location.protocol==='https:'&&/netlify\.app$/.test(location.hostname))?'':'https://yamie-price-check.netlify.app';
-const sync={key:store.get('syncKey',''),v:Object.assign({stock:0,rates:0,settings:0},store.get('syncV',{})),q:store.get('syncQ',[]),dirtySettings:store.get('syncDirty',false),state:'',at:0,busy:false};
-let adminPinPlain='';
+const sync={key:store.get('syncKey',''),v:Object.assign({stock:0,rates:0,settings:0,users:0},store.get('syncV',{})),q:store.get('syncQ',[]),dirtySettings:store.get('syncDirty',false),state:'',at:0,busy:false};
+let adminCreds=null; // {username,pin} of the admin acting now (memory only)
 function saveSyncState(){store.set('syncV',sync.v);store.set('syncQ',sync.q);store.set('syncDirty',sync.dirtySettings)}
 async function syncApi(op,method,body,pin){
-  const h={'x-shop-key':sync.key};if(body)h['content-type']='application/json';if(pin)h['x-admin-pin']=pin;
+  const h={'x-shop-key':sync.key};if(body)h['content-type']='application/json';if(pin){if(typeof pin==='object'){h['x-user']=pin.username;h['x-pin']=pin.pin}else h['x-admin-pin']=pin}
   const r=await fetch(SYNC_BASE+'/api/sync?op='+op,{method:method||'GET',headers:h,body:body?JSON.stringify(body):undefined,cache:'no-store'});
   let j=null;try{j=await r.json()}catch(e){}
   if(!r.ok){const e=new Error((j&&j.error)||('http_'+r.status));e.status=r.status;throw e}
@@ -601,7 +647,7 @@ async function pullAll(force){
   try{
     // send anything waiting first
     while(sync.q.length){const e=sync.q[0];const r=await syncApi('rate','POST',{entry:e});sync.v.rates=Math.max(sync.v.rates,r.v||0);sync.q.shift();saveSyncState()}
-    if(sync.dirtySettings&&adminPinPlain){await pushSettingsNow()}
+    if(sync.dirtySettings&&adminCreds){await pushSettingsNow()}
     const m=await syncApi('meta');
     if(force||m.stock>sync.v.stock){
       const d=await syncApi('stock');
@@ -615,6 +661,12 @@ async function pullAll(force){
       const d=await syncApi('rates');
       if(Array.isArray(d.log)){rateLog=d.log;store.set('rateLog',rateLog)}
       sync.v.rates=d.v;paintRates();renderPreview();renderBill(true);
+    }
+    if(force||(m.users||0)>(sync.v.users||0)){
+      const d=await syncApi('users','GET',null,adminCreds);
+      if(Array.isArray(d.users)&&d.users.length){mergeRemoteUsers(d.users)}
+      else if(users.length&&adminCreds){await pushUsers()} // shared database has no users yet: start it from this phone
+      sync.v.users=d.v||sync.v.users;
     }
     if((force||m.settings>sync.v.settings)&&!sync.dirtySettings){
       const d=await syncApi('settings');
@@ -633,9 +685,9 @@ function applyRemoteSettings(rs){
   try{renderTable('cz');renderTable('dia');$('setGst').value=settings.gst;$('setHuid').value=settings.huid;renderEditor();renderBill(true)}catch(e){}
 }
 let settingsTimer=null;
-function saveSettings(){store.set('settings2',settings);if(!sync.key)return;sync.dirtySettings=true;saveSyncState();clearTimeout(settingsTimer);settingsTimer=setTimeout(()=>{if(adminPinPlain)pushSettingsNow().catch(e=>syncMsg('err',syncErrText(e)))},1500)}
+function saveSettings(){store.set('settings2',settings);if(!sync.key)return;sync.dirtySettings=true;saveSyncState();clearTimeout(settingsTimer);settingsTimer=setTimeout(()=>{if(adminCreds)pushSettingsNow().catch(e=>syncMsg('err',syncErrText(e)))},1500)}
 async function pushSettingsNow(){
-  const r=await syncApi('settings','POST',{settings:{gst:settings.gst,huid:settings.huid,mkTable:settings.mkTable}},adminPinPlain);
+  const r=await syncApi('settings','POST',{settings:{gst:settings.gst,huid:settings.huid,mkTable:settings.mkTable}},adminCreds);
   sync.v.settings=r.v;sync.dirtySettings=false;saveSyncState();syncMsg('ok','Settings saved to the shared database.');
 }
 async function pushRate(entry){
@@ -648,7 +700,7 @@ async function pushStock(mode,rows,file,skipped){
   if(!sync.key)return;
   impStatus('Sending stock to the shared database…');
   try{
-    const r=await syncApi('stock','POST',{mode,rows,file,skipped},adminPinPlain);
+    const r=await syncApi('stock','POST',{mode,rows,file,skipped},adminCreds);
     sync.v.stock=r.v;saveSyncState();
     if(r.history){stockMeta.history=r.history;store.set('stockMeta',stockMeta)}
     paintStockSummary();
@@ -725,7 +777,7 @@ $('rsSave').onclick=()=>{
   const prev=rateLog[0],big=prev?PURITIES.filter(p=>rates[p.id]&&prev.rates[p.id]&&Math.abs(rates[p.id]/prev.rates[p.id]-1)>0.1):[];
   const commit=()=>{
     rateLog=rateLog.filter(e=>!(e.day===dayKey()&&e.rates&&JSON.stringify(e.rates)===JSON.stringify(rates)));
-    rateLog.unshift({id:uid(),at:Date.now(),day:dayKey(),rates});
+    rateLog.unshift({id:uid(),at:Date.now(),day:dayKey(),rates,by:curUser?curUser.name:''});
     rateLog=rateLog.slice(0,500);store.set('rateLog',rateLog);
     pushRate(rateLog[0]);
     closeRates();paintRates();renderEditor();renderBill();
@@ -746,7 +798,7 @@ function renderRateHist(){
     const vals=PURITIES.map(p=>{const v=e.rates[p.id];if(!(v>0))return `<span><b>${p.label}</b>—</span>`;
       const o=older&&older.rates[p.id];const arrow=o&&v!==o?(v>o?' <i class="up">▲</i>':' <i class="down">▼</i>'):'';
       return `<span><b>${p.label}</b>${v.toLocaleString('en-IN')}${arrow}</span>`}).join('');
-    return `<div class="h-row"><div class="d">${new Date(e.at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}<small>${new Date(e.at).toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'})}</small></div><button class="linkbtn" type="button" data-use="${e.id}">Use</button><div class="vals">${vals}</div></div>`}).join('');
+    return `<div class="h-row"><div class="d">${new Date(e.at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}<small>${new Date(e.at).toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'})}${e.by?' · '+esc(e.by):''}</small></div><button class="linkbtn" type="button" data-use="${e.id}">Use</button><div class="vals">${vals}</div></div>`}).join('');
   el.querySelectorAll('[data-use]').forEach(b=>b.onclick=()=>{const e=rateLog.find(x=>x.id===b.dataset.use);if(!e)return;
     PURITIES.forEach(p=>$('rs_'+p.id).value=e.rates[p.id]>0?e.rates[p.id]:'');
     $('rsStatus').textContent='Copied into the form. Check, then Save to use them today.';$('rsStatus').className='status';
@@ -1313,7 +1365,7 @@ $('saveBill').onclick=()=>{
   if(!bill.items.length){toast(cur.touched?'Tap Add to bill first, then Save':'Add a tag first',null,true);return}
   const s=totals();
   const saved=store.get('bills',[]);
-  saved.unshift({id:uid(),at:Date.now(),bill:clone(bill),net:s.net,rates:PURITIES.reduce((a,p)=>(a[p.id]=rateFor(p.id),a),{})});
+  saved.unshift({id:uid(),at:Date.now(),by:curUser?curUser.name:'',bill:clone(bill),net:s.net,rates:PURITIES.reduce((a,p)=>(a[p.id]=rateFor(p.id),a),{})});
   store.set('bills',saved.slice(0,40));
   resetAll('Bill saved. Scan the first tag of the next bill.');toast('Bill saved');
 };
@@ -1321,7 +1373,7 @@ function renderRecent(){
   const saved=store.get('bills',[]),el=$('recent');
   if(!saved.length){el.innerHTML='<div class="empty">Saved bills appear here. Tap one to open it again.</div>';return}
   el.innerHTML=saved.map(b=>{const first=b.bill.items[0]||{};const n=b.bill.items.length;
-    return `<button class="r-item" type="button" data-open="${b.id}"><span><b>${esc(first.sku||'Bill')}${n>1?` + ${n-1} more`:''}</b><br><span class="m">${new Date(b.at).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})} · ${n} tag${n>1?'s':''}</span></span><span class="p">${inr(Math.abs(b.net))}</span></button>`}).join('');
+    return `<button class="r-item" type="button" data-open="${b.id}"><span><b>${esc(first.sku||'Bill')}${n>1?` + ${n-1} more`:''}</b><br><span class="m">${new Date(b.at).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})} · ${n} tag${n>1?'s':''}${b.by?' · '+esc(b.by):''}</span></span><span class="p">${inr(Math.abs(b.net))}</span></button>`}).join('');
   el.querySelectorAll('[data-open]').forEach(btn=>btn.onclick=()=>{
     if(!billIsEmpty()){toast('Save or clear the current bill first');return}
     const b=saved.find(x=>x.id===btn.dataset.open);if(!b)return;
@@ -1613,64 +1665,176 @@ $('stockBtn').onclick=openStock;$('ssClose').onclick=()=>closeStock();
 const APP_VERSION='1.0.__BUILD__';
 $('appVer').textContent='v'+(APP_VERSION.includes('__')?'dev':APP_VERSION);
 
-// ---------- admin lock ----------
+// ---------- users and login ----------
 const DEFAULT_PIN='1986';
-let adminUntil=0;try{adminUntil=+sessionStorage.getItem('ypc_admin')||0}catch(e){}
-function isAdmin(){return Date.now()<adminUntil}
-function setAdmin(on){if(!on)adminPinPlain='';adminUntil=on?Date.now()+15*60*1000:0;try{sessionStorage.setItem('ypc_admin',String(adminUntil))}catch(e){}paintAdmin()}
-async function pinHash(p){
-  const txt='yamie-pc:'+p;
-  try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(txt));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
-  catch(e){let h=0;for(const c of txt)h=(h*31+c.charCodeAt(0))|0;return 'x'+h}
+let users=store.get('users',[]);if(!Array.isArray(users))users=[];
+let curUser=null;{const ss=store.get('session',null);if(ss)curUser=users.find(u=>u.id===ss.id&&u.active!==false)||null}
+let adminUntil=0; // admin override on a staff login (15 minutes)
+function isAdmin(){return !!(curUser&&curUser.role==='admin')||Date.now()<adminUntil}
+function setAdmin(on){if(!on){adminUntil=0;if(!(curUser&&curUser.role==='admin'))adminCreds=null}paintAdmin()}
+const hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
+async function pbkdf(pin,saltHex){
+  const salt=new Uint8Array((saltHex.match(/../g)||[]).map(h=>parseInt(h,16)));
+  const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(pin),'PBKDF2',false,['deriveBits']);
+  return hex(await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations:60000,hash:'SHA-256'},key,256));
 }
-async function checkPin(p){
-  const tryKey=sync.key||($('syncKey')&&$('syncKey').value.trim().toUpperCase())||'';
-  if(tryKey&&navigator.onLine){const keep=sync.key;sync.key=tryKey;try{const r=await syncApi('pin','POST',{},p);sync.key=keep;if(r&&typeof r.ok==='boolean'){if(r.ok&&r.hash){settings.adminPin=r.hash;store.set('settings2',settings)}return r.ok}}catch(e){sync.key=keep}}
-  return settings.adminPin?(await pinHash(p))===settings.adminPin:p===DEFAULT_PIN}
-// Some shared-database writes need the PIN itself (not just an unlocked screen)
-function withPin(why,fn){if(isAdmin()&&adminPinPlain){fn();return}adminUntil=0;requireAdmin(why,fn)}
-let pinNext=null;
-function requireAdmin(why,fn){
-  if(isAdmin()){adminUntil=Date.now()+15*60*1000;fn();return}
-  pinNext=fn;$('pinWhy').textContent=why||'Enter the admin PIN to continue.';$('pinErr').textContent='';$('pinIn').value='';
-  $('pinModal').hidden=false;setTimeout(()=>$('pinIn').focus(),40);
+const newSalt=()=>hex(crypto.getRandomValues(new Uint8Array(16)));
+async function pinHash(p){try{return hex(await crypto.subtle.digest('SHA-256',new TextEncoder().encode('yamie-pc:'+p)))}catch(e){return ''}}
+async function legacyPinOk(p){return settings.adminPin?(await pinHash(p))===settings.adminPin:p===DEFAULT_PIN}
+function saveUsersLocal(){store.set('users',users)}
+function upsertUser(u){const i=users.findIndex(x=>x.id===u.id);if(i>=0)users[i]={...users[i],...u};else users.push(u);saveUsersLocal()}
+function mergeRemoteUsers(list){
+  const old=new Map(users.map(u=>[u.id,u]));
+  users=list.map(u=>{const o=old.get(u.id);return (!u.hash&&o&&o.hash&&o.salt)?{...u,salt:o.salt,hash:o.hash}:u});
+  saveUsersLocal();
+  if(curUser){const me=users.find(u=>u.id===curUser.id);if(!me||me.active===false){logout('Your user was removed or switched off by an admin.');return}curUser=me}
+  paintUserChip();renderUsers();
 }
-$('pinForm').addEventListener('submit',async e=>{
+async function pushUsers(){
+  if(!sync.key)return;
+  try{const r=await syncApi('users','POST',{users},adminCreds);sync.v.users=r.v;saveSyncState()}
+  catch(e){$('userStatus').className='status err';$('userStatus').textContent='Saved on this phone. '+syncErrText(e)}
+}
+async function verifyLogin(username,pin){
+  const un=String(username||'').trim().toLowerCase();
+  const u=users.find(x=>x.username===un&&x.active!==false);
+  if(u&&u.hash&&u.salt){try{if((await pbkdf(pin,u.salt))===u.hash)return u}catch(e){}}
+  if(sync.key&&navigator.onLine){
+    try{const r=await syncApi('login','POST',{username:un,pin});
+      if(r.ok&&r.user){upsertUser(r.user);return users.find(x=>x.id===r.user.id)}
+      if(r.ok&&r.legacy)return await createFirstAdmin(pin)}catch(e){}
+  }
+  // First use on this phone: log in as "admin" with the starting admin PIN
+  if(un==='admin'&&!users.some(x=>x.role==='admin')&&await legacyPinOk(pin))return await createFirstAdmin(pin);
+  return null;
+}
+async function createFirstAdmin(pin){
+  const salt=newSalt();const u={id:'u_admin',name:'Admin',username:'admin',role:'admin',active:true,salt,hash:await pbkdf(pin,salt)};
+  upsertUser(u);return users.find(x=>x.id===u.id);
+}
+// Login screen: full login (mode 'login'), or an admin approving one action on a staff login (mode 'admin')
+let loginMode='login',loginNext=null,loginFixed='';
+function openLogin(mode,why,next,fixedUser){
+  loginMode=mode;loginNext=next||null;loginFixed=fixedUser||'';
+  $('loginTitle').textContent=mode==='login'?'Log in':'Admin login';
+  $('loginWhy').textContent=why||(mode==='login'?'Log in to start billing.':'An admin must log in to continue.');
+  $('loginCancel').hidden=mode==='login';
+  $('loginVer').textContent=$('appVer').textContent;
+  $('loginErr').textContent='';$('loginPin').value='';
+  const list=users.filter(u=>u.active!==false&&(mode==='login'||u.role==='admin'));
+  $('userPick').innerHTML=fixedUser?'':list.map(u=>`<button type="button" data-u="${esc(u.username)}">${esc(u.name||u.username)}</button>`).join('');
+  $('loginUser').value=fixedUser||(list.length===1?list[0].username:'');
+  $('loginUser').hidden=!!fixedUser||list.length>0;
+  $('userPick').querySelectorAll('button').forEach(b=>b.onclick=()=>{$('loginUser').value=b.dataset.u;paintPick();$('loginPin').focus()});
+  paintPick();
+  $('loginHint').textContent=!users.length?(sync.key?'First time on this phone: log in with your username and PIN.':'First time: log in as admin with the starting PIN. Then add users in Admin settings.'):'';
+  if(!users.length)$('loginUser').hidden=false;
+  $('login').hidden=false;
+  setTimeout(()=>($('loginUser').value?$('loginPin'):$('loginUser')).focus(),50);
+}
+function paintPick(){$('userPick').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.u===$('loginUser').value)))}
+$('loginForm').addEventListener('submit',async e=>{
   e.preventDefault();
-  if(await checkPin($('pinIn').value)){adminPinPlain=$('pinIn').value;$('pinModal').hidden=true;setAdmin(true);const f=pinNext;pinNext=null;f&&f();toast('Admin unlocked for 15 minutes')}
-  else{$('pinErr').textContent='Wrong PIN. Try again.';$('pinIn').value='';try{navigator.vibrate&&navigator.vibrate(120)}catch(_){}}
+  const un=$('loginUser').value,pin=$('loginPin').value;
+  if(!un){$('loginErr').textContent='Choose your name first.';return}
+  if(!pin){$('loginErr').textContent='Enter your PIN.';return}
+  $('loginErr').textContent='Checking…';
+  const u=await verifyLogin(un,pin);
+  if(!u){$('loginErr').textContent='Wrong user or PIN. Try again.';$('loginPin').value='';try{navigator.vibrate&&navigator.vibrate(120)}catch(_){}return}
+  if(loginMode!=='login'&&u.role!=='admin'){$('loginErr').textContent=`${u.name||u.username} is not an admin.`;$('loginPin').value='';return}
+  $('login').hidden=true;
+  if(loginMode==='login'){curUser=u;store.set('session',{id:u.id,at:Date.now()});adminCreds=u.role==='admin'?{username:u.username,pin}:null;toast(`Welcome, ${u.name||u.username}`)}
+  else{adminCreds={username:u.username,pin};if(!(curUser&&curUser.role==='admin'))adminUntil=Date.now()+15*60*1000;if(!curUser){curUser=u;store.set('session',{id:u.id,at:Date.now()})}}
+  paintUserChip();paintAdmin();renderUsers();
+  const f=loginNext;loginNext=null;f&&f();
+  if(loginMode==='login')pullAll();
 });
-$('pinCancel').onclick=()=>{$('pinModal').hidden=true;pinNext=null};
+$('loginCancel').onclick=()=>{$('login').hidden=true;loginNext=null};
+function logout(msg){
+  curUser=null;adminCreds=null;adminUntil=0;store.set('session',null);
+  paintUserChip();paintAdmin();openLogin('login',msg||'Logged out. Log in to continue.');
+}
+function paintUserChip(){const c=$('userChip');c.hidden=!curUser;if(curUser)c.textContent='👤 '+(curUser.name||curUser.username)}
+$('userChip').onclick=()=>showModal(`${curUser.name||curUser.username}`,`Logged in as ${curUser.role==='admin'?'Admin':'Staff'} (${curUser.username}).`,[
+  {label:'Log out',cls:'danger',run:()=>logout()},{label:'Cancel',cls:'ghost'}]);
+// Admin-only actions: admins go straight through; staff need an admin to log in for 15 minutes
+function requireAdmin(why,fn,forceAsk){
+  if(!forceAsk&&isAdmin()&&(adminCreds||!sync.key)){if(!(curUser&&curUser.role==='admin'))adminUntil=Date.now()+15*60*1000;fn();return}
+  const me=curUser&&curUser.role==='admin'&&!forceAsk?curUser.username:'';
+  openLogin('admin',why||'An admin must log in to continue.',fn,me);
+}
+function withPin(why,fn){if(isAdmin()&&adminCreds){fn();return}openLogin('admin',why,fn,curUser&&curUser.role==='admin'?curUser.username:'')}
 function paintAdmin(){
   const on=isAdmin();
-  $('adminPill').hidden=!on;
-  $('adminMini').textContent=on?'Unlocked':'🔒 Locked';
+  $('adminPill').hidden=!(Date.now()<adminUntil&&!(curUser&&curUser.role==='admin'));
+  $('adminMini').textContent=on?(curUser&&curUser.role==='admin'?'Admin':'Admin approved'):'🔒 Admins only';
   if(!on){$('adminCard').open=false;$('dataCard').open=false}
-  $('dataMini').dataset.lock=on?'':'1';
 }
-setInterval(()=>{if(adminUntil&&!isAdmin())setAdmin(false)},20000);
-$('adminPill').onclick=()=>{setAdmin(false);toast('Admin locked')};
-$('adminLock').onclick=()=>{setAdmin(false);toast('Admin locked')};
-// Locked cards open only after the PIN
-[['adminCard','Enter the admin PIN to change charges and the making helper.'],['dataCard','Enter the admin PIN to upload stock data.']].forEach(([id,why])=>{
+setInterval(()=>{if(adminUntil&&Date.now()>adminUntil){adminUntil=0;setAdmin(false)}},20000);
+$('adminPill').onclick=()=>{setAdmin(false);toast('Admin access ended')};
+// Admin cards open only for admins
+[['adminCard','Admins only: log in as an admin to change settings and users.'],['dataCard','Admins only: log in as an admin to upload stock data.']].forEach(([id,why])=>{
   $(id).querySelector('summary').addEventListener('click',e=>{
-    if($(id).open)return; // closing is always allowed
+    if($(id).open)return;
     if(!isAdmin()){e.preventDefault();requireAdmin(why,()=>{$(id).open=true;$(id).scrollIntoView({behavior:'smooth',block:'start'})})}
   });
 });
 function backFrom(id){$(id).open=false;window.scrollTo({top:0,behavior:'smooth'})}
 $('dataBack').onclick=()=>backFrom('dataCard');$('dataBack2').onclick=()=>backFrom('dataCard');
 $('ssBack2').onclick=()=>{closeStock();window.scrollTo({top:0,behavior:'smooth'})};$('ssBack3').onclick=()=>{closeStock();window.scrollTo({top:0,behavior:'smooth'})};$('adminBack').onclick=()=>backFrom('adminCard');
-$('pinSave').onclick=async()=>{
-  const a=$('pinNew').value,b=$('pinNew2').value,st=$('pinStatus');
-  if(!isAdmin()){requireAdmin('Enter the current admin PIN.',()=>$('pinSave').click());return}
-  if(!/^[0-9]{4,8}$/.test(a)){st.className='status err';st.textContent='Use 4 to 8 digits.';return}
-  if(a!==b){st.className='status err';st.textContent='The two PINs do not match.';return}
-  if(!adminPinPlain){withPin('Enter the current admin PIN.',()=>$('pinSave').click());return}
-  if(sync.key){try{await syncApi('setpin','POST',{newPin:a},adminPinPlain)}catch(e){st.className='status err';st.textContent='PIN not changed. '+syncErrText(e);return}}
-  settings.adminPin=await pinHash(a);store.set('settings2',settings);adminPinPlain=a;
-  $('pinNew').value=$('pinNew2').value='';st.className='status ok';st.textContent=sync.key?'Admin PIN changed on all phones.':'Admin PIN changed on this phone.';toast('Admin PIN changed');
+
+// ---------- user management (admin) ----------
+let editUserId=null,editRole='staff';
+function renderUsers(){
+  const el=$('userList');if(!el)return;
+  el.innerHTML=users.length?users.map(u=>`<div class="u-row${u.active===false?' off':''}"><div><b>${esc(u.name||u.username)}</b><span class="role ${u.role}">${u.role}</span><div class="m">${esc(u.username)}${u.active===false?' · switched off':''}${curUser&&u.id===curUser.id?' · you':''}</div></div><button class="linkbtn" type="button" data-edit-user="${u.id}">Edit</button></div>`).join(''):'<div class="empty">No users yet.</div>';
+  el.querySelectorAll('[data-edit-user]').forEach(b=>b.onclick=()=>openUserForm(b.dataset.editUser));
+}
+function paintRole(){[...$('uRole').children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.r===editRole)))}
+[...$('uRole').children].forEach(b=>b.onclick=()=>{editRole=b.dataset.r;paintRole()});
+function openUserForm(id){
+  const u=id?users.find(x=>x.id===id):null;editUserId=u?u.id:null;
+  $('userFormT').textContent=u?`Edit ${u.name||u.username}`:'New user';
+  $('uName').value=u?u.name:'';$('uUser').value=u?u.username:'';$('uPin').value=$('uPin2').value='';
+  $('uPin').placeholder=u?'Leave blank to keep':'';$('uPin2').placeholder=u?'Leave blank to keep':'';
+  $('uActive').checked=u?u.active!==false:true;editRole=u?u.role:'staff';paintRole();
+  $('uDelete').hidden=!u;$('userForm').hidden=false;$('userStatus').textContent='';
+  setTimeout(()=>$('uName').focus(),30);
+}
+$('userAdd').onclick=()=>openUserForm(null);
+$('uCancel').onclick=()=>{$('userForm').hidden=true;editUserId=null};
+function userErr(t){$('userStatus').className='status err';$('userStatus').textContent=t}
+$('uSave').onclick=()=>withPin('Log in as an admin to save users.',async()=>{
+  const name=$('uName').value.trim(),username=$('uUser').value.trim().toLowerCase().replace(/[^a-z0-9._-]/g,''),p1=$('uPin').value,p2=$('uPin2').value;
+  if(!name)return userErr('Enter the name.');
+  if(username.length<2)return userErr('Username needs at least 2 letters or numbers.');
+  if(users.some(u=>u.username===username&&u.id!==editUserId))return userErr('That username is already used.');
+  const old=editUserId?users.find(u=>u.id===editUserId):null;
+  if(!old||p1||p2){if(!/^[0-9]{4,8}$/.test(p1))return userErr('PIN must be 4 to 8 digits.');if(p1!==p2)return userErr('The two PINs do not match.')}
+  const active=$('uActive').checked;
+  const next=users.map(u=>({...u}));
+  let u=old?next.find(x=>x.id===old.id):{id:'u_'+uid()};
+  u.name=name;u.username=username;u.role=editRole;u.active=active;
+  if(p1){u.salt=newSalt();u.hash=await pbkdf(p1,u.salt)}
+  if(!old)next.push(u);
+  if(!next.some(x=>x.role==='admin'&&x.active!==false))return userErr('Keep at least one active admin.');
+  if(curUser&&u.id===curUser.id&&(u.role!=='admin'||!active))return userErr('You cannot remove your own admin access. Ask another admin.');
+  users=next;saveUsersLocal();
+  if(curUser&&u.id===curUser.id){curUser=u;if(p1&&adminCreds)adminCreds={username:u.username,pin:p1};else if(adminCreds)adminCreds.username=u.username}
+  $('userForm').hidden=true;editUserId=null;renderUsers();paintUserChip();
+  $('userStatus').className='status ok';$('userStatus').textContent=`${name} saved.`+(sync.key?' Sharing with all phones…':'');
+  await pushUsers();if(sync.key&&$('userStatus').className.includes('ok'))$('userStatus').textContent=`${name} saved on all phones.`;
+  toast(`${name} saved`);
+});
+$('uDelete').onclick=()=>{
+  const u=users.find(x=>x.id===editUserId);if(!u)return;
+  if(curUser&&u.id===curUser.id)return userErr('You cannot delete yourself.');
+  if(u.role==='admin'&&!users.some(x=>x.id!==u.id&&x.role==='admin'&&x.active!==false))return userErr('Keep at least one active admin.');
+  showModal(`Delete ${u.name||u.username}?`,'They will not be able to log in on any phone.',[
+    {label:'Delete user',cls:'danger',run:()=>withPin('Log in as an admin to delete users.',async()=>{users=users.filter(x=>x.id!==u.id);saveUsersLocal();$('userForm').hidden=true;editUserId=null;renderUsers();$('userStatus').className='status ok';$('userStatus').textContent=`${u.name||u.username} deleted.`;await pushUsers();toast('User deleted')})},
+    {label:'Cancel',cls:'ghost'}]);
 };
+renderUsers();paintUserChip();
 paintAdmin();
 $('syncKey').value=sync.key;
 $('syncConnect').onclick=()=>withPin('Enter the admin PIN to connect this phone.',async()=>{
@@ -1681,19 +1845,19 @@ $('syncConnect').onclick=()=>withPin('Enter the admin PIN to connect this phone.
     syncMsg('busy','Connecting…');
     const m=await syncApi('meta');
     // This phone's PIN must match the shared admin PIN (it may have been changed on another phone)
-    const pc=await syncApi('pin','POST',{},adminPinPlain);
-    if(!pc.ok){sync.key=prevKey;adminPinPlain='';adminUntil=0;syncMsg('err','Shop key accepted. Enter the shared admin PIN used on the other phones.');
-      requireAdmin('Enter the shared admin PIN (the one used on the other phones).',()=>$('syncConnect').click());return}
-    if(pc.hash){settings.adminPin=pc.hash;store.set('settings2',settings)}
+    const pc=await syncApi('login','POST',{username:adminCreds.username,pin:adminCreds.pin});
+    if(!pc.ok){sync.key=prevKey;adminCreds=null;adminUntil=0;syncMsg('err','Shop key accepted. Log in with an admin user from the other phones.');
+      requireAdmin('Shop key accepted. Log in with an admin user that already exists on the other phones.',()=>$('syncConnect').click(),true);return}
+    if(pc.user)upsertUser(pc.user);
     store.set('syncKey',k);
     const serverEmpty=!m.stock&&!m.rates&&!m.settings;
     if(serverEmpty&&(stockMap.size||rateLog.length)){
       // First phone: upload this phone's data to start the shared database
-      if(stockMap.size)await syncApi('stock','POST',{mode:'replace',rows:[...stockMap.values()],file:'First upload from this phone',skipped:0},adminPinPlain);
-      if(rateLog.length)await syncApi('ratelog','POST',{log:rateLog},adminPinPlain);
+      if(stockMap.size)await syncApi('stock','POST',{mode:'replace',rows:[...stockMap.values()],file:'First upload from this phone',skipped:0},adminCreds);
+      if(rateLog.length)await syncApi('ratelog','POST',{log:rateLog},adminCreds);
       await pushSettingsNow();
-      sync.v={stock:0,rates:0,settings:0};
-    }else sync.v={stock:0,rates:0,settings:0};
+      sync.v={stock:0,rates:0,settings:0,users:0};
+    }else sync.v={stock:0,rates:0,settings:0,users:0};
     sync.dirtySettings=false;saveSyncState();
     await pullAll(true);
     toast(serverEmpty?'Shared database started from this phone':'Connected to the shared database');
@@ -1707,6 +1871,7 @@ window.addEventListener('online',()=>pullAll());
 
 // ---------- boot ----------
 paintRates();renderEditor();renderBill();
+if(!curUser)openLogin('login');
 hookRates();
 loadStock().then(()=>{if(cur.sku&&!cur.stockKey)lookupTyped(true);pullAll()});
 if('serviceWorker' in navigator&&location.protocol==='https:'&&!NATIVE)navigator.serviceWorker.register('sw.js').catch(()=>{});

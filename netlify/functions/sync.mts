@@ -2,19 +2,19 @@ import { getStore } from "@netlify/blobs"
 import type { Config } from "@netlify/functions"
 
 // Shared database for all Yamie Price Check phones (Android app, iPhone home-screen app).
-// Every call needs the shop key (env SHOP_KEY). Stock, settings and PIN changes also need the admin PIN.
-// Stored in one site-wide Blobs store: meta, stock, rates, settings, auth.
+// Every call needs the shop key (env SHOP_KEY). Stock, settings and user changes need an admin login (x-user + x-pin).
+// Stored in one site-wide Blobs store: meta, stock, rates, settings, users, auth (legacy admin PIN).
 
 const APP_ORIGINS = ["https://appassets.androidplatform.net", "https://yamie-price-check.netlify.app"]
 const STOCK_FIELDS = ["key", "barcode", "item", "category", "carat", "gw", "nw", "sw", "dw", "dq", "sa", "serial", "label", "location", "pcs", "sq", "supplier", "at"]
 const RATE_KEYS = ["22k", "18k", "14k", "9k", "platinum", "silver"]
 
-type Meta = { stock: number; rates: number; settings: number; count: number; history: any[] }
+type Meta = { stock: number; rates: number; settings: number; users: number; count: number; history: any[] }
 
 function cors(req: Request): Record<string, string> {
   const o = req.headers.get("origin") || ""
   const h: Record<string, string> = {
-    "Access-Control-Allow-Headers": "content-type,x-shop-key,x-admin-pin",
+    "Access-Control-Allow-Headers": "content-type,x-shop-key,x-admin-pin,x-user,x-pin",
     "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
     "Access-Control-Max-Age": "86400",
     Vary: "Origin",
@@ -29,6 +29,12 @@ const json = (req: Request, body: unknown, status = 200) =>
 async function sha(s: string) {
   const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s))
   return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, "0")).join("")
+}
+async function pbkdf(pin: string, saltHex: string) {
+  const salt = new Uint8Array((saltHex.match(/../g) || []).map((h) => parseInt(h, 16)))
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(pin), "PBKDF2", false, ["deriveBits"])
+  const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", salt, iterations: 60000, hash: "SHA-256" }, key, 256)
+  return [...new Uint8Array(bits)].map((x) => x.toString(16).padStart(2, "0")).join("")
 }
 const cleanStr = (v: unknown, n = 120) => (v == null ? "" : String(v).slice(0, n))
 const cleanNum = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null)
@@ -59,15 +65,35 @@ export default async (req: Request) => {
 
   const op = new URL(req.url).searchParams.get("op") || ""
   const st = getStore({ name: "yamie-price-check", consistency: "strong" })
-  const meta: Meta = { stock: 0, rates: 0, settings: 0, count: 0, history: [], ...((await st.get("meta", { type: "json" })) || {}) }
+  const meta: Meta = { stock: 0, rates: 0, settings: 0, users: 0, count: 0, history: [], ...((await st.get("meta", { type: "json" })) || {}) }
   const saveMeta = () => st.setJSON("meta", meta)
 
-  const adminOk = async (pin: string) => {
+  const users: any[] = ((await st.get("users", { type: "json" })) as any[]) || []
+  const legacyOk = async (pin: string) => {
     if (!pin) return false
     const auth: any = await st.get("auth", { type: "json" })
     if (auth?.hash) return (await sha("yamie-pc:" + pin)) === auth.hash
     return pin === (Netlify.env.get("ADMIN_PIN") || "")
   }
+  const verifyUser = async (username: string, pin: string) => {
+    const un = String(username || "").trim().toLowerCase()
+    const u = users.find((x) => x.username === un && x.active !== false)
+    if (!u || !u.salt || !u.hash || !pin) return null
+    return (await pbkdf(pin, u.salt)) === u.hash ? u : null
+  }
+  // Admin check: a logged-in admin user, or (before any users exist) the legacy admin PIN
+  const adminOk = async () => {
+    const un = req.headers.get("x-user") || "", p = req.headers.get("x-pin") || ""
+    if (un) {
+      const u = await verifyUser(un, p)
+      if (u) return u.role === "admin"
+      if (!users.some((x) => x.role === "admin") && un.toLowerCase() === "admin") return legacyOk(p)
+      return false
+    }
+    if (!users.length) return legacyOk(req.headers.get("x-admin-pin") || "")
+    return false
+  }
+  const publicUser = (u: any, withHash: boolean) => ({ id: u.id, name: u.name, username: u.username, role: u.role, active: u.active !== false, ...(withHash ? { salt: u.salt, hash: u.hash } : {}) })
 
   try {
     if (req.method === "GET") {
@@ -75,25 +101,30 @@ export default async (req: Request) => {
       if (op === "stock") return json(req, { v: meta.stock, rows: (await st.get("stock", { type: "json" })) || [], history: meta.history })
       if (op === "rates") return json(req, { v: meta.rates, log: (await st.get("rates", { type: "json" })) || [] })
       if (op === "settings") return json(req, { v: meta.settings, settings: (await st.get("settings", { type: "json" })) || null })
+      if (op === "users") {
+        // Staff PIN hashes go to every phone for offline login; admin hashes only to admins
+        const isAdm = await adminOk()
+        return json(req, { v: meta.users, users: users.map((u) => publicUser(u, isAdm || u.role !== "admin")) })
+      }
       return json(req, { error: "bad_op" }, 400)
     }
     if (req.method !== "POST") return json(req, { error: "method" }, 405)
 
     let body: any
     try { body = await req.json() } catch { return json(req, { error: "bad_json" }, 400) }
-    const pin = req.headers.get("x-admin-pin") || ""
-
-    if (op === "pin") {
-      const ok = await adminOk(pin)
-      const auth: any = ok ? await st.get("auth", { type: "json" }) : null
-      return json(req, { ok, hash: ok ? auth?.hash || (await sha("yamie-pc:" + pin)) : undefined })
+    if (op === "login") {
+      const u = await verifyUser(body?.username, String(body?.pin || ""))
+      if (u) return json(req, { ok: true, user: publicUser(u, true) })
+      const noAdmins = !users.some((x) => x.role === "admin")
+      if (noAdmins && String(body?.username || "").trim().toLowerCase() === "admin" && (await legacyOk(String(body?.pin || "")))) return json(req, { ok: true, legacy: true })
+      return json(req, { ok: false })
     }
 
     if (op === "rate") {
       // Day's rates: open to all staff with the shop key
       const rates = cleanRates(body?.entry?.rates)
       if (!rates["22k"] || !rates["18k"] || !rates["14k"] || !rates["9k"]) return json(req, { error: "bad_rates" }, 400)
-      const entry = { id: cleanStr(body.entry.id, 20) || Math.random().toString(36).slice(2, 9), at: cleanNum(body.entry.at) || Date.now(), day: cleanStr(body.entry.day, 10), rates }
+      const entry = { id: cleanStr(body.entry.id, 20) || Math.random().toString(36).slice(2, 9), at: cleanNum(body.entry.at) || Date.now(), day: cleanStr(body.entry.day, 10), by: cleanStr(body.entry.by, 40), rates }
       const log: any[] = ((await st.get("rates", { type: "json" })) as any[]) || []
       const next = [entry, ...log.filter((e) => e.id !== entry.id)].sort((a, b) => b.at - a.at).slice(0, 500)
       await st.setJSON("rates", next)
@@ -101,7 +132,7 @@ export default async (req: Request) => {
       return json(req, { v: meta.rates })
     }
 
-    if (!(await adminOk(pin))) return json(req, { error: "bad_pin" }, 403)
+    if (!(await adminOk())) return json(req, { error: "bad_pin" }, 403)
 
     if (op === "stock") {
       const mode = body?.mode === "replace" ? "replace" : "add"
@@ -146,12 +177,26 @@ export default async (req: Request) => {
       return json(req, { v: meta.settings })
     }
 
-    if (op === "setpin") {
-      const np = String(body?.newPin || "")
-      if (!/^[0-9]{4,8}$/.test(np)) return json(req, { error: "bad_new_pin" }, 400)
-      const hash = await sha("yamie-pc:" + np)
-      await st.setJSON("auth", { hash, at: Date.now() })
-      return json(req, { ok: true, hash })
+    if (op === "users") {
+      const list = (Array.isArray(body?.users) ? body.users : []).slice(0, 200).map((u: any) => {
+        const prev = users.find((x) => x.id === u?.id)
+        return {
+          id: cleanStr(u?.id, 24),
+          name: cleanStr(u?.name, 40),
+          username: cleanStr(u?.username, 30).trim().toLowerCase().replace(/[^a-z0-9._-]/g, ""),
+          role: u?.role === "admin" ? "admin" : "staff",
+          active: u?.active !== false,
+          // keep the stored PIN if this phone did not send one (admin hashes are not sent to staff phones)
+          salt: /^[0-9a-f]{32}$/.test(u?.salt || "") ? u.salt : prev?.salt,
+          hash: /^[0-9a-f]{64}$/.test(u?.hash || "") ? u.hash : prev?.hash,
+        }
+      }).filter((u: any) => u.id && u.username && u.salt && u.hash)
+      const names = new Set(list.map((u: any) => u.username))
+      if (names.size !== list.length) return json(req, { error: "duplicate_username" }, 400)
+      if (!list.some((u: any) => u.role === "admin" && u.active)) return json(req, { error: "need_admin" }, 400)
+      await st.setJSON("users", list)
+      meta.users = Date.now(); await saveMeta()
+      return json(req, { v: meta.users })
     }
 
     return json(req, { error: "bad_op" }, 400)

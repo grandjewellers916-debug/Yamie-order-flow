@@ -75,3 +75,13 @@ Netlify function `/api/sync` stores one shared copy (Netlify Blobs) of: stock li
 - Phones keep a local copy and work offline; they sync on open, every 2 minutes, and when back online. Rates saved offline are sent later.
 - Stock imports, making helper/charges edits and PIN changes need the admin PIN; day's rates need only the shop key.
 - Saved bills stay on each phone.
+
+## Login and users
+
+Everyone logs in with their own name and PIN (4–8 digits). Roles: **Admin** (stock uploads, Admin settings, users) and **Staff** (billing, day's rates).
+
+- First use: log in as `admin` with the starting PIN (`ADMIN_PIN`, 1986), then add users under Admin settings → Users.
+- Admins create, edit (name, username, role, PIN, active) and delete users. At least one active admin is always kept.
+- On a staff login, admin-only actions ask an admin to log in; that approval lasts 15 minutes.
+- With the shared database connected, users are the same on every phone; switched-off or deleted users are logged out at the next sync.
+- Saved bills and day's rates record who made them.
