@@ -226,6 +226,15 @@ details.settings .grid{margin-top:10px}
 .guide .chip .mad{display:block;font:600 11px var(--mono);color:var(--muted);margin-top:2px}
 .guide .chip[aria-pressed="true"] .mad{color:var(--maroon-ink);opacity:.85}
 .line.staff span{color:var(--muted)!important;font-style:italic;font-weight:500!important;font-size:13px}
+.datacard{padding:0;gap:0}
+.datacard>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:14px;cursor:pointer}
+.datacard>summary::-webkit-details-marker{display:none}
+.datacard .dc-t{font-family:var(--display);font-size:20px;font-weight:600}
+.datacard .dc-s{flex:1;min-width:0;font-size:13px;color:var(--muted);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.datacard .dc-chev{color:var(--muted);transition:transform .15s}
+.datacard[open] .dc-chev{transform:rotate(180deg)}
+.datacard[open]{gap:12px;padding-bottom:14px}
+.datacard[open]>:not(summary){margin-inline:14px}
 .helper-btn{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"t go" "s go";align-items:center;gap:2px 10px;width:100%;text-align:left;border:2px solid var(--gold);background:color-mix(in srgb,var(--gold) 10%,var(--surface));color:var(--fg);border-radius:12px;padding:10px 14px;cursor:pointer;min-height:56px}
 .helper-btn .hb-t{grid-area:t;font:700 15px var(--body)}
 .helper-btn .hb-s{grid-area:s;font:500 13px var(--mono);color:var(--maroon);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -365,16 +374,6 @@ details.settings .grid{margin-top:10px}
     </div>
   </section>
 
-  <section class="card" id="dataCard" aria-label="Stock data import">
-    <div class="sec-head"><h2>Stock data</h2><button class="linkbtn" type="button" id="dataOpen">Find / history</button></div>
-    <div><div class="ss-count" id="dataCount">0 items</div><div class="note" id="dataSummary">No stock loaded yet.</div></div>
-    <div class="rs-acts">
-      <button class="btn primary" type="button" id="dataFull">Import stock Excel</button>
-      <button class="btn" type="button" id="dataAdd">Add new stock</button>
-    </div>
-    <div class="status" id="dataStatus">Import stock Excel loads the full current stock (replaces the list). Add new stock adds or updates items from a later sheet.</div>
-  </section>
-
   <section class="card" aria-label="Saved bills">
     <div class="sec-head"><h2>Saved bills</h2><span class="note">This phone only</span></div>
     <div class="recent" id="recent"></div>
@@ -395,6 +394,17 @@ details.settings .grid{margin-top:10px}
       <div style="margin-top:10px"><button class="btn sm" type="button" id="resetTbl">Reset helper to Yamie table</button></div>
     </details>
   </section>
+
+  <details class="card datacard" id="dataCard">
+    <summary><span class="dc-t">Stock data</span><span class="dc-s" id="dataMini">No stock loaded</span><span class="dc-chev" aria-hidden="true">▾</span></summary>
+    <div class="sec-head"><span class="note">Upload stock Excel sheets</span><button class="linkbtn" type="button" id="dataOpen">Find / history</button></div>
+    <div><div class="ss-count" id="dataCount">0 items</div><div class="note" id="dataSummary">No stock loaded yet.</div></div>
+    <div class="rs-acts">
+      <button class="btn primary" type="button" id="dataFull">Import stock Excel</button>
+      <button class="btn" type="button" id="dataAdd">Add new stock</button>
+    </div>
+    <div class="status" id="dataStatus">Import stock Excel loads the full current stock (replaces the list). Add new stock adds or updates items from a later sheet.</div>
+  </details>
 </div>
 
 <div class="bar" id="bar">
@@ -1339,6 +1349,7 @@ function paintStockSummary(){
   $('ssSummary').textContent=last?`Last import ${new Date(last.at).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})} · ${last.file}`:'No stock loaded yet. Import the stock Excel sheet.';
   $('stockBtn').textContent=n?`Stock · ${n.toLocaleString('en-IN')}`:'Stock';
   $('dataCount').textContent=$('ssCount').textContent;$('dataSummary').textContent=$('ssSummary').textContent;
+  $('dataMini').textContent=n?`${n.toLocaleString('en-IN')} items${last?' · '+new Date(last.at).toLocaleDateString('en-IN',{day:'numeric',month:'short'}):''}`:'No stock loaded';
   const h=$('ssHist');
   h.innerHTML=stockMeta.history.length?stockMeta.history.map(x=>`<div class="h-row"><div class="d">${esc(x.file)}<small>${new Date(x.at).toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'})}</small></div><span class="note">${x.mode==='replace'?'Replaced':'Added'}</span><div class="vals" style="grid-template-columns:1fr">${x.rows.toLocaleString('en-IN')} rows · ${x.added.toLocaleString('en-IN')} new · ${x.updated.toLocaleString('en-IN')} updated${x.skipped?` · ${x.skipped} skipped`:''}</div></div>`).join(''):'<div class="empty">Each Excel import is listed here.</div>';
 }
