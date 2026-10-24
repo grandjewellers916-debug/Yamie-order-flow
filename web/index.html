@@ -35,7 +35,7 @@ body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-
 [hidden]{display:none!important}
 img{max-width:100%}
 .wrap{max-width:560px;margin:0 auto;padding-inline:16px;padding-block:0 120px;display:flex;flex-direction:column;gap:16px}
-header.top{display:flex;align-items:center;justify-content:space-between;padding-top:14px;gap:12px}
+header.top{display:flex;align-items:center;justify-content:space-between;padding-top:calc(30px + env(safe-area-inset-top,0px));gap:12px;flex-wrap:wrap}
 .brand{font-family:var(--display);font-size:28px;font-weight:700;color:var(--maroon);line-height:1}
 .brand small{display:block;font-family:var(--body);font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:4px}
 button{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
@@ -53,12 +53,15 @@ button{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
 .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
 .band .eyebrow{opacity:.8}
 .src{font-size:12px;opacity:.85;text-align:right}
-.rates{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.rates{display:flex;flex-direction:column;gap:0;margin-top:2px}
 .band{cursor:pointer}
-.rate .v{display:block;font:700 16px var(--mono);font-variant-numeric:tabular-nums;color:var(--band-fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rate .v{display:block;font:700 18px var(--mono);font-variant-numeric:tabular-nums;color:var(--band-fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .band-foot .stale{color:#FFD58A;font-weight:600}
-.rate{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:6px 8px;min-width:0}
-.rate label{display:block;font-size:12px;font-weight:600;letter-spacing:.06em;opacity:.85}
+.rate{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:9px 4px;border-bottom:1px solid rgba(255,255,255,.14);min-width:0}
+.rate:last-child{border-bottom:0}
+.rate.miss{border:0;border-bottom:1px solid rgba(255,255,255,.14);color:#FFB4AB}
+.rate.miss .v{color:#FFB4AB}
+.rate label{font-size:15px;font-weight:600;letter-spacing:.04em;opacity:.9}
 .rate input{width:100%;background:transparent;border:0;color:var(--band-fg);font:500 15px var(--mono);font-variant-numeric:tabular-nums;padding:2px 0 0;min-width:0}
 .rate.edited{border-color:var(--gold)}
 .rate.edited input{color:#FFD58A}
@@ -222,7 +225,9 @@ details.settings .grid{margin-top:10px}
 .bc-pre.none{background:var(--sunk);color:var(--muted)}
 .bc input{flex:1;min-width:0;font:600 18px var(--mono)!important;letter-spacing:.04em}
 .bc input.read{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 10%,var(--surface))}
-.bc-scan{flex:none;min-width:72px}
+.bc-scan{flex:none;min-width:84px}
+.bc-item{font-size:14px;color:var(--muted);min-height:1.3em}
+.bc-item b{color:var(--fg);font-weight:600}
 .guide .chip .mad{display:block;font:600 11px var(--mono);color:var(--muted);margin-top:2px}
 .guide .chip[aria-pressed="true"] .mad{color:var(--maroon-ink);opacity:.85}
 .line.staff span{color:var(--muted)!important;font-style:italic;font-weight:500!important;font-size:13px}
@@ -284,12 +289,12 @@ details.settings .grid{margin-top:10px}
 <div class="wrap">
   <header class="top">
     <div class="brand">Yamie<small>Price check &amp; bill</small></div>
-    <div class="hdr-acts"><button class="btn sm" id="stockBtn" type="button">Stock</button><button class="btn sm" id="newBillBtn" type="button">Clear bill</button></div>
+    <div class="hdr-acts"><button class="btn sm" id="stockBtn" type="button">Stock</button><button class="btn sm primary" id="goBill" type="button">Bill ↓</button><button id="newBillBtn" type="button" hidden>Clear bill</button></div>
   </header>
 
   <section class="band" id="band" aria-label="Day's rates" role="button" tabindex="0">
     <div class="band-head">
-      <span class="eyebrow">Rate per gram · ₹</span>
+      <span class="eyebrow">Today's rate per gram</span>
       <span class="src" id="rateSrc">Loading…</span>
     </div>
     <div class="rates" id="rates"></div>
@@ -304,12 +309,13 @@ details.settings .grid{margin-top:10px}
     <div class="sec-head"><h2 id="edTitle">Tag 1</h2><span class="note">Gold outline = from stock</span></div>
     <input class="hidden-input" id="camInput" type="file" accept="image/*" capture="environment" aria-label="Take tag photo">
     <input class="hidden-input" id="galInput" type="file" accept="image/*" aria-label="Choose tag photo">
-    <div class="status" id="status" role="status">Select the item, then type the barcode number.</div>
+    <div class="status" id="status" role="status">Scan the barcode or type it in.</div>
 
     <div class="grid">
-      <div class="f full"><label for="itemSel">Item</label><select id="itemSel"></select><input id="item" autocomplete="off" placeholder="Type item name" hidden></div>
+      <div class="f full" hidden><label for="itemSel">Item</label><select id="itemSel"></select><input id="item" autocomplete="off" placeholder="Type item name" hidden></div>
       <div class="f full"><label for="bcNum">Barcode</label>
-        <div class="bc"><span class="bc-pre" id="bcPre">—</span><input id="bcNum" class="num" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="Number"><button class="btn bc-scan" type="button" id="scanBc" hidden aria-label="Scan barcode with camera">Scan</button></div>
+        <div class="bc"><span class="bc-pre" id="bcPre" hidden>—</span><input id="bcNum" class="num" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="e.g. DIA1164"><button class="btn bc-scan" type="button" id="scanBc" hidden aria-label="Scan barcode with camera">Scan</button></div>
+        <div class="bc-item" id="bcItem"></div>
         <input id="sku" type="hidden">
       </div>
       <div class="f full"><span class="flabel req">Purity</span><div class="seg" id="puritySeg" role="group" aria-label="Purity"></div></div>
@@ -523,13 +529,13 @@ function rateFor(p){if(!p)return null;const o=bill.overrides[p];if(o!=null&&!isN
 const ratesEl=$('rates');
 PURITIES.forEach(p=>{
   const d=document.createElement('div');d.className='rate';d.dataset.k=p.id;
-  d.innerHTML=`<label>${p.label}</label><span class="v">—</span>`;
+  d.innerHTML=`<label>${p.name||p.label}</label><span class="v">—</span>`;
   ratesEl.appendChild(d);
 });
 function paintRates(){
   PURITIES.forEach(p=>{
     const box=ratesEl.querySelector(`[data-k="${p.id}"]`),v=rateFor(p.id);
-    box.querySelector('.v').textContent=v==null?'—':v.toLocaleString('en-IN');
+    box.querySelector('.v').textContent=v==null?'—':'₹'+v.toLocaleString('en-IN');
     box.classList.toggle('edited',bill.overrides[p.id]!=null);
     box.classList.toggle('miss',v==null&&!!(cur&&cur.purity===p.id||bill.items.some(t=>t.purity===p.id)));
   });
@@ -701,20 +707,20 @@ const CODE_OF={};Object.entries(CAT).forEach(([c,n])=>CODE_OF[n]=c);
 function bcSplit(sku){const k=keyOf(sku),m=k.match(/^([A-Z]+)(.*)$/);return m?{pre:m[1],rest:m[2]}:{pre:'',rest:k}}
 function curCode(){return CODE_OF[cur.item]||''}
 function paintBarcode(){
-  const code=curCode(),sp=bcSplit(cur.sku),pre=$('bcPre'),inp=$('bcNum');
-  pre.textContent=code||'—';pre.classList.toggle('none',!code);
-  inp.inputMode=code?'numeric':'text';inp.placeholder=code?'Number':'Full barcode';
-  if(document.activeElement!==inp)inp.value=code?(sp.pre===code?sp.rest:(sp.pre?'':sp.rest)):keyOf(cur.sku);
+  const inp=$('bcNum'),sp=bcSplit(cur.sku);
+  if(document.activeElement!==inp)inp.value=keyOf(cur.sku);
   inp.classList.toggle('read',isRead('sku'));
+  const name=cur.item||itemFromSku(cur.sku);
+  $('bcItem').innerHTML=name?`Item: <b>${esc(name)}</b>${CAT[sp.pre]?` · ${sp.pre}`:''}`:(sp.pre&&sp.pre.length>=3&&!cur.stockKey?'Prefix not recognised':'');
 }
 $('bcNum').addEventListener('input',()=>{
-  let v=$('bcNum').value.toUpperCase().replace(/[^A-Z0-9]/g,'');
-  const m=v.match(/^([A-Z]{3})([0-9]*)$/);
-  if(m&&CAT[m[1]]){cur.item=CAT[m[1]];cur.itemAuto=false;v=m[2];$('bcNum').value=v;paintItem()}
-  const code=curCode();
-  cur.sku=code?code+v:v;unread('sku');cur.touched=true;
-  if(code==='MMP'&&!cur.purity)cur.purity='platinum';
-  saveDraft();$('bcPre').textContent=code||'—';
+  const v=$('bcNum').value.toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if($('bcNum').value!==v)$('bcNum').value=v;
+  cur.sku=v;unread('sku');cur.touched=true;
+  const pre=bcSplit(v).pre;
+  if(CAT[pre]){cur.item=CAT[pre];cur.itemAuto=false}else if(!cur.stockKey)cur.item='';
+  if(pre==='MMP'&&!cur.purity)cur.purity='platinum';
+  saveDraft();paintBarcode();
   renderPreview();lookupTyped();
 });
 function paintItem(){
@@ -987,6 +993,7 @@ function renderBill(keepInputs){
   const s=totals();
   const n=bill.items.length;
   $('billCount').textContent=n?`${n} tag${n>1?'s':''}`:'No tags yet';
+  $('goBill').textContent=n?`Bill (${n}) ↓`:'Bill ↓';
   $('items').innerHTML=n?bill.items.map((t,i)=>{
     const p=priceTag(t);
     const mv=num(t.mkVal);
@@ -1114,6 +1121,7 @@ $('copyBtn').onclick=()=>{
   else toast('Copy blocked here');
 };
 $('waBtn').addEventListener('click',e=>{if(!bill.items.length){e.preventDefault();toast('Add a tag first')}});
+$('goBill').onclick=()=>window.scrollTo({top:$('bill').offsetTop-10,behavior:'smooth'});
 $('barBtn').onclick=()=>window.scrollTo({top:$('bill').offsetTop-10,behavior:'smooth'});
 function billIsEmpty(){return !bill.items.length&&!bill.oldGold.length&&!bill.returns.length}
 let armNew=0;
