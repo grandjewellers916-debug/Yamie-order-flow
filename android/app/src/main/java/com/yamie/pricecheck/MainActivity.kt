@@ -13,6 +13,8 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Base64
 import android.webkit.JavascriptInterface
+import android.webkit.ValueCallback
+import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
@@ -22,9 +24,11 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.webkit.WebViewAssetLoader
+import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -37,6 +41,15 @@ class MainActivity : ComponentActivity() {
     private lateinit var web: WebView
     private var pendingPhoto: Uri? = null
     private val recognizer by lazy { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
+    private val barcodes by lazy { BarcodeScanning.getClient() }
+    private var fileCallback: ValueCallback<Array<Uri>>? = null
+
+    // Lets the page's <input type="file"> open the phone's file picker (stock Excel import)
+    private val pickFile = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
+        val cb = fileCallback
+        fileCallback = null
+        cb?.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(res.resultCode, res.data))
+    }
 
     private val takePicture = registerForActivityResult(ActivityResultContracts.TakePicture()) { ok ->
         val uri = pendingPhoto
@@ -77,6 +90,28 @@ class MainActivity : ComponentActivity() {
                 return try {
                     startActivity(Intent(Intent.ACTION_VIEW, url)); true
                 } catch (e: Exception) { true }
+            }
+        }
+
+        web.webChromeClient = object : WebChromeClient() {
+            override fun onShowFileChooser(view: WebView, callback: ValueCallback<Array<Uri>>, params: FileChooserParams): Boolean {
+                fileCallback?.onReceiveValue(null)
+                fileCallback = callback
+                return try {
+                    val i = Intent(Intent.ACTION_GET_CONTENT).apply {
+                        addCategory(Intent.CATEGORY_OPENABLE)
+                        type = "*/*"
+                        putExtra(Intent.EXTRA_MIME_TYPES, arrayOf(
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            "application/vnd.ms-excel", "application/vnd.ms-excel.sheet.macroEnabled.12",
+                            "text/csv", "text/comma-separated-values", "application/octet-stream"))
+                    }
+                    pickFile.launch(Intent.createChooser(i, "Choose stock Excel file"))
+                    true
+                } catch (e: Exception) {
+                    fileCallback = null
+                    false
+                }
             }
         }
 
@@ -146,17 +181,23 @@ class MainActivity : ComponentActivity() {
         val image = try { InputImage.fromFilePath(this, uri) } catch (e: Exception) {
             sendScan(JSONObject().put("error", "Could not open that photo.")); return
         }
-        recognizer.process(image)
-            .addOnSuccessListener { result ->
-                val out = JSONObject().put("text", result.text)
-                if (thumb != null) out.put("thumb", thumb)
-                sendScan(out)
-            }
-            .addOnFailureListener {
-                val out = JSONObject().put("error", "Could not read text in that photo. Retake it closer, in good light.")
-                if (thumb != null) out.put("thumb", thumb)
-                sendScan(out)
-            }
+        // Read the printed barcode first (for stock lookup), then the text on the tag
+        barcodes.process(image).addOnCompleteListener { bt ->
+            val codes = JSONArray()
+            if (bt.isSuccessful) bt.result?.forEach { b -> b.rawValue?.let { if (it.isNotBlank()) codes.put(it.trim()) } }
+            recognizer.process(image)
+                .addOnSuccessListener { result ->
+                    val out = JSONObject().put("text", result.text).put("barcodes", codes)
+                    if (thumb != null) out.put("thumb", thumb)
+                    sendScan(out)
+                }
+                .addOnFailureListener {
+                    val out = JSONObject().put("barcodes", codes)
+                    if (codes.length() == 0) out.put("error", "Could not read text in that photo. Retake it closer, in good light.") else out.put("text", "")
+                    if (thumb != null) out.put("thumb", thumb)
+                    sendScan(out)
+                }
+        }
     }
 
     private fun thumbnail(uri: Uri): String {

@@ -37,3 +37,13 @@ Every build is signed with `android/app/yamie-sideload.keystore`, so new version
 ## Web version on Netlify
 
 Netlify project `yamie-price-check` is created. Link it to this repo and branch (Project configuration → Build & deploy → Link repository, branch `price-check`); `netlify.toml` sets everything else. On the phone, open the site in Chrome → menu → **Install app**.
+
+## Stock list
+
+**Stock → Add / update from Excel** imports a stock sheet (.xlsx, .xls or .csv). The app finds the header row by the `BarCode` column and reads: BarCode, Item, Category, Carret, Gross Wt, Net Wt, Stone Wt, Diamond Wt, Diamond Qty, StoneAmount, Serial, Label, Location, Pcs, Stone Qty, Supplier.
+
+- Add / update: new barcodes are added, existing ones are replaced by the new row.
+- Replace all stock: clears the phone's list first (use for a full stock file).
+- Stored on the phone (IndexedDB). Each phone imports its own copy.
+
+Typing a barcode, or scanning a tag (the printed barcode is read too), fills item, purity, GWT, NWT, stone weight (Diamond Wt if present), and stone price (StoneAmount). Making is picked by hand from the Label; the **making guide** (Charges settings) shows usual options per purity.

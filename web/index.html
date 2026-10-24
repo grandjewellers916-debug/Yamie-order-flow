@@ -207,6 +207,22 @@ details.settings .grid{margin-top:10px}
 .h-row .vals{grid-column:1/-1;font:400 13px var(--mono);font-variant-numeric:tabular-nums;color:var(--fg);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px 10px}
 .h-row .vals span b{color:var(--muted);font-weight:500;margin-right:4px}
 .up{color:var(--bad)} .down{color:var(--good)}
+.hdr-acts{display:flex;gap:8px}
+/* Stock */
+.stockinfo{border:1.5px solid var(--gold);background:color-mix(in srgb,var(--gold) 8%,var(--surface));border-radius:10px;padding:8px 12px;font-size:13px;display:flex;flex-wrap:wrap;gap:4px 14px}
+.stockinfo b{font-weight:700}
+.stockinfo .tag{font-weight:700;color:var(--good);letter-spacing:.06em;text-transform:uppercase;font-size:11px;width:100%}
+.stockinfo.none{border-color:var(--line);background:var(--sunk);color:var(--muted)}
+.stockinfo.none .tag{color:var(--warn)}
+.mk-label{font-size:14px;background:var(--sunk);border-radius:8px;padding:6px 10px}
+.mk-label b{font:700 15px var(--mono);color:var(--maroon)}
+.guide{display:flex;flex-direction:column;gap:6px}
+.guide .chips .chip{border-style:dashed;border-color:var(--gold)}
+.guide .chip[aria-pressed="true"]{border-style:solid}
+.ss-rec{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;font-size:14px}
+.ss-rec dt{color:var(--muted)}
+.ss-rec dd{margin:0;font-family:var(--mono);font-weight:500;word-break:break-word}
+.ss-count{font:700 30px var(--mono);color:var(--maroon)}
 .stepper.zero{border:2px solid var(--warn)}
 /* Pop-up */
 .modal{position:fixed;inset:0;z-index:20;background:rgba(20,8,8,.55);display:flex;align-items:flex-end;justify-content:center;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
@@ -227,7 +243,7 @@ details.settings .grid{margin-top:10px}
 <div class="wrap">
   <header class="top">
     <div class="brand">Yamie<small>Price check &amp; bill</small></div>
-    <button class="btn sm" id="newBillBtn" type="button">Clear bill</button>
+    <div class="hdr-acts"><button class="btn sm" id="stockBtn" type="button">Stock</button><button class="btn sm" id="newBillBtn" type="button">Clear bill</button></div>
   </header>
 
   <section class="band" id="band" aria-label="Day's rates" role="button" tabindex="0">
@@ -270,9 +286,12 @@ details.settings .grid{margin-top:10px}
       <div class="f"><label for="nw" class="req">NWT · net gold (g)</label><input class="num" id="nw" inputmode="decimal"></div>
       <div class="f"><label for="spr" id="sprLbl">SPR / SA · stone price ₹</label><input class="num" id="spr" inputmode="decimal"></div>
     </div>
+    <div class="stockinfo" id="stockInfo" hidden></div>
 
     <div class="making" id="makingBox">
       <div class="sec-head"><span class="flabel req">Making charge</span><span class="mk-tag" id="mkTag"></span></div>
+      <div class="mk-label" id="mkLabel" hidden></div>
+      <div class="guide" id="mkGuide" hidden><span class="note" id="mkGuideT"></span><div class="chips" id="mkGuideChips"></div></div>
       <div class="seg" id="mkSeg" role="group" aria-label="Making charge type"></div>
       <div class="chips" id="mkChips"></div>
       <div class="mk-custom" id="mkCustomRow" hidden>
@@ -331,6 +350,9 @@ details.settings .grid{margin-top:10px}
         <div class="f"><label for="setGst">GST %</label><input class="num" id="setGst" inputmode="decimal"></div>
         <div class="f"><label for="setHuid">₹ per HUID</label><input class="num" id="setHuid" inputmode="decimal"></div>
       </div>
+      <h3 style="margin-top:14px">Making guide by purity</h3>
+      <p class="note" style="margin:4px 0 8px">Shown as quick picks on each tag. Separate with commas: <b>21%</b>, <b>2400/g</b>, <b>2500 fixed</b>.</p>
+      <div class="grid" id="guideGrid"></div>
     </details>
   </section>
 </div>
@@ -342,6 +364,26 @@ details.settings .grid{margin-top:10px}
   </div>
 </div>
 <div class="toast" id="toast" hidden></div>
+<div class="rsheet" id="ssheet" hidden role="dialog" aria-modal="true" aria-labelledby="ssTitle">
+  <div class="in">
+    <div class="rs-head"><div><h2 id="ssTitle">Stock list</h2><div class="note">Barcode lookup for billing</div></div><button class="btn sm" type="button" id="ssClose">Close</button></div>
+    <div class="card">
+      <div><div class="ss-count" id="ssCount">0</div><div class="note" id="ssSummary">No stock loaded yet.</div></div>
+      <input class="hidden-input" id="ssFile" type="file" accept=".xlsx,.xls,.xlsm,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" aria-label="Choose stock Excel file">
+      <div class="rs-acts">
+        <button class="btn primary" type="button" id="ssAdd">Add / update from Excel</button>
+        <button class="btn" type="button" id="ssReplace">Replace all stock</button>
+      </div>
+      <div class="status" id="ssStatus">Columns read: BarCode, Item, Category, Carret, Gross Wt, Net Wt, Stone Wt, Diamond Wt, Diamond Qty, StoneAmount, Serial, Label, Location, Pcs, Stone Qty, Supplier.</div>
+    </div>
+    <div class="card">
+      <div class="f"><label for="ssFind">Find a barcode</label><input id="ssFind" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. DIA1164"></div>
+      <div id="ssResult" class="note">Type a barcode to see its stock details.</div>
+    </div>
+    <div class="sec-head"><h2>Imports</h2><span class="note">This phone</span></div>
+    <div class="hist" id="ssHist"></div>
+  </div>
+</div>
 <div class="rsheet" id="rsheet" hidden role="dialog" aria-modal="true" aria-labelledby="rsTitle">
   <div class="in">
     <div class="rs-head"><div><h2 id="rsTitle">Day's rates</h2><div class="note" id="rsDate"></div></div><button class="btn sm" type="button" id="rsClose">Close</button></div>
@@ -392,10 +434,11 @@ function itemFromSku(sku){const m=String(sku||'').toUpperCase().match(/^([A-Z]{3
 let live=store.get('live',{rates:{},at:null});
 if(!live||!live.rates)live={rates:{},at:null};
 const settings=Object.assign({gst:3,huid:80},store.get('settings2',{}));
+if(!settings.mkGuide)settings.mkGuide={'22k':'12%, 14%','18k':'18%, 20%, 21%, 23%, 24%','14k':'28%, 32%','9k':'38%, 40%, 45%, 50%',platinum:'',silver:''};
 function newBill(){return {items:[],oldGold:[],returns:[],overrides:{},started:Date.now()}}
 let bill=store.get('bill',null)||newBill();
 if(!bill.overrides)bill.overrides={};
-function blankTag(){return {id:uid(),touched:false,sku:'',item:'',itemAuto:true,purity:'',gw:'',sw:'',nw:'',spr:'',huids:[],huidCount:0,mkType:'',mkVal:'',mkTag:'',read:[]}}
+function blankTag(){return {id:uid(),touched:false,sku:'',item:'',itemAuto:true,purity:'',gw:'',sw:'',nw:'',spr:'',huids:[],huidCount:0,mkType:'',mkVal:'',mkTag:'',read:[],stock:null,stockKey:''}}
 const draft=store.get('draft',null);
 let cur=draft&&draft.cur?draft.cur:blankTag();
 let editingId=draft&&draft.editingId||null;
@@ -552,7 +595,7 @@ function makingFor(t,type,v){const r=rateFor(t.purity),w=num(t.nw);
   if(!(w>0))return NaN;
   if(type==='pergram')return v*w;
   return r==null?NaN:w*r*v/100}
-function isDiamond(t){return /^DIA/i.test(String(t.sku||'').trim())||t.item==='Diamond'}
+function isDiamond(t){return /^DIA/i.test(String(t.sku||'').trim())||t.item==='Diamond'||/DIAMOND/i.test((t.stock&&t.stock.category)||'')}
 function missing(t){
   const m=[],p=priceTag(t);
   if(!t.purity)m.push({k:'purity',t:'Purity'});
@@ -600,6 +643,7 @@ FIELDS.forEach(k=>$(k).addEventListener('input',()=>{
   cur[k]=$(k).value;unread(k);cur.touched=true;
   if(k==='item')cur.itemAuto=!cur.item;
   if(k==='sku'&&cur.itemAuto){cur.item=itemFromSku(cur.sku);$('item').value=cur.item;paintItem()}
+  if(k==='sku')lookupTyped();
   saveDraft();if(k==='nw')paintChips();renderPreview();renderValidation();
 }));
 $('mkVal').addEventListener('input',()=>{cur.mkVal=$('mkVal').value;unread('making');cur.touched=true;saveDraft();paintChips();renderPreview()});
@@ -611,7 +655,7 @@ function isRead(k){return (cur.read||[]).includes(k)}
 function paintChips(){
   const box=$('mkChips');box.innerHTML='';
   const t=cur.mkType;$('mkCustomRow').hidden=!t;
-  if(!t)return;
+  if(!t){paintGuide();return}
   const v=num(cur.mkVal);
   MK[t].presets.forEach(p=>{
     const b=document.createElement('button');b.type='button';b.className='chip';
@@ -626,6 +670,7 @@ function paintChips(){
   $('mkUnit').textContent=MK[t].unit;
   const isPreset=MK[t].presets.includes(v);
   if(document.activeElement!==$('mkVal'))$('mkVal').value=(!isNaN(v)&&!isPreset)?fmtN(v):'';
+  paintGuide();
   const ca=(!isNaN(v)&&!isPreset)?makingFor(cur,t,v):NaN;
   $('mkAmt').textContent=isNaN(ca)?'':'= '+inr(ca);
 }
@@ -658,6 +703,7 @@ function renderEditor(){
   [...$('mkSeg').children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.k===cur.mkType)));
   $('mkSeg').classList.toggle('read',isRead('making'));
   $('mkTag').textContent=cur.mkTag&&isRead('making')?cur.mkTag:'';
+  paintStockInfo();
   paintChips();
   $('huidCount').textContent=cur.huidCount|0;
   $('huidStep').classList.toggle('read',isRead('huid'));
@@ -738,7 +784,7 @@ window.onNativeScan=function(res){
     if(typeof res==='string')res=JSON.parse(res);
     if(res.thumb)thumbs[scanSide]=res.thumb;
     if(res.error){renderEditor();setStatus(res.error,'err');return}
-    applyText(res.text||'',scanSide);
+    applyText(res.text||'',scanSide,res.barcodes||[]);
   }catch(e){setStatus('Could not read that photo. Try again.','err')}
 };
 async function prep(file){
@@ -780,17 +826,22 @@ async function handleFile(file,input){
   }finally{reading=false}
 }
 const MKMAP={flat:'fixed',pg:'pergram',pct:'pct'};
-function applyText(text,side){
+function applyText(text,side,barcodes){
   const r=parseTag(text);
-  if(!r.found.length){renderEditor();setStatus(`Nothing readable on the ${side}. Retake it closer, in good light, or type the details.`,'err');return}
-  // Front fills and corrects; back only fills gaps. HUIDs from both sides add up.
+  // Stock list is the source of truth: a barcode match fills the tag, OCR only fills what stock left empty
+  const hit=[...(barcodes||[]),r.sku].map(findStock).find(Boolean);
+  if(hit)applyStock(hit);
+  if(!r.found.length&&!hit){renderEditor();setStatus(`Nothing readable on the ${side}. Retake it closer, in good light, or type the details.`,'err');return}
+  const fillOnly=side!=='front'||!!hit;
   cur.touched=true;
   const mark=k=>{if(!cur.read.includes(k))cur.read.push(k)};
-  const put=(k,v)=>{if(v==null||v==='')return;const empty=cur[k]===''||cur[k]==null;if(side==='front'||empty){cur[k]=typeof v==='number'?fmtN(v):String(v);mark(k)}};
+  const put=(k,v)=>{if(v==null||v==='')return;const empty=cur[k]===''||cur[k]==null;if(!fillOnly||empty){cur[k]=typeof v==='number'?fmtN(v):String(v);mark(k)}};
   put('sku',r.sku);
-  if(r.item&&(cur.itemAuto||!cur.item)){cur.item=r.item;cur.itemAuto=true;mark('item')}
-  else if(cur.itemAuto&&cur.sku)cur.item=itemFromSku(cur.sku);
-  if(r.purity&&(side==='front'||!isRead('purity'))){cur.purity=r.purity;mark('purity')}
+  if(!hit){
+    if(r.item&&(cur.itemAuto||!cur.item)){cur.item=r.item;cur.itemAuto=true;mark('item')}
+    else if(cur.itemAuto&&cur.sku)cur.item=itemFromSku(cur.sku);
+  }
+  if(r.purity&&(!fillOnly||!cur.purity)){cur.purity=r.purity;mark('purity')}
   put('gw',r.gw);put('sw',r.sw);put('nw',r.nw);put('spr',r.stoneVal);
   if(r.mk!=null&&(side==='front'||!cur.mkType)){
     cur.mkType=MKMAP[r.mkType]||'pct';cur.mkVal=fmtN(r.mk);
@@ -805,11 +856,11 @@ function applyText(text,side){
   saveDraft();renderEditor();
   const miss=missing(cur).map(x=>({nw:'NWT',spr:'stone price (SPR/SA)',rate:'gold rate',huid:'HUID'})[x.k]||x.k);
   if(!cur.sku)miss.unshift('barcode');
-  const guessed=r.found.some(f=>f.endsWith('?'));
-  let msg=`Read the ${side}.`;
+  const guessed=!hit&&r.found.some(f=>f.endsWith('?'));
+  let msg=hit?`Found ${hit.barcode} in stock.`:`Read the ${side}.`+(stockMap.size&&cur.sku?' Barcode not in stock list.':'');
   if(r.makingFinal===false&&r.mpBefore!=null)msg+=' Only MP (before discount) was on the tag; check the making.';
   if(guessed)msg+=' Weights were not labelled; check GWT and NWT.';
-  if(miss.length)msg+=` Missing: ${miss.join(', ')}.`+(side==='front'?' Scan the back or fill them in.':' Fill these in below.');
+  if(miss.length)msg+=` Missing: ${miss.join(', ')}.`+(miss.includes('making')&&cur.stock&&cur.stock.label?' Pick the making from the label.':side==='front'&&!hit?' Scan the back or fill them in.':'');
   else msg+=' All details found.';
   setStatus(msg,miss.length||guessed?'err':'ok');
 }
@@ -987,9 +1038,201 @@ function renderRecent(){
 [['gst','setGst'],['huid','setHuid']].forEach(([k,id])=>{const el=$(id);el.value=settings[k];
   el.addEventListener('input',()=>{const v=num(el.value);if(!isNaN(v)){settings[k]=v;store.set('settings2',settings);renderEditor();renderBill(true)}})});
 
+// ---------- making guide (by purity) ----------
+function parseGuide(str){
+  return String(str||'').split(/[,;\n]+/).map(x=>x.trim()).filter(Boolean).map(tok=>{
+    const t=tok.toUpperCase().replace(/₹|RS\.?/g,'').trim();
+    const m=t.match(/^([0-9]+(?:\.[0-9]+)?)\s*(%|\/\s*G(?:M|RAM)?|PG|PER\s*G(?:M|RAM)?|FIXED|FIX|F|PC|PCS|PER\s*PIECE)?$/);
+    if(!m)return null;
+    const v=parseFloat(m[1]),u=m[2]||'';
+    const type=u==='%'?'pct':/G/.test(u)?'pergram':/F|PC|PIECE/.test(u)?'fixed':(v<=100?'pct':'fixed');
+    return {type,val:v};
+  }).filter(Boolean);
+}
+function paintGuide(){
+  const g=cur.purity?parseGuide(settings.mkGuide[cur.purity]):[];
+  $('mkGuide').hidden=!g.length;
+  if(!g.length)return;
+  $('mkGuideT').textContent=`Usual making for ${PLABEL[cur.purity]}`;
+  const box=$('mkGuideChips');box.innerHTML='';
+  const v=num(cur.mkVal);
+  g.forEach(o=>{
+    const amt=makingFor(cur,o.type,o.val);
+    const label=o.type==='pct'?o.val+'%':o.type==='pergram'?'₹'+o.val.toLocaleString('en-IN')+'/g':'₹'+o.val.toLocaleString('en-IN')+' fixed';
+    const b=document.createElement('button');b.type='button';b.className='chip';
+    b.innerHTML=`${esc(label)}${o.type!=='fixed'?`<small>${isNaN(amt)?'enter NWT':inr(amt)}</small>`:''}`;
+    b.setAttribute('aria-pressed',String(cur.mkType===o.type&&v===o.val));
+    b.onclick=()=>{cur.mkType=o.type;cur.mkVal=String(o.val);unread('making');cur.touched=true;saveDraft();renderEditor()};
+    box.appendChild(b);
+  });
+}
+$('guideGrid').innerHTML=PURITIES.map(p=>`<div class="f"><label for="g_${p.id}">${p.name||p.label} guide</label><input id="g_${p.id}" autocomplete="off" placeholder="e.g. 21%, 2400/g"></div>`).join('');
+PURITIES.forEach(p=>{const el=$('g_'+p.id);el.value=settings.mkGuide[p.id]||'';
+  el.addEventListener('input',()=>{settings.mkGuide[p.id]=el.value;store.set('settings2',settings);paintGuide()})});
+
+// ---------- stock list (Excel import, barcode lookup) ----------
+const stockMap=new Map(),altMap=new Map();
+let stockMeta=store.get('stockMeta',{history:[]});if(!stockMeta.history)stockMeta.history=[];
+const keyOf=v=>String(v==null?'':v).toUpperCase().replace(/[^A-Z0-9]/g,'');
+const altOf=k=>k.replace(/^([A-Z]+)0+(?=[0-9])/,'$1');
+const IDB={_db:null,
+  open(){if(this._db)return Promise.resolve(this._db);return new Promise((res,rej)=>{if(!window.indexedDB)return rej(new Error('no_idb'));const q=indexedDB.open('ypc-stock',1);q.onupgradeneeded=()=>q.result.createObjectStore('stock',{keyPath:'key'});q.onsuccess=()=>{this._db=q.result;res(q.result)};q.onerror=()=>rej(q.error)})},
+  async all(){const db=await this.open();return new Promise((res,rej)=>{const q=db.transaction('stock','readonly').objectStore('stock').getAll();q.onsuccess=()=>res(q.result||[]);q.onerror=()=>rej(q.error)})},
+  async putMany(rows,clear){const db=await this.open();return new Promise((res,rej)=>{const t=db.transaction('stock','readwrite'),st=t.objectStore('stock');if(clear)st.clear();rows.forEach(x=>st.put(x));t.oncomplete=()=>res();t.onerror=()=>rej(t.error);t.onabort=()=>rej(t.error)})}
+};
+function indexRec(x){stockMap.set(x.key,x);altMap.set(altOf(x.key),x.key)}
+function findStock(code){const k=keyOf(code);if(k.length<3)return null;return stockMap.get(k)||stockMap.get(altMap.get(altOf(k)))||null}
+async function loadStock(){
+  try{const all=await IDB.all();stockMap.clear();altMap.clear();all.forEach(indexRec)}catch(e){}
+  paintStockSummary();
+}
+function caratToPurity(v){
+  if(v==null||v==='')return '';
+  if(typeof v==='number'&&v>0&&v<1){if(v>0.9)return '22k';if(v>0.7)return '18k';if(v>0.55)return '14k';if(v>0.3)return '9k'}
+  const k=keyOf(v);
+  if(/PT|PLAT/.test(k))return 'platinum';
+  if(/SILV|SLV|925|^SL/.test(k))return 'silver';
+  if(/916|^22|^0?916/.test(k))return '22k';
+  if(/750|^18/.test(k))return '18k';
+  if(/585|^14/.test(k))return '14k';
+  if(/375|^9(K|KT|CT|CARAT)?$|^9K/.test(k))return '9k';
+  return '';
+}
+function itemName(v){
+  const t=String(v||'').trim();if(!t)return '';
+  const hit=Object.values(CAT).find(n=>n.toUpperCase()===t.toUpperCase()||n.split(' /')[0].toUpperCase()===t.toUpperCase());
+  return hit||t.toLowerCase().replace(/\b[a-z]/g,c=>c.toUpperCase());
+}
+const COLS={barcode:['BARCODE','BARCODENO','BARCODENUMBER','TAGNO','BARCODES'],item:['ITEM','ITEMNAME'],category:['CATEGORY'],carat:['CARRET','CARAT','KARAT','PURITY','CARATAGE','CARET'],
+  gw:['GROSSWT','GROSSWEIGHT','GWT','GRWT'],nw:['NETWT','NETWEIGHT','NWT'],sw:['STONEWT','STONEWEIGHT','SWT','STWT'],dw:['DIAMONDWT','DIAMONDWEIGHT','DIAWT','DWT'],dq:['DIAMONDQTY','DIAQTY','DIAMONDPCS'],
+  sa:['STONEAMOUNT','STONEAMT','SA','SPR','STONEPRICE','STONEVALUE'],serial:['SERIAL','SERIALNO','SLNO'],label:['LABEL'],location:['LOCATION'],pcs:['PCS','PIECES'],sq:['STONEQTY','STONEPCS'],supplier:['SUPPLIER','VENDOR']};
+const NUMCOLS=['gw','nw','sw','dw','dq','sa','pcs','sq'];
+let xlsxP=null;
+function loadXLSX(){if(window.XLSX)return Promise.resolve();if(!xlsxP)xlsxP=new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='vendor/xlsx.full.min.js';sc.onload=res;sc.onerror=()=>{xlsxP=null;rej(new Error('xlsx_missing'))};document.head.appendChild(sc)});return xlsxP}
+async function readSheet(file){
+  await loadXLSX();
+  const buf=file.arrayBuffer?await file.arrayBuffer():await new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.onerror=()=>rej(fr.error);fr.readAsArrayBuffer(file)});
+  const wb=XLSX.read(buf,{type:'array'});
+  for(const name of wb.SheetNames){
+    const rows=XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,defval:'',raw:true,blankrows:false});
+    let h=-1;
+    for(let i=0;i<Math.min(rows.length,30);i++){if(rows[i].some(c=>COLS.barcode.includes(keyOf(c)))){h=i;break}}
+    if(h<0)continue;
+    const idx={};rows[h].forEach((c,i)=>{const k=keyOf(c);for(const f in COLS){if(idx[f]==null&&COLS[f].includes(k))idx[f]=i}});
+    const out=new Map();let skipped=0;
+    for(let i=h+1;i<rows.length;i++){
+      const row=rows[i],bc=row[idx.barcode];
+      const key=keyOf(typeof bc==='number'?Math.round(bc):bc);
+      if(!key){skipped++;continue}
+      const rec={key,barcode:String(typeof bc==='number'?Math.round(bc):bc).trim()};
+      for(const f in idx){if(f==='barcode')continue;let v=row[idx[f]];
+        if(NUMCOLS.includes(f)){const n=typeof v==='number'?v:num(v);rec[f]=isNaN(n)?null:n}
+        else rec[f]=v==null?'':String(v).trim()}
+      out.set(key,rec);
+    }
+    const found=Object.keys(idx);
+    return {rows:[...out.values()],skipped,dups:(rows.length-h-1-skipped)-out.size,sheet:name,cols:found};
+  }
+  throw new Error('no_header');
+}
+let importMode='add';
+function pickStock(mode){importMode=mode;$('ssFile').value='';$('ssFile').click()}
+$('ssAdd').onclick=()=>pickStock('add');
+$('ssReplace').onclick=()=>showModal('Replace the whole stock list?',`All ${stockMap.size.toLocaleString('en-IN')} items on this phone will be replaced by the file you choose.`,[
+  {label:'Choose file and replace',cls:'danger',run:()=>pickStock('replace')},{label:'Cancel',cls:'ghost'}]);
+$('ssFile').addEventListener('change',async e=>{
+  const f=e.target.files&&e.target.files[0];if(!f)return;
+  const st=$('ssStatus');st.className='status';st.textContent=`Reading ${f.name}…`;
+  try{
+    const res=await readSheet(f);
+    if(!res.rows.length){st.className='status err';st.textContent='No rows with a barcode were found in that file.';return}
+    let added=0,updated=0;
+    if(importMode==='replace'){added=res.rows.length}else res.rows.forEach(x=>stockMap.has(x.key)?updated++:added++);
+    const at=Date.now();res.rows.forEach(x=>x.at=at);
+    try{await IDB.putMany(res.rows,importMode==='replace')}catch(err){st.className='status err';st.textContent='Could not save the stock on this phone. Free some space and try again.';return}
+    if(importMode==='replace'){stockMap.clear();altMap.clear()}
+    res.rows.forEach(indexRec);
+    const miss=['barcode','item','carat','gw','nw','sa'].filter(c=>!res.cols.includes(c));
+    stockMeta.history.unshift({at,file:f.name,sheet:res.sheet,rows:res.rows.length,added,updated,skipped:res.skipped,mode:importMode,missing:miss});
+    stockMeta.history=stockMeta.history.slice(0,100);store.set('stockMeta',stockMeta);
+    st.className='status ok';
+    st.textContent=`${importMode==='replace'?'Replaced':'Imported'}: ${added.toLocaleString('en-IN')} new, ${updated.toLocaleString('en-IN')} updated`+(res.skipped?`, ${res.skipped} row${res.skipped>1?'s':''} without a barcode skipped`:'')+(res.dups>0?`, ${res.dups} repeated barcodes (last row kept)`:'')+'.'+(miss.length?` Columns not found: ${miss.join(', ')}.`:'');
+    paintStockSummary();toast('Stock list updated');
+    if(cur.sku&&!cur.stockKey)lookupTyped(true);
+  }catch(err){
+    st.className='status err';
+    st.textContent=err&&err.message==='no_header'?'No "BarCode" column found. Check the first rows of the sheet have the column names.':err&&err.message==='xlsx_missing'?'The Excel reader did not load. Update the app and try again.':'Could not read that file. Save it as .xlsx and try again.';
+  }
+});
+function paintStockSummary(){
+  const n=stockMap.size,last=stockMeta.history[0];
+  $('ssCount').textContent=n.toLocaleString('en-IN')+' items';
+  $('ssSummary').textContent=last?`Last import ${new Date(last.at).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})} · ${last.file}`:'No stock loaded yet. Import the stock Excel sheet.';
+  $('stockBtn').textContent=n?`Stock · ${n.toLocaleString('en-IN')}`:'Stock';
+  const h=$('ssHist');
+  h.innerHTML=stockMeta.history.length?stockMeta.history.map(x=>`<div class="h-row"><div class="d">${esc(x.file)}<small>${new Date(x.at).toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'})}</small></div><span class="note">${x.mode==='replace'?'Replaced':'Added'}</span><div class="vals" style="grid-template-columns:1fr">${x.rows.toLocaleString('en-IN')} rows · ${x.added.toLocaleString('en-IN')} new · ${x.updated.toLocaleString('en-IN')} updated${x.skipped?` · ${x.skipped} skipped`:''}</div></div>`).join(''):'<div class="empty">Each Excel import is listed here.</div>';
+}
+const REC_LABELS=[['barcode','BarCode'],['item','Item'],['category','Category'],['carat','Carret'],['gw','Gross Wt'],['nw','Net Wt'],['sw','Stone Wt'],['dw','Diamond Wt'],['dq','Diamond Qty'],['sa','StoneAmount'],['serial','Serial'],['label','Label'],['location','Location'],['pcs','Pcs'],['sq','Stone Qty'],['supplier','Supplier']];
+$('ssFind').addEventListener('input',()=>{
+  const q=$('ssFind').value,rec=findStock(q),el=$('ssResult');
+  if(!keyOf(q)){el.className='note';el.textContent='Type a barcode to see its stock details.';return}
+  if(!rec){el.className='note';el.textContent=stockMap.size?'Not in the stock list.':'No stock loaded yet.';return}
+  el.className='';
+  el.innerHTML=`<dl class="ss-rec">${REC_LABELS.map(([k,l])=>rec[k]==null||rec[k]===''?'':`<dt>${l}</dt><dd>${esc(rec[k])}</dd>`).join('')}</dl><div class="editor-acts" style="margin-top:10px"><button class="btn primary" type="button" id="ssUse">Bill this item</button></div>`;
+  $('ssUse').onclick=()=>{if(editingId){cur=blankTag();editingId=null}else if(cur.touched&&cur.stockKey!==rec.key){cur=blankTag()}thumbs={front:null,back:null};applyStock(rec);closeStock();setStatus(`Found ${rec.barcode} in stock.`+(missing(cur).some(x=>x.k==='making')?(rec.label?' Pick the making from the label.':' Pick the making.'):''),'ok');window.scrollTo({top:$('editor').offsetTop-10,behavior:'smooth'})};
+});
+function applyStock(rec){
+  cur.stockKey=rec.key;cur.stock={...rec};cur.touched=true;
+  const mark=k=>{if(!cur.read.includes(k))cur.read.push(k)};
+  cur.sku=rec.barcode;mark('sku');
+  const nm=itemName(rec.item)||itemFromSku(rec.barcode);if(nm){cur.item=nm;cur.itemAuto=false;mark('item')}
+  const pu=caratToPurity(rec.carat);if(pu){cur.purity=pu;mark('purity')}
+  if(rec.gw>0){cur.gw=fmtN(rec.gw);mark('gw')}
+  if(rec.nw>0){cur.nw=fmtN(rec.nw);mark('nw')}
+  const sw=rec.dw>0?rec.dw:rec.sw;if(sw>0){cur.sw=fmtN(sw);mark('sw')}
+  if(rec.sa>0){cur.spr=fmtN(rec.sa);mark('spr')}
+  saveDraft();renderEditor();
+}
+let lookTimer=null;
+function lookupTyped(now){
+  clearTimeout(lookTimer);
+  lookTimer=setTimeout(()=>{
+    const rec=findStock(cur.sku);
+    if(rec&&rec.key!==cur.stockKey){applyStock(rec);setStatus(`Found ${rec.barcode} in stock.`+(missing(cur).some(x=>x.k==='making')?(rec.label?' Pick the making from the label.':' Pick the making.'):''),'ok')}
+    else if(!rec&&cur.stockKey){cur.stockKey='';cur.stock=null;saveDraft();paintStockInfo();renderValidation()}
+    else paintStockInfo();
+  },now?0:350);
+}
+function paintStockInfo(){
+  const el=$('stockInfo'),st=cur.stock;
+  const lab=$('mkLabel');
+  if(st&&cur.stockKey){
+    const bits=[];
+    if(st.label)bits.push(`Label <b>${esc(st.label)}</b>`);
+    if(st.location)bits.push(`Location <b>${esc(st.location)}</b>`);
+    if(st.category)bits.push(`Category <b>${esc(st.category)}</b>`);
+    if(st.dw>0)bits.push(`Diamond <b>${fmtN(st.dw)}</b>${st.dq?` × ${fmtN(st.dq)}`:''}`);
+    if(st.sw>0)bits.push(`Stone <b>${fmtN(st.sw)}</b>${st.sq?` × ${fmtN(st.sq)}`:''}`);
+    if(st.pcs)bits.push(`Pcs <b>${fmtN(st.pcs)}</b>`);
+    if(st.serial)bits.push(`Serial <b>${esc(st.serial)}</b>`);
+    if(st.supplier)bits.push(`Supplier <b>${esc(st.supplier)}</b>`);
+    el.className='stockinfo';el.innerHTML=`<span class="tag">✓ In stock list</span>${bits.map(b=>`<span>${b}</span>`).join('')}`;el.hidden=false;
+    lab.hidden=!st.label;if(st.label)lab.innerHTML=`Label: <b>${esc(st.label)}</b> · choose the making from the label`;
+  }else{
+    lab.hidden=true;
+    const show=stockMap.size>0&&keyOf(cur.sku).length>=4;
+    el.hidden=!show;if(show){el.className='stockinfo none';el.innerHTML='<span class="tag">Not in stock list</span><span>Check the barcode, or enter the details by hand.</span>'}
+  }
+}
+function openStock(){paintStockSummary();$('ssheet').hidden=false;document.body.style.overflow='hidden';try{history.pushState({ss:1},'')}catch(e){}}
+function closeStock(fromPop){if($('ssheet').hidden)return;$('ssheet').hidden=true;document.body.style.overflow='';if(!fromPop){try{if(history.state&&history.state.ss)history.back()}catch(e){}}}
+window.addEventListener('popstate',()=>closeStock(true));
+$('stockBtn').onclick=openStock;$('ssClose').onclick=()=>closeStock();
+
 // ---------- boot ----------
 paintRates();renderEditor();renderBill();
 hookRates();
+loadStock().then(()=>{if(cur.sku&&!cur.stockKey)lookupTyped(true)});
 if('serviceWorker' in navigator&&location.protocol==='https:'&&!NATIVE)navigator.serviceWorker.register('sw.js').catch(()=>{});
 })();
 </script>
