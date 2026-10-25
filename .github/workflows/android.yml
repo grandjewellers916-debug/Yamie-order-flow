@@ -29,19 +29,25 @@ jobs:
       - name: Build APK
         run: gradle -p android assembleRelease --no-daemon
 
-      - name: Name the APK
-        run: cp android/app/build/outputs/apk/release/app-release.apk yamie-price-check.apk
+      - name: Name the APKs
+        run: |
+          cp android/app/build/outputs/apk/yamie/release/app-yamie-release.apk yamie-price-check.apk
+          cp android/app/build/outputs/apk/grand/release/app-grand-release.apk grand-price-check.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: yamie-price-check-apk
-          path: yamie-price-check.apk
+          name: price-check-apks
+          path: |
+            yamie-price-check.apk
+            grand-price-check.apk
 
       - name: Publish download
         uses: softprops/action-gh-release@v2
         with:
           tag_name: price-check-v${{ github.run_number }}
-          name: Yamie Price Check v1.0.${{ github.run_number }}
+          name: Price Check v1.0.${{ github.run_number }} (Yamie + Grand)
           target_commitish: ${{ github.sha }}
-          files: yamie-price-check.apk
-          body: Install yamie-price-check.apk on the phone. It updates over the previous version.
+          files: |
+            yamie-price-check.apk
+            grand-price-check.apk
+          body: "Yamie shop phones: yamie-price-check.apk. Grand Jewellers phones: grand-price-check.apk. Each updates over its previous version; both can sit on one phone."

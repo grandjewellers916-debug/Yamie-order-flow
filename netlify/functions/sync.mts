@@ -36,6 +36,16 @@ async function pbkdf(pin: string, saltHex: string) {
   const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", salt, iterations: 60000, hash: "SHA-256" }, key, 256)
   return [...new Uint8Array(bits)].map((x) => x.toString(16).padStart(2, "0")).join("")
 }
+// Item codes: { "BGL": "Bangle", ... } — 2–5 letter prefixes, short names; null keeps the app's starting list
+function cleanCats(c: any): Record<string, string> | null {
+  if (!c || typeof c !== "object" || Array.isArray(c)) return null
+  const out: Record<string, string> = {}
+  for (const [k, v] of Object.entries(c).slice(0, 100)) {
+    const key = String(k).toUpperCase()
+    if (/^[A-Z]{2,5}$/.test(key) && typeof v === "string" && v.trim()) out[key] = v.trim().slice(0, 40)
+  }
+  return Object.keys(out).length ? out : null
+}
 const cleanStr = (v: unknown, n = 120) => (v == null ? "" : String(v).slice(0, n))
 const cleanNum = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null)
 function cleanRow(r: any) {
@@ -185,6 +195,7 @@ export default async (req: Request) => {
           cz: (Array.isArray(s?.mkTable?.cz) ? s.mkTable.cz : []).slice(0, 200).map((x: any) => ({ purity: cleanStr(x?.purity, 12), slab: cleanStr(x?.slab, 40), mbd: cleanStr(x?.mbd, 20), mad: cleanStr(x?.mad, 20), rate: cleanStr(x?.rate, 20) })),
           dia: (Array.isArray(s?.mkTable?.dia) ? s.mkTable.dia : []).slice(0, 200).map((x: any) => ({ purity: cleanStr(x?.purity, 12), slab: cleanStr(x?.slab, 40), mbd: cleanStr(x?.mbd, 20), mad: cleanStr(x?.mad, 20), rate: cleanStr(x?.rate, 20) })),
         },
+        cats: cleanCats(s?.cats),
       }
       await st.setJSON("settings", out)
       meta.settings = Date.now(); await saveMeta()

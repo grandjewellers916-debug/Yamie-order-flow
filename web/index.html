@@ -339,11 +339,13 @@ details.settings .grid{margin-top:10px}
 @media (max-width:380px){.ded{grid-template-columns:1fr 1fr}.ded .x{justify-self:end}}
 @media (prefers-reduced-motion:no-preference){.btn,.chip{transition:transform .1s}.btn:active,.chip:active{transform:scale(.97)}}
 </style>
+<script src="brand-id.js"></script>
+<script src="brand.js"></script>
 </head>
 <body>
 <div class="wrap">
   <header class="top">
-    <div class="brand">Yamie<small>Price check &amp; bill · <span id="appVer"></span> <span class="sync-dot" id="syncDot" hidden></span></small></div>
+    <div class="brand"><span class="brand-nm">Yamie</span><small>Price check &amp; bill · <span id="appVer"></span> <span class="sync-dot" id="syncDot" hidden></span></small></div>
     <div class="hdr-acts"><button class="btn sm admin-pill" id="adminPill" type="button" hidden>Admin ✕</button><button class="btn sm user-chip" id="userChip" type="button" hidden></button><button class="btn sm" id="stockBtn" type="button">Stock</button><button class="btn sm primary" id="goBill" type="button">Bill ↓</button><button id="newBillBtn" type="button" hidden>Clear bill</button></div>
   </header>
 
@@ -477,7 +479,12 @@ details.settings .grid{margin-top:10px}
       <p class="note" style="margin-block:4px 0">Item can be Nosepin, Other Jewellery, or a supplier / item name (e.g. MANOJ) to match. Diamond = ₹ per carat.</p>
       <div class="tbl" id="tblDia"></div>
       <button class="linkbtn" type="button" id="addDia">+ Add diamond row</button>
-      <div style="margin-top:10px"><button class="btn sm" type="button" id="resetTbl">Reset helper to Yamie table</button></div>
+      <div style="margin-top:10px"><button class="btn sm" type="button" id="resetTbl">Reset helper to starting table</button></div>
+      <h3 style="margin-top:16px">Item codes</h3>
+      <p class="note" style="margin-block:4px 0">Barcode prefix and item name, one per line, e.g. <b>BGL = Bangle</b>. Used to name items from their barcode.</p>
+      <textarea id="catEdit" rows="7" spellcheck="false" autocapitalize="characters" style="width:100%;font:14px var(--mono);border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--surface);color:var(--fg);margin-top:6px"></textarea>
+      <div class="rs-acts" style="margin-top:6px"><button class="btn sm primary" type="button" id="catSave">Save item codes</button><button class="btn sm" type="button" id="catReset">Reset</button></div>
+      <div class="status" id="catStatus"></div>
       <h3 style="margin-top:16px">Shared database</h3>
       <p class="note" style="margin-block:4px 0">Connect every phone with the same shop key to share stock, day's rates, the making helper and users.</p>
       <div class="f full" style="margin-top:8px"><label for="syncKey">Shop key</label><input id="syncKey" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX"></div>
@@ -565,7 +572,7 @@ details.settings .grid{margin-top:10px}
 </div>
 <div class="login" id="login" hidden role="dialog" aria-modal="true" aria-labelledby="loginTitle">
   <form class="login-in" id="loginForm" autocomplete="off">
-    <div class="brand">Yamie<small>Price check &amp; bill · <span id="loginVer"></span></small></div>
+    <div class="brand"><span class="brand-nm">Yamie</span><small>Price check &amp; bill · <span id="loginVer"></span></small></div>
     <h2 id="loginTitle">Log in</h2>
     <p class="note" id="loginWhy"></p>
     <div class="f"><label for="loginUser">User</label>
@@ -596,12 +603,14 @@ details.settings .grid{margin-top:10px}
 <script>
 (function(){
 const $=id=>document.getElementById(id);
+const BRAND=window.BRAND||{id:'yamie',name:'Yamie',full:'Yamie Fine Jewellery',site:'https://yamie-price-check.netlify.app',tableName:'Yamie',table:'yamie',categories:{}};
+document.querySelectorAll('.brand-nm').forEach(el=>el.textContent=BRAND.name);
 const NATIVE=window.YamieNative||null;   // inside the Android app: ML Kit OCR, direct rates, clipboard
 const store={get(k,d){try{const v=localStorage.getItem('ypc_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('ypc_'+k,JSON.stringify(v))}catch(e){}}};
 
 const PURITIES=[{id:'22k',label:'22K',src:'r22',req:1},{id:'18k',label:'18K',src:'r18',req:1},{id:'14k',label:'14K',src:'r14',req:1},{id:'9k',label:'9K',src:'r9',req:1},{id:'platinum',label:'PT',name:'Platinum',src:'platinum'},{id:'silver',label:'Silver',name:'Silver',src:'silver'}];
 const PLABEL={'22k':'22K','18k':'18K','14k':'14K','9k':'9K',platinum:'PT',silver:'Silver','':'—'};
-const CAT=window.YAMIE_CATEGORIES||{};
+const CAT=window.YAMIE_CATEGORIES=window.YAMIE_CATEGORIES||{};  // shared with parser.js; replaced in place when admins edit item codes
 const MK={
   fixed:  {label:'Fixed',       unit:'₹',   presets:[1500,2000,2500,3000]},
   pergram:{label:'Per gram',    unit:'₹/g', presets:[2000,2400,3000,4000]},
@@ -626,7 +635,8 @@ const settings=Object.assign({gst:3,huid:80},store.get('settings2',{}));
 const DEF_TABLE={
   cz:[{purity:'9k',slab:'1',mbd:'50%',mad:'35%',rate:'2500'},{purity:'9k',slab:'2',mbd:'40%',mad:'32%',rate:'2500'},{purity:'14k',slab:'1',mbd:'28%',mad:'24%',rate:'2500'},{purity:'18k',slab:'1',mbd:'28%',mad:'23%',rate:'2500'},{purity:'18k',slab:'2',mbd:'40%',mad:'30%',rate:'2500'},{purity:'18k',slab:'3',mbd:'30%',mad:'24%',rate:'2500'},{purity:'22k',slab:'1',mbd:'14%',mad:'8.5%',rate:'2000'},{purity:'22k',slab:'2',mbd:'24%',mad:'16%',rate:'2000'}],
   dia:[{purity:'9k',slab:'Nosepin',mbd:'2200',mad:'1700',rate:'100000'},{purity:'9k',slab:'Other Jewellery',mbd:'2200 PG',mad:'1700 PG',rate:'100000'},{purity:'14k',slab:'Nosepin',mbd:'2000',mad:'1600',rate:'100000'},{purity:'14k',slab:'Other Jewellery',mbd:'28%',mad:'23%',rate:'100000'},{purity:'18k',slab:'Nosepin',mbd:'1800',mad:'1500',rate:'100000'},{purity:'18k',slab:'Other Jewellery',mbd:'1800 PG',mad:'1400 PG',rate:'100000'},{purity:'18k',slab:'MANOJ',mbd:'2400 PG',mad:'2000 PG',rate:'100000'}]};
-if(!settings.mkTable)settings.mkTable=JSON.parse(JSON.stringify(DEF_TABLE));
+const START_TABLE=BRAND.table==='empty'?{cz:[],dia:[]}:DEF_TABLE;
+if(!settings.mkTable)settings.mkTable=JSON.parse(JSON.stringify(START_TABLE));
 if(!settings.mkGuide)settings.mkGuide={'22k':'12%, 14%','18k':'18%, 20%, 21%, 23%, 24%','14k':'28%, 32%','9k':'38%, 40%, 45%, 50%',platinum:'',silver:''};
 function newBill(){return {items:[],oldGold:[],returns:[],overrides:{},started:Date.now()}}
 let bill=store.get('bill',null)||newBill();
@@ -641,7 +651,7 @@ function saveBill(){store.set('bill',bill)}
 function saveDraft(){store.set('draft',{cur,editingId})}
 
 // ---------- shared database (Netlify) ----------
-const SYNC_BASE=(location.protocol==='https:'&&/netlify\.app$/.test(location.hostname))?'':'https://yamie-price-check.netlify.app';
+const SYNC_BASE=(location.protocol==='https:'&&/netlify\.app$/.test(location.hostname))?'':BRAND.site;
 const sync={key:store.get('syncKey',''),v:Object.assign({stock:0,rates:0,settings:0,users:0},store.get('syncV',{})),q:store.get('syncQ',[]),dirtySettings:store.get('syncDirty',false),state:'',at:0,busy:false};
 let adminCreds=null; // {username,pin} of the admin acting now (memory only)
 function saveSyncState(){store.set('syncV',sync.v);store.set('syncQ',sync.q);store.set('syncDirty',sync.dirtySettings)}
@@ -698,6 +708,7 @@ async function pullAll(force){
 }
 function applyRemoteSettings(rs){
   if(rs.mkTable&&Array.isArray(rs.mkTable.cz))settings.mkTable=rs.mkTable;
+  if('cats' in rs){settings.cats=rs.cats&&typeof rs.cats==='object'&&Object.keys(rs.cats).length?rs.cats:null;try{applyCats()}catch(e){}}
   if(rs.gst!=null)settings.gst=rs.gst;if(rs.huid!=null)settings.huid=rs.huid;
   store.set('settings2',settings);
   try{renderTable('cz');renderTable('dia');$('setGst').value=settings.gst;$('setHuid').value=settings.huid;renderEditor();renderBill(true)}catch(e){}
@@ -705,7 +716,7 @@ function applyRemoteSettings(rs){
 let settingsTimer=null;
 function saveSettings(){store.set('settings2',settings);if(!sync.key)return;sync.dirtySettings=true;saveSyncState();clearTimeout(settingsTimer);settingsTimer=setTimeout(()=>{if(adminCreds)pushSettingsNow().catch(e=>syncMsg('err',syncErrText(e)))},1500)}
 async function pushSettingsNow(){
-  const r=await syncApi('settings','POST',{settings:{gst:settings.gst,huid:settings.huid,mkTable:settings.mkTable}},adminCreds);
+  const r=await syncApi('settings','POST',{settings:{gst:settings.gst,huid:settings.huid,mkTable:settings.mkTable,cats:settings.cats||null}},adminCreds);
   sync.v.settings=r.v;sync.dirtySettings=false;saveSyncState();syncMsg('ok','Settings saved to the shared database.');
 }
 async function pushRate(entry){
@@ -830,7 +841,7 @@ async function loadRates(){
     let j;
     if(NATIVE)j=await nativeRates();
     else{
-      let r=await fetch(location.protocol==='https:'?'/api/rates':'https://yamie-price-check.netlify.app/api/rates',{cache:'no-store'}).catch(()=>null);
+      let r=await fetch((location.protocol==='https:'&&/netlify\.app$/.test(location.hostname))?'/api/rates':BRAND.site+'/api/rates',{cache:'no-store'}).catch(()=>null);
       if(!r||!r.ok)r=await fetch('https://grandjewellers.com/api/kiosk-rates',{cache:'no-store'});
       if(!r.ok)throw new Error('HTTP '+r.status);
       j=await r.json();
@@ -905,7 +916,7 @@ function totals(){
 
 // ---------- editor UI ----------
 const FIELDS=['sku','item','gw','sw','nw','spr'];
-const ITEMS=Object.values(CAT);
+const ITEMS=[];
 $('itemSel').innerHTML='<option value="">Select item</option>'+ITEMS.map(n=>`<option>${esc(n)}</option>`).join('')+'<option value="__other">Other (type name)</option>';
 $('itemSel').addEventListener('change',()=>{
   const v=$('itemSel').value;cur.touched=true;cur.itemAuto=false;unread('item');
@@ -916,7 +927,31 @@ $('itemSel').addEventListener('change',()=>{
   saveDraft();renderEditor();lookupTyped();
   if(code)setTimeout(()=>$('bcNum').focus(),30);
 });
-const CODE_OF={};Object.entries(CAT).forEach(([c,n])=>CODE_OF[n]=c);
+const CODE_OF={};
+function applyCats(){
+  const src=settings.cats&&Object.keys(settings.cats).length?settings.cats:BRAND.categories||{};
+  Object.keys(CAT).forEach(k=>delete CAT[k]);Object.assign(CAT,src);
+  ITEMS.length=0;[...new Set(Object.values(CAT))].forEach(n=>ITEMS.push(n));
+  Object.keys(CODE_OF).forEach(k=>delete CODE_OF[k]);Object.entries(CAT).forEach(([c,n])=>{if(!CODE_OF[n])CODE_OF[n]=c});
+  const sel=$('itemSel');if(sel)sel.innerHTML='<option value="">Select item</option>'+ITEMS.map(n=>`<option>${esc(n)}</option>`).join('')+'<option value="__other">Other (type name)</option>';
+  const ta=$('catEdit');if(ta&&document.activeElement!==ta)ta.value=Object.entries(CAT).map(([c,n])=>`${c} = ${n}`).join('\n');
+}
+function parseCats(txt){
+  const out={},bad=[];
+  String(txt||'').split(/\n+/).map(l=>l.trim()).filter(Boolean).forEach(l=>{
+    const m=l.match(/^([A-Za-z]{2,5})\s*[=:\-,]\s*(.+)$/);
+    if(m)out[m[1].toUpperCase()]=m[2].trim().slice(0,40);else bad.push(l)});
+  return {out,bad};
+}
+applyCats();
+$('catSave').onclick=()=>withPin('Changing item codes needs an admin.',()=>{
+  const {out,bad}=parseCats($('catEdit').value);
+  if(bad.length){$('catStatus').textContent='Check these lines (CODE = Name): '+bad.slice(0,3).join(' · ');$('catStatus').className='status err';return}
+  if(!Object.keys(out).length){$('catStatus').textContent='Add at least one item code.';$('catStatus').className='status err';return}
+  settings.cats=out;saveSettings();applyCats();renderEditor();
+  $('catStatus').textContent=`${Object.keys(out).length} item codes saved.`;$('catStatus').className='status ok'});
+$('catReset').onclick=()=>showModal('Reset item codes?','The item codes go back to the starting list.',[
+  {label:'Reset',cls:'danger',run:()=>withPin('Changing item codes needs an admin.',()=>{settings.cats=null;saveSettings();applyCats();renderEditor();$('catStatus').textContent='Item codes reset.';$('catStatus').className='status ok'})},{label:'Cancel',cls:'ghost'}]);
 function bcSplit(sku){const k=keyOf(sku),m=k.match(/^([A-Z]+)(.*)$/);return m?{pre:m[1],rest:m[2]}:{pre:'',rest:k}}
 function curCode(){return CODE_OF[cur.item]||''}
 function paintBarcode(){
@@ -1326,7 +1361,7 @@ $('addRet').onclick=()=>{const r={id:uid(),note:'',amount:''};bill.returns.push(
 
 function shareText(){
   const s=totals();
-  const out=['*Yamie Fine Jewellery*',`Estimate · ${new Date().toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'})}`,
+  const out=['*'+BRAND.full+'*',`Estimate · ${new Date().toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'})}`,
     'Rate/g: '+PURITIES.map(p=>{const r=rateFor(p.id);return `${p.label} ${r==null?'—':inr(r)}`}).join(' · '),''];
   bill.items.forEach((t,i)=>{const p=priceTag(t);
     out.push(`${i+1}. ${t.sku||'—'} ${t.item||''} ${PLABEL[t.purity]}`);
@@ -1515,8 +1550,8 @@ function renderTable(kind){
 renderTable('cz');renderTable('dia');
 $('addCz').onclick=()=>{settings.mkTable.cz.push({purity:'18k',slab:'',mbd:'',mad:'',rate:'2500'});saveSettings();renderTable('cz')};
 $('addDia').onclick=()=>{settings.mkTable.dia.push({purity:'18k',slab:'',mbd:'',mad:'',rate:'100000'});saveSettings();renderTable('dia')};
-$('resetTbl').onclick=()=>showModal('Reset the making helper?','Your edits to both tables will be replaced by the Yamie CZ and diamond tables.',[
-  {label:'Reset tables',cls:'danger',run:()=>{settings.mkTable=JSON.parse(JSON.stringify(DEF_TABLE));saveSettings();renderTable('cz');renderTable('dia');paintGuide();toast('Helper reset')}},{label:'Cancel',cls:'ghost'}]);
+$('resetTbl').onclick=()=>showModal('Reset the making helper?',BRAND.table==='empty'?'Both tables will be emptied.':'Your edits to both tables will be replaced by the '+BRAND.tableName+' CZ and diamond tables.',[
+  {label:'Reset tables',cls:'danger',run:()=>{settings.mkTable=JSON.parse(JSON.stringify(START_TABLE));saveSettings();renderTable('cz');renderTable('dia');paintGuide();toast('Helper reset')}},{label:'Cancel',cls:'ghost'}]);
 
 // ---------- stock list (Excel import, barcode lookup) ----------
 const stockMap=new Map(),altMap=new Map();

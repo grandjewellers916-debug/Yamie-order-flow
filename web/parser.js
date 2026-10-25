@@ -1,6 +1,6 @@
 /* Yamie Price Check — reads jewellery tag text (from OCR) into fields. */
 (function(root){
-  root.YAMIE_CATEGORIES={STD:'Stud',FRG:'Ring',NLC:'Necklace',PND:'Pendant',BGL:'Bangle',BRC:'Bracelet',NSP:'Nosepin',DIA:'Diamond',LDJ:'CVD',FIN:'Findings',CHN:'Chain',RST:'Jewelry set',MMP:'Platinum'};
+  if(!root.YAMIE_CATEGORIES)root.YAMIE_CATEGORIES={STD:'Stud',FRG:'Ring',NLC:'Necklace',PND:'Pendant',BGL:'Bangle',BRC:'Bracelet',NSP:'Nosepin',DIA:'Diamond',LDJ:'CVD',FIN:'Findings',CHN:'Chain',RST:'Jewelry set',MMP:'Platinum'};
   // OCR often swaps letters and digits inside numbers
   function fixDigits(s){return s.replace(/[Oo]/g,'0').replace(/[Il|]/g,'1').replace(/[Ss]/g,'5').replace(/B/g,'8').replace(/,/g,'.')}
   const NUM='([0-9OoIlSB]{1,4}[.,][0-9OoIlSB]{1,4}|[0-9]{1,4})';
@@ -89,7 +89,8 @@
     }
     // Category from the SKU prefix
     const CAT=root.YAMIE_CATEGORIES;
-    const catM=U.match(/\b(CHN|BGL|BRC|PND|DIA|LDJ|MMP|RST|NLC|FRG|STD|NSP|FIN)\s?-?\s?([0-9]{2,6})\b/);
+    const keys=Object.keys(CAT).filter(k=>/^[A-Z]{2,5}$/.test(k)).sort((a,b)=>b.length-a.length);
+    const catM=keys.length?U.match(new RegExp('\\b('+keys.join('|')+')\\s?-?\\s?([0-9]{2,6})\\b')):null;
     if(catM){out.sku=catM[1]+catM[2];out.item=CAT[catM[1]];if(!out.found.includes('SKU'))out.found.push('SKU')}
     if(out.tagPrice!=null&&(out.tagPrice===spr||out.tagPrice===fpr||out.tagPrice===mp||out.tagPrice===mct)){out.tagPrice=null;out.found=out.found.filter(f=>f!=='price')}
     // Sanity: a SKU number is never a weight

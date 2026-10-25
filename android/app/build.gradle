@@ -35,6 +35,21 @@ android {
         }
     }
 
+    // One app per shop. Same screens; brand-id.js in each flavor picks the name, colours and item codes.
+    flavorDimensions 'shop'
+    productFlavors {
+        yamie {
+            dimension 'shop'
+            applicationId 'com.yamie.pricecheck'
+            resValue 'string', 'app_name', 'Price Check'
+        }
+        grand {
+            dimension 'shop'
+            applicationId 'com.grandjewellers.pricecheck'
+            resValue 'string', 'app_name', 'Grand Price'
+        }
+    }
+
     // The web app in ../../web is bundled as the app's screens
     sourceSets {
         main {

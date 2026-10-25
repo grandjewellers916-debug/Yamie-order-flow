@@ -1,4 +1,4 @@
-# Yamie Price Check
+# Price Check (Yamie · Grand Jewellers)
 
 Photograph a jewellery price tag, read weight, purity, diamond weight and making from it on the phone, and price it at today's gold rate.
 
@@ -85,3 +85,20 @@ Everyone logs in with their own name and PIN (4–8 digits). Roles: **Admin** (s
 - On a staff login, admin-only actions ask an admin to log in; that approval lasts 15 minutes.
 - With the shared database connected, users are the same on every phone; switched-off or deleted users are logged out at the next sync.
 - Saved bills and day's rates record who made them.
+
+## Two shops from one codebase
+
+The same app runs for **Yamie** and **Grand Jewellers**. `web/brand.js` holds each shop's name, colours, item codes and starting making table.
+
+| | Yamie | Grand Jewellers |
+|---|---|---|
+| Android APK | `yamie-price-check.apk` (com.yamie.pricecheck) | `grand-price-check.apk` (com.grandjewellers.pricecheck) |
+| Web / iPhone | yamie-price-check.netlify.app | grand-price-check.netlify.app |
+| Shared database | its own Netlify site, own `SHOP_KEY` / `ADMIN_PIN` | its own Netlify site, own `SHOP_KEY` / `ADMIN_PIN` |
+| Making helper | starts with the Yamie table | starts empty; admin fills it in |
+
+- Android: product flavors `yamie` and `grand`; each ships `assets/brand-id.js`. GitHub builds and releases both APKs.
+- Web: the brand is picked from the host name (`grand…` → Grand). Any other host can force it once with `?brand=grand`.
+- Stock, users, rates and settings are never shared between the two shops.
+- **Admin settings → Item codes** lets an admin edit barcode prefixes (one `CODE = Name` per line). They sync to all phones of that shop.
+- Adding a third shop: add an entry to `BRANDS` in `web/brand.js`, a flavor in `android/app/build.gradle` with its `brand-id.js` and icons, and a Netlify site whose name starts with the brand id.
