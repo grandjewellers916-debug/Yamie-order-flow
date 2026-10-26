@@ -72,7 +72,7 @@ Netlify function `/api/sync` stores one shared copy (Netlify Blobs) of: stock li
 
 - Netlify env vars: `SHOP_KEY` (shop key every phone enters once) and `ADMIN_PIN` (starting PIN). Both secret, Functions scope.
 - On each phone: Admin settings → Shared database → enter the shop key → Connect. The first phone with data starts the shared copy; later phones download it.
-- Phones keep a local copy and work offline; they sync on open, every 2 minutes, and when back online. Rates saved offline are sent later.
+- Phones keep a local copy and work offline. They sync once each morning (first open from 6 AM) and right after a stock import or sold-tag removal on that phone. **Sync now** pulls the latest any time. Day's rates, settings and users are sent the moment they're saved; rates saved offline are sent when back online.
 - Stock imports, making helper/charges edits and PIN changes need the admin PIN; day's rates need only the shop key.
 - Saved bills stay on each phone.
 

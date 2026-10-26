@@ -486,7 +486,7 @@ details.settings .grid{margin-top:10px}
       <div class="rs-acts" style="margin-top:6px"><button class="btn sm primary" type="button" id="catSave">Save item codes</button><button class="btn sm" type="button" id="catReset">Reset</button></div>
       <div class="status" id="catStatus"></div>
       <h3 style="margin-top:16px">Shared database</h3>
-      <p class="note" style="margin-block:4px 0">Connect every phone with the same shop key to share stock, day's rates, the making helper and users.</p>
+      <p class="note" style="margin-block:4px 0">Connect every phone with the same shop key to share stock, day's rates, the making helper and users. Phones sync each morning (first open from 6 AM) and after a stock change; tap Sync now any time.</p>
       <div class="f full" style="margin-top:8px"><label for="syncKey">Shop key</label><input id="syncKey" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX"></div>
       <div class="rs-acts" style="margin-top:8px"><button class="btn primary" type="button" id="syncConnect">Connect</button><button class="btn" type="button" id="syncNow">Sync now</button></div>
       <div class="status" id="syncStatus">Not connected. This phone keeps its own data.</div>
@@ -734,7 +734,7 @@ async function pushStock(mode,rows,file,skipped){
     if(r.history){stockMeta.history=r.history;store.set('stockMeta',stockMeta)}
     paintStockSummary();
     impStatus(`Shared with all phones: ${r.added.toLocaleString('en-IN')} new, ${r.updated.toLocaleString('en-IN')} updated · ${r.count.toLocaleString('en-IN')} items in total.`,'ok');
-    syncMsg('ok');
+    syncMsg('ok');afterStockChange();
   }catch(e){impStatus('Saved on this phone only. '+syncErrText(e),'err');syncMsg('err')}
 }
 
@@ -1808,7 +1808,7 @@ $('loginForm').addEventListener('submit',async e=>{
   else{adminCreds={username:u.username,pin};if(!(curUser&&curUser.role==='admin'))adminUntil=Date.now()+15*60*1000;if(!curUser){curUser=u;store.set('session',{id:u.id,at:Date.now()})}}
   paintUserChip();paintAdmin();renderUsers();
   const f=loginNext;loginNext=null;f&&f();
-  if(loginMode==='login')pullAll();
+  if(loginMode==='login')morningSync();
 });
 $('loginCancel').onclick=()=>{$('login').hidden=true;loginNext=null};
 function logout(msg){
@@ -1925,10 +1925,23 @@ $('syncConnect').onclick=()=>withPin('Enter the admin PIN to connect this phone.
   }catch(e){sync.key=prevKey;syncMsg('err',syncErrText(e))}
 });
 $('syncNow').onclick=()=>{if(!sync.key){syncMsg('','Enter the shop key and tap Connect first.');return}pullAll(true)};
-if(sync.key){syncMsg('',`Connected with shop key. Syncing…`);}
-setInterval(()=>{if(!document.hidden)pullAll()},2*60*1000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)pullAll()});
-window.addEventListener('online',()=>pullAll());
+if(sync.key){syncMsg(morningDue()?'':'ok',morningDue()?'Connected with shop key. Morning sync…':'Connected. Syncs each morning and after stock changes; tap Sync now for the latest.');}
+// Auto sync: once a day in the morning (first open from 6 AM), and after any stock change on this phone.
+// Day's rates, settings and users are still sent the moment they are saved; Sync now pulls any time.
+function morningDue(){const d=new Date();return d.getHours()>=6&&store.get('syncDay','')!==dayKey(d)}
+async function morningSync(){
+  if(!sync.key||document.hidden||!morningDue()||!navigator.onLine)return;
+  await pullAll(true);
+  if(sync.state==='ok')store.set('syncDay',dayKey());
+}
+async function pushQueue(){
+  if(!sync.key||!navigator.onLine||!sync.q.length)return;
+  try{while(sync.q.length){const e=sync.q[0];const r=await syncApi('rate','POST',{entry:e});sync.v.rates=Math.max(sync.v.rates,r.v||0);sync.q.shift();saveSyncState()}}catch(e){}
+}
+function afterStockChange(){if(sync.key)setTimeout(()=>pullAll(),300)}  // meta check: fetches only what changed
+setInterval(morningSync,10*60*1000);   // no network unless the morning sync is due
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)morningSync()});
+window.addEventListener('online',()=>{pushQueue();morningSync()});
 
 // ---------- remove sold tags (admin) ----------
 let soldKeys=[];
@@ -1965,7 +1978,7 @@ async function removeStock(keys,note){
   stockMeta.history=stockMeta.history.slice(0,100);store.set('stockMeta',stockMeta);
   paintStockSummary();
   if(sync.key){
-    try{const r=await syncApi('stockdel','POST',{keys,note},adminCreds);sync.v.stock=r.v;saveSyncState();if(r.history){stockMeta.history=r.history;store.set('stockMeta',stockMeta);paintStockSummary()}}
+    try{const r=await syncApi('stockdel','POST',{keys,note},adminCreds);sync.v.stock=r.v;saveSyncState();if(r.history){stockMeta.history=r.history;store.set('stockMeta',stockMeta);paintStockSummary()}afterStockChange()}
     catch(e){$('soldStatus').className='status err';$('soldStatus').textContent='Removed on this phone only. '+syncErrText(e);return keys.length}
   }
   return keys.length;
@@ -1986,7 +1999,7 @@ paintSold();
 paintRates();renderEditor();renderBill();
 if(!curUser)openLogin('login');
 hookRates();
-loadStock().then(()=>{if(cur.sku&&!cur.stockKey)lookupTyped(true);pullAll()});
+loadStock().then(()=>{if(cur.sku&&!cur.stockKey)lookupTyped(true);morningSync()});
 if('serviceWorker' in navigator&&location.protocol==='https:'&&!NATIVE)navigator.serviceWorker.register('sw.js').catch(()=>{});
 })();
 </script>
