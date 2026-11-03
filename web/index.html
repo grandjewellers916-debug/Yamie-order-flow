@@ -16,6 +16,8 @@ html,body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.4 system-ui
 button,input,select,textarea{font:inherit;color:inherit}
 header{background:var(--brand);color:#fff;padding:18px 18px 16px;position:sticky;top:0;z-index:5}
 header h1{margin:0;font-size:24px;letter-spacing:.2px}
+header.brandbar{background:#fff;padding:6px 12px;border-bottom:3px solid var(--brand);text-align:center}
+header.brandbar img{height:72px;width:auto;display:block;margin:0 auto}
 header .ml{font-size:15px;opacity:.85;margin-top:2px}
 main{padding:14px 14px 110px;max-width:640px;margin:0 auto}
 nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);display:flex;z-index:10;padding-bottom:env(safe-area-inset-bottom)}
@@ -104,9 +106,8 @@ h2{font-size:20px;margin:6px 2px 10px}
 </style>
 </head>
 <body>
-<header id="topbar">
-  <h1>Marunnu Kazhicho?</h1>
-  <div class="ml">മരുന്ന് കഴിച്ചോ?</div>
+<header id="topbar" class="brandbar">
+  <img src="logo.jpg" alt="Marunnu Kazhicho? — മരുന്ന് കഴിച്ചോ?">
 </header>
 
 <main id="view"></main>
