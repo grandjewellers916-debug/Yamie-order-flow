@@ -103,6 +103,25 @@ textarea{min-height:70px}
 .switch input:checked+span{background:var(--brand)}
 .switch input:checked+span:before{transform:translateX(24px)}
 h2{font-size:20px;margin:6px 2px 10px}
+.step{display:flex;align-items:center;border:1px solid var(--line);border-radius:12px;overflow:hidden;flex:none}
+.step button{border:0;background:var(--brand-2);color:var(--brand);width:42px;height:48px;font-size:24px;font-weight:700}
+.step input{width:52px;height:48px;border:0;text-align:center;font-weight:700;font-size:19px;padding:0;min-height:0;border-radius:0}
+.thumb{width:56px;height:56px;border-radius:12px;object-fit:cover;flex:none;border:1px solid var(--line);background:#fff}
+.photoedit{display:flex;gap:14px;align-items:center}
+.photoedit img,.photoedit .ph{width:110px;height:110px;border-radius:16px;object-fit:cover;border:1px solid var(--line);background:#fff;flex:none}
+.photoedit .ph{display:grid;place-items:center;font-size:40px;color:var(--muted);border-style:dashed}
+.viewer{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:40;display:none;align-items:center;justify-content:center;padding:16px}
+.viewer.open{display:flex}
+.viewer img{max-width:100%;max-height:100%;border-radius:12px}
+.toolbar{display:flex;gap:10px;margin-bottom:12px}
+.toolbar .btn{flex:1}
+.persons{display:flex;gap:8px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px}
+.persons button{flex:none;border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 16px;min-height:42px;font-weight:600}
+.persons button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.pick{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.pick:first-child{border-top:0}
+.pick input{width:26px;height:26px;flex:none;accent-color:var(--brand)}
+.wa{background:#25d366;color:#fff}
 </style>
 </head>
 <body>
@@ -122,6 +141,7 @@ h2{font-size:20px;margin:6px 2px 10px}
 
 <div class="sheet" id="editor"></div>
 <div class="toast" id="toast"></div>
+<div class="viewer" id="viewer" onclick="this.classList.remove('open')"><img alt=""></div>
 
 <script>
 // ---------- constants (from the medicine sheet) ----------
@@ -132,8 +152,9 @@ const SLOTS = [
   {k:'night',   label:'Night',   ml:'രാത്രി', icon:'🌙'}
 ];
 const FOOD = [{k:'before',label:'Before food'},{k:'after',label:'After food'}];
-const QTY = [{k:'half',label:'½'},{k:'1',label:'1'},{k:'2',label:'2'}];
-const TYPES = ['Antibiotic','Pain killers','Sleep helper','Bowel motion','Diabetic','Vitamins','Supplements'];
+const TYPES = ['Painkiller','Antibiotic','Probiotic','Multivitamin','Vitamin Supplement','Mineral Supplement','Antacid / Acidity Medicine',
+  'Diabetes Medicine','Blood Pressure Medicine','Cholesterol Medicine','Thyroid Medicine','Allergy Medicine / Antihistamine','Cold & Cough Medicine',
+  'Anti-inflammatory Medicine','Sleeping Pill','Blood Thinner','Calcium Supplement','Iron Supplement','Digestive Medicine','Other'];
 const INTAKE = [{k:'mandatory',label:'Mandatory'},{k:'ifneeded',label:'If needed'},{k:'conditional',label:'Conditional'}];
 const FORMS = [{k:'tablet',label:'Tablet',one:'tablet',many:'tablets'},{k:'capsule',label:'Capsule',one:'capsule',many:'capsules'},
   {k:'syrup',label:'Syrup',one:'spoon',many:'spoons'},{k:'drops',label:'Drops',one:'drop',many:'drops'},
@@ -183,9 +204,15 @@ function alarmTime(slot, food){
   const t = toMins(data.settings.times[slot]);
   return hm(food==='before' ? t - Number(data.settings.beforeMins||0) : t);
 }
+function qtyNum(q){ if(q==='half') return 0.5; const n=parseFloat(q); return isFinite(n)&&n>0 ? n : 1; }
+function qtyShort(q){
+  const n=qtyNum(q), w=Math.floor(n), fr=Math.round((n-w)*100)/100;
+  const frac = fr===0.5?'½':fr===0.25?'¼':fr===0.75?'¾':'';
+  if(!fr) return String(w); if(frac) return (w||'')+frac; return String(Math.round(n*100)/100);
+}
 function qtyText(m, slot){
   const q = m.doses[slot]; const f = FORMS.find(x=>x.k===(m.form||'tablet')) || FORMS[0];
-  if(q==='half') return '½ '+f.one; if(q==='1') return '1 '+f.one; return q+' '+f.many;
+  return qtyShort(q)+' '+(qtyNum(q)>1?f.many:f.one);
 }
 function dayLeft(m, date){
   if(!m.days || !(Number(m.days)>0)) return '';
@@ -194,9 +221,12 @@ function dayLeft(m, date){
   const day = Number(m.days) - n + 1;
   return 'Day '+day+' of '+m.days;
 }
+let personFilter='';
+function forPerson(m){ return !personFilter || (m.person||'')===personFilter; }
+function personsList(){ return [...new Set(data.meds.map(m=>(m.person||'').trim()).filter(Boolean))].sort(); }
 function groupsFor(date){
   const g = {};
-  data.meds.filter(m=>m.intake!=='ifneeded' && isActiveOn(m,date)).forEach(m=>{
+  data.meds.filter(m=>m.intake!=='ifneeded' && isActiveOn(m,date) && forPerson(m)).forEach(m=>{
     SLOTS.forEach(s=>{ if(m.doses && m.doses[s.k]){
       const key = s.k+'-'+(m.food==='before'?'b':'a');
       (g[key] = g[key] || {key, slot:s, food:m.food==='before'?'before':'after', time:alarmTime(s.k, m.food), meds:[]}).meds.push(m);
@@ -220,6 +250,7 @@ function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('sho
 function go(t){ tab=t; ['today','meds','settings'].forEach(x=>$('nav-'+x).classList.toggle('on',x===t)); $('fab').style.display = t==='meds'?'block':'none'; render(); window.scrollTo(0,0); }
 function render(){ ({today:renderToday, meds:renderMeds, settings:renderSettings})[tab](); }
 
+function thumb(m){ return m.photo ? `<img class="thumb" src="${m.photo}" alt="" onclick="viewPhoto(this.src)">` : ''; }
 function chipsFor(m){
   let h='';
   if(m.person) h+=`<span class="chip who">${esc(m.person)}</span>`;
@@ -249,13 +280,19 @@ function renderToday(){
       <button class="btn" onclick="go('meds');openEditor()">+ Add medicine</button></div>`;
     $('view').innerHTML=h; return;
   }
+  const ps = personsList();
+  if(personFilter && !ps.includes(personFilter)) personFilter='';
+  if(ps.length>1 || (ps.length===1 && data.meds.some(m=>!m.person))){
+    h += `<div class="persons"><button class="${personFilter?'':'on'}" onclick="setPerson('')">Everyone</button>${ps.map(p=>`<button class="${personFilter===p?'on':''}" onclick="setPerson(this.dataset.p)" data-p="${esc(p)}">${esc(p)}</button>`).join('')}</div>`;
+  }
   if(date===today()){
     const na = nextAlarm();
     if(na) h += `<div class="card next"><div class="big">⏰</div><div><span class="hint">Next reminder</span><b>${esc(na)}</b></div></div>`;
   }
   if(total){
     h += `<div class="card"><div class="ghead"><span class="t">${done===total?'All done for the day 🎉':done+' of '+total+' taken'}</span></div>
-      <div class="progress"><i style="width:${Math.round(done*100/total)}%"></i></div></div>`;
+      <div class="progress"><i style="width:${Math.round(done*100/total)}%"></i></div>
+      <button class="btn wa block" style="margin-top:14px" onclick="shareDay()">Share on WhatsApp</button></div>`;
   }
   groups.forEach(g=>{
     const allDone = g.meds.every(m=>takenAt(date,m.id,g.slot.k));
@@ -264,7 +301,7 @@ function renderToday(){
       ${allDone?'':`<button class="btn sec small" onclick="takeGroup('${g.key}')">All taken</button>`}</div>`;
     g.meds.forEach(m=>{
       const t = takenAt(date,m.id,g.slot.k);
-      h += `<div class="row"><div class="info"><div class="nm">${esc(m.name)}</div>
+      h += `<div class="row">${thumb(m)}<div class="info"><div class="nm">${esc(m.name)}</div>
         <div class="q">${qtyText(m,g.slot.k)}${dayLeft(m,date)?' · '+dayLeft(m,date):''}</div>
         <div>${chipsFor(m)}</div>
         ${m.intake==='conditional'&&m.condition?`<div class="cnd">Condition: ${esc(m.condition)}</div>`:''}
@@ -273,12 +310,12 @@ function renderToday(){
     });
     h += `</div>`;
   });
-  const need = data.meds.filter(m=>m.intake==='ifneeded' && isActiveOn(m,date));
+  const need = data.meds.filter(m=>m.intake==='ifneeded' && isActiveOn(m,date) && forPerson(m));
   if(need.length){
     h += `<h2>If needed</h2><div class="card">`;
     need.forEach(m=>{
       const times = Object.entries(log[date]||{}).filter(([k])=>k.startsWith(m.id+'@extra')).map(([,v])=>fmt12(v));
-      h += `<div class="row"><div class="info"><div class="nm">${esc(m.name)}</div><div>${chipsFor(m)}</div>
+      h += `<div class="row">${thumb(m)}<div class="info"><div class="nm">${esc(m.name)}</div><div>${chipsFor(m)}</div>
         ${m.condition?`<div class="cnd">${esc(m.condition)}</div>`:''}
         ${times.length?`<div class="takenat">✓ Taken at ${times.join(', ')}</div>`:'<div class="q">No reminder — take only when needed</div>'}</div>
         <button class="btn sec small" onclick="tookExtra('${m.id}')">Took one</button></div>`;
@@ -288,37 +325,113 @@ function renderToday(){
   if(!groups.length && !need.length) h += `<div class="empty"><div class="big">🌿</div><p>No medicines scheduled for this day.</p></div>`;
   $('view').innerHTML = h;
 }
+function setPerson(p){ personFilter=p; render(); }
+function shareDay(){
+  const date=viewDate, nd=niceDate(date), groups=groupsFor(date);
+  const now=new Date(), nowM=now.getHours()*60+now.getMinutes(), isToday=date===today(), isPast=date<today();
+  let total=0, done=0; const lines=[];
+  groups.forEach(g=>{
+    lines.push(''); lines.push(`${g.slot.icon} *${g.slot.label} · ${fmt12(g.time)}* (${g.food==='before'?'before food':'after food'})`);
+    g.meds.forEach(m=>{
+      total++; const t=takenAt(date,m.id,g.slot.k); if(t) done++;
+      const late = isPast || (isToday && toMins(g.time) < nowM);
+      const mark = t ? '✅' : late ? '❌' : '⏳';
+      const who = (!personFilter && m.person) ? ` (${m.person})` : '';
+      lines.push(`${mark} ${m.name}${who} — ${qtyText(m,g.slot.k)}${t?' · taken '+fmt12(t):late?' · not taken':' · due'}`);
+    });
+  });
+  const need=data.meds.filter(m=>m.intake==='ifneeded' && isActiveOn(m,date) && forPerson(m));
+  const extra=[];
+  need.forEach(m=>{ const ts=Object.entries(log[date]||{}).filter(([k])=>k.startsWith(m.id+'@extra')).map(([,v])=>fmt12(v)); if(ts.length) extra.push(`💊 ${m.name} — taken ${ts.join(', ')}`); });
+  if(extra.length){ lines.push(''); lines.push('*If needed*'); lines.push(...extra); }
+  const head = [`💊 *Marunnu Kazhicho?*${personFilter?' — '+personFilter:''}`, `${nd.name==='Today'||nd.name==='Yesterday'?nd.name+', ':''}${nd.sub}`, `${done===total&&total?'✅ All':done+' of'} ${total} doses taken`];
+  const text = head.concat(lines).join('\n');
+  if(A && A.share) A.share(text); else window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank');
+}
 function shiftDay(n){ viewDate=addDays(viewDate,n); render(); }
 function toggle(id,slot){ const on=!takenAt(viewDate,id,slot); setTaken(viewDate,id,slot,on); if(on) toast('Marked as taken ✓'); render(); }
 function takeGroup(key){ const g=groupsFor(viewDate).find(x=>x.key===key); if(!g) return; g.meds.forEach(m=>{ if(!takenAt(viewDate,m.id,g.slot.k)) setTaken(viewDate,m.id,g.slot.k,true); }); toast('All marked as taken ✓'); render(); }
 function tookExtra(id){ setTaken(viewDate,id,'extra'+Date.now(),true); toast('Noted ✓'); render(); }
 
 function renderMeds(){
+  data.sets = data.sets || [];
+  const bar = `<div class="toolbar"><button class="btn sec" onclick="openSaveSet()" ${data.meds.length?'':'disabled style="opacity:.5"'}>💾 Save as set</button>
+    <button class="btn sec" onclick="openSets()">📂 Saved sets${data.sets.length?' ('+data.sets.length+')':''}</button></div>`;
   if(!data.meds.length){
-    $('view').innerHTML = `<div class="empty"><div class="big">💊</div><p>Tap <b>+</b> to add a medicine.</p></div>`; return;
+    $('view').innerHTML = bar + `<div class="empty"><div class="big">💊</div><p>Tap <b>+</b> to add a medicine${data.sets.length?', or load a saved set':''}.</p></div>`; return;
   }
   const sorted = [...data.meds].sort((a,b)=>(a.person||'').localeCompare(b.person||'') || a.name.localeCompare(b.name));
   let h = '';
   sorted.forEach(m=>{
     const active = isActiveOn(m, today());
     const sched = m.intake==='ifneeded' ? 'Only when needed — no alarm'
-      : SLOTS.filter(s=>m.doses[s.k]).map(s=>s.label+' '+(m.doses[s.k]==='half'?'½':m.doses[s.k])).join(' · ') + ' — ' + (m.food==='before'?'before food':'after food');
+      : SLOTS.filter(s=>m.doses[s.k]).map(s=>s.label+' '+qtyShort(m.doses[s.k])).join(' · ') + ' — ' + (m.food==='before'?'before food':'after food');
     let status = '';
     if(m.paused) status = 'Paused';
     else if(m.start && today() < m.start) status = 'Starts '+niceDate(m.start).sub;
     else if(!active) status = 'Course finished';
     else if(m.days) status = dayLeft(m, today());
-    h += `<div class="card medcard ${active?'':'off'}" onclick="openEditor('${m.id}')">
+    h += `<div class="card medcard ${active?'':'off'}" onclick="openEditor('${m.id}')">${m.photo?`<img class="thumb" src="${m.photo}" alt="">`:''}
       <div class="info"><div class="nm" style="font-weight:700;font-size:19px">${esc(m.name)}</div>
       <div>${chipsFor(m)}</div><div class="sched">${sched}</div>
       ${status?`<div class="sched"><b>${status}</b></div>`:''}</div><div style="font-size:24px;color:var(--muted)">›</div></div>`;
   });
-  $('view').innerHTML = h;
+  $('view').innerHTML = bar + h;
+}
+
+// ---------- medicine sets ----------
+function sheet(title, body){
+  $('editor').innerHTML = `<header><button onclick="closeEditor()" aria-label="Back">←</button><h1 style="font-size:21px">${title}</h1></header><main style="padding-bottom:40px">${body}</main>`;
+  $('editor').classList.add('open'); $('editor').scrollTop=0;
+}
+function openSaveSet(){
+  const ps = personsList();
+  const body = `<p class="hint">Save these medicines together (e.g. "Amma daily", "Fever set") so you can add them again in one tap later.</p>
+    <label class="f">Set name</label><input type="text" id="set-name" placeholder="e.g. Amma daily" value="${esc(personFilter?personFilter+' daily':'')}">
+    <label class="f">Medicines in this set</label>
+    ${ps.length?`<div class="choices" style="margin-bottom:8px"><button onclick="pickSet('')">All</button>${ps.map(p=>`<button data-p="${esc(p)}" onclick="pickSet(this.dataset.p)">Only ${esc(p)}</button>`).join('')}</div>`:''}
+    <div class="card" style="padding:4px 14px">${data.meds.map(m=>`<label class="pick"><input type="checkbox" class="set-m" value="${m.id}" data-p="${esc(m.person||'')}" ${!personFilter||m.person===personFilter?'checked':''}>
+      ${m.photo?`<img class="thumb" src="${m.photo}" alt="">`:''}<div><b>${esc(m.name)}</b><div class="hint">${esc(m.person||'')}</div></div></label>`).join('')}</div>
+    <div class="actions"><button class="btn" onclick="saveSet()">Save set</button></div>`;
+  sheet('Save as set', body);
+}
+function pickSet(p){ document.querySelectorAll('.set-m').forEach(c=>c.checked = !p || c.dataset.p===p); if(p) $('set-name').value = p+' daily'; }
+function saveSet(){
+  const name=$('set-name').value.trim(); if(!name){ toast('Please give the set a name'); $('set-name').focus(); return; }
+  const ids=[...document.querySelectorAll('.set-m:checked')].map(c=>c.value);
+  if(!ids.length){ toast('Pick at least one medicine'); return; }
+  const meds=data.meds.filter(m=>ids.includes(m.id)).map(m=>{ const c=JSON.parse(JSON.stringify(m)); delete c.paused; return c; });
+  data.sets = data.sets || [];
+  const i = data.sets.findIndex(x=>x.name.toLowerCase()===name.toLowerCase());
+  if(i>=0 && !confirm('Replace the saved set "'+data.sets[i].name+'"?')) return;
+  const set={id:'s'+Date.now().toString(36), name, meds, saved:today()};
+  if(i>=0) data.sets[i]=set; else data.sets.push(set);
+  saveData(); closeEditor(); render(); toast('Set saved ✓');
+}
+function openSets(){
+  data.sets = data.sets || [];
+  const body = data.sets.length ? data.sets.map(st=>`<div class="card"><div class="ghead"><div class="t">${esc(st.name)}</div><span class="hint">${st.meds.length} medicine${st.meds.length>1?'s':''}</span></div>
+      <div class="hint" style="margin-bottom:10px">${st.meds.map(m=>esc(m.name)+(m.person?' ('+esc(m.person)+')':'')).join(', ')}</div>
+      <div style="display:flex;gap:10px"><button class="btn" style="flex:1" onclick="loadSet('${st.id}')">Add to my medicines</button>
+      <button class="btn danger small" onclick="delSet('${st.id}')">Delete</button></div></div>`).join('')
+    : `<div class="empty"><div class="big">📂</div><p>No saved sets yet. Use <b>Save as set</b> on the Medicines screen.</p></div>`;
+  sheet('Saved sets', body);
+}
+function loadSet(id){
+  const st=(data.sets||[]).find(x=>x.id===id); if(!st) return;
+  const have = data.meds.filter(m=>st.meds.some(x=>x.name===m.name && (x.person||'')===(m.person||'')) && isActiveOn(m,today()));
+  if(have.length && !confirm(have.map(m=>m.name).join(', ')+' already in your list. Add the set anyway?')) return;
+  st.meds.forEach((m,i)=>{ const c=JSON.parse(JSON.stringify(m)); c.id='m'+Date.now().toString(36)+i; c.start=today(); c.paused=false; data.meds.push(c); });
+  saveData(); closeEditor(); render(); toast(st.meds.length+' medicine'+(st.meds.length>1?'s':'')+' added from "'+st.name+'" ✓');
+}
+function delSet(id){
+  const st=(data.sets||[]).find(x=>x.id===id); if(!st || !confirm('Delete the set "'+st.name+'"? Your current medicines are not affected.')) return;
+  data.sets=data.sets.filter(x=>x.id!==id); saveData(); openSets(); render();
 }
 
 // ---------- editor ----------
 let ed = null;
-function blankMed(){ return {id:'m'+Date.now().toString(36), name:'', person:'', type:'', intake:'mandatory', condition:'', food:'after', form:'tablet', doses:{morning:'1'}, start:today(), days:'', notes:'', paused:false}; }
+function blankMed(){ return {id:'m'+Date.now().toString(36), name:'', photo:'', person:'', type:'', intake:'mandatory', condition:'', food:'after', form:'tablet', doses:{morning:'1'}, start:today(), days:'', notes:'', paused:false}; }
 function openEditor(id){
   const m = id ? data.meds.find(x=>x.id===id) : null;
   ed = m ? JSON.parse(JSON.stringify(m)) : blankMed();
@@ -332,22 +445,31 @@ function drawEditor(){
   let h = `<header><button onclick="closeEditor()" aria-label="Back">←</button><h1 style="font-size:21px">${ed._new?'Add medicine':'Edit medicine'}</h1></header><main style="padding-bottom:40px">
   <label class="f">Medicine name</label>
   <input type="text" id="e-name" value="${esc(ed.name)}" placeholder="e.g. Metformin 500" oninput="ed.name=this.value">
+  <label class="f">Photo <small>(of the tablet or strip — easy to identify)</small></label>
+  <div class="photoedit">${ed.photo?`<img src="${ed.photo}" onclick="viewPhoto(ed.photo)" alt="">`:'<div class="ph">📷</div>'}
+    <div style="display:flex;flex-direction:column;gap:8px;flex:1">
+      <button class="btn sec" onclick="$('e-photo').click()">${ed.photo?'Change photo':'📷 Add photo'}</button>
+      ${ed.photo?'<button class="btn ghost small" onclick="ed.photo=\'\';drawEditor()">Remove photo</button>':''}</div>
+    <input type="file" id="e-photo" accept="image/*" style="display:none" onchange="pickPhoto(this)"></div>
   <label class="f">For whom <small>(optional)</small></label>
   <input type="text" id="e-person" value="${esc(ed.person)}" placeholder="e.g. Amma, Achan" list="persons" oninput="ed.person=this.value">
   <datalist id="persons">${persons.map(p=>`<option value="${esc(p)}">`).join('')}</datalist>
-  <label class="f">Type of medicine</label>${choice(TYPES, ed.type, 'setType')}
+  <label class="f">Type of medicine</label>
+  <select onchange="ed.type=this.value"><option value="">— Choose type —</option>${[...TYPES, ...(ed.type&&!TYPES.includes(ed.type)?[ed.type]:[])].map(t=>`<option ${t===ed.type?'selected':''}>${esc(t)}</option>`).join('')}</select>
   <label class="f">Intake</label>${choice(INTAKE, ed.intake, 'setIntake')}`;
   if(ed.intake!=='mandatory') h += `<label class="f">${ed.intake==='conditional'?'Condition':'When to take'} <small>(shown with the reminder)</small></label>
     <input type="text" value="${esc(ed.condition)}" placeholder="${ed.intake==='conditional'?'e.g. if sugar above 200':'e.g. for headache, max 3 a day'}" oninput="ed.condition=this.value">`;
   h += `<label class="f">Form</label>${choice(FORMS, ed.form, 'setForm')}`;
   if(ed.intake!=='ifneeded'){
     h += `<label class="f">Administration</label>${choice(FOOD, ed.food, 'setFood')}
-    <label class="f">When & how much <small>(tap a time to switch it on)</small></label><div class="card" style="padding:4px 14px">`;
+    <label class="f">When & how much <small>(tap a time to switch it on; use − + or type the quantity)</small></label><div class="card" style="padding:4px 14px">`;
     SLOTS.forEach(s=>{
       const q = ed.doses[s.k];
       h += `<div class="slotrow"><label class="switch"><input type="checkbox" ${q?'checked':''} onchange="setSlot('${s.k}',this.checked)"><span></span></label>
         <div class="sn">${s.icon} ${s.label}<small>${fmt12(alarmTime(s.k, ed.food))}</small></div>
-        ${q?`<div class="seg">${QTY.map(o=>`<button class="${q===o.k?'on':''}" onclick="setQty('${s.k}','${o.k}')">${o.label}</button>`).join('')}</div>`:''}</div>`;
+        ${q?`<div class="step"><button onclick="stepQty('${s.k}',-0.5)" aria-label="Less">−</button>
+          <input type="text" inputmode="decimal" value="${qtyShort(q)}" onchange="typeQty('${s.k}',this.value)" aria-label="Quantity">
+          <button onclick="stepQty('${s.k}',0.5)" aria-label="More">+</button></div>`:''}</div>`;
     });
     h += `</div><p class="hint">Alarm times are set in Settings.${ed.food==='before'?' Before-food alarms ring '+data.settings.beforeMins+' min early.':''}</p>`;
   }
@@ -359,12 +481,28 @@ function drawEditor(){
   h += `<div class="actions">${ed._new?'':'<button class="btn danger" onclick="delMed()">Delete</button>'}<button class="btn" onclick="saveMed()">Save</button></div></main>`;
   $('editor').innerHTML = h;
 }
+function pickPhoto(inp){
+  const f = inp.files && inp.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = () => { const img = new Image(); img.onload = () => {
+      const M=480, sc=Math.min(1, M/Math.max(img.width,img.height));
+      const c=document.createElement('canvas'); c.width=Math.round(img.width*sc); c.height=Math.round(img.height*sc);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      ed.photo = c.toDataURL('image/jpeg',0.72); drawEditor(); };
+    img.onerror = () => toast('Could not read that photo'); img.src = r.result; };
+  r.readAsDataURL(f);
+}
+function viewPhoto(src){ const v=$('viewer'); v.querySelector('img').src=src; v.classList.add('open'); }
 function setType(v){ ed.type = ed.type===v?'':v; drawEditor(); }
 function setIntake(v){ ed.intake=v; drawEditor(); }
 function setForm(v){ ed.form=v; drawEditor(); }
 function setFood(v){ ed.food=v; drawEditor(); }
 function setSlot(k,on){ if(on) ed.doses[k]=ed.doses[k]||'1'; else delete ed.doses[k]; drawEditor(); }
-function setQty(k,q){ ed.doses[k]=q; drawEditor(); }
+function stepQty(k,d){ const n=Math.max(0.5, Math.round((qtyNum(ed.doses[k])+d)*2)/2); ed.doses[k]=String(n); drawEditor(); }
+function typeQty(k,v){
+  v=String(v).trim().replace('½','.5').replace('¼','.25').replace('¾','.75').replace(',','.');
+  const n=parseFloat(v); ed.doses[k] = isFinite(n)&&n>0 ? String(Math.round(n*100)/100) : '1'; drawEditor();
+}
 function saveMed(){
   ed.name = (ed.name||'').trim(); ed.person=(ed.person||'').trim();
   if(!ed.name){ toast('Please enter the medicine name'); $('e-name').focus(); return; }

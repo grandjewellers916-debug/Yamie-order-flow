@@ -117,10 +117,18 @@ object Scheduler {
             "other" -> "dose" to "doses"
             else -> "tablet" to "tablets"
         }
-        return when (q) {
-            "half" -> "½ $one"
-            "1" -> "1 $one"
-            else -> "$q $many"
+        val n = if (q == "half") 0.5 else (q.toDoubleOrNull()?.takeIf { it > 0 } ?: 1.0)
+        return qtyShort(n) + " " + (if (n > 1.0) many else one)
+    }
+
+    fun qtyShort(n: Double): String {
+        val w = Math.floor(n).toInt()
+        val fr = Math.round((n - w) * 100) / 100.0
+        val frac = when (fr) { 0.5 -> "½"; 0.25 -> "¼"; 0.75 -> "¾"; else -> "" }
+        return when {
+            fr == 0.0 -> w.toString()
+            frac.isNotEmpty() -> (if (w > 0) w.toString() else "") + frac
+            else -> (Math.round(n * 100) / 100.0).toString()
         }
     }
 

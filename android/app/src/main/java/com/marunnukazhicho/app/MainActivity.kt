@@ -13,15 +13,22 @@ import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
+import android.provider.MediaStore
 import android.webkit.JavascriptInterface
+import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Toast
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.FileProvider
 import org.json.JSONObject
+import java.io.File
 
 class MainActivity : Activity() {
     private lateinit var web: WebView
+    private var fileCallback: ValueCallback<Array<Uri>>? = null
+    private var cameraUri: Uri? = null
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,7 +40,15 @@ class MainActivity : Activity() {
         web.settings.allowFileAccess = true
         web.settings.textZoom = 100
         web.webViewClient = WebViewClient()
-        web.webChromeClient = WebChromeClient()
+        web.webChromeClient = object : WebChromeClient() {
+            override fun onShowFileChooser(
+                view: WebView?, callback: ValueCallback<Array<Uri>>?, params: FileChooserParams?
+            ): Boolean {
+                fileCallback?.onReceiveValue(null)
+                fileCallback = callback
+                return pickPhoto()
+            }
+        }
         web.addJavascriptInterface(Bridge(this), "Android")
         setContentView(web)
         web.loadUrl("file:///android_asset/index.html")
@@ -63,6 +78,60 @@ class MainActivity : Activity() {
         ) { r ->
             if (r != "1") finish()
         }
+    }
+
+    /** Camera or gallery, so a photo of the tablet/strip can be added. */
+    private fun pickPhoto(): Boolean {
+        cameraUri = null
+        val extra = ArrayList<Intent>()
+        try {
+            val dir = File(cacheDir, "photos").apply { mkdirs() }
+            val f = File(dir, "med_${System.currentTimeMillis()}.jpg")
+            val uri = FileProvider.getUriForFile(this, "$packageName.files", f)
+            val cam = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+                .putExtra(MediaStore.EXTRA_OUTPUT, uri)
+                .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            cameraUri = uri
+            extra.add(cam)
+        } catch (e: Exception) { }
+        val gallery = Intent(Intent.ACTION_GET_CONTENT).setType("image/*").addCategory(Intent.CATEGORY_OPENABLE)
+        val chooser = Intent.createChooser(gallery, "Add medicine photo")
+            .putExtra(Intent.EXTRA_INITIAL_INTENTS, extra.toTypedArray())
+        return try {
+            @Suppress("DEPRECATION")
+            startActivityForResult(chooser, 7)
+            true
+        } catch (e: Exception) {
+            fileCallback?.onReceiveValue(null); fileCallback = null
+            false
+        }
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        @Suppress("DEPRECATION")
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != 7) return
+        var result: Array<Uri>? = null
+        if (resultCode == RESULT_OK) {
+            val picked = data?.data
+            result = when {
+                picked != null -> arrayOf(picked)
+                cameraUri != null -> arrayOf(cameraUri!!)
+                else -> null
+            }
+        }
+        fileCallback?.onReceiveValue(result)
+        fileCallback = null
+    }
+
+    fun share(text: String) {
+        val base = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text)
+        for (pkg in listOf("com.whatsapp", "com.whatsapp.w4b")) {
+            try { startActivity(Intent(base).setPackage(pkg)); return } catch (e: Exception) { }
+        }
+        Toast.makeText(this, "WhatsApp not found — choose another app", Toast.LENGTH_SHORT).show()
+        try { startActivity(Intent.createChooser(base, "Share")) } catch (e: Exception) { }
     }
 
     fun openSettings(what: String) {
@@ -115,6 +184,8 @@ class Bridge(private val act: MainActivity) {
     }
 
     @JavascriptInterface fun fix(what: String) { act.runOnUiThread { act.openSettings(what) } }
+
+    @JavascriptInterface fun share(text: String) { act.runOnUiThread { act.share(text) } }
 
     @JavascriptInterface fun testAlarm() { Scheduler.testAlarm(ctx) }
 

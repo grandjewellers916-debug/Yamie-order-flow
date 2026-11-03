@@ -2,6 +2,7 @@ package com.marunnukazhicho.app
 
 import android.app.Activity
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -10,8 +11,10 @@ import android.os.Bundle
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.ViewGroup
+import android.util.Base64
 import android.view.WindowManager
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -91,7 +94,12 @@ class AlarmActivity : Activity() {
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
                 .apply { topMargin = dp(20) }
         }
-        body.lines().filter { it.isNotBlank() }.forEach { line ->
+        val due = if (key == "test") emptyList() else {
+            val taken = Store.log(this).optJSONObject(date)
+            Scheduler.dueFor(Store.data(this), key, date).filter { taken?.has(it.med.optString("id") + "@" + it.slot) != true }
+        }
+        if (due.isNotEmpty()) due.forEach { d -> card.addView(medRow(d)) }
+        else body.lines().filter { it.isNotBlank() }.forEach { line ->
             val isCond = line.startsWith("   ")
             card.addView(TextView(this).apply {
                 text = line.trim()
@@ -112,6 +120,47 @@ class AlarmActivity : Activity() {
         root.addView(button("⏰  Remind me in $snoozeMin min", Color.WHITE, Color.parseColor("#0F6B5C")) { act(ActionReceiver.SNOOZE) })
         root.addView(button("Skip this time", Color.parseColor("#0B5448"), Color.parseColor("#CDEBE4")) { act(ActionReceiver.SKIP) })
         setContentView(root)
+    }
+
+    private fun medRow(d: Due): LinearLayout {
+        val m = d.med
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(0, dp(8), 0, dp(8))
+        }
+        val photo = m.optString("photo", "")
+        if (photo.contains("base64,")) {
+            try {
+                val bytes = Base64.decode(photo.substringAfter("base64,"), Base64.DEFAULT)
+                val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                if (bmp != null) row.addView(ImageView(this).apply {
+                    setImageBitmap(bmp)
+                    scaleType = ImageView.ScaleType.CENTER_CROP
+                    clipToOutline = true
+                    background = GradientDrawable().apply { cornerRadius = dp(14).toFloat(); setColor(Color.parseColor("#EEF3F2")) }
+                    layoutParams = LinearLayout.LayoutParams(dp(92), dp(92)).apply { rightMargin = dp(14) }
+                })
+            } catch (e: Exception) { }
+        }
+        val info = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+        }
+        fun line(t: String, sp: Float, color: String, bold: Boolean) = TextView(this).apply {
+            text = t
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, sp)
+            setTextColor(Color.parseColor(color))
+            if (bold) typeface = Typeface.DEFAULT_BOLD
+        }
+        val person = m.optString("person", "").trim()
+        if (person.isNotEmpty()) info.addView(line(person, 15f, "#8A6200", true))
+        info.addView(line(m.optString("name"), 22f, "#15302B", true))
+        info.addView(line(Scheduler.qtyText(m, d.slot), 19f, "#0F6B5C", true))
+        if (m.optString("intake") == "conditional" && m.optString("condition").isNotBlank())
+            info.addView(line("Only if " + m.optString("condition").trim(), 16f, "#7B3FA8", false))
+        row.addView(info)
+        return row
     }
 
     private fun act(action: String) {
