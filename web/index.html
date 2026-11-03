@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f6b5c">
+<title>Marunnu Kazhicho?</title>
+<style>
+:root{
+  --bg:#f4f7f6; --card:#fff; --ink:#15302b; --muted:#5f7470; --line:#dfe7e5;
+  --brand:#0f6b5c; --brand-2:#e3f2ee; --ok:#1e8e4f; --ok-bg:#e4f5ea;
+  --warn:#b4570a; --warn-bg:#fdf0e1; --info:#2a5db0; --info-bg:#e6eefb; --danger:#c0392b;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+header{background:var(--brand);color:#fff;padding:18px 18px 16px;position:sticky;top:0;z-index:5}
+header h1{margin:0;font-size:24px;letter-spacing:.2px}
+header .ml{font-size:15px;opacity:.85;margin-top:2px}
+main{padding:14px 14px 110px;max-width:640px;margin:0 auto}
+nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);display:flex;z-index:10;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;border:0;background:none;padding:10px 4px 12px;font-size:15px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button .ic{font-size:24px;line-height:1}
+nav button.on{color:var(--brand);font-weight:700}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.daybar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.daybar button{width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:22px}
+.daybar .d{text-align:center;font-weight:700}
+.daybar .d small{display:block;font-weight:400;color:var(--muted);font-size:14px}
+.progress{height:10px;border-radius:6px;background:var(--line);overflow:hidden;margin-top:8px}
+.progress i{display:block;height:100%;background:var(--ok);width:0;transition:width .3s}
+.ghead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.ghead .t{font-weight:700;font-size:19px}
+.ghead .s{color:var(--muted);font-size:15px}
+.chip{display:inline-block;padding:2px 9px;border-radius:999px;font-size:13px;font-weight:600;background:var(--brand-2);color:var(--brand);margin:2px 4px 2px 0}
+.chip.before{background:var(--warn-bg);color:var(--warn)}
+.chip.after{background:var(--info-bg);color:var(--info)}
+.chip.cond{background:#f3e8fb;color:#7b3fa8}
+.chip.need{background:#eef0f2;color:#4b5563}
+.chip.who{background:#fff4d6;color:#8a6200}
+.row{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0}
+.row .info{flex:1;min-width:0}
+.row .nm{font-weight:700;font-size:19px}
+.row .q{color:var(--muted);font-size:16px}
+.row .cnd{font-size:15px;color:#7b3fa8;margin-top:2px}
+.tick{width:58px;height:58px;flex:none;border-radius:50%;border:3px solid var(--line);background:#fff;font-size:28px;color:transparent;display:grid;place-items:center}
+.tick.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.tick small{display:none}
+.takenat{font-size:13px;color:var(--ok);font-weight:600}
+.btn{border:0;border-radius:14px;padding:14px 18px;font-weight:700;background:var(--brand);color:#fff;min-height:52px}
+.btn.sec{background:var(--brand-2);color:var(--brand)}
+.btn.ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+.btn.danger{background:#fff;border:1px solid #f0c9c4;color:var(--danger)}
+.btn.small{padding:8px 12px;min-height:40px;font-size:15px;border-radius:10px}
+.btn.block{width:100%}
+.fab{position:fixed;right:18px;bottom:88px;width:64px;height:64px;border-radius:50%;border:0;background:var(--brand);color:#fff;font-size:34px;box-shadow:0 6px 18px rgba(15,107,92,.35);z-index:9}
+.empty{text-align:center;color:var(--muted);padding:40px 16px}
+.empty .big{font-size:56px}
+.medcard{display:flex;gap:12px;align-items:flex-start}
+.medcard .info{flex:1;min-width:0}
+.medcard .sched{font-size:15px;color:var(--muted);margin-top:4px}
+.medcard.off{opacity:.55}
+.next{display:flex;align-items:center;gap:12px;background:var(--brand-2);border:0}
+.next .big{font-size:34px}
+.next b{display:block;font-size:19px}
+label.f{display:block;font-weight:700;margin:16px 0 6px}
+label.f small{font-weight:400;color:var(--muted)}
+input[type=text],input[type=number],input[type=date],input[type=time],textarea,select{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;min-height:52px}
+textarea{min-height:70px}
+.choices{display:flex;flex-wrap:wrap;gap:8px}
+.choices button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 15px;min-height:46px}
+.choices button.on{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:700}
+.slotrow{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.slotrow:first-child{border-top:0}
+.slotrow .sn{flex:1;font-weight:700}
+.slotrow .sn small{display:block;font-weight:400;color:var(--muted);font-size:14px}
+.seg{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.seg button{border:0;background:#fff;min-width:48px;height:48px;font-weight:700;border-left:1px solid var(--line)}
+.seg button:first-child{border-left:0}
+.seg button.on{background:var(--brand);color:#fff}
+.sheet{position:fixed;inset:0;background:var(--bg);z-index:20;overflow:auto;display:none}
+.sheet.open{display:block}
+.sheet header{display:flex;align-items:center;gap:10px}
+.sheet header button{background:rgba(255,255,255,.15);border:0;color:#fff;width:44px;height:44px;border-radius:50%;font-size:22px}
+.actions{display:flex;gap:10px;margin-top:22px}
+.actions .btn{flex:1}
+.check{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.check:first-of-type{border-top:0}
+.check .dot{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:16px;flex:none}
+.check .dot.ok{background:var(--ok)} .check .dot.bad{background:var(--danger)}
+.check .txt{flex:1}
+.check .txt small{display:block;color:var(--muted);font-size:14px}
+.toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:#15302b;color:#fff;padding:12px 18px;border-radius:12px;font-size:16px;z-index:30;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90%}
+.toast.show{opacity:1}
+.hint{color:var(--muted);font-size:15px}
+.switch{position:relative;width:56px;height:32px;flex:none}
+.switch input{opacity:0;width:0;height:0}
+.switch span{position:absolute;inset:0;background:#cfd8d6;border-radius:999px;transition:.2s}
+.switch span:before{content:"";position:absolute;width:26px;height:26px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.switch input:checked+span{background:var(--brand)}
+.switch input:checked+span:before{transform:translateX(24px)}
+h2{font-size:20px;margin:6px 2px 10px}
+</style>
+</head>
+<body>
+<header id="topbar">
+  <h1>Marunnu Kazhicho?</h1>
+  <div class="ml">മരുന്ന് കഴിച്ചോ?</div>
+</header>
+
+<main id="view"></main>
+
+<button class="fab" id="fab" onclick="openEditor()" aria-label="Add medicine" style="display:none">+</button>
+
+<nav>
+  <button id="nav-today" class="on" onclick="go('today')"><span class="ic">☀️</span>Today</button>
+  <button id="nav-meds" onclick="go('meds')"><span class="ic">💊</span>Medicines</button>
+  <button id="nav-settings" onclick="go('settings')"><span class="ic">⚙️</span>Settings</button>
+</nav>
+
+<div class="sheet" id="editor"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ---------- constants (from the medicine sheet) ----------
+const SLOTS = [
+  {k:'morning', label:'Morning', ml:'രാവിലെ', icon:'🌅'},
+  {k:'noon',    label:'Noon',    ml:'ഉച്ചയ്ക്ക്', icon:'☀️'},
+  {k:'evening', label:'Evening', ml:'വൈകുന്നേരം', icon:'🌇'},
+  {k:'night',   label:'Night',   ml:'രാത്രി', icon:'🌙'}
+];
+const FOOD = [{k:'before',label:'Before food'},{k:'after',label:'After food'}];
+const QTY = [{k:'half',label:'½'},{k:'1',label:'1'},{k:'2',label:'2'}];
+const TYPES = ['Antibiotic','Pain killers','Sleep helper','Bowel motion','Diabetic','Vitamins','Supplements'];
+const INTAKE = [{k:'mandatory',label:'Mandatory'},{k:'ifneeded',label:'If needed'},{k:'conditional',label:'Conditional'}];
+const FORMS = [{k:'tablet',label:'Tablet',one:'tablet',many:'tablets'},{k:'capsule',label:'Capsule',one:'capsule',many:'capsules'},
+  {k:'syrup',label:'Syrup',one:'spoon',many:'spoons'},{k:'drops',label:'Drops',one:'drop',many:'drops'},
+  {k:'injection',label:'Injection',one:'injection',many:'injections'},{k:'other',label:'Other',one:'dose',many:'doses'}];
+
+// ---------- storage: Android bridge, or localStorage in a browser ----------
+const A = window.Android || null;
+function readStore(key, def){
+  try{ const s = A ? (key==='data'?A.getData():A.getLog()) : localStorage.getItem('mk_'+key); return s ? JSON.parse(s) : def; }catch(e){ return def; }
+}
+function writeStore(key, val){
+  const s = JSON.stringify(val);
+  try{ if(A){ key==='data'?A.saveData(s):A.saveLog(s); } else localStorage.setItem('mk_'+key, s); }catch(e){}
+}
+const DEFAULT = {settings:{times:{morning:'08:00',noon:'13:00',evening:'18:00',night:'21:00'}, beforeMins:30, snoozeMins:10}, meds:[]};
+let data = readStore('data', null) || JSON.parse(JSON.stringify(DEFAULT));
+data.settings = Object.assign({}, DEFAULT.settings, data.settings||{});
+data.settings.times = Object.assign({}, DEFAULT.settings.times, data.settings.times||{});
+let log = readStore('log', {});
+function saveData(){ writeStore('data', data); }
+function saveLog(){ pruneLog(); writeStore('log', log); }
+function pruneLog(){ const keys = Object.keys(log).sort(); while(keys.length>120) delete log[keys.shift()]; }
+
+// ---------- date helpers ----------
+const pad = n => String(n).padStart(2,'0');
+const ymd = d => d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const parseYmd = s => { const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); };
+const today = () => ymd(new Date());
+function addDays(s,n){ const d=parseYmd(s); d.setDate(d.getDate()+n); return ymd(d); }
+function hm(mins){ mins=((mins%1440)+1440)%1440; return pad(Math.floor(mins/60))+':'+pad(mins%60); }
+function toMins(t){ const [h,m]=t.split(':').map(Number); return h*60+m; }
+function fmt12(t){ let [h,m]=t.split(':').map(Number); const ap=h<12?'AM':'PM'; h=h%12||12; return h+':'+pad(m)+' '+ap; }
+function niceDate(s){
+  const d=parseYmd(s), t=today();
+  const name = s===t?'Today':s===addDays(t,-1)?'Yesterday':s===addDays(t,1)?'Tomorrow':d.toLocaleDateString('en-IN',{weekday:'long'});
+  return {name, sub:d.toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})};
+}
+
+// ---------- medicine logic (mirrored in Kotlin Scheduler) ----------
+function isActiveOn(m, date){
+  if(m.paused) return false;
+  if(m.start && date < m.start) return false;
+  if(m.days && Number(m.days)>0 && date >= addDays(m.start||date, Number(m.days))) return false;
+  return true;
+}
+function alarmTime(slot, food){
+  const t = toMins(data.settings.times[slot]);
+  return hm(food==='before' ? t - Number(data.settings.beforeMins||0) : t);
+}
+function qtyText(m, slot){
+  const q = m.doses[slot]; const f = FORMS.find(x=>x.k===(m.form||'tablet')) || FORMS[0];
+  if(q==='half') return '½ '+f.one; if(q==='1') return '1 '+f.one; return q+' '+f.many;
+}
+function dayLeft(m, date){
+  if(!m.days || !(Number(m.days)>0)) return '';
+  const end = addDays(m.start, Number(m.days)); const d0=parseYmd(date), d1=parseYmd(end);
+  const n = Math.round((d1-d0)/86400000);
+  const day = Number(m.days) - n + 1;
+  return 'Day '+day+' of '+m.days;
+}
+function groupsFor(date){
+  const g = {};
+  data.meds.filter(m=>m.intake!=='ifneeded' && isActiveOn(m,date)).forEach(m=>{
+    SLOTS.forEach(s=>{ if(m.doses && m.doses[s.k]){
+      const key = s.k+'-'+(m.food==='before'?'b':'a');
+      (g[key] = g[key] || {key, slot:s, food:m.food==='before'?'before':'after', time:alarmTime(s.k, m.food), meds:[]}).meds.push(m);
+    }});
+  });
+  return Object.values(g).sort((a,b)=>toMins(a.time)-toMins(b.time));
+}
+function takenAt(date, id, slot){ return (log[date]||{})[id+'@'+slot]; }
+function setTaken(date, id, slot, on){
+  log[date] = log[date] || {};
+  if(on){ const n=new Date(); log[date][id+'@'+slot] = pad(n.getHours())+':'+pad(n.getMinutes()); }
+  else delete log[date][id+'@'+slot];
+  saveLog();
+}
+
+// ---------- UI ----------
+let tab='today', viewDate=today();
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2200); }
+function go(t){ tab=t; ['today','meds','settings'].forEach(x=>$('nav-'+x).classList.toggle('on',x===t)); $('fab').style.display = t==='meds'?'block':'none'; render(); window.scrollTo(0,0); }
+function render(){ ({today:renderToday, meds:renderMeds, settings:renderSettings})[tab](); }
+
+function chipsFor(m){
+  let h='';
+  if(m.person) h+=`<span class="chip who">${esc(m.person)}</span>`;
+  if(m.type) h+=`<span class="chip">${esc(m.type)}</span>`;
+  if(m.intake==='conditional') h+=`<span class="chip cond">Conditional</span>`;
+  if(m.intake==='ifneeded') h+=`<span class="chip need">If needed</span>`;
+  return h;
+}
+
+function nextAlarm(){
+  if(A && A.nextAlarm){ try{ return A.nextAlarm(); }catch(e){} }
+  const now=new Date(), nowM=now.getHours()*60+now.getMinutes();
+  for(let i=0;i<30;i++){ const d=addDays(today(),i);
+    for(const g of groupsFor(d)){ if(i>0 || toMins(g.time)>nowM) return (i===0?'Today':i===1?'Tomorrow':niceDate(d).sub)+', '+fmt12(g.time)+' · '+g.slot.label+' '+(g.food==='before'?'before food':'after food'); } }
+  return '';
+}
+
+function renderToday(){
+  const date=viewDate, nd=niceDate(date), groups=groupsFor(date);
+  let total=0, done=0;
+  groups.forEach(g=>g.meds.forEach(m=>{ total++; if(takenAt(date,m.id,g.slot.k)) done++; }));
+  let h = `<div class="daybar"><button onclick="shiftDay(-1)" aria-label="Previous day">‹</button>
+    <div class="d">${nd.name}<small>${nd.sub}</small></div>
+    <button onclick="shiftDay(1)" aria-label="Next day">›</button></div>`;
+  if(!data.meds.length){
+    h += `<div class="empty"><div class="big">💊</div><p><b>No medicines yet.</b><br>Add your first medicine and we'll ring an alarm when it's time.</p>
+      <button class="btn" onclick="go('meds');openEditor()">+ Add medicine</button></div>`;
+    $('view').innerHTML=h; return;
+  }
+  if(date===today()){
+    const na = nextAlarm();
+    if(na) h += `<div class="card next"><div class="big">⏰</div><div><span class="hint">Next reminder</span><b>${esc(na)}</b></div></div>`;
+  }
+  if(total){
+    h += `<div class="card"><div class="ghead"><span class="t">${done===total?'All done for the day 🎉':done+' of '+total+' taken'}</span></div>
+      <div class="progress"><i style="width:${Math.round(done*100/total)}%"></i></div></div>`;
+  }
+  groups.forEach(g=>{
+    const allDone = g.meds.every(m=>takenAt(date,m.id,g.slot.k));
+    h += `<div class="card"><div class="ghead"><div><div class="t">${g.slot.icon} ${g.slot.label} · ${fmt12(g.time)}</div>
+      <span class="chip ${g.food}">${g.food==='before'?'Before food':'After food'}</span></div>
+      ${allDone?'':`<button class="btn sec small" onclick="takeGroup('${g.key}')">All taken</button>`}</div>`;
+    g.meds.forEach(m=>{
+      const t = takenAt(date,m.id,g.slot.k);
+      h += `<div class="row"><div class="info"><div class="nm">${esc(m.name)}</div>
+        <div class="q">${qtyText(m,g.slot.k)}${dayLeft(m,date)?' · '+dayLeft(m,date):''}</div>
+        <div>${chipsFor(m)}</div>
+        ${m.intake==='conditional'&&m.condition?`<div class="cnd">Condition: ${esc(m.condition)}</div>`:''}
+        ${t?`<div class="takenat">✓ Taken at ${fmt12(t)}</div>`:''}</div>
+        <button class="tick ${t?'on':''}" onclick="toggle('${m.id}','${g.slot.k}')" aria-label="Mark taken">✓</button></div>`;
+    });
+    h += `</div>`;
+  });
+  const need = data.meds.filter(m=>m.intake==='ifneeded' && isActiveOn(m,date));
+  if(need.length){
+    h += `<h2>If needed</h2><div class="card">`;
+    need.forEach(m=>{
+      const times = Object.entries(log[date]||{}).filter(([k])=>k.startsWith(m.id+'@extra')).map(([,v])=>fmt12(v));
+      h += `<div class="row"><div class="info"><div class="nm">${esc(m.name)}</div><div>${chipsFor(m)}</div>
+        ${m.condition?`<div class="cnd">${esc(m.condition)}</div>`:''}
+        ${times.length?`<div class="takenat">✓ Taken at ${times.join(', ')}</div>`:'<div class="q">No reminder — take only when needed</div>'}</div>
+        <button class="btn sec small" onclick="tookExtra('${m.id}')">Took one</button></div>`;
+    });
+    h += `</div>`;
+  }
+  if(!groups.length && !need.length) h += `<div class="empty"><div class="big">🌿</div><p>No medicines scheduled for this day.</p></div>`;
+  $('view').innerHTML = h;
+}
+function shiftDay(n){ viewDate=addDays(viewDate,n); render(); }
+function toggle(id,slot){ const on=!takenAt(viewDate,id,slot); setTaken(viewDate,id,slot,on); if(on) toast('Marked as taken ✓'); render(); }
+function takeGroup(key){ const g=groupsFor(viewDate).find(x=>x.key===key); if(!g) return; g.meds.forEach(m=>{ if(!takenAt(viewDate,m.id,g.slot.k)) setTaken(viewDate,m.id,g.slot.k,true); }); toast('All marked as taken ✓'); render(); }
+function tookExtra(id){ setTaken(viewDate,id,'extra'+Date.now(),true); toast('Noted ✓'); render(); }
+
+function renderMeds(){
+  if(!data.meds.length){
+    $('view').innerHTML = `<div class="empty"><div class="big">💊</div><p>Tap <b>+</b> to add a medicine.</p></div>`; return;
+  }
+  const sorted = [...data.meds].sort((a,b)=>(a.person||'').localeCompare(b.person||'') || a.name.localeCompare(b.name));
+  let h = '';
+  sorted.forEach(m=>{
+    const active = isActiveOn(m, today());
+    const sched = m.intake==='ifneeded' ? 'Only when needed — no alarm'
+      : SLOTS.filter(s=>m.doses[s.k]).map(s=>s.label+' '+(m.doses[s.k]==='half'?'½':m.doses[s.k])).join(' · ') + ' — ' + (m.food==='before'?'before food':'after food');
+    let status = '';
+    if(m.paused) status = 'Paused';
+    else if(m.start && today() < m.start) status = 'Starts '+niceDate(m.start).sub;
+    else if(!active) status = 'Course finished';
+    else if(m.days) status = dayLeft(m, today());
+    h += `<div class="card medcard ${active?'':'off'}" onclick="openEditor('${m.id}')">
+      <div class="info"><div class="nm" style="font-weight:700;font-size:19px">${esc(m.name)}</div>
+      <div>${chipsFor(m)}</div><div class="sched">${sched}</div>
+      ${status?`<div class="sched"><b>${status}</b></div>`:''}</div><div style="font-size:24px;color:var(--muted)">›</div></div>`;
+  });
+  $('view').innerHTML = h;
+}
+
+// ---------- editor ----------
+let ed = null;
+function blankMed(){ return {id:'m'+Date.now().toString(36), name:'', person:'', type:'', intake:'mandatory', condition:'', food:'after', form:'tablet', doses:{morning:'1'}, start:today(), days:'', notes:'', paused:false}; }
+function openEditor(id){
+  const m = id ? data.meds.find(x=>x.id===id) : null;
+  ed = m ? JSON.parse(JSON.stringify(m)) : blankMed();
+  ed._new = !m;
+  drawEditor(); $('editor').classList.add('open'); $('editor').scrollTop=0;
+}
+function closeEditor(){ $('editor').classList.remove('open'); ed=null; }
+function choice(list, cur, fn){ return `<div class="choices">${list.map(o=>{const k=o.k||o, l=o.label||o; return `<button class="${k===cur?'on':''}" onclick="${fn}('${k}')">${esc(l)}</button>`}).join('')}</div>`; }
+function drawEditor(){
+  const persons = [...new Set(data.meds.map(m=>m.person).filter(Boolean))];
+  let h = `<header><button onclick="closeEditor()" aria-label="Back">←</button><h1 style="font-size:21px">${ed._new?'Add medicine':'Edit medicine'}</h1></header><main style="padding-bottom:40px">
+  <label class="f">Medicine name</label>
+  <input type="text" id="e-name" value="${esc(ed.name)}" placeholder="e.g. Metformin 500" oninput="ed.name=this.value">
+  <label class="f">For whom <small>(optional)</small></label>
+  <input type="text" id="e-person" value="${esc(ed.person)}" placeholder="e.g. Amma, Achan" list="persons" oninput="ed.person=this.value">
+  <datalist id="persons">${persons.map(p=>`<option value="${esc(p)}">`).join('')}</datalist>
+  <label class="f">Type of medicine</label>${choice(TYPES, ed.type, 'setType')}
+  <label class="f">Intake</label>${choice(INTAKE, ed.intake, 'setIntake')}`;
+  if(ed.intake!=='mandatory') h += `<label class="f">${ed.intake==='conditional'?'Condition':'When to take'} <small>(shown with the reminder)</small></label>
+    <input type="text" value="${esc(ed.condition)}" placeholder="${ed.intake==='conditional'?'e.g. if sugar above 200':'e.g. for headache, max 3 a day'}" oninput="ed.condition=this.value">`;
+  h += `<label class="f">Form</label>${choice(FORMS, ed.form, 'setForm')}`;
+  if(ed.intake!=='ifneeded'){
+    h += `<label class="f">Administration</label>${choice(FOOD, ed.food, 'setFood')}
+    <label class="f">When & how much <small>(tap a time to switch it on)</small></label><div class="card" style="padding:4px 14px">`;
+    SLOTS.forEach(s=>{
+      const q = ed.doses[s.k];
+      h += `<div class="slotrow"><label class="switch"><input type="checkbox" ${q?'checked':''} onchange="setSlot('${s.k}',this.checked)"><span></span></label>
+        <div class="sn">${s.icon} ${s.label}<small>${fmt12(alarmTime(s.k, ed.food))}</small></div>
+        ${q?`<div class="seg">${QTY.map(o=>`<button class="${q===o.k?'on':''}" onclick="setQty('${s.k}','${o.k}')">${o.label}</button>`).join('')}</div>`:''}</div>`;
+    });
+    h += `</div><p class="hint">Alarm times are set in Settings.${ed.food==='before'?' Before-food alarms ring '+data.settings.beforeMins+' min early.':''}</p>`;
+  }
+  h += `<label class="f">Start date</label><input type="date" value="${esc(ed.start)}" onchange="ed.start=this.value">
+  <label class="f">Number of days <small>(leave empty if ongoing)</small></label>
+  <input type="number" inputmode="numeric" min="1" value="${esc(ed.days)}" placeholder="Ongoing" oninput="ed.days=this.value">
+  <label class="f">Notes <small>(optional)</small></label><textarea oninput="ed.notes=this.value" placeholder="Doctor, purpose, etc.">${esc(ed.notes)}</textarea>`;
+  if(!ed._new) h += `<div class="slotrow" style="margin-top:12px"><label class="switch"><input type="checkbox" ${ed.paused?'checked':''} onchange="ed.paused=this.checked"><span></span></label><div class="sn">Pause this medicine<small>No reminders while paused</small></div></div>`;
+  h += `<div class="actions">${ed._new?'':'<button class="btn danger" onclick="delMed()">Delete</button>'}<button class="btn" onclick="saveMed()">Save</button></div></main>`;
+  $('editor').innerHTML = h;
+}
+function setType(v){ ed.type = ed.type===v?'':v; drawEditor(); }
+function setIntake(v){ ed.intake=v; drawEditor(); }
+function setForm(v){ ed.form=v; drawEditor(); }
+function setFood(v){ ed.food=v; drawEditor(); }
+function setSlot(k,on){ if(on) ed.doses[k]=ed.doses[k]||'1'; else delete ed.doses[k]; drawEditor(); }
+function setQty(k,q){ ed.doses[k]=q; drawEditor(); }
+function saveMed(){
+  ed.name = (ed.name||'').trim(); ed.person=(ed.person||'').trim();
+  if(!ed.name){ toast('Please enter the medicine name'); $('e-name').focus(); return; }
+  if(ed.intake!=='ifneeded' && !Object.keys(ed.doses).length){ toast('Switch on at least one time'); return; }
+  if(!ed.start) ed.start = today();
+  const isNew = ed._new; delete ed._new;
+  const i = data.meds.findIndex(x=>x.id===ed.id);
+  if(i>=0) data.meds[i]=ed; else data.meds.push(ed);
+  saveData(); closeEditor(); render(); toast(isNew?'Medicine added ✓':'Saved ✓');
+}
+function delMed(){
+  if(!confirm('Delete '+(ed.name||'this medicine')+'?')) return;
+  data.meds = data.meds.filter(x=>x.id!==ed.id); saveData(); closeEditor(); render(); toast('Deleted');
+}
+
+// ---------- settings ----------
+function renderSettings(){
+  const st = data.settings;
+  let h = `<h2>Alarm times</h2><div class="card" style="padding:4px 14px">`;
+  SLOTS.forEach(s=>{ h += `<div class="slotrow"><div class="sn">${s.icon} ${s.label}<small>${s.ml}</small></div>
+    <input type="time" style="width:150px" value="${st.times[s.k]}" onchange="setTime('${s.k}',this.value)"></div>`; });
+  h += `<div class="slotrow"><div class="sn">Before-food medicines<small>Ring this many minutes earlier</small></div>
+    <select style="width:150px" onchange="setNum('beforeMins',this.value)">${[0,15,30,45,60].map(n=>`<option value="${n}" ${Number(st.beforeMins)===n?'selected':''}>${n} min</option>`).join('')}</select></div>
+    <div class="slotrow"><div class="sn">Snooze<small>"Remind me later" waits</small></div>
+    <select style="width:150px" onchange="setNum('snoozeMins',this.value)">${[5,10,15,30].map(n=>`<option value="${n}" ${Number(st.snoozeMins)===n?'selected':''}>${n} min</option>`).join('')}</select></div></div>`;
+  h += `<h2>Make sure alarms ring</h2><div class="card" id="checks">${checksHtml()}</div>
+    <button class="btn sec block" onclick="testAlarm()">🔔 Test alarm (rings in 10 seconds)</button>
+    <p class="hint" style="margin-top:18px">Keep the phone's volume for <b>alarms</b> turned up. Reminders ring even on silent mode.</p>
+    <p class="hint">Marunnu Kazhicho? v<span id="ver">1.0</span> · Data stays on this phone.</p>`;
+  $('view').innerHTML = h;
+  if(A && A.version) try{ $('ver').textContent = A.version(); }catch(e){}
+}
+function checksHtml(){
+  let s = {notif:true, exact:true, fullscreen:true, battery:true};
+  if(A && A.status){ try{ s = JSON.parse(A.status()); }catch(e){} } else return `<p class="hint">These checks run on the Android app.</p>`;
+  const items = [
+    ['notif','Notifications allowed','Needed to show the reminder'],
+    ['exact','Exact alarms allowed','Rings at exactly the right minute'],
+    ['fullscreen','Show alarm on lock screen','Big alarm screen when the phone is locked'],
+    ['battery','Battery saver won\'t block it','Stops the phone from silencing reminders']];
+  return items.map(([k,t,d])=>`<div class="check"><div class="dot ${s[k]?'ok':'bad'}">${s[k]?'✓':'!'}</div>
+    <div class="txt">${t}<small>${d}</small></div>${s[k]?'':`<button class="btn small" onclick="fix('${k}')">Allow</button>`}</div>`).join('');
+}
+function fix(k){ if(A && A.fix) A.fix(k); }
+function setTime(k,v){ if(!v) return; data.settings.times[k]=v; saveData(); toast('Alarm time updated'); }
+function setNum(k,v){ data.settings[k]=Number(v); saveData(); toast('Updated'); }
+function testAlarm(){ if(A && A.testAlarm){ A.testAlarm(); toast('Test alarm in 10 seconds — lock the phone to see it'); } else toast('Test alarm works in the Android app'); }
+
+// called by the Android app when it comes back to the front
+let lastSeenDay = today();
+window.onResumeApp = function(){
+  log = readStore('log', {});
+  if(lastSeenDay !== today() && viewDate === lastSeenDay) viewDate = today(); // app left open overnight
+  lastSeenDay = today();
+  if(tab==='settings' && $('checks')) $('checks').innerHTML = checksHtml();
+  else render();
+};
+render();
+</script>
+</body>
+</html>
