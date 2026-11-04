@@ -22,7 +22,7 @@
       light:{'--maroon':'#C41230','--band':'#8C0D24','--gold':'#B08A4E','--bg':'#FBF8F2','--sunk':'#F1EAE0','--fg':'#17130F'},
       dark:{'--maroon':'#E2475F','--band':'#5C0817','--gold':'#D9C39A'},
       tableName:'starting',
-      categories:{CHN:'Chain',FRG:'Ring',BGL:'Bangle',BRC:'Bracelet',PND:'Pendant',NLC:'Necklace',RST:'Jewellery set',STD:'Stud',NSP:'Nosepin',DIA:'Diamond',LDJ:'CVD',FIN:'Findings',MMP:'Platinum'},
+      categories:{BGL:'Bangle',BRS:'Birthstone Ring',BCL:'Bracelet',CHN:'Chain',DSS:'Designer Set',DIA:'Diamond Ornament',ACC:'Hooks & Findings',LKT:'Locket',JWL:'Navaratna Ring',NCL:'Necklace',NSP:'Nosepin',RNG:'Ring',STD:'Stud',TLY:'Thali'},
       table:'empty'
     }
   };
