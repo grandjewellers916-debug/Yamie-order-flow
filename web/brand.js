@@ -23,7 +23,8 @@
       dark:{'--maroon':'#E2475F','--band':'#5C0817','--gold':'#D9C39A'},
       tableName:'starting',
       categories:{BGL:'Bangle',BRS:'Birthstone Ring',BCL:'Bracelet',CHN:'Chain',DSS:'Designer Set',DIA:'Diamond Ornament',ACC:'Hooks & Findings',LKT:'Locket',JWL:'Navaratna Ring',NCL:'Necklace',NSP:'Nosepin',RNG:'Ring',STD:'Stud',TLY:'Thali'},
-      table:'empty'
+      table:'empty',
+      rates:['22k','18k','14k','9k']   // purities shown by default (admins can change in Admin settings → Rates shown)
     }
   };
   let id=root.BRAND_ID;

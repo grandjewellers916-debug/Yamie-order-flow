@@ -192,10 +192,11 @@ export default async (req: Request) => {
         gst: Number.isFinite(Number(s.gst)) ? Number(s.gst) : 3,
         huid: Number.isFinite(Number(s.huid)) ? Number(s.huid) : 80,
         mkTable: {
-          cz: (Array.isArray(s?.mkTable?.cz) ? s.mkTable.cz : []).slice(0, 200).map((x: any) => ({ purity: cleanStr(x?.purity, 12), slab: cleanStr(x?.slab, 40), mbd: cleanStr(x?.mbd, 20), mad: cleanStr(x?.mad, 20), rate: cleanStr(x?.rate, 20) })),
-          dia: (Array.isArray(s?.mkTable?.dia) ? s.mkTable.dia : []).slice(0, 200).map((x: any) => ({ purity: cleanStr(x?.purity, 12), slab: cleanStr(x?.slab, 40), mbd: cleanStr(x?.mbd, 20), mad: cleanStr(x?.mad, 20), rate: cleanStr(x?.rate, 20) })),
+          cz: (Array.isArray(s?.mkTable?.cz) ? s.mkTable.cz : []).slice(0, 200).map((x: any) => ({ purity: cleanStr(x?.purity, 12), slab: cleanStr(x?.slab, 40), mbd: cleanStr(x?.mbd, 20), mad: cleanStr(x?.mad, 20), rate: cleanStr(x?.rate, 20), cat: cleanStr(x?.cat, 40) })),
+          dia: (Array.isArray(s?.mkTable?.dia) ? s.mkTable.dia : []).slice(0, 200).map((x: any) => ({ purity: cleanStr(x?.purity, 12), slab: cleanStr(x?.slab, 40), mbd: cleanStr(x?.mbd, 20), mad: cleanStr(x?.mad, 20), rate: cleanStr(x?.rate, 20), cat: cleanStr(x?.cat, 40) })),
         },
         cats: cleanCats(s?.cats),
+        showRates: Array.isArray(s?.showRates) ? s.showRates.filter((x: any) => ["22k", "18k", "14k", "9k", "platinum", "silver"].includes(x)) : null,
       }
       await st.setJSON("settings", out)
       meta.settings = Date.now(); await saveMeta()

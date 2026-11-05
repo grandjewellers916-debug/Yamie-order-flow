@@ -315,7 +315,7 @@ details.settings .grid{margin-top:10px}
 .stone-hint{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px dashed var(--gold);border-radius:10px;padding:8px 12px;font-size:13px}
 .stone-hint b{font-family:var(--mono)}
 .tbl{display:flex;flex-direction:column;gap:6px;margin:6px 0 4px}
-.tbl-row{display:grid;grid-template-columns:62px minmax(0,1.1fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) 26px;gap:4px;align-items:center}
+.tbl-row{display:grid;grid-template-columns:52px 62px minmax(0,1.1fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) 22px;gap:4px;align-items:center}
 .tbl-row.head span{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
 .tbl-row input,.tbl-row select{width:100%;min-width:0;font:500 13px var(--mono);border:1px solid var(--line);border-radius:8px;padding:7px 5px;background:var(--surface);color:var(--fg)}
 .tbl-row .x{border:0;background:none;color:var(--bad);font-size:20px;cursor:pointer;padding:0}
@@ -325,6 +325,38 @@ details.settings .grid{margin-top:10px}
 .ss-rec dd{margin:0;font-family:var(--mono);font-weight:500;word-break:break-word}
 .ss-count{font:700 30px var(--mono);color:var(--maroon)}
 .stepper.zero{border:2px solid var(--warn)}
+/* v1.1: item details in the barcode box, manual code picker, live price pop-up, rates shown */
+.bc-man{flex:none;min-width:48px;font:800 18px var(--body);border:2px solid var(--scan);color:var(--scan);background:var(--surface)}
+.bc-det{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 12px;margin-top:6px;font-size:13px}
+.bc-det span{color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bc-det b{color:var(--fg);font-weight:600}
+.bc-det .full{grid-column:1/-1}
+.bc-none{color:var(--warn);font-weight:600}
+#manual{z-index:19}
+#manual .sheet{max-height:88vh;overflow-y:auto}
+.cat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.cat-btn{display:flex;flex-direction:column;align-items:center;gap:3px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);border-radius:12px;padding:10px 4px 8px;cursor:pointer;min-height:92px}
+.cat-btn svg{width:34px;height:34px;color:var(--maroon)}
+.cat-btn .cc{font:700 14px var(--mono);letter-spacing:.04em;color:var(--maroon)}
+.cat-btn .cn{font-size:11.5px;color:var(--muted);text-align:center;line-height:1.15}
+.cat-btn:active{background:var(--sunk)}
+.man-num{display:flex;align-items:stretch;gap:8px}
+.man-num .bc-pre{min-width:84px;font-size:20px}
+.man-num input{flex:1;min-width:0;font:700 24px var(--mono);letter-spacing:.06em;border:2px solid var(--gold);border-radius:10px;padding:10px;background:var(--surface);color:var(--fg)}
+.man-hit{font-size:14px;min-height:1.3em;color:var(--muted)}
+.man-hit b{color:var(--fg)}
+.live-price{position:fixed;left:50%;transform:translateX(-50%);top:calc(8px + env(safe-area-inset-top,0px));z-index:8;width:calc(100% - 24px);max-width:536px;background:var(--maroon);color:var(--maroon-ink);border-radius:14px;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 8px 26px rgba(0,0,0,.28);border:2px solid var(--gold);cursor:pointer;text-align:left;font:inherit}
+.live-price .lp-t{font-size:12px;font-weight:600;opacity:.92;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.live-price .lp-s{font-size:11px;opacity:.85}
+.live-price .lp-v{font:700 26px var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;line-height:1}
+.live-price.incomplete{background:var(--surface);color:var(--fg);border-color:var(--warn)}
+.live-price.incomplete .lp-v{font-size:16px;color:var(--warn)}
+@media (prefers-reduced-motion:no-preference){.live-price.pop{animation:lpop .35s}}
+@keyframes lpop{0%{transform:translateX(-50%) scale(.92)}60%{transform:translateX(-50%) scale(1.04)}100%{transform:translateX(-50%) scale(1)}}
+.price-pop{font:700 40px var(--mono)!important;color:var(--maroon)!important;font-variant-numeric:tabular-nums}
+.rate-pick{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.rate-pick button{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:8px 14px;font:600 14px var(--body);cursor:pointer;min-height:40px}
+.rate-pick button[aria-pressed="true"]{background:var(--maroon);border-color:var(--maroon);color:var(--maroon-ink)}
 /* Pop-up */
 .modal{position:fixed;inset:0;z-index:20;background:rgba(20,8,8,.55);display:flex;align-items:flex-end;justify-content:center;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
 .sheet{background:var(--surface);color:var(--fg);border-radius:16px;padding:18px 16px 14px;width:100%;max-width:520px;display:flex;flex-direction:column;gap:10px;box-shadow:0 10px 40px rgba(0,0,0,.3)}
@@ -371,7 +403,7 @@ details.settings .grid{margin-top:10px}
     <div class="grid">
       <div class="f full" hidden><label for="itemSel">Item</label><select id="itemSel"></select><input id="item" autocomplete="off" placeholder="Type item name" hidden></div>
       <div class="f full bc-box"><label for="bcNum">Barcode</label>
-        <div class="bc"><span class="bc-pre" id="bcPre" hidden>—</span><input id="bcNum" class="num" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="e.g. DIA1164"><button class="btn bc-scan" type="button" id="scanBc" hidden aria-label="Scan barcode with camera">Scan</button></div>
+        <div class="bc"><span class="bc-pre" id="bcPre" hidden>—</span><input id="bcNum" class="num" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="e.g. DIA1164"><button class="btn bc-man" type="button" id="manBc" aria-label="Pick the item code by hand">M</button><button class="btn bc-scan" type="button" id="scanBc" hidden aria-label="Scan barcode with camera">Scan</button></div>
         <div class="bc-item" id="bcItem"></div>
         <input id="sku" type="hidden">
       </div>
@@ -381,7 +413,6 @@ details.settings .grid{margin-top:10px}
       <div class="f"><label for="nw" class="req">NWT · net gold (g)</label><input class="num" id="nw" inputmode="decimal"></div>
       <div class="f"><label for="spr" id="sprLbl">SPR / SA · stone price ₹</label><input class="num" id="spr" inputmode="decimal"></div>
     </div>
-    <div class="stockinfo" id="stockInfo" hidden></div>
     <div class="stone-hint" id="stoneHint" hidden></div>
 
     <div class="making" id="makingBox">
@@ -466,7 +497,10 @@ details.settings .grid{margin-top:10px}
   <details class="card datacard" id="adminCard">
     <summary><span class="dc-t">Admin settings</span><span class="dc-s" id="adminMini">Locked</span><span class="dc-chev" aria-hidden="true">▾</span></summary>
     <div class="sec-head"><span class="note">Charges, making helper, shared database and users</span><button class="btn sm back" type="button" id="adminBack">‹ Back</button></div>
-    <h3>Charges</h3>
+    <h3>Rates shown</h3>
+      <p class="note" style="margin-block:4px 0">Purities shown on the rate band, the day's rates screen and the purity buttons. Shown gold rates are required each day.</p>
+      <div class="rate-pick" id="ratePick"></div>
+      <h3 style="margin-top:16px">Charges</h3>
       <div class="grid">
         <div class="f"><label for="setGst">GST %</label><input class="num" id="setGst" inputmode="decimal"></div>
         <div class="f"><label for="setHuid">₹ per HUID</label><input class="num" id="setHuid" inputmode="decimal"></div>
@@ -563,6 +597,19 @@ details.settings .grid{margin-top:10px}
     <p class="note" id="helperNote">Customer price uses MBD. <b>Staff only:</b> MAD is the lowest making allowed after discount.</p>
   </div>
 </div>
+<div class="modal" id="manual" hidden role="dialog" aria-modal="true" aria-labelledby="manTitle">
+  <div class="sheet">
+    <div class="rs-head"><button class="btn sm back" type="button" id="manBack">‹ Back</button><h4 id="manTitle">Pick the item</h4></div>
+    <div id="manStep1"><p class="note" style="margin-bottom:8px">Tap the item code on the tag.</p><div class="cat-grid" id="manCats"></div></div>
+    <form id="manStep2" hidden autocomplete="off">
+      <p class="note" id="manName" style="margin-bottom:8px"></p>
+      <div class="man-num"><span class="bc-pre" id="manPre">—</span><input id="manIn" inputmode="numeric" autocapitalize="characters" spellcheck="false" placeholder="Number" aria-label="Barcode number"></div>
+      <div class="man-hit" id="manHit" style="margin-top:8px"></div>
+      <div class="acts"><button class="btn primary" type="submit" id="manGo">Find item</button></div>
+    </form>
+  </div>
+</div>
+<button class="live-price" type="button" id="livePrice" hidden aria-live="polite"><span style="min-width:0"><span class="lp-t" id="lpT" style="display:block"></span><span class="lp-s" id="lpS"></span></span><span class="lp-v" id="lpV">—</span></button>
 <div class="modal" id="camScan" hidden role="dialog" aria-modal="true" aria-labelledby="camTitle">
   <div class="sheet">
     <div class="rs-head"><button class="btn sm back" type="button" id="camCancel">‹ Back</button><h4 id="camTitle">Scan barcode</h4></div>
@@ -609,6 +656,8 @@ const NATIVE=window.YamieNative||null;   // inside the Android app: ML Kit OCR, 
 const store={get(k,d){try{const v=localStorage.getItem('ypc_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('ypc_'+k,JSON.stringify(v))}catch(e){}}};
 
 const PURITIES=[{id:'22k',label:'22K',src:'r22',req:1},{id:'18k',label:'18K',src:'r18',req:1},{id:'14k',label:'14K',src:'r14',req:1},{id:'9k',label:'9K',src:'r9',req:1},{id:'platinum',label:'PT',name:'Platinum',src:'platinum'},{id:'silver',label:'Silver',name:'Silver',src:'silver'}];
+function SHOWN(){const ids=Array.isArray(settings.showRates)&&settings.showRates.length?settings.showRates:(Array.isArray(BRAND.rates)&&BRAND.rates.length?BRAND.rates:null);return ids?PURITIES.filter(p=>ids.includes(p.id)):PURITIES.slice()}
+const isReq=p=>!!p.req&&SHOWN().includes(p);
 const PLABEL={'22k':'22K','18k':'18K','14k':'14K','9k':'9K',platinum:'PT',silver:'Silver','':'—'};
 const CAT=window.YAMIE_CATEGORIES=window.YAMIE_CATEGORIES||{};  // shared with parser.js; replaced in place when admins edit item codes
 const MK={
@@ -709,6 +758,7 @@ async function pullAll(force){
 function applyRemoteSettings(rs){
   if(rs.mkTable&&Array.isArray(rs.mkTable.cz))settings.mkTable=rs.mkTable;
   if('cats' in rs){settings.cats=rs.cats&&typeof rs.cats==='object'&&Object.keys(rs.cats).length?rs.cats:null;try{applyCats()}catch(e){}}
+  if('showRates' in rs){settings.showRates=Array.isArray(rs.showRates)&&rs.showRates.length?rs.showRates:null;try{rebuildPurities()}catch(e){}}
   if(rs.gst!=null)settings.gst=rs.gst;if(rs.huid!=null)settings.huid=rs.huid;
   store.set('settings2',settings);
   try{renderTable('cz');renderTable('dia');$('setGst').value=settings.gst;$('setHuid').value=settings.huid;renderEditor();renderBill(true)}catch(e){}
@@ -716,7 +766,7 @@ function applyRemoteSettings(rs){
 let settingsTimer=null;
 function saveSettings(){store.set('settings2',settings);if(!sync.key)return;sync.dirtySettings=true;saveSyncState();clearTimeout(settingsTimer);settingsTimer=setTimeout(()=>{if(adminCreds)pushSettingsNow().catch(e=>syncMsg('err',syncErrText(e)))},1500)}
 async function pushSettingsNow(){
-  const r=await syncApi('settings','POST',{settings:{gst:settings.gst,huid:settings.huid,mkTable:settings.mkTable,cats:settings.cats||null}},adminCreds);
+  const r=await syncApi('settings','POST',{settings:{gst:settings.gst,huid:settings.huid,mkTable:settings.mkTable,cats:settings.cats||null,showRates:settings.showRates||null}},adminCreds);
   sync.v.settings=r.v;sync.dirtySettings=false;saveSyncState();syncMsg('ok','Settings saved to the shared database.');
 }
 async function pushRate(entry){
@@ -750,14 +800,17 @@ function baseRate(p){
 }
 function rateFor(p){if(!p)return null;const o=bill.overrides[p];if(o!=null&&!isNaN(o))return o;return baseRate(p)}
 const ratesEl=$('rates');
-PURITIES.forEach(p=>{
-  const d=document.createElement('div');d.className='rate';d.dataset.k=p.id;
-  d.innerHTML=`<label>${p.id==='platinum'?'PT':p.id==='silver'?'SLV':p.label}</label><span class="v">—</span>`;
-  ratesEl.appendChild(d);
-});
+function buildRateBand(){
+  const list=SHOWN();ratesEl.innerHTML='';ratesEl.style.gridTemplateColumns=`repeat(${list.length},minmax(0,1fr))`;
+  list.forEach(p=>{
+    const d=document.createElement('div');d.className='rate';d.dataset.k=p.id;
+    d.innerHTML=`<label>${p.id==='platinum'?'PT':p.id==='silver'?'SLV':p.label}</label><span class="v">—</span>`;
+    ratesEl.appendChild(d);
+  });
+}
 function paintRates(){
-  PURITIES.forEach(p=>{
-    const box=ratesEl.querySelector(`[data-k="${p.id}"]`),v=rateFor(p.id);
+  SHOWN().forEach(p=>{
+    const box=ratesEl.querySelector(`[data-k="${p.id}"]`),v=rateFor(p.id);if(!box)return;
     box.querySelector('.v').textContent=v==null?'—':v.toLocaleString('en-IN');
     box.classList.toggle('edited',bill.overrides[p.id]!=null);
     box.classList.toggle('miss',v==null&&!!(cur&&cur.purity===p.id||bill.items.some(t=>t.purity===p.id)));
@@ -775,35 +828,38 @@ $('rateReset').onclick=e=>{e.stopPropagation();bill.overrides={};saveBill();pain
 function setSrc(t){$('rateSrc').textContent=t}
 
 // ---------- day's rates screen ----------
-$('rsGrid').innerHTML=PURITIES.map(p=>`<div class="f"><label for="rs_${p.id}"${p.req?' class="req"':''}>${p.name||p.label} ₹/g</label><input class="num" id="rs_${p.id}" inputmode="decimal" autocomplete="off"><span class="prev" id="rsp_${p.id}"></span></div>`).join('');
+function reqText(){const r=SHOWN().filter(isReq).map(p=>p.label);return r.length?`Enter today's rate per gram. ${r.length>1?r.slice(0,-1).join(', ')+' and '+r[r.length-1]+' are':r[0]+' is'} required.`:'Enter today\'s rate per gram.'}
+function buildRateSheet(){$('rsGrid').innerHTML=SHOWN().map(p=>`<div class="f"><label for="rs_${p.id}"${isReq(p)?' class="req"':''}>${p.name||p.label} ₹/g</label><input class="num" id="rs_${p.id}" inputmode="decimal" autocomplete="off"><span class="prev" id="rsp_${p.id}"></span></div>`).join('')}
 function openRates(){
   const e=dayEntry(),prev=rateLog.find(x=>x.day!==dayKey())||null;
   $('rsDate').textContent=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+(e?' · already set today':'');
-  PURITIES.forEach(p=>{
+  SHOWN().forEach(p=>{
     const v=e&&e.rates[p.id]>0?e.rates[p.id]:(live.rates[p.id]>0?live.rates[p.id]:(prev&&prev.rates[p.id]>0?prev.rates[p.id]:null));
     $('rs_'+p.id).value=v==null?'':v;
     $('rsp_'+p.id).textContent=prev&&prev.rates[p.id]>0?`Last: ${inr(prev.rates[p.id])} (${new Date(prev.at).toLocaleDateString('en-IN',{day:'numeric',month:'short'})})`:'';
   });
   $('rsKiosk').disabled=!Object.keys(live.rates).length;
-  $('rsStatus').textContent='Enter today\'s rate per gram. 22K, 18K, 14K and 9K are required.';$('rsStatus').className='status';
+  $('rsStatus').textContent=reqText();$('rsStatus').className='status';
   renderRateHist();
   $('rsheet').hidden=false;document.body.style.overflow='hidden';
   try{history.pushState({rs:1},'')}catch(e){}
-  setTimeout(()=>$('rs_22k').focus(),50);
+  setTimeout(()=>{const f=$('rsGrid').querySelector('input');f&&f.focus()},50);
 }
 function closeRates(fromPop){if($('rsheet').hidden)return;$('rsheet').hidden=true;document.body.style.overflow='';if(!fromPop){try{if(history.state&&history.state.rs)history.back()}catch(e){}}}
 window.addEventListener('popstate',()=>closeRates(true));
 $('band').addEventListener('click',openRates);
 $('band').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRates()}});
 $('rsClose').onclick=()=>closeRates();
-$('rsKiosk').onclick=()=>{PURITIES.forEach(p=>{if(live.rates[p.id]>0)$('rs_'+p.id).value=live.rates[p.id]});
+$('rsKiosk').onclick=()=>{SHOWN().forEach(p=>{if(live.rates[p.id]>0)$('rs_'+p.id).value=live.rates[p.id]});
   $('rsStatus').textContent=`Filled from the kiosk (${whenText(live.at)}). Check, then Save.`;$('rsStatus').className='status'};
 $('rsSave').onclick=()=>{
   const rates={},miss=[];
-  PURITIES.forEach(p=>{const v=num($('rs_'+p.id).value);if(v>0)rates[p.id]=v;else if(p.req)miss.push(p.label)});
+  // keep any rate set today for a purity that is not shown, so hiding one never wipes it
+  const today=dayEntry();if(today)PURITIES.forEach(p=>{if(!SHOWN().includes(p)&&today.rates[p.id]>0)rates[p.id]=today.rates[p.id]});
+  SHOWN().forEach(p=>{const v=num($('rs_'+p.id).value);if(v>0)rates[p.id]=v;else if(isReq(p))miss.push(p.label)});
   if(miss.length){$('rsStatus').textContent='Required: '+miss.join(', ')+' rate';$('rsStatus').className='status err';toast('Enter '+miss.join(', ')+' rate',null,true);return}
   // Guard against a typo: a rate more than 10% away from the last saved one needs a second tap
-  const prev=rateLog[0],big=prev?PURITIES.filter(p=>rates[p.id]&&prev.rates[p.id]&&Math.abs(rates[p.id]/prev.rates[p.id]-1)>0.1):[];
+  const prev=rateLog[0],big=prev?SHOWN().filter(p=>rates[p.id]&&prev.rates[p.id]&&Math.abs(rates[p.id]/prev.rates[p.id]-1)>0.1):[];
   const commit=()=>{
     rateLog=rateLog.filter(e=>!(e.day===dayKey()&&e.rates&&JSON.stringify(e.rates)===JSON.stringify(rates)));
     rateLog.unshift({id:uid(),at:Date.now(),day:dayKey(),rates,by:curUser?curUser.name:''});
@@ -824,12 +880,12 @@ function renderRateHist(){
   if(!rateLog.length){el.innerHTML='<div class="empty">Saved rates appear here, newest first.</div>';return}
   el.innerHTML=rateLog.slice(0,120).map((e,i)=>{
     const older=rateLog[i+1];
-    const vals=PURITIES.map(p=>{const v=e.rates[p.id];if(!(v>0))return `<span><b>${p.label}</b>—</span>`;
+    const vals=SHOWN().map(p=>{const v=e.rates[p.id];if(!(v>0))return `<span><b>${p.label}</b>—</span>`;
       const o=older&&older.rates[p.id];const arrow=o&&v!==o?(v>o?' <i class="up">▲</i>':' <i class="down">▼</i>'):'';
       return `<span><b>${p.label}</b>${v.toLocaleString('en-IN')}${arrow}</span>`}).join('');
     return `<div class="h-row"><div class="d">${new Date(e.at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}<small>${new Date(e.at).toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'})}${e.by?' · '+esc(e.by):''}</small></div><button class="linkbtn" type="button" data-use="${e.id}">Use</button><div class="vals">${vals}</div></div>`}).join('');
   el.querySelectorAll('[data-use]').forEach(b=>b.onclick=()=>{const e=rateLog.find(x=>x.id===b.dataset.use);if(!e)return;
-    PURITIES.forEach(p=>$('rs_'+p.id).value=e.rates[p.id]>0?e.rates[p.id]:'');
+    SHOWN().forEach(p=>$('rs_'+p.id).value=e.rates[p.id]>0?e.rates[p.id]:'');
     $('rsStatus').textContent='Copied into the form. Check, then Save to use them today.';$('rsStatus').className='status';
     $('rsheet').scrollTo({top:0,behavior:'smooth'})});
 }
@@ -948,7 +1004,7 @@ $('catSave').onclick=()=>withPin('Changing item codes needs an admin.',()=>{
   const {out,bad}=parseCats($('catEdit').value);
   if(bad.length){$('catStatus').textContent='Check these lines (CODE = Name): '+bad.slice(0,3).join(' · ');$('catStatus').className='status err';return}
   if(!Object.keys(out).length){$('catStatus').textContent='Add at least one item code.';$('catStatus').className='status err';return}
-  settings.cats=out;saveSettings();applyCats();renderEditor();
+  settings.cats=out;saveSettings();applyCats();renderEditor();renderTable('cz');renderTable('dia');
   $('catStatus').textContent=`${Object.keys(out).length} item codes saved.`;$('catStatus').className='status ok'});
 $('catReset').onclick=()=>showModal('Reset item codes?','The item codes go back to the starting list.',[
   {label:'Reset',cls:'danger',run:()=>withPin('Changing item codes needs an admin.',()=>{settings.cats=null;saveSettings();applyCats();renderEditor();$('catStatus').textContent='Item codes reset.';$('catStatus').className='status ok'})},{label:'Cancel',cls:'ghost'}]);
@@ -958,8 +1014,14 @@ function paintBarcode(){
   const inp=$('bcNum'),sp=bcSplit(cur.sku);
   if(document.activeElement!==inp)inp.value=keyOf(cur.sku);
   inp.classList.toggle('read',isRead('sku'));
-  const name=cur.item||itemFromSku(cur.sku);
-  $('bcItem').innerHTML=name?`Item: <b>${esc(name)}</b>${CAT[sp.pre]?` · ${sp.pre}`:''}`:(sp.pre&&sp.pre.length>=3&&!cur.stockKey?'Prefix not recognised':'');
+  const name=cur.item||itemFromSku(cur.sku),st=cur.stockKey&&cur.stock?cur.stock:null;
+  const el=$('bcItem');
+  if(st){
+    const cell=(l,v,full)=>`<span${full?' class="full"':''}>${l} <b>${v==null||v===''?'—':esc(v)}</b></span>`;
+    el.innerHTML=`<div class="bc-det">${cell('Item',name||st.item)}${cell('Category',st.category)}${cell('Pcs',st.pcs!=null&&st.pcs!==''?fmtN(st.pcs):'')}${cell('Supplier',st.supplier)}</div>`;
+  }else if(stockMap.size>0&&keyOf(cur.sku).length>=4){
+    el.innerHTML=`${name?`Item <b>${esc(name)}</b> · `:''}<span class="bc-none">Not in stock list.</span> Check the number, or enter the details by hand.`;
+  }else el.innerHTML=name?`Item <b>${esc(name)}</b>${CAT[sp.pre]?` · ${sp.pre}`:''}`:(sp.pre&&sp.pre.length>=3?'Prefix not recognised':'');
 }
 $('bcNum').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('bcNum').blur();lookupTyped(true);setTimeout(()=>{if(cur.stockKey)startTagFlow()},60)}});
 $('bcNum').addEventListener('input',()=>{
@@ -980,7 +1042,24 @@ function paintItem(){
   sel.classList.toggle('read',isRead('item'));
   paintBarcode();
 }
-PURITIES.forEach(p=>{const b=document.createElement('button');b.type='button';b.textContent=p.label;b.dataset.p=p.id;b.onclick=()=>{cur.purity=p.id;unread('purity');cur.touched=true;saveDraft();paintRates();renderEditor()};$('puritySeg').appendChild(b)});
+function buildPuritySeg(){
+  const seg=$('puritySeg'),list=SHOWN();
+  if(cur&&cur.purity&&!list.some(p=>p.id===cur.purity)){const x=PURITIES.find(p=>p.id===cur.purity);if(x)list.push(x)}
+  if(seg.dataset.ids===list.map(p=>p.id).join())return;
+  seg.dataset.ids=list.map(p=>p.id).join();seg.innerHTML='';
+  list.forEach(p=>{const b=document.createElement('button');b.type='button';b.textContent=p.label;b.dataset.p=p.id;b.onclick=()=>{cur.purity=p.id;unread('purity');cur.touched=true;saveDraft();paintRates();renderEditor()};seg.appendChild(b)});
+}
+function rebuildPurities(){buildRateBand();buildRateSheet();buildPuritySeg();paintRatePick();paintRates();try{renderEditor();renderBill()}catch(e){}}
+function paintRatePick(){
+  const el=$('ratePick');if(!el)return;const on=SHOWN().map(p=>p.id);
+  el.innerHTML=PURITIES.map(p=>`<button type="button" data-p="${p.id}" aria-pressed="${on.includes(p.id)}">${esc(p.name||p.label)}</button>`).join('');
+  el.querySelectorAll('button').forEach(b=>b.onclick=()=>withPin('Changing the rates shown needs an admin.',()=>{
+    let ids=SHOWN().map(p=>p.id);
+    ids=ids.includes(b.dataset.p)?ids.filter(x=>x!==b.dataset.p):PURITIES.map(p=>p.id).filter(x=>x===b.dataset.p||ids.includes(x));
+    if(!ids.length){toast('Keep at least one rate',null,true);return}
+    settings.showRates=ids;saveSettings();rebuildPurities();toast('Rates shown: '+SHOWN().map(p=>p.label).join(', '))}));
+}
+buildRateBand();buildRateSheet();buildPuritySeg();paintRatePick();
 Object.keys(MK).forEach(k=>{const b=document.createElement('button');b.type='button';b.textContent=MK[k].label;b.dataset.k=k;
   b.onclick=()=>{if(cur.mkType!==k){cur.mkType=k;cur.mkVal='';cur.mkMad=null;cur.mkRow=''}unread('making');cur.touched=true;saveDraft();renderEditor()};$('mkSeg').appendChild(b)});
 FIELDS.forEach(k=>$(k).addEventListener('input',()=>{
@@ -1042,7 +1121,7 @@ function renderEditor(){
   $('clearTag').textContent=idx>=0?'Cancel edit':'Clear tag';
   FIELDS.forEach(k=>{const el=$(k);if(document.activeElement!==el)el.value=cur[k]||'';el.classList.toggle('read',isRead(k))});
   paintItem();
-  [...$('puritySeg').children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.p===cur.purity)));
+  buildPuritySeg();[...$('puritySeg').children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.p===cur.purity)));
   $('puritySeg').classList.toggle('read',isRead('purity'));
   [...$('mkSeg').children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.k===cur.mkType)));
   $('mkSeg').classList.toggle('read',isRead('making'));
@@ -1075,6 +1154,7 @@ function renderPreview(){
   const m=missing(cur),complete=p.ok&&!m.length;
   $('priceBox').classList.toggle('incomplete',!complete);
   $('priceAmt').textContent=p.ok?inr(p.value*(1+gstP/100)):'—';
+  paintLivePrice();
   $('priceSub').textContent=complete?`Before GST ${inr(p.value)}`:(m.length?'Needs: '+m.map(x=>({nw:'NWT',spr:'stone price',rate:'gold rate',huid:'HUID',purity:'purity',making:'making'})[x.k]).join(', '):'');
   renderValidation();
 }
@@ -1132,6 +1212,58 @@ $('scanBc').onclick=()=>{
   if(canNativeBc){NATIVE.scanBarcode();return}
   if(canWebBc)openCamScan();
 };
+// Manual item pick (M): choose the item code from icons, type the number, look the barcode up in stock
+const ICO={
+  ring:'<circle cx="12" cy="14.5" r="6"/><path d="M9.5 6.5 12 3l2.5 3.5L12 8.6z"/>',
+  gemring:'<circle cx="12" cy="15" r="5.5"/><rect x="9" y="3.5" width="6" height="5" rx="1.2"/><path d="M9 6h6"/>',
+  navratna:'<circle cx="12" cy="15.5" r="5"/><circle cx="12" cy="6" r="3.2"/><circle cx="12" cy="6" r="1"/>',
+  bangle:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="5.8"/>',
+  bracelet:'<ellipse cx="12" cy="12" rx="9" ry="6"/><path d="M6 8.5v7M9.5 6.6v10.8M14.5 6.6v10.8M18 8.5v7"/>',
+  chain:'<rect x="2.5" y="9" width="8" height="6" rx="3"/><rect x="8" y="9" width="8" height="6" rx="3"/><rect x="13.5" y="9" width="8" height="6" rx="3"/>',
+  necklace:'<path d="M4 3c0 7 3.5 11 8 11s8-4 8-11"/><path d="M12 14l-2.2 3L12 21l2.2-4z"/>',
+  locket:'<path d="M5 3c0 5 3 8 7 9 4-1 7-4 7-9"/><ellipse cx="12" cy="16.5" rx="3.4" ry="4.2"/><path d="M12 12v.1"/>',
+  thali:'<path d="M4 3c0 6 3.5 10 8 10s8-4 8-10"/><circle cx="12" cy="17" r="3.6"/><circle cx="12" cy="17" r="1.2"/>',
+  stud:'<circle cx="8" cy="12" r="3.2"/><circle cx="16.5" cy="12" r="3.2"/><path d="M8 8.8V6M16.5 8.8V6"/>',
+  nosepin:'<circle cx="12" cy="8" r="3.4"/><path d="M12 11.4V21"/><path d="M10 8h4M12 6v4"/>',
+  diamond:'<path d="M3 9.5 7 4h10l4 5.5L12 20z"/><path d="M3 9.5h18M9 4l3 16 3-16"/>',
+  set:'<path d="M5 3c0 6 3 9 7 9s7-3 7-9"/><path d="M12 12l-1.8 2.5L12 17l1.8-2.5z"/><circle cx="4.5" cy="18" r="1.8"/><circle cx="19.5" cy="18" r="1.8"/>',
+  hook:'<path d="M12 3v7a4.5 4.5 0 1 1-4.5 4.5"/><circle cx="12" cy="3.5" r="1"/>',
+  pendant:'<path d="M12 3v4"/><path d="M12 7l-4 5 4 9 4-9z"/>',
+  tag:'<path d="M3 12V4h8l10 10-7 7z"/><circle cx="7.5" cy="8" r="1.5"/>'};
+function icoFor(name){
+  const n=String(name||'').toUpperCase();
+  const k=/NAVARATNA|NAVRATNA/.test(n)?'navratna':/BIRTH|STONE RING|GEM/.test(n)?'gemring':/BANGLE|KADA/.test(n)?'bangle':/BRACELET/.test(n)?'bracelet':/CHAIN/.test(n)?'chain':
+    /LOCKET/.test(n)?'locket':/THALI|MANGAL/.test(n)?'thali':/SET/.test(n)?'set':/NECK|NLC/.test(n)?'necklace':/NOSE/.test(n)?'nosepin':/STUD|EAR/.test(n)?'stud':
+    /DIAMOND|CVD/.test(n)?'diamond':/HOOK|FINDING/.test(n)?'hook':/PENDANT/.test(n)?'pendant':/RING/.test(n)?'ring':'tag';
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[k]}</svg>`;
+}
+let manCode='';
+function openManual(){
+  const codes=Object.keys(CAT);
+  $('manCats').innerHTML=codes.length?codes.map(c=>`<button class="cat-btn" type="button" data-c="${esc(c)}">${icoFor(CAT[c])}<span class="cc">${esc(c)}</span><span class="cn">${esc(CAT[c])}</span></button>`).join(''):'<p class="note">No item codes yet. Add them in Admin settings → Item codes.</p>';
+  $('manCats').querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>manStep(b.dataset.c));
+  manStep('');$('manual').hidden=false;try{history.pushState({man:1},'')}catch(e){}
+}
+function manStep(code){
+  manCode=code;$('manStep1').hidden=!!code;$('manStep2').hidden=!code;
+  $('manTitle').textContent=code?`${CAT[code]||code}`:'Pick the item';
+  if(code){$('manPre').textContent=code;$('manName').textContent=`Type the number after ${code} on the tag.`;$('manIn').value='';$('manHit').textContent='';setTimeout(()=>$('manIn').focus(),40)}
+}
+function closeManual(fromPop){if($('manual').hidden)return;$('manual').hidden=true;$('manIn').blur();if(!fromPop){try{if(history.state&&history.state.man)history.back()}catch(e){}}}
+$('manBc').onclick=openManual;
+$('manBack').onclick=()=>{if(manCode)manStep('');else closeManual()};
+$('manual').addEventListener('click',e=>{if(e.target===$('manual'))closeManual()});
+window.addEventListener('popstate',()=>closeManual(true));
+$('manIn').addEventListener('input',()=>{
+  const v=$('manIn').value.toUpperCase().replace(/[^A-Z0-9]/g,'');if($('manIn').value!==v)$('manIn').value=v;
+  const rec=v?findStock(manCode+v):null;
+  $('manHit').innerHTML=!v?'':rec?`✓ <b>${esc(rec.barcode)}</b> · ${esc([rec.category,rec.carat,rec.nw!=null?fmtN(rec.nw)+' g':''].filter(Boolean).join(' · '))}`:(stockMap.size?`${esc(manCode+v)} is not in the stock list yet`:'');
+});
+$('manStep2').addEventListener('submit',e=>{
+  e.preventDefault();const v=keyOf($('manIn').value);
+  if(!v){$('manHit').textContent='Type the number first.';$('manIn').focus();return}
+  closeManual();setTimeout(()=>useScannedCode(manCode+v),60);
+});
 // Live camera scanner for iPhone and browsers (bundled html5-qrcode)
 let qrLibP=null,qr=null;
 function loadQr(){if(window.__Html5QrcodeLibrary__)return Promise.resolve();if(!qrLibP)qrLibP=new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='vendor/html5-qrcode.min.js';sc.onload=res;sc.onerror=()=>{qrLibP=null;rej(new Error('lib'))};document.head.appendChild(sc)});return qrLibP}
@@ -1325,7 +1457,7 @@ function renderDeductions(){
   const og=$('oldList');
   og.innerHTML=bill.oldGold.map(o=>{const r=oldRate(o);
     return `<div class="ded" data-id="${o.id}">
-      <div class="f"><label for="op_${o.id}">Purity</label><select id="op_${o.id}" data-k="purity">${PURITIES.map(p=>`<option value="${p.id}"${p.id===o.purity?' selected':''}>${p.label}</option>`).join('')}</select></div>
+      <div class="f"><label for="op_${o.id}">Purity</label><select id="op_${o.id}" data-k="purity">${PURITIES.filter(p=>SHOWN().includes(p)||p.id===o.purity).map(p=>`<option value="${p.id}"${p.id===o.purity?' selected':''}>${p.label}</option>`).join('')}</select></div>
       <div class="f"><label for="ow_${o.id}">Net wt (g)</label><input class="num" id="ow_${o.id}" data-k="wt" inputmode="decimal" value="${esc(o.wt)}"></div>
       <div class="f"><label for="or_${o.id}">Rate ₹/g</label><input class="num" id="or_${o.id}" data-k="rate" inputmode="decimal" value="${esc(o.rate)}" placeholder="${r==null?'':r}"></div>
       <button class="x" type="button" data-x aria-label="Remove old gold">×</button>
@@ -1356,13 +1488,13 @@ function refreshDeductionValues(){
     const r=oldRate(o);row.querySelector('[data-k="rate"]').placeholder=r==null?'':r;
   });
 }
-$('addOld').onclick=()=>{const o={id:uid(),purity:'22k',wt:'',rate:''};bill.oldGold.push(o);saveBill();renderBill();const el=$('ow_'+o.id);if(el)el.focus()};
+$('addOld').onclick=()=>{const o={id:uid(),purity:(SHOWN()[0]||PURITIES[0]).id,wt:'',rate:''};bill.oldGold.push(o);saveBill();renderBill();const el=$('ow_'+o.id);if(el)el.focus()};
 $('addRet').onclick=()=>{const r={id:uid(),note:'',amount:''};bill.returns.push(r);saveBill();renderBill();const el=$('ra_'+r.id);if(el)el.focus()};
 
 function shareText(){
   const s=totals();
   const out=['*'+BRAND.full+'*',`Estimate · ${new Date().toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'})}`,
-    'Rate/g: '+PURITIES.map(p=>{const r=rateFor(p.id);return `${p.label} ${r==null?'—':inr(r)}`}).join(' · '),''];
+    'Rate/g: '+SHOWN().map(p=>{const r=rateFor(p.id);return `${p.label} ${r==null?'—':inr(r)}`}).join(' · '),''];
   bill.items.forEach((t,i)=>{const p=priceTag(t);
     out.push(`${i+1}. ${t.sku||'—'} ${t.item||''} ${PLABEL[t.purity]}`);
     out.push(`   GWT ${fmtW(num(t.gw))} · NWT ${fmtW(num(t.nw))}${t.sw?` · SWT ${t.sw}`:''}`);
@@ -1377,7 +1509,7 @@ function shareText(){
 
 // ---------- actions ----------
 function showModal(title,body,buttons){
-  $('modalTitle').textContent=title;$('modalBody').textContent=body;
+  $('modalTitle').textContent=title;$('modalTitle').classList.remove('price-pop');$('modalBody').textContent=body;
   const a=$('modalActs');a.innerHTML='';
   buttons.forEach(b=>{const el=document.createElement('button');el.type='button';el.className='btn '+(b.cls||'');el.textContent=b.label;el.onclick=()=>{closeModal();b.run&&b.run()};a.appendChild(el)});
   $('modal').hidden=false;setTimeout(()=>{const f=a.querySelector('button');f&&f.focus()},30);
@@ -1458,10 +1590,12 @@ function parseVal(str){
 function valText(o){return !o?'—':o.type==='pct'?fmtN(o.val)+'%':o.type==='pergram'?'₹'+o.val.toLocaleString('en-IN')+'/g':'₹'+o.val.toLocaleString('en-IN')}
 const letters=x=>String(x||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
 function isDiaTable(t){return isDiamond(t)||/^LDJ/i.test(String(t.sku||''))||t.item==='CVD'}
+function itemCode(t){const pre=bcSplit(t.sku).pre;return CAT[pre]?pre:(CODE_OF[t.item]||'')}
 function helperRows(t){
   if(!t.purity)return {dia:false,rows:[],sugg:[]};
-  const dia=isDiaTable(t),tb=settings.mkTable[dia?'dia':'cz']||[];
-  const rows=tb.map((x,i)=>({...x,i})).filter(x=>x.purity===t.purity&&parseVal(x.mad));
+  const dia=isDiaTable(t),tb=settings.mkTable[dia?'dia':'cz']||[],code=itemCode(t);
+  // A row with a category applies to that item only; a row without one applies to every item
+  const rows=tb.map((x,i)=>({...x,i})).filter(x=>x.purity===t.purity&&parseVal(x.mad)&&(!x.cat||x.cat===code));
   let sugg=[];
   if(dia){
     const hay=letters([t.item,t.stock&&t.stock.item,t.stock&&t.stock.supplier,t.stock&&t.stock.label,t.stock&&t.stock.category].join(' '));
@@ -1471,6 +1605,8 @@ function helperRows(t){
     const lab=String((t.stock&&t.stock.label)||'').trim().toUpperCase().match(/^(?:S|SL|SLAB)?\s*-?\s*([0-9]+)$/);
     if(lab)sugg=rows.filter(x=>String(x.slab).trim()===String(parseInt(lab[1],10)));
   }
+  if(sugg.length>1&&code){const c=sugg.filter(x=>x.cat===code);if(c.length)sugg=c}
+  if(!sugg.length&&code)sugg=rows.filter(x=>x.cat===code);
   return {dia,rows,sugg:sugg.map(x=>x.i)};
 }
 function stoneRateFor(t){
@@ -1482,13 +1618,14 @@ function paintGuide(){
   const {dia,rows,sugg}=helperRows(cur);
   $('helperBtn').hidden=!rows.length;
   if(rows.length){
-    $('mkGuideT').textContent=`${dia?'Diamond':'CZ'} jewellery · ${PLABEL[cur.purity]} making`+(sugg.length?' · ★ suggested':'');
+    const ic=itemCode(cur);
+    $('mkGuideT').textContent=`${ic&&CAT[ic]?CAT[ic]+' ('+ic+') · ':''}${dia?'Diamond':'CZ'} · ${PLABEL[cur.purity]} making`+(sugg.length?' · ★ suggested':'');
     const box=$('mkGuideChips');box.innerHTML='';
     rows.forEach(x=>{
       const mad=parseVal(x.mad),mbd=parseVal(x.mbd)||mad;
       const amt=makingFor(cur,mbd.type,mbd.val),madA=makingFor(cur,mad.type,mad.val);
       const b=document.createElement('button');b.type='button';b.className='chip'+(sugg.includes(x.i)?' sugg':'');
-      const nm=dia?x.slab:`Slab ${x.slab}`;
+      const nm=(dia?x.slab:`Slab ${x.slab}`)+(x.cat?` · ${x.cat}`:'');
       b.innerHTML=`<span class="nm">${esc(nm)}</span>${esc(valText(mbd))}${mbd.type==='fixed'?'<small>per piece</small>':`<small>${isNaN(amt)?'enter NWT':inr(amt)}</small>`}<span class="mad">Staff MAD ${esc(valText(mad))}${mad.type!=='fixed'&&!isNaN(madA)?' = '+inr(madA):''}</span>`;
       b.setAttribute('aria-pressed',String(cur.mkRow===(dia?'d':'c')+x.i));
       b.onclick=()=>{
@@ -1503,7 +1640,7 @@ function paintGuide(){
     });
     const sel=rows.find(x=>cur.mkRow===(dia?'d':'c')+x.i),sg=rows.find(x=>sugg.includes(x.i));
     const pick=sel||sg,pv=pick?(parseVal(pick.mbd)||parseVal(pick.mad)):null,pa=pv?makingFor(cur,pv.type,pv.val):NaN;
-    $('helperSum').textContent=pick?`${sel?'✓':'★'} ${dia?pick.slab:'Slab '+pick.slab} · ${valText(pv)}${pv.type!=='fixed'&&!isNaN(pa)?' = '+inr(pa):''}`:`${rows.length} ${dia?'diamond':'CZ'} options for ${PLABEL[cur.purity]}`;
+    $('helperSum').textContent=pick?`${sel?'✓':'★'} ${dia?pick.slab:'Slab '+pick.slab}${pick.cat?' '+pick.cat:''} · ${valText(pv)}${pv.type!=='fixed'&&!isNaN(pa)?' = '+inr(pa):''}`:`${rows.length} ${dia?'diamond':'CZ'} options for ${PLABEL[cur.purity]}`;
   }
   // Stone price helper when the tag/stock has a stone weight but no stone price
   const sh=$('stoneHint'),sr=stoneRateFor(cur),sw=num(cur.sw);
@@ -1528,19 +1665,43 @@ function askHuid(){
   const pair=isPairItem(cur),def=pair?2:1,read=cur.huids&&cur.huids.length?cur.huids.length:0;
   const set=n=>{cur.huidCount=n;unread('huid');cur.read.push('huid');cur.touched=true;saveDraft();renderEditor();
     const m=missing(cur);setStatus(m.length?'Required: '+m.map(x=>x.t).join(', '):`Ready. ${n} HUID added. Tap Add to bill.`,m.length?'err':'ok');
-    if(!m.length)$('addTag').scrollIntoView({behavior:'smooth',block:'center'})};
+    if(!m.length){$('addTag').scrollIntoView({behavior:'smooth',block:'center'});setTimeout(showPricePop,200)}};
   const opts=[1,2,3,0].sort((a,b)=>(b===def)-(a===def));
   showModal('How many HUID on this tag?',(pair?'Earrings and anklets carry 2 HUID, one per piece. ':'')+(read?`${read} HUID read from the tag. `:'')+`Each HUID adds ${inr(settings.huid)}.`,
     opts.map(n=>({label:n===0?'No HUID':`${n} HUID${n===def?(pair?' (pair)':''):''}`+` · ${inr(n*settings.huid)}`,cls:n===def?'primary':'',run:()=>set(n)})));
 }
+// Price of the tag being priced: pop-up after the scan flow, and a live strip pinned at the top
+function tagTitle(t){return [keyOf(t.sku)||'Tag',t.item,PLABEL[t.purity]||''].filter(Boolean).join(' · ')}
+function showPricePop(){
+  const p=priceTag(cur),g=num(settings.gst)||0;if(!p.ok||missing(cur).length)return;
+  showModal(inr(p.value*(1+g/100)),`${tagTitle(cur)} · incl. GST ${fmtN(g)}% · making ${p.mkLabel} · ${p.huidN} HUID`,[
+    {label:editingId?'Update tag':'Add to bill',cls:'primary',run:()=>$('addTag').click()},
+    {label:'Change making or HUID',cls:'ghost',run:()=>$('makingBox').scrollIntoView({behavior:'smooth',block:'center'})}]);
+  $('modalTitle').classList.add('price-pop');
+}
+let lpLast='';
+function paintLivePrice(){
+  const el=$('livePrice');if(!el)return;
+  const show=!!(cur.touched&&keyOf(cur.sku));
+  el.hidden=!show;if(!show){lpLast='';return}
+  const p=priceTag(cur),m=missing(cur),g=num(settings.gst)||0,ok=p.ok&&!m.length;
+  $('lpT').textContent=tagTitle(cur);
+  $('lpS').textContent=ok?`Incl. GST · ${p.huidN} HUID`:'Needs: '+m.map(x=>({nw:'NWT',spr:'stone price',rate:'rate',purity:'purity',making:'making'})[x.k]).join(', ');
+  const v=ok?inr(p.value*(1+g/100)):'—';
+  $('lpV').textContent=v;el.classList.toggle('incomplete',!ok);
+  if(ok&&v!==lpLast){el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop')}
+  lpLast=ok?v:'';
+}
+$('livePrice').onclick=()=>window.scrollTo({top:$('priceBox').getBoundingClientRect().top+window.scrollY-120,behavior:'smooth'});
 window.addEventListener('popstate',()=>closeHelper(true));
 $('helperBtn').onclick=openHelper;$('helperClose').onclick=()=>closeHelper();
 $('helper').addEventListener('click',e=>{if(e.target===$('helper'))closeHelper()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('helper').hidden)closeHelper()});
 function renderTable(kind){
   const el=$(kind==='cz'?'tblCz':'tblDia'),rows=settings.mkTable[kind];
-  el.innerHTML=`<div class="tbl-row head"><span>Purity</span><span>${kind==='cz'?'Slab':'Item'}</span><span>MBD</span><span>MAD</span><span>${kind==='cz'?'Stone':'Diamond'}</span><span></span></div>`+
-    rows.map((x,i)=>`<div class="tbl-row" data-i="${i}"><select data-k="purity" aria-label="Purity">${PURITIES.map(p=>`<option value="${p.id}"${p.id===x.purity?' selected':''}>${p.label}</option>`).join('')}</select><input data-k="slab" value="${esc(x.slab)}" aria-label="${kind==='cz'?'Slab':'Item'}"><input data-k="mbd" value="${esc(x.mbd)}" aria-label="Making before discount"><input data-k="mad" value="${esc(x.mad)}" aria-label="Making after discount"><input data-k="rate" inputmode="decimal" value="${esc(x.rate)}" aria-label="Stone rate"><button class="x" type="button" aria-label="Remove row">×</button></div>`).join('');
+  const catOpts=c=>`<option value="">All</option>`+Object.keys(CAT).map(k=>`<option value="${esc(k)}"${k===c?' selected':''}>${esc(k)}</option>`).join('')+(c&&!CAT[c]?`<option value="${esc(c)}" selected>${esc(c)}</option>`:'');
+  el.innerHTML=`<div class="tbl-row head"><span>Purity</span><span>Item</span><span>${kind==='cz'?'Slab':'Name'}</span><span>MBD</span><span>MAD</span><span>${kind==='cz'?'Stone':'Diamond'}</span><span></span></div>`+
+    rows.map((x,i)=>`<div class="tbl-row" data-i="${i}"><select data-k="purity" aria-label="Purity">${PURITIES.map(p=>`<option value="${p.id}"${p.id===x.purity?' selected':''}>${p.label}</option>`).join('')}</select><select data-k="cat" aria-label="Item code (All = every item)">${catOpts(x.cat||'')}</select><input data-k="slab" value="${esc(x.slab)}" aria-label="${kind==='cz'?'Slab':'Item'}"><input data-k="mbd" value="${esc(x.mbd)}" aria-label="Making before discount"><input data-k="mad" value="${esc(x.mad)}" aria-label="Making after discount"><input data-k="rate" inputmode="decimal" value="${esc(x.rate)}" aria-label="Stone rate"><button class="x" type="button" aria-label="Remove row">×</button></div>`).join('');
   el.querySelectorAll('.tbl-row[data-i]').forEach(row=>{
     const i=+row.dataset.i;
     row.querySelectorAll('[data-k]').forEach(inp=>inp.addEventListener(inp.tagName==='SELECT'?'change':'input',()=>{settings.mkTable[kind][i][inp.dataset.k]=inp.value;saveSettings();paintGuide()}));
@@ -1548,8 +1709,8 @@ function renderTable(kind){
   });
 }
 renderTable('cz');renderTable('dia');
-$('addCz').onclick=()=>{settings.mkTable.cz.push({purity:'18k',slab:'',mbd:'',mad:'',rate:'2500'});saveSettings();renderTable('cz')};
-$('addDia').onclick=()=>{settings.mkTable.dia.push({purity:'18k',slab:'',mbd:'',mad:'',rate:'100000'});saveSettings();renderTable('dia')};
+$('addCz').onclick=()=>{settings.mkTable.cz.push({purity:(SHOWN()[0]||PURITIES[0]).id,cat:'',slab:'',mbd:'',mad:'',rate:'2500'});saveSettings();renderTable('cz')};
+$('addDia').onclick=()=>{settings.mkTable.dia.push({purity:(SHOWN()[0]||PURITIES[0]).id,cat:'',slab:'',mbd:'',mad:'',rate:'100000'});saveSettings();renderTable('dia')};
 $('resetTbl').onclick=()=>showModal('Reset the making helper?',BRAND.table==='empty'?'Both tables will be emptied.':'Your edits to both tables will be replaced by the '+BRAND.tableName+' CZ and diamond tables.',[
   {label:'Reset tables',cls:'danger',run:()=>{settings.mkTable=JSON.parse(JSON.stringify(START_TABLE));saveSettings();renderTable('cz');renderTable('dia');paintGuide();toast('Helper reset')}},{label:'Cancel',cls:'ghost'}]);
 
@@ -1697,25 +1858,10 @@ function lookupTyped(now){
   },now?0:350);
 }
 function paintStockInfo(){
-  const el=$('stockInfo'),st=cur.stock;
-  const lab=$('mkLabel');
-  if(st&&cur.stockKey){
-    const bits=[];
-    if(st.label)bits.push(`Label <b>${esc(st.label)}</b>`);
-    if(st.location)bits.push(`Location <b>${esc(st.location)}</b>`);
-    if(st.category)bits.push(`Category <b>${esc(st.category)}</b>`);
-    if(st.dw>0)bits.push(`Diamond <b>${fmtN(st.dw)}</b>${st.dq?` × ${fmtN(st.dq)}`:''}`);
-    if(st.sw>0)bits.push(`Stone <b>${fmtN(st.sw)}</b>${st.sq?` × ${fmtN(st.sq)}`:''}`);
-    if(st.pcs)bits.push(`Pcs <b>${fmtN(st.pcs)}</b>`);
-    if(st.serial)bits.push(`Serial <b>${esc(st.serial)}</b>`);
-    if(st.supplier)bits.push(`Supplier <b>${esc(st.supplier)}</b>`);
-    el.className='stockinfo';el.innerHTML=`<span class="tag">✓ In stock list</span>${bits.map(b=>`<span>${b}</span>`).join('')}`;el.hidden=false;
-    lab.hidden=!st.label;if(st.label)lab.innerHTML=`Label: <b>${esc(st.label)}</b> · choose the making from the label`;
-  }else{
-    lab.hidden=true;
-    const show=stockMap.size>0&&keyOf(cur.sku).length>=4;
-    el.hidden=!show;if(show){el.className='stockinfo none';el.innerHTML='<span class="tag">Not in stock list</span><span>Check the barcode, or enter the details by hand.</span>'}
-  }
+  const st=cur.stock,lab=$('mkLabel');
+  if(st&&cur.stockKey){lab.hidden=!st.label;if(st.label)lab.innerHTML=`Label: <b>${esc(st.label)}</b> · choose the making from the label`}
+  else lab.hidden=true;
+  paintBarcode();
 }
 function openStock(){paintStockSummary();$('ssheet').hidden=false;document.body.style.overflow='hidden';try{history.pushState({ss:1},'')}catch(e){}}
 function closeStock(fromPop){if($('ssheet').hidden)return;$('ssheet').hidden=true;document.body.style.overflow='';if(!fromPop){try{if(history.state&&history.state.ss)history.back()}catch(e){}}}
@@ -1723,7 +1869,7 @@ window.addEventListener('popstate',()=>closeStock(true));
 $('stockBtn').onclick=openStock;$('ssClose').onclick=()=>closeStock();
 
 // ---------- version ----------
-const APP_VERSION='1.0.__BUILD__';
+const APP_VERSION='1.1.__BUILD__';
 $('appVer').textContent='v'+(APP_VERSION.includes('__')?'dev':APP_VERSION);
 
 // ---------- users and login ----------
