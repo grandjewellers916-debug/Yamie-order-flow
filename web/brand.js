@@ -11,8 +11,9 @@
       light:{'--maroon':'#8F171B','--band':'#6E1115','--gold':'#B8862B'},
       dark:{'--maroon':'#D0575B','--band':'#4A0D10','--gold':'#D9A94E'},
       tableName:'Yamie',
-      categories:{STD:'Stud',FRG:'Ring',NLC:'Necklace',PND:'Pendant',BGL:'Bangle',BRC:'Bracelet',NSP:'Nosepin',DIA:'Diamond',LDJ:'CVD',FIN:'Findings',CHN:'Chain',RST:'Jewelry set',MMP:'Platinum'},
-      table:'yamie'
+      categories:{BGL:'Bangle',BRC:'Bracelet',CHN:'Chain',RST:'Designer Set',DIA:'Diamond Ornament',FIN:'Hooks & Findings',NLC:'Necklace',NSP:'Nosepins (18K)',FRG:'Ring',STD:'Stud',PND:'Pendant',LDJ:'CVD',MMP:'Platinum'},
+      table:'yamie',
+      rates:['22k','18k','14k','9k']
     },
     grand:{
       id:'grand',name:'Grand',full:'Grand Jewellers',app:'Grand Price Check',short:'Grand Price',
