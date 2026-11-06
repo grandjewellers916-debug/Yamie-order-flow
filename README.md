@@ -102,3 +102,11 @@ The same app runs for **Yamie** and **Grand Jewellers**. `web/brand.js` holds ea
 - Stock, users, rates and settings are never shared between the two shops.
 - **Admin settings → Item codes** lets an admin edit barcode prefixes (one `CODE = Name` per line). They sync to all phones of that shop.
 - Adding a third shop: add an entry to `BRANDS` in `web/brand.js`, a flavor in `android/app/build.gradle` with its `brand-id.js` and icons, and a Netlify site whose name starts with the brand id.
+
+## Handheld barcode scanner
+
+Any Bluetooth or USB barcode scanner in keyboard (HID) mode works. Pair it with the phone like a keyboard and leave its suffix as Enter (the factory setting).
+
+- Scan with no box selected: the app reads the code, finds the item and opens the making helper, the same as the camera.
+- Scan into the barcode box or the sold-tags box: that box gets the code.
+- Slow key presses are ignored, so ordinary typing never triggers a lookup.

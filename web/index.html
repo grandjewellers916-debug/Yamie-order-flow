@@ -1460,6 +1460,25 @@ function useScannedCode(code){
   if(rec){applyStock(rec);setStatus(`Found ${rec.barcode} in stock.`,'ok');startTagFlow()}
   else{cur.sku=k;const it=itemFromSku(k);if(it){cur.item=it;cur.itemAuto=false}cur.touched=true;saveDraft();renderEditor();setStatus(`${k} is not in the stock list. Enter the details by hand.`,'err')}
 }
+// Handheld barcode scanner (Bluetooth / USB, keyboard mode): it "types" the code fast and ends with Enter.
+// Works with no field selected; inside a text field the field handles it (the barcode box looks it up on Enter).
+const wedge={buf:'',last:0,fast:0};
+document.addEventListener('keydown',e=>{
+  const t=e.target,typing=t&&(t.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
+  if(typing||e.ctrlKey||e.metaKey||e.altKey)return;
+  const now=performance.now(),gap=now-wedge.last;wedge.last=now;
+  if(gap>120){wedge.buf='';wedge.fast=0}
+  if(e.key==='Enter'||e.key==='Tab'){
+    const code=wedge.buf.trim();wedge.buf='';
+    if(code.length>=4&&wedge.fast>=code.length-2){
+      e.preventDefault();e.stopPropagation();
+      if(!$('modal').hidden)closeModal();if(!$('helper').hidden)closeHelper(true);
+      if(scanTarget==='sold'){scanTarget='';addSold(code)}else{window.scrollTo({top:0,behavior:'smooth'});useScannedCode(code)}
+    }
+    return;
+  }
+  if(e.key.length===1){if(gap<=60)wedge.fast++;wedge.buf+=e.key}
+},true);
 window.onNativeBarcode=function(code,err){
   if(code){useScannedCode(code);return}
   if(err==='fallback'){toast('Opening camera…');scanSide='front';NATIVE.scan('camera');return}
