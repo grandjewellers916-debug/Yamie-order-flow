@@ -7,9 +7,10 @@
       id:'yamie',name:'Yamie',full:'Yamie Fine Jewellery',wm:'YAMIE',wsub:'FINE JEWELLERY',app:'Yamie Price Check',short:'Price Check',
       site:'https://yamie-price-check.netlify.app',
       manifest:'manifest.webmanifest',icon:'icons/icon-192.png',touch:'icons/icon-180.png',
-      theme:'#8F171B',
-      light:{'--maroon':'#8F171B','--band':'#6E1115','--gold':'#B8862B'},
-      dark:{'--maroon':'#D0575B','--band':'#4A0D10','--gold':'#D9A94E'},
+      theme:'#7A1418',
+      logoHeader:'brand/yamie/header-w.png',logoLogin:'brand/yamie/logo-red.png',mark:'brand/yamie/mark-w.png',tagline:'Legacy 1986',
+      light:{'--maroon':'#971B1E','--band':'#6B1014','--gold':'#B58A3C','--bg':'#F8F5F2','--sunk':'#F0EAE5'},
+      dark:{'--maroon':'#E0575B','--band':'#4A0D10','--gold':'#D9A94E'},
       tableName:'Yamie',
       categories:{BGL:'Bangle',BRC:'Bracelet',CHN:'Chain',RST:'Designer Set',DIA:'Diamond Ornament',FIN:'Hooks & Findings',NLC:'Necklace',NSP:'Nosepins (18K)',FRG:'Ring',STD:'Stud',PND:'Pendant',LDJ:'CVD',MMP:'Platinum'},
       table:'yamie',
@@ -51,4 +52,5 @@
   const css=`:root{${v(B.light)}}@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){${v(Object.assign({'--bg':'#171112','--sunk':'#2B2021','--fg':'#F2E8E2'},B.dark))}}}:root[data-theme="dark"]{${v(Object.assign({'--bg':'#171112','--sunk':'#2B2021','--fg':'#F2E8E2'},B.dark))}}`;
   const st=document.createElement('style');st.id='brandCss';st.textContent=css;document.head.appendChild(st);
   document.documentElement.dataset.brand=B.id;
+  if(B.mark)document.documentElement.style.setProperty('--mark',`url("${B.mark}")`);
 })(typeof window!=='undefined'?window:globalThis);
