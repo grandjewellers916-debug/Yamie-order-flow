@@ -4,7 +4,7 @@
 (function(root){
   const BRANDS={
     yamie:{
-      id:'yamie',name:'Yamie',full:'Yamie Fine Jewellery',app:'Yamie Price Check',short:'Price Check',
+      id:'yamie',name:'Yamie',full:'Yamie Fine Jewellery',wm:'YAMIE',wsub:'FINE JEWELLERY',app:'Yamie Price Check',short:'Price Check',
       site:'https://yamie-price-check.netlify.app',
       manifest:'manifest.webmanifest',icon:'icons/icon-192.png',touch:'icons/icon-180.png',
       theme:'#8F171B',
@@ -16,7 +16,7 @@
       rates:['22k','18k','14k','9k']
     },
     grand:{
-      id:'grand',name:'Grand',full:'Grand Jewellers',app:'Grand Price Check',short:'Grand Price',
+      id:'grand',name:'Grand',full:'Grand Jewellers',wm:'GRAND',wsub:'JEWELLERS',app:'Grand Price Check',short:'Grand Price',
       site:'https://grand-price-check.netlify.app',
       manifest:'manifest-grand.webmanifest',icon:'icons/grand-192.png',touch:'icons/grand-180.png',
       theme:'#8C0D24',

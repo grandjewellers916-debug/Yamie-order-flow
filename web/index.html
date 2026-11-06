@@ -384,27 +384,168 @@ details.settings .grid{margin-top:10px}
 .bar-sum{background:none;border:0;padding:0;text-align:left;cursor:pointer;color:inherit;min-width:0}
 @media (max-width:380px){.ded{grid-template-columns:1fr 1fr}.ded .x{justify-self:end}}
 @media (prefers-reduced-motion:no-preference){.btn,.chip{transition:transform .1s}.btn:active,.chip:active{transform:scale(.97)}}
+
+/* ===== v1.2 look: hero header, rates card, scan card, product card, tab bar ===== */
+body{padding-top:0}
+.hero{background:linear-gradient(135deg,var(--band) 0%,var(--maroon) 55%,var(--band) 100%);color:#F7EDE6;padding:calc(18px + env(safe-area-inset-top,0px)) 16px 20px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+.hero-in{max-width:560px;margin:0 auto;display:flex;align-items:center;gap:14px}
+.wordmark{display:flex;flex-direction:column;align-items:center;flex:none;line-height:1}
+.wm-name{font:500 34px var(--display);letter-spacing:.14em;margin-right:-.14em}
+.wm-sub{font:500 8.5px var(--body);letter-spacing:.42em;margin-top:6px;margin-right:-.42em;opacity:.9}
+.hero-div{width:1px;align-self:stretch;background:rgba(247,237,230,.35);flex:none}
+.hero-t{flex:1;min-width:0}
+.hero-h{font:600 21px var(--display);letter-spacing:.01em;line-height:1.1}
+.hero-p{font-size:12px;opacity:.85;margin-top:3px;line-height:1.3}
+.hamb{flex:none;background:none;border:0;color:inherit;width:40px;height:40px;display:grid;place-items:center;cursor:pointer;border-radius:10px;margin-right:-6px}
+.hamb svg{width:26px;height:26px}
+.hamb:active{background:rgba(255,255,255,.12)}
+.wrap{padding-top:16px;padding-bottom:calc(150px + env(safe-area-inset-bottom,0px))}
+.menu-scrim{position:fixed;inset:0;background:rgba(20,8,8,.45);z-index:30}
+.menu{position:fixed;top:0;right:0;bottom:0;width:min(300px,84vw);background:var(--surface);z-index:31;padding:calc(18px + env(safe-area-inset-top,0px)) 16px 20px;display:flex;flex-direction:column;gap:14px;box-shadow:-8px 0 30px rgba(0,0,0,.25);overflow:auto}
+.menu-head{display:flex;justify-content:space-between;align-items:center}
+.menu-head .brand-nm{font:700 24px var(--display);color:var(--maroon)}
+.menu-x{background:none;border:0;font-size:20px;width:40px;height:40px;cursor:pointer;color:var(--muted)}
+.menu-acts{display:flex;flex-direction:column;gap:8px}
+.menu-acts .btn{width:100%;justify-content:flex-start;border-radius:12px;min-height:48px;font-size:15px;padding-inline:14px}
+.menu-ver{margin-top:auto;font-size:12px;color:var(--muted)}
+/* rates card */
+.band{background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:18px;padding:14px 12px 10px;box-shadow:0 4px 18px rgba(80,30,20,.06)}
+.band-head{margin:0 4px 12px}
+.band .eyebrow{display:flex;align-items:center;gap:10px;font:600 13px var(--display);letter-spacing:.16em;color:var(--maroon);opacity:1;text-transform:uppercase}
+.eb-ico svg{width:24px;height:24px;color:var(--gold);display:block}
+.rdate{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--fg);white-space:nowrap}
+.rdate svg{width:18px;height:18px;color:var(--maroon)}
+.rates{gap:0!important}
+.rate{background:none;border:0;border-left:1px solid color-mix(in srgb,var(--gold) 45%,transparent);border-radius:0;padding:4px 2px;text-align:center}
+.rate:first-child{border-left:0}
+.rate label{font:600 14px var(--body);color:var(--gold);opacity:1;letter-spacing:.02em;margin-bottom:2px}
+.rate .v{font:600 16.5px var(--body);letter-spacing:0;color:var(--fg)}
+.rate .u{display:block;font-size:12px;color:var(--muted);margin-top:1px}
+.rate.miss{border:0;border-left:1px solid color-mix(in srgb,var(--gold) 45%,transparent)}
+.rate.miss:first-child{border-left:0}
+.rate.miss .v{color:var(--bad)}
+.rate.edited .v{color:var(--maroon)}
+.rates.many{grid-template-columns:repeat(3,minmax(0,1fr))!important;row-gap:10px!important}
+.rates.many .rate:nth-child(3n+1){border-left:0}
+.band-foot{color:var(--muted);opacity:1;margin:10px 4px 0;font-size:11.5px;justify-content:flex-start;gap:4px 10px}
+.band-foot{display:flex!important}
+.band-foot #rateHint:not(.stale){display:none}
+.band-foot .stale{color:var(--warn)}
+.band-foot button{color:var(--maroon)}
+.band .src{text-align:left;opacity:1}
+/* scan card */
+.scan-card{display:flex;flex-direction:column;gap:10px}
+.scan-row{position:relative}
+.scan-hero{width:100%;border:0;border-radius:18px;background:linear-gradient(135deg,var(--band),var(--maroon) 60%,var(--band));color:#F7EDE6;padding:20px 70px 18px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;box-shadow:0 8px 22px color-mix(in srgb,var(--maroon) 30%,transparent)}
+.scan-hero:active{filter:brightness(.94)}
+.sh-ico svg{width:58px;height:58px;color:#E9C9A0;display:block}
+.sh-t{font:600 25px var(--display);letter-spacing:.01em;margin-top:2px}
+.sh-s{font-size:14px;opacity:.88}
+.scan-m{position:absolute;right:16px;top:50%;transform:translateY(-50%);width:54px;height:54px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#F7EDE6;font:700 20px var(--body);cursor:pointer}
+.scan-m:active{background:rgba(255,255,255,.24)}
+.bc-type{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.bc-type .bc input{font-size:16px!important}
+.bc-type>label{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:var(--muted);margin-bottom:6px}
+/* product card */
+.prod{border-radius:18px;gap:14px;box-shadow:0 4px 18px rgba(80,30,20,.06)}
+.prod-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.ph-t{display:flex;align-items:center;gap:10px;font:600 22px var(--display);color:var(--maroon)}
+.ph-t svg{width:26px;height:26px}
+.sku-chip{background:var(--sunk);border-radius:999px;padding:4px 12px;font:500 12px var(--body);color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:55%}
+.prod-body{display:grid;grid-template-columns:118px minmax(0,1fr);gap:14px;align-items:start}
+.prod-tile{aspect-ratio:4/5;border-radius:14px;background:linear-gradient(160deg,#F7EFE6,#EADBC9);display:grid;place-items:center;color:#A7742C}
+.prod-tile svg{width:58%;height:auto}
+:root[data-theme="dark"] .prod-tile{background:linear-gradient(160deg,#3A2B25,#2A1E1A);color:#D9A94E}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .prod-tile{background:linear-gradient(160deg,#3A2B25,#2A1E1A);color:#D9A94E}}
+.prod-name{font:600 23px var(--display);color:var(--maroon);line-height:1.15;padding-bottom:8px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.specs{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,auto);gap:5px 10px;margin:0;font-size:14px}
+.specs dt{color:var(--muted)}
+.specs dd{margin:0;text-align:right;font-weight:500;min-width:0;overflow-wrap:break-word}
+.prod-total{display:flex;align-items:center;justify-content:space-between;gap:10px;background:color-mix(in srgb,var(--maroon) 7%,var(--surface));border-radius:14px;padding:14px}
+.pt-l{display:flex;align-items:center;gap:10px;font-weight:600;font-size:16px}
+.pt-l svg{width:26px;height:26px;color:var(--maroon)}
+.pt-r{display:flex;flex-direction:column;align-items:flex-end;text-align:right;min-width:0}
+.pt-v{font:700 27px var(--body);color:var(--maroon);font-variant-numeric:tabular-nums;white-space:nowrap;line-height:1.1}
+.pt-s{font-size:12.5px;color:var(--muted)}
+.prod-total.incomplete .pt-v{font-size:18px;color:var(--warn)}
+.prod-acts{display:grid;grid-template-columns:1fr 2fr;gap:8px}
+.prod-acts .btn{min-height:46px;border-radius:12px;font-weight:600}
+@media (max-width:370px){.prod-body{grid-template-columns:92px minmax(0,1fr)}.wm-name{font-size:28px}.hero-h{font-size:18px}}
+/* bottom tabs; bill bar sits above them */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px))}
+.tab{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0 8px;color:var(--muted);font:500 13px var(--body);cursor:pointer;position:relative}
+.tab svg{width:27px;height:27px}
+.tab.on{color:var(--maroon)}
+.tab.on#tabHome svg{fill:var(--maroon)}
+.tab.on::after{content:"";position:absolute;bottom:0;left:30%;right:30%;height:3px;border-radius:2px;background:var(--maroon)}
+.bar{bottom:calc(68px + env(safe-area-inset-bottom,0px));padding-bottom:10px;border-radius:14px 14px 0 0}
+.live-price{z-index:8}
 </style>
 <script src="brand-id.js"></script>
 <script src="brand.js"></script>
 </head>
 <body>
+<header class="hero">
+  <div class="hero-in">
+    <div class="wordmark"><span class="wm-name" id="wmName">YAMIE</span><span class="wm-sub" id="wmSub">FINE JEWELLERY</span></div>
+    <span class="hero-div" aria-hidden="true"></span>
+    <div class="hero-t"><div class="hero-h">Price Checker</div><div class="hero-p">Check today's gold rate &amp; product price</div></div>
+    <button class="hamb" id="menuBtn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  </div>
+</header>
+<div class="menu-scrim" id="menuScrim" hidden></div>
+<nav class="menu" id="menu" hidden aria-label="Menu">
+  <div class="menu-head"><span class="brand-nm">Yamie</span><button class="menu-x" type="button" id="menuClose" aria-label="Close menu">✕</button></div>
+  <div class="menu-acts">
+    <button class="btn sm user-chip" id="userChip" type="button" hidden></button><button class="btn sm admin-pill" id="adminPill" type="button" hidden>Admin ✕</button>
+    <button class="btn sm primary" id="goBill" type="button">Bill ↓</button>
+    <button class="btn sm" id="menuRates" type="button">Day's rates</button>
+    <button class="btn sm" id="stockBtn" type="button">Stock</button>
+    <button class="btn sm" id="menuData" type="button">Stock data</button>
+    <button class="btn sm" id="menuAdmin" type="button">Admin settings</button>
+    <button id="newBillBtn" type="button" hidden>Clear bill</button>
+  </div>
+  <div class="menu-ver">Price check &amp; bill · <span id="appVer"></span> <span class="sync-dot" id="syncDot" hidden></span></div>
+</nav>
 <div class="wrap">
-  <header class="top">
-    <div class="brand"><span class="brand-nm">Yamie</span><small>Price check &amp; bill · <span id="appVer"></span> <span class="sync-dot" id="syncDot" hidden></span></small></div>
-    <div class="hdr-acts"><button class="btn sm admin-pill" id="adminPill" type="button" hidden>Admin ✕</button><button class="btn sm user-chip" id="userChip" type="button" hidden></button><button class="btn sm" id="stockBtn" type="button">Stock</button><button class="btn sm primary" id="goBill" type="button">Bill ↓</button><button id="newBillBtn" type="button" hidden>Clear bill</button></div>
-  </header>
 
   <section class="band" id="band" aria-label="Day's rates" role="button" tabindex="0">
     <div class="band-head">
-      <span class="eyebrow">Today's rate per gram</span>
-      <span class="src" id="rateSrc">Loading…</span>
+      <span class="eyebrow"><span class="eb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4h12l3 5-9 11L3 9z"/><path d="M3 9h18M9 4l3 16M15 4l-3 16M9 4 7.5 9M15 4l1.5 5"/></svg></span>Today's gold rates</span>
+      <span class="rdate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><span id="rateDate"></span></span>
     </div>
     <div class="rates" id="rates"></div>
     <div class="band-foot">
-      <span id="rateHint">Tap to set the day's rates.</span>
+      <span class="src" id="rateSrc">Loading…</span><span id="rateHint">Tap to set the day's rates.</span>
       <button type="button" id="rateReset" hidden>Use today's rates</button>
     </div>
+  </section>
+
+  <!-- Scan -->
+  <section class="scan-card" aria-label="Find the item">
+    <div class="scan-row">
+      <button class="scan-hero" type="button" id="scanBc" aria-label="Scan barcode with camera">
+        <span class="sh-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M7.5 8v8M10.5 8v8M13.5 8v8M16.5 8v8"/></svg></span>
+        <span class="sh-t">Scan Barcode</span><span class="sh-s">Tap to scan a product</span>
+      </button>
+      <button class="scan-m" type="button" id="manBc" aria-label="Pick the item code by hand">M</button>
+    </div>
+    <div class="bc-type"><label for="bcNum">Or type the barcode</label>
+      <div class="bc"><span class="bc-pre" id="bcPre" hidden>—</span><input id="bcNum" class="num" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="e.g. DIA1164"></div>
+      <div class="bc-item" id="bcItem" hidden></div>
+      <input id="sku" type="hidden">
+    </div>
+  </section>
+
+  <!-- Product details -->
+  <section class="card prod" id="prodCard" hidden aria-label="Product details">
+    <div class="prod-head"><span class="ph-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 3.5 7.5v9L12 21l8.5-4.5v-9z"/><path d="M3.5 7.5 12 12l8.5-4.5M12 12v9"/></svg>Product Details</span><span class="sku-chip" id="pdSku"></span></div>
+    <div class="prod-body">
+      <div class="prod-tile" id="pdTile"></div>
+      <div class="prod-info"><div class="prod-name" id="pdName"></div><dl class="specs" id="pdSpecs"></dl></div>
+    </div>
+    <div class="prod-total" id="pdTotal"><span class="pt-l"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12V4h8l10 10-7 7z"/><circle cx="7.5" cy="8" r="1.5"/></svg>Total Price</span><span class="pt-r"><span class="pt-v" id="pdV">—</span><span class="pt-s" id="pdS"></span></span></div>
+    <div class="prod-acts"><button class="btn" type="button" id="pdDel">Delete</button><button class="btn primary" type="button" id="pdSave">Save item</button></div>
   </section>
 
   <!-- Tag editor -->
@@ -416,11 +557,6 @@ details.settings .grid{margin-top:10px}
 
     <div class="grid">
       <div class="f full" hidden><label for="itemSel">Item</label><select id="itemSel"></select><input id="item" autocomplete="off" placeholder="Type item name" hidden></div>
-      <div class="f full bc-box"><label for="bcNum">Barcode</label>
-        <div class="bc"><span class="bc-pre" id="bcPre" hidden>—</span><input id="bcNum" class="num" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="e.g. DIA1164"><button class="btn bc-man" type="button" id="manBc" aria-label="Pick the item code by hand">M</button><button class="btn bc-scan" type="button" id="scanBc" hidden aria-label="Scan barcode with camera">Scan</button></div>
-        <div class="bc-item" id="bcItem"></div>
-        <input id="sku" type="hidden">
-      </div>
       <div class="f full" id="purityRow" hidden><span class="flabel req">Purity <small class="pur-why">not in stock data, pick it</small></span><div class="seg" id="puritySeg" role="group" aria-label="Purity"></div></div>
       <div class="f"><label for="gw">GWT · gross (g)</label><input class="num" id="gw" inputmode="decimal"></div>
       <div class="f"><label for="sw">SWT · stone</label><input class="num" id="sw" inputmode="decimal"></div>
@@ -559,6 +695,12 @@ details.settings .grid{margin-top:10px}
   </details>
 </div>
 
+<nav class="tabbar" id="tabbar" aria-label="Sections">
+  <button type="button" class="tab on" id="tabHome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.2 12 3.8l9 7.4h-2.5V20.2h-5v-5.5h-3v5.5h-5V11.2z"/></svg><span>Home</span></button>
+  <button type="button" class="tab" id="tabScan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M7.5 8v8M10.5 8v8M13.5 8v8M16.5 8v8"/></svg><span>Scan</span></button>
+  <button type="button" class="tab" id="tabRates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18"/><path d="M5 20l1.5-5h5L13 20"/><path d="M11 20l1.5-5h5L19 20"/><path d="M8 15l1.5-5h5L16 15"/></svg><span>Gold Rates</span></button>
+  <button type="button" class="tab" id="tabSet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="6.6"/><path d="M12 2.5v2.9M12 18.6v2.9M2.5 12h2.9M18.6 12h2.9M5.3 5.3l2 2M16.7 16.7l2 2M5.3 18.7l2-2M16.7 7.3l2-2"/></svg><span>Settings</span></button>
+</nav>
 <div class="bar" id="bar">
   <div class="bar-in">
     <button class="bar-sum" type="button" id="barBtn" aria-label="View bill"><div class="t" id="barT">Net payable</div><div class="v" id="barV">₹0</div></button>
@@ -666,6 +808,7 @@ details.settings .grid{margin-top:10px}
 const $=id=>document.getElementById(id);
 const BRAND=window.BRAND||{id:'yamie',name:'Yamie',full:'Yamie Fine Jewellery',site:'https://yamie-price-check.netlify.app',tableName:'Yamie',table:'yamie',categories:{}};
 document.querySelectorAll('.brand-nm').forEach(el=>el.textContent=BRAND.name);
+$('wmName').textContent=BRAND.wm||String(BRAND.name).toUpperCase();$('wmSub').textContent=BRAND.wsub||'';
 const NATIVE=window.YamieNative||null;   // inside the Android app: ML Kit OCR, direct rates, clipboard
 const store={get(k,d){try{const v=localStorage.getItem('ypc_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('ypc_'+k,JSON.stringify(v))}catch(e){}}};
 
@@ -815,22 +958,23 @@ function baseRate(p){
 function rateFor(p){if(!p)return null;const o=bill.overrides[p];if(o!=null&&!isNaN(o))return o;return baseRate(p)}
 const ratesEl=$('rates');
 function buildRateBand(){
-  const list=SHOWN();ratesEl.innerHTML='';ratesEl.style.gridTemplateColumns=`repeat(${list.length},minmax(0,1fr))`;
+  const list=SHOWN();ratesEl.innerHTML='';ratesEl.style.gridTemplateColumns=`repeat(${list.length},minmax(0,1fr))`;ratesEl.classList.toggle('many',list.length>4);
   list.forEach(p=>{
     const d=document.createElement('div');d.className='rate';d.dataset.k=p.id;
-    d.innerHTML=`<label>${p.id==='platinum'?'PT':p.id==='silver'?'SLV':p.label}</label><span class="v">—</span>`;
+    d.innerHTML=`<label>${p.id==='platinum'?'PT':p.id==='silver'?'Silver':p.label}</label><span class="v">—</span><span class="u">/ g</span>`;
     ratesEl.appendChild(d);
   });
 }
 function paintRates(){
   SHOWN().forEach(p=>{
     const box=ratesEl.querySelector(`[data-k="${p.id}"]`),v=rateFor(p.id);if(!box)return;
-    box.querySelector('.v').textContent=v==null?'—':v.toLocaleString('en-IN');
+    box.querySelector('.v').textContent=v==null?'—':'₹ '+v.toLocaleString('en-IN');
     box.classList.toggle('edited',bill.overrides[p.id]!=null);
     box.classList.toggle('miss',v==null&&!!(cur&&cur.purity===p.id||bill.items.some(t=>t.purity===p.id)));
   });
   const hasOv=Object.keys(bill.overrides).length>0;
   $('rateReset').hidden=!hasOv;
+  $('rateDate').textContent=new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
   const e=dayEntry(),hint=$('rateHint');
   if(hasOv){setSrc('Saved bill rates');hint.textContent='This bill uses the rates it was saved with.';hint.className=''}
   else if(e){setSrc(`Set today · ${new Date(e.at).toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'})}`);hint.textContent='Tap to change the day\'s rates.';hint.className=''}
@@ -1029,13 +1173,14 @@ function paintBarcode(){
   if(document.activeElement!==inp)inp.value=keyOf(cur.sku);
   inp.classList.toggle('read',isRead('sku'));
   const name=cur.item||itemFromSku(cur.sku),st=cur.stockKey&&cur.stock?cur.stock:null;
-  const el=$('bcItem');
+  const el=$('bcItem');el.hidden=!!st||!el.textContent;
   if(st){
     const cell=(l,v,full)=>`<span${full?' class="full"':''}>${l} <b>${v==null||v===''?'—':esc(v)}</b></span>`;
     el.innerHTML=`<div class="bc-det">${cell('Item',st.category||name||st.item)}${cell('Purity',PLABEL[cur.purity]||'')}${cell('Pcs',st.pcs!=null&&st.pcs!==''?fmtN(st.pcs):'')}${cell('Supplier',st.supplier)}</div>`;
   }else if(stockMap.size>0&&keyOf(cur.sku).length>=4){
     el.innerHTML=`${name?`Item <b>${esc(name)}</b> · `:''}<span class="bc-none">Not in stock list.</span> Check the number, or enter the details by hand.`;
   }else el.innerHTML=name?`Item <b>${esc(name)}</b>${CAT[sp.pre]?` · ${sp.pre}`:''}`:(sp.pre&&sp.pre.length>=3?'Prefix not recognised':'');
+  el.hidden=!!st||!el.innerHTML;
 }
 $('bcNum').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('bcNum').blur();lookupTyped(true);setTimeout(()=>{if(cur.stockKey)startTagFlow()},60)}});
 $('bcNum').addEventListener('input',()=>{
@@ -1222,11 +1367,12 @@ $('galInput').onchange=e=>handleFile(e.target.files[0],e.target);
 const canNativeBc=!!(NATIVE&&NATIVE.scanBarcode);
 let bcMode=false;
 const canWebBc=!NATIVE&&window.isSecureContext&&!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia);
-$('scanBc').hidden=!(canNativeBc||canWebBc);
 $('scanBc').onclick=()=>{
   if(canNativeBc){NATIVE.scanBarcode();return}
-  if(canWebBc)openCamScan();
+  if(canWebBc){openCamScan();return}
+  toast('No camera here. Type the barcode.');$('bcNum').focus();
 };
+if(!(canNativeBc||canWebBc))$('scanBc').querySelector('.sh-s').textContent='Camera not available · type the barcode below';
 // Manual item pick (M): choose the item code from icons, type the number, look the barcode up in stock
 const ICO={
   ring:'<circle cx="12" cy="14.5" r="6"/><path d="M9.5 6.5 12 3l2.5 3.5L12 8.6z"/>',
@@ -1464,6 +1610,7 @@ function renderBill(keepInputs){
   $('net').textContent=inr(Math.abs(s.net));
   $('barT').textContent=(n?`${n} tag${n>1?'s':''} · `:'')+(refund?'Refund':'Net payable');
   $('barV').textContent=inr(Math.abs(s.net));
+  $('bar').hidden=!(n||bill.oldGold.length||bill.returns.length);
   $('waBtn').href='https://wa.me/?text='+encodeURIComponent(shareText());
   renderRecent();
 }
@@ -1695,9 +1842,29 @@ function showPricePop(){
   $('modalTitle').classList.add('price-pop');
 }
 let lpLast='';
+let prodSeen=false;
+function paintProduct(){
+  const card=$('prodCard'),k=keyOf(cur.sku);
+  card.hidden=!(cur.touched&&k);if(card.hidden)return;
+  const st=cur.stockKey&&cur.stock?cur.stock:null,name=cur.item||itemFromSku(cur.sku)||'Item';
+  $('pdSku').textContent='SKU: '+k;
+  $('pdTile').innerHTML=icoFor(name);
+  $('pdName').textContent=name;
+  const w=v=>v!=null&&v!==''&&!isNaN(v)?(+v).toFixed(3)+' g':'';
+  const rows=[['Item',st&&st.category],['Purity',PLABEL[cur.purity]],['Gross Weight (GW)',w(cur.gw)],['Net Weight (NW)',w(cur.nw)],['Stone Weight (SW)',w(cur.sw)],['Pcs',st&&st.pcs!=null&&st.pcs!==''?fmtN(st.pcs):''],['Supplier',st&&st.supplier]].filter(r=>r[1]);
+  $('pdSpecs').innerHTML=rows.map(([l,v])=>`<dt>${l}</dt><dd>${esc(v)}</dd>`).join('')||'<dt>Not in stock list</dt><dd></dd>';
+  const p=priceTag(cur),m=missing(cur),g=num(settings.gst)||0,ok=p.ok&&!m.length;
+  $('pdV').textContent=ok?inr(p.value*(1+g/100)):'—';
+  $('pdS').textContent=ok?`Incl. GST ${g}% · ${p.huidN} HUID`:'Needs: '+m.map(x=>({nw:'NWT',spr:'stone price',rate:'rate',purity:'purity',making:'making'})[x.k]).join(', ');
+  $('pdTotal').classList.toggle('incomplete',!ok);
+}
+$('pdDel').onclick=()=>$('clearTag').click();
+$('pdSave').onclick=()=>$('addTag').click();
+if('IntersectionObserver' in window)new IntersectionObserver(es=>{prodSeen=es[0].isIntersecting;paintLivePrice()},{threshold:0,rootMargin:'0px 0px -120px 0px'}).observe($('prodCard'));
 function paintLivePrice(){
+  paintProduct();
   const el=$('livePrice');if(!el)return;
-  const show=!!(cur.touched&&keyOf(cur.sku));
+  const show=!!(cur.touched&&keyOf(cur.sku))&&!prodSeen;
   el.hidden=!show;if(!show){lpLast='';return}
   const p=priceTag(cur),m=missing(cur),g=num(settings.gst)||0,ok=p.ok&&!m.length;
   $('lpT').textContent=tagTitle(cur);
@@ -1884,9 +2051,19 @@ function openStock(){paintStockSummary();$('ssheet').hidden=false;document.body.
 function closeStock(fromPop){if($('ssheet').hidden)return;$('ssheet').hidden=true;document.body.style.overflow='';if(!fromPop){try{if(history.state&&history.state.ss)history.back()}catch(e){}}}
 window.addEventListener('popstate',()=>closeStock(true));
 $('stockBtn').onclick=openStock;$('ssClose').onclick=()=>closeStock();
+// Menu (hamburger) and bottom tabs
+function setMenu(on){$('menu').hidden=!on;$('menuScrim').hidden=!on;$('menuBtn').setAttribute('aria-expanded',on)}
+$('menuBtn').onclick=()=>setMenu(true);$('menuClose').onclick=$('menuScrim').onclick=()=>setMenu(false);
+$('menu').addEventListener('click',e=>{if(e.target.closest('.menu-acts button'))setMenu(false)});
+function openSettings(card){const c=$(card||'adminCard');if(!c.open)c.querySelector('summary').click();setTimeout(()=>c.scrollIntoView({behavior:'smooth',block:'start'}),120)}
+$('menuRates').onclick=()=>openRates();$('menuAdmin').onclick=()=>openSettings('adminCard');$('menuData').onclick=()=>openSettings('dataCard');
+$('tabHome').onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
+$('tabScan').onclick=()=>$('scanBc').click();
+$('tabRates').onclick=()=>openRates();
+$('tabSet').onclick=()=>openSettings('adminCard');
 
 // ---------- version ----------
-const APP_VERSION='1.1.__BUILD__';
+const APP_VERSION='1.2.__BUILD__';
 $('appVer').textContent='v'+(APP_VERSION.includes('__')?'dev':APP_VERSION);
 
 // ---------- users and login ----------
