@@ -143,3 +143,11 @@ Any Bluetooth or USB barcode scanner in keyboard (HID) mode works. Pair it with 
 - **Search** is its own tab (label no., item name, item type, stone).
 - **+** on the Scan Barcode card starts a new quote (the current-quote strip is gone).
 - **Roles and permissions** (Admin settings): Admin has everything; Manager and Staff come preset; add roles, tick permissions (stock import, delete sold tags, day's rates, update making, making after discount, close sale, cancel quote, reopen, delete quotes, admin settings, users and roles, connect phones). Users pick a role. The shared database checks the same permissions.
+
+## v1.6.38 (7 Nov 2026)
+
+- Price card: **Item type** is the title (item name not shown); **Diamond Value** and **Colour Stone** shown separately (Dia-SA, Clr-SA).
+- **Product photos**: add from the Search tab (camera or gallery); shared with all phones; shown on the price card. Admin settings → *Product image*: Show / Hide. Permission: *Add product photos*.
+- **Search** shows every detail: item type, item name, purity, weights, diamond and colour stone values, stone names, making, HUID, label code, supplier.
+- **Quote → Discount**: item prices stay at the label making; the manager enters making after discount per item, the difference is the discount, plus an optional flat discount. Summary: Total Amount → Discount → Total after discount → URD / SR / advance → Balance.
+- User name at the top; tap it to log out.

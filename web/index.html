@@ -726,6 +726,37 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .rc-p{display:flex;align-items:flex-start;gap:8px;font-size:13.5px;padding:5px 0;cursor:pointer}
 .rc-p input{width:18px;height:18px;margin:1px 0 0;accent-color:var(--maroon);flex:none}
 #uRole{flex-wrap:wrap}
+/* v1.7 */
+.hero-user{justify-self:end;display:flex;flex-direction:column;align-items:flex-end;gap:1px;border:0;background:none;color:#fff;cursor:pointer;padding:4px 2px;min-width:0;max-width:96px}
+.hero-user b{font:600 13px var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:96px}
+.hero-user b::after{content:" ⏻";opacity:.8;font-weight:400}
+.hero-user span{font-size:11px;opacity:.75}
+.hero-ver{display:none}
+.prod.no-img .prod-body{grid-template-columns:1fr}
+.prod-tile.photo{padding:0;overflow:hidden}
+.prod-tile.photo img,.fc-img img{width:100%;height:100%;object-fit:cover;display:block}
+.q-disc{gap:10px}
+.q-disc h2{margin:0;font:700 18px var(--display);color:var(--maroon)}
+.qd-tot{font-weight:700;color:var(--ok)}
+.qd-row{border-top:1px solid var(--line);padding:10px 0;display:flex;flex-direction:column;gap:6px}
+.qd-row .m{color:var(--muted);font-size:13px}
+.qd-b{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px}
+.qd-arrow{color:var(--muted)}
+.qd-in{display:flex;align-items:center;gap:6px}
+.qd-in input{width:90px;font:700 16px var(--mono);border:1.5px solid var(--gold);border-radius:8px;padding:6px 8px;background:color-mix(in srgb,var(--gold) 10%,var(--surface));color:var(--fg)}
+.qd-in small{color:var(--muted)}
+.qd-c{display:flex;justify-content:space-between;font-size:14px;font-variant-numeric:tabular-nums}
+.qd-d{color:var(--ok);font-weight:700}
+.qd-extra{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:10px;font-size:14px}
+.find-card{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--surface);display:flex;flex-direction:column;gap:10px}
+.fc-top{display:flex;gap:12px;align-items:center}
+.fc-img{width:72px;height:72px;flex:none;border-radius:12px;overflow:hidden;background:linear-gradient(160deg,#F7EFE6,#EADBC9);display:grid;place-items:center;color:#A7742C}
+.fc-img svg{width:60%}
+.fc-h{flex:1;min-width:0}
+.fc-h b{font:700 17px var(--mono);margin-right:8px}
+.fc-name{font:600 16px var(--display);color:var(--maroon);margin-top:4px}
+.fc-specs{font-size:13.5px}
+.fc-acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 /* making entry pop-up */
 .mk-sheet{display:flex;flex-direction:column;gap:12px}
 .mk-types{background:transparent;gap:8px;padding:0}
@@ -774,7 +805,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
       <img class="hero-mark" id="heroMark" alt="" hidden><span class="hero-wm" id="heroWm" hidden></span>
       <div class="hero-row"><span class="hero-bar" aria-hidden="true"></span><h1 class="hero-title" id="viewTitle">PRICE CHECK</h1></div>
     </div>
-    <span class="hero-ver" id="heroVer"></span>
+    <button class="hero-user" type="button" id="heroUser" aria-label="Account and log out"><b id="heroName">—</b><span id="heroVer"></span></button>
     <button class="hamb" id="menuBtn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
   </div>
 </header>
@@ -928,6 +959,14 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
       <div class="q-mgr" id="qMgrNote" hidden></div>
     </div>
 
+    <div class="card q-disc" id="qDiscCard">
+      <div class="sec-head"><h2>Discount</h2><span class="qd-tot" id="qDiscTot"></span></div>
+      <p class="note" style="margin:0">Manager enters the making after discount for each item. The difference is shown as discount.</p>
+      <div id="qDiscList"></div>
+      <button class="btn" type="button" id="qDiscMgr" hidden>Manager login to enter discount</button>
+      <div class="qd-extra" id="qDiscExtraRow"><span>Additional discount (flat)</span><span><b id="qDiscExtraV">None</b> <button class="linkbtn" type="button" id="qDiscExtraBtn">Change</button><button type="button" id="qDisc" hidden></button></span></div>
+    </div>
+
     <div class="card q-ded" id="qDed">
       <div class="qd-sec" id="qUrdSec"><div class="sec-head"><h3>URD · old gold</h3><button class="linkbtn" type="button" id="addOld">+ Add URD</button></div><div id="oldList" class="ded-list"></div></div>
       <div class="qd-sec" id="qSrSec"><div class="sec-head"><h3>Sales return</h3><button class="linkbtn" type="button" id="addRet">+ Add return</button></div><div id="retList" class="ded-list"></div></div>
@@ -941,7 +980,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
     </div>
 
     <div class="q-acts">
-      <button class="btn q-soft" type="button" id="qDisc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 5 5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/></svg>Discount</button>
+      <button class="btn q-soft" type="button" id="qDiscGo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 5 5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/></svg>Discount</button>
       <button class="btn q-soft" type="button" id="qAdv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 14h2"/></svg>Advance</button>
       <button class="btn primary q-gen" type="button" id="saveBill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>Generate Quote</button>
     </div>
@@ -954,6 +993,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
         <button class="btn" type="button" id="phGal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 17-5-5-9 8"/></svg>Gallery</button>
         <input class="hidden-input" id="phFile" type="file" accept="image/*" multiple aria-label="Choose photos">
         <input class="hidden-input" id="phCamIn" type="file" accept="image/*" capture="environment" aria-label="Take a photo">
+        <input class="hidden-input" id="pimgFile" type="file" accept="image/*" aria-label="Choose product photo"><input class="hidden-input" id="pimgCam" type="file" accept="image/*" capture="environment" aria-label="Take product photo">
       </div>
       <button class="btn wa-btn" type="button" id="waBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.3-4A8 8 0 1 1 8 19z"/><path d="M9 9c0 3 3 6 6 6l1-1.5-2-1-1 1c-1-.5-2-1.5-2.5-2.5l1-1-1-2z"/></svg>Share on WhatsApp</button>
       <button class="linkbtn" type="button" id="copyBtn">Copy quote text</button>
@@ -1003,6 +1043,9 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
     <h3>Text size on this phone</h3>
       <p class="note" style="margin-block:4px 0">Make everything smaller if the rates or prices don't fit the screen.</p>
       <div class="seg" id="uiZoom"><button type="button" data-z="0.82">Smallest</button><button type="button" data-z="0.9">Small</button><button type="button" data-z="1">Normal</button><button type="button" data-z="1.1">Large</button></div>
+    <h3 style="margin-top:16px">Product image</h3>
+      <p class="note" style="margin-block:4px 0">Show the product photo (or item icon) on the price card. Photos are added from the Search tab.</p>
+      <div class="seg" id="imgSeg"><button type="button" data-i="1">Show</button><button type="button" data-i="0">Hide</button></div>
     <h3 style="margin-top:16px">Rates shown</h3>
       <p class="note" style="margin-block:4px 0">Purities shown on the rate band, the day's rates screen and the purity buttons. Shown gold rates are required each day.</p>
       <div class="rate-pick" id="ratePick"></div>
@@ -1283,6 +1326,7 @@ async function pullAll(force){
       sync.v.users=d.v||sync.v.users;
     }
     if(force||(m.quotes||0)>(sync.v.quotes||0)||quotes.some(q=>q.items&&q.items.length&&(!q.no||(q.pushed||0)<(q.updated||0)))){sync.busy=false;await pullQuotes();sync.busy=true}
+    if(force||(m.imgs||0)>(sync.v.imgs||0)){sync.busy=false;await pullImgIdx();sync.busy=true}
     if((force||m.settings>sync.v.settings)&&!sync.dirtySettings){
       const d=await syncApi('settings');
       if(d.settings){applyRemoteSettings(d.settings)}
@@ -1298,14 +1342,14 @@ function applyRemoteSettings(rs){
   if('cats' in rs){settings.cats=rs.cats&&typeof rs.cats==='object'&&Object.keys(rs.cats).length?rs.cats:null;try{applyCats()}catch(e){}}
   if('showRates' in rs){settings.showRates=Array.isArray(rs.showRates)&&rs.showRates.length?rs.showRates:null;try{rebuildPurities()}catch(e){}}
   if(rs.gst!=null)settings.gst=rs.gst;if(rs.huid!=null)settings.huid=rs.huid;
-  if(rs.mkEdit)settings.mkEdit=rs.mkEdit;
+  if(rs.mkEdit)settings.mkEdit=rs.mkEdit;if('showImg' in rs)settings.showImg=rs.showImg!==false;
   store.set('settings2',settings);try{paintAdminExtras()}catch(e){}
   try{renderTable('cz');renderTable('dia');$('setGst').value=settings.gst;$('setHuid').value=settings.huid;renderEditor();renderBill(true)}catch(e){}
 }
 let settingsTimer=null;
 function saveSettings(){store.set('settings2',settings);if(!sync.key)return;sync.dirtySettings=true;saveSyncState();clearTimeout(settingsTimer);settingsTimer=setTimeout(()=>{if(adminCreds)pushSettingsNow().catch(e=>syncMsg('err',syncErrText(e)))},1500)}
 async function pushSettingsNow(){
-  const r=await syncApi('settings','POST',{settings:{gst:settings.gst,huid:settings.huid,mkTable:settings.mkTable,cats:settings.cats||null,showRates:settings.showRates||null,mkEdit:settings.mkEdit||'admin'}},adminCreds);
+  const r=await syncApi('settings','POST',{settings:{gst:settings.gst,huid:settings.huid,mkTable:settings.mkTable,cats:settings.cats||null,showRates:settings.showRates||null,mkEdit:settings.mkEdit||'admin',showImg:settings.showImg!==false}},adminCreds);
   sync.v.settings=r.v;sync.dirtySettings=false;saveSyncState();syncMsg('ok','Settings saved to the shared database.');
 }
 async function pushRate(entry){
@@ -2058,13 +2102,12 @@ function renderBill(keepInputs){
     const qv=t.qMk?t.qMk.val:'';
     return `<div class="qi-row${p.ok?'':' bad'}" role="row" data-id="${t.id}">
       <span>${i+1}</span>
-      <span class="qi-sku"><b>${esc(keyOf(t.sku)||'—')}</b><small>${esc(t.item||'')}</small></span>
+      <span class="qi-sku"><b>${esc(keyOf(t.sku)||'—')}</b><small>${esc((t.stock&&t.stock.category)||t.item||'')}</small></span>
       <span>${esc(PLABEL[t.purity]||'—')}</span>
       <span>${fmtW(num(t.gw))}</span>
       <span>${fmtW(num(t.nw))}</span>
-      <span class="qi-amt">${disc?`<s>${inr(p.value*(1+gstPct()/100))}</s>`:''}${p.ok?inr(q*(1+gstPct()/100)):'—'}</span>
+      <span class="qi-amt">${p.ok?inr(p.value*(1+gstPct()/100)):'—'}</span>
       <span class="qi-acts">${closed?'':`<button type="button" data-edit="${t.id}" aria-label="Edit item ${i+1}">${IC_EDIT}</button><button type="button" data-del="${t.id}" aria-label="Remove item ${i+1}">${IC_DEL}</button>`}</span>
-      ${showMk?`<div class="qi-mk">Making ${esc(mkTxt)} · after discount ${mgr&&mgrMode&&!closed?`<input data-qmk="${t.id}" inputmode="decimal" value="${esc(qv)}" placeholder="${esc(fmtN(num(t.mkVal)))}" aria-label="Making after discount for item ${i+1}"> ${t.mkType==='pct'?'%':t.mkType==='pergram'?'₹/g':'₹'}`:`<b>${t.qMk?esc(valText({type:t.mkType,val:num(t.qMk.val)})):'—'}</b>`}${disc?` <span class="new">saves ${inr((p.value-q)*(1+gstPct()/100))}</span>`:''}</div>`:''}
     </div>`}).join(''):'<div class="empty-q">No items yet. Scan a product or add it manually, then tap Save to Quote.</div>';
   $('items').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{
     const t=bill.items.find(x=>x.id===b.dataset.edit);if(!t)return;
@@ -2086,22 +2129,22 @@ function renderBill(keepInputs){
     else t.qMk={type:t.mkType,val:fmtN(v),by:curUser?(curUser.name||curUser.username):'',at:Date.now()};
     saveBill();renderBill();
   }));
-  $('qMgrNote').hidden=!(mgrMode&&n);
+  $('qMgrNote').hidden=true;renderDiscount(s);
   $('qMgrNote').textContent='Manager: enter the making after discount for each item. Prices update straight away.';
 
   if(!keepInputs)renderDeductions();else refreshDeductionValues();
 
   const g=gstPct(),L=[];
   L.push(['Total Net Weight',fmtW(s.nw)+' g']);
-  if(s.mkDisc>0.5)L.push(['Making discount',`−${inr(s.mkDisc*(1+g/100))}`,'minus']);
-  L.push([`Total Amount (incl. GST ${fmtN(g)}%)`,inr(s.total),'strong']);
+  const listTot=s.listSub*(1+g/100),mkD=s.mkDisc*(1+g/100),dTot=mkD+s.disc;
+  L.push([`Total Amount (incl. GST ${fmtN(g)}%)`,inr(listTot),'strong']);
+  if(dTot>0.5){L.push(['Discount','−'+inr(dTot),'minus','disc']);L.push(['Total after discount',inr(s.total-s.disc),'strong'])}
   if(s.old)L.push([`Less URD · ${fmtW(s.oldW)} g`,'−'+inr(s.old),'minus']);
   if(s.ret)L.push(['Less sales return','−'+inr(s.ret),'minus']);
-  L.push(['Discount','−'+inr(s.disc),'minus','disc']);
   L.push(['Advance','−'+inr(s.adv),'minus','adv']);
   if(s.bad)L.push([`${s.bad} item${s.bad>1?'s':''} not priced (missing rate or weight)`,'','staff']);
   $('totals').innerHTML=L.map(l=>`<div class="line ${l[2]||''}"><span>${esc(l[0])}${l[3]&&!closed?`<button class="ed" type="button" data-go="${l[3]}" aria-label="Change ${esc(l[0])}">${IC_EDIT}</button>`:''}</span><span>${esc(l[1])}</span></div>`).join('');
-  $('totals').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>b.dataset.go==='disc'?$('qDisc').click():$('qAdv').click());
+  $('totals').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>b.dataset.go==='disc'?$('qDiscCard').scrollIntoView({behavior:'smooth',block:'start'}):$('qAdv').click());
   const refund=s.net<0;
   $('netLabel').textContent=refund?'Refund to customer':'Balance Amount';
   $('qBalRow').classList.toggle('refund',refund);
@@ -2113,6 +2156,27 @@ function renderBill(keepInputs){
   paintPhotosCount();renderRecent();
 }
 function gstPct(){return num(settings.gst)||0}
+// Discount section: manager enters making after discount per item; the difference is the discount
+function renderDiscount(s){
+  const el=$('qDiscList'),g=gstPct(),closed=isClosed(),edit=can('mkDisc')&&!closed;
+  if(!bill.items.length){el.innerHTML='<div class="empty-q">Discount is set here once items are in the quote.</div>';$('qDiscTot').textContent='';$('qDiscMgr').hidden=true;$('qDiscExtraRow').hidden=true;return}
+  el.innerHTML=bill.items.map((t,i)=>{const p=priceTag(t),q=quotedValue(t,p),d=(p.value-q)*(1+g/100),u=t.mkType==='pct'?'%':t.mkType==='pergram'?'₹/g':'₹';
+    return `<div class="qd-row"><div class="qd-a"><b>${i+1}. ${esc(keyOf(t.sku))}</b> <span class="m">${esc((t.stock&&t.stock.category)||t.item||'')}</span></div>
+      <div class="qd-b"><span class="m">Making ${p.hasMk?esc(valText({type:t.mkType,val:num(t.mkVal)})):'—'}</span><span class="qd-arrow">→</span>
+      ${edit&&p.hasMk?`<span class="qd-in"><input data-qmk="${t.id}" inputmode="decimal" value="${esc(t.qMk?t.qMk.val:'')}" placeholder="${esc(fmtN(num(t.mkVal)))}" aria-label="Making after discount, item ${i+1}"><small>${u}</small></span>`:`<b>${t.qMk?esc(valText({type:t.mkType,val:num(t.qMk.val)})):'no discount'}</b>`}</div>
+      <div class="qd-c"><span>${p.ok?inr(p.value*(1+g/100)):'—'}${d>0.5?` → <b>${inr(q*(1+g/100))}</b>`:''}</span><span class="qd-d">${d>0.5?'−'+inr(d):''}</span></div></div>`}).join('');
+  el.querySelectorAll('[data-qmk]').forEach(inp=>inp.addEventListener('change',()=>{
+    const t=bill.items.find(x=>x.id===inp.dataset.qmk);if(!t)return;const v=num(inp.value);
+    if(inp.value.trim()===''||isNaN(v))delete t.qMk;
+    else if(v>num(t.mkVal)){toast('Must be lower than the making on the label',null,true);inp.value=t.qMk?t.qMk.val:'';return}
+    else t.qMk={type:t.mkType,val:fmtN(v),by:curUser?(curUser.name||curUser.username):'',at:Date.now()};
+    saveBill();renderBill();
+  }));
+  const mkD=s.mkDisc*(1+g/100);
+  $('qDiscTot').textContent=mkD+s.disc>0.5?`Total discount −${inr(mkD+s.disc)}`:'';
+  $('qDiscMgr').hidden=can('mkDisc')||closed;
+  $('qDiscExtraRow').hidden=false;$('qDiscExtraV').textContent=s.disc?'−'+inr(s.disc):'None';
+}
 function oldLine(o){const v=oldValue(o),r=oldRate(o);return isNaN(v)?'Enter net weight':`${fmtW(num(o.wt))} g × ${inr(r)} = ${inr2(v)}`}
 function renderDeductions(){
   const og=$('oldList'),closed=isClosed();
@@ -2155,9 +2219,13 @@ $('addRet').onclick=notClosed(()=>{const r={id:uid(),note:'',amount:''};bill.ret
 $('addAdv').onclick=notClosed(()=>{const a={id:uid(),amount:'',mode:'Cash',note:''};bill.advances.push(a);saveBill();renderBill();const el=$('amount_'+a.id);if(el)el.focus()});
 $('qtUrd').onclick=()=>{$('addOld').click();$('qUrdSec').scrollIntoView({behavior:'smooth',block:'center'})};
 $('qtSr').onclick=()=>{$('addRet').click();$('qSrSec').scrollIntoView({behavior:'smooth',block:'center'})};
+$('qDiscMgr').onclick=()=>withManager('A manager must log in to enter the discount.',()=>renderBill());
+$('qDiscExtraBtn').onclick=()=>$('qDisc').click();
+$('qDiscGo').onclick=()=>$('qDiscCard').scrollIntoView({behavior:'smooth',block:'start'});
 $('qAdv').onclick=()=>{$('addAdv').click();$('qAdvSec').scrollIntoView({behavior:'smooth',block:'center'})};
 $('qDisc').onclick=notClosed(()=>{
-  $('modalTitle').textContent='Discount';$('modalTitle').classList.remove('price-pop');
+  if(!$('modal').hidden)return;
+  $('modalTitle').textContent='Additional discount';$('modalTitle').classList.remove('price-pop');
   $('modalBody').innerHTML=`Flat amount off the total, in ₹.<br><input id="discIn" class="num disc-in" inputmode="decimal" value="${esc(bill.discount||'')}" placeholder="0" style="width:100%;margin-top:10px;font:700 24px var(--mono);padding:10px;border:1.5px solid var(--maroon);border-radius:10px;background:var(--surface);color:var(--fg)">`;
   const a=$('modalActs');a.innerHTML='';
   const ok=document.createElement('button');ok.className='btn primary';ok.type='button';ok.textContent='Apply';
@@ -2176,7 +2244,8 @@ $('homeQNew').onclick=()=>{
 };
 $('qtScan').onclick=()=>{if(isClosed()){toast('This sale is closed. Start a new quote.',null,true);return}setView('home');setTimeout(()=>$('scanBc').click(),120)};
 $('qtManual').onclick=()=>{if(isClosed()){toast('This sale is closed. Start a new quote.',null,true);return}setView('home');setTimeout(()=>$('manBc').click(),120)};
-$('qtEdit').onclick=notClosed(()=>{
+$('qtEdit').onclick=()=>{$('qDiscCard').scrollIntoView({behavior:'smooth',block:'start'})};
+const _oldEdit=notClosed(()=>{
   if(mgrMode){mgrMode=false;renderBill();return}
   if(!bill.items.length){toast('Add items first');return}
   withManager('A manager must log in to change making after discount.',()=>{mgrMode=true;renderBill();toast('Enter making after discount for each item')});
@@ -2223,15 +2292,17 @@ function shareText(){
   const out=['*'+BRAND.full+'*',`Quote ${quoteLabel(bill)} · ${new Date(bill.started||Date.now()).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}`];
   if(bill.cust.name)out.push(`For ${bill.cust.name}`);
   out.push('Rate/g: '+SHOWN().map(p=>{const r=rateFor(p.id);return `${p.label} ${r==null?'—':inr(r)}`}).join(' · '),'');
-  bill.items.forEach((t,i)=>{const p=priceTag(t),q=quotedValue(t,p);
-    out.push(`${i+1}. ${keyOf(t.sku)||'—'} ${t.item||''} · ${PLABEL[t.purity]||''}`);
+  bill.items.forEach((t,i)=>{const p=priceTag(t);
+    out.push(`${i+1}. ${keyOf(t.sku)||'—'} ${(t.stock&&t.stock.category)||t.item||''} · ${PLABEL[t.purity]||''}`);
     out.push(`   Gr ${fmtW(num(t.gw))} g · Net ${fmtW(num(t.nw))} g${p.stone?` · Stone ${inr(p.stone)}`:''}`);
-    out.push(`   ${p.ok?inr(q*(1+g/100)):'—'} incl. GST`);
+    out.push(`   ${p.ok?inr(p.value*(1+g/100)):'—'} incl. GST`);
   });
-  out.push('',`Total ${inr(s.total)} (incl. GST ${fmtN(g)}%)`);
+  const listTot=s.listSub*(1+g/100),mkD=s.mkDisc*(1+g/100);
+  out.push('',`Total ${inr(listTot)} (incl. GST ${fmtN(g)}%)`);
+  if(mkD>0.5)out.push(`Discount: −${inr(mkD)}`);
   if(s.old)out.push(`Less old gold (URD) ${fmtW(s.oldW)} g: −${inr(s.old)}`);
   if(s.ret)out.push(`Less sales return: −${inr(s.ret)}`);
-  if(s.disc)out.push(`Discount: −${inr(s.disc)}`);
+  if(s.disc)out.push(`${mkD>0.5?'Additional discount':'Discount'}: −${inr(s.disc)}`);
   if(s.adv)out.push(`Advance paid: −${inr(s.adv)}`);
   out.push(`*${s.net<0?'Refund':'Balance'}: ${inr(Math.abs(s.net))}*`);
   if(isClosed())out.push(`Invoice ${bill.invoice}`);
@@ -2314,7 +2385,7 @@ $('phFile').addEventListener('change',e=>takeFiles(e.target));$('phCamIn').addEv
 const canNativePhotos=!!(NATIVE&&NATIVE.pickPhotos);
 $('phCam').onclick=()=>canNativePhotos?NATIVE.pickPhotos('camera'):$('phCamIn').click();
 $('phGal').onclick=()=>canNativePhotos?NATIVE.pickPhotos('gallery'):$('phFile').click();
-window.onNativePhotos=json=>{let a=[];try{a=JSON.parse(json)}catch(e){}addPhotos(a.filter(x=>typeof x==='string'&&x.startsWith('data:image')))};
+window.onNativePhotos=json=>{let a=[];try{a=JSON.parse(json)}catch(e){}a=a.filter(x=>typeof x==='string'&&x.startsWith('data:image'));if(photoDest){const k=photoDest;photoDest=null;if(a[0])setProdImg(k,a[0]);return}addPhotos(a)};
 window.onNativeShareError=()=>toast('Could not open WhatsApp',null,true);
 function dataUrlFile(u,i){const [h,b]=u.split(',');const bin=atob(b),arr=new Uint8Array(bin.length);for(let k=0;k<bin.length;k++)arr[k]=bin.charCodeAt(k);return new File([arr],`photo-${i+1}.jpg`,{type:(h.match(/data:([^;]+)/)||[])[1]||'image/jpeg'})}
 $('waBtn').onclick=async()=>{
@@ -2479,15 +2550,16 @@ function paintProduct(){
   $('editor').hidden=!(edOpen||editingId||(cur.touched&&k&&m.some(x=>x.k!=='making'&&x.k!=='rate'&&x.k!=='spr')));
   $('pdEdit').textContent=$('editor').hidden?'Edit details':'Hide details';
   card.hidden=!(cur.touched&&k);if(card.hidden)return;
-  const st=cur.stockKey&&cur.stock?cur.stock:null,name=(st&&st.item&&String(st.item).trim())||cur.item||itemFromSku(cur.sku)||'Item';
+  const st=cur.stockKey&&cur.stock?cur.stock:null,name=(st&&st.category&&String(st.category).trim())||cur.item||itemFromSku(cur.sku)||'Item';
   $('pdSku').textContent='SKU: '+k;
-  $('pdTile').innerHTML=icoFor(name);
+  $('pdTile').hidden=settings.showImg===false;$('prodCard').classList.toggle('no-img',settings.showImg===false);
+  paintProdImg(k,name);
   $('pdName').textContent=name;
   const p=priceTag(cur),g=num(settings.gst)||0,ok=p.ok&&!m.length;
   const w=v=>v!=null&&v!==''&&!isNaN(num(v))?num(v).toFixed(3):'';
   const mk=p.hasMk?valText({type:cur.mkType,val:num(cur.mkVal)}):'';
   const rows=[['Purity',PLABEL[cur.purity]],['Gr. Wt',w(cur.gw)],['Nt. Wt',w(cur.nw)],['St. Wt',w(cur.sw)],
-    ['VA (Making)',mk||'—'],['SA (Stone)',p.stone?inr(p.stone):(isDiamond(cur)?'—':'')],['Stones',st&&st.stoneName],['Type',st&&st.category],['HUID',p.huidN?`${p.huidN} × ${inr(settings.huid)}`:''],
+    ['VA (Making)',mk||'—'],...(st&&(st.saDia>0||st.saClr>0)?[['Diamond Value',st.saDia>0?inr(st.saDia):''],['Colour Stone',st.saClr>0?inr(st.saClr):'']]:[['SA (Stone)',p.stone?inr(p.stone):(isDiamond(cur)?'—':'')]]),['Stones',st&&st.stoneName],['HUID',p.huidN?`${p.huidN} × ${inr(settings.huid)}`:''],
     ['Pcs',st&&st.pcs>1?fmtN(st.pcs):''],['Supplier',st&&st.supplier]].filter(r=>r[1]);
   $('pdSpecs').innerHTML=rows.map(([l,v])=>`<dt>${l}</dt><dd>${esc(v)}</dd>`).join('');
   const need=$('pdNeed');need.hidden=ok;
@@ -2636,7 +2708,7 @@ async function readSheet(file){
         else rec[f]=v==null?'':String(v).trim()}
       stockMaking(rec);
       // Stone value = Clr-SA + Dia-SA when the sheet splits it
-      if(!(rec.sa>0)&&((rec.saClr>0)||(rec.saDia>0)))rec.sa=(rec.saClr||0)+(rec.saDia||0);delete rec.saClr;delete rec.saDia;
+      if(!(rec.sa>0)&&((rec.saClr>0)||(rec.saDia>0)))rec.sa=(rec.saClr||0)+(rec.saDia||0);
       out.set(key,rec);
     }
     const found=Object.keys(idx);
@@ -2753,13 +2825,49 @@ function applyZoom(z){try{document.body.style.zoom=String(z)}catch(e){}}
 function zoomNow(){const z=store.get('uiZoom',null);return z!=null?z:(Math.min(screen.width||400,innerWidth)<=380?0.9:1)}
 applyZoom(zoomNow());
 function paintAdminExtras(){
+  [...$('imgSeg').children].forEach(b=>b.setAttribute('aria-pressed',String((b.dataset.i==='1')===(settings.showImg!==false))));
   const z=zoomNow();[...$('uiZoom').children].forEach(b=>b.setAttribute('aria-pressed',String(Math.abs(+b.dataset.z-z)<0.001)));
 
 }
 [...$('uiZoom').children].forEach(b=>b.onclick=()=>withPerm('settings','Needs a user allowed to change settings.',()=>{store.set('uiZoom',+b.dataset.z);applyZoom(+b.dataset.z);paintAdminExtras();toast('Text size changed')},false));
+[...$('imgSeg').children].forEach(b=>b.onclick=()=>withPerm('settings','Needs a user allowed to change settings.',()=>{settings.showImg=b.dataset.i==='1';saveSettings();paintAdminExtras();renderEditor();toast(settings.showImg?'Product image shown':'Product image hidden')}));
 paintAdminExtras();
+// ---------- product photos (per label; shared through the database) ----------
+let imgIdx=store.get('imgIdx',{})||{};const imgMem=new Map();let photoDest=null;
+async function getProdImg(k){
+  if(!k)return null;if(imgMem.has(k))return imgMem.get(k);
+  let u=(await PH.get('img:'+k));u=Array.isArray(u)?u[0]:u;
+  if(!u&&imgIdx[k]&&sync.key&&navigator.onLine){try{const r=await syncApi('img&k='+encodeURIComponent(k));u=r.img||null;if(u)PH.set('img:'+k,[u])}catch(e){}}
+  imgMem.set(k,u||null);return u||null;
+}
+function paintProdImg(k,name){
+  const t=$('pdTile');t.innerHTML=icoFor(name);t.classList.remove('photo');
+  if(settings.showImg===false)return;
+  getProdImg(k).then(u=>{if(u&&keyOf(cur.sku)===k){t.innerHTML=`<img src="${u}" alt="${esc(name)}">`;t.classList.add('photo')}});
+}
+async function pullImgIdx(){if(!sync.key||!navigator.onLine)return;try{const r=await syncApi('imgidx');if(r&&r.idx){imgIdx=r.idx;store.set('imgIdx',imgIdx);sync.v.imgs=r.v||0;saveSyncState()}}catch(e){}}
+function shrinkUrl(u,max){return new Promise(res=>{const im=new Image();im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.8))};im.onerror=()=>res(null);im.src=u})}
+async function setProdImg(k,u){
+  if(u)u=await shrinkUrl(u,640);
+  imgMem.set(k,u||null);
+  if(u){await PH.set('img:'+k,[u]);imgIdx[k]=Date.now()}else{await PH.del('img:'+k);delete imgIdx[k]}
+  store.set('imgIdx',imgIdx);
+  if(sync.key){try{const r=await syncApi('img','POST',{key:k,img:u||null},adminCreds);if(r.idx){imgIdx=r.idx;store.set('imgIdx',imgIdx)}toast(u?'Photo saved for all phones':'Photo removed')}catch(e){toast('Photo saved on this phone. '+syncErrText(e),null,true)}}
+  else toast(u?'Photo saved':'Photo removed');
+  runFind();if(keyOf(cur.sku)===k)renderEditor();
+}
+function askProdPhoto(k){
+  withPerm('images','Needs a user allowed to add product photos.',()=>{
+    showModal(`Photo for ${k}`,'Take a photo of the piece or pick one from the gallery.',[
+      {label:'Camera',cls:'primary',run:()=>{photoDest=k;if(canNativePhotos)NATIVE.pickPhotos('camera');else $('pimgCam').click()}},
+      {label:'Gallery',run:()=>{photoDest=k;if(canNativePhotos)NATIVE.pickPhotos('gallery');else $('pimgFile').click()}},
+      ...(imgIdx[k]||imgMem.get(k)?[{label:'Remove photo',cls:'danger',run:()=>setProdImg(k,null)}]:[]),
+      {label:'Cancel',cls:'ghost'}]);
+  },true);
+}
+['pimgFile','pimgCam'].forEach(id=>$(id).addEventListener('change',async e=>{const f=e.target.files&&e.target.files[0];e.target.value='';const k=photoDest;photoDest=null;if(!f||!k)return;const u=await shrink(f);if(u)setProdImg(k,u)}));
 // Search stock: is a label available?
-function openFind(q){setView('search');if(q!=null)$('findQ').value=q;runFind();setTimeout(()=>$('findQ').focus(),80)}
+function openFind(q){setView('search');if(sync.key&&!openFind.pulled){openFind.pulled=1;pullImgIdx().then(runFind)}if(q!=null)$('findQ').value=q;runFind();setTimeout(()=>$('findQ').focus(),80)}
 function runFind(){
   const q=$('findQ').value.trim(),k=keyOf(q),el=$('findList');
   if(!stockMap.size){$('findNote').textContent='No stock loaded on this phone yet.';el.innerHTML='';return}
@@ -2769,9 +2877,20 @@ function runFind(){
   for(const r of stockMap.values()){if(hits.length>=60)break;if(r===exact)continue;
     if((k.length>=2&&(r.key.includes(k)||keyOf(r.label||'').includes(k)))||[r.item,r.category,r.supplier,r.stoneName].some(v=>String(v||'').toLowerCase().includes(ql)))hits.push(r)}
   $('findNote').innerHTML=hits.length?(exact?`<b class="ok-t">✓ ${esc(exact.barcode||exact.key)} is in stock.</b> `:'')+`${hits.length>=60?'First 60':hits.length} match${hits.length===1?'':'es'}.`:`<b class="bad-t">✗ Not in stock.</b> No item matches “${esc(q)}”.`;
+  const W=v=>v!=null&&v!==''&&!isNaN(num(v))&&num(v)>0?num(v).toFixed(3)+' g':'';
   el.innerHTML=hits.map(r=>{const p=caratToPurity(r.carat),mk=r.mkType&&num(r.mk)>0?valText({type:r.mkType,val:num(r.mk)}):'';
-    return `<button type="button" class="find-row" data-k="${esc(r.key)}"><span><b>${esc(r.barcode||r.key)}</b>${r.label&&keyOf(r.label)!==r.key?` <small>${esc(r.label)}</small>`:''}<br><span class="m">${esc(r.item||r.category||'')} · ${esc(PLABEL[p]||r.carat||'')} · Nt ${fmtW(num(r.nw))} g${mk?' · '+esc(mk):''}${r.supplier?' · '+esc(r.supplier):''}</span></span><span class="in-st">In stock</span></button>`}).join('');
-  el.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const r=stockMap.get(b.dataset.k);if(r){setView('home');useScannedCode(r.barcode||r.key)}});
+    const rows=[['Item type',r.category],['Item name',r.item],['Purity',PLABEL[p]||r.carat],['Gross wt',W(r.gw)],['Stone wt',W(r.sw)],['Net wt',W(r.nw)],
+      ['Diamond value',r.saDia>0?inr(r.saDia):''],['Colour stone',r.saClr>0?inr(r.saClr):''],['Stone value',!(r.saDia>0||r.saClr>0)&&r.sa>0?inr(r.sa):''],
+      ['Stones',r.stoneName],['Making',mk],['HUID',r.huid!=null&&r.huid!==''?String(r.huid):''],['Label code',r.label&&keyOf(r.label)!==r.key?r.label:''],['Supplier',r.supplier]].filter(x=>x[1]);
+    return `<div class="find-card" data-k="${esc(r.key)}">
+      <div class="fc-top"><div class="fc-img" data-img="${esc(r.key)}">${icoFor(r.category||r.item||'')}</div>
+        <div class="fc-h"><b>${esc(r.barcode||r.key)}</b><span class="in-st">In stock</span><div class="fc-name">${esc(r.category||r.item||'')}</div></div></div>
+      <dl class="specs fc-specs">${rows.map(([l,v])=>`<dt>${esc(l)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>
+      <div class="fc-acts"><button class="btn sm" type="button" data-photo="${esc(r.key)}">📷 ${imgIdx[r.key]?'Change photo':'Add photo'}</button><button class="btn sm primary" type="button" data-price="${esc(r.key)}">Price it</button></div>
+    </div>`}).join('');
+  el.querySelectorAll('[data-price]').forEach(b=>b.onclick=()=>{const r=stockMap.get(b.dataset.price);if(r){setView('home');useScannedCode(r.barcode||r.key)}});
+  el.querySelectorAll('[data-photo]').forEach(b=>b.onclick=()=>askProdPhoto(b.dataset.photo));
+  el.querySelectorAll('[data-img]').forEach(d=>{const k=d.dataset.img;if(!imgIdx[k]&&!imgMem.get(k))return;getProdImg(k).then(u=>{if(u)d.innerHTML=`<img src="${u}" alt="">`})});
 }
 $('findBtn').onclick=()=>openFind($('bcNum').value);
 $('findQ').addEventListener('input',runFind);
@@ -2801,9 +2920,9 @@ const PERM_LIST=[
   ['stock','Import / update stock'],['stockdel','Delete sold tags from stock'],['rates',"Set day's rates"],
   ['mkEdit','Update making on the price card'],['mkDisc','Making after discount on quotes'],
   ['closeSale','Close sale (invoice no.)'],['cancelQuote','Cancel quote (enquiry)'],['reopen','Reopen sold / cancelled quotes'],
-  ['delQuote','Delete quotes'],['settings','Admin settings (charges, making helper, item codes, rates shown, text size)'],
+  ['delQuote','Delete quotes'],['images','Add product photos'],['settings','Admin settings (charges, making helper, item codes, rates shown, text size)'],
   ['users','Users and roles'],['sync','Connect phones (shop key)']];
-const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote']}];
+const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote']}];
 let roles=store.get('roles',null)||clone(DEFAULT_ROLES);
 let elev={role:'',until:0};   // another user's approval, 15 minutes
 const roleName=id=>id==='admin'?'Admin':(roles.find(r=>r.id===id)||{name:id||'—'}).name;
@@ -2902,11 +3021,12 @@ $('loginForm').addEventListener('submit',async e=>{
 $('loginCancel').onclick=()=>{$('login').hidden=true;loginNext=null};
 $('loginEye').onclick=()=>{const i=$('loginPin'),show=i.type==='password';i.type=show?'text':'password';$('loginEye').setAttribute('aria-label',show?'Hide PIN':'Show PIN')};
 function logout(msg){
-  curUser=null;adminCreds=null;adminUntil=0;store.set('session',null);
+  curUser=null;adminCreds=null;adminUntil=0;elev={role:'',until:0};store.set('session',null);
   paintUserChip();paintAdmin();openLogin('login',msg||'Logged out. Log in to continue.');
 }
-function paintUserChip(){const c=$('userChip');c.hidden=!curUser;if(curUser)c.textContent='👤 '+(curUser.name||curUser.username)}
-$('userChip').onclick=()=>showModal(`${curUser.name||curUser.username}`,`Logged in as ${curUser.role==='admin'?'Admin':curUser.role==='manager'?'Manager':'Staff'} (${curUser.username}).`,[
+function paintUserChip(){const c=$('userChip');c.hidden=!curUser;if(curUser)c.textContent='👤 '+(curUser.name||curUser.username)+' · Log out';$('heroName').textContent=curUser?(curUser.name||curUser.username):'—'}
+$('heroUser').onclick=()=>{if(curUser)$('userChip').click()};
+$('userChip').onclick=()=>showModal(`${curUser.name||curUser.username}`,`Logged in as ${roleName(curUser.role)} (${curUser.username}).`,[
   {label:'Log out',cls:'danger',run:()=>logout()},{label:'Cancel',cls:'ghost'}]);
 // Admin-only actions: admins go straight through; staff need an admin to log in for 15 minutes
 function requireAdmin(why,fn,forceAsk,perm){

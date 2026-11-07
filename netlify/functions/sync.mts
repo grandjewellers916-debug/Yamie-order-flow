@@ -6,10 +6,10 @@ import type { Config } from "@netlify/functions"
 // Stored in one site-wide Blobs store: meta, stock, rates, settings, users, auth (legacy admin PIN).
 
 const APP_ORIGINS = ["https://appassets.androidplatform.net", "https://yamie-price-check.netlify.app"]
-const STOCK_FIELDS = ["key", "barcode", "item", "category", "carat", "gw", "nw", "sw", "dw", "dq", "sa", "serial", "label", "location", "pcs", "sq", "supplier", "mk", "mkType", "huid", "stoneName", "at"]
+const STOCK_FIELDS = ["key", "barcode", "item", "category", "carat", "gw", "nw", "sw", "dw", "dq", "sa", "serial", "label", "location", "pcs", "sq", "supplier", "mk", "mkType", "huid", "stoneName", "saDia", "saClr", "at"]
 const RATE_KEYS = ["22k", "18k", "14k", "9k", "platinum", "silver"]
 
-type Meta = { stock: number; rates: number; settings: number; users: number; quotes: number; count: number; history: any[] }
+type Meta = { stock: number; rates: number; settings: number; users: number; quotes: number; imgs: number; count: number; history: any[] }
 
 function cors(req: Request): Record<string, string> {
   const o = req.headers.get("origin") || ""
@@ -52,16 +52,16 @@ function cleanRow(r: any) {
   if (!r || typeof r.key !== "string" || !r.key) return null
   const o: any = {}
   for (const f of STOCK_FIELDS) {
-    if (["gw", "nw", "sw", "dw", "dq", "sa", "pcs", "sq", "huid", "at"].includes(f)) o[f] = cleanNum(r[f])
+    if (["gw", "nw", "sw", "dw", "dq", "sa", "saDia", "saClr", "pcs", "sq", "huid", "at"].includes(f)) o[f] = cleanNum(r[f])
     else o[f] = cleanStr(r[f])
   }
   o.key = o.key.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 40)
   return o.key ? o : null
 }
 // Permissions an admin can give to a role (admin always has all)
-const PERMS = ["stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "settings", "users", "sync"]
+const PERMS = ["stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "settings", "users", "sync"]
 const DEFAULT_ROLES = [
-  { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen"] },
+  { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "images"] },
   { id: "staff", name: "Staff", perms: ["rates", "closeSale", "cancelQuote"] },
 ]
 // A quote as the app keeps it, minus anything large (photos stay on the phone that took them)
@@ -91,7 +91,7 @@ export default async (req: Request) => {
 
   const op = new URL(req.url).searchParams.get("op") || ""
   const st = getStore({ name: "yamie-price-check", consistency: "strong" })
-  const meta: Meta = { stock: 0, rates: 0, settings: 0, users: 0, quotes: 0, count: 0, history: [], ...((await st.get("meta", { type: "json" })) || {}) }
+  const meta: Meta = { stock: 0, rates: 0, settings: 0, users: 0, quotes: 0, imgs: 0, count: 0, history: [], ...((await st.get("meta", { type: "json" })) || {}) }
   const saveMeta = () => st.setJSON("meta", meta)
 
   const users: any[] = ((await st.get("users", { type: "json" })) as any[]) || []
@@ -135,6 +135,12 @@ export default async (req: Request) => {
         // Staff PIN hashes go to every phone for offline login; admin hashes only to admins
         const isAdm = await adminOk()
         return json(req, { v: meta.users, users: users.map((u) => publicUser(u, isAdm || u.role !== "admin")), roles })
+      }
+      // Product photos: one small JPEG per label, plus an index of which labels have one
+      if (op === "imgidx") return json(req, { v: meta.imgs, idx: (await st.get("imgidx", { type: "json" })) || {} })
+      if (op === "img") {
+        const k = cleanStr(new URL(req.url).searchParams.get("k"), 40).toUpperCase().replace(/[^A-Z0-9]/g, "")
+        return json(req, { img: k ? (await st.get("img/" + k)) || null : null })
       }
       if (op === "quotes") return json(req, { v: meta.quotes, quotes: (await st.get("quotes", { type: "json" })) || [] })
       return json(req, { error: "bad_op" }, 400)
@@ -182,8 +188,19 @@ export default async (req: Request) => {
       return json(req, { v: meta.quotes, quote: q })
     }
 
-    const OP_PERM: Record<string, string> = { quotedel: "delQuote", stock: "stock", stockdel: "stockdel", ratelog: "rates", settings: "settings", users: "users" }
+    const OP_PERM: Record<string, string> = { img: "images", quotedel: "delQuote", stock: "stock", stockdel: "stockdel", ratelog: "rates", settings: "settings", users: "users" }
     if (!(await permOk(OP_PERM[op] || "users"))) return json(req, { error: "bad_pin" }, 403)
+
+    if (op === "img") {
+      const k = cleanStr(body?.key, 40).toUpperCase().replace(/[^A-Z0-9]/g, "")
+      const img = typeof body?.img === "string" && /^data:image\/(jpeg|png|webp);base64,/.test(body.img) && body.img.length < 400000 ? body.img : null
+      if (!k) return json(req, { error: "bad_key" }, 400)
+      const idx: any = (await st.get("imgidx", { type: "json" })) || {}
+      if (img) { await st.set("img/" + k, img); idx[k] = Date.now() } else { await st.delete("img/" + k); delete idx[k] }
+      await st.setJSON("imgidx", idx)
+      meta.imgs = Date.now(); await saveMeta()
+      return json(req, { v: meta.imgs, idx })
+    }
 
     if (op === "quotedel") {
       const id = cleanStr(body?.id, 24)
@@ -246,6 +263,7 @@ export default async (req: Request) => {
         },
         cats: cleanCats(s?.cats),
         mkEdit: s?.mkEdit === "all" ? "all" : "admin",
+        showImg: s?.showImg !== false,
         showRates: Array.isArray(s?.showRates) ? s.showRates.filter((x: any) => ["22k", "18k", "14k", "9k", "platinum", "silver"].includes(x)) : null,
       }
       await st.setJSON("settings", out)
