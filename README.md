@@ -157,3 +157,11 @@ Any Bluetooth or USB barcode scanner in keyboard (HID) mode works. Pair it with 
 - **Alerts** on the price card (with a short vibration): stone weight but no stone charges (tap Enter to add the stone value); no making charges (tap Enter); making typed by hand instead of from the stock data.
 - **Image switch** on the price card (picture button): hides or shows product images on this phone; Admin settings → Product image sets the shop default.
 - **Quote image for WhatsApp**: the Yamie logo, quote no., date, customer, today's rates, each item with its photo (optional), weights, stone values and price (with discount), totals and balance. Preview first, then *Send on WhatsApp* (customer photos are sent with it). *Send as text* is still there.
+
+## v1.6.40 (7 Nov 2026)
+
+Quote page:
+- **Sale type**: In-store / Online enquiry. Online shows **Delivery charges** (added to the taxable value, so GST applies).
+- **Making charges on the quote**: Show / Hide (affects the quote image and text).
+- Summary: Items value → Making discount → Delivery → **Taxable value** → **Total GST** → **Discount** (flat + round-off) → **Total discount** → **Final amount** → URD / SR / Advance → Balance.
+- **Round the final amount down to ₹100** (on by default); the difference is added to the discount.
