@@ -165,3 +165,9 @@ Quote page:
 - **Making charges on the quote**: Show / Hide (affects the quote image and text).
 - Summary: Items value → Making discount → Delivery → **Taxable value** → **Total GST** → **Discount** (flat + round-off) → **Total discount** → **Final amount** → URD / SR / Advance → Balance.
 - **Round the final amount down to ₹100** (on by default); the difference is added to the discount.
+
+## v1.6.42 (7 Nov 2026)
+
+Settings is split into one card per function, and each is a permission you can give to a role (Roles & permissions):
+Stock data · Remove sold tags · Text size · Product image show/hide · Rates shown · Charges (GST, HUID) · Making helpers · Item codes · Shared database & shop key · Roles & permissions · Users.
+A card is locked for users without that permission; opening it asks for a user who has it. The shared database checks the same permissions and keeps any part of the settings the user is not allowed to change. Roles that had the old single "Admin settings" permission keep all the settings functions.

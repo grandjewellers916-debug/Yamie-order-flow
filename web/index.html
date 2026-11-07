@@ -782,6 +782,11 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .qs-lines .line.save span:last-child{color:var(--ok);font-weight:700}
 .qs-lines .line.final{font-size:17px}
 .qs-lines .line.final span:last-child{color:var(--maroon);font-weight:800}
+.setcard.locked summary .dc-t{opacity:.6}
+.setcard .dc-s:empty{display:none}
+.setcard summary .dc-chev{margin-left:auto}
+.setcard summary .dc-t{font-size:17px}
+.setcard h3{margin:4px 0 0}
 /* making entry pop-up */
 .mk-sheet{display:flex;flex-direction:column;gap:12px}
 .mk-types{background:transparent;gap:8px;padding:0}
@@ -1049,7 +1054,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
   </section>
 
   <div class="set-head" data-pane="settings"><h2>Settings</h2><button class="btn sm" type="button" id="setStock">Stock list</button></div>
-  <details class="card datacard" id="dataCard" data-pane="settings">
+  <details class="card datacard setcard" id="dataCard" data-pane="settings" data-perm="stock">
     <summary><span class="dc-t">Stock data</span><span class="dc-s" id="dataMini">No stock loaded</span><span class="dc-chev" aria-hidden="true">▾</span></summary>
     <div class="sec-head"><button class="btn sm back" type="button" id="dataBack">‹ Back to app</button><button class="linkbtn" type="button" id="dataOpen">Find / history</button></div>
     <div><div class="ss-count" id="dataCount">0 items</div><div class="note" id="dataSummary">No stock loaded yet.</div></div>
@@ -1058,60 +1063,75 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
       <button class="btn" type="button" id="dataAdd">Add new stock</button>
     </div>
     <div class="status" id="dataStatus">Import stock Excel loads the full current stock (replaces the list). Add new stock adds or updates items from a later sheet.</div>
+  </details>
+  <details class="card datacard setcard" id="soldCard" data-pane="settings" data-perm="stockdel">
+    <summary><span class="dc-t">Remove sold tags</span><span class="dc-s" id="soldCardMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
     <div class="sold">
-      <h3>Remove sold tags</h3>
-      <p class="note" style="margin-block:4px 0">Scan or type the barcodes of sold items, then delete them from the stock list.</p>
+            <p class="note" style="margin-block:4px 0">Scan or type the barcodes of sold items, then delete them from the stock list.</p>
       <div class="bc"><input id="soldIn" class="num" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="e.g. DIA1164"><button class="btn" type="button" id="soldAdd">Add</button><button class="btn bc-scan" type="button" id="soldScan" hidden>Scan</button></div>
       <div class="sold-list" id="soldList"></div>
       <input class="hidden-input" id="soldFileIn" type="file" accept=".xlsx,.xls,.xlsm,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" aria-label="Choose sold tags Excel">
       <div class="rs-acts"><button class="btn danger" type="button" id="soldDel" disabled>Delete tags</button><button class="btn" type="button" id="soldFile">From Excel list</button></div>
       <div class="status" id="soldStatus"></div>
     </div>
-    <button class="btn back-app" type="button" id="dataBack2">‹ Back to app</button>
   </details>
-
-  <details class="card datacard" id="adminCard" data-pane="settings">
-    <summary><span class="dc-t">Admin settings</span><span class="dc-s" id="adminMini">Locked</span><span class="dc-chev" aria-hidden="true">▾</span></summary>
-    <div class="sec-head"><span class="note">Charges, making helper, shared database and users</span><button class="btn sm back" type="button" id="adminBack">‹ Back</button></div>
-    <h3>Text size on this phone</h3>
+  <details class="card datacard setcard" id="setText" data-pane="settings" data-perm="textSize">
+    <summary><span class="dc-t">Text size</span><span class="dc-s" id="setTextMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
       <p class="note" style="margin-block:4px 0">Make everything smaller if the rates or prices don't fit the screen.</p>
       <div class="seg" id="uiZoom"><button type="button" data-z="0.82">Smallest</button><button type="button" data-z="0.9">Small</button><button type="button" data-z="1">Normal</button><button type="button" data-z="1.1">Large</button></div>
-    <h3 style="margin-top:16px">Product image</h3>
+  </details>
+  <details class="card datacard setcard" id="setImg" data-pane="settings" data-perm="imgShow">
+    <summary><span class="dc-t">Product image · show / hide</span><span class="dc-s" id="setImgMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
       <p class="note" style="margin-block:4px 0">Show the product photo (or item icon) on the price card. Photos are added from the Search tab.</p>
       <div class="seg" id="imgSeg"><button type="button" data-i="1">Show</button><button type="button" data-i="0">Hide</button></div>
-    <h3 style="margin-top:16px">Rates shown</h3>
+  </details>
+  <details class="card datacard setcard" id="setRates" data-pane="settings" data-perm="ratesShown">
+    <summary><span class="dc-t">Rates shown</span><span class="dc-s" id="setRatesMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
       <p class="note" style="margin-block:4px 0">Purities shown on the rate band, the day's rates screen and the purity buttons. Shown gold rates are required each day.</p>
       <div class="rate-pick" id="ratePick"></div>
-      <h3 style="margin-top:16px">Charges</h3>
+  </details>
+  <details class="card datacard setcard" id="setCharges" data-pane="settings" data-perm="charges">
+    <summary><span class="dc-t">Charges · GST · HUID</span><span class="dc-s" id="setChargesMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
       <div class="grid">
         <div class="f"><label for="setGst">GST %</label><input class="num" id="setGst" inputmode="decimal"></div>
         <div class="f"><label for="setHuid">₹ per HUID</label><input class="num" id="setHuid" inputmode="decimal"></div>
       </div>
-      <h3 style="margin-top:16px">Making helper · CZ jewellery</h3>
+  </details>
+  <details class="card datacard setcard" id="setMk" data-pane="settings" data-perm="mkHelper">
+    <summary><span class="dc-t">Making helpers</span><span class="dc-s" id="setMkMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
+      <h3>CZ jewellery</h3>
       <p class="note" style="margin-block:4px 0">MBD = customer price (before discount), MAD = staff lowest (after discount). Values: <b>35%</b>, <b>1700</b> (per piece), <b>1700 PG</b> (per gram). Stone = ₹ per unit of SWT.</p>
       <div class="tbl" id="tblCz"></div>
       <button class="linkbtn" type="button" id="addCz">+ Add CZ row</button>
-      <h3 style="margin-top:16px">Making helper · Diamond jewellery</h3>
+      <h3 style="margin-top:16px">Diamond jewellery</h3>
       <p class="note" style="margin-block:4px 0">Item can be Nosepin, Other Jewellery, or a supplier / item name (e.g. MANOJ) to match. Diamond = ₹ per carat.</p>
       <div class="tbl" id="tblDia"></div>
       <button class="linkbtn" type="button" id="addDia">+ Add diamond row</button>
       <div style="margin-top:10px"><button class="btn sm" type="button" id="resetTbl">Reset helper to starting table</button></div>
-      <h3 style="margin-top:16px">Item codes</h3>
+  </details>
+  <details class="card datacard setcard" id="setCodes" data-pane="settings" data-perm="itemCodes">
+    <summary><span class="dc-t">Item codes</span><span class="dc-s" id="setCodesMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
       <p class="note" style="margin-block:4px 0">Barcode prefix and item name, one per line, e.g. <b>BGL = Bangle</b>. Used to name items from their barcode.</p>
       <textarea id="catEdit" rows="7" spellcheck="false" autocapitalize="characters" style="width:100%;font:14px var(--mono);border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--surface);color:var(--fg);margin-top:6px"></textarea>
       <div class="rs-acts" style="margin-top:6px"><button class="btn sm primary" type="button" id="catSave">Save item codes</button><button class="btn sm" type="button" id="catReset">Reset</button></div>
       <div class="status" id="catStatus"></div>
-      <h3 style="margin-top:16px">Shared database</h3>
+  </details>
+  <details class="card datacard setcard" id="setSync" data-pane="settings" data-perm="sync">
+    <summary><span class="dc-t">Shared database · shop key</span><span class="dc-s" id="setSyncMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
       <p class="note" style="margin-block:4px 0">Connect every phone with the same shop key to share stock, day's rates, the making helper and users. Phones sync each morning (first open from 6 AM) and after a stock change; tap Sync now any time.</p>
       <div class="f full" style="margin-top:8px"><label for="syncKey">Shop key</label><input id="syncKey" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX"></div>
       <div class="rs-acts" style="margin-top:8px"><button class="btn primary" type="button" id="syncConnect">Connect</button><button class="btn" type="button" id="syncNow">Sync now</button></div>
       <div class="status" id="syncStatus">Not connected. This phone keeps its own data.</div>
-      <h3 style="margin-top:16px">Roles and permissions</h3>
+  </details>
+  <details class="card datacard setcard" id="setRoles" data-pane="settings" data-perm="roles">
+    <summary><span class="dc-t">Roles &amp; permissions</span><span class="dc-s" id="setRolesMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
       <p class="note" style="margin-block:4px 0">Each user has one role. Tick what each role may do. Admin can always do everything.</p>
       <div class="roles" id="roleList"></div>
       <div class="rs-acts" style="margin-top:8px"><button class="btn" type="button" id="roleAdd">+ Add role</button><button class="btn primary" type="button" id="roleSave">Save roles</button></div>
       <div class="status" id="roleStatus"></div>
-      <h3 style="margin-top:16px">Users</h3>
+  </details>
+  <details class="card datacard setcard" id="adminCard" data-pane="settings" data-perm="users">
+    <summary><span class="dc-t">Users</span><span class="dc-s" id="adminMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
       <p class="note" style="margin-block:4px 0">Everyone logs in with their own name and PIN. What they can do depends on their role.</p>
       <div class="users" id="userList"></div>
       <button class="linkbtn" type="button" id="userAdd">+ Add user</button>
@@ -1130,6 +1150,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
       </div>
       <div class="status" id="userStatus"></div>
   </details>
+
 </div>
 
 <nav class="tabbar" id="tabbar" aria-label="Sections">
@@ -1642,14 +1663,14 @@ function parseCats(txt){
   return {out,bad};
 }
 applyCats();
-$('catSave').onclick=()=>withPin('Needs a user allowed to change settings.',()=>{
+$('catSave').onclick=()=>withPerm('itemCodes','Needs permission: Item codes.',()=>{
   const {out,bad}=parseCats($('catEdit').value);
   if(bad.length){$('catStatus').textContent='Check these lines (CODE = Name): '+bad.slice(0,3).join(' · ');$('catStatus').className='status err';return}
   if(!Object.keys(out).length){$('catStatus').textContent='Add at least one item code.';$('catStatus').className='status err';return}
   settings.cats=out;saveSettings();applyCats();renderEditor();renderTable('cz');renderTable('dia');
   $('catStatus').textContent=`${Object.keys(out).length} item codes saved.`;$('catStatus').className='status ok'});
 $('catReset').onclick=()=>showModal('Reset item codes?','The item codes go back to the starting list.',[
-  {label:'Reset',cls:'danger',run:()=>withPin('Needs a user allowed to change settings.',()=>{settings.cats=null;saveSettings();applyCats();renderEditor();$('catStatus').textContent='Item codes reset.';$('catStatus').className='status ok'})},{label:'Cancel',cls:'ghost'}]);
+  {label:'Reset',cls:'danger',run:()=>withPerm('itemCodes','Needs permission: Item codes.',()=>{settings.cats=null;saveSettings();applyCats();renderEditor();$('catStatus').textContent='Item codes reset.';$('catStatus').className='status ok'})},{label:'Cancel',cls:'ghost'}]);
 function bcSplit(sku){const k=keyOf(sku),m=k.match(/^([A-Z]+)(.*)$/);return m?{pre:m[1],rest:m[2]}:{pre:'',rest:k}}
 function curCode(){return CODE_OF[cur.item]||''}
 function paintBarcode(){
@@ -1696,7 +1717,7 @@ function rebuildPurities(){buildRateBand();buildRateSheet();buildPuritySeg();pai
 function paintRatePick(){
   const el=$('ratePick');if(!el)return;const on=SHOWN().map(p=>p.id);
   el.innerHTML=PURITIES.map(p=>`<button type="button" data-p="${p.id}" aria-pressed="${on.includes(p.id)}">${esc(p.name||p.label)}</button>`).join('');
-  el.querySelectorAll('button').forEach(b=>b.onclick=()=>withPin('Needs a user allowed to change settings.',()=>{
+  el.querySelectorAll('button').forEach(b=>b.onclick=()=>withPerm('ratesShown','Needs permission: Rates shown.',()=>{
     let ids=SHOWN().map(p=>p.id);
     ids=ids.includes(b.dataset.p)?ids.filter(x=>x!==b.dataset.p):PURITIES.map(p=>p.id).filter(x=>x===b.dataset.p||ids.includes(x));
     if(!ids.length){toast('Keep at least one rate',null,true);return}
@@ -3032,8 +3053,8 @@ function paintAdminExtras(){
   const z=zoomNow();[...$('uiZoom').children].forEach(b=>b.setAttribute('aria-pressed',String(Math.abs(+b.dataset.z-z)<0.001)));
 
 }
-[...$('uiZoom').children].forEach(b=>b.onclick=()=>withPerm('settings','Needs a user allowed to change settings.',()=>{store.set('uiZoom',+b.dataset.z);applyZoom(+b.dataset.z);paintAdminExtras();toast('Text size changed')},false));
-[...$('imgSeg').children].forEach(b=>b.onclick=()=>withPerm('settings','Needs a user allowed to change settings.',()=>{settings.showImg=b.dataset.i==='1';saveSettings();paintAdminExtras();renderEditor();toast(settings.showImg?'Product image shown':'Product image hidden')}));
+[...$('uiZoom').children].forEach(b=>b.onclick=()=>withPerm('textSize','Needs permission: Text size.',()=>{store.set('uiZoom',+b.dataset.z);applyZoom(+b.dataset.z);paintAdminExtras();toast('Text size changed')},false));
+[...$('imgSeg').children].forEach(b=>b.onclick=()=>withPerm('imgShow','Needs permission: Product image show / hide.',()=>{settings.showImg=b.dataset.i==='1';saveSettings();paintAdminExtras();renderEditor();toast(settings.showImg?'Product image shown':'Product image hidden')}));
 paintAdminExtras();
 // ---------- product photos (per label; shared through the database) ----------
 let imgIdx=store.get('imgIdx',{})||{};const imgMem=new Map();let photoDest=null;
@@ -3123,13 +3144,18 @@ const PERM_LIST=[
   ['stock','Import / update stock'],['stockdel','Delete sold tags from stock'],['rates',"Set day's rates"],
   ['mkEdit','Update making on the price card'],['mkDisc','Making after discount on quotes'],
   ['closeSale','Close sale (invoice no.)'],['cancelQuote','Cancel quote (enquiry)'],['reopen','Reopen sold / cancelled quotes'],
-  ['delQuote','Delete quotes'],['images','Add product photos'],['settings','Admin settings (charges, making helper, item codes, rates shown, text size)'],
-  ['users','Users and roles'],['sync','Connect phones (shop key)']];
+  ['delQuote','Delete quotes'],['images','Add product photos'],
+  ['textSize','Text size'],['imgShow','Product image show / hide'],['ratesShown','Rates shown'],['charges','Charges · GST · HUID'],
+  ['mkHelper','Making helpers'],['itemCodes','Item codes'],['sync','Shared database · shop key'],['roles','Roles & permissions'],['users','Users']];
+const SET_PERMS=['stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','sync','roles','users'];
+const permLabel=k=>(PERM_LIST.find(p=>p[0]===k)||[0,k])[1];
 const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote']}];
 let roles=store.get('roles',null)||clone(DEFAULT_ROLES);
 let elev={role:'',until:0};   // another user's approval, 15 minutes
 const roleName=id=>id==='admin'?'Admin':(roles.find(r=>r.id===id)||{name:id||'—'}).name;
-function roleHas(role,perm){return role==='admin'||!!((roles.find(r=>r.id===role)||{}).perms||[]).includes(perm)}
+// 'settings' was one permission before v1.6.42; it still grants all the settings functions
+const OLD_SETTINGS=['textSize','imgShow','ratesShown','charges','mkHelper','itemCodes'];
+function roleHas(role,perm){if(role==='admin')return true;const ps=((roles.find(r=>r.id===role)||{}).perms||[]);return ps.includes(perm)||(OLD_SETTINGS.includes(perm)&&ps.includes('settings'))||(perm==='roles'&&ps.includes('users'))}
 function can(perm){return !!(curUser&&roleHas(curUser.role,perm))||(Date.now()<elev.until&&roleHas(elev.role,perm))}
 // Server writes need the PIN of a user with the permission (kept in memory only)
 function credsOk(perm){return !sync.key||!!(adminCreds&&roleHas(adminCreds.role,perm))}
@@ -3237,29 +3263,31 @@ function requireAdmin(why,fn,forceAsk,perm){
   if(!forceAsk){withPerm(perm,why,fn,false);return}
   openLogin('perm',why,fn,'',perm);
 }
-function withPin(why,fn,perm){withPerm(perm||'settings',why,fn,true)}
-const canAdminCard=()=>['settings','users','sync'].some(can),canDataCard=()=>['stock','stockdel'].some(can);
+function withPin(why,fn,perm){withPerm(perm||'users',why,fn,true)}
+const canAdminCard=()=>SET_PERMS.some(can),canDataCard=()=>can('stock');
+// Settings: one card per function; each opens only for users whose role has that permission
+const setCards=()=>[...document.querySelectorAll('details.setcard[data-perm]')];
 function paintAdmin(){
   $('adminPill').hidden=!(Date.now()<elev.until);
   $('adminPill').textContent=`${roleName(elev.role)} approval ✕`;
-  $('adminMini').textContent=canAdminCard()?roleName(curUser&&roleHas(curUser.role,'settings')?curUser.role:elev.role||(curUser&&curUser.role)):'🔒 Locked';
-  if(!canAdminCard())$('adminCard').open=false;
-  if(!canDataCard())$('dataCard').open=false;
+  setCards().forEach(c=>{const ok=can(c.dataset.perm),mini=c.querySelector('.dc-s');
+    if(!ok)c.open=false;c.classList.toggle('locked',!ok);
+    if(c.id==='dataCard'){if(!ok)mini.dataset.lock='1';else delete mini.dataset.lock}
+    else mini.textContent=ok?'':'🔒';});
   try{paintPermUI()}catch(e){}
 }
 setInterval(()=>{if(elev.until&&Date.now()>elev.until){elev={role:'',until:0};setAdmin(false)}},20000);
 $('adminPill').onclick=()=>{setAdmin(false);toast('Admin access ended')};
-// Admin cards open only for admins
-[['adminCard','Needs a user allowed to change settings or users.'],['dataCard','Needs a user allowed to update stock.']].forEach(([id,why])=>{
-  $(id).querySelector('summary').addEventListener('click',e=>{
-    if($(id).open)return;
-    const ok=id==='adminCard'?canAdminCard():canDataCard();
-    if(!ok){e.preventDefault();openLogin('perm',why,()=>{$(id).open=true;$(id).scrollIntoView({behavior:'smooth',block:'start'})},'',id==='adminCard'?'settings|users|sync':'stock|stockdel')}
+setCards().forEach(card=>{
+  card.querySelector('summary').addEventListener('click',e=>{
+    if(card.open)return;
+    const perm=card.dataset.perm;
+    if(!can(perm)){e.preventDefault();openLogin('perm',`Needs permission: ${permLabel(perm)}.`,()=>{paintAdmin();card.open=true;card.scrollIntoView({behavior:'smooth',block:'start'})},'',perm)}
   });
 });
 function backFrom(id){$(id).open=false;window.scrollTo({top:0,behavior:'smooth'})}
-$('dataBack').onclick=()=>backFrom('dataCard');$('dataBack2').onclick=()=>backFrom('dataCard');
-$('ssBack2').onclick=()=>{closeStock();window.scrollTo({top:0,behavior:'smooth'})};$('ssBack3').onclick=()=>{closeStock();window.scrollTo({top:0,behavior:'smooth'})};$('adminBack').onclick=()=>backFrom('adminCard');
+$('dataBack').onclick=()=>backFrom('dataCard');
+$('ssBack2').onclick=()=>{closeStock();window.scrollTo({top:0,behavior:'smooth'})};$('ssBack3').onclick=()=>{closeStock();window.scrollTo({top:0,behavior:'smooth'})};
 
 // ---------- user management (admin) ----------
 let editUserId=null,editRole='staff';
@@ -3288,13 +3316,13 @@ function renderRoles(){
   });
 }
 $('roleAdd').onclick=()=>{if(!roleDraft)roleDraft=clone(roles);roleDraft.push({id:'r'+uid().slice(0,6).toLowerCase(),name:'New role',perms:['rates']});renderRoles();const n=$('roleList').querySelectorAll('.rc-name');const last=n[n.length-1];last&&(last.focus(),last.select())};
-$('roleSave').onclick=()=>withPin('Needs a user allowed to manage users and roles.',async()=>{
+$('roleSave').onclick=()=>withPin('Needs permission: Roles & permissions.',async()=>{
   const list=(roleDraft||roles).map(r=>({...r,name:String(r.name||'').trim()}));
   if(list.some(r=>!r.name)){$('roleStatus').className='status err';$('roleStatus').textContent='Every role needs a name.';return}
   roles=list;roleDraft=null;store.set('roles',roles);renderRoles();renderUsers();paintAdmin();renderEditor();renderBill(true);
   $('roleStatus').className='status ok';$('roleStatus').textContent='Roles saved'+(sync.key?' · sharing with all phones…':'.');
   await pushUsers();if(sync.key&&!$('userStatus').className.includes('err'))$('roleStatus').textContent='Roles saved on all phones.';
-},'users');
+},'roles');
 function paintPermUI(){renderRoles()}
 function openUserForm(id){
   const u=id?users.find(x=>x.id===id):null;editUserId=u?u.id:null;

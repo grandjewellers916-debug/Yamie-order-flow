@@ -59,7 +59,8 @@ function cleanRow(r: any) {
   return o.key ? o : null
 }
 // Permissions an admin can give to a role (admin always has all)
-const PERMS = ["stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "settings", "users", "sync"]
+const PERMS = ["stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "textSize", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "sync", "roles", "users", "settings"]
+const SETTINGS_PERMS = ["imgShow", "ratesShown", "charges", "mkHelper", "itemCodes"]
 const DEFAULT_ROLES = [
   { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "images"] },
   { id: "staff", name: "Staff", perms: ["rates", "closeSale", "cancelQuote"] },
@@ -109,7 +110,11 @@ export default async (req: Request) => {
   }
   // Roles: admin has every permission; other roles carry a list set by an admin (Admin settings → Roles)
   const roles: any[] = ((await st.get("roles", { type: "json" })) as any[]) || DEFAULT_ROLES
-  const roleHas = (role: string, perm: string) => role === "admin" || !!roles.find((r) => r.id === role)?.perms?.includes(perm)
+  const roleHas = (role: string, perm: string) => {
+    if (role === "admin") return true
+    const ps: string[] = roles.find((r) => r.id === role)?.perms || []
+    return ps.includes(perm) || (ps.includes("settings") && [...SETTINGS_PERMS, "textSize"].includes(perm)) || (perm === "roles" && ps.includes("users"))
+  }
   // Permission check: a logged-in user whose role has the permission, or (before any users exist) the legacy admin PIN
   const permOk = async (perm: string) => {
     const un = req.headers.get("x-user") || "", p = req.headers.get("x-pin") || ""
@@ -123,6 +128,13 @@ export default async (req: Request) => {
     return false
   }
   const adminOk = () => permOk("users")
+  // Which permissions the caller has (for settings and users, where each part has its own permission)
+  const callerRole = async () => {
+    const un = req.headers.get("x-user") || "", p = req.headers.get("x-pin") || ""
+    if (un) { const u = await verifyUser(un, p); if (u) return u.role; if (!users.some((x) => x.role === "admin") && un.toLowerCase() === "admin" && (await legacyOk(p))) return "admin"; return "" }
+    if (!users.length && (await legacyOk(req.headers.get("x-admin-pin") || ""))) return "admin"
+    return ""
+  }
   const publicUser = (u: any, withHash: boolean) => ({ id: u.id, name: u.name, username: u.username, role: u.role, active: u.active !== false, ...(withHash ? { salt: u.salt, hash: u.hash } : {}) })
 
   try {
@@ -188,8 +200,11 @@ export default async (req: Request) => {
       return json(req, { v: meta.quotes, quote: q })
     }
 
-    const OP_PERM: Record<string, string> = { img: "images", quotedel: "delQuote", stock: "stock", stockdel: "stockdel", ratelog: "rates", settings: "settings", users: "users" }
-    if (!(await permOk(OP_PERM[op] || "users"))) return json(req, { error: "bad_pin" }, 403)
+    const OP_PERM: Record<string, string> = { img: "images", quotedel: "delQuote", stock: "stock", stockdel: "stockdel", ratelog: "rates" }
+    const role = await callerRole()
+    if (op === "settings") { if (!role || !SETTINGS_PERMS.some((p) => roleHas(role, p))) return json(req, { error: "bad_pin" }, 403) }
+    else if (op === "users") { if (!role || !(roleHas(role, "users") || roleHas(role, "roles"))) return json(req, { error: "bad_pin" }, 403) }
+    else if (!(await permOk(OP_PERM[op] || "users"))) return json(req, { error: "bad_pin" }, 403)
 
     if (op === "img") {
       const k = cleanStr(body?.key, 40).toUpperCase().replace(/[^A-Z0-9]/g, "")
@@ -266,6 +281,10 @@ export default async (req: Request) => {
         showImg: s?.showImg !== false,
         showRates: Array.isArray(s?.showRates) ? s.showRates.filter((x: any) => ["22k", "18k", "14k", "9k", "platinum", "silver"].includes(x)) : null,
       }
+      // Keep the parts this user may not change
+      const prev: any = (await st.get("settings", { type: "json" })) || {}
+      const keep = (perm: string, keys: string[]) => { if (!roleHas(role, perm)) keys.forEach((k) => { if (k in prev) (out as any)[k] = prev[k] }) }
+      keep("charges", ["gst", "huid"]); keep("mkHelper", ["mkTable"]); keep("itemCodes", ["cats"]); keep("ratesShown", ["showRates"]); keep("imgShow", ["showImg", "mkEdit"])
       await st.setJSON("settings", out)
       meta.settings = Date.now(); await saveMeta()
       return json(req, { v: meta.settings })
@@ -273,7 +292,7 @@ export default async (req: Request) => {
 
     if (op === "users") {
       let nextRoles = roles
-      if (Array.isArray(body?.roles)) {
+      if (Array.isArray(body?.roles) && roleHas(role, "roles")) {
         const seen = new Set<string>()
         nextRoles = body.roles.slice(0, 30).map((r: any) => ({
           id: cleanStr(r?.id, 24).toLowerCase().replace(/[^a-z0-9_-]/g, ""),
@@ -298,8 +317,8 @@ export default async (req: Request) => {
       const names = new Set(list.map((u: any) => u.username))
       if (names.size !== list.length) return json(req, { error: "duplicate_username" }, 400)
       if (!list.some((u: any) => u.role === "admin" && u.active)) return json(req, { error: "need_admin" }, 400)
-      await st.setJSON("users", list)
-      if (Array.isArray(body?.roles)) await st.setJSON("roles", nextRoles)
+      if (roleHas(role, "users")) await st.setJSON("users", list)
+      if (Array.isArray(body?.roles) && roleHas(role, "roles")) await st.setJSON("roles", nextRoles)
       meta.users = Date.now(); await saveMeta()
       return json(req, { v: meta.users })
     }
