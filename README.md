@@ -134,3 +134,12 @@ Any Bluetooth or USB barcode scanner in keyboard (HID) mode works. Pair it with 
 - **Cancel quote · enquiry only** for quotes not sold; listed under Quotes → Enquiry; a manager can reopen.
 - **Update making** on the price card. Admin settings → *Making on the price card*: Admins only / All staff.
 - **Text size on this phone** (Admin settings): Smallest / Small / Normal / Large. Phones 380 px wide or less start at Small.
+
+## v1.6 (7 Nov 2026)
+
+- **Database sheet** columns: Label No, Item Name, Item type, Purity (K), Gross Wt (g), Stone Wt (g), Net Wt (g), Clr-SA, Dia-SA, Wstg %, Labour charges, Making Rate, HUID no, Stone Name (s).
+  - Making: **Labour charges** → fixed; else **Making Rate** → ₹ per gram of net wt; else **Wstg %** → % making.
+  - Stone price (SA) = Clr-SA + Dia-SA. HUID no = a count, or the HUID codes (counted). Stone names and item type show on the price card.
+- **Search** is its own tab (label no., item name, item type, stone).
+- **+** on the Scan Barcode card starts a new quote (the current-quote strip is gone).
+- **Roles and permissions** (Admin settings): Admin has everything; Manager and Staff come preset; add roles, tick permissions (stock import, delete sold tags, day's rates, update making, making after discount, close sale, cancel quote, reopen, delete quotes, admin settings, users and roles, connect phones). Users pick a role. The shared database checks the same permissions.

@@ -6,7 +6,7 @@ import type { Config } from "@netlify/functions"
 // Stored in one site-wide Blobs store: meta, stock, rates, settings, users, auth (legacy admin PIN).
 
 const APP_ORIGINS = ["https://appassets.androidplatform.net", "https://yamie-price-check.netlify.app"]
-const STOCK_FIELDS = ["key", "barcode", "item", "category", "carat", "gw", "nw", "sw", "dw", "dq", "sa", "serial", "label", "location", "pcs", "sq", "supplier", "mk", "mkType", "huid", "at"]
+const STOCK_FIELDS = ["key", "barcode", "item", "category", "carat", "gw", "nw", "sw", "dw", "dq", "sa", "serial", "label", "location", "pcs", "sq", "supplier", "mk", "mkType", "huid", "stoneName", "at"]
 const RATE_KEYS = ["22k", "18k", "14k", "9k", "platinum", "silver"]
 
 type Meta = { stock: number; rates: number; settings: number; users: number; quotes: number; count: number; history: any[] }
@@ -58,6 +58,12 @@ function cleanRow(r: any) {
   o.key = o.key.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 40)
   return o.key ? o : null
 }
+// Permissions an admin can give to a role (admin always has all)
+const PERMS = ["stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "settings", "users", "sync"]
+const DEFAULT_ROLES = [
+  { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen"] },
+  { id: "staff", name: "Staff", perms: ["rates", "closeSale", "cancelQuote"] },
+]
 // A quote as the app keeps it, minus anything large (photos stay on the phone that took them)
 function cleanQuote(q: any) {
   if (!q || typeof q !== "object" || typeof q.id !== "string" || !q.id) return null
@@ -101,18 +107,22 @@ export default async (req: Request) => {
     if (!u || !u.salt || !u.hash || !pin) return null
     return (await pbkdf(pin, u.salt)) === u.hash ? u : null
   }
-  // Admin check: a logged-in admin user, or (before any users exist) the legacy admin PIN
-  const adminOk = async () => {
+  // Roles: admin has every permission; other roles carry a list set by an admin (Admin settings → Roles)
+  const roles: any[] = ((await st.get("roles", { type: "json" })) as any[]) || DEFAULT_ROLES
+  const roleHas = (role: string, perm: string) => role === "admin" || !!roles.find((r) => r.id === role)?.perms?.includes(perm)
+  // Permission check: a logged-in user whose role has the permission, or (before any users exist) the legacy admin PIN
+  const permOk = async (perm: string) => {
     const un = req.headers.get("x-user") || "", p = req.headers.get("x-pin") || ""
     if (un) {
       const u = await verifyUser(un, p)
-      if (u) return u.role === "admin"
+      if (u) return roleHas(u.role, perm)
       if (!users.some((x) => x.role === "admin") && un.toLowerCase() === "admin") return legacyOk(p)
       return false
     }
     if (!users.length) return legacyOk(req.headers.get("x-admin-pin") || "")
     return false
   }
+  const adminOk = () => permOk("users")
   const publicUser = (u: any, withHash: boolean) => ({ id: u.id, name: u.name, username: u.username, role: u.role, active: u.active !== false, ...(withHash ? { salt: u.salt, hash: u.hash } : {}) })
 
   try {
@@ -124,7 +134,7 @@ export default async (req: Request) => {
       if (op === "users") {
         // Staff PIN hashes go to every phone for offline login; admin hashes only to admins
         const isAdm = await adminOk()
-        return json(req, { v: meta.users, users: users.map((u) => publicUser(u, isAdm || u.role !== "admin")) })
+        return json(req, { v: meta.users, users: users.map((u) => publicUser(u, isAdm || u.role !== "admin")), roles })
       }
       if (op === "quotes") return json(req, { v: meta.quotes, quotes: (await st.get("quotes", { type: "json" })) || [] })
       return json(req, { error: "bad_op" }, 400)
@@ -172,7 +182,8 @@ export default async (req: Request) => {
       return json(req, { v: meta.quotes, quote: q })
     }
 
-    if (!(await adminOk())) return json(req, { error: "bad_pin" }, 403)
+    const OP_PERM: Record<string, string> = { quotedel: "delQuote", stock: "stock", stockdel: "stockdel", ratelog: "rates", settings: "settings", users: "users" }
+    if (!(await permOk(OP_PERM[op] || "users"))) return json(req, { error: "bad_pin" }, 403)
 
     if (op === "quotedel") {
       const id = cleanStr(body?.id, 24)
@@ -243,13 +254,23 @@ export default async (req: Request) => {
     }
 
     if (op === "users") {
+      let nextRoles = roles
+      if (Array.isArray(body?.roles)) {
+        const seen = new Set<string>()
+        nextRoles = body.roles.slice(0, 30).map((r: any) => ({
+          id: cleanStr(r?.id, 24).toLowerCase().replace(/[^a-z0-9_-]/g, ""),
+          name: cleanStr(r?.name, 30),
+          perms: (Array.isArray(r?.perms) ? r.perms : []).filter((x: any) => PERMS.includes(x)),
+        })).filter((r: any) => r.id && r.id !== "admin" && r.name && !seen.has(r.id) && seen.add(r.id))
+      }
+      const roleIds = new Set(["admin", ...nextRoles.map((r: any) => r.id)])
       const list = (Array.isArray(body?.users) ? body.users : []).slice(0, 200).map((u: any) => {
         const prev = users.find((x) => x.id === u?.id)
         return {
           id: cleanStr(u?.id, 24),
           name: cleanStr(u?.name, 40),
           username: cleanStr(u?.username, 30).trim().toLowerCase().replace(/[^a-z0-9._-]/g, ""),
-          role: u?.role === "admin" ? "admin" : u?.role === "manager" ? "manager" : "staff",
+          role: roleIds.has(u?.role) ? u.role : roleIds.has("staff") ? "staff" : [...roleIds][1] || "admin",
           active: u?.active !== false,
           // keep the stored PIN if this phone did not send one (admin hashes are not sent to staff phones)
           salt: /^[0-9a-f]{32}$/.test(u?.salt || "") ? u.salt : prev?.salt,
@@ -260,6 +281,7 @@ export default async (req: Request) => {
       if (names.size !== list.length) return json(req, { error: "duplicate_username" }, 400)
       if (!list.some((u: any) => u.role === "admin" && u.active)) return json(req, { error: "need_admin" }, 400)
       await st.setJSON("users", list)
+      if (Array.isArray(body?.roles)) await st.setJSON("roles", nextRoles)
       meta.users = Date.now(); await saveMeta()
       return json(req, { v: meta.users })
     }

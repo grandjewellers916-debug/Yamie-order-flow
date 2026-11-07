@@ -525,7 +525,7 @@ body{padding-top:0}
 .login-in .brand.with-logo{text-align:center;align-self:center}
 
 /* ===== v1.4: views, compact header, price card, quote page, login ===== */
-body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote"] [data-pane]:not([data-pane="quote"]),body[data-view="settings"] [data-pane]:not([data-pane="settings"]){display:none!important}
+body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote"] [data-pane]:not([data-pane="quote"]),body[data-view="settings"] [data-pane]:not([data-pane="settings"]),body[data-view="search"] [data-pane]:not([data-pane="search"]){display:none!important}
 .hero{padding:calc(10px + env(safe-area-inset-top,0px)) 12px 12px;background:linear-gradient(180deg,#7A0F1E 0%,var(--band) 100%)}
 .hero::after{display:none}
 .hero-in{display:grid!important;grid-template-columns:44px 1fr auto 44px;align-items:center;gap:6px;flex-wrap:nowrap}
@@ -703,6 +703,29 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .pd-spr{display:flex;align-items:center;gap:8px;width:100%}
 .pd-spr span{font:600 18px var(--display);color:var(--muted)}
 .pd-spr input{flex:1;min-width:0;font:700 20px var(--mono);border:1.5px solid var(--maroon);border-radius:10px;padding:8px 10px;background:var(--surface);color:var(--fg)}
+/* v1.6 */
+.tabbar{grid-template-columns:repeat(6,1fr)!important}
+.tab{font-size:11px;padding-inline:0}
+.tab svg{width:24px;height:24px}
+.tab.on#tabFind svg{fill:none}
+.scan-hero{padding-left:70px;padding-right:70px}
+.scan-plus{position:absolute;left:16px;top:50%;transform:translateY(-50%);z-index:2;width:54px;height:54px;border-radius:50%;border:1.5px solid rgba(255,255,255,.45);background:rgba(255,255,255,.1);color:#F7EDE6;font:400 34px/1 var(--display);cursor:pointer;display:grid;place-items:center;padding:0 0 4px}
+.scan-plus:active{background:rgba(255,255,255,.24)}
+.find-view{gap:12px}
+.find-view h2{margin:0;font:700 20px var(--display);color:var(--maroon)}
+.find-view .find-list{max-height:none}
+.find-in input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none}
+.roles{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.role-card{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface)}
+.role-card.locked{background:var(--sunk)}
+.rc-h{display:flex;align-items:center;gap:10px}
+.rc-h b{font-size:15px}
+.rc-name{flex:1;min-width:0;font:600 15px var(--body);border:0;border-bottom:1px dashed var(--line);background:none;color:var(--fg);padding:4px 0}
+.rc-h .x{border:0;background:none;font-size:20px;color:var(--bad);cursor:pointer;width:30px}
+.rc-perms{display:grid;grid-template-columns:1fr;gap:2px;margin-top:8px}
+.rc-p{display:flex;align-items:flex-start;gap:8px;font-size:13.5px;padding:5px 0;cursor:pointer}
+.rc-p input{width:18px;height:18px;margin:1px 0 0;accent-color:var(--maroon);flex:none}
+#uRole{flex-wrap:wrap}
 /* making entry pop-up */
 .mk-sheet{display:flex;flex-direction:column;gap:12px}
 .mk-types{background:transparent;gap:8px;padding:0}
@@ -790,19 +813,16 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
         <span class="sh-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M7.5 8v8M10.5 8v8M13.5 8v8M16.5 8v8"/></svg></span>
         <span class="sh-t">Scan Barcode</span><span class="sh-s">Tap to scan a product</span>
       </button>
+      <button class="scan-plus" type="button" id="homeQNew" aria-label="Start a new quote">+</button>
       <button class="scan-m" type="button" id="manBc" aria-label="Pick the item code by hand">M</button>
     </div>
     <div class="bc-type"><label for="bcNum">Or type the barcode</label>
       <div class="bc"><span class="bc-pre" id="bcPre" hidden>—</span><input id="bcNum" class="num" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="e.g. DIA1164"></div>
       <div class="bc-item" id="bcItem" hidden></div>
       <input id="sku" type="hidden">
-      <button class="find-btn" type="button" id="findBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>Search stock · check if a label is available</button>
+      <button class="find-btn" type="button" id="findBtn" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>Search stock · check if a label is available</button>
     </div>
   </section>
-  <div class="home-q" data-pane="home">
-    <button type="button" class="hq-info" id="homeQInfo"><span class="hq-l">Current quote</span><b id="homeQNo">New</b><span id="homeQN">No items</span></button>
-    <button type="button" class="btn hq-new" id="homeQNew"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M12 11v6M9 14h6"/></svg>New Quote</button>
-  </div>
 
   <!-- Product details -->
   <section class="card prod" id="prodCard" data-pane="home" hidden aria-label="Product details">
@@ -867,6 +887,15 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
       <button class="btn ghost" type="button" id="clearTag">Clear tag</button>
       <button class="btn primary" type="button" id="addTag">Save to Quote</button>
     </div>
+  </section>
+
+  <!-- Search -->
+  <section class="card find-view" data-pane="search" aria-label="Search stock">
+    <h2>Search stock</h2>
+    <p class="note">Check if a label is available. Search by label no., item name, item type or stone.</p>
+    <div class="find-in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input id="findQ" type="search" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. FRG382 or ring" aria-label="Search stock"></div>
+    <p class="note" id="findNote"></p>
+    <div class="find-list" id="findList"></div>
   </section>
 
   <!-- Quote -->
@@ -974,9 +1003,6 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
     <h3>Text size on this phone</h3>
       <p class="note" style="margin-block:4px 0">Make everything smaller if the rates or prices don't fit the screen.</p>
       <div class="seg" id="uiZoom"><button type="button" data-z="0.82">Smallest</button><button type="button" data-z="0.9">Small</button><button type="button" data-z="1">Normal</button><button type="button" data-z="1.1">Large</button></div>
-      <h3 style="margin-top:16px">Making on the price card</h3>
-      <p class="note" style="margin-block:4px 0">Who can change the making after a scan (Update making on the price card).</p>
-      <div class="seg" id="mkEditSeg"><button type="button" data-m="admin">Admins only</button><button type="button" data-m="all">All staff</button></div>
     <h3 style="margin-top:16px">Rates shown</h3>
       <p class="note" style="margin-block:4px 0">Purities shown on the rate band, the day's rates screen and the purity buttons. Shown gold rates are required each day.</p>
       <div class="rate-pick" id="ratePick"></div>
@@ -1004,8 +1030,13 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
       <div class="f full" style="margin-top:8px"><label for="syncKey">Shop key</label><input id="syncKey" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX"></div>
       <div class="rs-acts" style="margin-top:8px"><button class="btn primary" type="button" id="syncConnect">Connect</button><button class="btn" type="button" id="syncNow">Sync now</button></div>
       <div class="status" id="syncStatus">Not connected. This phone keeps its own data.</div>
+      <h3 style="margin-top:16px">Roles and permissions</h3>
+      <p class="note" style="margin-block:4px 0">Each user has one role. Tick what each role may do. Admin can always do everything.</p>
+      <div class="roles" id="roleList"></div>
+      <div class="rs-acts" style="margin-top:8px"><button class="btn" type="button" id="roleAdd">+ Add role</button><button class="btn primary" type="button" id="roleSave">Save roles</button></div>
+      <div class="status" id="roleStatus"></div>
       <h3 style="margin-top:16px">Users</h3>
-      <p class="note" style="margin-block:4px 0">Everyone logs in with their own name and PIN. Admins can upload stock and change settings.</p>
+      <p class="note" style="margin-block:4px 0">Everyone logs in with their own name and PIN. What they can do depends on their role.</p>
       <div class="users" id="userList"></div>
       <button class="linkbtn" type="button" id="userAdd">+ Add user</button>
       <div class="user-form" id="userForm" hidden>
@@ -1028,6 +1059,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 <nav class="tabbar" id="tabbar" aria-label="Sections">
   <button type="button" class="tab on" id="tabHome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.2 12 3.8l9 7.4h-2.5V20.2h-5v-5.5h-3v5.5h-5V11.2z"/></svg><span>Home</span></button>
   <button type="button" class="tab" id="tabScan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M7.5 8v8M10.5 8v8M13.5 8v8M16.5 8v8"/></svg><span>Scan</span></button>
+  <button type="button" class="tab" id="tabFind"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><span>Search</span></button>
   <button type="button" class="tab" id="tabQuote"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg><span>Quote</span><b class="tab-badge" id="tabBadge" hidden>0</b></button>
   <button type="button" class="tab" id="tabRates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18"/><path d="M5 20l1.5-5h5L13 20"/><path d="M11 20l1.5-5h5L19 20"/><path d="M8 15l1.5-5h5L16 15"/></svg><span>Gold Rates</span></button>
   <button type="button" class="tab" id="tabSet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="6.6"/><path d="M12 2.5v2.9M12 18.6v2.9M2.5 12h2.9M18.6 12h2.9M5.3 5.3l2 2M16.7 16.7l2 2M5.3 18.7l2-2M16.7 7.3l2-2"/></svg><span>Settings</span></button>
@@ -1049,7 +1081,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
         <button class="btn primary" type="button" id="ssAdd">Add new stock</button>
         <button class="btn" type="button" id="ssReplace">Import stock Excel (replace)</button>
       </div>
-      <div class="status" id="ssStatus">Columns read: LabelNo, Purity, GrossWt, NetWt, DaiWt, DaiPcs, Clrstn Wt, Clrstn Pcs, Wastage %, Labour Charges, Labour Rate, Category, Supplier, ItemName, HUIDCount, Label Code (older BarCode sheets still work).</div>
+      <div class="status" id="ssStatus">Columns read: Label No, Item Name, Item type, Purity (K), Gross Wt (g), Stone Wt (g), Net Wt (g), Clr-SA, Dia-SA, Wstg %, Labour charges, Making Rate, HUID no, Stone Name (s). Older sheets still work.</div>
       <button class="btn back-app" type="button" id="ssBack2">‹ Back to app</button>
     </div>
     <div class="card">
@@ -1129,14 +1161,6 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
     <p class="pin-err" id="pinErr" role="alert"></p>
     <div class="acts"><button class="btn primary" type="submit">Unlock</button><button class="btn ghost" type="button" id="pinCancel">Cancel</button></div>
   </form>
-</div>
-<div class="modal" id="findPop" hidden role="dialog" aria-modal="true" aria-labelledby="findT">
-  <div class="sheet find-sheet">
-    <div class="find-head"><h4 id="findT">Search stock</h4><button class="menu-x" type="button" id="findClose" aria-label="Close">✕</button></div>
-    <div class="find-in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input id="findQ" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Label no., label code, item, supplier" aria-label="Search stock"></div>
-    <p class="note" id="findNote"></p>
-    <div class="find-list" id="findList"></div>
-  </div>
 </div>
 <div class="modal" id="mkPop" hidden role="dialog" aria-modal="true" aria-labelledby="mkPopT">
   <form class="sheet mk-sheet" id="mkPopForm">
@@ -1253,6 +1277,7 @@ async function pullAll(force){
     }
     if(force||(m.users||0)>(sync.v.users||0)){
       const d=await syncApi('users','GET',null,adminCreds);
+      if(Array.isArray(d.roles)){roles=d.roles;store.set('roles',roles)}
       if(Array.isArray(d.users)&&d.users.length){mergeRemoteUsers(d.users)}
       else if(users.length&&adminCreds){await pushUsers()} // shared database has no users yet: start it from this phone
       sync.v.users=d.v||sync.v.users;
@@ -1367,7 +1392,8 @@ $('band').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.prev
 $('rsClose').onclick=()=>closeRates();
 $('rsKiosk').onclick=()=>{SHOWN().forEach(p=>{if(live.rates[p.id]>0)$('rs_'+p.id).value=live.rates[p.id]});
   $('rsStatus').textContent=`Filled from the kiosk (${whenText(live.at)}). Check, then Save.`;$('rsStatus').className='status'};
-$('rsSave').onclick=()=>{
+$('rsSave').onclick=()=>withPerm('rates',"Needs a user allowed to set the day's rates.",()=>saveDayRates());
+function saveDayRates(){
   const rates={},miss=[];
   // keep any rate set today for a purity that is not shown, so hiding one never wipes it
   const today=dayEntry();if(today)PURITIES.forEach(p=>{if(!SHOWN().includes(p)&&today.rates[p.id]>0)rates[p.id]=today.rates[p.id]});
@@ -1389,7 +1415,7 @@ $('rsSave').onclick=()=>{
     return;
   }
   commit();
-};
+}
 function renderRateHist(){
   const el=$('rsHist');
   if(!rateLog.length){el.innerHTML='<div class="empty">Saved rates appear here, newest first.</div>';return}
@@ -1521,14 +1547,14 @@ function parseCats(txt){
   return {out,bad};
 }
 applyCats();
-$('catSave').onclick=()=>withPin('Changing item codes needs an admin.',()=>{
+$('catSave').onclick=()=>withPin('Needs a user allowed to change settings.',()=>{
   const {out,bad}=parseCats($('catEdit').value);
   if(bad.length){$('catStatus').textContent='Check these lines (CODE = Name): '+bad.slice(0,3).join(' · ');$('catStatus').className='status err';return}
   if(!Object.keys(out).length){$('catStatus').textContent='Add at least one item code.';$('catStatus').className='status err';return}
   settings.cats=out;saveSettings();applyCats();renderEditor();renderTable('cz');renderTable('dia');
   $('catStatus').textContent=`${Object.keys(out).length} item codes saved.`;$('catStatus').className='status ok'});
 $('catReset').onclick=()=>showModal('Reset item codes?','The item codes go back to the starting list.',[
-  {label:'Reset',cls:'danger',run:()=>withPin('Changing item codes needs an admin.',()=>{settings.cats=null;saveSettings();applyCats();renderEditor();$('catStatus').textContent='Item codes reset.';$('catStatus').className='status ok'})},{label:'Cancel',cls:'ghost'}]);
+  {label:'Reset',cls:'danger',run:()=>withPin('Needs a user allowed to change settings.',()=>{settings.cats=null;saveSettings();applyCats();renderEditor();$('catStatus').textContent='Item codes reset.';$('catStatus').className='status ok'})},{label:'Cancel',cls:'ghost'}]);
 function bcSplit(sku){const k=keyOf(sku),m=k.match(/^([A-Z]+)(.*)$/);return m?{pre:m[1],rest:m[2]}:{pre:'',rest:k}}
 function curCode(){return CODE_OF[cur.item]||''}
 function paintBarcode(){
@@ -1575,7 +1601,7 @@ function rebuildPurities(){buildRateBand();buildRateSheet();buildPuritySeg();pai
 function paintRatePick(){
   const el=$('ratePick');if(!el)return;const on=SHOWN().map(p=>p.id);
   el.innerHTML=PURITIES.map(p=>`<button type="button" data-p="${p.id}" aria-pressed="${on.includes(p.id)}">${esc(p.name||p.label)}</button>`).join('');
-  el.querySelectorAll('button').forEach(b=>b.onclick=()=>withPin('Changing the rates shown needs an admin.',()=>{
+  el.querySelectorAll('button').forEach(b=>b.onclick=()=>withPin('Needs a user allowed to change settings.',()=>{
     let ids=SHOWN().map(p=>p.id);
     ids=ids.includes(b.dataset.p)?ids.filter(x=>x!==b.dataset.p):PURITIES.map(p=>p.id).filter(x=>x===b.dataset.p||ids.includes(x));
     if(!ids.length){toast('Keep at least one rate',null,true);return}
@@ -1947,8 +1973,8 @@ const SVGI=d=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke
 const IC_EDIT=SVGI('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/>'),IC_DEL=SVGI('<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/>');
 let quotes=store.get('quotes',[]);if(!Array.isArray(quotes))quotes=[];
 let mgrMode=false,qFilter='open',mgrUntil=0;
-function isManager(){return !!(curUser&&(curUser.role==='manager'||curUser.role==='admin'))||Date.now()<mgrUntil||isAdmin()}
-function withManager(why,fn){if(isManager()){fn();return}openLogin('manager',why||'A manager must log in to continue.',fn)}
+function isManager(){return can('mkDisc')}
+function withManager(why,fn,perm){withPerm(perm||'mkDisc',why||'Needs a manager.',fn,false)}
 function billIsEmpty(){return !bill.items.length&&!bill.oldGold.length&&!bill.returns.length&&!(bill.advances||[]).length&&!(bill.cust&&(bill.cust.name||bill.cust.phone))}
 function isClosed(){return bill.status==='closed'||bill.status==='cancelled'}
 function phoneDigits(p){let d=String(p||'').replace(/\D/g,'');if(d.length===10)d='91'+d;if(d.length===11&&d[0]==='0')d='91'+d.slice(1);return d}
@@ -2011,9 +2037,7 @@ function paintQuoteHead(){
   const n=bill.items.length;$('billCount').textContent=`(${n})`;
   const b=$('tabBadge');b.hidden=!n;b.textContent=n;
   $('goBill').textContent=n?`Quote (${n})`:'Quote';
-  $('homeQNo').textContent=quoteLabel(bill)==='Draft'?(n?'Draft':'New'):quoteLabel(bill);
-  let bal='';if(n){try{bal=' · '+inr(Math.abs(totals().net))}catch(e){}}
-  $('homeQN').textContent=n?`${n} item${n>1?'s':''}${bal}`:'No items yet';
+
 }
 function renderBill(keepInputs){
   const s=totals(),n=bill.items.length,closed=isClosed(),mgr=isManager();
@@ -2144,7 +2168,6 @@ $('qDisc').onclick=notClosed(()=>{
 });
 ['qName','qPhone'].forEach(id=>$(id).addEventListener('input',()=>{bill.cust[id==='qName'?'name':'phone']=$(id).value;saveBill();renderRecent()}));
 $('qNew').onclick=()=>askClear();
-$('homeQInfo').onclick=()=>setView('quote');
 $('homeQNew').onclick=()=>{
   if(billIsEmpty()&&!cur.touched){toast('Ready for a new customer');return}
   if(billIsEmpty()){cur=blankTag();editingId=null;edOpen=false;saveDraft();renderEditor();toast('New quote');return}
@@ -2165,11 +2188,11 @@ $('qtDel').onclick=()=>{
     if(wasShared)try{await syncApi('quotedel','POST',{id},adminCreds)}catch(e){toast('Deleted here. Could not delete from other phones.',null,true)}
     startNewQuote('Quote deleted.');toast('Quote deleted')};
   showModal(`Delete ${quoteLabel(bill)}?`,`${bill.items.length} item${bill.items.length===1?'':'s'}${bill.cust.name?` for ${bill.cust.name}`:''}. This cannot be undone.`,[
-    {label:'Delete quote',cls:'danger',run:()=>bill.no&&sync.key?withPin('An admin must log in to delete a shared quote.',del):del()},{label:'Cancel',cls:'ghost'}]);
+    {label:'Delete quote',cls:'danger',run:()=>withPerm('delQuote','Needs a user allowed to delete quotes.',del,!!(bill.no&&sync.key))},{label:'Cancel',cls:'ghost'}]);
 };
 [...$('qChan').children].forEach(b=>b.onclick=()=>{if(isClosed())return;bill.channel=b.dataset.c;saveBill();renderBill()});
 $('qInv').addEventListener('input',()=>{bill.invoice=$('qInv').value.trim();saveBill(true)});
-$('qCloseBtn').onclick=()=>{
+$('qCloseBtn').onclick=()=>withPerm('closeSale','Needs a user allowed to close sales.',()=>{
   if(!bill.items.length){toast('Add items first',null,true);return}
   if(!bill.invoice){toast(`Enter the final invoice number from ${BRAND.erp||'the ERP'}`,null,true);$('qInv').focus();return}
   showModal(`Close sale ${quoteLabel(bill)}?`,`Invoice ${bill.invoice} · ${bill.channel==='online'?'Online':'In-store'} sale · ${inr(Math.abs(totals().net))}.`,[
@@ -2177,14 +2200,14 @@ $('qCloseBtn').onclick=()=>{
       bill.status='closed';bill.closedAt=Date.now();bill.closedBy=curUser?(curUser.name||curUser.username):'';mgrMode=false;
       saveBill(true);renderBill();await pushQuote(bill.id);toast('Sale closed');
       const keys=bill.items.map(t=>t.stockKey).filter(k=>k&&stockMap.has(k));
-      if(keys.length&&isAdmin())setTimeout(()=>showModal(`Remove ${keys.length} sold tag${keys.length>1?'s':''} from stock?`,`${keys.join(', ')} ${keys.length>1?'were':'was'} sold on invoice ${bill.invoice}.`,[
-        {label:'Remove from stock',cls:'danger',run:()=>withPin('Log in as an admin to delete stock.',async()=>{const n=await removeStock(keys,`Sold · invoice ${bill.invoice}`);toast(`${n} tag${n>1?'s':''} removed from stock`)})},
+      if(keys.length&&can('stockdel'))setTimeout(()=>showModal(`Remove ${keys.length} sold tag${keys.length>1?'s':''} from stock?`,`${keys.join(', ')} ${keys.length>1?'were':'was'} sold on invoice ${bill.invoice}.`,[
+        {label:'Remove from stock',cls:'danger',run:()=>withPin('Needs a user allowed to delete stock.',async()=>{const n=await removeStock(keys,`Sold · invoice ${bill.invoice}`);toast(`${n} tag${n>1?'s':''} removed from stock`)},'stockdel')},
         {label:'Keep in stock',cls:'ghost'}]),400);
     }},{label:'Cancel',cls:'ghost'}]);
-};
-$('qReopen').onclick=()=>withManager('A manager must log in to reopen this quote.',()=>{const was=bill.status;bill.status='open';delete bill.closedAt;delete bill.cancelledAt;saveBill();renderBill();toast(was==='cancelled'?'Quote reopened':'Sale reopened')});
+});
+$('qReopen').onclick=()=>withManager('Needs a user allowed to reopen quotes.',()=>{const was=bill.status;bill.status='open';delete bill.closedAt;delete bill.cancelledAt;saveBill();renderBill();toast(was==='cancelled'?'Quote reopened':'Sale reopened')},'reopen');
 // Cancel: the customer only enquired. Kept under Quotes → Enquiry.
-$('qCancel').onclick=()=>{
+$('qCancel').onclick=()=>withPerm('cancelQuote','Needs a user allowed to cancel quotes.',()=>{
   if(billIsEmpty()){toast('Nothing to cancel');return}
   $('modalTitle').textContent=`Cancel ${quoteLabel(bill)}?`;$('modalTitle').classList.remove('price-pop');
   $('modalBody').innerHTML=`Marks this quote as an enquiry only (no sale). It stays under Quotes → Enquiry.<br><input id="cancelWhy" maxlength="80" placeholder="Reason (optional), e.g. price, will come later" style="width:100%;margin-top:10px;font:15px var(--body);padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg)">`;
@@ -2193,7 +2216,7 @@ $('qCancel').onclick=()=>{
   ok.onclick=async()=>{bill.cancelReason=$('cancelWhy').value.trim();closeModal();bill.status='cancelled';bill.cancelledAt=Date.now();bill.cancelledBy=curUser?(curUser.name||curUser.username):'';mgrMode=false;saveBill(true);renderBill();await pushQuote(bill.id);toast('Quote cancelled · enquiry')};
   const cn=document.createElement('button');cn.className='btn ghost';cn.type='button';cn.textContent='Keep quote';cn.onclick=closeModal;
   a.append(ok,cn);$('modal').hidden=false;
-};
+});
 
 function shareText(){
   const s=totals(),g=gstPct();
@@ -2464,7 +2487,7 @@ function paintProduct(){
   const w=v=>v!=null&&v!==''&&!isNaN(num(v))?num(v).toFixed(3):'';
   const mk=p.hasMk?valText({type:cur.mkType,val:num(cur.mkVal)}):'';
   const rows=[['Purity',PLABEL[cur.purity]],['Gr. Wt',w(cur.gw)],['Nt. Wt',w(cur.nw)],['St. Wt',w(cur.sw)],
-    ['VA (Making)',mk||'—'],['SA (Stone)',p.stone?inr(p.stone):(isDiamond(cur)?'—':'')],['HUID',p.huidN?`${p.huidN} × ${inr(settings.huid)}`:''],
+    ['VA (Making)',mk||'—'],['SA (Stone)',p.stone?inr(p.stone):(isDiamond(cur)?'—':'')],['Stones',st&&st.stoneName],['Type',st&&st.category],['HUID',p.huidN?`${p.huidN} × ${inr(settings.huid)}`:''],
     ['Pcs',st&&st.pcs>1?fmtN(st.pcs):''],['Supplier',st&&st.supplier]].filter(r=>r[1]);
   $('pdSpecs').innerHTML=rows.map(([l,v])=>`<dt>${l}</dt><dd>${esc(v)}</dd>`).join('');
   const need=$('pdNeed');need.hidden=ok;
@@ -2483,10 +2506,10 @@ function paintProduct(){
   $('pdGrand').textContent=ok?inr(p.value*(1+g/100)):'—';
   $('pdTotal').classList.toggle('incomplete',!ok);$('pdGrandRow').classList.toggle('incomplete',!ok);
   $('pdSave').lastChild.textContent=editingId?'Update Quote':'Save to Quote';
-  $('pdMk').hidden=!(canEditMk()&&p.hasMk);
+  $('pdMk').hidden=!p.hasMk;
 }
-function canEditMk(){return isAdmin()||settings.mkEdit==='all'}
-$('pdMk').onclick=()=>{if(!canEditMk()){withPin('An admin must allow changing the making.',()=>openMkPop(()=>{},true));return}openMkPop(()=>{},true)};
+function canEditMk(){return can('mkEdit')}
+$('pdMk').onclick=()=>withPerm('mkEdit','Needs a user allowed to update making.',()=>openMkPop(()=>{},true));
 $('pdEdit').onclick=()=>{edOpen=$('editor').hidden;renderEditor();if(edOpen)$('editor').scrollIntoView({behavior:'smooth',block:'start'})};
 $('pdDel').onclick=()=>$('clearTag').click();
 $('pdSave').onclick=()=>$('addTag').click();
@@ -2563,13 +2586,13 @@ function itemName(v){
   const hit=Object.values(CAT).find(n=>n.toUpperCase()===t.toUpperCase()||n.split(' /')[0].toUpperCase()===t.toUpperCase());
   return hit||t.toLowerCase().replace(/\b[a-z]/g,c=>c.toUpperCase());
 }
-const COLS={barcode:['BARCODE','BARCODENO','BARCODENUMBER','TAGNO','BARCODES','LABELNO','LABELNUMBER','TAGNUMBER'],item:['ITEMNAME','ITEM'],category:['CATEGORY'],carat:['CARRET','CARAT','KARAT','PURITY','CARATAGE','CARET'],
-  gw:['GROSSWT','GROSSWEIGHT','GWT','GRWT'],nw:['NETWT','NETWEIGHT','NWT'],sw:['STONEWT','STONEWEIGHT','SWT','STWT','CLRSTNWT','COLORSTONEWT','COLOURSTONEWT','CLRSTONEWT'],dw:['DIAMONDWT','DIAMONDWEIGHT','DIAWT','DWT','DAIWT','DAIMONDWT'],dq:['DIAMONDQTY','DIAQTY','DIAMONDPCS','DAIPCS','DIAPCS','DAIQTY'],
+const COLS={barcode:['BARCODE','BARCODENO','BARCODENUMBER','TAGNO','BARCODES','LABELNO','LABELNUMBER','TAGNUMBER'],item:['ITEMNAME','ITEM'],category:['ITEMTYPE','CATEGORY','TYPE'],stoneName:['STONENAMES','STONENAME','STONES'],saClr:['CLRSA','COLORSA','COLOURSA','CLRSTONEAMOUNT'],saDia:['DIASA','DIAMONDSA','DIAAMOUNT','DIAMONDAMOUNT'],carat:['CARRET','CARAT','KARAT','PURITY','PURITYK','CARATAGE','CARET'],
+  gw:['GROSSWT','GROSSWTG','GROSSWEIGHT','GWT','GRWT'],nw:['NETWT','NETWTG','NETWEIGHT','NWT'],sw:['STONEWT','STONEWTG','STONEWEIGHT','SWT','STWT','CLRSTNWT','COLORSTONEWT','COLOURSTONEWT','CLRSTONEWT'],dw:['DIAMONDWT','DIAMONDWEIGHT','DIAWT','DWT','DAIWT','DAIMONDWT'],dq:['DIAMONDQTY','DIAQTY','DIAMONDPCS','DAIPCS','DIAPCS','DAIQTY'],
   sa:['STONEAMOUNT','STONEAMT','SA','SPR','STONEPRICE','STONEVALUE'],serial:['SERIAL','SERIALNO','SLNO'],label:['LABELCODE','LABEL'],location:['LOCATION'],pcs:['PCS','PIECES'],sq:['STONEQTY','STONEPCS','CLRSTNPCS','COLORSTONEPCS','COLOURSTONEPCS'],supplier:['SUPPLIER','VENDOR'],
-  mk:['MAKING','MAKINGCHARGE','MAKINGCHARGES','MAKINGRATE','MC','MCRATE','VA','VARATE','MAKINGMBD','MBD'],mkType:['MAKINGTYPE','MCTYPE','VATYPE','MAKINGON'],
-  mkPct:['WASTAGE','WASTAGEPCT','WASTAGEPERCENT','MAKINGPCT','MAKINGPERCENT','MAKINGPERCENTAGE','VAPCT','VAPERCENT','MCPCT','MCPERCENT'],mkPg:['LABOURRATE','LABORRATE','LABOURRATEPERGRAM','MAKINGPG','MAKINGPERGRAM','MAKINGPERGM','MCPG','MCPERGRAM','MCPERGM'],mkFix:['LABOURCHARGES','LABOURCHARGE','LABORCHARGES','LABORCHARGE','MAKINGFIXED','MAKINGAMOUNT','MAKINGAMT','MCAMOUNT','MCAMT','MCFIXED','MAKINGPERPIECE','MCPERPIECE'],
+  mk:['MAKING','MAKINGCHARGE','MAKINGCHARGES','MC','MCRATE','VA','VARATE','MAKINGMBD','MBD'],mkType:['MAKINGTYPE','MCTYPE','VATYPE','MAKINGON'],
+  mkPct:['WSTG','WSTGPCT','WASTAGE','WASTAGEPCT','WASTAGEPERCENT','MAKINGPCT','MAKINGPERCENT','MAKINGPERCENTAGE','VAPCT','VAPERCENT','MCPCT','MCPERCENT'],mkPg:['MAKINGRATE','LABOURRATE','LABORRATE','LABOURRATEPERGRAM','MAKINGPG','MAKINGPERGRAM','MAKINGPERGM','MCPG','MCPERGRAM','MCPERGM'],mkFix:['LABOURCHARGES','LABOURCHARGE','LABORCHARGES','LABORCHARGE','MAKINGFIXED','MAKINGAMOUNT','MAKINGAMT','MCAMOUNT','MCAMT','MCFIXED','MAKINGPERPIECE','MCPERPIECE'],
   huid:['HUIDCOUNT','HUID','HUIDQTY','HUIDNOS','HUIDNO','NOOFHUID','HUIDPCS','HUIDS']};
-const NUMCOLS=['gw','nw','sw','dw','dq','sa','pcs','sq'];
+const NUMCOLS=['gw','nw','sw','dw','dq','sa','pcs','sq','saClr','saDia'];
 // Making and HUID from the stock sheet. Making: one "Making" column ("14%", "2500 PG", "1500 fixed"; a plain number
 // up to 100 is %, above 100 is fixed unless a Making Type column says per gram), or separate %, per-gram and fixed columns.
 function stockMaking(rec){
@@ -2612,6 +2635,8 @@ async function readSheet(file){
         if(NUMCOLS.includes(f)){const n=typeof v==='number'?v:num(v);rec[f]=isNaN(n)?null:n}
         else rec[f]=v==null?'':String(v).trim()}
       stockMaking(rec);
+      // Stone value = Clr-SA + Dia-SA when the sheet splits it
+      if(!(rec.sa>0)&&((rec.saClr>0)||(rec.saDia>0)))rec.sa=(rec.saClr||0)+(rec.saDia||0);delete rec.saClr;delete rec.saDia;
       out.set(key,rec);
     }
     const found=Object.keys(idx);
@@ -2627,8 +2652,8 @@ function askReplace(){
     {label:'Choose file and replace',cls:'danger',run:()=>pickStock('replace')},{label:'Cancel',cls:'ghost'}]);
 }
 const lockMsg='Enter the admin PIN to upload stock data.';
-$('ssAdd').onclick=()=>requireAdmin(lockMsg,()=>pickStock('add'));$('dataAdd').onclick=()=>requireAdmin(lockMsg,()=>pickStock('add'));
-$('ssReplace').onclick=()=>requireAdmin(lockMsg,askReplace);$('dataFull').onclick=()=>requireAdmin(lockMsg,askReplace);
+$('ssAdd').onclick=()=>requireAdmin(lockMsg,()=>pickStock('add'),false,'stock');$('dataAdd').onclick=()=>requireAdmin(lockMsg,()=>pickStock('add'),false,'stock');
+$('ssReplace').onclick=()=>requireAdmin(lockMsg,askReplace,false,'stock');$('dataFull').onclick=()=>requireAdmin(lockMsg,askReplace,false,'stock');
 $('dataOpen').onclick=()=>openStock();
 function impStatus(t,cls){[$('ssStatus'),$('dataStatus')].forEach(el=>{el.className='status'+(cls?' '+cls:'');el.textContent=t})}
 $('ssFile').addEventListener('change',async e=>{
@@ -2648,7 +2673,7 @@ $('ssFile').addEventListener('change',async e=>{
     stockMeta.history=stockMeta.history.slice(0,100);store.set('stockMeta',stockMeta);
     impStatus(`${importMode==='replace'?'Full stock imported':'New stock added'}: ${added.toLocaleString('en-IN')} new, ${updated.toLocaleString('en-IN')} updated`+(res.skipped?`, ${res.skipped} row${res.skipped>1?'s':''} without a barcode skipped`:'')+(res.dups>0?`, ${res.dups} repeated barcodes (last row kept)`:'')+'.'+(miss.length?` Columns not found: ${miss.join(', ')}.`:''),'ok');
     paintStockSummary();toast('Stock list updated');
-    if(sync.key)withPin('Enter the admin PIN to share this stock with all phones.',()=>pushStock(importMode,res.rows,f.name,res.skipped));
+    if(sync.key)withPin('Enter your PIN to share this stock with all phones.',()=>pushStock(importMode,res.rows,f.name,res.skipped),'stock');
     if(cur.sku&&!cur.stockKey)lookupTyped(true);
   }catch(err){
     impStatus(err&&err.message==='no_header'?'No "BarCode" column found. Check the first rows of the sheet have the column names.':err&&err.message==='xlsx_missing'?'The Excel reader did not load. Update the app and try again.':'Could not read that file. Save it as .xlsx and try again.','err');
@@ -2713,11 +2738,11 @@ function setMenu(on){$('menu').hidden=!on;$('menuScrim').hidden=!on;$('menuBtn')
 $('menuBtn').onclick=()=>setMenu(true);$('menuClose').onclick=$('menuScrim').onclick=()=>setMenu(false);
 $('menu').addEventListener('click',e=>{if(e.target.closest('.menu-acts button'))setMenu(false)});
 // Views: Home (price check), Quote, Settings (stock data + admin settings)
-const VIEW_TITLE={home:'Price Check',quote:'Quote',settings:'Settings'};
+const VIEW_TITLE={home:'Price Check',quote:'Quote',settings:'Settings',search:'Search'};
 function setView(v){
   const was=document.body.dataset.view;document.body.dataset.view=v;
   $('viewTitle').textContent=VIEW_TITLE[v];$('heroBack').hidden=v==='home';
-  [['tabHome','home'],['tabQuote','quote'],['tabSet','settings']].forEach(([id,k])=>$(id).classList.toggle('on',k===v));
+  [['tabHome','home'],['tabFind','search'],['tabQuote','quote'],['tabSet','settings']].forEach(([id,k])=>$(id).classList.toggle('on',k===v));
   if(v==='quote'){renderBill();if(sync.key)pullQuotes()}
   if(was!==v)window.scrollTo({top:0});
 }
@@ -2729,13 +2754,12 @@ function zoomNow(){const z=store.get('uiZoom',null);return z!=null?z:(Math.min(s
 applyZoom(zoomNow());
 function paintAdminExtras(){
   const z=zoomNow();[...$('uiZoom').children].forEach(b=>b.setAttribute('aria-pressed',String(Math.abs(+b.dataset.z-z)<0.001)));
-  [...$('mkEditSeg').children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.m===(settings.mkEdit||'admin'))));
+
 }
-[...$('uiZoom').children].forEach(b=>b.onclick=()=>withPin('An admin must change the text size.',()=>{store.set('uiZoom',+b.dataset.z);applyZoom(+b.dataset.z);paintAdminExtras();toast('Text size changed')}));
-[...$('mkEditSeg').children].forEach(b=>b.onclick=()=>withPin('An admin must change this.',()=>{settings.mkEdit=b.dataset.m;saveSettings();paintAdminExtras();renderEditor();toast(b.dataset.m==='all'?'All staff can update making':'Only admins can update making')}));
+[...$('uiZoom').children].forEach(b=>b.onclick=()=>withPerm('settings','Needs a user allowed to change settings.',()=>{store.set('uiZoom',+b.dataset.z);applyZoom(+b.dataset.z);paintAdminExtras();toast('Text size changed')},false));
 paintAdminExtras();
 // Search stock: is a label available?
-function openFind(q){$('findPop').hidden=false;$('findQ').value=q||'';runFind();setTimeout(()=>$('findQ').focus(),60)}
+function openFind(q){setView('search');if(q!=null)$('findQ').value=q;runFind();setTimeout(()=>$('findQ').focus(),80)}
 function runFind(){
   const q=$('findQ').value.trim(),k=keyOf(q),el=$('findList');
   if(!stockMap.size){$('findNote').textContent='No stock loaded on this phone yet.';el.innerHTML='';return}
@@ -2743,28 +2767,28 @@ function runFind(){
   const exact=findStock(q),ql=q.toLowerCase(),hits=[];
   if(exact)hits.push(exact);
   for(const r of stockMap.values()){if(hits.length>=60)break;if(r===exact)continue;
-    if((k.length>=2&&(r.key.includes(k)||keyOf(r.label||'').includes(k)))||[r.item,r.category,r.supplier].some(v=>String(v||'').toLowerCase().includes(ql)))hits.push(r)}
+    if((k.length>=2&&(r.key.includes(k)||keyOf(r.label||'').includes(k)))||[r.item,r.category,r.supplier,r.stoneName].some(v=>String(v||'').toLowerCase().includes(ql)))hits.push(r)}
   $('findNote').innerHTML=hits.length?(exact?`<b class="ok-t">✓ ${esc(exact.barcode||exact.key)} is in stock.</b> `:'')+`${hits.length>=60?'First 60':hits.length} match${hits.length===1?'':'es'}.`:`<b class="bad-t">✗ Not in stock.</b> No item matches “${esc(q)}”.`;
   el.innerHTML=hits.map(r=>{const p=caratToPurity(r.carat),mk=r.mkType&&num(r.mk)>0?valText({type:r.mkType,val:num(r.mk)}):'';
     return `<button type="button" class="find-row" data-k="${esc(r.key)}"><span><b>${esc(r.barcode||r.key)}</b>${r.label&&keyOf(r.label)!==r.key?` <small>${esc(r.label)}</small>`:''}<br><span class="m">${esc(r.item||r.category||'')} · ${esc(PLABEL[p]||r.carat||'')} · Nt ${fmtW(num(r.nw))} g${mk?' · '+esc(mk):''}${r.supplier?' · '+esc(r.supplier):''}</span></span><span class="in-st">In stock</span></button>`}).join('');
-  el.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{$('findPop').hidden=true;const r=stockMap.get(b.dataset.k);if(r){setView('home');useScannedCode(r.barcode||r.key)}});
+  el.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const r=stockMap.get(b.dataset.k);if(r){setView('home');useScannedCode(r.barcode||r.key)}});
 }
 $('findBtn').onclick=()=>openFind($('bcNum').value);
 $('findQ').addEventListener('input',runFind);
-$('findClose').onclick=()=>{$('findPop').hidden=true};
-$('findPop').addEventListener('click',e=>{if(e.target===$('findPop'))$('findPop').hidden=true});
+
 $('menuRates').onclick=()=>openRates();$('menuAdmin').onclick=()=>openSettings('adminCard');$('menuData').onclick=()=>openSettings('dataCard');
 $('setStock').onclick=openStock;
 $('tabHome').onclick=()=>{if(document.body.dataset.view==='home')window.scrollTo({top:0,behavior:'smooth'});else setView('home')};
 $('tabScan').onclick=()=>{setView('home');$('scanBc').click()};
 $('tabQuote').onclick=()=>setView('quote');
+$('tabFind').onclick=()=>openFind();
 $('tabRates').onclick=()=>openRates();
 $('tabSet').onclick=()=>openSettings();
 setView('home');
 window.__pc={totals:()=>totals(),shareText:()=>shareText(),openSettings:c=>openSettings(c)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.5.__BUILD__';
+const APP_VERSION='1.6.__BUILD__';
 $('appVer').textContent='v'+(APP_VERSION.includes('__')?'dev':APP_VERSION);$('heroVer').textContent=$('appVer').textContent;
 
 // ---------- users and login ----------
@@ -2772,8 +2796,28 @@ const DEFAULT_PIN_HASH='70249d509e52362f5d41ae4cc1bfeabc6af135b10b4c2ba234fdf876
 let users=store.get('users',[]);if(!Array.isArray(users))users=[];
 let curUser=null;{const ss=store.get('session',null);if(ss)curUser=users.find(u=>u.id===ss.id&&u.active!==false)||null}
 let adminUntil=0; // admin override on a staff login (15 minutes)
-function isAdmin(){return !!(curUser&&curUser.role==='admin')||Date.now()<adminUntil}
-function setAdmin(on){if(!on){adminUntil=0;if(!(curUser&&curUser.role==='admin'))adminCreds=null}paintAdmin()}
+// ---------- roles & permissions ----------
+const PERM_LIST=[
+  ['stock','Import / update stock'],['stockdel','Delete sold tags from stock'],['rates',"Set day's rates"],
+  ['mkEdit','Update making on the price card'],['mkDisc','Making after discount on quotes'],
+  ['closeSale','Close sale (invoice no.)'],['cancelQuote','Cancel quote (enquiry)'],['reopen','Reopen sold / cancelled quotes'],
+  ['delQuote','Delete quotes'],['settings','Admin settings (charges, making helper, item codes, rates shown, text size)'],
+  ['users','Users and roles'],['sync','Connect phones (shop key)']];
+const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote']}];
+let roles=store.get('roles',null)||clone(DEFAULT_ROLES);
+let elev={role:'',until:0};   // another user's approval, 15 minutes
+const roleName=id=>id==='admin'?'Admin':(roles.find(r=>r.id===id)||{name:id||'—'}).name;
+function roleHas(role,perm){return role==='admin'||!!((roles.find(r=>r.id===role)||{}).perms||[]).includes(perm)}
+function can(perm){return !!(curUser&&roleHas(curUser.role,perm))||(Date.now()<elev.until&&roleHas(elev.role,perm))}
+// Server writes need the PIN of a user with the permission (kept in memory only)
+function credsOk(perm){return !sync.key||!!(adminCreds&&roleHas(adminCreds.role,perm))}
+function withPerm(perm,why,fn,needCreds){
+  if(can(perm)&&(!needCreds||credsOk(perm))){fn();return}
+  const me=curUser&&roleHas(curUser.role,perm)?curUser.username:'';
+  openLogin('perm',why||`Needs permission: ${(PERM_LIST.find(p=>p[0]===perm)||[0,perm])[1]}.`,fn,me,perm);
+}
+function isAdmin(){return !!(curUser&&curUser.role==='admin')||(Date.now()<elev.until&&elev.role==='admin')}
+function setAdmin(on){if(!on){adminUntil=0;elev={role:'',until:0};if(!(curUser&&adminCreds&&curUser.username===adminCreds.username))adminCreds=null}paintAdmin()}
 const hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
 async function pbkdf(pin,saltHex){
   const salt=new Uint8Array((saltHex.match(/../g)||[]).map(h=>parseInt(h,16)));
@@ -2794,7 +2838,7 @@ function mergeRemoteUsers(list){
 }
 async function pushUsers(){
   if(!sync.key)return;
-  try{const r=await syncApi('users','POST',{users},adminCreds);sync.v.users=r.v;saveSyncState()}
+  try{const r=await syncApi('users','POST',{users,roles},adminCreds);sync.v.users=r.v;saveSyncState()}
   catch(e){$('userStatus').className='status err';$('userStatus').textContent='Saved on this phone. '+syncErrText(e)}
 }
 async function verifyLogin(username,pin){
@@ -2816,14 +2860,18 @@ async function createFirstAdmin(pin){
 }
 // Login screen: full login (mode 'login'), or an admin approving one action on a staff login (mode 'admin')
 let loginMode='login',loginNext=null,loginFixed='';
-function openLogin(mode,why,next,fixedUser){
-  loginMode=mode;loginNext=next||null;loginFixed=fixedUser||'';
-  $('loginTitle').textContent=mode==='login'?'Price Checker':mode==='manager'?'Manager login':'Admin login';
+let loginPerm='';
+function openLogin(mode,why,next,fixedUser,perm){
+  if(mode==='admin'){mode='perm';perm=perm||'users'}
+  if(mode==='manager'){mode='perm';perm=perm||'mkDisc'}
+  loginMode=mode;loginNext=next||null;loginFixed=fixedUser||'';loginPerm=perm||'';
+  const permsNeeded=(perm||'').split('|').filter(Boolean),okRole=r=>!permsNeeded.length||permsNeeded.some(p=>roleHas(r,p));
+  $('loginTitle').textContent=mode==='login'?'Price Checker':'Approval';
   $('loginWhy').textContent=why||(mode==='login'?'Log in to start.':'An admin must log in to continue.');
   $('loginCancel').hidden=mode==='login';
   $('loginVer').textContent=$('appVer').textContent;
   $('loginErr').textContent='';$('loginPin').value='';
-  const list=users.filter(u=>u.active!==false&&(mode==='login'||u.role==='admin'||(mode==='manager'&&u.role==='manager')));
+  const list=users.filter(u=>u.active!==false&&(mode==='login'||okRole(u.role)));
   $('userPick').innerHTML=fixedUser?'':list.map(u=>`<button type="button" data-u="${esc(u.username)}">${esc(u.name||u.username)}</button>`).join('');
   $('loginUser').value=fixedUser||(list.length===1?list[0].username:'');
   $('loginUser').hidden=!!fixedUser||list.length>0;
@@ -2843,12 +2891,10 @@ $('loginForm').addEventListener('submit',async e=>{
   $('loginErr').textContent='Checking…';
   const u=await verifyLogin(un,pin);
   if(!u){$('loginErr').textContent='Wrong user or PIN. Try again.';$('loginPin').value='';try{navigator.vibrate&&navigator.vibrate(120)}catch(_){}return}
-  if(loginMode==='manager'&&!['manager','admin'].includes(u.role)){$('loginErr').textContent=`${u.name||u.username} is not a manager.`;$('loginPin').value='';return}
-  if(loginMode==='admin'&&u.role!=='admin'){$('loginErr').textContent=`${u.name||u.username} is not an admin.`;$('loginPin').value='';return}
+  if(loginMode==='perm'&&loginPerm&&!loginPerm.split('|').some(p=>roleHas(u.role,p))){$('loginErr').textContent=`${u.name||u.username} (${roleName(u.role)}) does not have this permission.`;$('loginPin').value='';return}
   $('login').hidden=true;
-  if(loginMode==='login'){curUser=u;store.set('session',{id:u.id,at:Date.now()});adminCreds=u.role==='admin'?{username:u.username,pin}:null;toast(`Welcome, ${u.name||u.username}`)}
-  else if(loginMode==='manager'&&u.role==='manager'){mgrUntil=Date.now()+15*60*1000;if(!curUser){curUser=u;store.set('session',{id:u.id,at:Date.now()})}}
-  else{adminCreds={username:u.username,pin};if(!(curUser&&curUser.role==='admin'))adminUntil=Date.now()+15*60*1000;if(!curUser){curUser=u;store.set('session',{id:u.id,at:Date.now()})}}
+  if(loginMode==='login'){curUser=u;store.set('session',{id:u.id,at:Date.now()});adminCreds={username:u.username,pin,role:u.role};toast(`Welcome, ${u.name||u.username}`)}
+  else{adminCreds={username:u.username,pin,role:u.role};if(!(curUser&&curUser.id===u.id))elev={role:u.role,until:Date.now()+15*60*1000};if(!curUser){curUser=u;store.set('session',{id:u.id,at:Date.now()})}}
   paintUserChip();paintAdmin();renderUsers();
   const f=loginNext;loginNext=null;f&&f();
   if(loginMode==='login')morningSync();
@@ -2863,25 +2909,29 @@ function paintUserChip(){const c=$('userChip');c.hidden=!curUser;if(curUser)c.te
 $('userChip').onclick=()=>showModal(`${curUser.name||curUser.username}`,`Logged in as ${curUser.role==='admin'?'Admin':curUser.role==='manager'?'Manager':'Staff'} (${curUser.username}).`,[
   {label:'Log out',cls:'danger',run:()=>logout()},{label:'Cancel',cls:'ghost'}]);
 // Admin-only actions: admins go straight through; staff need an admin to log in for 15 minutes
-function requireAdmin(why,fn,forceAsk){
-  if(!forceAsk&&isAdmin()&&(adminCreds||!sync.key)){if(!(curUser&&curUser.role==='admin'))adminUntil=Date.now()+15*60*1000;fn();return}
-  const me=curUser&&curUser.role==='admin'&&!forceAsk?curUser.username:'';
-  openLogin('admin',why||'An admin must log in to continue.',fn,me);
+function requireAdmin(why,fn,forceAsk,perm){
+  perm=perm||'settings';
+  if(!forceAsk){withPerm(perm,why,fn,false);return}
+  openLogin('perm',why,fn,'',perm);
 }
-function withPin(why,fn){if(isAdmin()&&adminCreds){fn();return}openLogin('admin',why,fn,curUser&&curUser.role==='admin'?curUser.username:'')}
+function withPin(why,fn,perm){withPerm(perm||'settings',why,fn,true)}
+const canAdminCard=()=>['settings','users','sync'].some(can),canDataCard=()=>['stock','stockdel'].some(can);
 function paintAdmin(){
-  const on=isAdmin();
-  $('adminPill').hidden=!(Date.now()<adminUntil&&!(curUser&&curUser.role==='admin'));
-  $('adminMini').textContent=on?(curUser&&curUser.role==='admin'?'Admin':'Admin approved'):'🔒 Admins only';
-  if(!on){$('adminCard').open=false;$('dataCard').open=false}
+  $('adminPill').hidden=!(Date.now()<elev.until);
+  $('adminPill').textContent=`${roleName(elev.role)} approval ✕`;
+  $('adminMini').textContent=canAdminCard()?roleName(curUser&&roleHas(curUser.role,'settings')?curUser.role:elev.role||(curUser&&curUser.role)):'🔒 Locked';
+  if(!canAdminCard())$('adminCard').open=false;
+  if(!canDataCard())$('dataCard').open=false;
+  try{paintPermUI()}catch(e){}
 }
-setInterval(()=>{if(adminUntil&&Date.now()>adminUntil){adminUntil=0;setAdmin(false)}},20000);
+setInterval(()=>{if(elev.until&&Date.now()>elev.until){elev={role:'',until:0};setAdmin(false)}},20000);
 $('adminPill').onclick=()=>{setAdmin(false);toast('Admin access ended')};
 // Admin cards open only for admins
-[['adminCard','Admins only: log in as an admin to change settings and users.'],['dataCard','Admins only: log in as an admin to upload stock data.']].forEach(([id,why])=>{
+[['adminCard','Needs a user allowed to change settings or users.'],['dataCard','Needs a user allowed to update stock.']].forEach(([id,why])=>{
   $(id).querySelector('summary').addEventListener('click',e=>{
     if($(id).open)return;
-    if(!isAdmin()){e.preventDefault();requireAdmin(why,()=>{$(id).open=true;$(id).scrollIntoView({behavior:'smooth',block:'start'})})}
+    const ok=id==='adminCard'?canAdminCard():canDataCard();
+    if(!ok){e.preventDefault();openLogin('perm',why,()=>{$(id).open=true;$(id).scrollIntoView({behavior:'smooth',block:'start'})},'',id==='adminCard'?'settings|users|sync':'stock|stockdel')}
   });
 });
 function backFrom(id){$(id).open=false;window.scrollTo({top:0,behavior:'smooth'})}
@@ -2892,11 +2942,37 @@ $('ssBack2').onclick=()=>{closeStock();window.scrollTo({top:0,behavior:'smooth'}
 let editUserId=null,editRole='staff';
 function renderUsers(){
   const el=$('userList');if(!el)return;
-  el.innerHTML=users.length?users.map(u=>`<div class="u-row${u.active===false?' off':''}"><div><b>${esc(u.name||u.username)}</b><span class="role ${u.role}">${u.role}</span><div class="m">${esc(u.username)}${u.active===false?' · switched off':''}${curUser&&u.id===curUser.id?' · you':''}</div></div><button class="linkbtn" type="button" data-edit-user="${u.id}">Edit</button></div>`).join(''):'<div class="empty">No users yet.</div>';
+  el.innerHTML=users.length?users.map(u=>`<div class="u-row${u.active===false?' off':''}"><div><b>${esc(u.name||u.username)}</b><span class="role ${u.role}">${esc(roleName(u.role))}</span><div class="m">${esc(u.username)}${u.active===false?' · switched off':''}${curUser&&u.id===curUser.id?' · you':''}</div></div><button class="linkbtn" type="button" data-edit-user="${u.id}">Edit</button></div>`).join(''):'<div class="empty">No users yet.</div>';
   el.querySelectorAll('[data-edit-user]').forEach(b=>b.onclick=()=>openUserForm(b.dataset.editUser));
 }
-function paintRole(){[...$('uRole').children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.r===editRole)))}
-[...$('uRole').children].forEach(b=>b.onclick=()=>{editRole=b.dataset.r;paintRole()});
+function paintRole(){
+  const el=$('uRole');el.innerHTML=[{id:'admin',name:'Admin'},...roles].map(r=>`<button type="button" data-r="${esc(r.id)}">${esc(r.name)}</button>`).join('');
+  [...el.children].forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.r===editRole));b.onclick=()=>{editRole=b.dataset.r;paintRole()}});
+}
+// Roles editor
+let roleDraft=null;
+function renderRoles(){
+  const el=$('roleList');if(!el)return;
+  if(!roleDraft)roleDraft=clone(roles);
+  const used=id=>users.filter(u=>u.role===id).length;
+  el.innerHTML=`<div class="role-card locked"><div class="rc-h"><b>Admin</b><span class="note">All permissions · ${used('admin')} user${used('admin')===1?'':'s'}</span></div></div>`+
+    roleDraft.map((r,i)=>`<div class="role-card" data-i="${i}"><div class="rc-h"><input class="rc-name" value="${esc(r.name)}" maxlength="30" aria-label="Role name"><span class="note">${used(r.id)} user${used(r.id)===1?'':'s'}</span>${used(r.id)?'':`<button class="x" type="button" data-rdel="${i}" aria-label="Delete role ${esc(r.name)}">×</button>`}</div>
+      <div class="rc-perms">${PERM_LIST.map(([k,t])=>`<label class="rc-p"><input type="checkbox" data-p="${k}"${r.perms.includes(k)?' checked':''}> ${esc(t)}</label>`).join('')}</div></div>`).join('');
+  el.querySelectorAll('.role-card[data-i]').forEach(c=>{const r=roleDraft[+c.dataset.i];
+    c.querySelector('.rc-name').addEventListener('input',e=>{r.name=e.target.value});
+    c.querySelectorAll('[data-p]').forEach(cb=>cb.onchange=()=>{r.perms=cb.checked?[...new Set([...r.perms,cb.dataset.p])]:r.perms.filter(x=>x!==cb.dataset.p)});
+    const d=c.querySelector('[data-rdel]');if(d)d.onclick=()=>{roleDraft.splice(+d.dataset.rdel,1);renderRoles()};
+  });
+}
+$('roleAdd').onclick=()=>{if(!roleDraft)roleDraft=clone(roles);roleDraft.push({id:'r'+uid().slice(0,6).toLowerCase(),name:'New role',perms:['rates']});renderRoles();const n=$('roleList').querySelectorAll('.rc-name');const last=n[n.length-1];last&&(last.focus(),last.select())};
+$('roleSave').onclick=()=>withPin('Needs a user allowed to manage users and roles.',async()=>{
+  const list=(roleDraft||roles).map(r=>({...r,name:String(r.name||'').trim()}));
+  if(list.some(r=>!r.name)){$('roleStatus').className='status err';$('roleStatus').textContent='Every role needs a name.';return}
+  roles=list;roleDraft=null;store.set('roles',roles);renderRoles();renderUsers();paintAdmin();renderEditor();renderBill(true);
+  $('roleStatus').className='status ok';$('roleStatus').textContent='Roles saved'+(sync.key?' · sharing with all phones…':'.');
+  await pushUsers();if(sync.key&&!$('userStatus').className.includes('err'))$('roleStatus').textContent='Roles saved on all phones.';
+},'users');
+function paintPermUI(){renderRoles()}
 function openUserForm(id){
   const u=id?users.find(x=>x.id===id):null;editUserId=u?u.id:null;
   $('userFormT').textContent=u?`Edit ${u.name||u.username}`:'New user';
@@ -2909,7 +2985,7 @@ function openUserForm(id){
 $('userAdd').onclick=()=>openUserForm(null);
 $('uCancel').onclick=()=>{$('userForm').hidden=true;editUserId=null};
 function userErr(t){$('userStatus').className='status err';$('userStatus').textContent=t}
-$('uSave').onclick=()=>withPin('Log in as an admin to save users.',async()=>{
+$('uSave').onclick=()=>withPin('Needs a user allowed to manage users.',async()=>{
   const name=$('uName').value.trim(),username=$('uUser').value.trim().toLowerCase().replace(/[^a-z0-9._-]/g,''),p1=$('uPin').value,p2=$('uPin2').value;
   if(!name)return userErr('Enter the name.');
   if(username.length<2)return userErr('Username needs at least 2 letters or numbers.');
@@ -2923,26 +2999,27 @@ $('uSave').onclick=()=>withPin('Log in as an admin to save users.',async()=>{
   if(p1){u.salt=newSalt();u.hash=await pbkdf(p1,u.salt)}
   if(!old)next.push(u);
   if(!next.some(x=>x.role==='admin'&&x.active!==false))return userErr('Keep at least one active admin.');
+  if(editRole!=='admin'&&!roles.some(r=>r.id===editRole))return userErr('Pick a role.');
   if(curUser&&u.id===curUser.id&&(u.role!=='admin'||!active))return userErr('You cannot remove your own admin access. Ask another admin.');
   users=next;saveUsersLocal();
-  if(curUser&&u.id===curUser.id){curUser=u;if(p1&&adminCreds)adminCreds={username:u.username,pin:p1};else if(adminCreds)adminCreds.username=u.username}
+  if(curUser&&u.id===curUser.id){curUser=u;if(p1&&adminCreds)adminCreds={username:u.username,pin:p1,role:u.role};else if(adminCreds){adminCreds.username=u.username;adminCreds.role=u.role}}
   $('userForm').hidden=true;editUserId=null;renderUsers();paintUserChip();
   $('userStatus').className='status ok';$('userStatus').textContent=`${name} saved.`+(sync.key?' Sharing with all phones…':'');
   await pushUsers();if(sync.key&&$('userStatus').className.includes('ok'))$('userStatus').textContent=`${name} saved on all phones.`;
   toast(`${name} saved`);
-});
+},'users');
 $('uDelete').onclick=()=>{
   const u=users.find(x=>x.id===editUserId);if(!u)return;
   if(curUser&&u.id===curUser.id)return userErr('You cannot delete yourself.');
   if(u.role==='admin'&&!users.some(x=>x.id!==u.id&&x.role==='admin'&&x.active!==false))return userErr('Keep at least one active admin.');
   showModal(`Delete ${u.name||u.username}?`,'They will not be able to log in on any phone.',[
-    {label:'Delete user',cls:'danger',run:()=>withPin('Log in as an admin to delete users.',async()=>{users=users.filter(x=>x.id!==u.id);saveUsersLocal();$('userForm').hidden=true;editUserId=null;renderUsers();$('userStatus').className='status ok';$('userStatus').textContent=`${u.name||u.username} deleted.`;await pushUsers();toast('User deleted')})},
+    {label:'Delete user',cls:'danger',run:()=>withPin('Needs a user allowed to manage users.',async()=>{users=users.filter(x=>x.id!==u.id);saveUsersLocal();$('userForm').hidden=true;editUserId=null;renderUsers();$('userStatus').className='status ok';$('userStatus').textContent=`${u.name||u.username} deleted.`;await pushUsers();toast('User deleted')},'users')},
     {label:'Cancel',cls:'ghost'}]);
 };
 renderUsers();paintUserChip();
 paintAdmin();
 $('syncKey').value=sync.key;
-$('syncConnect').onclick=()=>withPin('Enter the admin PIN to connect this phone.',async()=>{
+$('syncConnect').onclick=()=>withPin('Enter your PIN to connect this phone.',async()=>{
   const k=$('syncKey').value.trim().toUpperCase();
   if(!k){sync.key='';store.set('syncKey','');syncMsg('','Not connected. This phone keeps its own data.');$('syncDot').hidden=true;return}
   const prevKey=sync.key;sync.key=k;
@@ -2952,7 +3029,7 @@ $('syncConnect').onclick=()=>withPin('Enter the admin PIN to connect this phone.
     // This phone's PIN must match the shared admin PIN (it may have been changed on another phone)
     const pc=await syncApi('login','POST',{username:adminCreds.username,pin:adminCreds.pin});
     if(!pc.ok){sync.key=prevKey;adminCreds=null;adminUntil=0;syncMsg('err','Shop key accepted. Log in with an admin user from the other phones.');
-      requireAdmin('Shop key accepted. Log in with an admin user that already exists on the other phones.',()=>$('syncConnect').click(),true);return}
+      requireAdmin('Shop key accepted. Log in with a user that already exists on the other phones.',()=>$('syncConnect').click(),true,'sync');return}
     if(pc.user)upsertUser(pc.user);
     store.set('syncKey',k);
     const serverEmpty=!m.stock&&!m.rates&&!m.settings;
@@ -2967,7 +3044,7 @@ $('syncConnect').onclick=()=>withPin('Enter the admin PIN to connect this phone.
     await pullAll(true);
     toast(serverEmpty?'Shared database started from this phone':'Connected to the shared database');
   }catch(e){sync.key=prevKey;syncMsg('err',syncErrText(e))}
-});
+},'sync');
 $('syncNow').onclick=()=>{if(!sync.key){syncMsg('','Enter the shop key and tap Connect first.');return}pullAll(true)};
 if(sync.key){syncMsg(morningDue()?'':'ok',morningDue()?'Connected with shop key. Morning sync…':'Connected. Syncs each morning and after stock changes; tap Sync now for the latest.');}
 // Auto sync: once a day in the morning (first open from 6 AM), and after any stock change on this phone.
@@ -3030,12 +3107,12 @@ async function removeStock(keys,note){
 $('soldDel').onclick=()=>{
   const keys=soldKeys.filter(k=>stockMap.has(k));if(!keys.length)return;
   showModal(`Delete ${keys.length} sold tag${keys.length>1?'s':''}?`,`${keys.slice(0,6).join(', ')}${keys.length>6?` and ${keys.length-6} more`:''} will be removed from the stock list${sync.key?' on all phones':''}.`,[
-    {label:'Delete from stock',cls:'danger',run:()=>withPin('Log in as an admin to delete stock.',async()=>{
+    {label:'Delete from stock',cls:'danger',run:()=>withPin('Needs a user allowed to delete stock.',async()=>{
       const n=await removeStock(keys,`${keys.length} sold tag${keys.length>1?'s':''} removed`);
       soldKeys=soldKeys.filter(k=>!keys.includes(k));paintSold();
       if(!$('soldStatus').className.includes('err')){$('soldStatus').className='status ok';$('soldStatus').textContent=`${n} tag${n>1?'s':''} deleted from stock${sync.key?' on all phones':''}.`}
       toast(`${n} sold tag${n>1?'s':''} deleted`);
-    })},{label:'Cancel',cls:'ghost'}]);
+    },'stockdel')},{label:'Cancel',cls:'ghost'}]);
 };
 paintSold();
 
