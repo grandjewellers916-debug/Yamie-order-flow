@@ -523,6 +523,187 @@ body{padding-top:0}
 .login-logo{width:150px;height:auto;align-self:center;margin:20px 0 6px}
 .login-in .brand.with-logo .brand-nm{display:none}
 .login-in .brand.with-logo{text-align:center;align-self:center}
+
+/* ===== v1.4: views, compact header, price card, quote page, login ===== */
+body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote"] [data-pane]:not([data-pane="quote"]),body[data-view="settings"] [data-pane]:not([data-pane="settings"]){display:none!important}
+.hero{padding:calc(10px + env(safe-area-inset-top,0px)) 12px 12px;background:linear-gradient(180deg,#7A0F1E 0%,var(--band) 100%)}
+.hero::after{display:none}
+.hero-in{display:grid!important;grid-template-columns:44px 1fr auto 44px;align-items:center;gap:6px;flex-wrap:nowrap}
+.hero-back,.hamb{width:44px;height:44px;border:0;background:none;color:#fff;display:grid;place-items:center;border-radius:12px;cursor:pointer;margin:0;order:0!important}
+.hero-back svg,.hamb svg{width:26px;height:26px}
+.hero-back[hidden]{visibility:hidden;display:grid!important}
+.hero-c{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0}
+.hero-mark{height:34px;width:auto;display:block}
+.hero-wm{font:600 14px var(--display);letter-spacing:.3em;color:#fff;margin-right:-.3em}
+.hero-row{display:flex;align-items:center;gap:12px}
+.hero-bar{width:1.5px;height:22px;background:rgba(255,255,255,.75)}
+.hero-title{margin:0;font:600 19px var(--display);letter-spacing:.06em;color:#fff;white-space:nowrap;text-transform:uppercase}
+.hero-ver{font-size:12.5px;color:rgba(255,255,255,.85);align-self:end;padding-bottom:6px;white-space:nowrap}
+.wrap{padding-top:14px}
+/* rates: big numbers, no unit line */
+.rate .u{display:none}
+.rate label{font-size:16px;color:var(--gold)}
+.rate .v{font-size:19px;font-weight:700;color:var(--fg)}
+.band .eyebrow{font-size:14px;letter-spacing:.02em;text-transform:uppercase;font-weight:700}
+.band-foot .src{display:none}
+.band-foot:has(#rateHint:not(.stale)):has(#rateReset[hidden]){display:none!important}
+/* home product card */
+.specs{font-size:15px;gap:6px 10px}
+.specs dt{color:var(--fg)}
+.specs dd{font-weight:500}
+.prod-name{font-size:21px;color:var(--maroon)}
+.prod-name::after{display:none}
+.prod-name{border-bottom:1px solid var(--line);padding-bottom:8px}
+.pd-need{background:color-mix(in srgb,var(--warn) 12%,var(--surface));border:1px solid color-mix(in srgb,var(--warn) 45%,transparent);color:var(--fg);border-radius:12px;padding:10px 12px;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.pd-need .btn{flex:none}
+.prod-total{display:block;border-left:0;border-radius:14px;background:color-mix(in srgb,var(--maroon) 8%,var(--surface));padding:12px 14px}
+.pt-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.pt-gst{border-top:1px solid color-mix(in srgb,var(--maroon) 18%,transparent);margin-top:8px;padding-top:8px;font-size:16px;padding-left:44px}
+.pt-gst span:last-child{font-variant-numeric:tabular-nums}
+.pt-l{font-size:17px;font-weight:600}
+.pt-v{font:700 25px var(--display);color:var(--maroon)}
+.grand{display:flex;justify-content:space-between;align-items:center;background:linear-gradient(90deg,#6E0E1C,var(--maroon));color:#fff;border-radius:12px;padding:12px 18px;font:600 19px var(--display)}
+.grand strong{font:700 26px var(--display);font-variant-numeric:tabular-nums}
+.prod-total.incomplete .pt-v,.grand.incomplete strong{color:inherit;opacity:.6;font-size:20px}
+.prod-acts .btn svg{width:20px;height:20px;margin-right:6px;vertical-align:-4px}
+.pd-edit{align-self:center;font-size:13.5px}
+/* tab bar: 5 tabs + badge */
+.tabbar{grid-template-columns:repeat(5,1fr)}
+.tab{font-size:12px}
+.tab svg{width:25px;height:25px}
+.tab-badge{position:absolute;top:2px;left:calc(50% + 6px);min-width:18px;height:18px;border-radius:9px;background:var(--maroon);color:#fff;font:700 11px var(--body);display:grid;place-items:center;padding:0 5px}
+.tab.on#tabQuote svg,.tab.on#tabSet svg{fill:none}
+.bar{display:none!important}
+/* settings */
+.set-head{display:flex;justify-content:space-between;align-items:center;margin:2px 4px}
+.set-head h2{margin:0;font:600 22px var(--display);color:var(--maroon)}
+/* quote page */
+.qv{display:flex;flex-direction:column;gap:12px}
+.q-top{display:grid;grid-template-columns:1fr 92px;gap:10px}
+.q-cust{display:grid;grid-template-columns:1fr;gap:8px;padding:12px}
+.qc-a,.qc-b{display:flex;align-items:center;gap:10px;min-width:0}
+.qc-ico svg{width:30px;height:30px;color:var(--maroon)}
+.qc-ico.sm svg{width:20px;height:20px}
+.qc-ico.sm{width:30px;display:grid;place-items:center}
+.qc-f{flex:1;min-width:0}
+.qc-f label{display:block;font-size:12px;color:var(--muted)}
+.q-cust input{width:100%;border:0;border-bottom:1px dashed var(--line);background:none;font:600 17px var(--display);color:var(--maroon);padding:2px 0;min-width:0}
+.q-cust #qPhone{font:500 15px var(--body);color:var(--fg);flex:1}
+.q-cust input:focus{outline:none;border-bottom-color:var(--maroon)}
+.q-new{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;color:var(--fg);font:500 13px var(--body);padding:10px 6px}
+.q-new svg{width:30px;height:30px;color:var(--maroon)}
+.q-tools{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.qt{background:var(--surface);border:1px solid var(--line);border-radius:14px;min-height:78px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font:500 11.5px var(--body);color:var(--fg);cursor:pointer;padding:6px 2px;line-height:1.15;text-align:center;box-shadow:0 2px 8px rgba(80,30,20,.05)}
+.qt svg{width:26px;height:26px;color:var(--maroon)}
+.qt:active{background:var(--sunk)}
+.qt.on{border-color:var(--maroon);background:color-mix(in srgb,var(--maroon) 8%,var(--surface))}
+.q-items{padding:12px 0 6px;gap:6px}
+.qi-head{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:0 14px 6px;flex-wrap:wrap}
+.qi-head h2{margin:0;font:700 20px var(--display);color:var(--maroon)}
+.q-no{font-size:13.5px}
+.q-no b{background:var(--sunk);border-radius:8px;padding:3px 8px;font-weight:600}
+.q-status{margin:0 14px;padding:8px 12px;border-radius:10px;font-size:13.5px;background:color-mix(in srgb,var(--ok) 14%,var(--surface));color:var(--fg)}
+.qi-row{display:grid;grid-template-columns:20px minmax(0,1.7fr) 40px 50px 50px minmax(0,1.5fr) 52px;gap:4px;align-items:center;padding:10px 10px 10px 12px;border-top:1px solid var(--line);font-size:13.5px}
+.qi-th{background:var(--sunk);font-weight:600;font-size:12.5px;border-top:0;padding-top:8px;padding-bottom:8px}
+.qi-row>span:nth-child(n+3):nth-child(-n+6){text-align:right;font-variant-numeric:tabular-nums}
+.qi-row>span:nth-child(3){text-align:center!important}
+.qi-sku b{display:block;font-size:14px}
+.qi-sku small{display:block;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qi-amt{font-weight:700}
+.qi-amt s{display:block;font-weight:400;color:var(--muted);font-size:11.5px}
+.qi-row.bad .qi-amt{color:var(--bad)}
+.qi-acts{display:flex;justify-content:flex-end;gap:2px}
+.qi-acts button{width:26px;height:30px;border:0;background:none;color:var(--maroon);cursor:pointer;display:grid;place-items:center;padding:0}
+.qi-acts svg{width:19px;height:19px}
+.qi-mk{grid-column:2/-1;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:12.5px;color:var(--muted);padding-top:2px}
+.qi-mk input{width:84px;font:600 14px var(--mono);border:1.5px solid color-mix(in srgb,var(--gold) 60%,transparent);border-radius:8px;padding:5px 7px;background:color-mix(in srgb,var(--gold) 9%,var(--surface));color:var(--fg)}
+.qi-mk .new{color:var(--ok);font-weight:600}
+.q-mgr{margin:4px 14px 6px;font-size:12.5px;color:var(--muted)}
+.empty-q{padding:18px 14px;color:var(--muted);font-size:14px;text-align:center}
+.q-ded .qd-sec[hidden]{display:none}
+.q-ded:not(:has(.ded)) .qd-sec{padding-bottom:0}
+.q-sum{display:grid;grid-template-columns:110px 1fr;gap:6px 12px;align-items:start}
+.qs-h{display:flex;align-items:center;gap:8px;padding-top:4px}
+.qs-h h2{margin:0;font:700 18px var(--display);color:var(--maroon)}
+.qs-ico svg{width:28px;height:28px;color:var(--maroon)}
+.qs-lines .line{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}
+.qs-lines .line.minus span:last-child{color:var(--fg)}
+.qs-lines .line .ed{border:0;background:none;color:var(--muted);cursor:pointer;padding:0 0 0 6px;vertical-align:-3px}
+.qs-lines .line .ed svg{width:15px;height:15px}
+.qs-lines .line.staff{color:var(--muted);font-size:13px}
+.qs-bal{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;background:color-mix(in srgb,var(--maroon) 9%,var(--surface));border-radius:12px;padding:12px 16px;margin-top:4px}
+.qs-bal span{font:600 17px var(--display);color:var(--maroon)}
+.qs-bal strong{font:700 24px var(--display);color:var(--maroon)}
+.qs-bal.refund{background:color-mix(in srgb,var(--ok) 14%,var(--surface))}
+.q-acts{display:grid;grid-template-columns:1fr 1fr 1.6fr;gap:8px}
+.q-acts .btn{min-height:52px;border-radius:12px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px}
+.q-acts .btn svg{width:22px;height:22px}
+.q-soft{background:color-mix(in srgb,var(--maroon) 7%,var(--surface));border:1px solid transparent;color:var(--maroon)}
+.q-photos .rs-acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.q-photos .rs-acts .btn{display:flex;align-items:center;justify-content:center;gap:6px}
+.q-photos .rs-acts svg,.wa-btn svg{width:20px;height:20px}
+.ph-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.ph-grid:empty{display:none}
+.ph{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--sunk)}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.ph button{position:absolute;top:3px;right:3px;width:24px;height:24px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;font-size:14px;cursor:pointer;line-height:1}
+.wa-btn{background:#1FA855;color:#fff;border:0;min-height:50px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:12px}
+.q-photos .linkbtn{align-self:center}
+.q-close .seg button{font-weight:600}
+.q-closed .q-tools,.q-closed #qDed .linkbtn,.q-closed .q-acts #qDisc,.q-closed .q-acts #qAdv{pointer-events:none;opacity:.45}
+.q-search{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:15px var(--body);background:var(--surface);color:var(--fg)}
+.q-filter{margin-bottom:2px}
+.r-item .st{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:6px;background:var(--sunk);margin-left:6px}
+.r-item .st.closed{background:color-mix(in srgb,var(--ok) 18%,var(--surface));color:var(--ok)}
+.r-item.cur{border-color:var(--maroon)}
+@media (max-width:380px){.qi-row{grid-template-columns:16px minmax(0,1.6fr) 34px 44px 44px minmax(0,1.4fr) 48px;font-size:12.5px;padding-left:8px;padding-right:6px}.qt{font-size:10.5px;min-height:70px}.qt svg{width:23px;height:23px}}
+.q-sum{grid-template-columns:1fr!important}
+.qs-lines .line span:first-child{min-width:0}
+.specs{grid-template-columns:auto minmax(0,1fr)!important}
+.specs dt{white-space:nowrap}
+.qi-row{grid-template-columns:16px minmax(0,1.5fr) 32px 44px 44px minmax(74px,1.3fr) 54px!important;gap:6px;padding-left:10px;padding-right:6px;font-size:13px}
+.qi-th{font-size:11.5px}
+.qi-amt{padding-right:2px}
+.qi-row{grid-template-columns:16px minmax(0,1.6fr) 30px 42px 42px minmax(70px,1.3fr) 50px!important;gap:5px}
+.qi-sku b{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qi-acts button{width:24px}
+[data-pane="settings"] .back,[data-pane="settings"] .back-app{display:none!important}
+/* making entry pop-up */
+.mk-sheet{display:flex;flex-direction:column;gap:12px}
+.mk-types{background:transparent;gap:8px;padding:0}
+.mk-types button{min-height:46px;border:1.5px solid color-mix(in srgb,var(--gold) 60%,transparent);background:var(--surface);font-weight:600;white-space:nowrap;padding:8px 2px;font-size:14px}
+.mk-types button[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:#1B1206}
+.mk-in{display:flex;align-items:center;gap:8px;border:1.5px solid var(--maroon);border-radius:12px;padding:6px 14px;background:var(--surface)}
+.mk-in span{font:600 20px var(--display);color:var(--muted)}
+.mk-in input{flex:1;min-width:0;border:0;background:none;font:700 28px var(--mono);color:var(--fg);padding:6px 0}
+.mk-in input:focus{outline:none}
+.mk-prev{font-size:14px;color:var(--muted);min-height:20px}
+.mk-prev b{color:var(--maroon);font-size:17px}
+.mk-sheet .chip.on{background:var(--gold);border-color:var(--gold);color:#1B1206}
+.mk-sheet .chips{max-height:120px;overflow:auto}
+/* login */
+.login{background:radial-gradient(120% 70% at 85% 0%,#B3253A 0%,transparent 55%),linear-gradient(170deg,#7A0F1E 0%,#4E0712 55%,#3B0610 100%);color:#F6E7D0}
+.login::after{content:"";position:fixed;left:-10%;right:-10%;bottom:-6%;height:34%;background:radial-gradient(80% 60% at 70% 100%,rgba(220,50,80,.35),transparent 70%);pointer-events:none}
+.login-in{position:relative;z-index:1;padding-top:56px;gap:16px}
+.login-logo{width:150px;margin:10px 0 0}
+.login-in .brand.with-logo small{color:#F6E7D0;opacity:.75;letter-spacing:.2em}
+.login-in h2{text-align:center;font:500 26px var(--display);color:#F6E7D0;margin:6px 0 4px;letter-spacing:.02em}
+.login-in h2::before{content:"";display:block;width:60%;height:1px;margin:0 auto 18px;background:linear-gradient(90deg,transparent,rgba(232,196,150,.7),transparent)}
+.login-in .note,.login-in #loginHint{color:rgba(246,231,208,.75);text-align:center}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.lg-in{display:flex;align-items:center;gap:10px;border:1px solid rgba(232,196,150,.65);border-radius:16px;padding:0 14px;background:rgba(40,4,10,.25)}
+.lg-ico svg,.lg-eye svg{width:24px;height:24px;color:#F0D6B0;display:block}
+.login-in .lg-in input{flex:1;min-width:0;border:0;background:none;color:#FFF3E2;font:500 18px var(--body);padding:16px 0;letter-spacing:.02em;text-align:left}
+.login-in .lg-in input::placeholder{color:rgba(246,231,208,.7);letter-spacing:.02em}
+.login-in .lg-in input:focus{outline:none}
+.lg-in:focus-within{border-color:#F3D3A2;box-shadow:0 0 0 3px rgba(243,211,162,.18)}
+.login-in .pin-in{font:500 18px var(--body)!important;letter-spacing:.3em!important;text-align:left!important}
+.lg-eye{border:0;background:none;padding:6px;cursor:pointer}
+.login-go{background:linear-gradient(180deg,#F8E5C6,#E3BE8C)!important;color:#5A0A14!important;border:0!important;border-radius:16px!important;min-height:56px!important;font:700 19px var(--display)!important;box-shadow:0 8px 20px rgba(0,0,0,.25)}
+.login .pin-err{color:#FFC7C7;text-align:center}
+.login #loginCancel{color:#F6E7D0;border-color:rgba(246,231,208,.4)}
+.user-pick button{background:rgba(255,255,255,.08);color:#F6E7D0;border-color:rgba(232,196,150,.45)}
+.user-pick button[aria-pressed="true"]{background:#F3D3A2;color:#5A0A14}
 </style>
 <script src="brand-id.js"></script>
 <script src="brand.js"></script>
@@ -530,10 +711,13 @@ body{padding-top:0}
 <body>
 <header class="hero">
   <div class="hero-in">
-    <div class="wordmark"><img class="wm-img" id="wmImg" alt="" hidden><span class="wm-name" id="wmName">YAMIE</span><span class="wm-sub" id="wmSub">FINE JEWELLERY</span></div>
-    <span class="hero-div" aria-hidden="true"></span>
-    <div class="hero-t"><div class="hero-h">Price Checker</div><div class="hero-p">Gold rate &amp; product price</div></div>
-    <button class="hamb" id="menuBtn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <button class="hero-back" id="heroBack" type="button" aria-label="Back to home" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 5l-7 7 7 7"/></svg></button>
+    <div class="hero-c">
+      <img class="hero-mark" id="heroMark" alt="" hidden><span class="hero-wm" id="heroWm" hidden></span>
+      <div class="hero-row"><span class="hero-bar" aria-hidden="true"></span><h1 class="hero-title" id="viewTitle">PRICE CHECK</h1></div>
+    </div>
+    <span class="hero-ver" id="heroVer"></span>
+    <button class="hamb" id="menuBtn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
   </div>
 </header>
 <div class="menu-scrim" id="menuScrim" hidden></div>
@@ -552,7 +736,7 @@ body{padding-top:0}
 </nav>
 <div class="wrap">
 
-  <section class="band" id="band" aria-label="Day's rates" role="button" tabindex="0">
+  <section class="band" id="band" data-pane="home" aria-label="Day's rates" role="button" tabindex="0">
     <div class="band-head">
       <span class="eyebrow"><span class="eb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4h12l3 5-9 11L3 9z"/><path d="M3 9h18M9 4l3 16M15 4l-3 16M9 4 7.5 9M15 4l1.5 5"/></svg></span>Today's gold rates</span>
       <span class="rdate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><span id="rateDate"></span></span>
@@ -565,7 +749,7 @@ body{padding-top:0}
   </section>
 
   <!-- Scan -->
-  <section class="scan-card" aria-label="Find the item">
+  <section class="scan-card" data-pane="home" aria-label="Find the item">
     <div class="scan-row">
       <button class="scan-hero" type="button" id="scanBc" aria-label="Scan barcode with camera">
         <span class="sh-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M7.5 8v8M10.5 8v8M13.5 8v8M16.5 8v8"/></svg></span>
@@ -581,18 +765,24 @@ body{padding-top:0}
   </section>
 
   <!-- Product details -->
-  <section class="card prod" id="prodCard" hidden aria-label="Product details">
-    <div class="prod-head"><span class="ph-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 3.5 7.5v9L12 21l8.5-4.5v-9z"/><path d="M3.5 7.5 12 12l8.5-4.5M12 12v9"/></svg>Product Details</span><span class="sku-chip" id="pdSku"></span></div>
+  <section class="card prod" id="prodCard" data-pane="home" hidden aria-label="Product details">
+    <div class="prod-head"><span class="ph-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 3.5 7.5v9L12 21l8.5-4.5v-9z"/><path d="M3.5 7.5 12 12l8.5-4.5M12 12v9"/></svg>Product Details</span><span class="sku-chip" id="pdSku"></span></div>
     <div class="prod-body">
       <div class="prod-tile" id="pdTile"></div>
       <div class="prod-info"><div class="prod-name" id="pdName"></div><dl class="specs" id="pdSpecs"></dl></div>
     </div>
-    <div class="prod-total" id="pdTotal"><span class="pt-l"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12V4h8l10 10-7 7z"/><circle cx="7.5" cy="8" r="1.5"/></svg>Total Price</span><span class="pt-r"><span class="pt-v" id="pdV">—</span><span class="pt-s" id="pdS"></span></span></div>
-    <div class="prod-acts"><button class="btn" type="button" id="pdDel">Delete</button><button class="btn primary" type="button" id="pdSave">Save item</button></div>
+    <div class="pd-need" id="pdNeed" hidden></div>
+    <div class="prod-total" id="pdTotal">
+      <div class="pt-row"><span class="pt-l"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12V4h8l10 10-7 7z"/><circle cx="7.5" cy="8" r="1.5"/></svg>Total Price</span><span class="pt-v" id="pdV">—</span></div>
+      <div class="pt-row pt-gst"><span id="pdGstL">+ GST (3%)</span><span id="pdGst">—</span></div>
+    </div>
+    <div class="grand" id="pdGrandRow"><span>Grand Total</span><strong id="pdGrand">—</strong></div>
+    <div class="prod-acts"><button class="btn" type="button" id="pdDel">Clear</button><button class="btn primary" type="button" id="pdSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>Save to Quote</button></div>
+    <button class="linkbtn pd-edit" type="button" id="pdEdit">Edit details</button>
   </section>
 
   <!-- Tag editor -->
-  <section class="card" id="editor" aria-label="Tag">
+  <section class="card" id="editor" data-pane="home" aria-label="Tag">
     <div class="sec-head"><h2 id="edTitle">Tag 1</h2><span class="note">Gold outline = from stock</span></div>
     <input class="hidden-input" id="camInput" type="file" accept="image/*" capture="environment" aria-label="Take tag photo">
     <input class="hidden-input" id="galInput" type="file" accept="image/*" aria-label="Choose tag photo">
@@ -635,38 +825,88 @@ body{padding-top:0}
     <div class="preview"><div class="lines" id="preview"></div></div>
     <div class="editor-acts">
       <button class="btn ghost" type="button" id="clearTag">Clear tag</button>
-      <button class="btn primary" type="button" id="addTag">Add to bill</button>
+      <button class="btn primary" type="button" id="addTag">Save to Quote</button>
     </div>
   </section>
 
-  <!-- Bill -->
-  <section class="card" id="bill" aria-label="Bill">
-    <div class="sec-head"><h2>Bill</h2><span class="note" id="billCount">No tags yet</span></div>
-    <div class="items" id="items"></div>
-
-    <div class="ded-list">
-      <div class="sec-head"><h3>Old gold</h3><button class="linkbtn" type="button" id="addOld">+ Add old gold</button></div>
-      <div id="oldList" class="ded-list"></div>
-      <div class="sec-head"><h3>Sales return</h3><button class="linkbtn" type="button" id="addRet">+ Add return</button></div>
-      <div id="retList" class="ded-list"></div>
+  <!-- Quote -->
+  <section class="qv" data-pane="quote" id="bill" aria-label="Quote">
+    <div class="q-top">
+      <div class="card q-cust">
+        <div class="qc-a"><span class="qc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span>
+          <div class="qc-f"><label for="qName">Customer</label><input id="qName" placeholder="Name" autocomplete="off" maxlength="60"></div></div>
+        <div class="qc-b"><span class="qc-ico sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg></span>
+          <input id="qPhone" type="tel" inputmode="tel" placeholder="Phone" autocomplete="off" maxlength="16"></div>
+      </div>
+      <button class="card q-new" type="button" id="qNew"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M12 11v6M9 14h6"/></svg><span>New Quote</span></button>
+    </div>
+    <div class="q-tools">
+      <button type="button" class="qt" id="qtScan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M7.5 8v8M10.5 8v8M13.5 8v8M16.5 8v8"/></svg><span>Scan Product</span></button>
+      <button type="button" class="qt" id="qtManual"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><span>Add Manually</span></button>
+      <button type="button" class="qt" id="qtEdit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></svg><span>Edit</span></button>
+      <button type="button" class="qt" id="qtDel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg><span>Delete</span></button>
+      <button type="button" class="qt" id="qtUrd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg><span>URD</span></button>
+      <button type="button" class="qt" id="qtSr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-5l-2 2M4 13a8 8 0 0 0 14 5l2-2"/><path d="M4 4v4h4M20 20v-4h-4"/></svg><span>SR</span></button>
     </div>
 
-    <div class="lines" id="totals"></div>
-    <div class="net"><span id="netLabel">Net payable</span><strong id="net">₹0</strong></div>
-    <div class="bill-acts">
-      <button class="btn" type="button" id="copyBtn">Copy</button>
-      <a class="btn" id="waBtn" href="#" target="_blank" rel="noopener">WhatsApp</a>
-      <button class="btn" type="button" id="clearBill">Clear bill</button>
-      <button class="btn primary" type="button" id="saveBill">Save bill</button>
+    <div class="card q-items">
+      <div class="qi-head"><h2>Quoted Items <span id="billCount">(0)</span></h2><span class="q-no">Quote No: <b id="qNo">New</b></span></div>
+      <div class="q-status" id="qStatus" hidden></div>
+      <div class="qi-table" role="table" aria-label="Quoted items">
+        <div class="qi-row qi-th" role="row"><span>#</span><span>SKU / Item</span><span>Purity</span><span>Gr. Wt</span><span>Nt. Wt</span><span>Amount</span><span></span></div>
+        <div id="items"></div>
+      </div>
+      <div class="q-mgr" id="qMgrNote" hidden></div>
+    </div>
+
+    <div class="card q-ded" id="qDed">
+      <div class="qd-sec" id="qUrdSec"><div class="sec-head"><h3>URD · old gold</h3><button class="linkbtn" type="button" id="addOld">+ Add URD</button></div><div id="oldList" class="ded-list"></div></div>
+      <div class="qd-sec" id="qSrSec"><div class="sec-head"><h3>Sales return</h3><button class="linkbtn" type="button" id="addRet">+ Add return</button></div><div id="retList" class="ded-list"></div></div>
+      <div class="qd-sec" id="qAdvSec"><div class="sec-head"><h3>Advance</h3><button class="linkbtn" type="button" id="addAdv">+ Add advance</button></div><div id="advList" class="ded-list"></div></div>
+    </div>
+
+    <div class="card q-sum">
+      <div class="qs-h"><span class="qs-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M8 15h2M12 15h2M16 11v4"/></svg></span><h2>Summary</h2></div>
+      <div class="qs-lines" id="totals"></div>
+      <div class="qs-bal" id="qBalRow"><span id="netLabel">Balance Amount</span><strong id="net">₹0</strong></div>
+    </div>
+
+    <div class="q-acts">
+      <button class="btn q-soft" type="button" id="qDisc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 5 5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/></svg>Discount</button>
+      <button class="btn q-soft" type="button" id="qAdv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 14h2"/></svg>Advance</button>
+      <button class="btn primary q-gen" type="button" id="saveBill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>Generate Quote</button>
+    </div>
+
+    <div class="card q-photos">
+      <div class="sec-head"><h3>Photos for the customer</h3><span class="note" id="qPhotoN">None</span></div>
+      <div class="ph-grid" id="qPhotos"></div>
+      <div class="rs-acts">
+        <button class="btn" type="button" id="phCam"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Camera</button>
+        <button class="btn" type="button" id="phGal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 17-5-5-9 8"/></svg>Gallery</button>
+        <input class="hidden-input" id="phFile" type="file" accept="image/*" multiple aria-label="Choose photos">
+        <input class="hidden-input" id="phCamIn" type="file" accept="image/*" capture="environment" aria-label="Take a photo">
+      </div>
+      <button class="btn wa-btn" type="button" id="waBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.3-4A8 8 0 1 1 8 19z"/><path d="M9 9c0 3 3 6 6 6l1-1.5-2-1-1 1c-1-.5-2-1.5-2.5-2.5l1-1-1-2z"/></svg>Share on WhatsApp</button>
+      <button class="linkbtn" type="button" id="copyBtn">Copy quote text</button>
+    </div>
+
+    <div class="card q-close" id="qClose">
+      <div class="sec-head"><h3>Close sale</h3><span class="note" id="qCloseNote">After billing in {ERP}</span></div>
+      <div class="f full"><label for="qInv" id="qInvL">Invoice no. (ERP)</label><input id="qInv" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Final invoice number"></div>
+      <div class="f full"><span class="flabel">Sale</span><div class="seg" id="qChan"><button type="button" data-c="store">✓ In-store</button><button type="button" data-c="online">Online</button></div></div>
+      <div class="rs-acts"><button class="btn primary" type="button" id="qCloseBtn">Close sale</button><button class="btn" type="button" id="qReopen" hidden>Reopen</button></div>
+    </div>
+
+    <div class="card q-list">
+      <div class="sec-head"><h2>Quotes</h2><button class="linkbtn" type="button" id="qRefresh">↻ Refresh</button></div>
+      <div class="seg q-filter" id="qFilter"><button type="button" data-f="open" aria-pressed="true">Open</button><button type="button" data-f="closed">Closed</button><button type="button" data-f="all">All</button></div>
+      <input id="qSearch" class="q-search" placeholder="Search name, phone, quote no." autocomplete="off">
+      <div class="recent" id="recent"></div>
     </div>
   </section>
 
-  <section class="card" aria-label="Saved bills">
-    <div class="sec-head"><h2>Saved bills</h2><span class="note">This phone only</span></div>
-    <div class="recent" id="recent"></div>
-  </section>
-
-  <details class="card datacard" id="dataCard">
+  <div class="set-head" data-pane="settings"><h2>Settings</h2><button class="btn sm" type="button" id="setStock">Stock list</button></div>
+  <details class="card datacard" id="dataCard" data-pane="settings">
     <summary><span class="dc-t">Stock data</span><span class="dc-s" id="dataMini">No stock loaded</span><span class="dc-chev" aria-hidden="true">▾</span></summary>
     <div class="sec-head"><button class="btn sm back" type="button" id="dataBack">‹ Back to app</button><button class="linkbtn" type="button" id="dataOpen">Find / history</button></div>
     <div><div class="ss-count" id="dataCount">0 items</div><div class="note" id="dataSummary">No stock loaded yet.</div></div>
@@ -687,7 +927,7 @@ body{padding-top:0}
     <button class="btn back-app" type="button" id="dataBack2">‹ Back to app</button>
   </details>
 
-  <details class="card datacard" id="adminCard">
+  <details class="card datacard" id="adminCard" data-pane="settings">
     <summary><span class="dc-t">Admin settings</span><span class="dc-s" id="adminMini">Locked</span><span class="dc-chev" aria-hidden="true">▾</span></summary>
     <div class="sec-head"><span class="note">Charges, making helper, shared database and users</span><button class="btn sm back" type="button" id="adminBack">‹ Back</button></div>
     <h3>Rates shown</h3>
@@ -726,7 +966,7 @@ body{padding-top:0}
         <div class="grid">
           <div class="f"><label for="uName">Name</label><input id="uName" autocomplete="off" maxlength="40"></div>
           <div class="f"><label for="uUser">Username</label><input id="uUser" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="30"></div>
-          <div class="f full"><span class="flabel">Role</span><div class="seg" id="uRole"><button type="button" data-r="staff">Staff</button><button type="button" data-r="admin">Admin</button></div></div>
+          <div class="f full"><span class="flabel">Role</span><div class="seg" id="uRole"><button type="button" data-r="staff">Staff</button><button type="button" data-r="manager">Manager</button><button type="button" data-r="admin">Admin</button></div></div>
           <div class="f"><label for="uPin">PIN</label><input class="num" id="uPin" type="password" inputmode="numeric" maxlength="8" autocomplete="new-password"></div>
           <div class="f"><label for="uPin2">Repeat PIN</label><input class="num" id="uPin2" type="password" inputmode="numeric" maxlength="8" autocomplete="new-password"></div>
           <label class="f full chk"><input type="checkbox" id="uActive" checked> Active (can log in)</label>
@@ -741,6 +981,7 @@ body{padding-top:0}
 <nav class="tabbar" id="tabbar" aria-label="Sections">
   <button type="button" class="tab on" id="tabHome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.2 12 3.8l9 7.4h-2.5V20.2h-5v-5.5h-3v5.5h-5V11.2z"/></svg><span>Home</span></button>
   <button type="button" class="tab" id="tabScan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M7.5 8v8M10.5 8v8M13.5 8v8M16.5 8v8"/></svg><span>Scan</span></button>
+  <button type="button" class="tab" id="tabQuote"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg><span>Quote</span><b class="tab-badge" id="tabBadge" hidden>0</b></button>
   <button type="button" class="tab" id="tabRates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18"/><path d="M5 20l1.5-5h5L13 20"/><path d="M11 20l1.5-5h5L19 20"/><path d="M8 15l1.5-5h5L16 15"/></svg><span>Gold Rates</span></button>
   <button type="button" class="tab" id="tabSet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="6.6"/><path d="M12 2.5v2.9M12 18.6v2.9M2.5 12h2.9M18.6 12h2.9M5.3 5.3l2 2M16.7 16.7l2 2M5.3 18.7l2-2M16.7 7.3l2-2"/></svg><span>Settings</span></button>
 </nav>
@@ -808,7 +1049,7 @@ body{padding-top:0}
     </form>
   </div>
 </div>
-<div class="live-price" id="livePrice" hidden aria-live="polite"><div class="lp-main" id="lpMain" role="button" tabindex="0"><span style="min-width:0"><span class="lp-t" id="lpT" style="display:block"></span><span class="lp-s" id="lpS"></span></span><span class="lp-v" id="lpV">—</span></div><div class="lp-acts"><button type="button" class="lp-del" id="lpDel">Delete</button><button type="button" class="lp-save" id="lpSave">Save item</button></div></div>
+<div class="live-price" data-pane="home" id="livePrice" hidden aria-live="polite"><div class="lp-main" id="lpMain" role="button" tabindex="0"><span style="min-width:0"><span class="lp-t" id="lpT" style="display:block"></span><span class="lp-s" id="lpS"></span></span><span class="lp-v" id="lpV">—</span></div><div class="lp-acts"><button type="button" class="lp-del" id="lpDel">Delete</button><button type="button" class="lp-save" id="lpSave">Save item</button></div></div>
 <div class="modal" id="camScan" hidden role="dialog" aria-modal="true" aria-labelledby="camTitle">
   <div class="sheet">
     <div class="rs-head"><button class="btn sm back" type="button" id="camCancel">‹ Back</button><h4 id="camTitle">Scan barcode</h4></div>
@@ -822,11 +1063,11 @@ body{padding-top:0}
     <div class="brand"><span class="brand-nm">Yamie</span><small>Price check &amp; bill · <span id="loginVer"></span></small></div>
     <h2 id="loginTitle">Log in</h2>
     <p class="note" id="loginWhy"></p>
-    <div class="f"><label for="loginUser">User</label>
+    <div class="f"><label for="loginUser" class="sr">User</label>
       <div class="user-pick" id="userPick"></div>
-      <input id="loginUser" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Username">
+      <div class="lg-in"><span class="lg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span><input id="loginUser" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Username"></div>
     </div>
-    <div class="f"><label for="loginPin">PIN</label><input id="loginPin" type="password" inputmode="numeric" maxlength="8" class="pin-in" autocomplete="current-password"></div>
+    <div class="f"><label for="loginPin" class="sr">PIN</label><div class="lg-in"><span class="lg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg></span><input id="loginPin" type="password" inputmode="numeric" maxlength="8" class="pin-in" autocomplete="current-password" placeholder="PIN"><button type="button" class="lg-eye" id="loginEye" aria-label="Show PIN"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
     <p class="pin-err" id="loginErr" role="alert"></p>
     <button class="btn primary login-go" type="submit">Log in</button>
     <button class="btn ghost" type="button" id="loginCancel" hidden>Cancel</button>
@@ -842,6 +1083,18 @@ body{padding-top:0}
     <div class="acts"><button class="btn primary" type="submit">Unlock</button><button class="btn ghost" type="button" id="pinCancel">Cancel</button></div>
   </form>
 </div>
+<div class="modal" id="mkPop" hidden role="dialog" aria-modal="true" aria-labelledby="mkPopT">
+  <form class="sheet mk-sheet" id="mkPopForm">
+    <h4 id="mkPopT">Enter making rate</h4>
+    <p class="note" id="mkPopWhy">Making is not in the stock data for this item.</p>
+    <div class="seg mk-types" id="mkPopSeg"><button type="button" data-k="fixed">Fixed</button><button type="button" data-k="pergram">Per gram</button><button type="button" data-k="pct">% of Net Wt</button></div>
+    <div class="mk-in"><span id="mkPopPre">₹</span><input id="mkPopVal" class="num" inputmode="decimal" autocomplete="off" aria-label="Making value"><span id="mkPopSuf"></span></div>
+    <div class="chips" id="mkPopChips"></div>
+    <div class="mk-prev" id="mkPopPrev"></div>
+    <button class="linkbtn" type="button" id="mkPopHelper">Open making helper</button>
+    <div class="acts"><button class="btn primary" type="submit">Apply</button><button class="btn ghost" type="button" id="mkPopCancel">Later</button></div>
+  </form>
+</div>
 <div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modalTitle">
   <div class="sheet"><h4 id="modalTitle"></h4><p id="modalBody"></p><div class="acts" id="modalActs"></div></div>
 </div>
@@ -852,8 +1105,8 @@ body{padding-top:0}
 const $=id=>document.getElementById(id);
 const BRAND=window.BRAND||{id:'yamie',name:'Yamie',full:'Yamie Fine Jewellery',site:'https://yamie-price-check.netlify.app',tableName:'Yamie',table:'yamie',categories:{}};
 document.querySelectorAll('.brand-nm').forEach(el=>el.textContent=BRAND.name);
-$('wmName').textContent=BRAND.wm||String(BRAND.name).toUpperCase();$('wmSub').textContent=BRAND.wsub||'';
-if(BRAND.logoHeader){const i=$('wmImg');i.src=BRAND.logoHeader;i.alt=BRAND.full;i.hidden=false;$('wmName').hidden=$('wmSub').hidden=true}
+if(BRAND.mark){const i=$('heroMark');i.src=BRAND.mark;i.alt=BRAND.full;i.hidden=false}else{$('heroWm').textContent=BRAND.wm||String(BRAND.name).toUpperCase();$('heroWm').hidden=false}
+$('qInvL').textContent=`Final invoice no. (${BRAND.erp||'ERP'})`;$('qCloseNote').textContent=`After billing in ${BRAND.erp||'the ERP'}`;
 if(BRAND.logoLogin){const i=$('loginLogo');i.src=BRAND.logoLogin;i.alt=BRAND.full;i.hidden=false;document.querySelector('.login-in .brand').classList.add('with-logo')}
 const NATIVE=window.YamieNative||null;   // inside the Android app: ML Kit OCR, direct rates, clipboard
 const store={get(k,d){try{const v=localStorage.getItem('ypc_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('ypc_'+k,JSON.stringify(v))}catch(e){}}};
@@ -890,9 +1143,10 @@ const DEF_TABLE={
 const START_TABLE=BRAND.table==='empty'?{cz:[],dia:[]}:DEF_TABLE;
 if(!settings.mkTable)settings.mkTable=JSON.parse(JSON.stringify(START_TABLE));
 if(!settings.mkGuide)settings.mkGuide={'22k':'12%, 14%','18k':'18%, 20%, 21%, 23%, 24%','14k':'28%, 32%','9k':'38%, 40%, 45%, 50%',platinum:'',silver:''};
-function newBill(){return {items:[],oldGold:[],returns:[],overrides:{},started:Date.now()}}
-let bill=store.get('bill',null)||newBill();
-if(!bill.overrides)bill.overrides={};
+// The bill being built is the current quote. Quotes are kept on the phone and shared through /api/sync.
+function newBill(){return {id:uid(),no:'',cust:{name:'',phone:''},items:[],oldGold:[],returns:[],advances:[],discount:'',overrides:{},status:'open',invoice:'',channel:'store',started:Date.now(),updated:Date.now(),by:''}}
+function fixBill(b){const d=newBill();b=Object.assign(d,b||{});if(!b.id)b.id=uid();if(!b.cust)b.cust={name:'',phone:''};['items','oldGold','returns','advances'].forEach(k=>{if(!Array.isArray(b[k]))b[k]=[]});if(!b.overrides)b.overrides={};return b}
+let bill=fixBill(store.get('bill',null));
 function blankTag(){return {id:uid(),touched:false,sku:'',item:'',itemAuto:true,purity:'',gw:'',sw:'',nw:'',spr:'',huids:[],huidCount:0,mkType:'',mkVal:'',mkTag:'',read:[],stock:null,stockKey:''}}
 const draft=store.get('draft',null);
 let cur=draft&&draft.cur?draft.cur:blankTag();
@@ -904,7 +1158,7 @@ function saveDraft(){store.set('draft',{cur,editingId})}
 
 // ---------- shared database (Netlify) ----------
 const SYNC_BASE=(location.protocol==='https:'&&/netlify\.app$/.test(location.hostname))?'':BRAND.site;
-const sync={key:store.get('syncKey',''),v:Object.assign({stock:0,rates:0,settings:0,users:0},store.get('syncV',{})),q:store.get('syncQ',[]),dirtySettings:store.get('syncDirty',false),state:'',at:0,busy:false};
+const sync={key:store.get('syncKey',''),v:Object.assign({stock:0,rates:0,settings:0,users:0,quotes:0},store.get('syncV',{})),q:store.get('syncQ',[]),dirtySettings:store.get('syncDirty',false),state:'',at:0,busy:false};
 let adminCreds=null; // {username,pin} of the admin acting now (memory only)
 function saveSyncState(){store.set('syncV',sync.v);store.set('syncQ',sync.q);store.set('syncDirty',sync.dirtySettings)}
 async function syncApi(op,method,body,pin){
@@ -948,6 +1202,7 @@ async function pullAll(force){
       else if(users.length&&adminCreds){await pushUsers()} // shared database has no users yet: start it from this phone
       sync.v.users=d.v||sync.v.users;
     }
+    if(force||(m.quotes||0)>(sync.v.quotes||0)||quotes.some(q=>q.items&&q.items.length&&(!q.no||(q.pushed||0)<(q.updated||0)))){sync.busy=false;await pullQuotes();sync.busy=true}
     if((force||m.settings>sync.v.settings)&&!sync.dirtySettings){
       const d=await syncApi('settings');
       if(d.settings){applyRemoteSettings(d.settings)}
@@ -1160,17 +1415,23 @@ function missing(t){
   if(!p.hasMk)m.push({k:'making',t:'Making charge'});
   return m;
 }
+// Manager's making after discount on a quoted item (t.qMk {type,val}): same item, cheaper making
+function quotedValue(t,p){p=p||priceTag(t);if(!p.ok||!t.qMk)return p.value;const v=num(t.qMk.val);if(isNaN(v)||v<0)return p.value;
+  const m=makingFor(t,t.qMk.type||t.mkType,v);return isNaN(m)?p.value:p.value-p.making+m}
 function oldRate(o){const r=num(o.rate);return !isNaN(r)?r:rateFor(o.purity)}
 function oldValue(o){const w=num(o.wt),r=oldRate(o);return isNaN(w)||r==null?NaN:w*r}
 function totals(){
   const s={gold:0,stone:0,making:0,huid:0,huidN:0,sub:0,bad:0};
-  bill.items.forEach(t=>{const p=priceTag(t);if(!p.ok){s.bad++;return}s.gold+=p.gold;s.stone+=p.stone;s.making+=p.making;s.huid+=p.huid;s.huidN+=p.huidN;s.sub+=p.value;s.madSub=(s.madSub||0)+(isNaN(p.madValue)?p.value:p.madValue);if(!isNaN(p.madValue))s.hasMad=true});
+  s.listSub=0;s.mkDisc=0;s.nw=0;s.gw=0;
+  bill.items.forEach(t=>{const p=priceTag(t),q=quotedValue(t,p);if(!p.ok){s.bad++;return}s.nw+=num(t.nw)||0;s.gw+=num(t.gw)||0;s.gold+=p.gold;s.stone+=p.stone;s.making+=p.making-(p.value-q);s.huid+=p.huid;s.huidN+=p.huidN;s.sub+=q;s.listSub+=p.value;s.mkDisc+=p.value-q});
   const gstP=num(settings.gst)||0;
   s.gst=s.sub*gstP/100;s.total=s.sub+s.gst;
   s.old=0;s.oldW=0;
   bill.oldGold.forEach(o=>{const v=oldValue(o);if(!isNaN(v)){s.old+=v;s.oldW+=num(o.wt)}});
   s.ret=0;bill.returns.forEach(r=>{const v=num(r.amount);if(!isNaN(v))s.ret+=v});
-  s.net=Math.round(s.total-s.old-s.ret);
+  s.disc=Math.max(0,num(bill.discount)||0);
+  s.adv=0;(bill.advances||[]).forEach(a=>{const v=num(a.amount);if(!isNaN(v))s.adv+=v});
+  s.net=Math.round(s.total-s.old-s.ret-s.disc-s.adv);
   return s;
 }
 
@@ -1364,7 +1625,7 @@ function renderPreview(){
   $('priceSub').textContent=complete?`Before GST ${inr(p.value)}`:(m.length?'Needs: '+m.map(x=>({nw:'NWT',spr:'stone price',rate:'gold rate',huid:'HUID',purity:'purity',making:'making'})[x.k]).join(', '):'');
   renderValidation();
 }
-$('clearTag').onclick=()=>{cur=blankTag();editingId=null;thumbs={front:null,back:null};saveDraft();setStatus('Scan the front of the tag. Scan the back too if details are printed there.');renderEditor()};
+$('clearTag').onclick=()=>{cur=blankTag();editingId=null;edOpen=false;thumbs={front:null,back:null};saveDraft();setStatus('Scan the front of the tag. Scan the back too if details are printed there.');renderEditor()};
 $('addTag').onclick=()=>{
   const m=missing(cur);
   if(m.length){
@@ -1387,15 +1648,16 @@ $('addTag').onclick=()=>{
   commitTag();
 };
 function commitTag(){
+  if(isClosed())startNewQuote('The last quote was closed. New quote started.');
   const t=clone(cur);
   const i=bill.items.findIndex(x=>x.id===editingId);
   if(i>=0)bill.items[i]=t;else bill.items.push(t);
   const wasEdit=i>=0;
-  cur=blankTag();editingId=null;thumbs={front:null,back:null};
+  cur=blankTag();editingId=null;edOpen=false;thumbs={front:null,back:null};
   saveBill();saveDraft();renderEditor();renderBill();
-  setStatus(wasEdit?'Tag updated.':`Added. ${bill.items.length} tag${bill.items.length>1?'s':''} in the bill. Scan the next tag.`,'ok');
-  toast(wasEdit?'Tag updated':'Added to bill');
-  window.scrollTo({top:$('editor').offsetTop-10,behavior:'smooth'});
+  setStatus(wasEdit?'Item updated.':`Saved. ${bill.items.length} item${bill.items.length>1?'s':''} in quote ${quoteLabel(bill)}. Scan the next tag.`,'ok');
+  toast(wasEdit?'Quote updated':`Saved to quote · ${bill.items.length} item${bill.items.length>1?'s':''}`);
+  if(wasEdit)setView('quote');else window.scrollTo({top:0,behavior:'smooth'});
 }
 
 // ---------- scanning ----------
@@ -1624,90 +1886,177 @@ function applyText(text,side,barcodes){
   if(hit)startTagFlow();
 }
 
-// ---------- bill UI ----------
+// ---------- quote page ----------
+const SVGI=d=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const IC_EDIT=SVGI('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/>'),IC_DEL=SVGI('<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/>');
+let quotes=store.get('quotes',[]);if(!Array.isArray(quotes))quotes=[];
+let mgrMode=false,qFilter='open',mgrUntil=0;
+function isManager(){return !!(curUser&&(curUser.role==='manager'||curUser.role==='admin'))||Date.now()<mgrUntil||isAdmin()}
+function withManager(why,fn){if(isManager()){fn();return}openLogin('manager',why||'A manager must log in to continue.',fn)}
+function billIsEmpty(){return !bill.items.length&&!bill.oldGold.length&&!bill.returns.length&&!(bill.advances||[]).length&&!(bill.cust&&(bill.cust.name||bill.cust.phone))}
+function isClosed(){return bill.status==='closed'}
+function phoneDigits(p){let d=String(p||'').replace(/\D/g,'');if(d.length===10)d='91'+d;if(d.length===11&&d[0]==='0')d='91'+d.slice(1);return d}
+function quoteLabel(q){return q.no||'Draft'}
+// Every change saves the quote on this phone; with a shop key it is sent to all phones a moment later
+let qPushT=null;
+function saveBill(noPush){
+  bill.updated=Date.now();if(!bill.by&&curUser)bill.by=curUser.name||curUser.username;
+  store.set('bill',bill);
+  if(!billIsEmpty()){upsertQuote(clone(bill));if(!noPush)queueQuotePush()}
+}
+function upsertQuote(q){const i=quotes.findIndex(x=>x.id===q.id);if(i>=0)quotes[i]=q;else quotes.unshift(q);
+  quotes.sort((a,b)=>(b.updated||0)-(a.updated||0));quotes=quotes.slice(0,400);store.set('quotes',quotes)}
+function queueQuotePush(){if(!sync.key)return;clearTimeout(qPushT);qPushT=setTimeout(()=>pushQuote(bill.id),1800)}
+async function pushQuote(id){
+  const q=quotes.find(x=>x.id===id);if(!q||!sync.key||!navigator.onLine||!q.items.length)return false;
+  try{const r=await syncApi('quote','POST',{quote:q});
+    if(r&&r.quote){
+      if(r.conflict){upsertQuote(r.quote);if(bill.id===id){bill=fixBill(clone(r.quote));store.set('bill',bill);renderBill();toast('This quote was changed on another phone. Showing the latest.',null,true)}}
+      else{q.no=r.quote.no;q.pushed=q.updated;upsertQuote(q);if(bill.id===id&&!bill.no){bill.no=r.quote.no;store.set('bill',bill);paintQuoteHead()}}
+      sync.v.quotes=Math.max(sync.v.quotes||0,r.v||0);saveSyncState();renderRecent();
+    }
+    return true;
+  }catch(e){return false}
+}
+async function pullQuotes(){
+  if(!sync.key||!navigator.onLine)return;
+  try{const d=await syncApi('quotes');if(!Array.isArray(d.quotes))return;
+    const byId=new Map(quotes.map(q=>[q.id,q]));const toPush=[];
+    d.quotes.forEach(r=>{const l=byId.get(r.id);if(!l||(r.updated||0)>=(l.updated||0))byId.set(r.id,r);else toPush.push(l.id)});
+    quotes.forEach(l=>{if(l.items.length&&!d.quotes.some(r=>r.id===l.id)&&!l.no)toPush.push(l.id)});
+    quotes=[...byId.values()].sort((a,b)=>(b.updated||0)-(a.updated||0)).slice(0,400);store.set('quotes',quotes);
+    const mine=quotes.find(q=>q.id===bill.id);
+    if(mine&&(mine.updated||0)>(bill.updated||0)){bill=fixBill(clone(mine));store.set('bill',bill);renderBill()}
+    sync.v.quotes=d.v||sync.v.quotes;saveSyncState();
+    for(const id of new Set(toPush))await pushQuote(id);
+    renderRecent();
+  }catch(e){}
+}
+function startNewQuote(msg){
+  bill=newBill();cur=blankTag();editingId=null;thumbs={front:null,back:null};mgrMode=false;
+  store.set('bill',bill);saveDraft();paintRates();renderEditor();renderBill();setStatus(msg||'New quote. Scan the first tag.','ok');
+}
+function resetAll(msg){startNewQuote(msg)}
+function askClear(){
+  if(billIsEmpty()){startNewQuote();return}
+  startNewQuote('New quote started. The last one is kept under Quotes.');toast(`${quoteLabel(quotes.find(q=>q.updated)||{})} kept in Quotes`);
+}
+function openQuote(id){
+  const q=quotes.find(x=>x.id===id);if(!q)return;
+  if(bill.id!==id&&!billIsEmpty())saveBill(true);
+  bill=fixBill(clone(q));mgrMode=false;
+  // a generated quote keeps the rates it was given at
+  bill.overrides={};if(q.rates)PURITIES.forEach(p=>{if(q.rates[p.id]!=null)bill.overrides[p.id]=q.rates[p.id]});
+  store.set('bill',bill);paintRates();renderEditor();renderBill();window.scrollTo({top:0,behavior:'smooth'});
+  if(q.rates)toast('Opened at the rates it was quoted with');
+}
+function paintQuoteHead(){
+  $('qNo').textContent=quoteLabel(bill);
+  const n=bill.items.length;$('billCount').textContent=`(${n})`;
+  const b=$('tabBadge');b.hidden=!n;b.textContent=n;
+  $('goBill').textContent=n?`Quote (${n})`:'Quote';
+}
 function renderBill(keepInputs){
-  const s=totals();
-  const n=bill.items.length;
-  $('billCount').textContent=n?`${n} tag${n>1?'s':''}`:'No tags yet';
-  $('goBill').textContent=n?`Bill (${n}) ↓`:'Bill ↓';
+  const s=totals(),n=bill.items.length,closed=isClosed(),mgr=isManager();
+  paintQuoteHead();
+  $('bill').classList.toggle('q-closed',closed);
+  if(document.activeElement!==$('qName'))$('qName').value=bill.cust.name||'';
+  if(document.activeElement!==$('qPhone'))$('qPhone').value=bill.cust.phone||'';
+  $('qName').readOnly=$('qPhone').readOnly=closed;
+  const st=$('qStatus');st.hidden=!closed;
+  if(closed)st.innerHTML=`<b>Sale closed</b> · Invoice ${esc(bill.invoice||'—')} · ${bill.channel==='online'?'Online':'In-store'}${bill.closedBy?` · ${esc(bill.closedBy)}`:''}`;
+  $('qtEdit').classList.toggle('on',mgrMode);
   $('items').innerHTML=n?bill.items.map((t,i)=>{
-    const p=priceTag(t);
-    const mv=num(t.mkVal);
-    const mk=!p.hasMk?'no making':t.mkType==='pct'?`${fmtN(mv)}%`:t.mkType==='pergram'?`${inr(mv)}/g`:`${inr(mv)} fixed`;
-    return `<div class="item${p.ok?'':' bad'}">
-      <div><b>${i+1}. ${esc(t.sku||'No barcode')}</b> <span class="kind">${esc(t.item||'')} · ${PLABEL[t.purity]}</span></div>
-      <div class="val${p.ok?'':' na'}">${p.ok?inr(p.value):'—'}</div>
-      <div class="meta">GWT ${fmtW(num(t.gw))} · SWT ${t.sw?esc(t.sw):'—'} · NWT ${fmtW(num(t.nw))}${p.stone?` · SPR ${inr(p.stone)}`:''} · MC ${esc(mk)} · HUID ${p.huidN}</div>
-      <div class="acts"><button class="linkbtn" type="button" data-edit="${t.id}">Edit</button><button class="linkbtn" type="button" data-del="${t.id}" style="color:var(--bad)">Remove</button></div>
-    </div>`}).join(''):'<div class="empty">Scanned tags appear here. Add as many as the customer is buying.</div>';
+    const p=priceTag(t),q=quotedValue(t,p),disc=p.ok&&q<p.value-0.5;
+    const mkTxt=!p.hasMk?'no making':valText({type:t.mkType,val:num(t.mkVal)});
+    const showMk=(mgrMode||t.qMk)&&p.ok;
+    const qv=t.qMk?t.qMk.val:'';
+    return `<div class="qi-row${p.ok?'':' bad'}" role="row" data-id="${t.id}">
+      <span>${i+1}</span>
+      <span class="qi-sku"><b>${esc(keyOf(t.sku)||'—')}</b><small>${esc(t.item||'')}</small></span>
+      <span>${esc(PLABEL[t.purity]||'—')}</span>
+      <span>${fmtW(num(t.gw))}</span>
+      <span>${fmtW(num(t.nw))}</span>
+      <span class="qi-amt">${disc?`<s>${inr(p.value*(1+gstPct()/100))}</s>`:''}${p.ok?inr(q*(1+gstPct()/100)):'—'}</span>
+      <span class="qi-acts">${closed?'':`<button type="button" data-edit="${t.id}" aria-label="Edit item ${i+1}">${IC_EDIT}</button><button type="button" data-del="${t.id}" aria-label="Remove item ${i+1}">${IC_DEL}</button>`}</span>
+      ${showMk?`<div class="qi-mk">Making ${esc(mkTxt)} · after discount ${mgr&&mgrMode&&!closed?`<input data-qmk="${t.id}" inputmode="decimal" value="${esc(qv)}" placeholder="${esc(fmtN(num(t.mkVal)))}" aria-label="Making after discount for item ${i+1}"> ${t.mkType==='pct'?'%':t.mkType==='pergram'?'₹/g':'₹'}`:`<b>${t.qMk?esc(valText({type:t.mkType,val:num(t.qMk.val)})):'—'}</b>`}${disc?` <span class="new">saves ${inr((p.value-q)*(1+gstPct()/100))}</span>`:''}</div>`:''}
+    </div>`}).join(''):'<div class="empty-q">No items yet. Scan a product or add it manually, then tap Save to Quote.</div>';
   $('items').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{
     const t=bill.items.find(x=>x.id===b.dataset.edit);if(!t)return;
-    cur=clone(t);editingId=t.id;thumbs={front:null,back:null};saveDraft();renderEditor();
-    setStatus('Editing this tag. Change any field, then tap Update tag.');
-    window.scrollTo({top:$('editor').offsetTop-10,behavior:'smooth'});
+    cur=clone(t);editingId=t.id;thumbs={front:null,back:null};edOpen=true;saveDraft();setView('home');renderEditor();
+    setStatus('Editing this item. Change any field, then tap Save to Quote.');
   });
   $('items').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{
     const i=bill.items.findIndex(x=>x.id===b.dataset.del);if(i<0)return;
     const [gone]=bill.items.splice(i,1);
     if(editingId===gone.id){editingId=null;cur=blankTag()}
     saveBill();saveDraft();renderEditor();renderBill();
-    toast('Tag removed',()=>{bill.items.splice(i,0,gone);saveBill();renderEditor();renderBill()});
+    toast('Item removed',()=>{bill.items.splice(i,0,gone);saveBill();renderEditor();renderBill()});
   });
+  $('items').querySelectorAll('[data-qmk]').forEach(el=>el.addEventListener('change',()=>{
+    const t=bill.items.find(x=>x.id===el.dataset.qmk);if(!t)return;
+    const v=num(el.value);
+    if(el.value.trim()===''||isNaN(v)){delete t.qMk}
+    else if(v>num(t.mkVal)){toast('Making after discount must be lower than the label making',null,true);el.value=t.qMk?t.qMk.val:'';return}
+    else t.qMk={type:t.mkType,val:fmtN(v),by:curUser?(curUser.name||curUser.username):'',at:Date.now()};
+    saveBill();renderBill();
+  }));
+  $('qMgrNote').hidden=!(mgrMode&&n);
+  $('qMgrNote').textContent='Manager: enter the making after discount for each item. Prices update straight away.';
 
   if(!keepInputs)renderDeductions();else refreshDeductionValues();
 
-  const L=[];
-  L.push(['Gold value',inr2(s.gold)]);
-  if(s.stone)L.push(['Stone price (SPR)',inr2(s.stone)]);
-  L.push(['Making charges',inr2(s.making)]);
-  L.push([`HUID · ${s.huidN} × ${inr(settings.huid)}`,inr2(s.huid)]);
-  L.push(['Subtotal',inr2(s.sub),'strong']);
-  L.push([`GST ${fmtN(num(settings.gst))}%`,inr2(s.gst)]);
-  L.push(['Total',inr2(s.total),'strong']);
-  if(s.old)L.push([`Less old gold · ${fmtW(s.oldW)} g`,'−'+inr2(s.old),'minus']);
-  if(s.ret)L.push(['Less sales return','−'+inr2(s.ret),'minus']);
-  if(s.hasMad)L.push(['Staff only · lowest total at MAD (incl. GST)',inr(Math.round((s.madSub*(1+(num(settings.gst)||0)/100))-s.old-s.ret)),'staff']);
-  if(s.bad)L.push([`${s.bad} tag${s.bad>1?'s':''} not priced (missing rate or weight)`,'']);
-  $('totals').innerHTML=L.map(l=>`<div class="line ${l[2]||''}"><span>${esc(l[0])}</span><span>${esc(l[1])}</span></div>`).join('');
+  const g=gstPct(),L=[];
+  L.push(['Total Net Weight',fmtW(s.nw)+' g']);
+  if(s.mkDisc>0.5)L.push(['Making discount',`−${inr(s.mkDisc*(1+g/100))}`,'minus']);
+  L.push([`Total Amount (incl. GST ${fmtN(g)}%)`,inr(s.total),'strong']);
+  if(s.old)L.push([`Less URD · ${fmtW(s.oldW)} g`,'−'+inr(s.old),'minus']);
+  if(s.ret)L.push(['Less sales return','−'+inr(s.ret),'minus']);
+  L.push(['Discount','−'+inr(s.disc),'minus','disc']);
+  L.push(['Advance','−'+inr(s.adv),'minus','adv']);
+  if(s.bad)L.push([`${s.bad} item${s.bad>1?'s':''} not priced (missing rate or weight)`,'','staff']);
+  $('totals').innerHTML=L.map(l=>`<div class="line ${l[2]||''}"><span>${esc(l[0])}${l[3]&&!closed?`<button class="ed" type="button" data-go="${l[3]}" aria-label="Change ${esc(l[0])}">${IC_EDIT}</button>`:''}</span><span>${esc(l[1])}</span></div>`).join('');
+  $('totals').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>b.dataset.go==='disc'?$('qDisc').click():$('qAdv').click());
   const refund=s.net<0;
-  $('netLabel').textContent=refund?'Refund to customer':'Net payable';
-  $('net').parentElement.classList.toggle('refund',refund);
+  $('netLabel').textContent=refund?'Refund to customer':'Balance Amount';
+  $('qBalRow').classList.toggle('refund',refund);
   $('net').textContent=inr(Math.abs(s.net));
-  $('barT').textContent=(n?`${n} tag${n>1?'s':''} · `:'')+(refund?'Refund':'Net payable');
-  $('barV').textContent=inr(Math.abs(s.net));
-  $('bar').hidden=!(n||bill.oldGold.length||bill.returns.length);
-  $('waBtn').href='https://wa.me/?text='+encodeURIComponent(shareText());
-  renderRecent();
+  // close sale
+  $('qInv').value=document.activeElement===$('qInv')?$('qInv').value:(bill.invoice||'');$('qInv').readOnly=closed;
+  [...$('qChan').children].forEach(b=>{const on=b.dataset.c===(bill.channel||'store');b.setAttribute('aria-pressed',String(on));b.textContent=(on?'✓ ':'')+(b.dataset.c==='store'?'In-store':'Online');b.disabled=closed});
+  $('qCloseBtn').hidden=closed;$('qReopen').hidden=!closed;
+  paintPhotosCount();renderRecent();
 }
+function gstPct(){return num(settings.gst)||0}
 function oldLine(o){const v=oldValue(o),r=oldRate(o);return isNaN(v)?'Enter net weight':`${fmtW(num(o.wt))} g × ${inr(r)} = ${inr2(v)}`}
 function renderDeductions(){
-  const og=$('oldList');
+  const og=$('oldList'),closed=isClosed();
   og.innerHTML=bill.oldGold.map(o=>{const r=oldRate(o);
     return `<div class="ded" data-id="${o.id}">
-      <div class="f"><label for="op_${o.id}">Purity</label><select id="op_${o.id}" data-k="purity">${PURITIES.filter(p=>SHOWN().includes(p)||p.id===o.purity).map(p=>`<option value="${p.id}"${p.id===o.purity?' selected':''}>${p.label}</option>`).join('')}</select></div>
-      <div class="f"><label for="ow_${o.id}">Net wt (g)</label><input class="num" id="ow_${o.id}" data-k="wt" inputmode="decimal" value="${esc(o.wt)}"></div>
-      <div class="f"><label for="or_${o.id}">Rate ₹/g</label><input class="num" id="or_${o.id}" data-k="rate" inputmode="decimal" value="${esc(o.rate)}" placeholder="${r==null?'':r}"></div>
-      <button class="x" type="button" data-x aria-label="Remove old gold">×</button>
+      <div class="f"><label for="op_${o.id}">Purity</label><select id="op_${o.id}" data-k="purity"${closed?' disabled':''}>${PURITIES.filter(p=>SHOWN().includes(p)||p.id===o.purity).map(p=>`<option value="${p.id}"${p.id===o.purity?' selected':''}>${p.label}</option>`).join('')}</select></div>
+      <div class="f"><label for="ow_${o.id}">Net wt (g)</label><input class="num" id="ow_${o.id}" data-k="wt" inputmode="decimal" value="${esc(o.wt)}"${closed?' readonly':''}></div>
+      <div class="f"><label for="or_${o.id}">Rate ₹/g</label><input class="num" id="or_${o.id}" data-k="rate" inputmode="decimal" value="${esc(o.rate)}" placeholder="${r==null?'':r}"${closed?' readonly':''}></div>
+      ${closed?'':'<button class="x" type="button" data-x aria-label="Remove URD">×</button>'}
       <div class="ded-val" data-val>${esc(oldLine(o))}</div>
     </div>`}).join('');
   og.querySelectorAll('.ded').forEach(row=>{
     const o=bill.oldGold.find(x=>x.id===row.dataset.id);
     row.querySelectorAll('[data-k]').forEach(el=>el.addEventListener(el.tagName==='SELECT'?'change':'input',()=>{o[el.dataset.k]=el.value;saveBill();renderBill(true)}));
-    row.querySelector('[data-x]').onclick=()=>{bill.oldGold=bill.oldGold.filter(x=>x!==o);saveBill();renderBill()};
+    const x=row.querySelector('[data-x]');if(x)x.onclick=()=>{bill.oldGold=bill.oldGold.filter(y=>y!==o);saveBill();renderBill()};
   });
-  const rl=$('retList');
-  rl.innerHTML=bill.returns.map(r=>`<div class="ded ret" data-id="${r.id}">
-      <div class="f"><label for="rn_${r.id}">Return details</label><input id="rn_${r.id}" data-k="note" value="${esc(r.note)}" placeholder="Bill no. / item"></div>
-      <div class="f"><label for="ra_${r.id}">Value ₹</label><input class="num" id="ra_${r.id}" data-k="amount" inputmode="decimal" value="${esc(r.amount)}"></div>
-      <button class="x" type="button" data-x aria-label="Remove return">×</button>
-    </div>`).join('');
-  rl.querySelectorAll('.ded').forEach(row=>{
-    const r=bill.returns.find(x=>x.id===row.dataset.id);
-    row.querySelectorAll('[data-k]').forEach(el=>el.addEventListener('input',()=>{r[el.dataset.k]=el.value;saveBill();renderBill(true)}));
-    row.querySelector('[data-x]').onclick=()=>{bill.returns=bill.returns.filter(x=>x!==r);saveBill();renderBill()};
-  });
+  const ded=(list,key,fields,label)=>{
+    const el=$(key);
+    el.innerHTML=list.map(r=>`<div class="ded ret" data-id="${r.id}">${fields.map(f=>f.opts?`<div class="f"><label for="${f.k}_${r.id}">${f.l}</label><select id="${f.k}_${r.id}" data-k="${f.k}"${closed?' disabled':''}>${f.opts.map(o=>`<option${o===r[f.k]?' selected':''}>${o}</option>`).join('')}</select></div>`:`<div class="f"><label for="${f.k}_${r.id}">${f.l}</label><input${f.num?' class="num" inputmode="decimal"':''} id="${f.k}_${r.id}" data-k="${f.k}" value="${esc(r[f.k]||'')}" placeholder="${f.ph||''}"${closed?' readonly':''}></div>`).join('')}${closed?'':`<button class="x" type="button" data-x aria-label="Remove ${label}">×</button>`}</div>`).join('');
+    el.querySelectorAll('.ded').forEach(row=>{
+      const r=list.find(x=>x.id===row.dataset.id);
+      row.querySelectorAll('[data-k]').forEach(inp=>inp.addEventListener(inp.tagName==='SELECT'?'change':'input',()=>{r[inp.dataset.k]=inp.value;saveBill();renderBill(true)}));
+      const x=row.querySelector('[data-x]');if(x)x.onclick=()=>{const i=list.indexOf(r);if(i>=0)list.splice(i,1);saveBill();renderBill()};
+    });
+  };
+  ded(bill.returns,'retList',[{k:'note',l:'Return details',ph:'Bill no. / item'},{k:'amount',l:'Value ₹',num:1}],'return');
+  ded(bill.advances,'advList',[{k:'amount',l:'Advance ₹',num:1},{k:'mode',l:'Paid by',opts:['Cash','UPI','Card','Bank']},{k:'note',l:'Note',ph:'Ref / receipt'}],'advance');
+  $('qUrdSec').classList.toggle('empty',!bill.oldGold.length);
 }
-// Update values beside the inputs without rebuilding them (keeps the keyboard open)
 function refreshDeductionValues(){
   $('oldList').querySelectorAll('.ded').forEach(row=>{
     const o=bill.oldGold.find(x=>x.id===row.dataset.id);if(!o)return;
@@ -1715,25 +2064,78 @@ function refreshDeductionValues(){
     const r=oldRate(o);row.querySelector('[data-k="rate"]').placeholder=r==null?'':r;
   });
 }
-$('addOld').onclick=()=>{const o={id:uid(),purity:(SHOWN()[0]||PURITIES[0]).id,wt:'',rate:''};bill.oldGold.push(o);saveBill();renderBill();const el=$('ow_'+o.id);if(el)el.focus()};
-$('addRet').onclick=()=>{const r={id:uid(),note:'',amount:''};bill.returns.push(r);saveBill();renderBill();const el=$('ra_'+r.id);if(el)el.focus()};
+const notClosed=fn=>()=>{if(isClosed()){toast('This sale is closed. A manager can reopen it.',null,true);return}fn()};
+$('addOld').onclick=notClosed(()=>{const o={id:uid(),purity:(SHOWN()[0]||PURITIES[0]).id,wt:'',rate:''};bill.oldGold.push(o);saveBill();renderBill();const el=$('ow_'+o.id);if(el)el.focus()});
+$('addRet').onclick=notClosed(()=>{const r={id:uid(),note:'',amount:''};bill.returns.push(r);saveBill();renderBill();const el=$('amount_'+r.id);if(el)el.focus()});
+$('addAdv').onclick=notClosed(()=>{const a={id:uid(),amount:'',mode:'Cash',note:''};bill.advances.push(a);saveBill();renderBill();const el=$('amount_'+a.id);if(el)el.focus()});
+$('qtUrd').onclick=()=>{$('addOld').click();$('qUrdSec').scrollIntoView({behavior:'smooth',block:'center'})};
+$('qtSr').onclick=()=>{$('addRet').click();$('qSrSec').scrollIntoView({behavior:'smooth',block:'center'})};
+$('qAdv').onclick=()=>{$('addAdv').click();$('qAdvSec').scrollIntoView({behavior:'smooth',block:'center'})};
+$('qDisc').onclick=notClosed(()=>{
+  $('modalTitle').textContent='Discount';$('modalTitle').classList.remove('price-pop');
+  $('modalBody').innerHTML=`Flat amount off the total, in ₹.<br><input id="discIn" class="num disc-in" inputmode="decimal" value="${esc(bill.discount||'')}" placeholder="0" style="width:100%;margin-top:10px;font:700 24px var(--mono);padding:10px;border:1.5px solid var(--maroon);border-radius:10px;background:var(--surface);color:var(--fg)">`;
+  const a=$('modalActs');a.innerHTML='';
+  const ok=document.createElement('button');ok.className='btn primary';ok.type='button';ok.textContent='Apply';
+  ok.onclick=()=>{const v=num($('discIn').value);bill.discount=isNaN(v)||v<=0?'':String(v);closeModal();saveBill();renderBill()};
+  const cn=document.createElement('button');cn.className='btn ghost';cn.type='button';cn.textContent='Cancel';cn.onclick=closeModal;
+  a.append(ok,cn);$('modal').hidden=false;setTimeout(()=>{$('discIn').focus();$('discIn').select()},40);
+  $('discIn').addEventListener('keydown',e=>{if(e.key==='Enter')ok.click()});
+});
+['qName','qPhone'].forEach(id=>$(id).addEventListener('input',()=>{bill.cust[id==='qName'?'name':'phone']=$(id).value;saveBill();renderRecent()}));
+$('qNew').onclick=()=>askClear();
+$('qtScan').onclick=()=>{if(isClosed()){toast('This sale is closed. Start a new quote.',null,true);return}setView('home');setTimeout(()=>$('scanBc').click(),120)};
+$('qtManual').onclick=()=>{if(isClosed()){toast('This sale is closed. Start a new quote.',null,true);return}setView('home');setTimeout(()=>$('manBc').click(),120)};
+$('qtEdit').onclick=notClosed(()=>{
+  if(mgrMode){mgrMode=false;renderBill();return}
+  if(!bill.items.length){toast('Add items first');return}
+  withManager('A manager must log in to change making after discount.',()=>{mgrMode=true;renderBill();toast('Enter making after discount for each item')});
+});
+$('qtDel').onclick=()=>{
+  if(billIsEmpty()){toast('Nothing to delete');return}
+  const del=async()=>{const id=bill.id,wasShared=!!bill.no&&sync.key;
+    quotes=quotes.filter(q=>q.id!==id);store.set('quotes',quotes);PH.del(id);
+    if(wasShared)try{await syncApi('quotedel','POST',{id},adminCreds)}catch(e){toast('Deleted here. Could not delete from other phones.',null,true)}
+    startNewQuote('Quote deleted.');toast('Quote deleted')};
+  showModal(`Delete ${quoteLabel(bill)}?`,`${bill.items.length} item${bill.items.length===1?'':'s'}${bill.cust.name?` for ${bill.cust.name}`:''}. This cannot be undone.`,[
+    {label:'Delete quote',cls:'danger',run:()=>bill.no&&sync.key?withPin('An admin must log in to delete a shared quote.',del):del()},{label:'Cancel',cls:'ghost'}]);
+};
+[...$('qChan').children].forEach(b=>b.onclick=()=>{if(isClosed())return;bill.channel=b.dataset.c;saveBill();renderBill()});
+$('qInv').addEventListener('input',()=>{bill.invoice=$('qInv').value.trim();saveBill(true)});
+$('qCloseBtn').onclick=()=>{
+  if(!bill.items.length){toast('Add items first',null,true);return}
+  if(!bill.invoice){toast(`Enter the final invoice number from ${BRAND.erp||'the ERP'}`,null,true);$('qInv').focus();return}
+  showModal(`Close sale ${quoteLabel(bill)}?`,`Invoice ${bill.invoice} · ${bill.channel==='online'?'Online':'In-store'} sale · ${inr(Math.abs(totals().net))}.`,[
+    {label:'Close sale',cls:'primary',run:async()=>{
+      bill.status='closed';bill.closedAt=Date.now();bill.closedBy=curUser?(curUser.name||curUser.username):'';mgrMode=false;
+      saveBill(true);renderBill();await pushQuote(bill.id);toast('Sale closed');
+      const keys=bill.items.map(t=>t.stockKey).filter(k=>k&&stockMap.has(k));
+      if(keys.length&&isAdmin())setTimeout(()=>showModal(`Remove ${keys.length} sold tag${keys.length>1?'s':''} from stock?`,`${keys.join(', ')} ${keys.length>1?'were':'was'} sold on invoice ${bill.invoice}.`,[
+        {label:'Remove from stock',cls:'danger',run:()=>withPin('Log in as an admin to delete stock.',async()=>{const n=await removeStock(keys,`Sold · invoice ${bill.invoice}`);toast(`${n} tag${n>1?'s':''} removed from stock`)})},
+        {label:'Keep in stock',cls:'ghost'}]),400);
+    }},{label:'Cancel',cls:'ghost'}]);
+};
+$('qReopen').onclick=()=>withManager('A manager must log in to reopen a closed sale.',()=>{bill.status='open';delete bill.closedAt;saveBill();renderBill();toast('Sale reopened')});
 
 function shareText(){
-  const s=totals();
-  const out=['*'+BRAND.full+'*',`Estimate · ${new Date().toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'})}`,
-    'Rate/g: '+SHOWN().map(p=>{const r=rateFor(p.id);return `${p.label} ${r==null?'—':inr(r)}`}).join(' · '),''];
-  bill.items.forEach((t,i)=>{const p=priceTag(t);
-    out.push(`${i+1}. ${t.sku||'—'} ${t.item||''} ${PLABEL[t.purity]}`);
-    out.push(`   GWT ${fmtW(num(t.gw))} · NWT ${fmtW(num(t.nw))}${t.sw?` · SWT ${t.sw}`:''}`);
-    out.push(`   Gold ${inr(p.gold)}${p.stone?` + Stone ${inr(p.stone)}`:''} + MC ${inr(p.making)} + HUID ${inr(p.huid)} = ${p.ok?inr(p.value):'—'}`);
+  const s=totals(),g=gstPct();
+  const out=['*'+BRAND.full+'*',`Quote ${quoteLabel(bill)} · ${new Date(bill.started||Date.now()).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}`];
+  if(bill.cust.name)out.push(`For ${bill.cust.name}`);
+  out.push('Rate/g: '+SHOWN().map(p=>{const r=rateFor(p.id);return `${p.label} ${r==null?'—':inr(r)}`}).join(' · '),'');
+  bill.items.forEach((t,i)=>{const p=priceTag(t),q=quotedValue(t,p);
+    out.push(`${i+1}. ${keyOf(t.sku)||'—'} ${t.item||''} · ${PLABEL[t.purity]||''}`);
+    out.push(`   Gr ${fmtW(num(t.gw))} g · Net ${fmtW(num(t.nw))} g${p.stone?` · Stone ${inr(p.stone)}`:''}`);
+    out.push(`   ${p.ok?inr(q*(1+g/100)):'—'} incl. GST`);
   });
-  out.push('',`Subtotal ${inr(s.sub)}`,`GST ${fmtN(num(settings.gst))}% ${inr(s.gst)}`,`Total ${inr(s.total)}`);
-  bill.oldGold.forEach(o=>{const v=oldValue(o);if(!isNaN(v))out.push(`Less old gold ${PLABEL[o.purity]} ${fmtW(num(o.wt))} g × ${inr(oldRate(o))}: −${inr(v)}`)});
-  bill.returns.forEach(r=>{const v=num(r.amount);if(!isNaN(v))out.push(`Less sales return${r.note?` (${r.note})`:''}: −${inr(v)}`)});
-  out.push(`*${s.net<0?'Refund':'Net payable'}: ${inr(Math.abs(s.net))}*`);
+  out.push('',`Total ${inr(s.total)} (incl. GST ${fmtN(g)}%)`);
+  if(s.old)out.push(`Less old gold (URD) ${fmtW(s.oldW)} g: −${inr(s.old)}`);
+  if(s.ret)out.push(`Less sales return: −${inr(s.ret)}`);
+  if(s.disc)out.push(`Discount: −${inr(s.disc)}`);
+  if(s.adv)out.push(`Advance paid: −${inr(s.adv)}`);
+  out.push(`*${s.net<0?'Refund':'Balance'}: ${inr(Math.abs(s.net))}*`);
+  if(isClosed())out.push(`Invoice ${bill.invoice}`);
+  out.push('','Prices at today\'s gold rate. Valid today.');
   return out.join('\n');
 }
-
 // ---------- actions ----------
 function showModal(title,body,buttons){
   $('modalTitle').textContent=title;$('modalTitle').classList.remove('price-pop');$('modalBody').textContent=body;
@@ -1751,58 +2153,77 @@ function toast(t,undo,warn){
   el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>el.hidden=true,undo||warn?4500:2200);
 }
 $('copyBtn').onclick=()=>{
-  if(!bill.items.length){toast('Add a tag first');return}
+  if(!bill.items.length){toast('Add an item first');return}
   const t=shareText();
-  if(NATIVE&&NATIVE.copy){NATIVE.copy(t);toast('Bill copied');return}
-  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>toast('Bill copied'),()=>toast('Copy blocked here'));
+  if(NATIVE&&NATIVE.copy){NATIVE.copy(t);toast('Quote copied');return}
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>toast('Quote copied'),()=>toast('Copy blocked here'));
   else toast('Copy blocked here');
 };
-$('waBtn').addEventListener('click',e=>{if(!bill.items.length){e.preventDefault();toast('Add a tag first')}});
-$('goBill').onclick=()=>window.scrollTo({top:$('bill').offsetTop-10,behavior:'smooth'});
-$('barBtn').onclick=()=>window.scrollTo({top:$('bill').offsetTop-10,behavior:'smooth'});
+$('goBill').onclick=()=>setView('quote');
 const n0=()=>new Date().toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'});
-function billIsEmpty(){return !bill.items.length&&!bill.oldGold.length&&!bill.returns.length}
-let armNew=0;
-function resetAll(msg){
-  bill=newBill();cur=blankTag();editingId=null;thumbs={front:null,back:null};
-  saveBill();saveDraft();paintRates();renderEditor();renderBill();setStatus(msg,'ok');window.scrollTo({top:0,behavior:'smooth'});
-}
-function askClear(){
-  if(billIsEmpty()){resetAll('Cleared. Scan the first tag.');return}
-  showModal('Clear this bill?',`${bill.items.length} tag${bill.items.length===1?'':'s'}, old gold and returns will be removed. Save it first if you need it later.`,[
-    {label:'Save, then clear',cls:'primary',run:()=>$('saveBill').click()},
-    {label:'Clear without saving',cls:'danger',run:()=>resetAll('Bill cleared. Scan the first tag.')},
-    {label:'Cancel',cls:'ghost'}]);
-}
-$('newBillBtn').onclick=askClear;$('clearBill').onclick=askClear;$('barClear').onclick=askClear;
-$('barSave').onclick=()=>$('saveBill').click();
-$('saveBill').onclick=()=>{
-  if(!bill.items.length){toast(cur.touched?'Tap Add to bill first, then Save':'Add a tag first',null,true);return}
-  const s=totals();
-  const saved=store.get('bills',[]);
-  saved.unshift({id:uid(),at:Date.now(),by:curUser?curUser.name:'',bill:clone(bill),net:s.net,rates:PURITIES.reduce((a,p)=>(a[p.id]=rateFor(p.id),a),{})});
-  store.set('bills',saved.slice(0,40));
-  const billKeys=bill.items.map(t=>t.stockKey).filter(k=>k&&stockMap.has(k));
-  resetAll('Bill saved. Scan the first tag of the next bill.');toast('Bill saved');
-  if(billKeys.length&&isAdmin())setTimeout(()=>showModal(`Remove ${billKeys.length} sold tag${billKeys.length>1?'s':''} from stock?`,`${billKeys.join(', ')} ${billKeys.length>1?'were':'was'} on this bill.`,[
-    {label:'Remove from stock',cls:'danger',run:()=>withPin('Log in as an admin to delete stock.',async()=>{const n=await removeStock(billKeys,`Sold on bill (${n0()})`);toast(`${n} tag${n>1?'s':''} removed from stock`)})},
-    {label:'Keep in stock',cls:'ghost'}]),400);
+$('newBillBtn').onclick=askClear;
+// Generate Quote: freeze today's rates on it, give it a number (shared database) and offer to send it
+$('saveBill').onclick=async()=>{
+  if(!bill.items.length){toast(cur.touched?'Tap Save to Quote on the item first':'Add an item first',null,true);return}
+  const s=totals();if(s.bad){toast('Some items have no price. Check rates and weights.',null,true);return}
+  bill.rates=PURITIES.reduce((a,p)=>(a[p.id]=rateFor(p.id),a),{});
+  PURITIES.forEach(p=>{if(bill.rates[p.id]!=null)bill.overrides[p.id]=bill.rates[p.id]});
+  bill.generated=Date.now();saveBill(true);
+  let shared=false;if(sync.key){toast('Saving quote…');shared=await pushQuote(bill.id)}
+  else if(!bill.no){const n=(store.get('qSeq',0)|0)+1;store.set('qSeq',n);bill.no='QT-L'+String(n).padStart(4,'0');saveBill(true)}
+  renderBill();
+  showModal(`Quote ${quoteLabel(bill)} ready`,`${bill.items.length} item${bill.items.length>1?'s':''} · balance ${inr(Math.abs(s.net))}.`+(sync.key&&!shared?' Saved on this phone; it will reach other phones when online.':sync.key?' Shared with all phones.':''),[
+    {label:'Share on WhatsApp',cls:'primary',run:()=>$('waBtn').click()},{label:'Copy text',run:()=>$('copyBtn').click()},{label:'Done',cls:'ghost'}]);
 };
 function renderRecent(){
-  const saved=store.get('bills',[]),el=$('recent');
-  if(!saved.length){el.innerHTML='<div class="empty">Saved bills appear here. Tap one to open it again.</div>';return}
-  el.innerHTML=saved.map(b=>{const first=b.bill.items[0]||{};const n=b.bill.items.length;
-    return `<button class="r-item" type="button" data-open="${b.id}"><span><b>${esc(first.sku||'Bill')}${n>1?` + ${n-1} more`:''}</b><br><span class="m">${new Date(b.at).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})} · ${n} tag${n>1?'s':''}${b.by?' · '+esc(b.by):''}</span></span><span class="p">${inr(Math.abs(b.net))}</span></button>`}).join('');
-  el.querySelectorAll('[data-open]').forEach(btn=>btn.onclick=()=>{
-    if(!billIsEmpty()){toast('Save or clear the current bill first');return}
-    const b=saved.find(x=>x.id===btn.dataset.open);if(!b)return;
-    bill=clone(b.bill);bill.overrides={};
-    PURITIES.forEach(p=>{if(b.rates&&b.rates[p.id]!=null)bill.overrides[p.id]=b.rates[p.id]});
-    saveBill();paintRates();renderEditor();renderBill();
-    toast('Opened at the rates it was saved with');
-    window.scrollTo({top:$('bill').offsetTop-10,behavior:'smooth'});
-  });
+  const el=$('recent'),q=($('qSearch').value||'').trim().toLowerCase();
+  const list=quotes.filter(x=>(qFilter==='all'||(qFilter==='closed'?x.status==='closed':x.status!=='closed'))&&(!q||[x.no,x.cust&&x.cust.name,x.cust&&x.cust.phone,x.invoice,...(x.items||[]).map(t=>t.sku)].some(v=>String(v||'').toLowerCase().includes(q))));
+  if(!list.length){el.innerHTML=`<div class="empty">${quotes.length?'No quotes match.':'Quotes appear here once an item is saved to a quote.'}</div>`;return}
+  el.innerHTML=list.slice(0,80).map(x=>{const n=(x.items||[]).length;
+    let net='';try{const keep=bill;bill=fixBill(clone(x));if(x.rates){bill.overrides={};PURITIES.forEach(p=>{if(x.rates[p.id]!=null)bill.overrides[p.id]=x.rates[p.id]})}net=inr(Math.abs(totals().net));bill=keep}catch(e){}
+    return `<button class="r-item${x.id===bill.id?' cur':''}" type="button" data-open="${x.id}"><span><b>${esc(quoteLabel(x))}</b>${x.status==='closed'?'<span class="st closed">Closed</span>':''}${x.id===bill.id?'<span class="st">Open now</span>':''}<br><span class="m">${esc((x.cust&&x.cust.name)||'No name')}${x.cust&&x.cust.phone?' · '+esc(x.cust.phone):''} · ${n} item${n===1?'':'s'} · ${new Date(x.updated||x.started).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})}${x.by?' · '+esc(x.by):''}${x.invoice?' · Inv '+esc(x.invoice):''}</span></span><span class="v">${net}</span></button>`}).join('');
+  el.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{if(b.dataset.open!==bill.id)openQuote(b.dataset.open)});
 }
+[...$('qFilter').children].forEach(b=>b.onclick=()=>{qFilter=b.dataset.f;[...$('qFilter').children].forEach(x=>x.setAttribute('aria-pressed',String(x===b)));renderRecent()});
+$('qSearch').addEventListener('input',renderRecent);
+$('qRefresh').onclick=async()=>{if(!sync.key){toast('Connect the shared database to see quotes from other phones');return}toast('Refreshing quotes…');await pullQuotes();toast('Quotes up to date')};
+
+// ---------- photos for the customer (kept on this phone, per quote) ----------
+const PH={db:null,
+  open(){return this.db||(this.db=new Promise((res,rej)=>{const r=indexedDB.open('ypc-photos',1);r.onupgradeneeded=()=>r.result.createObjectStore('p');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}))},
+  async get(id){try{const db=await this.open();return await new Promise(res=>{const r=db.transaction('p').objectStore('p').get(id);r.onsuccess=()=>res(r.result||[]);r.onerror=()=>res([])})}catch(e){return []}},
+  async set(id,arr){try{const db=await this.open();await new Promise(res=>{const tx=db.transaction('p','readwrite');tx.objectStore('p').put(arr,id);tx.oncomplete=res;tx.onerror=res})}catch(e){}},
+  async del(id){try{const db=await this.open();db.transaction('p','readwrite').objectStore('p').delete(id)}catch(e){}}};
+let photos=[],photosFor='';
+async function loadPhotos(){photosFor=bill.id;photos=await PH.get(bill.id);paintPhotos()}
+function paintPhotosCount(){if(photosFor!==bill.id)loadPhotos();else $('qPhotoN').textContent=photos.length?`${photos.length} photo${photos.length>1?'s':''}`:'None'}
+function paintPhotos(){
+  $('qPhotoN').textContent=photos.length?`${photos.length} photo${photos.length>1?'s':''}`:'None';
+  $('qPhotos').innerHTML=photos.map((p,i)=>`<div class="ph"><img src="${p}" alt="Photo ${i+1}"><button type="button" data-rm="${i}" aria-label="Remove photo ${i+1}">×</button></div>`).join('');
+  $('qPhotos').querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{photos.splice(+b.dataset.rm,1);PH.set(bill.id,photos);paintPhotos()});
+}
+async function addPhotos(urls){
+  if(!urls.length)return;if(billIsEmpty()){saveBill()}
+  photos=photos.concat(urls).slice(0,12);await PH.set(bill.id,photos);paintPhotos();toast(`${urls.length} photo${urls.length>1?'s':''} added`);
+}
+function shrink(file){return new Promise(res=>{const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,1280/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.82))};im.onerror=()=>res(null);im.src=fr.result};fr.onerror=()=>res(null);fr.readAsDataURL(file)})}
+async function takeFiles(input){const fs=[...(input.files||[])].slice(0,10);input.value='';const out=[];for(const f of fs){const u=await shrink(f);if(u)out.push(u)}addPhotos(out)}
+$('phFile').addEventListener('change',e=>takeFiles(e.target));$('phCamIn').addEventListener('change',e=>takeFiles(e.target));
+const canNativePhotos=!!(NATIVE&&NATIVE.pickPhotos);
+$('phCam').onclick=()=>canNativePhotos?NATIVE.pickPhotos('camera'):$('phCamIn').click();
+$('phGal').onclick=()=>canNativePhotos?NATIVE.pickPhotos('gallery'):$('phFile').click();
+window.onNativePhotos=json=>{let a=[];try{a=JSON.parse(json)}catch(e){}addPhotos(a.filter(x=>typeof x==='string'&&x.startsWith('data:image')))};
+window.onNativeShareError=()=>toast('Could not open WhatsApp',null,true);
+function dataUrlFile(u,i){const [h,b]=u.split(',');const bin=atob(b),arr=new Uint8Array(bin.length);for(let k=0;k<bin.length;k++)arr[k]=bin.charCodeAt(k);return new File([arr],`photo-${i+1}.jpg`,{type:(h.match(/data:([^;]+)/)||[])[1]||'image/jpeg'})}
+$('waBtn').onclick=async()=>{
+  if(!bill.items.length){toast('Add an item first');return}
+  const text=shareText(),ph=phoneDigits(bill.cust.phone);
+  if(NATIVE&&NATIVE.shareWhatsApp){NATIVE.shareWhatsApp(ph,text,JSON.stringify(photos));return}
+  if(photos.length&&navigator.canShare){try{const files=photos.map(dataUrlFile);if(navigator.canShare({files})){await navigator.share({files,text});return}}catch(e){if(e&&e.name==='AbortError')return}}
+  if(photos.length)toast('This browser cannot attach photos. Sending the text; attach photos in WhatsApp.',null,true);
+  const url=`https://wa.me/${ph}?text=${encodeURIComponent(text)}`;
+  if(NATIVE&&NATIVE.openUrl)NATIVE.openUrl(url);else window.open(url,'_blank','noopener');
+};
 [['gst','setGst'],['huid','setHuid']].forEach(([k,id])=>{const el=$(id);el.value=settings[k];
   el.addEventListener('input',()=>{const v=num(el.value);if(!isNaN(v)){settings[k]=v;saveSettings();renderEditor();renderBill(true)}})});
 
@@ -1880,19 +2301,59 @@ function paintGuide(){
 }
 function openHelper(){paintGuide();$('helper').hidden=false;try{history.pushState({hp:1},'')}catch(e){}setTimeout(()=>{const f=$('mkGuideChips').querySelector('.sugg')||$('mkGuideChips').querySelector('button');f&&f.focus()},30)}
 function closeHelper(fromPop){if($('helper').hidden)return;$('helper').hidden=true;if(!fromPop){try{if(history.state&&history.state.hp)history.back()}catch(e){}}
-  if(flowPending){flowPending=false;setTimeout(askHuid,180)}}
+  if(flowPending){flowPending=false;setTimeout(afterMaking,180)}}
 // After a barcode scan: pick making from the helper, then confirm HUID count
 let flowPending=false;
 function isPairItem(t){const h=[t.item,t.stock&&t.stock.item,t.stock&&t.stock.category].join(' ').toUpperCase();return /^STD/.test(keyOf(t.sku))||/EARRING|STUD|ANKLET|PAYAL|KOLUSU/.test(h)}
 function startTagFlow(){
-  const {rows}=helperRows(cur);
-  if(rows.length){flowPending=true;openHelper()}else askHuid();
+  const hasMk=!!cur.mkType&&!isNaN(num(cur.mkVal));
+  if(!hasMk){openMkPop(afterMaking);return}
+  afterMaking();
+}
+function afterMaking(){
+  if(cur.read.includes('huid')){flowDone();return}
+  askHuid();
+}
+// Making rate entry: pops up after a scan when the stock data has no making for the item
+let mkPopType='pct',mkPopNext=null;
+function openMkPop(next){
+  mkPopNext=next||null;
+  mkPopType=cur.mkType||store.get('mkLast','pct');
+  $('mkPopWhy').textContent=`${tagTitle(cur)} · making is not in the stock data. Enter it from the label.`;
+  $('mkPopVal').value=cur.mkType===mkPopType&&!isNaN(num(cur.mkVal))?cur.mkVal:'';
+  $('mkPopHelper').hidden=!helperRows(cur).rows.length;
+  paintMkPop();$('mkPop').hidden=false;setTimeout(()=>$('mkPopVal').focus(),60);
+}
+function paintMkPop(){
+  [...$('mkPopSeg').children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.k===mkPopType)));
+  $('mkPopPre').textContent=mkPopType==='pct'?'':'₹';$('mkPopSuf').textContent=mkPopType==='pct'?'%':mkPopType==='pergram'?'/g':'';
+  const v=num($('mkPopVal').value);
+  $('mkPopChips').innerHTML=MK[mkPopType].presets.map(x=>`<button type="button" class="chip${x===v?' on':''}" data-v="${x}">${mkPopType==='pct'?x+'%':'₹'+x.toLocaleString('en-IN')}</button>`).join('');
+  $('mkPopChips').querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{$('mkPopVal').value=b.dataset.v;paintMkPop()});
+  const t={...cur,mkType:mkPopType,mkVal:String(v)},p=priceTag(t),g=num(settings.gst)||0;
+  $('mkPopPrev').innerHTML=!isNaN(v)&&v>0&&p.ok?`Making ${inr(p.making)} · price <b>${inr(p.value*(1+g/100))}</b> incl. GST`:'';
+}
+[...$('mkPopSeg').children].forEach(b=>b.onclick=()=>{mkPopType=b.dataset.k;$('mkPopVal').value='';paintMkPop();$('mkPopVal').focus()});
+$('mkPopVal').addEventListener('input',paintMkPop);
+function closeMkPop(){$('mkPop').hidden=true;const f=mkPopNext;mkPopNext=null;return f}
+$('mkPopForm').addEventListener('submit',e=>{e.preventDefault();
+  const v=num($('mkPopVal').value);
+  if(isNaN(v)||v<=0){toast('Enter the making rate',null,true);$('mkPopVal').focus();return}
+  cur.mkType=mkPopType;cur.mkVal=fmtN(v);cur.mkMad=null;cur.mkRow='';unread('making');cur.touched=true;store.set('mkLast',mkPopType);
+  saveDraft();renderEditor();const f=closeMkPop();f&&f();
+});
+$('mkPopCancel').onclick=()=>{const f=closeMkPop();f&&f()};
+$('mkPopHelper').onclick=()=>{const f=closeMkPop();flowPending=!!f;openHelper()};
+$('mkPop').addEventListener('click',e=>{if(e.target===$('mkPop')){const f=closeMkPop();f&&f()}});
+function flowDone(){
+  renderEditor();const m=missing(cur);
+  setStatus(m.length?'Required: '+m.map(x=>x.t).join(', '):'Ready. Tap Save to Quote.',m.length?'err':'ok');
+  setTimeout(()=>$('prodCard').scrollIntoView({behavior:'smooth',block:'start'}),150);
 }
 function askHuid(){
   const pair=isPairItem(cur),def=pair?2:1,read=cur.huids&&cur.huids.length?cur.huids.length:0;
   const set=n=>{cur.huidCount=n;unread('huid');cur.read.push('huid');cur.touched=true;saveDraft();renderEditor();
-    const m=missing(cur);setStatus(m.length?'Required: '+m.map(x=>x.t).join(', '):`Ready. ${n} HUID added. Tap Add to bill.`,m.length?'err':'ok');
-    if(!m.length){$('addTag').scrollIntoView({behavior:'smooth',block:'center'});setTimeout(showPricePop,200)}};
+    flowDone()};
   const opts=[1,2,3,0].sort((a,b)=>(b===def)-(a===def));
   showModal('How many HUID on this tag?',(pair?'Earrings and anklets carry 2 HUID, one per piece. ':'')+(read?`${read} HUID read from the tag. `:'')+`Each HUID adds ${inr(settings.huid)}.`,
     opts.map(n=>({label:n===0?'No HUID':`${n} HUID${n===def?(pair?' (pair)':''):''}`+` · ${inr(n*settings.huid)}`,cls:n===def?'primary':'',run:()=>set(n)})));
@@ -1908,21 +2369,36 @@ function showPricePop(){
 }
 let lpLast='';
 let prodSeen=false;
+let edOpen=false;
 function paintProduct(){
-  const card=$('prodCard'),k=keyOf(cur.sku);
+  const card=$('prodCard'),k=keyOf(cur.sku),m=missing(cur);
+  // Home shows only the price card; the tag form opens to fix missing details or on Edit details
+  $('editor').hidden=!(edOpen||editingId||(cur.touched&&k&&m.some(x=>x.k!=='making'&&x.k!=='rate')));
+  $('pdEdit').textContent=$('editor').hidden?'Edit details':'Hide details';
   card.hidden=!(cur.touched&&k);if(card.hidden)return;
-  const st=cur.stockKey&&cur.stock?cur.stock:null,name=cur.item||itemFromSku(cur.sku)||'Item';
+  const st=cur.stockKey&&cur.stock?cur.stock:null,name=(st&&st.item&&String(st.item).trim())||cur.item||itemFromSku(cur.sku)||'Item';
   $('pdSku').textContent='SKU: '+k;
   $('pdTile').innerHTML=icoFor(name);
   $('pdName').textContent=name;
-  const w=v=>v!=null&&v!==''&&!isNaN(v)?(+v).toFixed(3)+' g':'';
-  const rows=[['Item',st&&st.category],['Purity',PLABEL[cur.purity]],['Gross Wt',w(cur.gw)],['Net Wt',w(cur.nw)],['Stone Wt',w(cur.sw)],['Pcs',st&&st.pcs!=null&&st.pcs!==''?fmtN(st.pcs):''],['Supplier',st&&st.supplier]].filter(r=>r[1]);
-  $('pdSpecs').innerHTML=rows.map(([l,v])=>`<dt>${l}</dt><dd>${esc(v)}</dd>`).join('')||'<dt>Not in stock list</dt><dd></dd>';
-  const p=priceTag(cur),m=missing(cur),g=num(settings.gst)||0,ok=p.ok&&!m.length;
-  $('pdV').textContent=ok?inr(p.value*(1+g/100)):'—';
-  $('pdS').textContent=ok?`Incl. GST ${g}% · ${p.huidN} HUID`:'Needs: '+m.map(x=>({nw:'NWT',spr:'stone price',rate:'rate',purity:'purity',making:'making'})[x.k]).join(', ');
-  $('pdTotal').classList.toggle('incomplete',!ok);
+  const p=priceTag(cur),g=num(settings.gst)||0,ok=p.ok&&!m.length;
+  const w=v=>v!=null&&v!==''&&!isNaN(num(v))?num(v).toFixed(3):'';
+  const mk=p.hasMk?valText({type:cur.mkType,val:num(cur.mkVal)}):'';
+  const rows=[['Purity',PLABEL[cur.purity]],['Gr. Wt',w(cur.gw)],['Nt. Wt',w(cur.nw)],['St. Wt',w(cur.sw)],
+    ['VA (Making)',mk||'—'],['SA (Stone)',p.stone?inr(p.stone):(isDiamond(cur)?'—':'')],['HUID',p.huidN?`${p.huidN} × ${inr(settings.huid)}`:''],
+    ['Pcs',st&&st.pcs>1?fmtN(st.pcs):''],['Supplier',st&&st.supplier]].filter(r=>r[1]);
+  $('pdSpecs').innerHTML=rows.map(([l,v])=>`<dt>${l}</dt><dd>${esc(v)}</dd>`).join('');
+  const need=$('pdNeed');need.hidden=ok;
+  if(!ok){const mm=m.map(x=>({nw:'net weight',spr:'stone price',rate:'today\'s rate',purity:'purity',making:'making'})[x.k]);
+    const act=m.some(x=>x.k==='making')?['Enter making','mk']:m.some(x=>x.k==='rate')?['Set rates','rate']:['Edit details','ed'];
+    need.innerHTML=`<span>Needs ${esc(mm.join(', '))}</span><button class="btn sm primary" type="button" data-need="${act[1]}">${act[0]}</button>`;
+    need.querySelector('button').onclick=()=>act[1]==='mk'?openMkPop(()=>{}):act[1]==='rate'?openRates():(edOpen=true,renderEditor(),$('editor').scrollIntoView({behavior:'smooth',block:'start'}))}
+  $('pdV').textContent=ok?inr(p.value):'—';
+  $('pdGstL').textContent=`+ GST (${fmtN(g)}%)`;$('pdGst').textContent=ok?inr(p.value*g/100):'—';
+  $('pdGrand').textContent=ok?inr(p.value*(1+g/100)):'—';
+  $('pdTotal').classList.toggle('incomplete',!ok);$('pdGrandRow').classList.toggle('incomplete',!ok);
+  $('pdSave').lastChild.textContent=editingId?'Update Quote':'Save to Quote';
 }
+$('pdEdit').onclick=()=>{edOpen=$('editor').hidden;renderEditor();if(edOpen)$('editor').scrollIntoView({behavior:'smooth',block:'start'})};
 $('pdDel').onclick=()=>$('clearTag').click();
 $('pdSave').onclick=()=>$('addTag').click();
 if('IntersectionObserver' in window)new IntersectionObserver(es=>{prodSeen=es[0].isIntersecting;paintLivePrice()},{threshold:0,rootMargin:'0px 0px -120px 0px'}).observe($('prodCard'));
@@ -1999,8 +2475,30 @@ function itemName(v){
 }
 const COLS={barcode:['BARCODE','BARCODENO','BARCODENUMBER','TAGNO','BARCODES'],item:['ITEM','ITEMNAME'],category:['CATEGORY'],carat:['CARRET','CARAT','KARAT','PURITY','CARATAGE','CARET'],
   gw:['GROSSWT','GROSSWEIGHT','GWT','GRWT'],nw:['NETWT','NETWEIGHT','NWT'],sw:['STONEWT','STONEWEIGHT','SWT','STWT'],dw:['DIAMONDWT','DIAMONDWEIGHT','DIAWT','DWT'],dq:['DIAMONDQTY','DIAQTY','DIAMONDPCS'],
-  sa:['STONEAMOUNT','STONEAMT','SA','SPR','STONEPRICE','STONEVALUE'],serial:['SERIAL','SERIALNO','SLNO'],label:['LABEL'],location:['LOCATION'],pcs:['PCS','PIECES'],sq:['STONEQTY','STONEPCS'],supplier:['SUPPLIER','VENDOR']};
+  sa:['STONEAMOUNT','STONEAMT','SA','SPR','STONEPRICE','STONEVALUE'],serial:['SERIAL','SERIALNO','SLNO'],label:['LABEL'],location:['LOCATION'],pcs:['PCS','PIECES'],sq:['STONEQTY','STONEPCS'],supplier:['SUPPLIER','VENDOR'],
+  mk:['MAKING','MAKINGCHARGE','MAKINGCHARGES','MAKINGRATE','MC','MCRATE','VA','VARATE','WASTAGE','MAKINGMBD','MBD'],mkType:['MAKINGTYPE','MCTYPE','VATYPE','MAKINGON'],
+  mkPct:['MAKINGPCT','MAKINGPERCENT','MAKINGPERCENTAGE','VAPCT','VAPERCENT','MCPCT','MCPERCENT'],mkPg:['MAKINGPG','MAKINGPERGRAM','MAKINGPERGM','MCPG','MCPERGRAM','MCPERGM'],mkFix:['MAKINGFIXED','MAKINGAMOUNT','MAKINGAMT','MCAMOUNT','MCAMT','MCFIXED','MAKINGPERPIECE','MCPERPIECE'],
+  huid:['HUID','HUIDCOUNT','HUIDQTY','HUIDNOS','HUIDNO','NOOFHUID','HUIDPCS','HUIDS']};
 const NUMCOLS=['gw','nw','sw','dw','dq','sa','pcs','sq'];
+// Making and HUID from the stock sheet. Making: one "Making" column ("14%", "2500 PG", "1500 fixed"; a plain number
+// up to 100 is %, above 100 is fixed unless a Making Type column says per gram), or separate %, per-gram and fixed columns.
+function stockMaking(rec){
+  const typeOf=t=>{t=String(t||'').toUpperCase();return /GRAM|PG|\/G|GM/.test(t)?'pergram':/%|PCT|PERC|VA|WAST/.test(t)?'pct':/FIX|FLAT|PIECE|PC|AMOUNT|AMT|RS/.test(t)?'fixed':''};
+  let mk=null;
+  const n=v=>{const x=typeof v==='number'?v:num(v);return x>0?x:NaN};
+  if(!isNaN(n(rec.mkPct)))mk={type:'pct',val:n(rec.mkPct)};
+  else if(!isNaN(n(rec.mkPg)))mk={type:'pergram',val:n(rec.mkPg)};
+  else if(!isNaN(n(rec.mkFix)))mk={type:'fixed',val:n(rec.mkFix)};
+  else if(rec.mk!=null&&String(rec.mk).trim()!==''){
+    const raw=String(rec.mk).trim(),pv=parseVal(raw.replace(/\s*(PER\s*GRAM|PERGRAM)$/i,' PG')),forced=typeOf(rec.mkType);
+    if(pv&&pv.val>0)mk={type:forced||pv.type,val:pv.val};
+  }
+  delete rec.mkPct;delete rec.mkPg;delete rec.mkFix;
+  if(mk){rec.mk=String(mk.val);rec.mkType=mk.type}else{rec.mk='';rec.mkType=''}
+  // HUID: a count, or the HUID codes themselves (counted)
+  if(rec.huid!=null&&rec.huid!==''){const h=String(rec.huid).trim();
+    rec.huid=/^\d{1,2}$/.test(h)?+h:(h.match(/[A-Z0-9]{6}/gi)||[]).length||null}else rec.huid=null;
+}
 let xlsxP=null;
 function loadXLSX(){if(window.XLSX)return Promise.resolve();if(!xlsxP)xlsxP=new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='vendor/xlsx.full.min.js';sc.onload=res;sc.onerror=()=>{xlsxP=null;rej(new Error('xlsx_missing'))};document.head.appendChild(sc)});return xlsxP}
 async function readSheet(file){
@@ -2022,6 +2520,7 @@ async function readSheet(file){
       for(const f in idx){if(f==='barcode')continue;let v=row[idx[f]];
         if(NUMCOLS.includes(f)){const n=typeof v==='number'?v:num(v);rec[f]=isNaN(n)?null:n}
         else rec[f]=v==null?'':String(v).trim()}
+      stockMaking(rec);
       out.set(key,rec);
     }
     const found=Object.keys(idx);
@@ -2094,6 +2593,8 @@ function applyStock(rec){
   if(rec.nw>0){cur.nw=fmtN(rec.nw);mark('nw')}
   const sw=rec.dw>0?rec.dw:rec.sw;if(sw>0){cur.sw=fmtN(sw);mark('sw')}
   if(rec.sa>0){cur.spr=fmtN(rec.sa);mark('spr')}
+  if(rec.mkType&&num(rec.mk)>0){cur.mkType=rec.mkType;cur.mkVal=fmtN(num(rec.mk));cur.mkMad=null;cur.mkRow='';mark('making')}
+  if(rec.huid!=null&&rec.huid!==''&&!isNaN(+rec.huid)){cur.huidCount=+rec.huid;mark('huid')}
   saveDraft();renderEditor();
 }
 let lookTimer=null;
@@ -2120,16 +2621,30 @@ $('stockBtn').onclick=openStock;$('ssClose').onclick=()=>closeStock();
 function setMenu(on){$('menu').hidden=!on;$('menuScrim').hidden=!on;$('menuBtn').setAttribute('aria-expanded',on)}
 $('menuBtn').onclick=()=>setMenu(true);$('menuClose').onclick=$('menuScrim').onclick=()=>setMenu(false);
 $('menu').addEventListener('click',e=>{if(e.target.closest('.menu-acts button'))setMenu(false)});
-function openSettings(card){const c=$(card||'adminCard');if(!c.open)c.querySelector('summary').click();setTimeout(()=>c.scrollIntoView({behavior:'smooth',block:'start'}),120)}
+// Views: Home (price check), Quote, Settings (stock data + admin settings)
+const VIEW_TITLE={home:'Price Check',quote:'Quote',settings:'Settings'};
+function setView(v){
+  const was=document.body.dataset.view;document.body.dataset.view=v;
+  $('viewTitle').textContent=VIEW_TITLE[v];$('heroBack').hidden=v==='home';
+  [['tabHome','home'],['tabQuote','quote'],['tabSet','settings']].forEach(([id,k])=>$(id).classList.toggle('on',k===v));
+  if(v==='quote'){renderBill();if(sync.key)pullQuotes()}
+  if(was!==v)window.scrollTo({top:0});
+}
+function openSettings(card){setView('settings');if(card){const c=$(card);if(!c.open)c.querySelector('summary').click();setTimeout(()=>c.scrollIntoView({behavior:'smooth',block:'start'}),150)}}
+$('heroBack').onclick=()=>setView('home');
 $('menuRates').onclick=()=>openRates();$('menuAdmin').onclick=()=>openSettings('adminCard');$('menuData').onclick=()=>openSettings('dataCard');
-$('tabHome').onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
-$('tabScan').onclick=()=>$('scanBc').click();
+$('setStock').onclick=openStock;
+$('tabHome').onclick=()=>{if(document.body.dataset.view==='home')window.scrollTo({top:0,behavior:'smooth'});else setView('home')};
+$('tabScan').onclick=()=>{setView('home');$('scanBc').click()};
+$('tabQuote').onclick=()=>setView('quote');
 $('tabRates').onclick=()=>openRates();
-$('tabSet').onclick=()=>openSettings('adminCard');
+$('tabSet').onclick=()=>openSettings();
+setView('home');
+window.__pc={totals:()=>totals(),shareText:()=>shareText(),openSettings:c=>openSettings(c)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.3.__BUILD__';
-$('appVer').textContent='v'+(APP_VERSION.includes('__')?'dev':APP_VERSION);
+const APP_VERSION='1.4.__BUILD__';
+$('appVer').textContent='v'+(APP_VERSION.includes('__')?'dev':APP_VERSION);$('heroVer').textContent=$('appVer').textContent;
 
 // ---------- users and login ----------
 const DEFAULT_PIN_HASH='70249d509e52362f5d41ae4cc1bfeabc6af135b10b4c2ba234fdf87639485ccf'; // starting admin PIN (stored as a hash only)
@@ -2182,12 +2697,12 @@ async function createFirstAdmin(pin){
 let loginMode='login',loginNext=null,loginFixed='';
 function openLogin(mode,why,next,fixedUser){
   loginMode=mode;loginNext=next||null;loginFixed=fixedUser||'';
-  $('loginTitle').textContent=mode==='login'?'Log in':'Admin login';
-  $('loginWhy').textContent=why||(mode==='login'?'Log in to start billing.':'An admin must log in to continue.');
+  $('loginTitle').textContent=mode==='login'?'Price Checker':mode==='manager'?'Manager login':'Admin login';
+  $('loginWhy').textContent=why||(mode==='login'?'Log in to start.':'An admin must log in to continue.');
   $('loginCancel').hidden=mode==='login';
   $('loginVer').textContent=$('appVer').textContent;
   $('loginErr').textContent='';$('loginPin').value='';
-  const list=users.filter(u=>u.active!==false&&(mode==='login'||u.role==='admin'));
+  const list=users.filter(u=>u.active!==false&&(mode==='login'||u.role==='admin'||(mode==='manager'&&u.role==='manager')));
   $('userPick').innerHTML=fixedUser?'':list.map(u=>`<button type="button" data-u="${esc(u.username)}">${esc(u.name||u.username)}</button>`).join('');
   $('loginUser').value=fixedUser||(list.length===1?list[0].username:'');
   $('loginUser').hidden=!!fixedUser||list.length>0;
@@ -2207,21 +2722,24 @@ $('loginForm').addEventListener('submit',async e=>{
   $('loginErr').textContent='Checking…';
   const u=await verifyLogin(un,pin);
   if(!u){$('loginErr').textContent='Wrong user or PIN. Try again.';$('loginPin').value='';try{navigator.vibrate&&navigator.vibrate(120)}catch(_){}return}
-  if(loginMode!=='login'&&u.role!=='admin'){$('loginErr').textContent=`${u.name||u.username} is not an admin.`;$('loginPin').value='';return}
+  if(loginMode==='manager'&&!['manager','admin'].includes(u.role)){$('loginErr').textContent=`${u.name||u.username} is not a manager.`;$('loginPin').value='';return}
+  if(loginMode==='admin'&&u.role!=='admin'){$('loginErr').textContent=`${u.name||u.username} is not an admin.`;$('loginPin').value='';return}
   $('login').hidden=true;
   if(loginMode==='login'){curUser=u;store.set('session',{id:u.id,at:Date.now()});adminCreds=u.role==='admin'?{username:u.username,pin}:null;toast(`Welcome, ${u.name||u.username}`)}
+  else if(loginMode==='manager'&&u.role==='manager'){mgrUntil=Date.now()+15*60*1000;if(!curUser){curUser=u;store.set('session',{id:u.id,at:Date.now()})}}
   else{adminCreds={username:u.username,pin};if(!(curUser&&curUser.role==='admin'))adminUntil=Date.now()+15*60*1000;if(!curUser){curUser=u;store.set('session',{id:u.id,at:Date.now()})}}
   paintUserChip();paintAdmin();renderUsers();
   const f=loginNext;loginNext=null;f&&f();
   if(loginMode==='login')morningSync();
 });
 $('loginCancel').onclick=()=>{$('login').hidden=true;loginNext=null};
+$('loginEye').onclick=()=>{const i=$('loginPin'),show=i.type==='password';i.type=show?'text':'password';$('loginEye').setAttribute('aria-label',show?'Hide PIN':'Show PIN')};
 function logout(msg){
   curUser=null;adminCreds=null;adminUntil=0;store.set('session',null);
   paintUserChip();paintAdmin();openLogin('login',msg||'Logged out. Log in to continue.');
 }
 function paintUserChip(){const c=$('userChip');c.hidden=!curUser;if(curUser)c.textContent='👤 '+(curUser.name||curUser.username)}
-$('userChip').onclick=()=>showModal(`${curUser.name||curUser.username}`,`Logged in as ${curUser.role==='admin'?'Admin':'Staff'} (${curUser.username}).`,[
+$('userChip').onclick=()=>showModal(`${curUser.name||curUser.username}`,`Logged in as ${curUser.role==='admin'?'Admin':curUser.role==='manager'?'Manager':'Staff'} (${curUser.username}).`,[
   {label:'Log out',cls:'danger',run:()=>logout()},{label:'Cancel',cls:'ghost'}]);
 // Admin-only actions: admins go straight through; staff need an admin to log in for 15 minutes
 function requireAdmin(why,fn,forceAsk){

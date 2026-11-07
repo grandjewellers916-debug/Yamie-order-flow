@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
     <cache-path name="tag_photos" path="tags/" />
+    <cache-path name="quote_photos" path="photos/" />
+    <cache-path name="shared" path="share/" />
 </paths>

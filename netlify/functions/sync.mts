@@ -6,10 +6,10 @@ import type { Config } from "@netlify/functions"
 // Stored in one site-wide Blobs store: meta, stock, rates, settings, users, auth (legacy admin PIN).
 
 const APP_ORIGINS = ["https://appassets.androidplatform.net", "https://yamie-price-check.netlify.app"]
-const STOCK_FIELDS = ["key", "barcode", "item", "category", "carat", "gw", "nw", "sw", "dw", "dq", "sa", "serial", "label", "location", "pcs", "sq", "supplier", "at"]
+const STOCK_FIELDS = ["key", "barcode", "item", "category", "carat", "gw", "nw", "sw", "dw", "dq", "sa", "serial", "label", "location", "pcs", "sq", "supplier", "mk", "mkType", "huid", "at"]
 const RATE_KEYS = ["22k", "18k", "14k", "9k", "platinum", "silver"]
 
-type Meta = { stock: number; rates: number; settings: number; users: number; count: number; history: any[] }
+type Meta = { stock: number; rates: number; settings: number; users: number; quotes: number; count: number; history: any[] }
 
 function cors(req: Request): Record<string, string> {
   const o = req.headers.get("origin") || ""
@@ -52,11 +52,21 @@ function cleanRow(r: any) {
   if (!r || typeof r.key !== "string" || !r.key) return null
   const o: any = {}
   for (const f of STOCK_FIELDS) {
-    if (["gw", "nw", "sw", "dw", "dq", "sa", "pcs", "sq", "at"].includes(f)) o[f] = cleanNum(r[f])
+    if (["gw", "nw", "sw", "dw", "dq", "sa", "pcs", "sq", "huid", "at"].includes(f)) o[f] = cleanNum(r[f])
     else o[f] = cleanStr(r[f])
   }
   o.key = o.key.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 40)
   return o.key ? o : null
+}
+// A quote as the app keeps it, minus anything large (photos stay on the phone that took them)
+function cleanQuote(q: any) {
+  if (!q || typeof q !== "object" || typeof q.id !== "string" || !q.id) return null
+  const out = JSON.parse(JSON.stringify(q, (k, v) => (k === "photos" || k === "thumbs" ? undefined : v)))
+  out.id = cleanStr(out.id, 24)
+  out.no = /^QT-\d{1,9}$/.test(out.no || "") ? out.no : ""
+  out.updated = cleanNum(out.updated) || Date.now()
+  if (JSON.stringify(out).length > 120000) return null
+  return out
 }
 function cleanRates(r: any) {
   const o: Record<string, number> = {}
@@ -75,7 +85,7 @@ export default async (req: Request) => {
 
   const op = new URL(req.url).searchParams.get("op") || ""
   const st = getStore({ name: "yamie-price-check", consistency: "strong" })
-  const meta: Meta = { stock: 0, rates: 0, settings: 0, users: 0, count: 0, history: [], ...((await st.get("meta", { type: "json" })) || {}) }
+  const meta: Meta = { stock: 0, rates: 0, settings: 0, users: 0, quotes: 0, count: 0, history: [], ...((await st.get("meta", { type: "json" })) || {}) }
   const saveMeta = () => st.setJSON("meta", meta)
 
   const users: any[] = ((await st.get("users", { type: "json" })) as any[]) || []
@@ -116,6 +126,7 @@ export default async (req: Request) => {
         const isAdm = await adminOk()
         return json(req, { v: meta.users, users: users.map((u) => publicUser(u, isAdm || u.role !== "admin")) })
       }
+      if (op === "quotes") return json(req, { v: meta.quotes, quotes: (await st.get("quotes", { type: "json" })) || [] })
       return json(req, { error: "bad_op" }, 400)
     }
     if (req.method !== "POST") return json(req, { error: "method" }, 405)
@@ -142,7 +153,34 @@ export default async (req: Request) => {
       return json(req, { v: meta.rates })
     }
 
+    if (op === "quote") {
+      // Quotes: shared by all phones with the shop key. Numbers (QT-000001…) are given here so they never clash.
+      const q = cleanQuote(body?.quote)
+      if (!q) return json(req, { error: "bad_quote" }, 400)
+      const list: any[] = ((await st.get("quotes", { type: "json" })) as any[]) || []
+      const prev = list.find((x) => x.id === q.id)
+      if (prev && (prev.updated || 0) > (q.updated || 0)) return json(req, { v: meta.quotes, quote: prev, conflict: true })
+      if (prev?.no) q.no = prev.no
+      if (!q.no) {
+        const seq = (Number(((await st.get("quoteseq", { type: "json" })) as any)?.n) || 0) + 1
+        await st.setJSON("quoteseq", { n: seq })
+        q.no = "QT-" + String(seq).padStart(6, "0")
+      }
+      const next = [q, ...list.filter((x) => x.id !== q.id)].sort((a, b) => (b.updated || 0) - (a.updated || 0)).slice(0, 600)
+      await st.setJSON("quotes", next)
+      meta.quotes = Date.now(); await saveMeta()
+      return json(req, { v: meta.quotes, quote: q })
+    }
+
     if (!(await adminOk())) return json(req, { error: "bad_pin" }, 403)
+
+    if (op === "quotedel") {
+      const id = cleanStr(body?.id, 24)
+      const list: any[] = ((await st.get("quotes", { type: "json" })) as any[]) || []
+      await st.setJSON("quotes", list.filter((x) => x.id !== id))
+      meta.quotes = Date.now(); await saveMeta()
+      return json(req, { v: meta.quotes })
+    }
 
     if (op === "stock") {
       const mode = body?.mode === "replace" ? "replace" : "add"
@@ -210,7 +248,7 @@ export default async (req: Request) => {
           id: cleanStr(u?.id, 24),
           name: cleanStr(u?.name, 40),
           username: cleanStr(u?.username, 30).trim().toLowerCase().replace(/[^a-z0-9._-]/g, ""),
-          role: u?.role === "admin" ? "admin" : "staff",
+          role: u?.role === "admin" ? "admin" : u?.role === "manager" ? "manager" : "staff",
           active: u?.active !== false,
           // keep the stored PIN if this phone did not send one (admin hashes are not sent to staff phones)
           salt: /^[0-9a-f]{32}$/.test(u?.salt || "") ? u.salt : prev?.salt,

@@ -3,6 +3,7 @@ package com.yamie.pricecheck
 import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -60,6 +61,15 @@ class MainActivity : ComponentActivity() {
 
     private val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) readTag(uri)
+    }
+    // Quote photos for customers: camera or gallery, sent back as JPEG data URLs
+    private var pendingQuotePhoto: Uri? = null
+    private val takeQuotePhoto = registerForActivityResult(ActivityResultContracts.TakePicture()) { ok ->
+        val uri = pendingQuotePhoto
+        if (ok && uri != null) sendPhotos(listOf(uri)) else sendPhotosJson(JSONArray())
+    }
+    private val pickQuotePhotos = registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
+        sendPhotos(uris.take(10))
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -187,6 +197,64 @@ class MainActivity : ComponentActivity() {
         }
 
         @JavascriptInterface
+        fun pickPhotos(source: String) {
+            runOnUiThread {
+                try {
+                    if (source == "camera") {
+                        val dir = File(cacheDir, "photos").apply { mkdirs() }
+                        val file = File(dir, "quote_${System.currentTimeMillis()}.jpg")
+                        val uri = FileProvider.getUriForFile(this@MainActivity, "$packageName.files", file)
+                        pendingQuotePhoto = uri
+                        takeQuotePhoto.launch(uri)
+                    } else pickQuotePhotos.launch("image/*")
+                } catch (e: Exception) { sendPhotosJson(JSONArray()) }
+            }
+        }
+
+        // Share a quote to WhatsApp: text plus optional photos (JPEG data URLs). phone: digits with country code, or "".
+        @JavascriptInterface
+        fun shareWhatsApp(phone: String, text: String, imagesJson: String) {
+            runOnUiThread {
+                try {
+                    val imgs = try { JSONArray(imagesJson) } catch (e: Exception) { JSONArray() }
+                    val digits = phone.filter { it.isDigit() }
+                    if (imgs.length() == 0) {
+                        val url = "https://wa.me/" + digits + "?text=" + Uri.encode(text)
+                        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                        return@runOnUiThread
+                    }
+                    val dir = File(cacheDir, "share").apply { mkdirs() }
+                    dir.listFiles()?.forEach { it.delete() }
+                    val uris = ArrayList<Uri>()
+                    for (i in 0 until imgs.length()) {
+                        val data = imgs.getString(i).substringAfter("base64,")
+                        val f = File(dir, "photo_${i + 1}.jpg")
+                        f.writeBytes(Base64.decode(data, Base64.DEFAULT))
+                        uris.add(FileProvider.getUriForFile(this@MainActivity, "$packageName.files", f))
+                    }
+                    val intent = Intent(if (uris.size == 1) Intent.ACTION_SEND else Intent.ACTION_SEND_MULTIPLE).apply {
+                        type = "image/jpeg"
+                        if (uris.size == 1) putExtra(Intent.EXTRA_STREAM, uris[0]) else putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
+                        putExtra(Intent.EXTRA_TEXT, text)
+                        if (digits.isNotEmpty()) putExtra("jid", "$digits@s.whatsapp.net")
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    val sent = listOf("com.whatsapp", "com.whatsapp.w4b").any { pkg ->
+                        try { startActivity(Intent(intent).setPackage(pkg)); true } catch (e: ActivityNotFoundException) { false }
+                    }
+                    if (!sent) startActivity(Intent.createChooser(intent, "Share quote"))
+                } catch (e: Exception) {
+                    web.evaluateJavascript("window.onNativeShareError && window.onNativeShareError()", null)
+                }
+            }
+        }
+
+        @JavascriptInterface
+        fun openUrl(url: String) {
+            runOnUiThread { try { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) } catch (e: Exception) {} }
+        }
+
+        @JavascriptInterface
         fun copy(text: String) {
             val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             cm.setPrimaryClip(ClipData.newPlainText("Yamie quote", text))
@@ -236,6 +304,40 @@ class MainActivity : ComponentActivity() {
         }
         val bytes = ByteArrayOutputStream()
         bmp.compress(Bitmap.CompressFormat.JPEG, 80, bytes)
+        return "data:image/jpeg;base64," + Base64.encodeToString(bytes.toByteArray(), Base64.NO_WRAP)
+    }
+
+    private fun sendPhotos(uris: List<Uri>) {
+        thread {
+            val out = JSONArray()
+            uris.forEach { u -> try { out.put(scaled(u, 1280, 82)) } catch (e: Exception) {} }
+            sendPhotosJson(out)
+        }
+    }
+
+    private fun sendPhotosJson(arr: JSONArray) {
+        val arg = JSONObject.quote(arr.toString())
+        runOnUiThread { web.evaluateJavascript("window.onNativePhotos && window.onNativePhotos($arg)", null) }
+    }
+
+    private fun scaled(uri: Uri, max: Int, quality: Int): String {
+        val bmp: Bitmap = if (Build.VERSION.SDK_INT >= 28) {
+            ImageDecoder.decodeBitmap(ImageDecoder.createSource(contentResolver, uri)) { decoder, info, _ ->
+                val s = max.toDouble() / maxOf(info.size.width, info.size.height)
+                if (s < 1) decoder.setTargetSize((info.size.width * s).toInt(), (info.size.height * s).toInt())
+                decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+            }
+        } else {
+            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
+            var sample = 1
+            while (maxOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= max) sample *= 2
+            val opts = BitmapFactory.Options().apply { inSampleSize = sample }
+            contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, opts) }
+                ?: throw IllegalStateException("decode failed")
+        }
+        val bytes = ByteArrayOutputStream()
+        bmp.compress(Bitmap.CompressFormat.JPEG, quality, bytes)
         return "data:image/jpeg;base64," + Base64.encodeToString(bytes.toByteArray(), Base64.NO_WRAP)
     }
 

@@ -110,3 +110,18 @@ Any Bluetooth or USB barcode scanner in keyboard (HID) mode works. Pair it with 
 - Scan with no box selected: the app reads the code, finds the item and opens the making helper, the same as the camera.
 - Scan into the barcode box or the sold-tags box: that box gets the code.
 - Slow key presses are ignored, so ordinary typing never triggers a lookup.
+
+## v1.4 — price card, quotes, WhatsApp (7 Nov 2026)
+
+**Home.** Scan or type a barcode. When the stock sheet has the making and HUID, the price shows straight away (Total Price, + GST, Grand Total) with **Save to Quote** and **Clear**. No making in the sheet → a making-rate pop-up (Fixed / Per gram / % of Net Wt, presets, or the making helper). No HUID in the sheet → the HUID question.
+
+**Stock sheet columns (new).**
+- Making: `Making` / `MC` / `VA` with values like `14%`, `2500 PG`, `1500 fixed`. A plain number up to 100 is %, above 100 is a fixed amount unless a `Making Type` column says *Per gram* / *Fixed* / *%*. Separate `Making %`, `Making PG`, `Making Fixed` columns also work.
+- HUID: `HUID` / `HUID Count` — a number, or the HUID codes themselves (counted).
+
+**Quote page.** Customer name and phone, quote number (QT-000001…, given by the shared database), items table with edit/delete, URD (old gold), sales returns, advances (cash/UPI/card/bank) and a flat discount, all taken off the total. **Edit** (manager or admin) sets the making after discount for each item; prices update. **Generate Quote** fixes today's rates on the quote, numbers it and offers WhatsApp. **Close sale** records the final invoice number from the ERP and In-store / Online.
+- Quotes are shared with all phones through the shop key; pulled when the Quote page opens, on Refresh and with the morning sync.
+- Photos (camera or gallery) stay on the phone that took them and are sent with the WhatsApp message.
+- Roles: Staff, **Manager** (making after discount, reopen a closed sale), Admin.
+
+**Settings** (bottom tab) holds Stock data and Admin settings.
