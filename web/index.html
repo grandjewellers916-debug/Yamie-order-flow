@@ -757,6 +757,22 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .fc-name{font:600 16px var(--display);color:var(--maroon);margin-top:4px}
 .fc-specs{font-size:13.5px}
 .fc-acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+/* v1.6.3 */
+.prod-head{position:relative}
+.pd-imgtog{order:3;width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--maroon);display:grid;place-items:center;cursor:pointer;flex:none;margin-left:6px}
+.prod-head .sku-chip{margin-left:auto}
+.pd-imgtog svg{width:18px;height:18px}
+.pd-imgtog.off{color:var(--muted);background:var(--sunk)}
+.pd-imgtog.off::after{content:"";position:absolute;width:22px;height:1.6px;background:currentColor;transform:rotate(-45deg)}
+.pd-imgtog{position:relative}
+.pd-alerts{display:flex;flex-direction:column;gap:6px}
+.pa{display:flex;align-items:center;justify-content:space-between;gap:10px;background:color-mix(in srgb,var(--bad) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--bad) 40%,transparent);color:var(--fg);border-radius:10px;padding:9px 12px;font-size:13.5px;font-weight:600}
+.pa.info{background:color-mix(in srgb,var(--warn) 10%,var(--surface));border-color:color-mix(in srgb,var(--warn) 40%,transparent);font-weight:500}
+.pa .btn{flex:none}
+.qimg-sheet{max-height:92vh;display:flex;flex-direction:column;gap:10px}
+.qimg-wrap{overflow:auto;border-radius:12px;border:1px solid var(--line);background:#eee;min-height:200px;max-height:60vh}
+.qimg-wrap img{width:100%;display:block}
+.qimg-sheet .acts{display:grid;grid-template-columns:1fr;gap:8px}
 /* making entry pop-up */
 .mk-sheet{display:flex;flex-direction:column;gap:12px}
 .mk-types{background:transparent;gap:8px;padding:0}
@@ -857,11 +873,12 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 
   <!-- Product details -->
   <section class="card prod" id="prodCard" data-pane="home" hidden aria-label="Product details">
-    <div class="prod-head"><span class="ph-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 3.5 7.5v9L12 21l8.5-4.5v-9z"/><path d="M3.5 7.5 12 12l8.5-4.5M12 12v9"/></svg>Product Details</span><span class="sku-chip" id="pdSku"></span></div>
+    <div class="prod-head"><button class="pd-imgtog" type="button" id="pdImgTog" aria-label="Hide product image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 17-5-5-9 8"/></svg></button><span class="ph-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 3.5 7.5v9L12 21l8.5-4.5v-9z"/><path d="M3.5 7.5 12 12l8.5-4.5M12 12v9"/></svg>Product Details</span><span class="sku-chip" id="pdSku"></span></div>
     <div class="prod-body">
       <div class="prod-tile" id="pdTile"></div>
       <div class="prod-info"><div class="prod-name" id="pdName"></div><dl class="specs" id="pdSpecs"></dl></div>
     </div>
+    <div class="pd-alerts" id="pdAlerts" hidden role="alert"></div>
     <div class="pd-need" id="pdNeed" hidden></div>
     <div class="prod-total" id="pdTotal">
       <div class="pt-row"><span class="pt-l"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12V4h8l10 10-7 7z"/><circle cx="7.5" cy="8" r="1.5"/></svg>Total Price</span><span class="pt-v" id="pdV">—</span></div>
@@ -995,8 +1012,8 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
         <input class="hidden-input" id="phCamIn" type="file" accept="image/*" capture="environment" aria-label="Take a photo">
         <input class="hidden-input" id="pimgFile" type="file" accept="image/*" aria-label="Choose product photo"><input class="hidden-input" id="pimgCam" type="file" accept="image/*" capture="environment" aria-label="Take product photo">
       </div>
-      <button class="btn wa-btn" type="button" id="waBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.3-4A8 8 0 1 1 8 19z"/><path d="M9 9c0 3 3 6 6 6l1-1.5-2-1-1 1c-1-.5-2-1.5-2.5-2.5l1-1-1-2z"/></svg>Share on WhatsApp</button>
-      <button class="linkbtn" type="button" id="copyBtn">Copy quote text</button>
+      <button class="btn wa-btn" type="button" id="waBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.3-4A8 8 0 1 1 8 19z"/><path d="M9 9c0 3 3 6 6 6l1-1.5-2-1-1 1c-1-.5-2-1.5-2.5-2.5l1-1-1-2z"/></svg>Quote image · WhatsApp</button>
+      <div class="pd-links"><button class="linkbtn" type="button" id="waText">Send as text</button><button class="linkbtn" type="button" id="copyBtn">Copy quote text</button></div>
     </div>
 
     <div class="card q-close" id="qClose">
@@ -1204,6 +1221,15 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
     <p class="pin-err" id="pinErr" role="alert"></p>
     <div class="acts"><button class="btn primary" type="submit">Unlock</button><button class="btn ghost" type="button" id="pinCancel">Cancel</button></div>
   </form>
+</div>
+<div class="modal" id="qimgPop" hidden role="dialog" aria-modal="true" aria-labelledby="qimgT">
+  <div class="sheet qimg-sheet">
+    <div class="find-head"><h4 id="qimgT">Quote image</h4><button class="menu-x" type="button" id="qimgClose" aria-label="Close">✕</button></div>
+    <div class="qimg-wrap"><img id="qimgImg" alt="Quote image preview"></div>
+    <label class="rc-p"><input type="checkbox" id="qimgPhotos" checked> Show product photos in the image</label>
+    <p class="note" id="qimgNote"></p>
+    <div class="acts"><button class="btn wa-btn" type="button" id="qimgSend">Send on WhatsApp</button><button class="btn ghost" type="button" id="qimgText">Send as text instead</button></div>
+  </div>
 </div>
 <div class="modal" id="mkPop" hidden role="dialog" aria-modal="true" aria-labelledby="mkPopT">
   <form class="sheet mk-sheet" id="mkPopForm">
@@ -2346,7 +2372,7 @@ $('saveBill').onclick=async()=>{
   else if(!bill.no){const n=(store.get('qSeq',0)|0)+1;store.set('qSeq',n);bill.no='QT-L'+String(n).padStart(4,'0');saveBill(true)}
   renderBill();
   showModal(`Quote ${quoteLabel(bill)} ready`,`${bill.items.length} item${bill.items.length>1?'s':''} · balance ${inr(Math.abs(s.net))}.`+(sync.key&&!shared?' Saved on this phone; it will reach other phones when online.':sync.key?' Shared with all phones.':''),[
-    {label:'Share on WhatsApp',cls:'primary',run:()=>$('waBtn').click()},{label:'Copy text',run:()=>$('copyBtn').click()},{label:'Done',cls:'ghost'}]);
+    {label:'Send quote image',cls:'primary',run:()=>$('waBtn').click()},{label:'Copy text',run:()=>$('copyBtn').click()},{label:'Done',cls:'ghost'}]);
 };
 function renderRecent(){
   const el=$('recent'),q=($('qSearch').value||'').trim().toLowerCase();
@@ -2388,7 +2414,8 @@ $('phGal').onclick=()=>canNativePhotos?NATIVE.pickPhotos('gallery'):$('phFile').
 window.onNativePhotos=json=>{let a=[];try{a=JSON.parse(json)}catch(e){}a=a.filter(x=>typeof x==='string'&&x.startsWith('data:image'));if(photoDest){const k=photoDest;photoDest=null;if(a[0])setProdImg(k,a[0]);return}addPhotos(a)};
 window.onNativeShareError=()=>toast('Could not open WhatsApp',null,true);
 function dataUrlFile(u,i){const [h,b]=u.split(',');const bin=atob(b),arr=new Uint8Array(bin.length);for(let k=0;k<bin.length;k++)arr[k]=bin.charCodeAt(k);return new File([arr],`photo-${i+1}.jpg`,{type:(h.match(/data:([^;]+)/)||[])[1]||'image/jpeg'})}
-$('waBtn').onclick=async()=>{
+$('waBtn').onclick=()=>openQuoteImage();
+$('waText').onclick=async()=>{
   if(!bill.items.length){toast('Add an item first');return}
   const text=shareText(),ph=phoneDigits(bill.cust.phone);
   if(NATIVE&&NATIVE.shareWhatsApp){NATIVE.shareWhatsApp(ph,text,JSON.stringify(photos));return}
@@ -2397,6 +2424,116 @@ $('waBtn').onclick=async()=>{
   const url=`https://wa.me/${ph}?text=${encodeURIComponent(text)}`;
   if(NATIVE&&NATIVE.openUrl)NATIVE.openUrl(url);else window.open(url,'_blank','noopener');
 };
+// ---------- quote as an image (WhatsApp) ----------
+function loadImg(src){return new Promise(res=>{if(!src)return res(null);const i=new Image();i.onload=()=>res(i);i.onerror=()=>res(null);i.src=src})}
+function rrect(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+function fitText(c,t,maxW){t=String(t||'');if(c.measureText(t).width<=maxW)return t;while(t.length>1&&c.measureText(t+'…').width>maxW)t=t.slice(0,-1);return t+'…'}
+async function makeQuoteImage(withPhotos){
+  try{await Promise.all(['400 30px Jost','600 30px Jost','700 30px Jost'].map(f=>document.fonts&&document.fonts.load(f)))}catch(e){}
+  const F=(w,px)=>`${w} ${px}px Jost, "Segoe UI", Roboto, sans-serif`;
+  const s=totals(),g=gstPct(),W=1080,P=56,css=getComputedStyle(document.documentElement);
+  const MAROON=(css.getPropertyValue('--maroon')||'#971B1E').trim(),BAND=(css.getPropertyValue('--band')||'#6B1014').trim(),GOLD='#B58A3C',INK='#1E1414',MUTED='#7A6A66',LINE='#EADFD8';
+  const items=bill.items.map(t=>{const p=priceTag(t),q=quotedValue(t,p);return {t,p,q,st:t.stock||{}}});
+  const thumbs=withPhotos?await Promise.all(items.map(async x=>loadImg(await getProdImg(keyOf(x.t.sku))))):items.map(()=>null);
+  const logo=await loadImg(BRAND.logoHeader);
+  const listTot=s.listSub*(1+g/100),mkD=s.mkDisc*(1+g/100);
+  const sumRows=[[`Total amount (incl. GST ${fmtN(g)}%)`,inr(listTot),1]];
+  if(mkD+s.disc>0.5){sumRows.push(['Discount','−'+inr(mkD+s.disc)]);sumRows.push(['Total after discount',inr(s.total-s.disc),1])}
+  if(s.old)sumRows.push([`Old gold (URD) ${fmtW(s.oldW)} g`,'−'+inr(s.old)]);
+  if(s.ret)sumRows.push(['Sales return','−'+inr(s.ret)]);
+  if(s.adv)sumRows.push(['Advance paid','−'+inr(s.adv)]);
+  const ROW=236,H=270+150+110+items.length*(ROW+20)+40+sumRows.length*60+150+150;
+  const cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');
+  c.fillStyle='#FBF8F5';c.fillRect(0,0,W,H);
+  // header
+  const gr=c.createLinearGradient(0,0,W,270);gr.addColorStop(0,BAND);gr.addColorStop(1,MAROON);c.fillStyle=gr;c.fillRect(0,0,W,270);
+  if(logo){const h=150,w=logo.width*h/logo.height;c.drawImage(logo,P,60,w,h)}
+  else{c.fillStyle='#fff';c.font=F(700,60);c.fillText(BRAND.full,P,150)}
+  c.textAlign='right';c.fillStyle='#F3D9B1';c.font=F(600,26);c.fillText('Q U O T A T I O N',W-P,92);
+  c.fillStyle='#fff';c.font=F(700,52);c.fillText(quoteLabel(bill),W-P,158);
+  c.font=F(400,28);c.fillStyle='rgba(255,255,255,.85)';c.fillText(new Date(bill.generated||bill.started||Date.now()).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'}),W-P,206);
+  c.textAlign='left';
+  // customer + rates
+  let y=270+36;
+  c.fillStyle=MUTED;c.font=F(600,22);c.fillText('PREPARED FOR',P,y+10);c.textAlign='right';c.fillText('BY',W-P,y+10);c.textAlign='left';
+  c.fillStyle=INK;c.font=F(600,36);c.fillText(fitText(c,bill.cust.name||'Customer',620),P,y+56);
+  c.textAlign='right';c.font=F(500,30);c.fillText(fitText(c,bill.by||(curUser&&(curUser.name||curUser.username))||'',360),W-P,y+56);c.textAlign='left';
+  if(bill.cust.phone){c.fillStyle=MUTED;c.font=F(400,26);c.fillText(bill.cust.phone,P,y+94)}
+  y+=124;
+  rrect(c,P,y,W-2*P,84,18);c.fillStyle='#F3ECE6';c.fill();
+  c.fillStyle=MUTED;c.font=F(600,20);c.fillText("TODAY'S RATE / GRAM",P+24,y+34);
+  c.fillStyle=INK;c.font=F(600,27);
+  c.fillText(fitText(c,SHOWN().map(p=>{const r=rateFor(p.id);return `${p.label} ${r==null?'—':inr(r)}`}).join('   ·   '),W-2*P-48),P+24,y+68);
+  y+=110;
+  // items
+  items.forEach((x,i)=>{
+    const {t,p,q,st}=x,top=y;
+    rrect(c,P,top,W-2*P,ROW,22);c.fillStyle='#fff';c.fill();c.strokeStyle=LINE;c.lineWidth=2;c.stroke();
+    const TX=P+24,TS=188,ty=top+24;
+    rrect(c,TX,ty,TS,TS,16);c.save();c.clip();
+    if(thumbs[i]){const im=thumbs[i],k=Math.max(TS/im.width,TS/im.height),w=im.width*k,h=im.height*k;c.drawImage(im,TX+(TS-w)/2,ty+(TS-h)/2,w,h)}
+    else{const g2=c.createLinearGradient(TX,ty,TX+TS,ty+TS);g2.addColorStop(0,'#F7EFE6');g2.addColorStop(1,'#E8D6C0');c.fillStyle=g2;c.fillRect(TX,ty,TS,TS);
+      c.fillStyle='#A7742C';c.font=F(600,84);c.textAlign='center';c.fillText(String(st.category||t.item||'•').trim().charAt(0).toUpperCase(),TX+TS/2,ty+TS/2+30);c.textAlign='left'}
+    c.restore();
+    const X=TX+TS+28,RX=W-P-24,mid=RX-250;
+    c.fillStyle=MUTED;c.font=F(600,22);c.fillText(`${i+1}  ·  ${keyOf(t.sku)}`,X,ty+26);
+    c.fillStyle=MAROON;c.font=F(600,38);c.fillText(fitText(c,st.category||t.item||'Item',mid-X),X,ty+72);
+    c.fillStyle=INK;c.font=F(400,26);
+    c.fillText(fitText(c,`${PLABEL[t.purity]||''}  ·  Gr ${fmtW(num(t.gw))} g  ·  Nt ${fmtW(num(t.nw))} g`,mid-X+40),X,ty+116);
+    const stoneTxt=[st.saDia>0?`Diamond ${inr(st.saDia)}`:'',st.saClr>0?`Colour stone ${inr(st.saClr)}`:'',!(st.saDia>0||st.saClr>0)&&p.stone>0?`Stone ${inr(p.stone)}`:''].filter(Boolean).join('  ·  ');
+    c.fillStyle=MUTED;c.font=F(400,24);
+    if(stoneTxt)c.fillText(fitText(c,stoneTxt,mid-X+40),X,ty+152);
+    if(st.stoneName)c.fillText(fitText(c,st.stoneName,mid-X+40),X,ty+184);
+    c.textAlign='right';
+    const list=p.value*(1+g/100),net=q*(1+g/100);
+    if(p.ok&&net<list-0.5){c.fillStyle=MUTED;c.font=F(400,26);const lt=inr(list);c.fillText(lt,RX,ty+60);const lw=c.measureText(lt).width;c.strokeStyle=MUTED;c.lineWidth=2;c.beginPath();c.moveTo(RX-lw,ty+51);c.lineTo(RX,ty+51);c.stroke();
+      c.fillStyle=MAROON;c.font=F(700,40);c.fillText(inr(net),RX,ty+108);c.fillStyle='#2E7D4F';c.font=F(600,22);c.fillText('You save '+inr(list-net),RX,ty+144)}
+    else{c.fillStyle=MAROON;c.font=F(700,40);c.fillText(p.ok?inr(list):'—',RX,ty+84)}
+    c.fillStyle=MUTED;c.font=F(400,20);c.fillText('incl. GST',RX,ty+184);
+    c.textAlign='left';
+    y+=ROW+20;
+  });
+  // summary
+  y+=20;
+  sumRows.forEach(([l,v,b])=>{c.fillStyle=b?INK:MUTED;c.font=F(b?600:400,b?30:28);c.fillText(l,P+8,y+36);c.textAlign='right';c.fillText(v,W-P-8,y+36);c.textAlign='left';
+    c.strokeStyle=LINE;c.lineWidth=2;c.beginPath();c.moveTo(P,y+56);c.lineTo(W-P,y+56);c.stroke();y+=60});
+  y+=24;
+  rrect(c,P,y,W-2*P,104,20);const g3=c.createLinearGradient(P,y,W-P,y);g3.addColorStop(0,BAND);g3.addColorStop(1,MAROON);c.fillStyle=g3;c.fill();
+  c.fillStyle='#fff';c.font=F(600,34);c.fillText(s.net<0?'Refund':'Balance amount',P+32,y+66);c.textAlign='right';c.font=F(700,48);c.fillText(inr(Math.abs(s.net)),W-P-32,y+70);c.textAlign='left';
+  y+=140;
+  c.fillStyle=MUTED;c.font=F(400,22);c.textAlign='center';
+  c.fillText(`Prices include ${fmtN(g)}% GST${s.huidN?' and HUID charges':''}. Valid today at the rates shown.`,W/2,y+10);
+  c.fillStyle=MAROON;c.font=F(600,24);c.fillText(BRAND.full,W/2,y+52);c.textAlign='left';
+  return cv.toDataURL('image/jpeg',.9);
+}
+let qImgUrl='';
+async function openQuoteImage(){
+  if(!bill.items.length){toast('Add an item first');return}
+  if(!bill.no&&sync.key&&navigator.onLine){await pushQuote(bill.id)}
+  $('qimgPop').hidden=false;$('qimgImg').removeAttribute('src');$('qimgNote').textContent='Making the quote image…';
+  const withP=store.get('qimgPhotos',true);$('qimgPhotos').checked=!!withP;
+  qImgUrl=await makeQuoteImage(withP&&imgOn());
+  $('qimgImg').src=qImgUrl;$('qimgNote').textContent=photos.length?`+ ${photos.length} customer photo${photos.length>1?'s':''} will be sent with it.`:'';
+}
+$('qimgPhotos').onchange=()=>{store.set('qimgPhotos',$('qimgPhotos').checked);openQuoteImage()};
+$('qimgClose').onclick=()=>{$('qimgPop').hidden=true};
+$('qimgPop').addEventListener('click',e=>{if(e.target===$('qimgPop'))$('qimgPop').hidden=true});
+$('qimgSend').onclick=async()=>{
+  if(!qImgUrl)return;
+  const s=totals(),ph=phoneDigits(bill.cust.phone);
+  const caption=`*${BRAND.full}*\nQuote ${quoteLabel(bill)}${bill.cust.name?' for '+bill.cust.name:''}\n${s.net<0?'Refund':'Balance'}: *${inr(Math.abs(s.net))}* (incl. GST)`;
+  const imgs=[qImgUrl,...photos];
+  if(NATIVE&&NATIVE.shareWhatsApp){NATIVE.shareWhatsApp(ph,caption,JSON.stringify(imgs));$('qimgPop').hidden=true;return}
+  try{const files=imgs.map(dataUrlFile);files[0]=new File([files[0]],`${quoteLabel(bill)}.jpg`,{type:'image/jpeg'});
+    if(navigator.canShare&&navigator.canShare({files})){await navigator.share({files,text:caption});$('qimgPop').hidden=true;return}}catch(e){if(e&&e.name==='AbortError')return}
+  // No file sharing here: save the image, then open WhatsApp with the text
+  const a=document.createElement('a');a.href=qImgUrl;a.download=`${quoteLabel(bill)}.jpg`;document.body.appendChild(a);a.click();a.remove();
+  toast('Quote image saved. Attach it in WhatsApp.',null,true);
+  const url=`https://wa.me/${ph}?text=${encodeURIComponent(caption)}`;
+  if(NATIVE&&NATIVE.openUrl)NATIVE.openUrl(url);else window.open(url,'_blank','noopener');
+};
+$('qimgText').onclick=()=>{$('qimgPop').hidden=true;$('waText').click()};
+
 [['gst','setGst'],['huid','setHuid']].forEach(([k,id])=>{const el=$(id);el.value=settings[k];
   el.addEventListener('input',()=>{const v=num(el.value);if(!isNaN(v)){settings[k]=v;saveSettings();renderEditor();renderBill(true)}})});
 
@@ -2519,6 +2656,15 @@ $('mkPopForm').addEventListener('submit',e=>{e.preventDefault();
 $('mkPopCancel').onclick=()=>{const f=closeMkPop();f&&f()};
 $('mkPopHelper').onclick=()=>{const f=closeMkPop();flowPending=!!f;openHelper()};
 $('mkPop').addEventListener('click',e=>{if(e.target===$('mkPop')){const f=closeMkPop();f&&f()}});
+function openStonePop(){
+  $('modalTitle').textContent='Stone charges';$('modalTitle').classList.remove('price-pop');
+  $('modalBody').innerHTML=`${esc(tagTitle(cur))} · stone weight ${fmtW(num(cur.sw)||num(cur.stock&&cur.stock.dw))} g. Enter the stone value (SA) from the label.<br><input id="stoneIn" class="num" inputmode="decimal" value="${esc(cur.spr||'')}" placeholder="₹" style="width:100%;margin-top:10px;font:700 24px var(--mono);padding:10px;border:1.5px solid var(--maroon);border-radius:10px;background:var(--surface);color:var(--fg)">`;
+  const a=$('modalActs');a.innerHTML='';
+  const ok=document.createElement('button');ok.className='btn primary';ok.type='button';ok.textContent='Apply';
+  ok.onclick=()=>{const v=num($('stoneIn').value);if(isNaN(v)||v<0){toast('Enter the stone value',null,true);return}cur.spr=fmtN(v);unread('spr');closeModal();saveDraft();renderEditor()};
+  const cn=document.createElement('button');cn.className='btn ghost';cn.type='button';cn.textContent='Not now';cn.onclick=closeModal;
+  a.append(ok,cn);$('modal').hidden=false;setTimeout(()=>$('stoneIn').focus(),40);
+}
 function flowDone(){
   renderEditor();const m=missing(cur);
   setStatus(m.length?'Required: '+m.map(x=>x.t).join(', '):'Ready. Tap Save to Quote.',m.length?'err':'ok');
@@ -2552,7 +2698,7 @@ function paintProduct(){
   card.hidden=!(cur.touched&&k);if(card.hidden)return;
   const st=cur.stockKey&&cur.stock?cur.stock:null,name=(st&&st.category&&String(st.category).trim())||cur.item||itemFromSku(cur.sku)||'Item';
   $('pdSku').textContent='SKU: '+k;
-  $('pdTile').hidden=settings.showImg===false;$('prodCard').classList.toggle('no-img',settings.showImg===false);
+  const showImg=imgOn();$('pdTile').hidden=!showImg;$('prodCard').classList.toggle('no-img',!showImg);$('pdImgTog').classList.toggle('off',!showImg);$('pdImgTog').setAttribute('aria-label',showImg?'Hide product image':'Show product image');
   paintProdImg(k,name);
   $('pdName').textContent=name;
   const p=priceTag(cur),g=num(settings.gst)||0,ok=p.ok&&!m.length;
@@ -2562,6 +2708,15 @@ function paintProduct(){
     ['VA (Making)',mk||'—'],...(st&&(st.saDia>0||st.saClr>0)?[['Diamond Value',st.saDia>0?inr(st.saDia):''],['Colour Stone',st.saClr>0?inr(st.saClr):'']]:[['SA (Stone)',p.stone?inr(p.stone):(isDiamond(cur)?'—':'')]]),['Stones',st&&st.stoneName],['HUID',p.huidN?`${p.huidN} × ${inr(settings.huid)}`:''],
     ['Pcs',st&&st.pcs>1?fmtN(st.pcs):''],['Supplier',st&&st.supplier]].filter(r=>r[1]);
   $('pdSpecs').innerHTML=rows.map(([l,v])=>`<dt>${l}</dt><dd>${esc(v)}</dd>`).join('');
+  // Alerts: stone weight without stone charges, and no making in the stock data
+  const al=[],swv=num(cur.sw),dwv=st?num(st.dw):NaN;
+  if(((swv>0)||(dwv>0))&&!(p.stone>0))al.push(['stone',`Stone weight ${fmtW(swv>0?swv:dwv)} g but no stone charges retrieved.`]);
+  if(!p.hasMk)al.push(['mk','No making charges retrieved for this item.']);
+  else if(st&&!cur.read.includes('making'))al.push(['mkman',`Making entered by hand (${valText({type:cur.mkType,val:num(cur.mkVal)})}); not in the stock data.`]);
+  const ae=$('pdAlerts');ae.hidden=!al.length;
+  ae.innerHTML=al.map(([k,t])=>`<div class="pa ${k==='mkman'?'info':''}"><span>⚠ ${esc(t)}</span>${k==='stone'?'<button class="btn sm" type="button" data-al="stone">Enter</button>':k==='mk'?'<button class="btn sm" type="button" data-al="mk">Enter</button>':''}</div>`).join('');
+  ae.querySelectorAll('[data-al]').forEach(b=>b.onclick=()=>b.dataset.al==='mk'?openMkPop(()=>{}):openStonePop());
+  if(al.length&&cur.alertFor!==k){cur.alertFor=k;if(al.some(a=>a[0]!=='mkman')){try{navigator.vibrate&&navigator.vibrate([80,60,80])}catch(e){}}}
   const need=$('pdNeed');need.hidden=ok;
   if(!ok){const mm=m.map(x=>({nw:'net weight',spr:'stone price',rate:'today\'s rate',purity:'purity',making:'making'})[x.k]);
     const act=m.some(x=>x.k==='making')?['Enter making','mk']:m.some(x=>x.k==='rate')?['Set rates','rate']:['Edit details','ed'];
@@ -2582,6 +2737,8 @@ function paintProduct(){
 }
 function canEditMk(){return can('mkEdit')}
 $('pdMk').onclick=()=>withPerm('mkEdit','Needs a user allowed to update making.',()=>openMkPop(()=>{},true));
+function imgOn(){const l=store.get('imgLocal',null);return l==null?settings.showImg!==false:!!l}
+$('pdImgTog').onclick=()=>{store.set('imgLocal',!imgOn());renderEditor();toast(imgOn()?'Product images shown':'Product images hidden')};
 $('pdEdit').onclick=()=>{edOpen=$('editor').hidden;renderEditor();if(edOpen)$('editor').scrollIntoView({behavior:'smooth',block:'start'})};
 $('pdDel').onclick=()=>$('clearTag').click();
 $('pdSave').onclick=()=>$('addTag').click();
@@ -2842,7 +2999,7 @@ async function getProdImg(k){
 }
 function paintProdImg(k,name){
   const t=$('pdTile');t.innerHTML=icoFor(name);t.classList.remove('photo');
-  if(settings.showImg===false)return;
+  if(!imgOn())return;
   getProdImg(k).then(u=>{if(u&&keyOf(cur.sku)===k){t.innerHTML=`<img src="${u}" alt="${esc(name)}">`;t.classList.add('photo')}});
 }
 async function pullImgIdx(){if(!sync.key||!navigator.onLine)return;try{const r=await syncApi('imgidx');if(r&&r.idx){imgIdx=r.idx;store.set('imgIdx',imgIdx);sync.v.imgs=r.v||0;saveSyncState()}}catch(e){}}

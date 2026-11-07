@@ -151,3 +151,9 @@ Any Bluetooth or USB barcode scanner in keyboard (HID) mode works. Pair it with 
 - **Search** shows every detail: item type, item name, purity, weights, diamond and colour stone values, stone names, making, HUID, label code, supplier.
 - **Quote → Discount**: item prices stay at the label making; the manager enters making after discount per item, the difference is the discount, plus an optional flat discount. Summary: Total Amount → Discount → Total after discount → URD / SR / advance → Balance.
 - User name at the top; tap it to log out.
+
+## v1.6.39 (7 Nov 2026)
+
+- **Alerts** on the price card (with a short vibration): stone weight but no stone charges (tap Enter to add the stone value); no making charges (tap Enter); making typed by hand instead of from the stock data.
+- **Image switch** on the price card (picture button): hides or shows product images on this phone; Admin settings → Product image sets the shop default.
+- **Quote image for WhatsApp**: the Yamie logo, quote no., date, customer, today's rates, each item with its photo (optional), weights, stone values and price (with discount), totals and balance. Preview first, then *Send on WhatsApp* (customer photos are sent with it). *Send as text* is still there.
