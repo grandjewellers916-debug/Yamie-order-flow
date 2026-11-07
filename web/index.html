@@ -668,6 +668,41 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .qi-sku b{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .qi-acts button{width:24px}
 [data-pane="settings"] .back,[data-pane="settings"] .back-app{display:none!important}
+/* v1.5 */
+.rate .v{font-size:clamp(14px,4.6vw,19px);white-space:nowrap;letter-spacing:-.01em}
+.rates.many .rate .v{font-size:clamp(14px,4.6vw,18px)}
+.find-btn{margin-top:10px;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;border:1px dashed color-mix(in srgb,var(--maroon) 45%,transparent);background:none;color:var(--maroon);border-radius:10px;min-height:42px;font:600 13.5px var(--body);cursor:pointer}
+.find-btn svg{width:18px;height:18px}
+.home-q{display:flex;gap:10px;align-items:stretch}
+.hq-info{flex:1;min-width:0;display:grid;grid-template-columns:1fr;row-gap:1px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 14px;cursor:pointer;color:var(--fg)}
+.hq-l{grid-column:1/-1;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.hq-info b{font:700 16px var(--display);color:var(--maroon)}
+.hq-info span:last-child{font-size:13.5px;color:var(--muted);align-self:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hq-new{flex:none;display:flex;align-items:center;gap:6px;border-radius:14px;background:color-mix(in srgb,var(--maroon) 8%,var(--surface));color:var(--maroon);border:1px solid color-mix(in srgb,var(--maroon) 25%,transparent);font-weight:700;padding:0 16px}
+.hq-new svg{width:22px;height:22px}
+.pd-links{display:flex;justify-content:center;gap:22px}
+.pd-links .linkbtn{font-size:13.5px}
+.q-cancel{border-color:color-mix(in srgb,var(--bad) 45%,transparent);color:var(--bad);background:none}
+.q-status.cancel{background:color-mix(in srgb,var(--warn) 16%,var(--surface))}
+.r-item .st.cancel{background:color-mix(in srgb,var(--warn) 22%,var(--surface));color:var(--fg)}
+.q-filter button{padding-inline:4px}
+.find-sheet{max-height:86vh;display:flex;flex-direction:column;gap:10px}
+.find-head{display:flex;justify-content:space-between;align-items:center}
+.find-in{display:flex;align-items:center;gap:8px;border:1.5px solid var(--maroon);border-radius:12px;padding:0 12px}
+.find-in svg{width:20px;height:20px;color:var(--maroon);flex:none}
+.find-in input{flex:1;min-width:0;border:0;background:none;font:600 17px var(--mono);padding:12px 0;color:var(--fg)}
+.find-in input:focus{outline:none}
+.find-list{overflow:auto;display:flex;flex-direction:column;gap:6px;min-height:0}
+.find-row{display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 12px;cursor:pointer;color:var(--fg)}
+.find-row small{color:var(--muted);font-weight:500}
+.find-row .m{font-size:12.5px;color:var(--muted)}
+.in-st{flex:none;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,var(--surface));border-radius:6px;padding:3px 7px}
+.ok-t{color:var(--ok)}.bad-t{color:var(--bad)}
+.pd-need{flex-wrap:wrap}
+.pd-need label{font-size:13px;font-weight:600;width:100%}
+.pd-spr{display:flex;align-items:center;gap:8px;width:100%}
+.pd-spr span{font:600 18px var(--display);color:var(--muted)}
+.pd-spr input{flex:1;min-width:0;font:700 20px var(--mono);border:1.5px solid var(--maroon);border-radius:10px;padding:8px 10px;background:var(--surface);color:var(--fg)}
 /* making entry pop-up */
 .mk-sheet{display:flex;flex-direction:column;gap:12px}
 .mk-types{background:transparent;gap:8px;padding:0}
@@ -761,8 +796,13 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
       <div class="bc"><span class="bc-pre" id="bcPre" hidden>—</span><input id="bcNum" class="num" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="e.g. DIA1164"></div>
       <div class="bc-item" id="bcItem" hidden></div>
       <input id="sku" type="hidden">
+      <button class="find-btn" type="button" id="findBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>Search stock · check if a label is available</button>
     </div>
   </section>
+  <div class="home-q" data-pane="home">
+    <button type="button" class="hq-info" id="homeQInfo"><span class="hq-l">Current quote</span><b id="homeQNo">New</b><span id="homeQN">No items</span></button>
+    <button type="button" class="btn hq-new" id="homeQNew"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M12 11v6M9 14h6"/></svg>New Quote</button>
+  </div>
 
   <!-- Product details -->
   <section class="card prod" id="prodCard" data-pane="home" hidden aria-label="Product details">
@@ -778,7 +818,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
     </div>
     <div class="grand" id="pdGrandRow"><span>Grand Total</span><strong id="pdGrand">—</strong></div>
     <div class="prod-acts"><button class="btn" type="button" id="pdDel">Clear</button><button class="btn primary" type="button" id="pdSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>Save to Quote</button></div>
-    <button class="linkbtn pd-edit" type="button" id="pdEdit">Edit details</button>
+    <div class="pd-links"><button class="linkbtn" type="button" id="pdMk" hidden>Update making</button><button class="linkbtn pd-edit" type="button" id="pdEdit">Edit details</button></div>
   </section>
 
   <!-- Tag editor -->
@@ -895,11 +935,12 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
       <div class="f full"><label for="qInv" id="qInvL">Invoice no. (ERP)</label><input id="qInv" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Final invoice number"></div>
       <div class="f full"><span class="flabel">Sale</span><div class="seg" id="qChan"><button type="button" data-c="store">✓ In-store</button><button type="button" data-c="online">Online</button></div></div>
       <div class="rs-acts"><button class="btn primary" type="button" id="qCloseBtn">Close sale</button><button class="btn" type="button" id="qReopen" hidden>Reopen</button></div>
+      <button class="btn q-cancel" type="button" id="qCancel">Cancel quote · enquiry only</button>
     </div>
 
     <div class="card q-list">
       <div class="sec-head"><h2>Quotes</h2><button class="linkbtn" type="button" id="qRefresh">↻ Refresh</button></div>
-      <div class="seg q-filter" id="qFilter"><button type="button" data-f="open" aria-pressed="true">Open</button><button type="button" data-f="closed">Closed</button><button type="button" data-f="all">All</button></div>
+      <div class="seg q-filter" id="qFilter"><button type="button" data-f="open" aria-pressed="true">Open</button><button type="button" data-f="closed">Sold</button><button type="button" data-f="cancelled">Enquiry</button><button type="button" data-f="all">All</button></div>
       <input id="qSearch" class="q-search" placeholder="Search name, phone, quote no." autocomplete="off">
       <div class="recent" id="recent"></div>
     </div>
@@ -930,7 +971,13 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
   <details class="card datacard" id="adminCard" data-pane="settings">
     <summary><span class="dc-t">Admin settings</span><span class="dc-s" id="adminMini">Locked</span><span class="dc-chev" aria-hidden="true">▾</span></summary>
     <div class="sec-head"><span class="note">Charges, making helper, shared database and users</span><button class="btn sm back" type="button" id="adminBack">‹ Back</button></div>
-    <h3>Rates shown</h3>
+    <h3>Text size on this phone</h3>
+      <p class="note" style="margin-block:4px 0">Make everything smaller if the rates or prices don't fit the screen.</p>
+      <div class="seg" id="uiZoom"><button type="button" data-z="0.82">Smallest</button><button type="button" data-z="0.9">Small</button><button type="button" data-z="1">Normal</button><button type="button" data-z="1.1">Large</button></div>
+      <h3 style="margin-top:16px">Making on the price card</h3>
+      <p class="note" style="margin-block:4px 0">Who can change the making after a scan (Update making on the price card).</p>
+      <div class="seg" id="mkEditSeg"><button type="button" data-m="admin">Admins only</button><button type="button" data-m="all">All staff</button></div>
+    <h3 style="margin-top:16px">Rates shown</h3>
       <p class="note" style="margin-block:4px 0">Purities shown on the rate band, the day's rates screen and the purity buttons. Shown gold rates are required each day.</p>
       <div class="rate-pick" id="ratePick"></div>
       <h3 style="margin-top:16px">Charges</h3>
@@ -1002,7 +1049,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
         <button class="btn primary" type="button" id="ssAdd">Add new stock</button>
         <button class="btn" type="button" id="ssReplace">Import stock Excel (replace)</button>
       </div>
-      <div class="status" id="ssStatus">Columns read: BarCode, Item, Category, Carret, Gross Wt, Net Wt, Stone Wt, Diamond Wt, Diamond Qty, StoneAmount, Serial, Label, Location, Pcs, Stone Qty, Supplier.</div>
+      <div class="status" id="ssStatus">Columns read: LabelNo, Purity, GrossWt, NetWt, DaiWt, DaiPcs, Clrstn Wt, Clrstn Pcs, Wastage %, Labour Charges, Labour Rate, Category, Supplier, ItemName, HUIDCount, Label Code (older BarCode sheets still work).</div>
       <button class="btn back-app" type="button" id="ssBack2">‹ Back to app</button>
     </div>
     <div class="card">
@@ -1082,6 +1129,14 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
     <p class="pin-err" id="pinErr" role="alert"></p>
     <div class="acts"><button class="btn primary" type="submit">Unlock</button><button class="btn ghost" type="button" id="pinCancel">Cancel</button></div>
   </form>
+</div>
+<div class="modal" id="findPop" hidden role="dialog" aria-modal="true" aria-labelledby="findT">
+  <div class="sheet find-sheet">
+    <div class="find-head"><h4 id="findT">Search stock</h4><button class="menu-x" type="button" id="findClose" aria-label="Close">✕</button></div>
+    <div class="find-in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input id="findQ" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Label no., label code, item, supplier" aria-label="Search stock"></div>
+    <p class="note" id="findNote"></p>
+    <div class="find-list" id="findList"></div>
+  </div>
 </div>
 <div class="modal" id="mkPop" hidden role="dialog" aria-modal="true" aria-labelledby="mkPopT">
   <form class="sheet mk-sheet" id="mkPopForm">
@@ -1218,13 +1273,14 @@ function applyRemoteSettings(rs){
   if('cats' in rs){settings.cats=rs.cats&&typeof rs.cats==='object'&&Object.keys(rs.cats).length?rs.cats:null;try{applyCats()}catch(e){}}
   if('showRates' in rs){settings.showRates=Array.isArray(rs.showRates)&&rs.showRates.length?rs.showRates:null;try{rebuildPurities()}catch(e){}}
   if(rs.gst!=null)settings.gst=rs.gst;if(rs.huid!=null)settings.huid=rs.huid;
-  store.set('settings2',settings);
+  if(rs.mkEdit)settings.mkEdit=rs.mkEdit;
+  store.set('settings2',settings);try{paintAdminExtras()}catch(e){}
   try{renderTable('cz');renderTable('dia');$('setGst').value=settings.gst;$('setHuid').value=settings.huid;renderEditor();renderBill(true)}catch(e){}
 }
 let settingsTimer=null;
 function saveSettings(){store.set('settings2',settings);if(!sync.key)return;sync.dirtySettings=true;saveSyncState();clearTimeout(settingsTimer);settingsTimer=setTimeout(()=>{if(adminCreds)pushSettingsNow().catch(e=>syncMsg('err',syncErrText(e)))},1500)}
 async function pushSettingsNow(){
-  const r=await syncApi('settings','POST',{settings:{gst:settings.gst,huid:settings.huid,mkTable:settings.mkTable,cats:settings.cats||null,showRates:settings.showRates||null}},adminCreds);
+  const r=await syncApi('settings','POST',{settings:{gst:settings.gst,huid:settings.huid,mkTable:settings.mkTable,cats:settings.cats||null,showRates:settings.showRates||null,mkEdit:settings.mkEdit||'admin'}},adminCreds);
   sync.v.settings=r.v;sync.dirtySettings=false;saveSyncState();syncMsg('ok','Settings saved to the shared database.');
 }
 async function pushRate(entry){
@@ -1894,7 +1950,7 @@ let mgrMode=false,qFilter='open',mgrUntil=0;
 function isManager(){return !!(curUser&&(curUser.role==='manager'||curUser.role==='admin'))||Date.now()<mgrUntil||isAdmin()}
 function withManager(why,fn){if(isManager()){fn();return}openLogin('manager',why||'A manager must log in to continue.',fn)}
 function billIsEmpty(){return !bill.items.length&&!bill.oldGold.length&&!bill.returns.length&&!(bill.advances||[]).length&&!(bill.cust&&(bill.cust.name||bill.cust.phone))}
-function isClosed(){return bill.status==='closed'}
+function isClosed(){return bill.status==='closed'||bill.status==='cancelled'}
 function phoneDigits(p){let d=String(p||'').replace(/\D/g,'');if(d.length===10)d='91'+d;if(d.length===11&&d[0]==='0')d='91'+d.slice(1);return d}
 function quoteLabel(q){return q.no||'Draft'}
 // Every change saves the quote on this phone; with a shop key it is sent to all phones a moment later
@@ -1955,6 +2011,9 @@ function paintQuoteHead(){
   const n=bill.items.length;$('billCount').textContent=`(${n})`;
   const b=$('tabBadge');b.hidden=!n;b.textContent=n;
   $('goBill').textContent=n?`Quote (${n})`:'Quote';
+  $('homeQNo').textContent=quoteLabel(bill)==='Draft'?(n?'Draft':'New'):quoteLabel(bill);
+  let bal='';if(n){try{bal=' · '+inr(Math.abs(totals().net))}catch(e){}}
+  $('homeQN').textContent=n?`${n} item${n>1?'s':''}${bal}`:'No items yet';
 }
 function renderBill(keepInputs){
   const s=totals(),n=bill.items.length,closed=isClosed(),mgr=isManager();
@@ -1964,7 +2023,9 @@ function renderBill(keepInputs){
   if(document.activeElement!==$('qPhone'))$('qPhone').value=bill.cust.phone||'';
   $('qName').readOnly=$('qPhone').readOnly=closed;
   const st=$('qStatus');st.hidden=!closed;
-  if(closed)st.innerHTML=`<b>Sale closed</b> · Invoice ${esc(bill.invoice||'—')} · ${bill.channel==='online'?'Online':'In-store'}${bill.closedBy?` · ${esc(bill.closedBy)}`:''}`;
+  if(bill.status==='cancelled')st.innerHTML=`<b>Cancelled · enquiry only</b>${bill.cancelReason?` · ${esc(bill.cancelReason)}`:''}${bill.cancelledBy?` · ${esc(bill.cancelledBy)}`:''}`;
+  else if(closed)st.innerHTML=`<b>Sale closed</b> · Invoice ${esc(bill.invoice||'—')} · ${bill.channel==='online'?'Online':'In-store'}${bill.closedBy?` · ${esc(bill.closedBy)}`:''}`;
+  st.classList.toggle('cancel',bill.status==='cancelled');
   $('qtEdit').classList.toggle('on',mgrMode);
   $('items').innerHTML=n?bill.items.map((t,i)=>{
     const p=priceTag(t),q=quotedValue(t,p),disc=p.ok&&q<p.value-0.5;
@@ -2024,7 +2085,7 @@ function renderBill(keepInputs){
   // close sale
   $('qInv').value=document.activeElement===$('qInv')?$('qInv').value:(bill.invoice||'');$('qInv').readOnly=closed;
   [...$('qChan').children].forEach(b=>{const on=b.dataset.c===(bill.channel||'store');b.setAttribute('aria-pressed',String(on));b.textContent=(on?'✓ ':'')+(b.dataset.c==='store'?'In-store':'Online');b.disabled=closed});
-  $('qCloseBtn').hidden=closed;$('qReopen').hidden=!closed;
+  $('qCloseBtn').hidden=closed;$('qReopen').hidden=!closed;$('qCancel').hidden=closed;
   paintPhotosCount();renderRecent();
 }
 function gstPct(){return num(settings.gst)||0}
@@ -2083,6 +2144,13 @@ $('qDisc').onclick=notClosed(()=>{
 });
 ['qName','qPhone'].forEach(id=>$(id).addEventListener('input',()=>{bill.cust[id==='qName'?'name':'phone']=$(id).value;saveBill();renderRecent()}));
 $('qNew').onclick=()=>askClear();
+$('homeQInfo').onclick=()=>setView('quote');
+$('homeQNew').onclick=()=>{
+  if(billIsEmpty()&&!cur.touched){toast('Ready for a new customer');return}
+  if(billIsEmpty()){cur=blankTag();editingId=null;edOpen=false;saveDraft();renderEditor();toast('New quote');return}
+  showModal('Start a new quote?',`${quoteLabel(bill)} (${bill.items.length} item${bill.items.length===1?'':'s'}) stays under Quotes.`,[
+    {label:'New quote',cls:'primary',run:()=>{startNewQuote('New quote. Scan the first tag.');window.scrollTo({top:0,behavior:'smooth'});toast('New quote started')}},{label:'Cancel',cls:'ghost'}]);
+};
 $('qtScan').onclick=()=>{if(isClosed()){toast('This sale is closed. Start a new quote.',null,true);return}setView('home');setTimeout(()=>$('scanBc').click(),120)};
 $('qtManual').onclick=()=>{if(isClosed()){toast('This sale is closed. Start a new quote.',null,true);return}setView('home');setTimeout(()=>$('manBc').click(),120)};
 $('qtEdit').onclick=notClosed(()=>{
@@ -2114,7 +2182,18 @@ $('qCloseBtn').onclick=()=>{
         {label:'Keep in stock',cls:'ghost'}]),400);
     }},{label:'Cancel',cls:'ghost'}]);
 };
-$('qReopen').onclick=()=>withManager('A manager must log in to reopen a closed sale.',()=>{bill.status='open';delete bill.closedAt;saveBill();renderBill();toast('Sale reopened')});
+$('qReopen').onclick=()=>withManager('A manager must log in to reopen this quote.',()=>{const was=bill.status;bill.status='open';delete bill.closedAt;delete bill.cancelledAt;saveBill();renderBill();toast(was==='cancelled'?'Quote reopened':'Sale reopened')});
+// Cancel: the customer only enquired. Kept under Quotes → Enquiry.
+$('qCancel').onclick=()=>{
+  if(billIsEmpty()){toast('Nothing to cancel');return}
+  $('modalTitle').textContent=`Cancel ${quoteLabel(bill)}?`;$('modalTitle').classList.remove('price-pop');
+  $('modalBody').innerHTML=`Marks this quote as an enquiry only (no sale). It stays under Quotes → Enquiry.<br><input id="cancelWhy" maxlength="80" placeholder="Reason (optional), e.g. price, will come later" style="width:100%;margin-top:10px;font:15px var(--body);padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg)">`;
+  const a=$('modalActs');a.innerHTML='';
+  const ok=document.createElement('button');ok.className='btn danger';ok.type='button';ok.textContent='Cancel quote';
+  ok.onclick=async()=>{bill.cancelReason=$('cancelWhy').value.trim();closeModal();bill.status='cancelled';bill.cancelledAt=Date.now();bill.cancelledBy=curUser?(curUser.name||curUser.username):'';mgrMode=false;saveBill(true);renderBill();await pushQuote(bill.id);toast('Quote cancelled · enquiry')};
+  const cn=document.createElement('button');cn.className='btn ghost';cn.type='button';cn.textContent='Keep quote';cn.onclick=closeModal;
+  a.append(ok,cn);$('modal').hidden=false;
+};
 
 function shareText(){
   const s=totals(),g=gstPct();
@@ -2177,11 +2256,11 @@ $('saveBill').onclick=async()=>{
 };
 function renderRecent(){
   const el=$('recent'),q=($('qSearch').value||'').trim().toLowerCase();
-  const list=quotes.filter(x=>(qFilter==='all'||(qFilter==='closed'?x.status==='closed':x.status!=='closed'))&&(!q||[x.no,x.cust&&x.cust.name,x.cust&&x.cust.phone,x.invoice,...(x.items||[]).map(t=>t.sku)].some(v=>String(v||'').toLowerCase().includes(q))));
+  const list=quotes.filter(x=>(qFilter==='all'||(qFilter==='open'?(!x.status||x.status==='open'):x.status===qFilter))&&(!q||[x.no,x.cust&&x.cust.name,x.cust&&x.cust.phone,x.invoice,...(x.items||[]).map(t=>t.sku)].some(v=>String(v||'').toLowerCase().includes(q))));
   if(!list.length){el.innerHTML=`<div class="empty">${quotes.length?'No quotes match.':'Quotes appear here once an item is saved to a quote.'}</div>`;return}
   el.innerHTML=list.slice(0,80).map(x=>{const n=(x.items||[]).length;
     let net='';try{const keep=bill;bill=fixBill(clone(x));if(x.rates){bill.overrides={};PURITIES.forEach(p=>{if(x.rates[p.id]!=null)bill.overrides[p.id]=x.rates[p.id]})}net=inr(Math.abs(totals().net));bill=keep}catch(e){}
-    return `<button class="r-item${x.id===bill.id?' cur':''}" type="button" data-open="${x.id}"><span><b>${esc(quoteLabel(x))}</b>${x.status==='closed'?'<span class="st closed">Closed</span>':''}${x.id===bill.id?'<span class="st">Open now</span>':''}<br><span class="m">${esc((x.cust&&x.cust.name)||'No name')}${x.cust&&x.cust.phone?' · '+esc(x.cust.phone):''} · ${n} item${n===1?'':'s'} · ${new Date(x.updated||x.started).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})}${x.by?' · '+esc(x.by):''}${x.invoice?' · Inv '+esc(x.invoice):''}</span></span><span class="v">${net}</span></button>`}).join('');
+    return `<button class="r-item${x.id===bill.id?' cur':''}" type="button" data-open="${x.id}"><span><b>${esc(quoteLabel(x))}</b>${x.status==='closed'?'<span class="st closed">Sold</span>':x.status==='cancelled'?'<span class="st cancel">Enquiry</span>':''}${x.id===bill.id?'<span class="st">Open now</span>':''}<br><span class="m">${esc((x.cust&&x.cust.name)||'No name')}${x.cust&&x.cust.phone?' · '+esc(x.cust.phone):''} · ${n} item${n===1?'':'s'} · ${new Date(x.updated||x.started).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})}${x.by?' · '+esc(x.by):''}${x.invoice?' · Inv '+esc(x.invoice):''}</span></span><span class="v">${net}</span></button>`}).join('');
   el.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{if(b.dataset.open!==bill.id)openQuote(b.dataset.open)});
 }
 [...$('qFilter').children].forEach(b=>b.onclick=()=>{qFilter=b.dataset.f;[...$('qFilter').children].forEach(x=>x.setAttribute('aria-pressed',String(x===b)));renderRecent()});
@@ -2316,10 +2395,11 @@ function afterMaking(){
 }
 // Making rate entry: pops up after a scan when the stock data has no making for the item
 let mkPopType='pct',mkPopNext=null;
-function openMkPop(next){
+function openMkPop(next,update){
   mkPopNext=next||null;
   mkPopType=cur.mkType||store.get('mkLast','pct');
-  $('mkPopWhy').textContent=`${tagTitle(cur)} · making is not in the stock data. Enter it from the label.`;
+  $('mkPopT').textContent=update?'Update making':'Enter making rate';
+  $('mkPopWhy').textContent=update?`${tagTitle(cur)} · now ${valText({type:cur.mkType,val:num(cur.mkVal)})}${cur.read.includes('making')?' from the stock data':''}.`:`${tagTitle(cur)} · making is not in the stock data. Enter it from the label.`;
   $('mkPopVal').value=cur.mkType===mkPopType&&!isNaN(num(cur.mkVal))?cur.mkVal:'';
   $('mkPopHelper').hidden=!helperRows(cur).rows.length;
   paintMkPop();$('mkPop').hidden=false;setTimeout(()=>$('mkPopVal').focus(),60);
@@ -2373,7 +2453,7 @@ let edOpen=false;
 function paintProduct(){
   const card=$('prodCard'),k=keyOf(cur.sku),m=missing(cur);
   // Home shows only the price card; the tag form opens to fix missing details or on Edit details
-  $('editor').hidden=!(edOpen||editingId||(cur.touched&&k&&m.some(x=>x.k!=='making'&&x.k!=='rate')));
+  $('editor').hidden=!(edOpen||editingId||(cur.touched&&k&&m.some(x=>x.k!=='making'&&x.k!=='rate'&&x.k!=='spr')));
   $('pdEdit').textContent=$('editor').hidden?'Edit details':'Hide details';
   card.hidden=!(cur.touched&&k);if(card.hidden)return;
   const st=cur.stockKey&&cur.stock?cur.stock:null,name=(st&&st.item&&String(st.item).trim())||cur.item||itemFromSku(cur.sku)||'Item';
@@ -2390,14 +2470,23 @@ function paintProduct(){
   const need=$('pdNeed');need.hidden=ok;
   if(!ok){const mm=m.map(x=>({nw:'net weight',spr:'stone price',rate:'today\'s rate',purity:'purity',making:'making'})[x.k]);
     const act=m.some(x=>x.k==='making')?['Enter making','mk']:m.some(x=>x.k==='rate')?['Set rates','rate']:['Edit details','ed'];
+    if(m.some(x=>x.k==='spr')&&!m.some(x=>x.k==='making'||x.k==='rate')){
+      // Diamond items: the database has no stone value, so it is entered here from the label (SA)
+      need.innerHTML=`<label for="pdSpr">Stone price (SA) from the label</label><div class="pd-spr"><span>₹</span><input id="pdSpr" class="num" inputmode="decimal" autocomplete="off" placeholder="e.g. 37500"><button class="btn sm primary" type="button" id="pdSprGo">Apply</button></div>`;
+      const go=()=>{const v=num($('pdSpr').value);if(isNaN(v)||v<=0){toast('Enter the stone price',null,true);return}cur.spr=fmtN(v);unread('spr');saveDraft();renderEditor()};
+      $('pdSprGo').onclick=go;$('pdSpr').addEventListener('keydown',e=>{if(e.key==='Enter')go()});
+    }else{
     need.innerHTML=`<span>Needs ${esc(mm.join(', '))}</span><button class="btn sm primary" type="button" data-need="${act[1]}">${act[0]}</button>`;
-    need.querySelector('button').onclick=()=>act[1]==='mk'?openMkPop(()=>{}):act[1]==='rate'?openRates():(edOpen=true,renderEditor(),$('editor').scrollIntoView({behavior:'smooth',block:'start'}))}
+    need.querySelector('button').onclick=()=>act[1]==='mk'?openMkPop(()=>{}):act[1]==='rate'?openRates():(edOpen=true,renderEditor(),$('editor').scrollIntoView({behavior:'smooth',block:'start'}))}}
   $('pdV').textContent=ok?inr(p.value):'—';
   $('pdGstL').textContent=`+ GST (${fmtN(g)}%)`;$('pdGst').textContent=ok?inr(p.value*g/100):'—';
   $('pdGrand').textContent=ok?inr(p.value*(1+g/100)):'—';
   $('pdTotal').classList.toggle('incomplete',!ok);$('pdGrandRow').classList.toggle('incomplete',!ok);
   $('pdSave').lastChild.textContent=editingId?'Update Quote':'Save to Quote';
+  $('pdMk').hidden=!(canEditMk()&&p.hasMk);
 }
+function canEditMk(){return isAdmin()||settings.mkEdit==='all'}
+$('pdMk').onclick=()=>{if(!canEditMk()){withPin('An admin must allow changing the making.',()=>openMkPop(()=>{},true));return}openMkPop(()=>{},true)};
 $('pdEdit').onclick=()=>{edOpen=$('editor').hidden;renderEditor();if(edOpen)$('editor').scrollIntoView({behavior:'smooth',block:'start'})};
 $('pdDel').onclick=()=>$('clearTag').click();
 $('pdSave').onclick=()=>$('addTag').click();
@@ -2450,10 +2539,11 @@ const IDB={_db:null,
   async deleteMany(keys){const db=await this.open();return new Promise((res,rej)=>{const t=db.transaction('stock','readwrite'),st=t.objectStore('stock');keys.forEach(k=>st.delete(k));t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})},
   async putMany(rows,clear){const db=await this.open();return new Promise((res,rej)=>{const t=db.transaction('stock','readwrite'),st=t.objectStore('stock');if(clear)st.clear();rows.forEach(x=>st.put(x));t.oncomplete=()=>res();t.onerror=()=>rej(t.error);t.onabort=()=>rej(t.error)})}
 };
-function indexRec(x){stockMap.set(x.key,x);altMap.set(altOf(x.key),x.key)}
-function findStock(code){const k=keyOf(code);if(k.length<3)return null;return stockMap.get(k)||stockMap.get(altMap.get(altOf(k)))||null}
+function indexRec(x){stockMap.set(x.key,x);altMap.set(altOf(x.key),x.key);const lk=keyOf(x.label||'');if(lk.length>=4&&lk!==x.key&&!stockMap.has(lk))labMap.set(lk,x.key)}
+const labMap=new Map();
+function findStock(code){const k=keyOf(code);if(k.length<3)return null;return stockMap.get(k)||stockMap.get(altMap.get(altOf(k)))||stockMap.get(labMap.get(k))||null}
 async function loadStock(){
-  try{const all=await IDB.all();stockMap.clear();altMap.clear();all.forEach(indexRec)}catch(e){}
+  try{const all=await IDB.all();stockMap.clear();altMap.clear();labMap.clear();all.forEach(indexRec)}catch(e){}
   paintStockSummary();
 }
 function caratToPurity(v){
@@ -2473,12 +2563,12 @@ function itemName(v){
   const hit=Object.values(CAT).find(n=>n.toUpperCase()===t.toUpperCase()||n.split(' /')[0].toUpperCase()===t.toUpperCase());
   return hit||t.toLowerCase().replace(/\b[a-z]/g,c=>c.toUpperCase());
 }
-const COLS={barcode:['BARCODE','BARCODENO','BARCODENUMBER','TAGNO','BARCODES'],item:['ITEM','ITEMNAME'],category:['CATEGORY'],carat:['CARRET','CARAT','KARAT','PURITY','CARATAGE','CARET'],
-  gw:['GROSSWT','GROSSWEIGHT','GWT','GRWT'],nw:['NETWT','NETWEIGHT','NWT'],sw:['STONEWT','STONEWEIGHT','SWT','STWT'],dw:['DIAMONDWT','DIAMONDWEIGHT','DIAWT','DWT'],dq:['DIAMONDQTY','DIAQTY','DIAMONDPCS'],
-  sa:['STONEAMOUNT','STONEAMT','SA','SPR','STONEPRICE','STONEVALUE'],serial:['SERIAL','SERIALNO','SLNO'],label:['LABEL'],location:['LOCATION'],pcs:['PCS','PIECES'],sq:['STONEQTY','STONEPCS'],supplier:['SUPPLIER','VENDOR'],
-  mk:['MAKING','MAKINGCHARGE','MAKINGCHARGES','MAKINGRATE','MC','MCRATE','VA','VARATE','WASTAGE','MAKINGMBD','MBD'],mkType:['MAKINGTYPE','MCTYPE','VATYPE','MAKINGON'],
-  mkPct:['MAKINGPCT','MAKINGPERCENT','MAKINGPERCENTAGE','VAPCT','VAPERCENT','MCPCT','MCPERCENT'],mkPg:['MAKINGPG','MAKINGPERGRAM','MAKINGPERGM','MCPG','MCPERGRAM','MCPERGM'],mkFix:['MAKINGFIXED','MAKINGAMOUNT','MAKINGAMT','MCAMOUNT','MCAMT','MCFIXED','MAKINGPERPIECE','MCPERPIECE'],
-  huid:['HUID','HUIDCOUNT','HUIDQTY','HUIDNOS','HUIDNO','NOOFHUID','HUIDPCS','HUIDS']};
+const COLS={barcode:['BARCODE','BARCODENO','BARCODENUMBER','TAGNO','BARCODES','LABELNO','LABELNUMBER','TAGNUMBER'],item:['ITEMNAME','ITEM'],category:['CATEGORY'],carat:['CARRET','CARAT','KARAT','PURITY','CARATAGE','CARET'],
+  gw:['GROSSWT','GROSSWEIGHT','GWT','GRWT'],nw:['NETWT','NETWEIGHT','NWT'],sw:['STONEWT','STONEWEIGHT','SWT','STWT','CLRSTNWT','COLORSTONEWT','COLOURSTONEWT','CLRSTONEWT'],dw:['DIAMONDWT','DIAMONDWEIGHT','DIAWT','DWT','DAIWT','DAIMONDWT'],dq:['DIAMONDQTY','DIAQTY','DIAMONDPCS','DAIPCS','DIAPCS','DAIQTY'],
+  sa:['STONEAMOUNT','STONEAMT','SA','SPR','STONEPRICE','STONEVALUE'],serial:['SERIAL','SERIALNO','SLNO'],label:['LABELCODE','LABEL'],location:['LOCATION'],pcs:['PCS','PIECES'],sq:['STONEQTY','STONEPCS','CLRSTNPCS','COLORSTONEPCS','COLOURSTONEPCS'],supplier:['SUPPLIER','VENDOR'],
+  mk:['MAKING','MAKINGCHARGE','MAKINGCHARGES','MAKINGRATE','MC','MCRATE','VA','VARATE','MAKINGMBD','MBD'],mkType:['MAKINGTYPE','MCTYPE','VATYPE','MAKINGON'],
+  mkPct:['WASTAGE','WASTAGEPCT','WASTAGEPERCENT','MAKINGPCT','MAKINGPERCENT','MAKINGPERCENTAGE','VAPCT','VAPERCENT','MCPCT','MCPERCENT'],mkPg:['LABOURRATE','LABORRATE','LABOURRATEPERGRAM','MAKINGPG','MAKINGPERGRAM','MAKINGPERGM','MCPG','MCPERGRAM','MCPERGM'],mkFix:['LABOURCHARGES','LABOURCHARGE','LABORCHARGES','LABORCHARGE','MAKINGFIXED','MAKINGAMOUNT','MAKINGAMT','MCAMOUNT','MCAMT','MCFIXED','MAKINGPERPIECE','MCPERPIECE'],
+  huid:['HUIDCOUNT','HUID','HUIDQTY','HUIDNOS','HUIDNO','NOOFHUID','HUIDPCS','HUIDS']};
 const NUMCOLS=['gw','nw','sw','dw','dq','sa','pcs','sq'];
 // Making and HUID from the stock sheet. Making: one "Making" column ("14%", "2500 PG", "1500 fixed"; a plain number
 // up to 100 is %, above 100 is fixed unless a Making Type column says per gram), or separate %, per-gram and fixed columns.
@@ -2486,9 +2576,10 @@ function stockMaking(rec){
   const typeOf=t=>{t=String(t||'').toUpperCase();return /GRAM|PG|\/G|GM/.test(t)?'pergram':/%|PCT|PERC|VA|WAST/.test(t)?'pct':/FIX|FLAT|PIECE|PC|AMOUNT|AMT|RS/.test(t)?'fixed':''};
   let mk=null;
   const n=v=>{const x=typeof v==='number'?v:num(v);return x>0?x:NaN};
-  if(!isNaN(n(rec.mkPct)))mk={type:'pct',val:n(rec.mkPct)};
+  // Database sheet: Labour Charges → fixed making; else Labour Rate → per gram of net wt; else Wastage % → % making
+  if(!isNaN(n(rec.mkFix)))mk={type:'fixed',val:n(rec.mkFix)};
   else if(!isNaN(n(rec.mkPg)))mk={type:'pergram',val:n(rec.mkPg)};
-  else if(!isNaN(n(rec.mkFix)))mk={type:'fixed',val:n(rec.mkFix)};
+  else if(!isNaN(n(rec.mkPct)))mk={type:'pct',val:n(rec.mkPct)};
   else if(rec.mk!=null&&String(rec.mk).trim()!==''){
     const raw=String(rec.mk).trim(),pv=parseVal(raw.replace(/\s*(PER\s*GRAM|PERGRAM)$/i,' PG')),forced=typeOf(rec.mkType);
     if(pv&&pv.val>0)mk={type:forced||pv.type,val:pv.val};
@@ -2632,6 +2723,36 @@ function setView(v){
 }
 function openSettings(card){setView('settings');if(card){const c=$(card);if(!c.open)c.querySelector('summary').click();setTimeout(()=>c.scrollIntoView({behavior:'smooth',block:'start'}),150)}}
 $('heroBack').onclick=()=>setView('home');
+// Text size (per phone) and who may change making on the price card (shared setting)
+function applyZoom(z){try{document.body.style.zoom=String(z)}catch(e){}}
+function zoomNow(){const z=store.get('uiZoom',null);return z!=null?z:(Math.min(screen.width||400,innerWidth)<=380?0.9:1)}
+applyZoom(zoomNow());
+function paintAdminExtras(){
+  const z=zoomNow();[...$('uiZoom').children].forEach(b=>b.setAttribute('aria-pressed',String(Math.abs(+b.dataset.z-z)<0.001)));
+  [...$('mkEditSeg').children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.m===(settings.mkEdit||'admin'))));
+}
+[...$('uiZoom').children].forEach(b=>b.onclick=()=>withPin('An admin must change the text size.',()=>{store.set('uiZoom',+b.dataset.z);applyZoom(+b.dataset.z);paintAdminExtras();toast('Text size changed')}));
+[...$('mkEditSeg').children].forEach(b=>b.onclick=()=>withPin('An admin must change this.',()=>{settings.mkEdit=b.dataset.m;saveSettings();paintAdminExtras();renderEditor();toast(b.dataset.m==='all'?'All staff can update making':'Only admins can update making')}));
+paintAdminExtras();
+// Search stock: is a label available?
+function openFind(q){$('findPop').hidden=false;$('findQ').value=q||'';runFind();setTimeout(()=>$('findQ').focus(),60)}
+function runFind(){
+  const q=$('findQ').value.trim(),k=keyOf(q),el=$('findList');
+  if(!stockMap.size){$('findNote').textContent='No stock loaded on this phone yet.';el.innerHTML='';return}
+  if(!q){$('findNote').textContent=`${stockMap.size.toLocaleString('en-IN')} items in stock. Type a label number, label code, item or supplier.`;el.innerHTML='';return}
+  const exact=findStock(q),ql=q.toLowerCase(),hits=[];
+  if(exact)hits.push(exact);
+  for(const r of stockMap.values()){if(hits.length>=60)break;if(r===exact)continue;
+    if((k.length>=2&&(r.key.includes(k)||keyOf(r.label||'').includes(k)))||[r.item,r.category,r.supplier].some(v=>String(v||'').toLowerCase().includes(ql)))hits.push(r)}
+  $('findNote').innerHTML=hits.length?(exact?`<b class="ok-t">✓ ${esc(exact.barcode||exact.key)} is in stock.</b> `:'')+`${hits.length>=60?'First 60':hits.length} match${hits.length===1?'':'es'}.`:`<b class="bad-t">✗ Not in stock.</b> No item matches “${esc(q)}”.`;
+  el.innerHTML=hits.map(r=>{const p=caratToPurity(r.carat),mk=r.mkType&&num(r.mk)>0?valText({type:r.mkType,val:num(r.mk)}):'';
+    return `<button type="button" class="find-row" data-k="${esc(r.key)}"><span><b>${esc(r.barcode||r.key)}</b>${r.label&&keyOf(r.label)!==r.key?` <small>${esc(r.label)}</small>`:''}<br><span class="m">${esc(r.item||r.category||'')} · ${esc(PLABEL[p]||r.carat||'')} · Nt ${fmtW(num(r.nw))} g${mk?' · '+esc(mk):''}${r.supplier?' · '+esc(r.supplier):''}</span></span><span class="in-st">In stock</span></button>`}).join('');
+  el.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{$('findPop').hidden=true;const r=stockMap.get(b.dataset.k);if(r){setView('home');useScannedCode(r.barcode||r.key)}});
+}
+$('findBtn').onclick=()=>openFind($('bcNum').value);
+$('findQ').addEventListener('input',runFind);
+$('findClose').onclick=()=>{$('findPop').hidden=true};
+$('findPop').addEventListener('click',e=>{if(e.target===$('findPop'))$('findPop').hidden=true});
 $('menuRates').onclick=()=>openRates();$('menuAdmin').onclick=()=>openSettings('adminCard');$('menuData').onclick=()=>openSettings('dataCard');
 $('setStock').onclick=openStock;
 $('tabHome').onclick=()=>{if(document.body.dataset.view==='home')window.scrollTo({top:0,behavior:'smooth'});else setView('home')};
@@ -2643,7 +2764,7 @@ setView('home');
 window.__pc={totals:()=>totals(),shareText:()=>shareText(),openSettings:c=>openSettings(c)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.4.__BUILD__';
+const APP_VERSION='1.5.__BUILD__';
 $('appVer').textContent='v'+(APP_VERSION.includes('__')?'dev':APP_VERSION);$('heroVer').textContent=$('appVer').textContent;
 
 // ---------- users and login ----------

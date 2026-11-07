@@ -234,6 +234,7 @@ export default async (req: Request) => {
           dia: (Array.isArray(s?.mkTable?.dia) ? s.mkTable.dia : []).slice(0, 200).map((x: any) => ({ purity: cleanStr(x?.purity, 12), slab: cleanStr(x?.slab, 40), mbd: cleanStr(x?.mbd, 20), mad: cleanStr(x?.mad, 20), rate: cleanStr(x?.rate, 20), cat: cleanStr(x?.cat, 40) })),
         },
         cats: cleanCats(s?.cats),
+        mkEdit: s?.mkEdit === "all" ? "all" : "admin",
         showRates: Array.isArray(s?.showRates) ? s.showRates.filter((x: any) => ["22k", "18k", "14k", "9k", "platinum", "silver"].includes(x)) : null,
       }
       await st.setJSON("settings", out)

@@ -125,3 +125,12 @@ Any Bluetooth or USB barcode scanner in keyboard (HID) mode works. Pair it with 
 - Roles: Staff, **Manager** (making after discount, reopen a closed sale), Admin.
 
 **Settings** (bottom tab) holds Stock data and Admin settings.
+
+## v1.5 (7 Nov 2026)
+
+- **Database sheet** (new format): LabelNo, Purity, GrossWt, NetWt, DaiWt, DaiPcs, Clrstn Wt, Clrstn Pcs, Wastage %, Labour Charges, Labour Rate, Category, Supplier, ItemName, HUIDCount, Label Code. Making is taken automatically: **Labour Charges** → fixed making; else **Labour Rate** → ₹ per gram of net wt; else **Wastage %** → % making (before discount). HUIDCount sets the HUID. Items can be found by LabelNo or Label Code. The sheet has no stone value, so diamond items ask for the stone price (SA) on the price card.
+- **Search stock** (home): label no., label code, item or supplier; shows if it is in stock; tap to price it.
+- **New Quote** button on home, with the current quote and balance.
+- **Cancel quote · enquiry only** for quotes not sold; listed under Quotes → Enquiry; a manager can reopen.
+- **Update making** on the price card. Admin settings → *Making on the price card*: Admins only / All staff.
+- **Text size on this phone** (Admin settings): Smallest / Small / Normal / Large. Phones 380 px wide or less start at Small.
