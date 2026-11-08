@@ -227,3 +227,10 @@ A card is locked for users without that permission; opening it asks for a user w
 - **Save & send for approval**: saves the quote (provisional number) and sends it to a chosen manager/admin, or to any of them.
 - **On approval** the quote gets its QT number from the common series; the staff phone updates by itself (checks every 8 seconds while waiting) with the discount and new number, and sharing unlocks.
 - **Settings → Quote approval** (admin only): On / Off. With it off, staff share quotes directly and the QT number is given when the sale is closed.
+
+## Notifications fix (8 Nov 2026)
+
+- Approval and lead alerts now also show as a phone notification (with sound) while the app is open, not only as an in-app message.
+- In the background the Android app checks about every minute (was every 15 minutes; Android may space checks out while the phone sleeps), plus the 15-minute safety check.
+- The first background check no longer swallows a request that arrived before it; the app tells the background checker what was already seen.
+- Web version: Android Chrome and desktop browsers can show system notifications (allowed on first tap of the bell).

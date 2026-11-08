@@ -3871,7 +3871,10 @@ function paintBell(){
 function nativeInbox(){
   try{if(NATIVE&&NATIVE.setInbox)NATIVE.setInbox(sync.key&&curUser?JSON.stringify({site:SYNC_BASE||BRAND.site,key:sync.key,user:curUser.id,approver:canApprove(),app:BRAND.app}):'')}catch(e){}
 }
-let inboxBusy=false,inboxP=null,inboxAgain=false;
+let inboxBusy=false,inboxP=null,inboxAgain=false,inbNative=false;
+// Browsers that allow it (Android Chrome, desktop): a system notification for the web version
+function webNotify(f){try{if('Notification' in window&&Notification.permission==='granted'){const n=new Notification(f.t,{body:f.s,icon:BRAND.icon,tag:f.k});n.onclick=()=>{window.focus();window.onNativeOpen(f.kind+':'+f.id);n.close()}}}catch(e){}}
+function askWebNotify(){try{if(!NATIVE&&'Notification' in window&&Notification.permission==='default')Notification.requestPermission()}catch(e){}}
 function pollInbox(force){
   if(!sync.key||!curUser||!navigator.onLine)return Promise.resolve();if(document.hidden&&!force)return Promise.resolve();
   // one request at a time; a call made meanwhile runs once more afterwards so it sees the latest
@@ -3889,11 +3892,18 @@ async function pollInboxNow(){
     if((r.u||0)>(sync.v.users||0)){try{const d=await syncApi('users','GET',null,adminCreds);if(Array.isArray(d.roles)){roles=d.roles;store.set('roles',roles)}if(Array.isArray(d.users)&&d.users.length)mergeRemoteUsers(d.users);sync.v.users=d.v||r.u;saveSyncState()}catch(e){}}
     const items=myInbox(),fresh=items.filter(x=>!inbNotified.has(x.k));
     fresh.forEach(x=>inbNotified.add(x.k));store.set('inbNotified',[...inbNotified].slice(-400));
-    if(inbFirst){inbFirst=false;store.set('inbInit',true)}
-    else if(fresh.length){
+    if(inbFirst||!inbNative){
+      // first check on this phone: what is already there counts as seen (here and for the background checks)
+      const first=inbFirst;inbFirst=false;store.set('inbInit',true);
+      items.forEach(f=>{if(first||!fresh.includes(f))try{if(NATIVE&&NATIVE.notify)NATIVE.notify(f.t,f.s,f.k,f.kind+':'+f.id,false)}catch(e){}});
+      try{if(NATIVE&&NATIVE.inboxReady)NATIVE.inboxReady()}catch(e){}inbNative=true;
+      if(first)fresh.length=0;
+    }
+    if(fresh.length){
       const x=fresh[0],more=fresh.length>1?` (+${fresh.length-1} more)`:'';
-      toast(x.t+more);try{navigator.vibrate&&navigator.vibrate([120,80,120])}catch(e){}
-      fresh.forEach(f=>{try{if(NATIVE&&NATIVE.notify)NATIVE.notify(f.t,f.s,f.k,f.kind+':'+f.id,!!document.hidden)}catch(e){}});
+      toast(x.t+more);try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}
+      // phone notification too (with sound), even while the app is open
+      fresh.forEach(f=>{try{if(NATIVE&&NATIVE.notify)NATIVE.notify(f.t,f.s,f.k,f.kind+':'+f.id,true);else webNotify(f)}catch(e){}});
     }
     paintBell();
   }catch(e){try{console.warn('inbox',e&&e.message)}catch(_){}}finally{inboxBusy=false}
@@ -3917,7 +3927,7 @@ function openInbox(again){
   $('modal').hidden=false;
   if(!again){const before=JSON.stringify(items.map(x=>x.k));pollInbox(true).then(()=>{if(!$('modal').hidden&&$('modalTitle').textContent==='Notifications'&&JSON.stringify(myInbox().map(x=>x.k))!==before)openInbox(true)})}
 }
-document.querySelectorAll('.bell').forEach(b=>b.onclick=()=>openInbox());
+document.querySelectorAll('.bell').forEach(b=>b.onclick=()=>{askWebNotify();openInbox()});
 // Tapping a phone notification opens the quote or lead
 window.onNativeOpen=function(t){const m=String(t||'').match(/^(\w+):(.+)$/);if(!m)return;
   if(m[1]==='lead')startLead(m[2]);else{const go=()=>{if(quotes.some(q=>q.id===m[2])){openQuote(m[2]);setView('quote')}};if(quotes.some(q=>q.id===m[2]))go();else pullQuotes().then(go)}};

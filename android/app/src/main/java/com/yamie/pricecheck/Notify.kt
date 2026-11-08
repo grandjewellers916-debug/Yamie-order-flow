@@ -10,7 +10,9 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.Worker
@@ -27,18 +29,34 @@ object Notify {
     private const val CHANNEL = "alerts"
     private const val PREFS = "ypc_notify"
     private const val WORK = "ypc_inbox"
+    private const val QUICK = "ypc_inbox_quick"
 
     private fun prefs(c: Context) = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
     fun configure(c: Context, config: String) {
         prefs(c).edit().putString("config", config).apply()
         val wm = WorkManager.getInstance(c)
-        if (config.isEmpty()) { wm.cancelUniqueWork(WORK); return }
+        if (config.isEmpty()) { wm.cancelUniqueWork(WORK); wm.cancelUniqueWork(QUICK); return }
         val req = PeriodicWorkRequestBuilder<InboxWorker>(15, TimeUnit.MINUTES)
             .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
             .build()
         wm.enqueueUniquePeriodicWork(WORK, ExistingPeriodicWorkPolicy.UPDATE, req)
     }
+
+    // While the app is in the background: check about every minute (Android may space this out when the phone sleeps)
+    fun quick(c: Context, delaySec: Long) {
+        if ((prefs(c).getString("config", "") ?: "").isEmpty()) return
+        val req = OneTimeWorkRequestBuilder<QuickWorker>()
+            .setInitialDelay(delaySec, TimeUnit.SECONDS)
+            .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+            .build()
+        WorkManager.getInstance(c).enqueueUniqueWork(QUICK, ExistingWorkPolicy.REPLACE, req)
+    }
+    fun stopQuick(c: Context) { WorkManager.getInstance(c).cancelUniqueWork(QUICK) }
+    var foreground = false
+
+    // The app has synced what this user has already seen: background checks may now notify
+    fun ready(c: Context) { prefs(c).edit().putBoolean("init", true).apply() }
 
     @Synchronized
     fun markSeen(c: Context, key: String): Boolean {
@@ -115,6 +133,15 @@ object Notify {
     }
 
     private fun nameOf(o: JSONObject): String { val n = o.optString("name"); return if (n.isNotEmpty()) " · $n" else "" }
+}
+
+class QuickWorker(c: Context, p: WorkerParameters) : Worker(c, p) {
+    override fun doWork(): Result {
+        if (Notify.foreground) return Result.success()
+        Notify.check(applicationContext)
+        Notify.quick(applicationContext, 60)
+        return Result.success()
+    }
 }
 
 class InboxWorker(c: Context, p: WorkerParameters) : Worker(c, p) {

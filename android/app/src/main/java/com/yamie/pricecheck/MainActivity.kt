@@ -149,6 +149,10 @@ class MainActivity : ComponentActivity() {
         takeIntent(intent)
     }
 
+    // Background checks for approvals and leads while the app is not on screen
+    override fun onStart() { super.onStart(); Notify.foreground = true; Notify.stopQuick(this) }
+    override fun onStop() { super.onStop(); Notify.foreground = false; Notify.quick(this, 30) }
+
     private var pendingShared: String? = null
     private var pendingOpen: String? = null
     private fun takeIntent(i: Intent?) {
@@ -308,6 +312,10 @@ class MainActivity : ComponentActivity() {
             Notify.markSeen(this@MainActivity, key)
             if (show) Notify.show(this@MainActivity, title, body, key, open)
         }
+
+        // The app has marked what this user already saw; background checks may notify from now on
+        @JavascriptInterface
+        fun inboxReady() { Notify.ready(this@MainActivity) }
 
         // Background check for approvals and leads (every 15 minutes, while logged in); empty config stops it
         @JavascriptInterface
