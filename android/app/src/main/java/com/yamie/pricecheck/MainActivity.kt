@@ -139,7 +139,41 @@ class MainActivity : ComponentActivity() {
 
         if (savedInstanceState != null) web.restoreState(savedInstanceState)
         else web.loadUrl("https://$APP_HOST/assets/index.html")
+        takeIntent(intent)
     }
+
+    // WhatsApp text shared into the app, or a tapped notification
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        takeIntent(intent)
+    }
+
+    private var pendingShared: String? = null
+    private var pendingOpen: String? = null
+    private fun takeIntent(i: Intent?) {
+        if (i == null) return
+        if (i.action == Intent.ACTION_SEND && i.type?.startsWith("text/") == true) {
+            val t = i.getStringExtra(Intent.EXTRA_TEXT) ?: return
+            pendingShared = t
+            web.postDelayed({ deliverPending() }, 600)
+        }
+        i.getStringExtra(Notify.EXTRA_OPEN)?.let { pendingOpen = it; web.postDelayed({ deliverPending() }, 600) }
+    }
+    private fun deliverPending() {
+        pendingShared?.let { t ->
+            web.evaluateJavascript("(function(){if(window.onSharedText){window.onSharedText(${JSONObject.quote(t)});return 1}return 0})()") { r ->
+                if (r == "1") pendingShared = null else web.postDelayed({ deliverPending() }, 800)
+            }
+        }
+        pendingOpen?.let { o ->
+            web.evaluateJavascript("(function(){if(window.onNativeOpen){window.onNativeOpen(${JSONObject.quote(o)});return 1}return 0})()") { r ->
+                if (r == "1") pendingOpen = null else web.postDelayed({ deliverPending() }, 800)
+            }
+        }
+    }
+
+    private val askNotify = registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
@@ -265,6 +299,23 @@ class MainActivity : ComponentActivity() {
                     ctl.isAppearanceLightStatusBars = light
                     ctl.isAppearanceLightNavigationBars = light
                 } catch (e: Exception) {}
+            }
+        }
+
+        // Notifications: show one now (key = so the background check does not repeat it)
+        @JavascriptInterface
+        fun notify(title: String, body: String, key: String, open: String, show: Boolean) {
+            Notify.markSeen(this@MainActivity, key)
+            if (show) Notify.show(this@MainActivity, title, body, key, open)
+        }
+
+        // Background check for approvals and leads (every 15 minutes, while logged in); empty config stops it
+        @JavascriptInterface
+        fun setInbox(config: String) {
+            Notify.configure(this@MainActivity, config)
+            if (config.isNotEmpty() && Build.VERSION.SDK_INT >= 33 &&
+                checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                runOnUiThread { try { askNotify.launch(android.Manifest.permission.POST_NOTIFICATIONS) } catch (e: Exception) {} }
             }
         }
 

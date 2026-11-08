@@ -206,3 +206,11 @@ A card is locked for users without that permission; opening it asks for a user w
 - **Location and Labelling Date** show on Product Details (can be hidden) and in Search.
 - Looking up another item no longer carries the previous item's stone weight or stone value over.
 - **Settings → Footer · tabs for staff** (admin only): choose which bottom tabs (Scan, Search, Quote, Gold Rates, Settings) each role sees. Home is always shown; admins see all.
+
+## V 1.7.1 (8 Nov 2026)
+
+- **Quote approval**: users without "Approve quotes · set discount" send the quote for approval (Quote → Approval). Managers and admins are notified, open it, set the discount and tap **Approve & send to …**; the staff member is notified and can then share it (WhatsApp image, text or copy are locked until approved; changing the quote after approval needs a new approval).
+- **Notifications**: bell on the header (count of items waiting). The app checks every 30 seconds while open; the Android app also checks every 15 minutes in the background and shows a phone notification. Tapping it opens the quote or lead.
+- **WhatsApp leads**: managers/admins (permission "Share WhatsApp leads") give a lead to a staff member (name, number, enquiry), from the bell or by sharing a WhatsApp message to the app (Android share → Price Check). The staff member is notified; tapping the lead starts an online quote with the customer filled in and the enquiry shown.
+- **Close sale** asks for the **Acme invoice number**.
+- Existing roles that could give making discounts get both new permissions once.

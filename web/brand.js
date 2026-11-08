@@ -8,7 +8,7 @@
       site:'https://yamie-price-check.netlify.app',
       manifest:'manifest.webmanifest',icon:'icons/icon-192.png',touch:'icons/icon-180.png',
       theme:'#7A1418',
-      logoHeader:'brand/yamie/header-w.png',logoLogin:'brand/yamie/logo-cream.png',mark:'brand/yamie/mark-w.png',tagline:'Legacy 1986',erp:'Yamie ERP',
+      logoHeader:'brand/yamie/header-w.png',logoLogin:'brand/yamie/logo-cream.png',mark:'brand/yamie/mark-w.png',tagline:'Legacy 1986',erp:'Acme',
       address:['YAMIE FINE JEWELLERY','63/322 Aa, Level G','Grand Business Center','K K Road, Kadavanthra','Kochi, Kerala - 682020','Contact: +91 8714122750','Website: www.yamie.in','GSTIN 32AACFY4685K1ZR'],
       // Quote image and WhatsApp text: firm name, then the address in 2 lines
       addr2:['63/322 Aa, Level G, Grand Business Center, K K Road, Kadavanthra, Kochi, Kerala - 682020','Contact: +91 8714122750 · www.yamie.in · GSTIN 32AACFY4685K1ZR'],
@@ -21,7 +21,7 @@
       rates:['22k','18k','14k','9k']
     },
     grand:{
-      id:'grand',name:'Grand',full:'Grand Jewellers',erp:'ERP',wm:'GRAND',wsub:'JEWELLERS',app:'Grand Price Check',short:'Grand Price',
+      id:'grand',name:'Grand',full:'Grand Jewellers',erp:'Acme',wm:'GRAND',wsub:'JEWELLERS',app:'Grand Price Check',short:'Grand Price',
       site:'https://grand-price-check.netlify.app',
       manifest:'manifest-grand.webmanifest',icon:'icons/grand-192.png',touch:'icons/grand-180.png',
       theme:'#8C0D24',

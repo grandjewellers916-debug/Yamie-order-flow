@@ -9,7 +9,7 @@ const APP_ORIGINS = ["https://appassets.androidplatform.net", "https://yamie-pri
 const STOCK_FIELDS = ["key", "barcode", "item", "category", "carat", "gw", "nw", "sw", "dw", "dq", "sa", "serial", "label", "location", "pcs", "sq", "supplier", "mk", "mkType", "huid", "huidNo", "cw", "stoneName", "saDia", "saClr", "labelDate", "at"]
 const RATE_KEYS = ["22k", "18k", "14k", "9k", "platinum", "silver"]
 
-type Meta = { stock: number; rates: number; settings: number; users: number; quotes: number; imgs: number; count: number; history: any[] }
+type Meta = { stock: number; rates: number; settings: number; users: number; quotes: number; leads?: number; imgs: number; count: number; history: any[] }
 
 function cors(req: Request): Record<string, string> {
   const o = req.headers.get("origin") || ""
@@ -59,10 +59,10 @@ function cleanRow(r: any) {
   return o.key ? o : null
 }
 // Permissions an admin can give to a role (admin always has all)
-const PERMS = ["stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "textSize", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows", "sync", "roles", "users", "settings"]
+const PERMS = ["stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "approve", "leads", "textSize", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows", "sync", "roles", "users", "settings"]
 const SETTINGS_PERMS = ["imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows"]
 const DEFAULT_ROLES = [
-  { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "images"] },
+  { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "images", "approve", "leads"] },
   { id: "staff", name: "Staff", perms: ["rates", "closeSale", "cancelQuote"] },
 ]
 // A quote as the app keeps it, minus anything large (photos stay on the phone that took them)
@@ -110,6 +110,13 @@ export default async (req: Request) => {
   }
   // Roles: admin has every permission; other roles carry a list set by an admin (Admin settings → Roles)
   const roles: any[] = ((await st.get("roles", { type: "json" })) as any[]) || DEFAULT_ROLES
+  // v1.7.1: roles that could give making discounts also approve quotes and share leads (once)
+  if (!(meta as any).v171) {
+    let ch = false
+    for (const r of roles) if (r?.perms?.includes("mkDisc")) for (const p of ["approve", "leads"]) if (!r.perms.includes(p)) { r.perms.push(p); ch = true }
+    if (ch && (await st.get("roles"))) { await st.setJSON("roles", roles); meta.users = Date.now() }
+    ;(meta as any).v171 = 1; await saveMeta()
+  }
   const roleHas = (role: string, perm: string) => {
     if (role === "admin") return true
     if (perm === "stock" || perm === "theme" || perm === "footer") return false   // stock data and theme: admins only
@@ -156,6 +163,18 @@ export default async (req: Request) => {
         return json(req, { img: k ? (await st.get("img/" + k)) || null : null })
       }
       if (op === "quotes") return json(req, { v: meta.quotes, quotes: (await st.get("quotes", { type: "json" })) || [] })
+      if (op === "leads") return json(req, { v: meta.leads || 0, leads: (await st.get("leads", { type: "json" })) || [] })
+      if (op === "inbox") {
+        // Small summary for notifications (phones poll this): quotes waiting for approval, approved quotes, leads
+        const qs: any[] = ((await st.get("quotes", { type: "json" })) as any[]) || []
+        const ls: any[] = ((await st.get("leads", { type: "json" })) as any[]) || []
+        const pending = qs.filter((q) => q?.appr?.state === "pending" && q.status !== "cancelled" && q.status !== "closed").slice(0, 50)
+          .map((q) => ({ id: q.id, no: q.no || "", name: cleanStr(q.cust?.name, 40), by: q.appr.reqBy || "", byName: cleanStr(q.appr.reqName, 40), at: q.appr.reqAt || q.updated || 0 }))
+        const approved = qs.filter((q) => q?.appr?.state === "approved" && q.appr.at > Date.now() - 3 * 864e5).slice(0, 50)
+          .map((q) => ({ id: q.id, no: q.no || "", name: cleanStr(q.cust?.name, 40), to: q.appr.reqBy || "", byName: cleanStr(q.appr.by, 40), at: q.appr.at || 0 }))
+        const leads = ls.filter((l) => l.state === "new").slice(0, 50).map((l) => ({ id: l.id, to: l.to || "", name: cleanStr(l.name, 40), byName: cleanStr(l.byName, 40), at: l.at || 0 }))
+        return json(req, { q: meta.quotes, l: meta.leads || 0, pending, approved, leads })
+      }
       return json(req, { error: "bad_op" }, 400)
     }
     if (req.method !== "POST") return json(req, { error: "method" }, 405)
@@ -199,6 +218,22 @@ export default async (req: Request) => {
       await st.setJSON("quotes", next)
       meta.quotes = Date.now(); await saveMeta()
       return json(req, { v: meta.quotes, quote: q })
+    }
+
+    if (op === "lead") {
+      // WhatsApp leads given to a staff member (open to phones with the shop key, like quotes)
+      const l = body?.lead
+      if (!l || typeof l.id !== "string" || !l.id) return json(req, { error: "bad_lead" }, 400)
+      const lead = {
+        id: cleanStr(l.id, 24), name: cleanStr(l.name, 60), phone: cleanStr(l.phone, 20), note: cleanStr(l.note, 1000),
+        to: cleanStr(l.to, 40), toName: cleanStr(l.toName, 60), by: cleanStr(l.by, 40), byName: cleanStr(l.byName, 60),
+        at: cleanNum(l.at) || Date.now(), state: ["new", "open", "done"].includes(l.state) ? l.state : "new", quoteId: cleanStr(l.quoteId, 24), updated: Date.now(),
+      }
+      const list: any[] = ((await st.get("leads", { type: "json" })) as any[]) || []
+      const next = [lead, ...list.filter((x) => x.id !== lead.id)].sort((a, b) => (b.at || 0) - (a.at || 0)).slice(0, 500)
+      await st.setJSON("leads", next)
+      meta.leads = Date.now(); await saveMeta()
+      return json(req, { v: meta.leads, lead })
     }
 
     const OP_PERM: Record<string, string> = { img: "images", quotedel: "delQuote", stock: "stock", stockdel: "stockdel", ratelog: "rates" }

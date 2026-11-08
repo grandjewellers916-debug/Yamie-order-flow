@@ -740,6 +740,26 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .prod-tile{position:relative}
 .pd-addimg{position:absolute;right:8px;bottom:8px;width:38px;height:38px;border-radius:50%;border:0;background:var(--maroon);color:#fff;display:grid;place-items:center;box-shadow:0 3px 10px rgba(0,0,0,.22);cursor:pointer;padding:0}
 .pd-addimg svg{width:20px;height:20px}
+.hero-rt{justify-self:end;display:flex;align-items:center;gap:2px;min-width:0}
+.bell{position:relative;border:0;background:none;color:inherit;width:40px;height:40px;display:grid;place-items:center;cursor:pointer;padding:0;border-radius:50%}
+.hero .bell{color:#fff}
+:root[data-ui="iosTrue"] .hero .bell,:root[data-ui="android"] .hero .bell{color:var(--maroon)}
+.bell svg{width:24px;height:24px}
+.bell-n{position:absolute;top:3px;right:2px;min-width:18px;height:18px;border-radius:9px;background:#E8A33A;color:#1b1b1b;font:700 11px/18px var(--body);text-align:center;padding:0 4px}
+.dk-bell{color:var(--maroon);border:1px solid var(--line);background:var(--surface);width:44px;height:44px}
+.q-appr .qa-msg{margin:4px 0 10px;font-size:14px;line-height:1.45}
+.q-appr.pending{border-color:color-mix(in srgb,#E8A33A 60%,transparent)}
+.q-appr.approved{border-color:color-mix(in srgb,#2E7D4F 50%,transparent)}
+.qa-lead{background:var(--sunk);border-radius:10px;padding:8px 10px;font-size:13.5px;white-space:pre-wrap;margin-top:6px}
+.inb-sec{margin:8px 0 2px;font:600 12px var(--body);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.inb-it{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:12px;padding:10px 12px;margin:6px 0;cursor:pointer;font:inherit}
+.inb-it b{font-size:15px}.inb-it small{color:var(--muted);font-size:12.5px}
+.inb-it.new{border-color:color-mix(in srgb,var(--maroon) 45%,transparent);background:color-mix(in srgb,var(--maroon) 6%,var(--surface))}
+.inb-empty{color:var(--muted);font-size:14px;padding:8px 0}
+.lead-f{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.lead-f input,.lead-f textarea,.lead-f select{width:100%;font:15px var(--body);padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg)}
+.lead-f textarea{min-height:76px;resize:vertical}
+.lead-f label{font-size:12.5px;color:var(--muted);margin-bottom:-4px}
 .fp-role{padding:10px 0;border-bottom:1px solid var(--line)}.fp-role:last-child{border-bottom:0}
 .fp-role>b{display:block;font-size:14px;margin-bottom:6px}
 .fp-tabs{display:flex;flex-wrap:wrap;gap:6px}
@@ -1044,7 +1064,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
       <img class="hero-mark" id="heroMark" alt="" hidden><span class="hero-wm" id="heroWm" hidden></span>
       <div class="hero-row"><span class="hero-bar" aria-hidden="true"></span><h1 class="hero-title" id="viewTitle">PRICE CHECK</h1></div>
     </div>
-    <button class="hero-user" type="button" id="heroUser" aria-label="Account and log out"><b id="heroName">—</b><span id="heroVer"></span></button>
+    <div class="hero-rt"><button class="bell" type="button" id="heroBell" aria-label="Notifications" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg><b class="bell-n" hidden></b></button><button class="hero-user" type="button" id="heroUser" aria-label="Account and log out"><b id="heroName">—</b><span id="heroVer"></span></button></div>
     <button class="hamb" id="menuBtn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
   </div>
 </header>
@@ -1065,6 +1085,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 <header class="dk-head" id="dkHead">
   <span class="dk-ico" id="dkIco"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg></span><h1 class="dk-title" id="dkTitle">Price Check</h1>
   <div class="dk-acts">
+    <button class="bell dk-bell" type="button" id="dkBell" aria-label="Notifications" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg><b class="bell-n" hidden></b></button>
     <button class="btn primary dk-b" type="button" id="dkNew"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>New Quote</button>
     <button class="btn dk-b dk-q" type="button" id="dkOpen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Open</button>
     <button class="btn dk-b dk-q" type="button" id="dkSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v5h7V3M8 21v-7h8v7"/></svg>Save</button>
@@ -1257,6 +1278,13 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
       <button class="btn q-soft" type="button" id="qDiscGo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 5 5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/></svg>Discount</button>
       <button class="btn q-soft" type="button" id="qAdv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 14h2"/></svg>Advance</button>
       <button class="btn primary q-gen" type="button" id="saveBill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>Generate Quote</button>
+    </div>
+
+    <div class="card q-appr" id="qAppr" hidden>
+      <div class="sec-head"><h3>Approval</h3><span class="note" id="qApprSt"></span></div>
+      <div class="qa-lead" id="qApprLead" hidden></div>
+      <p class="qa-msg" id="qApprMsg"></p>
+      <div class="rs-acts" id="qApprActs"></div>
     </div>
 
     <div class="card q-photos">
@@ -2429,6 +2457,7 @@ function paintQuoteHead(){
 
 }
 function renderBill(keepInputs){
+  try{paintAppr()}catch(e){}
   const s=totals(),n=bill.items.length,closed=isClosed(),mgr=isManager();
   paintQuoteHead();
   $('bill').classList.toggle('q-closed',closed);
@@ -2499,7 +2528,7 @@ function renderBill(keepInputs){
   $('qBalRow').classList.toggle('refund',refund);
   $('net').textContent=inr(Math.abs(s.net));
   // close sale
-  $('qInv').value=document.activeElement===$('qInv')?$('qInv').value:(bill.invoice||'');$('qInv').readOnly=closed;
+  $('qInv').value=document.activeElement===$('qInv')?$('qInv').value:(bill.invoice||'');$('qInv').readOnly=closed;$('qInv').closest('.f').hidden=!closed&&!bill.invoice;
   [...$('qChan').children].forEach(b=>{const on=b.dataset.c===(bill.channel||'store');b.setAttribute('aria-pressed',String(on));b.textContent=(on?'✓ ':'')+(b.dataset.c==='store'?'In-store':'Online');b.disabled=closed});
   $('qCloseBtn').hidden=closed;$('qReopen').hidden=!closed;$('qCancel').hidden=closed;
   [...$('qType').children].forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.c===(bill.channel||'store')));b.disabled=closed});
@@ -2520,7 +2549,7 @@ function renderBill(keepInputs){
 function gstPct(){return num(settings.gst)||0}
 // Discount section: manager enters making after discount per item; the difference is the discount
 function renderDiscount(s){
-  const el=$('qDiscList'),g=gstPct(),closed=isClosed(),edit=can('mkDisc')&&!closed;
+  const el=$('qDiscList'),g=gstPct(),closed=isClosed(),edit=(can('mkDisc')||can('approve'))&&!closed;
   if(!bill.items.length){el.innerHTML='<div class="empty-q">Discount is set here once items are in the quote.</div>';$('qDiscTot').textContent='';$('qDiscMgr').hidden=true;$('qDiscExtraRow').hidden=true;return}
   el.innerHTML=bill.items.map((t,i)=>{const p=priceTag(t),q=quotedValue(t,p),d=p.value-q,u=t.mkType==='pct'?'%':t.mkType==='pergram'?'₹/g':'₹';
     return `<div class="qd-row"><div class="qd-a"><b>${i+1}. ${esc(keyOf(t.sku))}</b> <span class="m">${esc((t.stock&&t.stock.category)||t.item||'')}</span></div>
@@ -2536,7 +2565,7 @@ function renderDiscount(s){
   }));
   const tot=s.mkDisc+s.disc;
   $('qDiscTot').textContent=tot>0.5?`Total discount −${inr(tot)}`:'';
-  $('qDiscMgr').hidden=can('mkDisc')||closed;
+  $('qDiscMgr').hidden=can('mkDisc')||can('approve')||closed;
   $('qDiscExtraRow').hidden=false;$('qDiscExtraV').textContent=s.flat?'−'+inr(s.flat):'None';
 }
 function oldLine(o){const v=oldValue(o),r=oldRate(o);return isNaN(v)?'Enter net weight':`${fmtW(num(o.wt))} g × ${inr(r)} = ${inr2(v)}`}
@@ -2643,8 +2672,17 @@ $('qRound').onchange=()=>{bill.round=$('qRound').checked;saveBill();renderBill(t
 $('qInv').addEventListener('input',()=>{bill.invoice=$('qInv').value.trim();saveBill(true)});
 $('qCloseBtn').onclick=()=>withPerm('closeSale','Needs a user allowed to close sales.',()=>{
   if(!bill.items.length){toast('Add items first',null,true);return}
-  if(!bill.invoice){toast(`Enter the final invoice number from ${BRAND.erp||'the ERP'}`,null,true);$('qInv').focus();return}
-  showModal(`Close sale ${quoteLabel(bill)}?`,`Invoice ${bill.invoice} · ${bill.channel==='online'?'Online':'In-store'} sale · ${inr(Math.abs(totals().net))}.`,[
+  // Ask for the invoice number from the billing software (Acme) as the sale is closed
+  const erp=BRAND.erp||'ERP';
+  $('modalTitle').textContent=`Close sale ${quoteLabel(bill)}`;$('modalTitle').classList.remove('price-pop');
+  $('modalBody').innerHTML=`${bill.channel==='online'?'Online':'In-store'} sale · ${inr(Math.abs(totals().net))}<div class="lead-f"><label for="acmeInv">${esc(erp)} invoice number</label><input id="acmeInv" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Invoice no. from ${esc(erp)}" value="${esc(bill.invoice||'')}"></div>`;
+  const ma=$('modalActs');ma.innerHTML='';
+  const okb=document.createElement('button');okb.className='btn primary';okb.type='button';okb.textContent='Close sale';
+  const cnb=document.createElement('button');cnb.className='btn ghost';cnb.type='button';cnb.textContent='Cancel';cnb.onclick=closeModal;
+  ma.append(okb,cnb);$('modal').hidden=false;setTimeout(()=>$('acmeInv').focus(),60);
+  $('acmeInv').addEventListener('keydown',e=>{if(e.key==='Enter')okb.click()});
+  okb.onclick=()=>{const v=$('acmeInv').value.trim();if(!v){toast(`Enter the ${erp} invoice number`,null,true);$('acmeInv').focus();return}bill.invoice=v;closeModal();doClose()};
+  const doClose=[
     {label:'Close sale',cls:'primary',run:async()=>{
       bill.status='closed';bill.closedAt=Date.now();bill.closedBy=curUser?(curUser.name||curUser.username):'';mgrMode=false;
       saveBill(true);renderBill();await pushQuote(bill.id);toast('Sale closed');
@@ -2652,7 +2690,7 @@ $('qCloseBtn').onclick=()=>withPerm('closeSale','Needs a user allowed to close s
       if(keys.length&&can('stockdel'))setTimeout(()=>showModal(`Remove ${keys.length} sold tag${keys.length>1?'s':''} from stock?`,`${keys.join(', ')} ${keys.length>1?'were':'was'} sold on invoice ${bill.invoice}.`,[
         {label:'Remove from stock',cls:'danger',run:()=>withPin('Needs a user allowed to delete stock.',async()=>{const n=await removeStock(keys,`Sold · invoice ${bill.invoice}`);toast(`${n} tag${n>1?'s':''} removed from stock`)},'stockdel')},
         {label:'Keep in stock',cls:'ghost'}]),400);
-    }},{label:'Cancel',cls:'ghost'}]);
+    }}][0].run;
 });
 $('qReopen').onclick=()=>withManager('Needs a user allowed to reopen quotes.',()=>{const was=bill.status;bill.status='open';delete bill.closedAt;delete bill.cancelledAt;saveBill();renderBill();toast(was==='cancelled'?'Quote reopened':'Sale reopened')},'reopen');
 // Cancel: the customer only enquired. Kept under Quotes → Enquiry.
@@ -2710,6 +2748,7 @@ function toast(t,undo,warn){
 }
 $('copyBtn').onclick=()=>{
   if(!bill.items.length){toast('Add an item first');return}
+  if(!shareOk())return;
   const t=shareText();
   if(NATIVE&&NATIVE.copy){NATIVE.copy(t);toast('Quote copied');return}
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>toast('Quote copied'),()=>toast('Copy blocked here'));
@@ -2774,6 +2813,7 @@ function dataUrlFile(u,i){const [h,b]=u.split(',');const bin=atob(b),arr=new Uin
 $('waBtn').onclick=()=>openQuoteImage();
 $('waText').onclick=async()=>{
   if(!bill.items.length){toast('Add an item first');return}
+  if(!shareOk())return;
   const text=shareText(),ph=phoneDigits(bill.cust.phone);
   if(NATIVE&&NATIVE.shareWhatsApp){NATIVE.shareWhatsApp(ph,text,JSON.stringify(photos));return}
   if(photos.length&&navigator.canShare){try{const files=photos.map(dataUrlFile);if(navigator.canShare({files})){await navigator.share({files,text});return}}catch(e){if(e&&e.name==='AbortError')return}}
@@ -2877,6 +2917,7 @@ function firmAddr(){const a=BRAND.address;if(!a||!a.length)return null;
 let qImgUrl='';
 async function openQuoteImage(){
   if(!bill.items.length){toast('Add an item first');return}
+  if(!shareOk())return;
   if(!bill.no&&sync.key&&navigator.onLine){await pushQuote(bill.id)}
   $('qimgPop').hidden=false;$('qimgImg').removeAttribute('src');$('qimgNote').textContent='Making the quote image…';
   const withP=store.get('qimgPhotos',true);$('qimgPhotos').checked=!!withP;
@@ -3538,7 +3579,7 @@ $('tabFind').onclick=()=>openFind();
 $('tabRates').onclick=()=>openRates();
 $('tabSet').onclick=()=>openSettings();
 setView('home');
-window.__pc={totals:()=>totals(),shareText:()=>shareText(),openSettings:c=>openSettings(c)}; // used by the automated checks
+window.__pc={totals:()=>totals(),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
 const APP_VERSION='1.7.__BUILD__';
@@ -3554,12 +3595,12 @@ const PERM_LIST=[
 ['stockdel','Delete sold tags from stock'],['rates',"Set day's rates"],
   ['mkEdit','Update making on the price card'],['mkDisc','Making after discount on quotes'],
   ['closeSale','Close sale (invoice no.)'],['cancelQuote','Cancel quote (enquiry)'],['reopen','Reopen sold / cancelled quotes'],
-  ['delQuote','Delete quotes'],['images','Add product photos'],
+  ['delQuote','Delete quotes'],['images','Add product photos'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],
   ['textSize','Text size'],['imgShow','Product image show / hide'],['ratesShown','Rates shown'],['charges','Charges · GST · HUID'],
   ['mkHelper','Making helpers'],['itemCodes','Item codes'],['pdRows','Product details items'],['sync','Shared database · shop key'],['roles','Roles & permissions'],['users','Users']];
 const SET_PERMS=['theme','footer','stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users'];
 const permLabel=k=>(PERM_LIST.find(p=>p[0]===k)||[0,k])[1];
-const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote']}];
+const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','approve','leads']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote']}];
 let roles=store.get('roles',null)||clone(DEFAULT_ROLES);
 let elev={role:'',until:0};   // another user's approval, 15 minutes
 const roleName=id=>id==='admin'?'Admin':(roles.find(r=>r.id===id)||{name:id||'—'}).name;
@@ -3666,6 +3707,166 @@ function logout(msg){
   curUser=null;adminCreds=null;adminUntil=0;elev={role:'',until:0};store.set('session',null);
   paintUserChip();paintAdmin();openLogin('login',msg||'Logged out. Log in to continue.');
 }
+
+// ---------- Approvals, WhatsApp leads and notifications (v1.7.1) ----------
+// Staff send a quote to a manager/admin for approval; the manager sets the discount and approves; the staff member is
+// told and can then share it. Managers can pass WhatsApp leads to a staff member. Phones poll a small "inbox".
+const meName=()=>curUser?(curUser.name||curUser.username):'';
+function canApprove(){return can('approve')}
+function apprSig(q){return JSON.stringify([(q.items||[]).map(t=>[t.sku,t.gw,t.nw,t.mkType,t.mkVal,t.qMk?t.qMk.val:'']),q.discount||'',q.delivery||'',q.courier||'',q.channel||''])}
+function apprState(q){const a=q&&q.appr;if(!a||!a.state)return '';if(a.state==='approved'&&a.sig&&a.sig!==apprSig(q))return 'changed';return a.state}
+// Approval is needed before sharing when the user cannot approve and the shop uses the shared database
+function needsAppr(){return !!(sync.key&&curUser&&!canApprove())}
+function shareOk(){
+  if(!needsAppr())return true;const st=apprState(bill);if(st==='approved')return true;
+  toast(st==='pending'?'Waiting for the manager to approve this quote':'Send the quote for approval first',null,true);
+  const c=$('qAppr');if(c&&!c.hidden)c.scrollIntoView({behavior:'smooth',block:'center'});return false;
+}
+const ago=t=>{if(!t)return'';const m=Math.round((Date.now()-t)/60000);return m<1?'just now':m<60?m+' min ago':m<1440?Math.round(m/60)+' h ago':new Date(t).toLocaleDateString('en-IN',{day:'numeric',month:'short'})};
+function paintAppr(){
+  const c=$('qAppr');if(!c)return;
+  const st=apprState(bill),a=bill.appr||{},closed=isClosed(),lead=bill.leadNote||'';
+  const show=!!sync.key&&curUser&&bill.items.length&&!closed&&(needsAppr()||st==='pending'||st==='approved'||st==='changed');
+  c.hidden=!show&&!lead;$('qApprLead').hidden=!lead;$('qApprLead').textContent=lead?'WhatsApp lead: '+lead:'';
+  c.classList.toggle('pending',st==='pending');c.classList.toggle('approved',st==='approved');
+  const acts=$('qApprActs');acts.innerHTML='';const btn=(t,cls,fn)=>{const b=document.createElement('button');b.type='button';b.className='btn '+(cls||'');b.textContent=t;b.onclick=fn;acts.appendChild(b)};
+  let msg='',tag='';
+  if(!show){$('qApprMsg').textContent='';$('qApprSt').textContent='';return}
+  if(canApprove()){
+    if(st==='pending'){tag='Waiting for you';msg=`${a.reqName||'Staff'} asked for approval ${ago(a.reqAt)}. Set the discount above, then approve. ${a.reqName||'They'} will be told and can share the quote.`;btn('Approve & send to '+(a.reqName||'staff'),'primary',approveQuote)}
+    else if(st==='approved'){tag='Approved';msg=`Approved by ${a.by||'—'} ${ago(a.at)}.`}
+    else if(st==='changed'){tag='Changed';msg=`Changed after approval by ${a.by||'—'}.`;btn('Approve again','primary',approveQuote)}
+  }else{
+    if(st==='pending'){tag='Sent';msg=`Sent for approval ${ago(a.reqAt)}. You'll get a notification when the manager has set the discount and approved it.`;btn('Check now','',()=>{pollInbox(true);pullQuotes()})}
+    else if(st==='approved'){tag='Approved';msg=`Approved by ${a.by||'the manager'} ${ago(a.at)}. Ready to share with the customer.`;btn('Send quote image','primary',()=>$('waBtn').click())}
+    else{tag=st==='changed'?'Changed':'Not sent';msg=st==='changed'?'The quote changed after approval. Send it again before sharing.':'A manager or admin approves the quote and sets the discount before it is shared with the customer.';btn('Send for approval','primary',requestAppr)}
+  }
+  $('qApprSt').textContent=tag;$('qApprMsg').textContent=msg;
+}
+async function requestAppr(){
+  if(!bill.items.length){toast('Add an item first',null,true);return}
+  const s=totals();if(s.bad){toast('Some items have no price. Check rates and weights.',null,true);return}
+  if(!bill.cust.name&&!bill.cust.phone){toast('Enter the customer name or phone first',null,true);$('qName').focus();return}
+  bill.appr={state:'pending',reqBy:curUser.id,reqName:meName(),reqAt:Date.now()};
+  saveBill(true);renderBill();const ok=await pushQuote(bill.id);renderBill();
+  toast(ok?'Sent to the manager for approval':'Saved. It will be sent when online.',null,!ok);
+}
+async function approveQuote(){
+  withPerm('approve','Needs a manager or admin to approve.',async()=>{
+    bill.appr=Object.assign({},bill.appr||{},{state:'approved',by:meName(),byId:curUser?curUser.id:'',at:Date.now()});bill.appr.sig=apprSig(bill);
+    saveBill(true);renderBill();const ok=await pushQuote(bill.id);renderBill();
+    toast(ok?`Approved · ${bill.appr.reqName||'staff'} will be notified`:'Approved. It will be sent when online.',null,!ok);
+  });
+}
+// --- leads ---
+let leads=store.get('leads',[]);if(!Array.isArray(leads))leads=[];
+let leadsV=store.get('leadsV',0);
+async function pullLeads(){if(!sync.key||!navigator.onLine)return;try{const r=await syncApi('leads');if(Array.isArray(r.leads)){leads=r.leads;leadsV=r.v||0;store.set('leads',leads);store.set('leadsV',leadsV)}}catch(e){}}
+async function pushLead(l){if(!sync.key)return false;try{const r=await syncApi('lead','POST',{lead:l});if(r&&r.lead){const i=leads.findIndex(x=>x.id===l.id);if(i>=0)leads[i]=r.lead;else leads.unshift(r.lead);store.set('leads',leads)}return true}catch(e){return false}}
+function phoneFrom(t){const m=String(t||'').replace(/[‪-‮]/g,'').match(/(?:\+?91[\s-]*)?[6-9]\d(?:[\s-]*\d){8}/);return m?m[0].replace(/\D/g,'').slice(-10):''}
+function openLeadForm(pre){
+  withPerm('leads','Needs a manager or admin to share leads.',()=>{
+    pre=pre||{};const staff=users.filter(u=>u.active!==false&&(!curUser||u.id!==curUser.id));
+    $('modalTitle').textContent='Share a WhatsApp lead';$('modalTitle').classList.remove('price-pop');
+    $('modalBody').innerHTML=`<div class="lead-f"><label for="ldTo">Give to</label><select id="ldTo">${staff.map(u=>`<option value="${esc(u.id)}">${esc(u.name||u.username)} · ${esc(roleName(u.role))}</option>`).join('')}</select>
+      <label for="ldName">Customer name</label><input id="ldName" autocomplete="off" value="${esc(pre.name||'')}" placeholder="Name">
+      <label for="ldPhone">WhatsApp number</label><input id="ldPhone" inputmode="tel" autocomplete="off" value="${esc(pre.phone||'')}" placeholder="10-digit mobile">
+      <label for="ldNote">Enquiry</label><textarea id="ldNote" placeholder="What the customer asked for (paste the WhatsApp message)">${esc(pre.note||'')}</textarea></div>`;
+    const a=$('modalActs');a.innerHTML='';
+    const ok=document.createElement('button');ok.className='btn primary';ok.type='button';ok.textContent='Send to staff';
+    ok.onclick=async()=>{const to=$('ldTo').value,u=users.find(x=>x.id===to),ph=phoneFrom($('ldPhone').value)||$('ldPhone').value.trim(),nm=$('ldName').value.trim(),nt=$('ldNote').value.trim();
+      if(!to){toast('Add a staff user first (Settings → Users)',null,true);return}
+      if(!ph&&!nm){toast('Enter the customer number or name',null,true);return}
+      const l={id:uid(),name:nm,phone:ph,note:nt,to,toName:u?(u.name||u.username):'',by:curUser?curUser.id:'',byName:meName(),at:Date.now(),state:'new'};
+      closeModal();leads.unshift(l);store.set('leads',leads);const done=await pushLead(l);toast(done?`Lead sent to ${l.toName}`:'Could not send the lead. Check the internet.',null,!done)};
+    const cn=document.createElement('button');cn.className='btn ghost';cn.type='button';cn.textContent='Cancel';cn.onclick=closeModal;
+    a.append(ok,cn);$('modal').hidden=false;if(!staff.length)toast('No other users yet. Add staff in Settings → Users.',null,true);
+    setTimeout(()=>$(pre.phone?'ldName':'ldPhone').focus(),60);
+  });
+}
+async function startLead(id){
+  const l=leads.find(x=>x.id===id)||(await pullLeads(),leads.find(x=>x.id===id));if(!l){toast('Lead not found',null,true);return}
+  if(l.quoteId&&quotes.some(q=>q.id===l.quoteId)){openQuote(l.quoteId);setView('quote');return}
+  if(!billIsEmpty())saveBill(true);
+  store.set('saleMode','online');try{paintSaleMode()}catch(e){}
+  startNewQuote('Lead from '+(l.byName||'manager')+'. Scan or add the items.');
+  bill.channel='online';bill.cust={name:l.name||'',phone:l.phone||''};bill.lead=l.id;bill.leadNote=[l.note,l.byName?'— from '+l.byName:''].filter(Boolean).join(' ');
+  saveBill(true);renderBill();setView('quote');
+  l.state='open';l.quoteId=bill.id;store.set('leads',leads);pushLead(l);
+}
+// Text shared into the app from WhatsApp (Android share sheet)
+window.onSharedText=function(t){
+  t=String(t||'').trim();if(!t)return;const ph=phoneFrom(t);
+  if(curUser&&can('leads')){openLeadForm({phone:ph,note:t});return}
+  if(!billIsEmpty())saveBill(true);
+  store.set('saleMode','online');try{paintSaleMode()}catch(e){}
+  startNewQuote('New online enquiry from WhatsApp.');bill.channel='online';bill.cust.phone=ph;bill.leadNote=t;saveBill(true);renderBill();setView('quote');
+};
+// --- inbox (notifications) ---
+let inbox=store.get('inbox',{pending:[],approved:[],leads:[]});
+const inbNotified=new Set(store.get('inbNotified',[]));let inbRead=new Set(store.get('inbRead',[]));let inbFirst=!store.get('inbInit',false);
+function myInbox(){
+  const me=curUser&&curUser.id;if(!me)return [];const out=[];
+  if(canApprove())(inbox.pending||[]).filter(p=>p.by!==me).forEach(p=>out.push({k:'p:'+p.id+':'+p.at,kind:'pending',id:p.id,t:`Approve ${p.no||'quote'}${p.name?' · '+p.name:''}`,s:`From ${p.byName||'staff'} · ${ago(p.at)}`,at:p.at,act:true}));
+  (inbox.approved||[]).filter(a=>a.to===me).forEach(a=>out.push({k:'a:'+a.id+':'+a.at,kind:'approved',id:a.id,t:`${a.no||'Quote'} approved${a.name?' · '+a.name:''}`,s:`By ${a.byName||'manager'} · ready to share · ${ago(a.at)}`,at:a.at}));
+  (inbox.leads||[]).filter(l=>l.to===me).forEach(l=>out.push({k:'l:'+l.id,kind:'lead',id:l.id,t:`New WhatsApp lead${l.name?' · '+l.name:''}`,s:`From ${l.byName||'manager'} · ${ago(l.at)}`,at:l.at,act:true}));
+  return out.sort((a,b)=>b.at-a.at);
+}
+function paintBell(){
+  const on=!!(sync.key&&curUser),items=on?myInbox():[],n=items.filter(x=>x.act||!inbRead.has(x.k)).length;
+  document.querySelectorAll('.bell').forEach(b=>{b.hidden=!on;const c=b.querySelector('.bell-n');c.hidden=!n;c.textContent=n>9?'9+':String(n);b.setAttribute('aria-label',n?`${n} notifications`:'Notifications')});
+}
+function nativeInbox(){
+  try{if(NATIVE&&NATIVE.setInbox)NATIVE.setInbox(sync.key&&curUser?JSON.stringify({site:SYNC_BASE||BRAND.site,key:sync.key,user:curUser.id,approver:canApprove(),app:BRAND.app}):'')}catch(e){}
+}
+let inboxBusy=false,inboxP=null,inboxAgain=false;
+function pollInbox(force){
+  if(!sync.key||!curUser||!navigator.onLine)return Promise.resolve();if(document.hidden&&!force)return Promise.resolve();
+  // one request at a time; a call made meanwhile runs once more afterwards so it sees the latest
+  if(inboxBusy){inboxAgain=true;return inboxP.then(()=>inboxP)}
+  inboxP=pollInboxNow().then(()=>{if(inboxAgain){inboxAgain=false;return pollInboxNow()}});return inboxP;
+}
+async function pollInboxNow(){
+  inboxBusy=true;
+  try{const r=await syncApi('inbox');inbox={pending:r.pending||[],approved:r.approved||[],leads:r.leads||[]};store.set('inbox',inbox);
+    if((r.q||0)>(sync.v.quotes||0))pullQuotes().then(()=>{try{paintAppr()}catch(e){}});
+    if((r.l||0)>leadsV)pullLeads();
+    const items=myInbox(),fresh=items.filter(x=>!inbNotified.has(x.k));
+    fresh.forEach(x=>inbNotified.add(x.k));store.set('inbNotified',[...inbNotified].slice(-400));
+    if(inbFirst){inbFirst=false;store.set('inbInit',true)}
+    else if(fresh.length){
+      const x=fresh[0],more=fresh.length>1?` (+${fresh.length-1} more)`:'';
+      toast(x.t+more);try{navigator.vibrate&&navigator.vibrate([120,80,120])}catch(e){}
+      fresh.forEach(f=>{try{if(NATIVE&&NATIVE.notify)NATIVE.notify(f.t,f.s,f.k,f.kind+':'+f.id,!!document.hidden)}catch(e){}});
+    }
+    paintBell();
+  }catch(e){try{console.warn('inbox',e&&e.message)}catch(_){}}finally{inboxBusy=false}
+}
+function openInbox(again){
+  const items=myInbox();
+  $('modalTitle').textContent='Notifications';$('modalTitle').classList.remove('price-pop');
+  const sec=(t,arr)=>arr.length?`<div class="inb-sec">${t}</div>`+arr.map(x=>`<button type="button" class="inb-it${x.act||!inbRead.has(x.k)?' new':''}" data-k="${esc(x.kind)}" data-id="${esc(x.id)}"><b>${esc(x.t)}</b><small>${esc(x.s)}</small></button>`).join(''):'';
+  const mine=can('leads')?leads.filter(l=>l.by===(curUser&&curUser.id)).slice(0,6):[];
+  $('modalBody').innerHTML=(items.length?sec('Waiting for your approval',items.filter(x=>x.kind==='pending'))+sec('Leads for you',items.filter(x=>x.kind==='lead'))+sec('Approved · ready to share',items.filter(x=>x.kind==='approved')):'<div class="inb-empty">Nothing new.</div>')
+    +(mine.length?`<div class="inb-sec">Leads you shared</div>`+mine.map(l=>`<div class="inb-empty">${esc(l.name||l.phone||'Lead')} → ${esc(l.toName||'—')} · ${l.state==='new'?'not opened yet':l.state==='open'?'quote started':'done'} · ${ago(l.at)}</div>`).join(''):'');
+  const a=$('modalActs');a.innerHTML='';
+  if(can('leads')){const nb=document.createElement('button');nb.className='btn primary';nb.type='button';nb.textContent='Share a WhatsApp lead';nb.onclick=()=>{closeModal();openLeadForm()};a.appendChild(nb)}
+  const cl=document.createElement('button');cl.className='btn ghost';cl.type='button';cl.textContent='Close';cl.onclick=closeModal;a.appendChild(cl);
+  $('modalBody').querySelectorAll('.inb-it').forEach(b=>b.onclick=async()=>{closeModal();const id=b.dataset.id;
+    if(b.dataset.k==='lead'){startLead(id);return}
+    if(!quotes.some(q=>q.id===id))await pullQuotes();
+    if(!quotes.some(q=>q.id===id)){toast('Quote not found. Try again in a moment.',null,true);return}
+    openQuote(id);setView('quote');setTimeout(()=>{const c=$('qAppr');if(c&&!c.hidden)c.scrollIntoView({behavior:'smooth',block:'center'})},300)});
+  items.forEach(x=>inbRead.add(x.k));store.set('inbRead',[...inbRead].slice(-400));paintBell();
+  $('modal').hidden=false;
+  if(!again){const before=JSON.stringify(items.map(x=>x.k));pollInbox(true).then(()=>{if(!$('modal').hidden&&$('modalTitle').textContent==='Notifications'&&JSON.stringify(myInbox().map(x=>x.k))!==before)openInbox(true)})}
+}
+document.querySelectorAll('.bell').forEach(b=>b.onclick=()=>openInbox());
+// Tapping a phone notification opens the quote or lead
+window.onNativeOpen=function(t){const m=String(t||'').match(/^(\w+):(.+)$/);if(!m)return;
+  if(m[1]==='lead')startLead(m[2]);else{const go=()=>{if(quotes.some(q=>q.id===m[2])){openQuote(m[2]);setView('quote')}};if(quotes.some(q=>q.id===m[2]))go();else pullQuotes().then(go)}};
+setInterval(()=>pollInbox(),30000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)pollInbox()});
 // Footer tabs each role sees (admin chooses; admins always see all). Home is always shown.
 const FOOT_TABS=[['tabScan','Scan'],['tabFind','Search'],['tabQuote','Quote'],['tabRates','Gold Rates'],['tabSet','Settings']];
 function applyTabs(){
@@ -3682,7 +3883,7 @@ function paintFooterSet(){
     const t=Object.assign({},settings.tabHide||{}),cur=new Set(t[b.dataset.r]||[]);cur.has(b.dataset.t)?cur.delete(b.dataset.t):cur.add(b.dataset.t);
     t[b.dataset.r]=[...cur];settings.tabHide=t;saveSettings();applyTabs();toast('Footer updated')},true));
 }
-function paintUserChip(){try{applyTabs()}catch(e){}const c=$('userChip');c.hidden=!curUser;if(curUser)c.textContent='👤 '+(curUser.name||curUser.username)+' · Log out';$('heroName').textContent=$('sbName').textContent=curUser?(curUser.name||curUser.username):'—'}
+function paintUserChip(){try{applyTabs()}catch(e){}try{paintBell();nativeInbox();if(curUser)setTimeout(()=>pollInbox(true),800)}catch(e){}const c=$('userChip');c.hidden=!curUser;if(curUser)c.textContent='👤 '+(curUser.name||curUser.username)+' · Log out';$('heroName').textContent=$('sbName').textContent=curUser?(curUser.name||curUser.username):'—'}
 $('heroUser').onclick=()=>{if(curUser)$('userChip').click()};
 $('userChip').onclick=()=>showModal(`${curUser.name||curUser.username}`,`Logged in as ${roleName(curUser.role)} (${curUser.username}).`,[
   {label:'Log out',cls:'danger',run:()=>logout()},{label:'Cancel',cls:'ghost'}]);
