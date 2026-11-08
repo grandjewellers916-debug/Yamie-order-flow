@@ -19,9 +19,11 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.7'
+      - name: Install Gradle 8.7
+        run: |
+          for i in 1 2 3 4 5; do curl -fsSL -o /tmp/gradle.zip https://downloads.gradle.org/distributions/gradle-8.7-bin.zip && break; sleep 10; done
+          unzip -q /tmp/gradle.zip -d /opt
+          echo "/opt/gradle-8.7/bin" >> $GITHUB_PATH
 
       - name: Stamp version
         run: sed -i "s/\.__BUILD__/.${{ github.run_number }}/" web/index.html
