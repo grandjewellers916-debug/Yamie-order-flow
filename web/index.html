@@ -928,6 +928,92 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
   body[data-view="quote"] #bill{grid-template-columns:minmax(0,1fr) 280px}
 }
 @media (min-width:1440px){.q-tools{grid-template-columns:repeat(6,minmax(0,1fr))}}
+
+/* ===== Theme styles: 01 iOS colour (default) · 02 true iOS · 03 Android ===== */
+.ui-pick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
+.ui-pick button{display:flex;flex-direction:column;align-items:center;gap:4px;border:1.5px solid var(--line);background:var(--surface);border-radius:14px;padding:10px 6px;cursor:pointer;color:var(--fg);text-align:center}
+.ui-pick button[aria-pressed="true"]{border-color:var(--maroon);box-shadow:0 0 0 3px color-mix(in srgb,var(--maroon) 18%,transparent)}
+.ui-pick small{font-size:11px;color:var(--muted)}
+.uip{width:58px;height:84px;border-radius:10px;border:1px solid var(--line);overflow:hidden;display:flex;flex-direction:column;gap:5px;background:#F6F4F2}
+.uip i{display:block;height:20px}
+.uip b{display:block;height:12px;margin:0 6px;border-radius:4px;background:#fff;border:1px solid #e6e1dc}
+.uip-brand i{background:linear-gradient(180deg,var(--maroon),var(--band))}
+.uip-ios{background:#F2F2F7}.uip-ios i{background:#fff;border-bottom:1px solid #ddd}.uip-ios b:last-child{background:#0A6CFF;border:0}
+.uip-and i{background:#fff;border-top:4px solid var(--maroon);box-shadow:0 2px 3px rgba(0,0,0,.12)}.uip-and b:last-child{background:var(--maroon);border:0;border-radius:2px}
+.sw-pick{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.sw-pick button{display:flex;align-items:center;gap:8px;border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px 6px 6px;cursor:pointer;color:var(--fg);font-size:13px}
+.sw-pick button span{width:22px;height:22px;border-radius:50%;display:block}
+.sw-pick button[aria-pressed="true"]{border-color:var(--fg);font-weight:700}
+
+/* shared by true iOS and Android: light app bar, tinted scan card, plain titles */
+:root[data-ui="iosTrue"] .hero,:root[data-ui="android"] .hero{background:var(--surface);color:var(--fg);box-shadow:0 1px 0 var(--line)}
+:root[data-ui="iosTrue"] .hero-mark,:root[data-ui="android"] .hero-mark,:root[data-ui="iosTrue"] .hero-bar,:root[data-ui="android"] .hero-bar,:root[data-ui="iosTrue"] .hero-wm,:root[data-ui="android"] .hero-wm{display:none!important}
+:root[data-ui="iosTrue"] .hero-title,:root[data-ui="android"] .hero-title{color:var(--fg);text-transform:none;letter-spacing:0}
+:root[data-ui="iosTrue"] .hero-back,:root[data-ui="android"] .hero-back,:root[data-ui="iosTrue"] .hamb,:root[data-ui="android"] .hamb,:root[data-ui="iosTrue"] .hero-user,:root[data-ui="android"] .hero-user{color:var(--maroon)}
+:root[data-ui="iosTrue"] .hero-in,:root[data-ui="android"] .hero-in{grid-template-columns:44px 1fr auto!important}
+:root[data-ui="iosTrue"] .hamb,:root[data-ui="android"] .hamb{order:-2!important}
+:root[data-ui="iosTrue"] .hero-back:not([hidden]),:root[data-ui="android"] .hero-back:not([hidden]){order:-3}
+:root[data-ui="iosTrue"] .hero-back:not([hidden])~.hamb,:root[data-ui="android"] .hero-back:not([hidden])~.hamb{display:none}
+:root[data-ui="iosTrue"] .hero-back[hidden],:root[data-ui="android"] .hero-back[hidden]{display:none!important}
+:root[data-ui="iosTrue"] .scan-hero,:root[data-ui="android"] .scan-hero{background:color-mix(in srgb,var(--maroon) 10%,var(--surface));color:var(--maroon);box-shadow:none;border:1px solid color-mix(in srgb,var(--maroon) 18%,transparent)}
+:root[data-ui="iosTrue"] .scan-hero::after,:root[data-ui="android"] .scan-hero::after{display:none}
+:root[data-ui="iosTrue"] .sh-ico svg,:root[data-ui="android"] .sh-ico svg{color:var(--maroon)}
+:root[data-ui="iosTrue"] .sh-t,:root[data-ui="android"] .sh-t{letter-spacing:0;text-transform:none;font-size:22px;color:var(--fg)}
+:root[data-ui="iosTrue"] .sh-s,:root[data-ui="android"] .sh-s{color:var(--muted)}
+:root[data-ui="iosTrue"] .scan-m,:root[data-ui="android"] .scan-m,:root[data-ui="iosTrue"] .scan-plus,:root[data-ui="android"] .scan-plus{color:var(--maroon);border-color:color-mix(in srgb,var(--maroon) 35%,transparent);background:var(--surface)}
+:root[data-ui="iosTrue"] .band .eyebrow,:root[data-ui="android"] .band .eyebrow,:root[data-ui="iosTrue"] .ph-t,:root[data-ui="android"] .ph-t{text-transform:none;letter-spacing:0;font-size:17px}
+:root[data-ui="iosTrue"] .q-step,:root[data-ui="android"] .q-step{text-transform:none;letter-spacing:0;font-size:14px}
+:root[data-ui="iosTrue"] .grand,:root[data-ui="android"] .grand{background:var(--maroon)}
+
+/* 02 true iOS: grouped grey background, system font, blue by default */
+:root[data-ui="iosTrue"]{--body:-apple-system,"SF Pro Text","Inter","Segoe UI",Roboto,system-ui,sans-serif;--display:-apple-system,"SF Pro Display","Inter","Segoe UI",Roboto,system-ui,sans-serif;--bg:#F2F2F7;--sunk:#EFEFF4;--line:#E5E5EA;--fg:#111114;--muted:#6E6E73}
+:root[data-ui="iosTrue"] body{background:var(--bg)}
+:root[data-ui="iosTrue"] .hero{background:rgba(255,255,255,.92);backdrop-filter:saturate(180%) blur(16px)}
+:root[data-ui="iosTrue"] .hero-c{align-items:center}
+:root[data-ui="iosTrue"] .hero-title{font:600 18px var(--display)}
+:root[data-ui="iosTrue"] .card,:root[data-ui="iosTrue"] .band,:root[data-ui="iosTrue"] .bc-type{border-radius:14px;border-color:transparent;box-shadow:none}
+:root[data-ui="iosTrue"] .rate label{color:var(--muted)}
+:root[data-ui="iosTrue"] .btn.primary{background:var(--maroon);border-color:var(--maroon);border-radius:14px}
+:root[data-ui="iosTrue"] .tab.on{color:var(--maroon)}:root[data-ui="iosTrue"] .tab.on::after{display:none}
+:root[data-ui="iosTrue"] .tabbar{background:rgba(249,249,249,.94);backdrop-filter:blur(16px)}
+:root[data-ui="iosTrue"] .sale-mode{background:#E3E3E8;border-radius:10px;padding:3px}
+:root[data-ui="iosTrue"] .sale-mode button{border-radius:8px}
+:root[data-ui="iosTrue"] .sale-mode button[aria-pressed="true"]{background:var(--maroon);color:#fff}
+:root[data-ui="iosTrue"] .login{background:#fff;color:var(--fg)}
+:root[data-ui="iosTrue"] .login::after{display:none}
+:root[data-ui="iosTrue"] .login-in h2{color:var(--fg)}
+:root[data-ui="iosTrue"] .login-in h2::before{background:var(--line)}
+:root[data-ui="iosTrue"] .login-in .note,:root[data-ui="iosTrue"] .login-in #loginHint,:root[data-ui="iosTrue"] .login-in .brand.with-logo small{color:var(--muted)}
+:root[data-ui="iosTrue"] .lg-in{background:#F2F2F7;border-color:#E5E5EA}
+:root[data-ui="iosTrue"] .login-in .lg-in input{color:var(--fg)}:root[data-ui="iosTrue"] .login-in .lg-in input::placeholder{color:#8E8E93}
+:root[data-ui="iosTrue"] .lg-ico svg,:root[data-ui="iosTrue"] .lg-eye svg{color:#3C3C43}
+:root[data-ui="iosTrue"] .login-go{background:var(--maroon)!important;color:#fff!important;box-shadow:none}
+:root[data-ui="iosTrue"] .user-pick button{background:#F2F2F7;color:var(--fg);border-color:#E5E5EA}
+:root[data-ui="iosTrue"] .user-pick button[aria-pressed="true"]{background:var(--maroon);color:#fff}
+
+/* 03 Android (Material): white app bar under a coloured status strip, left title, Roboto */
+:root[data-ui="android"]{--body:Roboto,"Google Sans","Segoe UI",system-ui,sans-serif;--display:Roboto,"Google Sans","Segoe UI",system-ui,sans-serif;--bg:#F7F2F2;--line:#E8DEDE}
+:root[data-ui="android"] .hero{border-top:6px solid var(--band);box-shadow:0 2px 4px rgba(0,0,0,.08)}
+:root[data-ui="android"] .hero-c{align-items:flex-start}
+:root[data-ui="android"] .hero-title{font:500 21px var(--display)}
+:root[data-ui="android"] .card,:root[data-ui="android"] .band,:root[data-ui="android"] .bc-type{border-radius:12px;border-color:transparent;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+:root[data-ui="android"] .btn{border-radius:20px}
+:root[data-ui="android"] .btn.primary{background:var(--maroon);border-color:var(--maroon)}
+:root[data-ui="android"] .rate label{color:var(--muted)}
+:root[data-ui="android"] .tab.on::after{left:22%;right:22%;top:3px;bottom:auto;height:28px;border-radius:14px;background:color-mix(in srgb,var(--maroon) 14%,transparent);z-index:-1}
+:root[data-ui="android"] .tab{z-index:0}
+:root[data-ui="android"] .sale-mode button{border-radius:8px}
+:root[data-ui="android"] .sale-mode button[aria-pressed="true"]{background:color-mix(in srgb,var(--maroon) 14%,var(--surface));color:var(--maroon);font-weight:700}
+:root[data-ui="android"] .login{background:linear-gradient(180deg,var(--band) 0,var(--maroon) 42%,var(--bg) 42.1%)}
+:root[data-ui="android"] .login::after{display:none}
+:root[data-ui="android"] .login-in .f,:root[data-ui="android"] .login-in .login-go,:root[data-ui="android"] .login-in #loginHint,:root[data-ui="android"] .login-in .pin-err{position:relative}
+:root[data-ui="android"] .lg-in{background:var(--surface);border-color:#CFC4C4}
+:root[data-ui="android"] .login-in .lg-in input{color:var(--fg)}:root[data-ui="android"] .login-in .lg-in input::placeholder{color:#857575}
+:root[data-ui="android"] .lg-ico svg,:root[data-ui="android"] .lg-eye svg{color:#534343}
+:root[data-ui="android"] .login-go{background:var(--maroon)!important;color:#fff!important;border-radius:24px!important;box-shadow:none}
+:root[data-ui="android"] .login-in #loginHint,:root[data-ui="android"] .login-in .note{color:var(--muted)}
+:root[data-ui="android"] .user-pick button{background:var(--surface);color:var(--fg);border-color:#CFC4C4}
+:root[data-ui="android"] .user-pick button[aria-pressed="true"]{background:var(--maroon);color:#fff}
 </style>
 <script src="brand-id.js"></script>
 <script src="brand.js"></script>
@@ -1205,6 +1291,18 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
       <div class="rs-acts"><button class="btn danger" type="button" id="soldDel" disabled>Delete tags</button><button class="btn" type="button" id="soldFile">From Excel list</button></div>
       <div class="status" id="soldStatus"></div>
     </div>
+  </details>
+  <details class="card datacard setcard" id="setTheme" data-pane="settings" data-perm="theme">
+    <summary><span class="dc-t">Theme · style and colours</span><span class="dc-s" id="setThemeMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
+      <p class="note" style="margin-block:4px 0">Applies to every phone and tablet in the shop.</p>
+      <h3>Style</h3>
+      <div class="ui-pick" id="uiPick">
+        <button type="button" data-u="iosBrand"><span class="uip uip-brand"><i></i><b></b><b></b></span><b>01 · iOS colour</b><small>Brand header with logo</small></button>
+        <button type="button" data-u="iosTrue"><span class="uip uip-ios"><i></i><b></b><b></b></span><b>02 · True iOS</b><small>White, clean, system font</small></button>
+        <button type="button" data-u="android"><span class="uip uip-and"><i></i><b></b><b></b></span><b>03 · Android</b><small>Material app bar</small></button>
+      </div>
+      <h3 style="margin-top:14px">Colours</h3>
+      <div class="sw-pick" id="accentPick"></div>
   </details>
   <details class="card datacard setcard" id="setText" data-pane="settings" data-perm="textSize">
     <summary><span class="dc-t">Text size</span><span class="dc-s" id="setTextMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
@@ -1546,14 +1644,14 @@ function applyRemoteSettings(rs){
   if('cats' in rs){settings.cats=rs.cats&&typeof rs.cats==='object'&&Object.keys(rs.cats).length?rs.cats:null;try{applyCats()}catch(e){}}
   if('showRates' in rs){settings.showRates=Array.isArray(rs.showRates)&&rs.showRates.length?rs.showRates:null;try{rebuildPurities()}catch(e){}}
   if(rs.gst!=null)settings.gst=rs.gst;if(rs.huid!=null)settings.huid=rs.huid;
-  if(rs.mkEdit)settings.mkEdit=rs.mkEdit;if('showImg' in rs)settings.showImg=rs.showImg!==false;
+  if(rs.mkEdit)settings.mkEdit=rs.mkEdit;if(rs.ui)settings.ui=rs.ui;if(rs.accent)settings.accent=rs.accent;try{applyTheme()}catch(e){}if('showImg' in rs)settings.showImg=rs.showImg!==false;
   store.set('settings2',settings);try{paintAdminExtras()}catch(e){}
   try{renderTable('cz');renderTable('dia');$('setGst').value=settings.gst;$('setHuid').value=settings.huid;renderEditor();renderBill(true)}catch(e){}
 }
 let settingsTimer=null;
 function saveSettings(){store.set('settings2',settings);if(!sync.key)return;sync.dirtySettings=true;saveSyncState();clearTimeout(settingsTimer);settingsTimer=setTimeout(()=>{if(adminCreds)pushSettingsNow().catch(e=>syncMsg('err',syncErrText(e)))},1500)}
 async function pushSettingsNow(){
-  const r=await syncApi('settings','POST',{settings:{gst:settings.gst,huid:settings.huid,mkTable:settings.mkTable,cats:settings.cats||null,showRates:settings.showRates||null,mkEdit:settings.mkEdit||'admin',showImg:settings.showImg!==false}},adminCreds);
+  const r=await syncApi('settings','POST',{settings:{gst:settings.gst,huid:settings.huid,mkTable:settings.mkTable,cats:settings.cats||null,showRates:settings.showRates||null,mkEdit:settings.mkEdit||'admin',showImg:settings.showImg!==false,ui:settings.ui||'iosBrand',accent:settings.accent||'brand'}},adminCreds);
   sync.v.settings=r.v;sync.dirtySettings=false;saveSyncState();syncMsg('ok','Settings saved to the shared database.');
 }
 async function pushRate(entry){
@@ -1766,6 +1864,7 @@ function totals(){
   s.old=0;s.oldW=0;
   bill.oldGold.forEach(o=>{const v=oldValue(o);if(!isNaN(v)){s.old+=v;s.oldW+=num(o.wt)}});
   s.ret=0;bill.returns.forEach(r=>{const v=num(r.amount);if(!isNaN(v))s.ret+=v});
+  if(bill.channel==='online'){s.old=0;s.oldW=0;s.ret=0}   // online enquiries: advance only
   s.flat=Math.max(0,num(bill.discount)||0);
   // Final amount rounded down to the ₹100; the difference is added to the discount
   const pre=s.total-s.flat;
@@ -2377,6 +2476,7 @@ function renderBill(keepInputs){
   [...$('qType').children].forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.c===(bill.channel||'store')));b.disabled=closed});
   const online=(bill.channel||'store')==='online';
   $('qDelRow').hidden=!online;
+  $('qUrdSec').hidden=$('qSrSec').hidden=online;$('qtUrd').hidden=$('qtSr').hidden=online;$('bill').classList.toggle('q-online',online);
   $('qCourier').innerHTML=COURIERS.map(c=>`<button type="button" role="radio" class="cour${bill.courier===c.id?' on':''}" aria-checked="${bill.courier===c.id}" data-k="${c.id}"${closed?' disabled':''}><b>${esc(c.name)}</b><span>${esc(c.note)}</span></button>`).join('');
   $('qCourier').querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{bill.courier=b.dataset.k;saveBill();renderBill(true);if(b.dataset.k==='own')setTimeout(()=>$('qDel').focus(),60)});
   $('qDelAmtRow').hidden=bill.courier!=='own';
@@ -2560,6 +2660,7 @@ function shareText(){
   out.push(`*${s.net<0?'Refund':'Balance'}: ${inr(Math.abs(s.net))}*`);
   if(isClosed())out.push(`Invoice ${bill.invoice}`);
   out.push('','Prices at today\'s gold rate. Valid today.');
+  if(BRAND.address)out.push('',...BRAND.address);
   return out.join('\n');
 }
 // ---------- actions ----------
@@ -2672,7 +2773,7 @@ async function makeQuoteImage(withPhotos){
   if(s.old)sumRows.push([`Old gold (URD) ${fmtW(s.oldW)} g`,'−'+inr(s.old)]);
   if(s.ret)sumRows.push(['Sales return','−'+inr(s.ret)]);
   if(s.adv)sumRows.push(['Advance paid','−'+inr(s.adv)]);
-  const ROW=262,H=270+150+110+items.length*(ROW+20)+40+sumRows.length*60+150+150;
+  const ROW=262,H=270+150+110+items.length*(ROW+20)+40+sumRows.length*60+150+110+((BRAND.address||[1]).length)*32+40;
   const cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');
   c.fillStyle='#FBF8F5';c.fillRect(0,0,W,H);
   // header
@@ -2713,7 +2814,7 @@ async function makeQuoteImage(withPhotos){
     c.fillText(fitText(c,`${PLABEL[t.purity]||''}  ·  Gr ${fmtW(num(t.gw))} g  ·  Nt ${fmtW(num(t.nw))} g`,mid-X+40),X,ty+116);
     let ly=ty+152;
     if(bill.showMk!==false&&p.hasMk){c.fillStyle=INK;c.font=F(400,24);c.fillText(fitText(c,`Making ${valText({type:t.mkType,val:num(t.mkVal)})}${t.qMk?`  →  ${valText({type:t.mkType,val:num(t.qMk.val)})}`:''}`,mid-X+40),X,ly);ly+=34}
-    const stoneTxt=[st.saDia>0?`Diamond ${inr(st.saDia)}`:'',st.saClr>0?`Colour stone ${inr(st.saClr)}`:'',!(st.saDia>0||st.saClr>0)&&p.stone>0?`Stone ${inr(p.stone)}`:''].filter(Boolean).join('  ·  ');
+    const stoneTxt=[num(st.dw)>0?`Diamond ${fmtN(num(st.dw))} ct${num(st.dq)>0?` (${fmtN(num(st.dq))} pcs)`:''}`:'',st.saDia>0?`Diamond ${inr(st.saDia)}`:'',st.saClr>0?`Colour stone ${inr(st.saClr)}`:'',!(st.saDia>0||st.saClr>0)&&p.stone>0?`Stone ${inr(p.stone)}`:''].filter(Boolean).join('  ·  ');
     c.fillStyle=MUTED;c.font=F(400,24);
     if(stoneTxt){c.fillText(fitText(c,stoneTxt,mid-X+40),X,ly);ly+=32}
     if(st.stoneName)c.fillText(fitText(c,st.stoneName,mid-X+40),X,ly);
@@ -2736,7 +2837,9 @@ async function makeQuoteImage(withPhotos){
   y+=140;
   c.fillStyle=MUTED;c.font=F(400,22);c.textAlign='center';
   c.fillText(`Item prices before ${fmtN(g)}% GST${s.huidN?', including HUID charges':''}. Valid today at the rates shown.`,W/2,y+10);
-  c.fillStyle=MAROON;c.font=F(600,24);c.fillText(BRAND.full,W/2,y+52);c.textAlign='left';
+  const addr=BRAND.address||[BRAND.full];
+  c.fillStyle=MAROON;c.font=F(700,26);c.fillText(addr[0],W/2,y+56);
+  c.fillStyle=INK;c.font=F(400,23);addr.slice(1).forEach((l,i)=>c.fillText(l,W/2,y+92+i*32));c.textAlign='left';
   return cv.toDataURL('image/jpeg',.9);
 }
 let qImgUrl='';
@@ -2938,7 +3041,8 @@ function paintProduct(){
   const w=v=>v!=null&&v!==''&&!isNaN(num(v))?num(v).toFixed(3):'';
   const mk=p.hasMk?valText({type:cur.mkType,val:num(cur.mkVal)}):'';
   const rows=[['Purity',PLABEL[cur.purity]],['Gr. Wt',w(cur.gw)],['Nt. Wt',w(cur.nw)],['St. Wt',w(cur.sw)],
-    ['VA (Making)',mk||'—'],...(st&&(st.saDia>0||st.saClr>0)?[['Diamond Value',st.saDia>0?inr(st.saDia):''],['Colour Stone',st.saClr>0?inr(st.saClr):'']]:[['SA (Stone)',p.stone?inr(p.stone):(isDiamond(cur)?'—':'')]]),['Stones',st&&st.stoneName],['HUID',p.huidN?`${p.huidN} × ${inr(settings.huid)}`:''],
+    ['VA (Making)',mk?(mk+(p.making>0?` · ${inr(p.making)}`:'')):'—'],
+    ['Diamond Wt',st&&num(st.dw)>0?`${fmtN(num(st.dw))} ct${num(st.dq)>0?` · ${fmtN(num(st.dq))} pcs`:''}`:''],...(st&&(st.saDia>0||st.saClr>0)?[['Diamond Value',st.saDia>0?inr(st.saDia):''],['Colour Stone',st.saClr>0?inr(st.saClr):'']]:[['SA (Stone)',p.stone?inr(p.stone):(isDiamond(cur)?'—':'')]]),['Stones',st&&st.stoneName],['HUID',p.huidN?`${p.huidN} × ${inr(settings.huid)}`:''],
     ['Pcs',st&&st.pcs>1?fmtN(st.pcs):''],['Supplier',st&&st.supplier]].filter(r=>r[1]);
   $('pdSpecs').innerHTML=rows.map(([l,v])=>`<dt>${l}</dt><dd>${esc(v)}</dd>`).join('');
   // Alerts: stone weight without stone charges, and no making in the stock data
@@ -3050,7 +3154,7 @@ function itemName(v){
   return hit||t.toLowerCase().replace(/\b[a-z]/g,c=>c.toUpperCase());
 }
 const COLS={barcode:['BARCODE','BARCODENO','BARCODENUMBER','TAGNO','BARCODES','LABELNO','LABELNUMBER','TAGNUMBER'],item:['ITEMNAME','ITEM'],category:['ITEMTYPE','CATEGORY','TYPE'],stoneName:['STONENAMES','STONENAME','STONES'],saClr:['CLRSA','COLORSA','COLOURSA','CLRSTONEAMOUNT'],saDia:['DIASA','DIAMONDSA','DIAAMOUNT','DIAMONDAMOUNT'],carat:['CARRET','CARAT','KARAT','PURITY','PURITYK','CARATAGE','CARET'],
-  gw:['GROSSWT','GROSSWTG','GROSSWEIGHT','GWT','GRWT'],nw:['NETWT','NETWTG','NETWEIGHT','NWT'],sw:['STONEWT','STONEWTG','STONEWEIGHT','SWT','STWT','CLRSTNWT','COLORSTONEWT','COLOURSTONEWT','CLRSTONEWT'],dw:['DIAMONDWT','DIAMONDWEIGHT','DIAWT','DWT','DAIWT','DAIMONDWT'],dq:['DIAMONDQTY','DIAQTY','DIAMONDPCS','DAIPCS','DIAPCS','DAIQTY'],
+  gw:['GROSSWT','GROSSWTG','GROSSWEIGHT','GWT','GRWT'],nw:['NETWT','NETWTG','NETWEIGHT','NWT'],sw:['STONEWT','STONEWTG','STONEWEIGHT','SWT','STWT','CLRSTNWT','COLORSTONEWT','COLOURSTONEWT','CLRSTONEWT'],dw:['DIAMONDWT','DIAMONDWEIGHT','DIAWT','DWT','DAIWT','DAIMONDWT','DIAWTCT','DIAMONDWTCT','DIAWTG','DIAMONDCT','DIACT'],dq:['DIAMONDQTY','DIAQTY','DIAMONDPCS','DAIPCS','DIAPCS','DAIQTY','DIACOUNT','DIAMONDCOUNT','DIANOS','DIAMONDNOS','NOOFDIAMONDS'],
   sa:['STONEAMOUNT','STONEAMT','SA','SPR','STONEPRICE','STONEVALUE'],serial:['SERIAL','SERIALNO','SLNO'],label:['LABELCODE','LABEL'],location:['LOCATION'],pcs:['PCS','PIECES'],sq:['STONEQTY','STONEPCS','CLRSTNPCS','COLORSTONEPCS','COLOURSTONEPCS'],supplier:['SUPPLIER','VENDOR'],
   mk:['MAKING','MAKINGCHARGE','MAKINGCHARGES','MC','MCRATE','VA','VARATE','MAKINGMBD','MBD'],mkType:['MAKINGTYPE','MCTYPE','VATYPE','MAKINGON'],
   mkPct:['WSTG','WSTGPCT','WASTAGE','WASTAGEPCT','WASTAGEPERCENT','MAKINGPCT','MAKINGPERCENT','MAKINGPERCENTAGE','VAPCT','VAPERCENT','MCPCT','MCPERCENT'],mkPg:['MAKINGRATE','LABOURRATE','LABORRATE','LABOURRATEPERGRAM','MAKINGPG','MAKINGPERGRAM','MAKINGPERGM','MCPG','MCPERGRAM','MCPERGM'],mkFix:['LABOURCHARGES','LABOURCHARGE','LABORCHARGES','LABORCHARGE','MAKINGFIXED','MAKINGAMOUNT','MAKINGAMT','MCAMOUNT','MCAMT','MCFIXED','MAKINGPERPIECE','MCPERPIECE'],
@@ -3170,7 +3274,7 @@ function applyStock(rec){
   const pu=caratToPurity(rec.carat);if(pu){cur.purity=pu;mark('purity')}
   if(rec.gw>0){cur.gw=fmtN(rec.gw);mark('gw')}
   if(rec.nw>0){cur.nw=fmtN(rec.nw);mark('nw')}
-  const sw=rec.dw>0?rec.dw:rec.sw;if(sw>0){cur.sw=fmtN(sw);mark('sw')}
+  const sw=rec.sw>0?rec.sw:rec.dw;if(sw>0){cur.sw=fmtN(sw);mark('sw')}
   if(rec.sa>0){cur.spr=fmtN(rec.sa);mark('spr')}
   if(rec.mkType&&num(rec.mk)>0){cur.mkType=rec.mkType;cur.mkVal=fmtN(num(rec.mk));cur.mkMad=null;cur.mkRow='';mark('making')}
   if(rec.huid!=null&&rec.huid!==''&&!isNaN(+rec.huid)){cur.huidCount=+rec.huid;mark('huid')}
@@ -3211,6 +3315,27 @@ function setView(v){
 }
 function openSettings(card){setView('settings');if(card){const c=$(card);if(!c.open)c.querySelector('summary').click();setTimeout(()=>c.scrollIntoView({behavior:'smooth',block:'start'}),150)}}
 $('heroBack').onclick=()=>setView('home');
+// ---------- theme: style (iOS colour / true iOS / Android) and colour ----------
+const ACCENTS={brand:{n:'Brand',c:null},blue:{n:'iOS blue',c:['#0A6CFF','#0050D0','#0A6CFF']},maroon:{n:'Maroon',c:['#971B1E','#6B1014','#B58A3C']},
+  gold:{n:'Gold',c:['#9A6B1F','#6E4A12','#B58A3C']},emerald:{n:'Emerald',c:['#0F7B5F','#0A5843','#B58A3C']},navy:{n:'Navy',c:['#1F3A68','#13284A','#B58A3C']},rose:{n:'Rose',c:['#B03A5B','#7D2440','#C49A5A']}};
+function applyTheme(){
+  const ui=settings.ui||'iosBrand',ac=ACCENTS[settings.accent]||ACCENTS.brand;
+  document.documentElement.dataset.ui=ui;
+  let st=document.getElementById('accentCss');if(!st){st=document.createElement('style');st.id='accentCss';document.head.appendChild(st)}
+  st.textContent=ac.c?`:root{--maroon:${ac.c[0]};--band:${ac.c[1]};--gold:${ac.c[2]}}`:'';
+  const tc=ui==='iosBrand'?(ac.c?ac.c[1]:BRAND.theme):'#FFFFFF';const m=document.querySelector('meta[name=theme-color]');if(m)m.setAttribute('content',tc);
+  // login logo: cream on coloured backgrounds, brand colour on white
+  if(BRAND.logoLogin){$('loginLogo').src=ui==='iosTrue'&&BRAND.logoLogin.includes('cream')?BRAND.logoLogin.replace('cream','red'):BRAND.logoLogin}
+  try{if(NATIVE&&NATIVE.setBars)NATIVE.setBars(ui==='iosBrand'?tc:ui==='android'?(ac.c?ac.c[1]:BRAND.theme):'#FFFFFF',ui==='iosTrue')}catch(e){}
+  paintTheme();
+}
+function paintTheme(){
+  [...$('uiPick').children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.u===(settings.ui||'iosBrand'))));
+  $('accentPick').innerHTML=Object.entries(ACCENTS).map(([k,a])=>`<button type="button" data-a="${k}" aria-pressed="${(settings.accent||'brand')===k}"><span style="background:${a.c?a.c[0]:BRAND.light['--maroon']}"></span>${a.n}</button>`).join('');
+  $('accentPick').querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>withPerm('theme','Only an admin can change the theme.',()=>{settings.accent=b.dataset.a;saveSettings();applyTheme();toast('Colour changed')}));
+}
+[...$('uiPick').children].forEach(b=>b.onclick=()=>withPerm('theme','Only an admin can change the theme.',()=>{settings.ui=b.dataset.u;if(b.dataset.u==='iosTrue'&&(settings.accent||'brand')==='brand')settings.accent='blue';saveSettings();applyTheme();toast('Style changed')}));
+applyTheme();
 // ---------- tablet / wide screens (>= 900px): side bar, page header, multi-column Home and Quote ----------
 // Same screens and controls as the phone; on wide screens they are only regrouped into columns.
 const WIDE=window.matchMedia('(min-width:900px)');
@@ -3313,7 +3438,7 @@ function runFind(){
   el.innerHTML=hits.map(r=>{const p=caratToPurity(r.carat),mk=r.mkType&&num(r.mk)>0?valText({type:r.mkType,val:num(r.mk)}):'';
     const rows=[['Item type',r.category],['Item name',r.item],['Purity',PLABEL[p]||r.carat],['Gross wt',W(r.gw)],['Stone wt',W(r.sw)],['Net wt',W(r.nw)],
       ['Diamond value',r.saDia>0?inr(r.saDia):''],['Colour stone',r.saClr>0?inr(r.saClr):''],['Stone value',!(r.saDia>0||r.saClr>0)&&r.sa>0?inr(r.sa):''],
-      ['Stones',r.stoneName],['Making',mk],['HUID',r.huid!=null&&r.huid!==''?String(r.huid):''],['Label code',r.label&&keyOf(r.label)!==r.key?r.label:''],['Supplier',r.supplier]].filter(x=>x[1]);
+      ['Diamond wt',num(r.dw)>0?`${fmtN(num(r.dw))} ct`:''],['Diamond count',num(r.dq)>0?`${fmtN(num(r.dq))} pcs`:''],['Stones',r.stoneName],['Making',mk],['HUID',r.huid!=null&&r.huid!==''?String(r.huid):''],['Label code',r.label&&keyOf(r.label)!==r.key?r.label:''],['Supplier',r.supplier]].filter(x=>x[1]);
     return `<div class="find-card" data-k="${esc(r.key)}">
       <div class="fc-top"><div class="fc-img" data-img="${esc(r.key)}">${icoFor(r.category||r.item||'')}</div>
         <div class="fc-h"><b>${esc(r.barcode||r.key)}</b><span class="in-st">In stock</span><div class="fc-name">${esc(r.category||r.item||'')}</div></div></div>
@@ -3355,7 +3480,7 @@ const PERM_LIST=[
   ['delQuote','Delete quotes'],['images','Add product photos'],
   ['textSize','Text size'],['imgShow','Product image show / hide'],['ratesShown','Rates shown'],['charges','Charges · GST · HUID'],
   ['mkHelper','Making helpers'],['itemCodes','Item codes'],['sync','Shared database · shop key'],['roles','Roles & permissions'],['users','Users']];
-const SET_PERMS=['stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','sync','roles','users'];
+const SET_PERMS=['theme','stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','sync','roles','users'];
 const permLabel=k=>(PERM_LIST.find(p=>p[0]===k)||[0,k])[1];
 const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote']}];
 let roles=store.get('roles',null)||clone(DEFAULT_ROLES);
@@ -3363,7 +3488,7 @@ let elev={role:'',until:0};   // another user's approval, 15 minutes
 const roleName=id=>id==='admin'?'Admin':(roles.find(r=>r.id===id)||{name:id||'—'}).name;
 // 'settings' was one permission before v1.6.42; it still grants all the settings functions
 const OLD_SETTINGS=['textSize','imgShow','ratesShown','charges','mkHelper','itemCodes'];
-const ADMIN_ONLY=['stock'];   // Stock data is an admin function
+const ADMIN_ONLY=['stock','theme'];   // Stock data is an admin function
 function roleHas(role,perm){if(role==='admin')return true;if(ADMIN_ONLY.includes(perm))return false;const ps=((roles.find(r=>r.id===role)||{}).perms||[]);return ps.includes(perm)||(OLD_SETTINGS.includes(perm)&&ps.includes('settings'))||(perm==='roles'&&ps.includes('users'))}
 function can(perm){return !!(curUser&&roleHas(curUser.role,perm))||(Date.now()<elev.until&&roleHas(elev.role,perm))}
 // Server writes need the PIN of a user with the permission (kept in memory only)

@@ -253,6 +253,21 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        // Theme: colour of the status and navigation bars; light = dark icons on a light bar
+        @JavascriptInterface
+        fun setBars(color: String, light: Boolean) {
+            runOnUiThread {
+                try {
+                    val c = android.graphics.Color.parseColor(color)
+                    window.statusBarColor = c
+                    window.navigationBarColor = if (light) android.graphics.Color.WHITE else c
+                    val ctl = androidx.core.view.WindowCompat.getInsetsController(window, window.decorView)
+                    ctl.isAppearanceLightStatusBars = light
+                    ctl.isAppearanceLightNavigationBars = light
+                } catch (e: Exception) {}
+            }
+        }
+
         @JavascriptInterface
         fun openUrl(url: String) {
             runOnUiThread { try { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) } catch (e: Exception) {} }

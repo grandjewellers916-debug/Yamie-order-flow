@@ -179,3 +179,12 @@ A card is locked for users without that permission; opening it asks for a user w
 - **Quote page order**: Customer details → Quotation (items, making show/hide) → Discount → Sale type → URD / SR / Advance → Summary (with round-off option).
 - **Delivery partners** (online enquiries): India Post ₹400 (up to ₹35,000, warns above), Bright Asset Transit ₹600, BVC ₹600, Sequel ₹600, Yamie Delivery (enter charges), Store pick-up (free). Delivery is shown by partner in the summary, quote text and quote image.
 - **Login**: tap your name and enter the PIN (no username box). A new phone on the shared database loads the user list.
+
+## UI styles & themes (8 Nov 2026 — requested as V 1.6.43)
+
+- **Diamond weight and count** on the price card, search results and quote image (stock sheet columns Dia Wt / Diamond Wt and Dia Pcs / Diamond Count / No of Diamonds).
+- **Making rate**: the price card shows the making rate and its amount (e.g. `14% · ₹4,714`).
+- **App style** (Settings → Theme, admin only): 01 True iOS (light bars, system font), 02 iOS colour (brand-colour bars, the original look), 03 Android style (Material bars, Roboto). On Android the status and navigation bars follow the style.
+- **Accent colour** (admin only): Brand, Blue, Maroon, Gold, Emerald, Navy, Rose. Style and colour sync to every phone through the shared database.
+- **Online enquiries**: no URD or Sales return sections; Advance only.
+- **WhatsApp quote**: the shop's full address, contact, website and GSTIN at the foot of the quote image and quote text (Yamie).

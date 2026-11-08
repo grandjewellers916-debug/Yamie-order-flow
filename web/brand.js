@@ -9,6 +9,7 @@
       manifest:'manifest.webmanifest',icon:'icons/icon-192.png',touch:'icons/icon-180.png',
       theme:'#7A1418',
       logoHeader:'brand/yamie/header-w.png',logoLogin:'brand/yamie/logo-cream.png',mark:'brand/yamie/mark-w.png',tagline:'Legacy 1986',erp:'Yamie ERP',
+      address:['YAMIE FINE JEWELLERY','63/322 Aa, Level G','Grand Business Center','K K Road, Kadavanthra','Kochi, Kerala - 682020','Contact: +91 8714122750','Website: www.yamie.in','GSTIN 32AACFY4685K1ZR'],
       light:{'--maroon':'#971B1E','--band':'#6B1014','--gold':'#B58A3C','--bg':'#F8F5F2','--sunk':'#F0EAE5'},
       dark:{'--maroon':'#E0575B','--band':'#4A0D10','--gold':'#D9A94E'},
       tableName:'Yamie',

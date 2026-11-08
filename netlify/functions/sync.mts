@@ -112,7 +112,7 @@ export default async (req: Request) => {
   const roles: any[] = ((await st.get("roles", { type: "json" })) as any[]) || DEFAULT_ROLES
   const roleHas = (role: string, perm: string) => {
     if (role === "admin") return true
-    if (perm === "stock") return false   // stock data: admins only
+    if (perm === "stock" || perm === "theme") return false   // stock data and theme: admins only
     const ps: string[] = roles.find((r) => r.id === role)?.perms || []
     return ps.includes(perm) || (ps.includes("settings") && [...SETTINGS_PERMS, "textSize"].includes(perm)) || (perm === "roles" && ps.includes("users"))
   }
@@ -203,7 +203,7 @@ export default async (req: Request) => {
 
     const OP_PERM: Record<string, string> = { img: "images", quotedel: "delQuote", stock: "stock", stockdel: "stockdel", ratelog: "rates" }
     const role = await callerRole()
-    if (op === "settings") { if (!role || !SETTINGS_PERMS.some((p) => roleHas(role, p))) return json(req, { error: "bad_pin" }, 403) }
+    if (op === "settings") { if (!role || ![...SETTINGS_PERMS, "theme"].some((p) => roleHas(role, p))) return json(req, { error: "bad_pin" }, 403) }
     else if (op === "users") { if (!role || !(roleHas(role, "users") || roleHas(role, "roles"))) return json(req, { error: "bad_pin" }, 403) }
     else if (!(await permOk(OP_PERM[op] || "users"))) return json(req, { error: "bad_pin" }, 403)
 
@@ -280,12 +280,14 @@ export default async (req: Request) => {
         cats: cleanCats(s?.cats),
         mkEdit: s?.mkEdit === "all" ? "all" : "admin",
         showImg: s?.showImg !== false,
+        ui: ["iosBrand", "iosTrue", "android"].includes(s?.ui) ? s.ui : "iosBrand",
+        accent: ["brand", "blue", "maroon", "gold", "emerald", "navy", "rose"].includes(s?.accent) ? s.accent : "brand",
         showRates: Array.isArray(s?.showRates) ? s.showRates.filter((x: any) => ["22k", "18k", "14k", "9k", "platinum", "silver"].includes(x)) : null,
       }
       // Keep the parts this user may not change
       const prev: any = (await st.get("settings", { type: "json" })) || {}
       const keep = (perm: string, keys: string[]) => { if (!roleHas(role, perm)) keys.forEach((k) => { if (k in prev) (out as any)[k] = prev[k] }) }
-      keep("charges", ["gst", "huid"]); keep("mkHelper", ["mkTable"]); keep("itemCodes", ["cats"]); keep("ratesShown", ["showRates"]); keep("imgShow", ["showImg", "mkEdit"])
+      keep("charges", ["gst", "huid"]); keep("mkHelper", ["mkTable"]); keep("itemCodes", ["cats"]); keep("ratesShown", ["showRates"]); keep("imgShow", ["showImg", "mkEdit"]); keep("theme", ["ui", "accent"])
       await st.setJSON("settings", out)
       meta.settings = Date.now(); await saveMeta()
       return json(req, { v: meta.settings })
