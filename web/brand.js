@@ -10,6 +10,9 @@
       theme:'#7A1418',
       logoHeader:'brand/yamie/header-w.png',logoLogin:'brand/yamie/logo-cream.png',mark:'brand/yamie/mark-w.png',tagline:'Legacy 1986',erp:'Yamie ERP',
       address:['YAMIE FINE JEWELLERY','63/322 Aa, Level G','Grand Business Center','K K Road, Kadavanthra','Kochi, Kerala - 682020','Contact: +91 8714122750','Website: www.yamie.in','GSTIN 32AACFY4685K1ZR'],
+      // Quote image and WhatsApp text: firm name, then the address in 2 lines
+      addr2:['63/322 Aa, Level G, Grand Business Center, K K Road, Kadavanthra, Kochi, Kerala - 682020','Contact: +91 8714122750 · www.yamie.in · GSTIN 32AACFY4685K1ZR'],
+      logoHeaderColor:'brand/yamie/header-red.png',markColor:'brand/yamie/mark-red.png',
       light:{'--maroon':'#971B1E','--band':'#6B1014','--gold':'#B58A3C','--bg':'#F8F5F2','--sunk':'#F0EAE5'},
       dark:{'--maroon':'#E0575B','--band':'#4A0D10','--gold':'#D9A94E'},
       tableName:'Yamie',

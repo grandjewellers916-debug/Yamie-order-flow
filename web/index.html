@@ -661,6 +661,9 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .qs-lines .line span:first-child{min-width:0}
 .specs{grid-template-columns:auto minmax(0,1fr)!important}
 .specs dt{white-space:nowrap}
+.specs dd{overflow-wrap:normal;word-break:normal}
+.specs dd.ddw{overflow-wrap:break-word}
+.specs-more{margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
 .qi-row{grid-template-columns:16px minmax(0,1.5fr) 32px 44px 44px minmax(74px,1.3fr) 54px!important;gap:6px;padding-left:10px;padding-right:6px;font-size:13px}
 .qi-th{font-size:11.5px}
 .qi-amt{padding-right:2px}
@@ -734,6 +737,11 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .hero-ver{display:none}
 .prod.no-img .prod-body{grid-template-columns:1fr}
 .prod-tile.photo{padding:0;overflow:hidden}
+.prod-tile{position:relative}
+.pd-addimg{position:absolute;right:8px;bottom:8px;width:38px;height:38px;border-radius:50%;border:0;background:var(--maroon);color:#fff;display:grid;place-items:center;box-shadow:0 3px 10px rgba(0,0,0,.22);cursor:pointer;padding:0}
+.pd-addimg svg{width:20px;height:20px}
+.pd-rowpick{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;margin-top:8px}
+@media (max-width:380px){.pd-rowpick{grid-template-columns:1fr}}
 .prod-tile.photo img,.fc-img img{width:100%;height:100%;object-fit:cover;display:block}
 .q-disc{gap:10px}
 .q-disc h2{margin:0;font:700 18px var(--display);color:var(--maroon)}
@@ -947,7 +955,12 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 
 /* shared by true iOS and Android: light app bar, tinted scan card, plain titles */
 :root[data-ui="iosTrue"] .hero,:root[data-ui="android"] .hero{background:var(--surface);color:var(--fg);box-shadow:0 1px 0 var(--line)}
-:root[data-ui="iosTrue"] .hero-mark,:root[data-ui="android"] .hero-mark,:root[data-ui="iosTrue"] .hero-bar,:root[data-ui="android"] .hero-bar,:root[data-ui="iosTrue"] .hero-wm,:root[data-ui="android"] .hero-wm{display:none!important}
+:root[data-ui="iosTrue"] .hero-c,:root[data-ui="android"] .hero-c{flex-direction:row;gap:10px}
+:root[data-ui="iosTrue"] .hero-c{justify-content:center}:root[data-ui="android"] .hero-c{justify-content:flex-start}
+:root[data-ui="iosTrue"] .hero-mark,:root[data-ui="android"] .hero-mark{height:24px;max-width:110px;object-fit:contain}
+:root[data-ui="iosTrue"] .hero-wm,:root[data-ui="android"] .hero-wm{color:var(--maroon);font-size:13px;letter-spacing:.22em}
+:root[data-ui="iosTrue"] .hero-bar,:root[data-ui="android"] .hero-bar{background:var(--line);height:20px}
+:root[data-ui="iosTrue"] .hero-row,:root[data-ui="android"] .hero-row{gap:10px}
 :root[data-ui="iosTrue"] .hero-title,:root[data-ui="android"] .hero-title{color:var(--fg);text-transform:none;letter-spacing:0}
 :root[data-ui="iosTrue"] .hero-back,:root[data-ui="android"] .hero-back,:root[data-ui="iosTrue"] .hamb,:root[data-ui="android"] .hamb,:root[data-ui="iosTrue"] .hero-user,:root[data-ui="android"] .hero-user{color:var(--maroon)}
 :root[data-ui="iosTrue"] .hero-in,:root[data-ui="android"] .hero-in{grid-template-columns:44px 1fr auto!important}
@@ -1101,6 +1114,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
       <div class="prod-tile" id="pdTile"></div>
       <div class="prod-info"><div class="prod-name" id="pdName"></div><dl class="specs" id="pdSpecs"></dl></div>
     </div>
+    <dl class="specs specs-more" id="pdSpecs2" hidden></dl>
     <div class="pd-alerts" id="pdAlerts" hidden role="alert"></div>
     <div class="pd-need" id="pdNeed" hidden></div>
     <div class="prod-total" id="pdTotal">
@@ -1303,6 +1317,11 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
       </div>
       <h3 style="margin-top:14px">Colours</h3>
       <div class="sw-pick" id="accentPick"></div>
+  </details>
+  <details class="card datacard setcard" id="setPd" data-pane="settings" data-perm="pdRows">
+    <summary><span class="dc-t">Product details · items shown</span><span class="dc-s" id="setPdMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
+      <p class="note" style="margin-block:4px 0">Tick the items to show on the Product Details card. Items with no value are skipped anyway.</p>
+      <div class="pd-rowpick" id="pdRowPick"></div>
   </details>
   <details class="card datacard setcard" id="setText" data-pane="settings" data-perm="textSize">
     <summary><span class="dc-t">Text size</span><span class="dc-s" id="setTextMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
@@ -1644,14 +1663,14 @@ function applyRemoteSettings(rs){
   if('cats' in rs){settings.cats=rs.cats&&typeof rs.cats==='object'&&Object.keys(rs.cats).length?rs.cats:null;try{applyCats()}catch(e){}}
   if('showRates' in rs){settings.showRates=Array.isArray(rs.showRates)&&rs.showRates.length?rs.showRates:null;try{rebuildPurities()}catch(e){}}
   if(rs.gst!=null)settings.gst=rs.gst;if(rs.huid!=null)settings.huid=rs.huid;
-  if(rs.mkEdit)settings.mkEdit=rs.mkEdit;if(rs.ui)settings.ui=rs.ui;if(rs.accent)settings.accent=rs.accent;try{applyTheme()}catch(e){}if('showImg' in rs)settings.showImg=rs.showImg!==false;
+  if(rs.mkEdit)settings.mkEdit=rs.mkEdit;if(Array.isArray(rs.pdHide))settings.pdHide=rs.pdHide;if(rs.ui)settings.ui=rs.ui;if(rs.accent)settings.accent=rs.accent;try{applyTheme()}catch(e){}if('showImg' in rs)settings.showImg=rs.showImg!==false;
   store.set('settings2',settings);try{paintAdminExtras()}catch(e){}
   try{renderTable('cz');renderTable('dia');$('setGst').value=settings.gst;$('setHuid').value=settings.huid;renderEditor();renderBill(true)}catch(e){}
 }
 let settingsTimer=null;
 function saveSettings(){store.set('settings2',settings);if(!sync.key)return;sync.dirtySettings=true;saveSyncState();clearTimeout(settingsTimer);settingsTimer=setTimeout(()=>{if(adminCreds)pushSettingsNow().catch(e=>syncMsg('err',syncErrText(e)))},1500)}
 async function pushSettingsNow(){
-  const r=await syncApi('settings','POST',{settings:{gst:settings.gst,huid:settings.huid,mkTable:settings.mkTable,cats:settings.cats||null,showRates:settings.showRates||null,mkEdit:settings.mkEdit||'admin',showImg:settings.showImg!==false,ui:settings.ui||'iosBrand',accent:settings.accent||'brand'}},adminCreds);
+  const r=await syncApi('settings','POST',{settings:{gst:settings.gst,huid:settings.huid,mkTable:settings.mkTable,cats:settings.cats||null,showRates:settings.showRates||null,mkEdit:settings.mkEdit||'admin',showImg:settings.showImg!==false,ui:settings.ui||'iosBrand',accent:settings.accent||'brand',pdHide:settings.pdHide||[]}},adminCreds);
   sync.v.settings=r.v;sync.dirtySettings=false;saveSyncState();syncMsg('ok','Settings saved to the shared database.');
 }
 async function pushRate(entry){
@@ -2495,8 +2514,8 @@ function renderDiscount(s){
   if(!bill.items.length){el.innerHTML='<div class="empty-q">Discount is set here once items are in the quote.</div>';$('qDiscTot').textContent='';$('qDiscMgr').hidden=true;$('qDiscExtraRow').hidden=true;return}
   el.innerHTML=bill.items.map((t,i)=>{const p=priceTag(t),q=quotedValue(t,p),d=p.value-q,u=t.mkType==='pct'?'%':t.mkType==='pergram'?'₹/g':'₹';
     return `<div class="qd-row"><div class="qd-a"><b>${i+1}. ${esc(keyOf(t.sku))}</b> <span class="m">${esc((t.stock&&t.stock.category)||t.item||'')}</span></div>
-      <div class="qd-b"><span class="m">Making ${p.hasMk?esc(valText({type:t.mkType,val:num(t.mkVal)})):'—'}</span><span class="qd-arrow">→</span>
-      ${edit&&p.hasMk?`<span class="qd-in"><input data-qmk="${t.id}" inputmode="decimal" value="${esc(t.qMk?t.qMk.val:'')}" placeholder="${esc(fmtN(num(t.mkVal)))}" aria-label="Making after discount, item ${i+1}"><small>${u}</small></span>`:`<b>${t.qMk?esc(valText({type:t.mkType,val:num(t.qMk.val)})):'no discount'}</b>`}</div>
+      <div class="qd-b"><span class="m">Making ${p.hasMk?esc(valText({type:t.mkType,val:num(t.mkVal)}))+(p.making>0?` · <b class="qd-mk">${inr(p.making)}</b>`:''):'— (no making rate)'}</span><span class="qd-arrow">→</span>
+      ${edit&&p.hasMk?`<span class="qd-in"><input data-qmk="${t.id}" inputmode="decimal" value="${esc(t.qMk?t.qMk.val:'')}" placeholder="${esc(fmtN(num(t.mkVal)))}" aria-label="Making after discount, item ${i+1}"><small>${u}</small></span>`:`<b>${t.qMk?esc(valText({type:t.mkType,val:num(t.qMk.val)})):'no discount'}</b>`}${t.qMk&&p.hasMk?(()=>{const m=makingFor(t,t.qMk.type||t.mkType,num(t.qMk.val));return isNaN(m)?'':` <span class="m">= ${inr(m)}</span>`})():''}</div>
       <div class="qd-c"><span>${p.ok?inr(p.value):'—'}${d>0.5?` → <b>${inr(q)}</b>`:''} <small class="m">+ GST</small></span><span class="qd-d">${d>0.5?'−'+inr(d):''}</span></div></div>`}).join('');
   el.querySelectorAll('[data-qmk]').forEach(inp=>inp.addEventListener('change',()=>{
     const t=bill.items.find(x=>x.id===inp.dataset.qmk);if(!t)return;const v=num(inp.value);
@@ -2660,7 +2679,7 @@ function shareText(){
   out.push(`*${s.net<0?'Refund':'Balance'}: ${inr(Math.abs(s.net))}*`);
   if(isClosed())out.push(`Invoice ${bill.invoice}`);
   out.push('','Prices at today\'s gold rate. Valid today.');
-  if(BRAND.address)out.push('',...BRAND.address);
+  {const A=firmAddr();if(A)out.push('',`*${A.name}*`,...A.lines)}
   return out.join('\n');
 }
 // ---------- actions ----------
@@ -2773,7 +2792,7 @@ async function makeQuoteImage(withPhotos){
   if(s.old)sumRows.push([`Old gold (URD) ${fmtW(s.oldW)} g`,'−'+inr(s.old)]);
   if(s.ret)sumRows.push(['Sales return','−'+inr(s.ret)]);
   if(s.adv)sumRows.push(['Advance paid','−'+inr(s.adv)]);
-  const ROW=262,H=270+150+110+items.length*(ROW+20)+40+sumRows.length*60+150+110+((BRAND.address||[1]).length)*32+40;
+  const ROW=262,H=270+150+110+items.length*(ROW+20)+40+sumRows.length*60+150+110+(firmAddr()?3:1)*34-20;
   const cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');
   c.fillStyle='#FBF8F5';c.fillRect(0,0,W,H);
   // header
@@ -2837,11 +2856,14 @@ async function makeQuoteImage(withPhotos){
   y+=140;
   c.fillStyle=MUTED;c.font=F(400,22);c.textAlign='center';
   c.fillText(`Item prices before ${fmtN(g)}% GST${s.huidN?', including HUID charges':''}. Valid today at the rates shown.`,W/2,y+10);
-  const addr=BRAND.address||[BRAND.full];
-  c.fillStyle=MAROON;c.font=F(700,26);c.fillText(addr[0],W/2,y+56);
-  c.fillStyle=INK;c.font=F(400,23);addr.slice(1).forEach((l,i)=>c.fillText(l,W/2,y+92+i*32));c.textAlign='left';
+  const A=firmAddr()||{name:BRAND.full,lines:[]};
+  c.fillStyle=MAROON;c.font=F(700,26);c.fillText(A.name,W/2,y+56);
+  c.fillStyle=INK;A.lines.forEach((l,i)=>{let fs=23;c.font=F(400,fs);while(fs>16&&c.measureText(l).width>W-2*P){fs--;c.font=F(400,fs)}c.fillText(l,W/2,y+92+i*32)});c.textAlign='left';
   return cv.toDataURL('image/jpeg',.9);
 }
+// Firm name and its address in 2 lines (brand addr2, or the address lines joined)
+function firmAddr(){const a=BRAND.address;if(!a||!a.length)return null;
+  return {name:a[0],lines:BRAND.addr2||[a.slice(1,Math.max(2,a.length-3)).join(', '),a.slice(Math.max(2,a.length-3)).join(' · ')].filter(Boolean)}}
 let qImgUrl='';
 async function openQuoteImage(){
   if(!bill.items.length){toast('Add an item first');return}
@@ -3040,11 +3062,11 @@ function paintProduct(){
   const p=priceTag(cur),g=num(settings.gst)||0,ok=p.ok&&!m.length;
   const w=v=>v!=null&&v!==''&&!isNaN(num(v))?num(v).toFixed(3):'';
   const mk=p.hasMk?valText({type:cur.mkType,val:num(cur.mkVal)}):'';
-  const rows=[['Purity',PLABEL[cur.purity]],['Gr. Wt',w(cur.gw)],['Nt. Wt',w(cur.nw)],['St. Wt',w(cur.sw)],
-    ['VA (Making)',mk?(mk+(p.making>0?` · ${inr(p.making)}`:'')):'—'],
-    ['Diamond Wt',st&&num(st.dw)>0?`${fmtN(num(st.dw))} ct${num(st.dq)>0?` · ${fmtN(num(st.dq))} pcs`:''}`:''],...(st&&(st.saDia>0||st.saClr>0)?[['Diamond Value',st.saDia>0?inr(st.saDia):''],['Colour Stone',st.saClr>0?inr(st.saClr):'']]:[['SA (Stone)',p.stone?inr(p.stone):(isDiamond(cur)?'—':'')]]),['Stones',st&&st.stoneName],['HUID',p.huidN?`${p.huidN} × ${inr(settings.huid)}`:''],
-    ['Pcs',st&&st.pcs>1?fmtN(st.pcs):''],['Supplier',st&&st.supplier]].filter(r=>r[1]);
-  $('pdSpecs').innerHTML=rows.map(([l,v])=>`<dt>${l}</dt><dd>${esc(v)}</dd>`).join('');
+  const rows=pdRows(cur,st,p,w).filter(r=>r[1]&&!(settings.pdHide||[]).includes(r[2]));
+  // Beside the image: the first rows; the rest run full width under it
+  const html=rr=>rr.map(([l,v,k])=>`<dt>${l}</dt><dd${['stones','supplier','huidNo'].includes(k)?' class="ddw"':''}>${esc(v)}</dd>`).join('');
+  const nTop=showImg&&!matchMedia('(min-width:900px)').matches?5:rows.length;
+  $('pdSpecs').innerHTML=html(rows.slice(0,nTop));$('pdSpecs2').innerHTML=html(rows.slice(nTop));$('pdSpecs2').hidden=rows.length<=nTop;
   // Alerts: stone weight without stone charges, and no making in the stock data
   const al=[],swv=num(cur.sw),dwv=st?num(st.dw):NaN;
   if(((swv>0)||(dwv>0))&&!(p.stone>0))al.push(['stone',`Stone weight ${fmtW(swv>0?swv:dwv)} g but no stone charges retrieved.`]);
@@ -3072,6 +3094,35 @@ function paintProduct(){
   $('pdSave').lastChild.textContent=editingId?'Update Quote':'Save to Quote';
   $('pdSave').hidden=saleMode()==='check'&&!editingId;$('pdCheck').hidden=!$('pdSave').hidden;
   $('pdMk').hidden=!p.hasMk;
+}
+// Product details rows, in order: [label, value, key]. Admin can hide any of them (Settings → Product details).
+const PD_ROWS=[['purity','Purity'],['gw','Gr. Wt'],['sw','St. Wt'],['nw','Nt. Wt'],['vaPct','VA %'],['va','VA (Making)'],['mkAmt','Making Rate'],
+  ['dw','Diamond Wt'],['dPrice','Diamond Price'],['cw','Colour Stone Wt'],['cPrice','Colour Stone Price'],['huid','HUID Count'],['huidNo','HUID No.'],
+  ['stones','Stones'],['pcs','Pcs'],['supplier','Supplier']];
+function pdRows(t,st,p,w){
+  const dia=isDiamond(t)||!!(st&&(num(st.dw)>0||st.saDia>0)),clr=!!(st&&(st.saClr>0||num(st.cw)>0||num(st.sq)>0));
+  const pct=p.hasMk&&t.mkType==='pct';
+  const dPrice=st&&st.saDia>0?st.saDia:(!(st&&st.saClr>0)&&dia&&p.stone>0?p.stone:0);
+  const cPrice=st&&st.saClr>0?st.saClr:(!dia&&p.stone>0?p.stone:0);
+  const codes=(t.huids&&t.huids.length?t.huids.join(', '):'')||(st&&st.huidNo)||'';
+  const v={purity:PLABEL[t.purity],gw:w(t.gw),sw:w(t.sw),nw:w(t.nw),
+    vaPct:pct?fmtN(num(t.mkVal))+'%':'',
+    va:p.hasMk&&!pct?valText({type:t.mkType,val:num(t.mkVal)}):(p.hasMk?'':'—'),
+    mkAmt:p.hasMk&&p.making>0?inr(p.making):'',
+    dw:dia&&st&&num(st.dw)>0?`${fmtN(num(st.dw))}\u00a0ct${num(st.dq)>0?` · ${fmtN(num(st.dq))}\u00a0pcs`:''}`:'',
+    dPrice:dia?(dPrice>0?inr(dPrice):'—'):'',
+    cw:clr&&st&&num(st.cw)>0?`${w(st.cw)}${num(st.sq)>0?` · ${fmtN(num(st.sq))}\u00a0pcs`:''}`:'',
+    cPrice:cPrice>0?inr(cPrice):'',
+    huid:p.huidN?`${p.huidN}\u00a0×\u00a0${inr(settings.huid)}`:'',huidNo:codes,
+    stones:st&&st.stoneName,pcs:st&&st.pcs>1?fmtN(st.pcs):'',supplier:st&&st.supplier};
+  return PD_ROWS.map(([k,l])=>[l,v[k],k]);
+}
+function paintPdRowsSet(){
+  const el=$('pdRowPick');if(!el)return;const hid=settings.pdHide||[];
+  el.innerHTML=PD_ROWS.map(([k,l],i)=>`<label class="rc-p"><input type="checkbox" data-k="${k}"${hid.includes(k)?'':' checked'}> ${String(i+1).padStart(2,'0')} · ${esc(l)}</label>`).join('');
+  $('setPdMini').textContent=`${PD_ROWS.length-hid.length} of ${PD_ROWS.length} shown`;
+  el.querySelectorAll('input').forEach(c=>c.onchange=()=>withPerm('pdRows','Needs permission: Product details items.',()=>{
+    const h=new Set(settings.pdHide||[]);c.checked?h.delete(c.dataset.k):h.add(c.dataset.k);settings.pdHide=[...h];saveSettings();paintPdRowsSet();renderEditor()},true)||paintPdRowsSet());
 }
 function canEditMk(){return can('mkEdit')}
 $('pdMk').onclick=()=>withPerm('mkEdit','Needs a user allowed to update making.',()=>openMkPop(()=>{},true));
@@ -3154,12 +3205,12 @@ function itemName(v){
   return hit||t.toLowerCase().replace(/\b[a-z]/g,c=>c.toUpperCase());
 }
 const COLS={barcode:['BARCODE','BARCODENO','BARCODENUMBER','TAGNO','BARCODES','LABELNO','LABELNUMBER','TAGNUMBER'],item:['ITEMNAME','ITEM'],category:['ITEMTYPE','CATEGORY','TYPE'],stoneName:['STONENAMES','STONENAME','STONES'],saClr:['CLRSA','COLORSA','COLOURSA','CLRSTONEAMOUNT'],saDia:['DIASA','DIAMONDSA','DIAAMOUNT','DIAMONDAMOUNT'],carat:['CARRET','CARAT','KARAT','PURITY','PURITYK','CARATAGE','CARET'],
-  gw:['GROSSWT','GROSSWTG','GROSSWEIGHT','GWT','GRWT'],nw:['NETWT','NETWTG','NETWEIGHT','NWT'],sw:['STONEWT','STONEWTG','STONEWEIGHT','SWT','STWT','CLRSTNWT','COLORSTONEWT','COLOURSTONEWT','CLRSTONEWT'],dw:['DIAMONDWT','DIAMONDWEIGHT','DIAWT','DWT','DAIWT','DAIMONDWT','DIAWTCT','DIAMONDWTCT','DIAWTG','DIAMONDCT','DIACT'],dq:['DIAMONDQTY','DIAQTY','DIAMONDPCS','DAIPCS','DIAPCS','DAIQTY','DIACOUNT','DIAMONDCOUNT','DIANOS','DIAMONDNOS','NOOFDIAMONDS'],
+  gw:['GROSSWT','GROSSWTG','GROSSWEIGHT','GWT','GRWT'],nw:['NETWT','NETWTG','NETWEIGHT','NWT'],sw:['STONEWT','STONEWTG','STONEWEIGHT','SWT','STWT'],cw:['CLRSTNWT','COLORSTONEWT','COLOURSTONEWT','CLRSTONEWT','CLRWT','COLORSTONEWEIGHT','COLOURSTONEWEIGHT','CSWT'],dw:['DIAMONDWT','DIAMONDWEIGHT','DIAWT','DWT','DAIWT','DAIMONDWT','DIAWTCT','DIAMONDWTCT','DIAWTG','DIAMONDCT','DIACT'],dq:['DIAMONDQTY','DIAQTY','DIAMONDPCS','DAIPCS','DIAPCS','DAIQTY','DIACOUNT','DIAMONDCOUNT','DIANOS','DIAMONDNOS','NOOFDIAMONDS'],
   sa:['STONEAMOUNT','STONEAMT','SA','SPR','STONEPRICE','STONEVALUE'],serial:['SERIAL','SERIALNO','SLNO'],label:['LABELCODE','LABEL'],location:['LOCATION'],pcs:['PCS','PIECES'],sq:['STONEQTY','STONEPCS','CLRSTNPCS','COLORSTONEPCS','COLOURSTONEPCS'],supplier:['SUPPLIER','VENDOR'],
   mk:['MAKING','MAKINGCHARGE','MAKINGCHARGES','MC','MCRATE','VA','VARATE','MAKINGMBD','MBD'],mkType:['MAKINGTYPE','MCTYPE','VATYPE','MAKINGON'],
   mkPct:['WSTG','WSTGPCT','WASTAGE','WASTAGEPCT','WASTAGEPERCENT','MAKINGPCT','MAKINGPERCENT','MAKINGPERCENTAGE','VAPCT','VAPERCENT','MCPCT','MCPERCENT'],mkPg:['MAKINGRATE','LABOURRATE','LABORRATE','LABOURRATEPERGRAM','MAKINGPG','MAKINGPERGRAM','MAKINGPERGM','MCPG','MCPERGRAM','MCPERGM'],mkFix:['LABOURCHARGES','LABOURCHARGE','LABORCHARGES','LABORCHARGE','MAKINGFIXED','MAKINGAMOUNT','MAKINGAMT','MCAMOUNT','MCAMT','MCFIXED','MAKINGPERPIECE','MCPERPIECE'],
   huid:['HUIDCOUNT','HUID','HUIDQTY','HUIDNOS','HUIDNO','NOOFHUID','HUIDPCS','HUIDS']};
-const NUMCOLS=['gw','nw','sw','dw','dq','sa','pcs','sq','saClr','saDia'];
+const NUMCOLS=['gw','nw','sw','cw','dw','dq','sa','pcs','sq','saClr','saDia'];
 // Making and HUID from the stock sheet. Making: one "Making" column ("14%", "2500 PG", "1500 fixed"; a plain number
 // up to 100 is %, above 100 is fixed unless a Making Type column says per gram), or separate %, per-gram and fixed columns.
 function stockMaking(rec){
@@ -3177,8 +3228,8 @@ function stockMaking(rec){
   delete rec.mkPct;delete rec.mkPg;delete rec.mkFix;
   if(mk){rec.mk=String(mk.val);rec.mkType=mk.type}else{rec.mk='';rec.mkType=''}
   // HUID: a count, or the HUID codes themselves (counted)
-  if(rec.huid!=null&&rec.huid!==''){const h=String(rec.huid).trim();
-    rec.huid=/^\d{1,2}$/.test(h)?+h:(h.match(/[A-Z0-9]{6}/gi)||[]).length||null}else rec.huid=null;
+  if(rec.huid!=null&&rec.huid!==''){const h=String(rec.huid).trim(),codes=/^\d{1,2}$/.test(h)?[]:(h.toUpperCase().match(/[A-Z0-9]{6}/g)||[]);
+    rec.huid=/^\d{1,2}$/.test(h)?+h:codes.length||null;rec.huidNo=codes.join(', ')}else{rec.huid=null;rec.huidNo=''}
 }
 let xlsxP=null;
 function loadXLSX(){if(window.XLSX)return Promise.resolve();if(!xlsxP)xlsxP=new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='vendor/xlsx.full.min.js';sc.onload=res;sc.onerror=()=>{xlsxP=null;rej(new Error('xlsx_missing'))};document.head.appendChild(sc)});return xlsxP}
@@ -3274,7 +3325,7 @@ function applyStock(rec){
   const pu=caratToPurity(rec.carat);if(pu){cur.purity=pu;mark('purity')}
   if(rec.gw>0){cur.gw=fmtN(rec.gw);mark('gw')}
   if(rec.nw>0){cur.nw=fmtN(rec.nw);mark('nw')}
-  const sw=rec.sw>0?rec.sw:rec.dw;if(sw>0){cur.sw=fmtN(sw);mark('sw')}
+  const sw=rec.sw>0?rec.sw:rec.cw>0?rec.cw:rec.dw;if(sw>0){cur.sw=fmtN(sw);mark('sw')}
   if(rec.sa>0){cur.spr=fmtN(rec.sa);mark('spr')}
   if(rec.mkType&&num(rec.mk)>0){cur.mkType=rec.mkType;cur.mkVal=fmtN(num(rec.mk));cur.mkMad=null;cur.mkRow='';mark('making')}
   if(rec.huid!=null&&rec.huid!==''&&!isNaN(+rec.huid)){cur.huidCount=+rec.huid;mark('huid')}
@@ -3325,6 +3376,7 @@ function applyTheme(){
   st.textContent=ac.c?`:root{--maroon:${ac.c[0]};--band:${ac.c[1]};--gold:${ac.c[2]}}`:'';
   const tc=ui==='iosBrand'?(ac.c?ac.c[1]:BRAND.theme):'#FFFFFF';const m=document.querySelector('meta[name=theme-color]');if(m)m.setAttribute('content',tc);
   // login logo: cream on coloured backgrounds, brand colour on white
+  if(BRAND.mark){$('heroMark').src=ui!=='iosBrand'&&BRAND.logoHeaderColor?BRAND.logoHeaderColor:BRAND.mark}
   if(BRAND.logoLogin){$('loginLogo').src=ui==='iosTrue'&&BRAND.logoLogin.includes('cream')?BRAND.logoLogin.replace('cream','red'):BRAND.logoLogin}
   try{if(NATIVE&&NATIVE.setBars)NATIVE.setBars(ui==='iosBrand'?tc:ui==='android'?(ac.c?ac.c[1]:BRAND.theme):'#FFFFFF',ui==='iosTrue')}catch(e){}
   paintTheme();
@@ -3382,6 +3434,7 @@ function applyZoom(z){try{document.body.style.zoom=String(z)}catch(e){}}
 function zoomNow(){const z=store.get('uiZoom',null);return z!=null?z:(Math.min(screen.width||400,innerWidth)<=380?0.9:1)}
 applyZoom(zoomNow());
 function paintAdminExtras(){
+  try{paintPdRowsSet()}catch(e){}
   [...$('imgSeg').children].forEach(b=>b.setAttribute('aria-pressed',String((b.dataset.i==='1')===(settings.showImg!==false))));
   const z=zoomNow();[...$('uiZoom').children].forEach(b=>b.setAttribute('aria-pressed',String(Math.abs(+b.dataset.z-z)<0.001)));
 
@@ -3400,7 +3453,8 @@ async function getProdImg(k){
 function paintProdImg(k,name){
   const t=$('pdTile');t.innerHTML=icoFor(name);t.classList.remove('photo');
   if(!imgOn())return;
-  getProdImg(k).then(u=>{if(u&&keyOf(cur.sku)===k){t.innerHTML=`<img src="${u}" alt="${esc(name)}">`;t.classList.add('photo')}});
+  const add=()=>{const b=document.createElement('button');b.type='button';b.className='pd-addimg';b.setAttribute('aria-label','Add a photo of this item');b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';b.onclick=()=>askProdPhoto(k);t.appendChild(b)};
+  getProdImg(k).then(u=>{if(keyOf(cur.sku)!==k)return;if(u){t.innerHTML=`<img src="${u}" alt="${esc(name)}">`;t.classList.add('photo')}else add()});
 }
 async function pullImgIdx(){if(!sync.key||!navigator.onLine)return;try{const r=await syncApi('imgidx');if(r&&r.idx){imgIdx=r.idx;store.set('imgIdx',imgIdx);sync.v.imgs=r.v||0;saveSyncState()}}catch(e){}}
 function shrinkUrl(u,max){return new Promise(res=>{const im=new Image();im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.8))};im.onerror=()=>res(null);im.src=u})}
@@ -3438,7 +3492,7 @@ function runFind(){
   el.innerHTML=hits.map(r=>{const p=caratToPurity(r.carat),mk=r.mkType&&num(r.mk)>0?valText({type:r.mkType,val:num(r.mk)}):'';
     const rows=[['Item type',r.category],['Item name',r.item],['Purity',PLABEL[p]||r.carat],['Gross wt',W(r.gw)],['Stone wt',W(r.sw)],['Net wt',W(r.nw)],
       ['Diamond value',r.saDia>0?inr(r.saDia):''],['Colour stone',r.saClr>0?inr(r.saClr):''],['Stone value',!(r.saDia>0||r.saClr>0)&&r.sa>0?inr(r.sa):''],
-      ['Diamond wt',num(r.dw)>0?`${fmtN(num(r.dw))} ct`:''],['Diamond count',num(r.dq)>0?`${fmtN(num(r.dq))} pcs`:''],['Stones',r.stoneName],['Making',mk],['HUID',r.huid!=null&&r.huid!==''?String(r.huid):''],['Label code',r.label&&keyOf(r.label)!==r.key?r.label:''],['Supplier',r.supplier]].filter(x=>x[1]);
+      ['Diamond wt',num(r.dw)>0?`${fmtN(num(r.dw))} ct`:''],['Diamond count',num(r.dq)>0?`${fmtN(num(r.dq))} pcs`:''],['Colour stone wt',num(r.cw)>0?num(r.cw).toFixed(3):''],['Stones',r.stoneName],['Making',mk],['HUID',r.huid!=null&&r.huid!==''?String(r.huid):''],['HUID No.',r.huidNo||''],['Label code',r.label&&keyOf(r.label)!==r.key?r.label:''],['Supplier',r.supplier]].filter(x=>x[1]);
     return `<div class="find-card" data-k="${esc(r.key)}">
       <div class="fc-top"><div class="fc-img" data-img="${esc(r.key)}">${icoFor(r.category||r.item||'')}</div>
         <div class="fc-h"><b>${esc(r.barcode||r.key)}</b><span class="in-st">In stock</span><div class="fc-name">${esc(r.category||r.item||'')}</div></div></div>
@@ -3479,15 +3533,15 @@ const PERM_LIST=[
   ['closeSale','Close sale (invoice no.)'],['cancelQuote','Cancel quote (enquiry)'],['reopen','Reopen sold / cancelled quotes'],
   ['delQuote','Delete quotes'],['images','Add product photos'],
   ['textSize','Text size'],['imgShow','Product image show / hide'],['ratesShown','Rates shown'],['charges','Charges · GST · HUID'],
-  ['mkHelper','Making helpers'],['itemCodes','Item codes'],['sync','Shared database · shop key'],['roles','Roles & permissions'],['users','Users']];
-const SET_PERMS=['theme','stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','sync','roles','users'];
+  ['mkHelper','Making helpers'],['itemCodes','Item codes'],['pdRows','Product details items'],['sync','Shared database · shop key'],['roles','Roles & permissions'],['users','Users']];
+const SET_PERMS=['theme','stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users'];
 const permLabel=k=>(PERM_LIST.find(p=>p[0]===k)||[0,k])[1];
 const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote']}];
 let roles=store.get('roles',null)||clone(DEFAULT_ROLES);
 let elev={role:'',until:0};   // another user's approval, 15 minutes
 const roleName=id=>id==='admin'?'Admin':(roles.find(r=>r.id===id)||{name:id||'—'}).name;
 // 'settings' was one permission before v1.6.42; it still grants all the settings functions
-const OLD_SETTINGS=['textSize','imgShow','ratesShown','charges','mkHelper','itemCodes'];
+const OLD_SETTINGS=['textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows'];
 const ADMIN_ONLY=['stock','theme'];   // Stock data is an admin function
 function roleHas(role,perm){if(role==='admin')return true;if(ADMIN_ONLY.includes(perm))return false;const ps=((roles.find(r=>r.id===role)||{}).perms||[]);return ps.includes(perm)||(OLD_SETTINGS.includes(perm)&&ps.includes('settings'))||(perm==='roles'&&ps.includes('users'))}
 function can(perm){return !!(curUser&&roleHas(curUser.role,perm))||(Date.now()<elev.until&&roleHas(elev.role,perm))}

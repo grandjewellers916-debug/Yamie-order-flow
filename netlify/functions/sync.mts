@@ -6,7 +6,7 @@ import type { Config } from "@netlify/functions"
 // Stored in one site-wide Blobs store: meta, stock, rates, settings, users, auth (legacy admin PIN).
 
 const APP_ORIGINS = ["https://appassets.androidplatform.net", "https://yamie-price-check.netlify.app"]
-const STOCK_FIELDS = ["key", "barcode", "item", "category", "carat", "gw", "nw", "sw", "dw", "dq", "sa", "serial", "label", "location", "pcs", "sq", "supplier", "mk", "mkType", "huid", "stoneName", "saDia", "saClr", "at"]
+const STOCK_FIELDS = ["key", "barcode", "item", "category", "carat", "gw", "nw", "sw", "dw", "dq", "sa", "serial", "label", "location", "pcs", "sq", "supplier", "mk", "mkType", "huid", "huidNo", "cw", "stoneName", "saDia", "saClr", "at"]
 const RATE_KEYS = ["22k", "18k", "14k", "9k", "platinum", "silver"]
 
 type Meta = { stock: number; rates: number; settings: number; users: number; quotes: number; imgs: number; count: number; history: any[] }
@@ -52,15 +52,15 @@ function cleanRow(r: any) {
   if (!r || typeof r.key !== "string" || !r.key) return null
   const o: any = {}
   for (const f of STOCK_FIELDS) {
-    if (["gw", "nw", "sw", "dw", "dq", "sa", "saDia", "saClr", "pcs", "sq", "huid", "at"].includes(f)) o[f] = cleanNum(r[f])
+    if (["gw", "nw", "sw", "cw", "dw", "dq", "sa", "saDia", "saClr", "pcs", "sq", "huid", "at"].includes(f)) o[f] = cleanNum(r[f])
     else o[f] = cleanStr(r[f])
   }
   o.key = o.key.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 40)
   return o.key ? o : null
 }
 // Permissions an admin can give to a role (admin always has all)
-const PERMS = ["stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "textSize", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "sync", "roles", "users", "settings"]
-const SETTINGS_PERMS = ["imgShow", "ratesShown", "charges", "mkHelper", "itemCodes"]
+const PERMS = ["stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "textSize", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows", "sync", "roles", "users", "settings"]
+const SETTINGS_PERMS = ["imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows"]
 const DEFAULT_ROLES = [
   { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "images"] },
   { id: "staff", name: "Staff", perms: ["rates", "closeSale", "cancelQuote"] },
@@ -282,12 +282,13 @@ export default async (req: Request) => {
         showImg: s?.showImg !== false,
         ui: ["iosBrand", "iosTrue", "android"].includes(s?.ui) ? s.ui : "iosBrand",
         accent: ["brand", "blue", "maroon", "gold", "emerald", "navy", "rose"].includes(s?.accent) ? s.accent : "brand",
+        pdHide: (Array.isArray(s?.pdHide) ? s.pdHide : []).filter((x: any) => typeof x === "string" && /^[a-zA-Z]{1,16}$/.test(x)).slice(0, 30),
         showRates: Array.isArray(s?.showRates) ? s.showRates.filter((x: any) => ["22k", "18k", "14k", "9k", "platinum", "silver"].includes(x)) : null,
       }
       // Keep the parts this user may not change
       const prev: any = (await st.get("settings", { type: "json" })) || {}
       const keep = (perm: string, keys: string[]) => { if (!roleHas(role, perm)) keys.forEach((k) => { if (k in prev) (out as any)[k] = prev[k] }) }
-      keep("charges", ["gst", "huid"]); keep("mkHelper", ["mkTable"]); keep("itemCodes", ["cats"]); keep("ratesShown", ["showRates"]); keep("imgShow", ["showImg", "mkEdit"]); keep("theme", ["ui", "accent"])
+      keep("charges", ["gst", "huid"]); keep("mkHelper", ["mkTable"]); keep("itemCodes", ["cats"]); keep("ratesShown", ["showRates"]); keep("imgShow", ["showImg", "mkEdit"]); keep("theme", ["ui", "accent"]); keep("pdRows", ["pdHide"])
       await st.setJSON("settings", out)
       meta.settings = Date.now(); await saveMeta()
       return json(req, { v: meta.settings })

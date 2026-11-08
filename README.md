@@ -188,3 +188,13 @@ A card is locked for users without that permission; opening it asks for a user w
 - **Accent colour** (admin only): Brand, Blue, Maroon, Gold, Emerald, Navy, Rose. Style and colour sync to every phone through the shared database.
 - **Online enquiries**: no URD or Sales return sections; Advance only.
 - **WhatsApp quote**: the shop's full address, contact, website and GSTIN at the foot of the quote image and quote text (Yamie).
+
+## V 1.6.5 (8 Nov 2026)
+
+- **WhatsApp quote**: firm name, then the address in 2 lines (address · contact, website, GSTIN). Set per brand in `brand.js` (`addr2`).
+- **Product details**: a **+** button on the item tile when there is no photo (camera or gallery; needs "Add product photos").
+- **Product details order**: Purity · Gr. Wt · St. Wt · Nt. Wt · VA % (when making is %) · VA (when making is per gram or fixed) · Making Rate (₹) · Diamond Wt · Diamond Price · Colour Stone Wt · Colour Stone Price · HUID Count · HUID No. · Stones · Pcs · Supplier. Rows with no value are skipped; rows after the first five run full width under the photo.
+- **Settings → Product details · items shown**: tick the items to show (new permission "Product details items"; synced to all phones).
+- **Stock sheet**: colour stone weight columns (Clr Stn Wt / Colour Stone Wt) and HUID codes in the HUID column are kept.
+- **Quote → Discount**: each item shows its making rate and amount; after the manager's making, the new making amount.
+- **Logo** in the app bar on the True iOS and Android styles too.
