@@ -220,3 +220,10 @@ A card is locked for users without that permission; opening it asks for a user w
 - **Document control**: each user sees only their own quotes. Admins see all; an admin can allow any user to see all quotes (Settings → Users → user → "Can see all quotes"). Managers also see quotes sent to them for approval.
 - **Numbering**: a quote gets a provisional number per user when first saved (`P-RAVI-0001`, `P-RAVI-0002` …). When the sale is closed it gets the next number in the common series (`QT-000001` …); the provisional number is kept with it. Quotes numbered before this version keep their numbers.
 - User and role changes made by an admin reach phones within a minute (no longer only at the morning sync).
+
+## V 1.7.3 (8 Nov 2026)
+
+- **Staff quote page** is compact: an approval bar at the top (Draft → Sent → Approved), no discount, close-sale or photo/share sections until the quote is approved (close sale only with permission). While waiting, the quote is locked; "Withdraw to edit" unlocks it.
+- **Save & send for approval**: saves the quote (provisional number) and sends it to a chosen manager/admin, or to any of them.
+- **On approval** the quote gets its QT number from the common series; the staff phone updates by itself (checks every 8 seconds while waiting) with the discount and new number, and sharing unlocks.
+- **Settings → Quote approval** (admin only): On / Off. With it off, staff share quotes directly and the QT number is given when the sale is closed.

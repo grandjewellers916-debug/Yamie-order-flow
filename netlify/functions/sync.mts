@@ -121,7 +121,7 @@ export default async (req: Request) => {
   }
   const roleHas = (role: string, perm: string) => {
     if (role === "admin") return true
-    if (perm === "stock" || perm === "theme" || perm === "footer") return false   // stock data and theme: admins only
+    if (perm === "stock" || perm === "theme" || perm === "footer" || perm === "apprSet") return false   // stock data and theme: admins only
     const ps: string[] = roles.find((r) => r.id === role)?.perms || []
     return ps.includes(perm) || (ps.includes("settings") && [...SETTINGS_PERMS, "textSize"].includes(perm)) || (perm === "roles" && ps.includes("users"))
   }
@@ -171,7 +171,7 @@ export default async (req: Request) => {
         const qs: any[] = ((await st.get("quotes", { type: "json" })) as any[]) || []
         const ls: any[] = ((await st.get("leads", { type: "json" })) as any[]) || []
         const pending = qs.filter((q) => q?.appr?.state === "pending" && q.status !== "cancelled" && q.status !== "closed").slice(0, 50)
-          .map((q) => ({ id: q.id, no: q.no || "", name: cleanStr(q.cust?.name, 40), by: q.appr.reqBy || "", byName: cleanStr(q.appr.reqName, 40), at: q.appr.reqAt || q.updated || 0 }))
+          .map((q) => ({ id: q.id, no: q.no || "", name: cleanStr(q.cust?.name, 40), by: q.appr.reqBy || "", byName: cleanStr(q.appr.reqName, 40), to: cleanStr(q.appr.to, 40), at: q.appr.reqAt || q.updated || 0 }))
         const approved = qs.filter((q) => q?.appr?.state === "approved" && q.appr.at > Date.now() - 3 * 864e5).slice(0, 50)
           .map((q) => ({ id: q.id, no: q.no || "", name: cleanStr(q.cust?.name, 40), to: q.appr.reqBy || "", byName: cleanStr(q.appr.by, 40), at: q.appr.at || 0 }))
         const leads = ls.filter((l) => l.state === "new").slice(0, 50).map((l) => ({ id: l.id, to: l.to || "", name: cleanStr(l.name, 40), byName: cleanStr(l.byName, 40), at: l.at || 0 }))
@@ -210,6 +210,9 @@ export default async (req: Request) => {
       const list: any[] = ((await st.get("quotes", { type: "json" })) as any[]) || []
       const prev = list.find((x) => x.id === q.id)
       if (prev && (prev.updated || 0) > (q.updated || 0)) return json(req, { v: meta.quotes, quote: prev, conflict: true })
+      // A phone that has not seen the approval yet must not undo it (stale "pending" copy)
+      if (prev?.appr?.state === "approved" && q.appr?.state === "pending" && (q.appr.reqAt || 0) <= (prev.appr.reqAt || 0))
+        return json(req, { v: meta.quotes, quote: prev, conflict: true })
       // Numbers are given here so they never clash:
       //  - a provisional number per user (P-RAVI-0001) when the quote is first saved
       //  - the common series number (QT-000001…) once the sale is closed
@@ -224,7 +227,8 @@ export default async (req: Request) => {
         await st.setJSON(sk, { n })
         q.no = q.pno = "P-" + code + "-" + String(n).padStart(4, "0")
       }
-      if (q.status === "closed" && !/^QT-/.test(q.no)) {
+      // The common series number (QT-…) is given when a manager/admin approves the quote, or when the sale is closed
+      if ((q.status === "closed" || q.appr?.state === "approved") && !/^QT-/.test(q.no)) {
         const seq = (Number(((await st.get("quoteseq", { type: "json" })) as any)?.n) || 0) + 1
         await st.setJSON("quoteseq", { n: seq })
         q.pno = q.pno || q.no
@@ -254,7 +258,7 @@ export default async (req: Request) => {
 
     const OP_PERM: Record<string, string> = { img: "images", quotedel: "delQuote", stock: "stock", stockdel: "stockdel", ratelog: "rates" }
     const role = await callerRole()
-    if (op === "settings") { if (!role || ![...SETTINGS_PERMS, "theme", "footer"].some((p) => roleHas(role, p))) return json(req, { error: "bad_pin" }, 403) }
+    if (op === "settings") { if (!role || ![...SETTINGS_PERMS, "theme", "footer", "apprSet"].some((p) => roleHas(role, p))) return json(req, { error: "bad_pin" }, 403) }
     else if (op === "users") { if (!role || !(roleHas(role, "users") || roleHas(role, "roles"))) return json(req, { error: "bad_pin" }, 403) }
     else if (!(await permOk(OP_PERM[op] || "users"))) return json(req, { error: "bad_pin" }, 403)
 
@@ -334,13 +338,14 @@ export default async (req: Request) => {
         ui: ["iosBrand", "iosTrue", "android"].includes(s?.ui) ? s.ui : "iosBrand",
         accent: ["brand", "blue", "maroon", "gold", "emerald", "navy", "rose"].includes(s?.accent) ? s.accent : "brand",
         tabHide: Object.fromEntries(Object.entries(s?.tabHide && typeof s.tabHide === "object" ? s.tabHide : {}).slice(0, 20).filter(([k]) => /^[\w-]{1,40}$/.test(k)).map(([k, v]) => [k, (Array.isArray(v) ? v : []).filter((x: any) => ["tabScan", "tabFind", "tabQuote", "tabRates", "tabSet"].includes(x))])),
+        apprOn: s?.apprOn !== false,
         pdHide: (Array.isArray(s?.pdHide) ? s.pdHide : []).filter((x: any) => typeof x === "string" && /^[a-zA-Z]{1,16}$/.test(x)).slice(0, 30),
         showRates: Array.isArray(s?.showRates) ? s.showRates.filter((x: any) => ["22k", "18k", "14k", "9k", "platinum", "silver"].includes(x)) : null,
       }
       // Keep the parts this user may not change
       const prev: any = (await st.get("settings", { type: "json" })) || {}
       const keep = (perm: string, keys: string[]) => { if (!roleHas(role, perm)) keys.forEach((k) => { if (k in prev) (out as any)[k] = prev[k] }) }
-      keep("charges", ["gst", "huid"]); keep("mkHelper", ["mkTable"]); keep("itemCodes", ["cats"]); keep("ratesShown", ["showRates"]); keep("imgShow", ["showImg", "mkEdit"]); keep("theme", ["ui", "accent"]); keep("pdRows", ["pdHide"]); keep("footer", ["tabHide"])
+      keep("charges", ["gst", "huid"]); keep("mkHelper", ["mkTable"]); keep("itemCodes", ["cats"]); keep("ratesShown", ["showRates"]); keep("imgShow", ["showImg", "mkEdit"]); keep("theme", ["ui", "accent"]); keep("pdRows", ["pdHide"]); keep("footer", ["tabHide"]); keep("apprSet", ["apprOn"])
       await st.setJSON("settings", out)
       meta.settings = Date.now(); await saveMeta()
       return json(req, { v: meta.settings })
