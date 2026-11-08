@@ -841,6 +841,93 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .login #loginCancel{color:#F6E7D0;border-color:rgba(246,231,208,.4)}
 .user-pick button{background:rgba(255,255,255,.08);color:#F6E7D0;border-color:rgba(232,196,150,.45)}
 .user-pick button[aria-pressed="true"]{background:#F3D3A2;color:#5A0A14}
+
+/* ===== v1.7 tablet / wide screens (>= 900px): side bar, page header, multi-column Home and Quote ===== */
+.sb-brand,.sb-user,.dk-head{display:none}
+.h-grid,.h-col,.q-main,.q-side,.q-pair{display:contents}
+@media (min-width:900px){
+  :root{--sb:236px}
+  body{padding-left:var(--sb)}
+  .hero,.live-price{display:none!important}
+  /* side bar */
+  .tabbar{top:0;bottom:0;left:0;right:auto;width:var(--sb);display:flex!important;flex-direction:column;gap:4px;border-top:0;border-right:1px solid var(--line);padding:22px 14px 16px;z-index:7;overflow-y:auto}
+  .sb-brand{display:flex;flex-direction:column;align-items:center;gap:4px;padding:0 6px 26px;text-align:center}
+  .sb-mark{display:block;width:70px;height:46px;background:var(--maroon);-webkit-mask:var(--mk) no-repeat center/contain;mask:var(--mk) no-repeat center/contain}
+  .sb-mark.img{background:none;-webkit-mask:none;mask:none;width:60px;height:60px}
+  .sb-mark.img img{width:100%;height:100%;object-fit:contain;border-radius:12px}
+  .sb-txt b{display:block;font:600 27px var(--display);color:var(--maroon);line-height:1.1}
+  .sb-txt small{display:block;font-size:14px;color:var(--maroon);opacity:.9;margin-top:2px}
+  .tab{flex-direction:row;justify-content:flex-start;gap:16px;padding:12px 16px;min-height:52px;border-radius:12px;font:500 17px var(--body);color:var(--fg)}
+  .tab svg{width:24px!important;height:24px!important;flex:none;color:var(--fg)}
+  .tab.on{background:color-mix(in srgb,var(--maroon) 11%,var(--surface));color:var(--maroon);font-weight:600}
+  .tab.on svg{color:var(--maroon);fill:none!important}
+  .tab.on::after{left:-14px;right:auto;top:8px;bottom:8px;width:4px;height:auto;border-radius:0 3px 3px 0}
+  .tab-badge{position:static;margin-left:auto}
+  .tab:not(.on):hover{background:var(--sunk)}
+  .sb-user{display:grid;grid-template-columns:44px 1fr;grid-template-rows:auto auto;column-gap:12px;align-items:center;margin-top:auto;border:0;border-top:1px solid var(--line);background:none;padding:16px 6px 4px;text-align:left;cursor:pointer;color:var(--fg)}
+  .sb-av{grid-row:1/3;width:44px;height:44px;border-radius:50%;background:var(--sunk);display:grid;place-items:center}
+  .sb-av svg{width:26px;height:26px}
+  .sb-user b{font:600 16px var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sb-out{font-size:12.5px;color:var(--muted)}
+  /* page header */
+  .dk-head{display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:5;background:var(--bg);padding:16px 28px;border-bottom:1px solid var(--line)}
+  .dk-ico svg{width:34px;height:34px;color:var(--maroon);display:block}
+  .dk-title{margin:0;font:600 28px var(--display);color:var(--fg);flex:1;min-width:0}
+  .dk-acts{display:flex;gap:10px;align-items:center}
+  .dk-b{min-height:48px;border-radius:10px;padding:8px 18px;font-size:16px;gap:10px}
+  .dk-b svg{width:21px;height:21px}
+  .dk-more{width:48px;height:48px;border:0;background:none;border-radius:10px;cursor:pointer;display:grid;place-items:center;color:var(--fg)}
+  .dk-more svg{width:26px;height:26px}
+  .dk-more:hover{background:var(--sunk)}
+  body:not([data-view="quote"]) .dk-q,body:not([data-view="home"]) .dk-h,body[data-view="settings"] #dkNew,body[data-view="search"] #dkNew{display:none}
+  /* content */
+  .wrap{max-width:none;margin:0;padding:22px 28px 48px}
+  .btn{min-height:46px}
+  .seg button{min-height:46px}
+  .chip{min-height:50px}
+  .toast{left:calc(50% + var(--sb)/2);bottom:28px}
+  .modal{align-items:center}
+  .rsheet{left:var(--sb)}
+  /* Home: rates, sale type and scan on the left; product and price on the right */
+  body[data-view="home"] .h-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:22px;align-items:start}
+  .h-col{display:flex;flex-direction:column;gap:16px;min-width:0}
+  .h-col.r:not(:has(> :not([hidden]))){display:none}
+  .h-grid:has(.h-col.r:not(:has(> :not([hidden])))){grid-template-columns:minmax(0,640px)}
+  /* Quote: main column + sale type / delivery panel */
+  body[data-view="quote"] #bill{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,380px);gap:20px;align-items:start}
+  .q-main,.q-side{display:flex;flex-direction:column;gap:16px;min-width:0}
+  .q-pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+  #bill .q-step,#qNew{display:none}
+  #bill .q-top{grid-template-columns:1fr}
+  .q-cust{grid-template-columns:1.2fr 1fr;align-items:end;padding:16px 18px}
+  .q-tools .qt{min-height:56px;flex-direction:row;gap:8px;font-size:15px;border-radius:10px;white-space:nowrap;padding:6px 8px}
+  .q-tools .qt svg{width:22px!important;height:22px!important;flex:none}
+  .q-tools{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .q-items .qi-row{grid-template-columns:28px minmax(0,2fr) 64px 76px 76px minmax(90px,1.3fr) 64px!important;gap:10px;font-size:15px;padding-left:16px;padding-right:12px}
+  .q-items .qi-th{font-size:14px}
+  .q-acts{display:flex!important;justify-content:flex-end;gap:12px;border-top:1px solid var(--line);padding-top:16px}
+  .q-acts .btn{min-height:52px;padding:10px 26px;font-size:16px;border-radius:10px}
+  .q-acts .q-gen{padding-inline:40px;font-size:17px}
+  .q-side .courier-list{grid-template-columns:1fr 1fr}
+  /* Search and Settings use the width */
+  .find-view .find-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px}
+  body[data-view="settings"] .wrap{display:block;columns:2 420px;column-gap:20px}
+  body[data-view="settings"] .wrap>*{break-inside:avoid;margin-bottom:16px}
+  body[data-view="settings"] .set-head{column-span:all;display:none}
+  body[data-view="search"] .find-view{max-width:none}
+}
+@media (min-width:900px) and (max-width:1180px){
+  :root{--sb:200px}
+  .sb-txt b{font-size:23px}.sb-txt small{font-size:12.5px}
+  .tab{font-size:15.5px;gap:12px;padding:11px 12px}
+  .dk-b{padding:8px 12px;font-size:15px}
+  #dkShare{display:none}
+  .q-pair{grid-template-columns:1fr}
+  .q-items .qi-row{grid-template-columns:18px minmax(72px,2fr) 38px 52px 52px minmax(74px,1.2fr) 52px!important;gap:5px;font-size:13.5px;padding-left:10px;padding-right:6px}
+  .q-items .qi-th{font-size:12.5px}
+  body[data-view="quote"] #bill{grid-template-columns:minmax(0,1fr) 280px}
+}
+@media (min-width:1440px){.q-tools{grid-template-columns:repeat(6,minmax(0,1fr))}}
 </style>
 <script src="brand-id.js"></script>
 <script src="brand.js"></script>
@@ -871,6 +958,17 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
   </div>
   <div class="menu-ver">Price check &amp; bill · <span id="appVer"></span> <span class="sync-dot" id="syncDot" hidden></span></div>
 </nav>
+<header class="dk-head" id="dkHead">
+  <span class="dk-ico" id="dkIco"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg></span><h1 class="dk-title" id="dkTitle">Price Check</h1>
+  <div class="dk-acts">
+    <button class="btn primary dk-b" type="button" id="dkNew"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>New Quote</button>
+    <button class="btn dk-b dk-q" type="button" id="dkOpen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Open</button>
+    <button class="btn dk-b dk-q" type="button" id="dkSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v5h7V3M8 21v-7h8v7"/></svg>Save</button>
+    <button class="btn dk-b dk-q" type="button" id="dkShare"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8V3h10v5"/><rect x="3" y="8" width="18" height="9" rx="2"/><path d="M7 14h10v7H7z"/></svg>Quote image</button>
+    <button class="btn dk-b dk-h" type="button" id="dkQuote"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg><span id="dkQuoteT">Quote</span></button>
+    <button class="dk-more" type="button" id="dkMore" aria-label="More"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></svg></button>
+  </div>
+</header>
 <div class="wrap">
 
   <section class="band" id="band" data-pane="home" aria-label="Day's rates" role="button" tabindex="0">
@@ -1187,12 +1285,14 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 </div>
 
 <nav class="tabbar" id="tabbar" aria-label="Sections">
+  <div class="sb-brand" aria-hidden="true"><span class="sb-mark" id="sbMark"></span><span class="sb-txt"><b id="sbNm">Yamie</b><small>Price Check &amp; Quote</small></span></div>
   <button type="button" class="tab on" id="tabHome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.2 12 3.8l9 7.4h-2.5V20.2h-5v-5.5h-3v5.5h-5V11.2z"/></svg><span>Home</span></button>
   <button type="button" class="tab" id="tabScan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M7.5 8v8M10.5 8v8M13.5 8v8M16.5 8v8"/></svg><span>Scan</span></button>
   <button type="button" class="tab" id="tabFind"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><span>Search</span></button>
   <button type="button" class="tab" id="tabQuote"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg><span>Quote</span><b class="tab-badge" id="tabBadge" hidden>0</b></button>
   <button type="button" class="tab" id="tabRates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18"/><path d="M5 20l1.5-5h5L13 20"/><path d="M11 20l1.5-5h5L19 20"/><path d="M8 15l1.5-5h5L16 15"/></svg><span>Gold Rates</span></button>
   <button type="button" class="tab" id="tabSet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="6.6"/><path d="M12 2.5v2.9M12 18.6v2.9M2.5 12h2.9M18.6 12h2.9M5.3 5.3l2 2M16.7 16.7l2 2M5.3 18.7l2-2M16.7 7.3l2-2"/></svg><span>Settings</span></button>
+  <button type="button" class="sb-user" id="sbUser" aria-label="Account and log out"><span class="sb-av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span><b id="sbName">—</b><span class="sb-out">Log out</span></button>
 </nav>
 <div class="bar" id="bar">
   <div class="bar-in">
@@ -2197,7 +2297,7 @@ function paintQuoteHead(){
   $('qNo').textContent=quoteLabel(bill);
   const n=bill.items.length;$('billCount').textContent=`(${n})`;
   const b=$('tabBadge');b.hidden=!n;b.textContent=n;
-  $('goBill').textContent=n?`Quote (${n})`:'Quote';
+  $('goBill').textContent=n?`Quote (${n})`:'Quote';$('dkQuoteT').textContent=n?`Quote (${n})`:'Quote';
 
 }
 function renderBill(keepInputs){
@@ -3104,13 +3204,54 @@ $('menu').addEventListener('click',e=>{if(e.target.closest('.menu-acts button'))
 const VIEW_TITLE={home:'Price Check',quote:'Quote',settings:'Settings',search:'Search'};
 function setView(v){
   const was=document.body.dataset.view;document.body.dataset.view=v;
-  $('viewTitle').textContent=VIEW_TITLE[v];$('heroBack').hidden=v==='home';
+  $('viewTitle').textContent=VIEW_TITLE[v];$('dkTitle').textContent=VIEW_TITLE[v];{const t=$({home:'tabHome',quote:'tabQuote',settings:'tabSet',search:'tabFind'}[v]);const g=t&&t.querySelector('svg');if(g)$('dkIco').innerHTML=g.outerHTML}$('heroBack').hidden=v==='home';
   [['tabHome','home'],['tabFind','search'],['tabQuote','quote'],['tabSet','settings']].forEach(([id,k])=>$(id).classList.toggle('on',k===v));
   if(v==='quote'){renderBill();if(sync.key)pullQuotes()}
   if(was!==v)window.scrollTo({top:0});
 }
 function openSettings(card){setView('settings');if(card){const c=$(card);if(!c.open)c.querySelector('summary').click();setTimeout(()=>c.scrollIntoView({behavior:'smooth',block:'start'}),150)}}
 $('heroBack').onclick=()=>setView('home');
+// ---------- tablet / wide screens (>= 900px): side bar, page header, multi-column Home and Quote ----------
+// Same screens and controls as the phone; on wide screens they are only regrouped into columns.
+const WIDE=window.matchMedia('(min-width:900px)');
+const deskOrig=new Map();
+function ungroup(parent){
+  const orig=deskOrig.get(parent);if(!orig)return;
+  orig.forEach(n=>parent.appendChild(n));
+  [...parent.children].forEach(n=>{if(!orig.includes(n))n.remove()});
+  deskOrig.delete(parent);
+}
+function box(cls,nodes,pane){const w=document.createElement('div');w.className=cls;if(pane)w.dataset.pane=pane;nodes.forEach(n=>n&&w.appendChild(n));return w}
+function deskLayout(){
+  const wrap=document.querySelector('.wrap'),b=$('bill'),q=c=>b.querySelector(':scope '+c);
+  ungroup(b);ungroup(wrap);
+  if(!WIDE.matches)return;
+  // Home: left = rates, sale type, scan; right = product details and tag
+  deskOrig.set(wrap,[...wrap.children]);
+  const band=$('band'),at=band.previousSibling;
+  const left=box('h-col l',[band,$('saleMode'),wrap.querySelector('.scan-card')]);
+  const right=box('h-col r',[$('prodCard'),$('editor')]);
+  wrap.insertBefore(box('h-grid',[left,right],'home'),at?at.nextSibling:wrap.firstChild);
+  // Quote: main column + side panel
+  deskOrig.set(b,[...b.children]);
+  const steps=[...b.querySelectorAll(':scope > .q-step')];
+  const main=box('q-main',[...steps,q('.q-top'),q('.q-tools'),q('.q-items'),box('q-pair',[$('qDiscCard'),q('.q-sum')]),q('.q-acts')]);
+  const side=box('q-side',[$('qSale'),$('qDed'),q('.q-photos'),$('qClose'),q('.q-list')]);
+  b.prepend(main,side);
+}
+WIDE.addEventListener?WIDE.addEventListener('change',deskLayout):WIDE.addListener(deskLayout);
+deskLayout();
+// side bar logo + name
+(()=>{const m=$('sbMark');$('sbNm').textContent=BRAND.name;
+  if(BRAND.mark)m.style.setProperty('--mk',`url("${BRAND.mark}")`);
+  else{m.classList.add('img');m.innerHTML=`<img src="${BRAND.icon}" alt="">`}})();
+$('sbUser').onclick=()=>$('heroUser').click();
+$('dkMore').onclick=()=>setMenu(true);
+$('dkNew').onclick=()=>{if(document.body.dataset.view==='quote')$('qNew').click();else $('homeQNew').click()};
+$('dkQuote').onclick=()=>setView('quote');
+$('dkOpen').onclick=()=>{const l=$('bill').querySelector('.q-list');if(l)l.scrollIntoView({behavior:'smooth',block:'start'});const f=$('qSearch');if(f)setTimeout(()=>f.focus({preventScroll:true}),400)};
+$('dkSave').onclick=()=>{if(billIsEmpty()){toast('Add an item to the quote first',null,true);return}saveBill();toast('Quote saved')};
+$('dkShare').onclick=()=>$('waBtn').click();
 // Text size (per phone) and who may change making on the price card (shared setting)
 function applyZoom(z){try{document.body.style.zoom=String(z)}catch(e){}}
 function zoomNow(){const z=store.get('uiZoom',null);return z!=null?z:(Math.min(screen.width||400,innerWidth)<=380?0.9:1)}
@@ -3198,7 +3339,7 @@ setView('home');
 window.__pc={totals:()=>totals(),shareText:()=>shareText(),openSettings:c=>openSettings(c)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.6.__BUILD__';
+const APP_VERSION='1.7.__BUILD__';
 $('appVer').textContent='v'+(APP_VERSION.includes('__')?'dev':APP_VERSION);$('heroVer').textContent=$('appVer').textContent;
 
 // ---------- users and login ----------
@@ -3323,7 +3464,7 @@ function logout(msg){
   curUser=null;adminCreds=null;adminUntil=0;elev={role:'',until:0};store.set('session',null);
   paintUserChip();paintAdmin();openLogin('login',msg||'Logged out. Log in to continue.');
 }
-function paintUserChip(){const c=$('userChip');c.hidden=!curUser;if(curUser)c.textContent='👤 '+(curUser.name||curUser.username)+' · Log out';$('heroName').textContent=curUser?(curUser.name||curUser.username):'—'}
+function paintUserChip(){const c=$('userChip');c.hidden=!curUser;if(curUser)c.textContent='👤 '+(curUser.name||curUser.username)+' · Log out';$('heroName').textContent=$('sbName').textContent=curUser?(curUser.name||curUser.username):'—'}
 $('heroUser').onclick=()=>{if(curUser)$('userChip').click()};
 $('userChip').onclick=()=>showModal(`${curUser.name||curUser.username}`,`Logged in as ${roleName(curUser.role)} (${curUser.username}).`,[
   {label:'Log out',cls:'danger',run:()=>logout()},{label:'Cancel',cls:'ghost'}]);

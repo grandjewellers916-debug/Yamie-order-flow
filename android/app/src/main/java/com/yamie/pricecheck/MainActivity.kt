@@ -75,6 +75,10 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Phones stay portrait; tablets (smallest width >= 600dp) turn freely so the wide two-column layout can be used in landscape.
+        requestedOrientation = if (resources.configuration.smallestScreenWidthDp >= 600)
+            android.content.pm.ActivityInfo.SCREEN_ORIENTATION_FULL_USER
+        else android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
         val assetLoader = WebViewAssetLoader.Builder()
             .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
