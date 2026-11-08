@@ -2783,7 +2783,7 @@ function toast(t,undo,warn){
 }
 $('copyBtn').onclick=()=>{
   if(!bill.items.length){toast('Add an item first');return}
-  if(!shareOk())return;
+  if(!shareOk(()=>$('copyBtn').click()))return;
   const t=shareText();
   if(NATIVE&&NATIVE.copy){NATIVE.copy(t);toast('Quote copied');return}
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>toast('Quote copied'),()=>toast('Copy blocked here'));
@@ -2849,7 +2849,7 @@ function dataUrlFile(u,i){const [h,b]=u.split(',');const bin=atob(b),arr=new Uin
 $('waBtn').onclick=()=>openQuoteImage();
 $('waText').onclick=async()=>{
   if(!bill.items.length){toast('Add an item first');return}
-  if(!shareOk())return;
+  if(!shareOk(()=>$('waText').click()))return;
   const text=shareText(),ph=phoneDigits(bill.cust.phone);
   if(NATIVE&&NATIVE.shareWhatsApp){NATIVE.shareWhatsApp(ph,text,JSON.stringify(photos));return}
   if(photos.length&&navigator.canShare){try{const files=photos.map(dataUrlFile);if(navigator.canShare({files})){await navigator.share({files,text});return}}catch(e){if(e&&e.name==='AbortError')return}}
@@ -2953,7 +2953,7 @@ function firmAddr(){const a=BRAND.address;if(!a||!a.length)return null;
 let qImgUrl='';
 async function openQuoteImage(){
   if(!bill.items.length){toast('Add an item first');return}
-  if(!shareOk())return;
+  if(!shareOk(openQuoteImage))return;
   if(!bill.no&&sync.key&&navigator.onLine){await pushQuote(bill.id)}
   $('qimgPop').hidden=false;$('qimgImg').removeAttribute('src');$('qimgNote').textContent='Making the quote image…';
   const withP=store.get('qimgPhotos',true);$('qimgPhotos').checked=!!withP;
@@ -3635,13 +3635,15 @@ const PERM_LIST=[
 ['stockdel','Delete sold tags from stock'],['rates',"Set day's rates"],
   ['mkEdit','Update making on the price card'],['mkDisc','Making after discount on quotes'],
   ['closeSale','Close sale (invoice no.)'],['cancelQuote','Cancel quote (enquiry)'],['reopen','Reopen sold / cancelled quotes'],
-  ['delQuote','Delete quotes'],['images','Add product photos'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],
+  ['delQuote','Delete quotes'],['images','Add product photos'],['share','Share quotes on WhatsApp'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],
   ['textSize','Text size'],['imgShow','Product image show / hide'],['ratesShown','Rates shown'],['charges','Charges · GST · HUID'],
   ['mkHelper','Making helpers'],['itemCodes','Item codes'],['pdRows','Product details items'],['sync','Shared database · shop key'],['roles','Roles & permissions'],['users','Users']];
 const SET_PERMS=['theme','footer','apprSet','stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users'];
 const permLabel=k=>(PERM_LIST.find(p=>p[0]===k)||[0,k])[1];
-const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','approve','leads']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote']}];
+const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','approve','leads','share']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share']}];
 let roles=store.get('roles',null)||clone(DEFAULT_ROLES);
+// WhatsApp sharing became a permission (v1.7.3): roles on this phone keep it once
+if(!store.get('permShare',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&!r.perms.includes('share'))r.perms.push('share')});store.set('roles',roles);store.set('permShare',true)}
 let elev={role:'',until:0};   // another user's approval, 15 minutes
 const roleName=id=>id==='admin'?'Admin':(roles.find(r=>r.id===id)||{name:id||'—'}).name;
 // 'settings' was one permission before v1.6.42; it still grants all the settings functions
@@ -3757,7 +3759,9 @@ function apprSig(q){return JSON.stringify([(q.items||[]).map(t=>[t.sku,t.gw,t.nw
 function apprState(q){const a=q&&q.appr;if(!a||!a.state)return '';if(a.state==='approved'&&a.sig&&a.sig!==apprSig(q))return 'changed';return a.state}
 // Approval is needed before sharing when the user cannot approve and the shop uses the shared database
 function needsAppr(){return !!(sync.key&&curUser&&!canApprove()&&settings.apprOn!==false)}
-function shareOk(){
+function shareOk(retry){
+  // WhatsApp / copy sharing needs the "Share quotes on WhatsApp" permission (assignable to roles)
+  if(curUser&&!can('share')){withPerm('share','Needs permission to share quotes on WhatsApp.',()=>{if(retry)retry()});return false}
   if(!needsAppr())return true;const st=apprState(bill);if(st==='approved')return true;
   toast(st==='pending'?'Waiting for the manager to approve this quote':'Send the quote for approval first',null,true);
   return false;

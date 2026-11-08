@@ -240,3 +240,8 @@ A card is locked for users without that permission; opening it asks for a user w
 - The approval bar at the top of the Quote page is gone. When approval applies, the **Approval** button takes the place of **Scan Product** in the quote toolbar (Send for approval → Sent → Approved; managers see Approve).
 - Tapping it opens a pop-up: staff pick who approves (any manager/admin, or one person) and tap **Save & send for approval**; managers see **Approve & send to …**.
 - The state also shows next to the quote number (Waiting / Approved / Changed).
+
+## WhatsApp share permission (8 Nov 2026)
+
+- New permission **Share quotes on WhatsApp** (Settings → Roles & permissions). It covers the quote image, Send as text and Copy quote text. Without it, the app asks for a user who has it (manager PIN) before sharing.
+- Every existing role keeps sharing once (no change on day one); untick it for a role to require it.
