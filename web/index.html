@@ -755,6 +755,18 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .q-appr.pending .qa-pill{background:color-mix(in srgb,#E8A33A 25%,var(--surface));color:#8A5A00}
 .q-appr.approved .qa-pill{background:color-mix(in srgb,#2E7D4F 18%,var(--surface));color:#2E7D4F}
 .q-appr .qa-msg{margin:0;font-size:13.5px;line-height:1.4;color:var(--fg)}
+.q-lead{padding:10px 12px}.q-lead .qa-lead{margin:0}
+.q-no .qa-pill{margin-left:6px;vertical-align:middle}
+.qa-pill.pending{background:color-mix(in srgb,#E8A33A 25%,var(--surface));color:#8A5A00}
+.qa-pill.approved{background:color-mix(in srgb,#2E7D4F 18%,var(--surface));color:#2E7D4F}
+.qt-appr{border-color:color-mix(in srgb,var(--maroon) 45%,transparent);color:var(--maroon);background:color-mix(in srgb,var(--maroon) 7%,var(--surface));font-weight:600}
+.qt-appr.pending{border-color:#E8A33A;color:#8A5A00;background:color-mix(in srgb,#E8A33A 12%,var(--surface))}
+.qt-appr.approved{border-color:#2E7D4F;color:#2E7D4F;background:color-mix(in srgb,#2E7D4F 9%,var(--surface))}
+.ap-list{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.ap-opt{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;font-size:15px;background:var(--surface)}
+.ap-opt input{accent-color:var(--maroon);width:18px;height:18px;margin:0}
+.ap-opt small{color:var(--muted);margin-left:auto;font-size:12.5px}
+.ap-opt:has(input:checked){border-color:var(--maroon);background:color-mix(in srgb,var(--maroon) 7%,var(--surface))}
 .qa-to{display:flex;align-items:center;gap:8px;margin-top:10px}
 .qa-to label{font-size:12.5px;color:var(--muted);flex:none}
 .qa-to select{flex:1;min-width:0;font:15px var(--body);padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg)}
@@ -1227,12 +1239,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 
   <!-- Quote -->
   <section class="qv" data-pane="quote" id="bill" aria-label="Quote">
-    <div class="card q-appr" id="qAppr" hidden>
-      <div class="qa-top"><span class="qa-pill" id="qApprSt"></span><p class="qa-msg" id="qApprMsg"></p></div>
-      <div class="qa-to" id="qApprToW" hidden><label for="qApprTo">Send to</label><select id="qApprTo"></select></div>
-      <div class="qa-acts" id="qApprActs"></div>
-      <div class="qa-lead" id="qApprLead" hidden></div>
-    </div>
+    <div class="card q-lead" id="qAppr" hidden><div class="qa-lead" id="qApprLead"></div></div>
     <h3 class="q-step">Customer details</h3>
     <div class="q-top">
       <div class="card q-cust">
@@ -1245,6 +1252,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
     </div>
     <h3 class="q-step">Quotation</h3>
     <div class="q-tools">
+      <button type="button" class="qt qt-appr" id="qtAppr" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.6-3 8.5-7 10-4-1.5-7-5.4-7-10V6z"/><path d="M8.8 12.2l2.2 2.2 4.4-4.6"/></svg><span id="qtApprL">Approval</span></button>
       <button type="button" class="qt" id="qtScan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M7.5 8v8M10.5 8v8M13.5 8v8M16.5 8v8"/></svg><span>Scan Product</span></button>
       <button type="button" class="qt" id="qtManual"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><span>Add Manually</span></button>
       <button type="button" class="qt" id="qtEdit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></svg><span>Edit</span></button>
@@ -1254,7 +1262,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
     </div>
 
     <div class="card q-items">
-      <div class="qi-head"><h2>Quoted Items <span id="billCount">(0)</span></h2><span class="q-no">Quote No: <b id="qNo">New</b></span></div>
+      <div class="qi-head"><h2>Quoted Items <span id="billCount">(0)</span></h2><span class="q-no">Quote No: <b id="qNo">New</b><span class="qa-pill" id="qNoSt" hidden></span></span></div>
       <div class="q-status" id="qStatus" hidden></div>
       <div class="qi-table" role="table" aria-label="Quoted items">
         <div class="qi-row qi-th" role="row"><span>#</span><span>SKU / Item</span><span>Purity</span><span>Gr. Wt</span><span>Nt. Wt</span><span>Amount</span><span></span></div>
@@ -3752,51 +3760,64 @@ function needsAppr(){return !!(sync.key&&curUser&&!canApprove()&&settings.apprOn
 function shareOk(){
   if(!needsAppr())return true;const st=apprState(bill);if(st==='approved')return true;
   toast(st==='pending'?'Waiting for the manager to approve this quote':'Send the quote for approval first',null,true);
-  const c=$('qAppr');if(c&&!c.hidden)c.scrollIntoView({behavior:'smooth',block:'center'});return false;
+  return false;
 }
 const ago=t=>{if(!t)return'';const m=Math.round((Date.now()-t)/60000);return m<1?'just now':m<60?m+' min ago':m<1440?Math.round(m/60)+' h ago':new Date(t).toLocaleDateString('en-IN',{day:'numeric',month:'short'})};
 function approvers(){return users.filter(u=>u.active!==false&&(u.role==='admin'||roleHas(u.role,'approve'))&&(!curUser||u.id!==curUser.id))}
+// Approval state shown on the quote toolbar (the Approval button replaces Scan) and next to the quote number
+function apprMode(){const st=apprState(bill);return !!(sync.key&&curUser&&bill&&(needsAppr()||(canApprove()&&(st==='pending'||st==='changed'||st==='approved'))))}
 function paintAppr(){
   const c=$('qAppr');if(!c)return;
-  const st=apprState(bill),a=bill.appr||{},closed=isClosed(),lead=bill.leadNote||'',need=needsAppr();
+  const st=apprState(bill),closed=isClosed(),lead=bill.leadNote||'',need=needsAppr();
   const sec=$('bill');
-  // compact page for staff while approval is on
   sec.classList.toggle('staff',need);
   sec.classList.toggle('locked',need&&st==='pending');
   sec.classList.toggle('apprd',st==='approved');
   const okShare=!need||st==='approved'||closed;
   document.querySelector('#bill .q-photos').classList.toggle('hold',!okShare);
   $('qClose').classList.toggle('hold',!okShare||!can('closeSale'));
-  const show=!!sync.key&&curUser&&bill.items.length&&!closed&&(need||st==='pending'||st==='approved'||st==='changed');
-  c.hidden=!show&&!lead;$('qApprLead').hidden=!lead;$('qApprLead').textContent=lead?'WhatsApp lead: '+lead:'';
-  c.classList.toggle('pending',st==='pending');c.classList.toggle('approved',st==='approved');
-  const acts=$('qApprActs');acts.innerHTML='';const btn=(t,cls,fn)=>{const b=document.createElement('button');b.type='button';b.className='btn '+(cls||'');b.textContent=t;b.onclick=fn;acts.appendChild(b)};
-  $('qApprToW').hidden=true;
-  let msg='',tag='';
-  if(!show){$('qApprMsg').textContent='';$('qApprSt').textContent='';return}
-  if(canApprove()){
-    if(st==='pending'){tag='Waiting for you';msg=`${a.reqName||'Staff'} asked ${ago(a.reqAt)}. Set the discount below, then approve.`;btn('Approve & send to '+(a.reqName||'staff'),'primary',approveQuote)}
-    else if(st==='approved'){tag='Approved';msg=`By ${a.by||'—'} ${ago(a.at)}.`}
-    else if(st==='changed'){tag='Changed';msg=`Changed after approval by ${a.by||'—'}.`;btn('Approve again','primary',approveQuote)}
-  }else{
-    if(st==='pending'){const to=a.to?users.find(u=>u.id===a.to):null;tag='Sent';msg=`Waiting for ${to?(to.name||to.username):'a manager or admin'} · sent ${ago(a.reqAt)}. This page updates by itself once approved.`;btn('Withdraw to edit','',withdrawAppr)}
-    else if(st==='approved'){tag='Approved';msg=`By ${a.by||'the manager'} ${ago(a.at)} · ${bill.no||''}. Discount applied — ready to share.`;btn('Send quote image','primary',()=>$('waBtn').click())}
-    else{tag=st==='changed'?'Changed':'Draft';msg=st==='changed'?'Changed after approval. Send it again.':'Save and send to a manager or admin. They set the discount and approve.';
-      const ap=approvers(),sel=$('qApprTo'),keep=sel.value||store.get('apprTo','');
-      sel.innerHTML=`<option value="">Any manager or admin</option>`+ap.map(u=>`<option value="${esc(u.id)}">${esc(u.name||u.username)} · ${esc(roleName(u.role))}</option>`).join('');
-      sel.value=ap.some(u=>u.id===keep)?keep:'';$('qApprToW').hidden=false;
-      btn('Save & send for approval','primary',requestAppr)}
-  }
-  $('qApprSt').textContent=tag;$('qApprMsg').textContent=msg;
+  c.hidden=!lead;$('qApprLead').textContent=lead?'WhatsApp lead: '+lead:'';
+  const mode=apprMode()&&!closed,b=$('qtAppr');
+  b.hidden=!mode;$('qtScan').hidden=mode;
+  const lab=canApprove()?(st==='pending'?'Approve':st==='changed'?'Approve again':st==='approved'?'Approved':'Approval'):(st==='pending'?'Sent':st==='approved'?'Approved':'Send for approval');
+  $('qtApprL').textContent=lab;b.classList.toggle('pending',st==='pending');b.classList.toggle('approved',st==='approved');
+  const pill=$('qNoSt'),tag={pending:'Waiting',approved:'Approved',changed:'Changed'}[st]||'';
+  pill.hidden=!tag||closed;pill.textContent=tag;pill.className='qa-pill '+(st||'');
 }
+function apprPop(){
+  if(!bill.items.length){toast('Add an item first',null,true);return}
+  const st=apprState(bill),a=bill.appr||{};
+  const acts=[];let body='';
+  const who=id=>{const u=id?users.find(x=>x.id===id):null;return u?(u.name||u.username):''};
+  if(canApprove()){
+    if(st==='pending'||st==='changed'){body=`<p>${st==='changed'?'Changed after approval by '+esc(a.by||'—')+'.':`${esc(a.reqName||'Staff')} asked ${ago(a.reqAt)}.`} Set the discount in the Discount section, then approve. ${esc(a.reqName||'Staff')} will be notified and can share it.</p>`;
+      acts.push({label:'Approve & send to '+(a.reqName||'staff'),cls:'primary',run:approveQuote})}
+    else body=`<p>Approved by ${esc(a.by||'—')} ${ago(a.at)}.</p>`;
+  }else if(st==='pending'){body=`<p>Waiting for ${esc(who(a.to)||'a manager or admin')} · sent ${ago(a.reqAt)}.</p><p class="note">The quote updates by itself once approved. It is locked until then.</p>`;
+    acts.push({label:'Withdraw to edit',run:withdrawAppr})}
+  else if(st==='approved'){body=`<p>Approved by ${esc(a.by||'the manager')} ${ago(a.at)} · <b>${esc(bill.no||'')}</b>. Discount applied.</p>`;
+    acts.push({label:'Send quote image',cls:'primary',run:()=>$('waBtn').click()})}
+  else{
+    const ap=approvers(),keep=store.get('apprTo','');
+    const sel=ap.some(u=>u.id===keep)?keep:'';
+    body=`<p>${st==='changed'?'The quote changed after approval. ':''}Choose who approves this quote. It is saved first, then sent.</p><div class="ap-list" id="apList">`+
+      `<label class="ap-opt"><input type="radio" name="apTo" value=""${sel?'':' checked'}> Any manager or admin <small>all of them</small></label>`+
+      ap.map(u=>`<label class="ap-opt"><input type="radio" name="apTo" value="${esc(u.id)}"${sel===u.id?' checked':''}> ${esc(u.name||u.username)} <small>${esc(roleName(u.role))}</small></label>`).join('')+`</div>`;
+    acts.push({label:'Save & send for approval',cls:'primary',run:()=>{const r=document.querySelector('#apList input:checked');requestAppr(r?r.value:'')}});
+  }
+  acts.push({label:'Close',cls:'ghost'});
+  showModal(st==='approved'?`${bill.no||'Quote'} approved`:canApprove()?'Approve quote':'Send for approval','',acts);
+  $('modalBody').innerHTML=body;
+}
+$('qtAppr').onclick=apprPop;
 async function withdrawAppr(){
   bill.appr=null;saveBill(true);renderBill();await pushQuote(bill.id);renderBill();toast('Withdrawn. You can edit the quote now.');
 }
-async function requestAppr(){
+async function requestAppr(toSel){
   if(!bill.items.length){toast('Add an item first',null,true);return}
   const s=totals();if(s.bad){toast('Some items have no price. Check rates and weights.',null,true);return}
   if(!bill.cust.name&&!bill.cust.phone){toast('Enter the customer name or phone first',null,true);$('qName').focus();return}
-  const to=$('qApprTo').value||'';store.set('apprTo',to);const tu=to?users.find(u=>u.id===to):null;
+  const to=toSel||'';store.set('apprTo',to);const tu=to?users.find(u=>u.id===to):null;
   // save the quote first (it gets its provisional number), then ask for approval
   saveBill(true);if(!bill.no){await pushQuote(bill.id)}
   bill.appr={state:'pending',reqBy:curUser.id,reqName:meName(),reqAt:Date.now(),to};
@@ -3922,7 +3943,7 @@ function openInbox(again){
     if(b.dataset.k==='lead'){startLead(id);return}
     if(!quotes.some(q=>q.id===id))await pullQuotes();
     if(!quotes.some(q=>q.id===id)){toast('Quote not found. Try again in a moment.',null,true);return}
-    openQuote(id);setView('quote');setTimeout(()=>{const c=$('qAppr');if(c&&!c.hidden)c.scrollIntoView({behavior:'smooth',block:'center'})},300)});
+    openQuote(id);setView('quote');if(b.dataset.k==='pending')setTimeout(apprPop,400)});
   items.forEach(x=>inbRead.add(x.k));store.set('inbRead',[...inbRead].slice(-400));paintBell();
   $('modal').hidden=false;
   if(!again){const before=JSON.stringify(items.map(x=>x.k));pollInbox(true).then(()=>{if(!$('modal').hidden&&$('modalTitle').textContent==='Notifications'&&JSON.stringify(myInbox().map(x=>x.k))!==before)openInbox(true)})}

@@ -234,3 +234,9 @@ A card is locked for users without that permission; opening it asks for a user w
 - In the background the Android app checks about every minute (was every 15 minutes; Android may space checks out while the phone sleeps), plus the 15-minute safety check.
 - The first background check no longer swallows a request that arrived before it; the app tells the background checker what was already seen.
 - Web version: Android Chrome and desktop browsers can show system notifications (allowed on first tap of the bell).
+
+## Approval button (8 Nov 2026)
+
+- The approval bar at the top of the Quote page is gone. When approval applies, the **Approval** button takes the place of **Scan Product** in the quote toolbar (Send for approval → Sent → Approved; managers see Approve).
+- Tapping it opens a pop-up: staff pick who approves (any manager/admin, or one person) and tap **Save & send for approval**; managers see **Approve & send to …**.
+- The state also shows next to the quote number (Waiting / Approved / Changed).
