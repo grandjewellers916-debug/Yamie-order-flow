@@ -112,6 +112,7 @@ export default async (req: Request) => {
   const roles: any[] = ((await st.get("roles", { type: "json" })) as any[]) || DEFAULT_ROLES
   const roleHas = (role: string, perm: string) => {
     if (role === "admin") return true
+    if (perm === "stock") return false   // stock data: admins only
     const ps: string[] = roles.find((r) => r.id === role)?.perms || []
     return ps.includes(perm) || (ps.includes("settings") && [...SETTINGS_PERMS, "textSize"].includes(perm)) || (perm === "roles" && ps.includes("users"))
   }

@@ -171,3 +171,11 @@ Quote page:
 Settings is split into one card per function, and each is a permission you can give to a role (Roles & permissions):
 Stock data · Remove sold tags · Text size · Product image show/hide · Rates shown · Charges (GST, HUID) · Making helpers · Item codes · Shared database & shop key · Roles & permissions · Users.
 A card is locked for users without that permission; opening it asks for a user who has it. The shared database checks the same permissions and keeps any part of the settings the user is not allowed to change. Roles that had the old single "Admin settings" permission keep all the settings functions.
+
+## v1.6.43 (8 Nov 2026)
+
+- **Stock data** is admin only (no longer a role permission).
+- **Home → sale type**: Online enquiry · Store walk-in · Price check only (no Save to Quote; nothing is saved). New quotes follow the choice.
+- **Quote page order**: Customer details → Quotation (items, making show/hide) → Discount → Sale type → URD / SR / Advance → Summary (with round-off option).
+- **Delivery partners** (online enquiries): India Post ₹400 (up to ₹35,000, warns above), Bright Asset Transit ₹600, BVC ₹600, Sequel ₹600, Yamie Delivery (enter charges), Store pick-up (free). Delivery is shown by partner in the summary, quote text and quote image.
+- **Login**: tap your name and enter the PIN (no username box). A new phone on the shared database loads the user list.

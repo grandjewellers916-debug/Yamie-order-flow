@@ -787,6 +787,24 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .setcard summary .dc-chev{margin-left:auto}
 .setcard summary .dc-t{font-size:17px}
 .setcard h3{margin:4px 0 0}
+/* v1.6.42 */
+.sale-mode{margin-bottom:-2px}
+.sale-mode button{font-size:13px;padding:8px 4px;white-space:nowrap}
+.sale-mode button[aria-pressed="true"]{background:var(--maroon);color:#fff;box-shadow:none}
+.mode-check .sale-mode button[data-m="check"][aria-pressed="true"]{background:#4A4A4A}
+.lg-in:has(#loginUser[hidden]){display:none}
+.pd-check{display:grid;place-items:center;border:1.5px dashed var(--line);border-radius:12px;color:var(--muted);font-size:13.5px;font-weight:600;text-align:center;padding:6px}
+.mode-check #editor #addTag{display:none}
+.q-step{margin:6px 4px -4px;font:700 13px var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.q-opts h2{margin:0;font:700 18px var(--display);color:var(--maroon)}
+.courier-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cour{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1.5px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 12px;cursor:pointer;color:var(--fg)}
+.cour b{font-size:14px}
+.cour span{font-size:12px;color:var(--muted)}
+.cour.on{border-color:var(--maroon);background:color-mix(in srgb,var(--maroon) 8%,var(--surface))}
+.cour.on b::before{content:"● ";color:var(--maroon)}
+.q-mkshow{margin:8px 14px 4px}
+.q-round{margin:4px 0 2px}
 /* making entry pop-up */
 .mk-sheet{display:flex;flex-direction:column;gap:12px}
 .mk-types{background:transparent;gap:8px;padding:0}
@@ -867,6 +885,13 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
     </div>
   </section>
 
+  <!-- Sale / enquiry type -->
+  <div class="seg sale-mode" id="saleMode" data-pane="home" role="radiogroup" aria-label="Sale or enquiry type">
+    <button type="button" role="radio" data-m="online">Online enquiry</button>
+    <button type="button" role="radio" data-m="store">Store walk-in</button>
+    <button type="button" role="radio" data-m="check">Price check only</button>
+  </div>
+
   <!-- Scan -->
   <section class="scan-card" data-pane="home" aria-label="Find the item">
     <div class="scan-row">
@@ -899,7 +924,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
       <div class="pt-row pt-gst"><span id="pdGstL">+ GST (3%)</span><span id="pdGst">—</span></div>
     </div>
     <div class="grand" id="pdGrandRow"><span>Grand Total</span><strong id="pdGrand">—</strong></div>
-    <div class="prod-acts"><button class="btn" type="button" id="pdDel">Clear</button><button class="btn primary" type="button" id="pdSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>Save to Quote</button></div>
+    <div class="prod-acts"><button class="btn" type="button" id="pdDel">Clear</button><span class="pd-check" id="pdCheck" hidden>Price check only · not saved</span><button class="btn primary" type="button" id="pdSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>Save to Quote</button></div>
     <div class="pd-links"><button class="linkbtn" type="button" id="pdMk" hidden>Update making</button><button class="linkbtn pd-edit" type="button" id="pdEdit">Edit details</button></div>
   </section>
 
@@ -962,6 +987,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 
   <!-- Quote -->
   <section class="qv" data-pane="quote" id="bill" aria-label="Quote">
+    <h3 class="q-step">Customer details</h3>
     <div class="q-top">
       <div class="card q-cust">
         <div class="qc-a"><span class="qc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span>
@@ -971,6 +997,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
       </div>
       <button class="card q-new" type="button" id="qNew"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M12 11v6M9 14h6"/></svg><span>New Quote</span></button>
     </div>
+    <h3 class="q-step">Quotation</h3>
     <div class="q-tools">
       <button type="button" class="qt" id="qtScan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M7.5 8v8M10.5 8v8M13.5 8v8M16.5 8v8"/></svg><span>Scan Product</span></button>
       <button type="button" class="qt" id="qtManual"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><span>Add Manually</span></button>
@@ -988,13 +1015,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
         <div id="items"></div>
       </div>
       <div class="q-mgr" id="qMgrNote" hidden></div>
-    </div>
-
-    <div class="card q-opts">
-      <div class="qo-row"><span class="flabel">Sale type</span><div class="seg" id="qType"><button type="button" data-c="store">In-store</button><button type="button" data-c="online">Online enquiry</button></div></div>
-      <div class="qo-row" id="qDelRow" hidden><label class="flabel" for="qDel">Delivery charges</label><div class="qo-in"><span>₹</span><input id="qDel" class="num" inputmode="decimal" placeholder="0" autocomplete="off"></div></div>
-      <div class="qo-row"><span class="flabel">Making charges on the quote</span><div class="seg" id="qMkShow" role="radiogroup"><button type="button" role="radio" data-v="1">Show</button><button type="button" role="radio" data-v="0">Hide</button></div></div>
-      <label class="rc-p"><input type="checkbox" id="qRound"> Round the final amount down to ₹100 (difference added to discount)</label>
+      <div class="qo-row q-mkshow"><span class="flabel">Making charges on the quote</span><div class="seg" id="qMkShow" role="radiogroup"><button type="button" role="radio" data-v="1">Show</button><button type="button" role="radio" data-v="0">Hide</button></div></div>
     </div>
 
     <div class="card q-disc" id="qDiscCard">
@@ -1003,6 +1024,17 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
       <div id="qDiscList"></div>
       <button class="btn" type="button" id="qDiscMgr" hidden>Manager login to enter discount</button>
       <div class="qd-extra" id="qDiscExtraRow"><span>Additional discount (flat)</span><span><b id="qDiscExtraV">None</b> <button class="linkbtn" type="button" id="qDiscExtraBtn">Change</button><button type="button" id="qDisc" hidden></button></span></div>
+    </div>
+
+    <div class="card q-opts" id="qSale">
+      <div class="sec-head"><h2>Sale type</h2><span class="note" id="qSaleNote"></span></div>
+      <div class="seg" id="qType"><button type="button" data-c="store">Store walk-in</button><button type="button" data-c="online">Online enquiry</button></div>
+      <div class="qo-row" id="qDelRow" hidden>
+        <span class="flabel">Delivery partner</span>
+        <div class="courier-list" id="qCourier" role="radiogroup" aria-label="Delivery partner"></div>
+        <div class="qo-row" id="qDelAmtRow" hidden><label class="flabel" for="qDel">Delivery charges</label><div class="qo-in"><span>₹</span><input id="qDel" class="num" inputmode="decimal" placeholder="0" autocomplete="off"></div></div>
+        <div class="pa" id="qCourierWarn" hidden></div>
+      </div>
     </div>
 
     <div class="card q-ded" id="qDed">
@@ -1014,6 +1046,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
     <div class="card q-sum">
       <div class="qs-h"><span class="qs-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M8 15h2M12 15h2M16 11v4"/></svg></span><h2>Summary</h2></div>
       <div class="qs-lines" id="totals"></div>
+      <label class="rc-p q-round"><input type="checkbox" id="qRound"> Round the final amount down to ₹100 (difference added to discount)</label>
       <div class="qs-bal" id="qBalRow"><span id="netLabel">Balance Amount</span><strong id="net">₹0</strong></div>
     </div>
 
@@ -1329,6 +1362,14 @@ const START_TABLE=BRAND.table==='empty'?{cz:[],dia:[]}:DEF_TABLE;
 if(!settings.mkTable)settings.mkTable=JSON.parse(JSON.stringify(START_TABLE));
 if(!settings.mkGuide)settings.mkGuide={'22k':'12%, 14%','18k':'18%, 20%, 21%, 23%, 24%','14k':'28%, 32%','9k':'38%, 40%, 45%, 50%',platinum:'',silver:''};
 // The bill being built is the current quote. Quotes are kept on the phone and shared through /api/sync.
+// Delivery partners for online enquiries
+const COURIERS=[
+  {id:'indiapost',name:'India Post',rate:400,max:35000,note:'₹400 · up to ₹35,000'},
+  {id:'bat',name:'Bright Asset Transit',rate:600,note:'Flat ₹600'},
+  {id:'bvc',name:'BVC',rate:600,note:'Flat ₹600'},
+  {id:'sequel',name:'Sequel',rate:600,note:'Flat ₹600'},
+  {id:'own',name:(window.BRAND?BRAND.name:'Shop')+' Delivery',rate:null,note:'Enter charges'},
+  {id:'pickup',name:'Store pick-up',rate:0,note:'No charges'}];
 function newBill(){return {id:uid(),no:'',cust:{name:'',phone:''},items:[],oldGold:[],returns:[],advances:[],discount:'',delivery:'',showMk:true,round:true,overrides:{},status:'open',invoice:'',channel:'store',started:Date.now(),updated:Date.now(),by:''}}
 function fixBill(b){const d=newBill();b=Object.assign(d,b||{});if(!b.id)b.id=uid();if(!b.cust)b.cust={name:'',phone:''};['items','oldGold','returns','advances'].forEach(k=>{if(!Array.isArray(b[k]))b[k]=[]});if(!b.overrides)b.overrides={};return b}
 let bill=fixBill(store.get('bill',null));
@@ -1615,7 +1656,11 @@ function totals(){
   bill.items.forEach(t=>{const p=priceTag(t),q=quotedValue(t,p);if(!p.ok){s.bad++;return}s.nw+=num(t.nw)||0;s.gw+=num(t.gw)||0;s.gold+=p.gold;s.stone+=p.stone;s.making+=p.making-(p.value-q);s.huid+=p.huid;s.huidN+=p.huidN;s.sub+=q;s.listSub+=p.value;s.mkDisc+=p.value-q});
   const gstP=num(settings.gst)||0;
   // Taxable value = items after making discount + delivery charges (online); GST on that
-  s.delivery=Math.max(0,num(bill.delivery)||0);
+  // Delivery: online enquiries only, by the chosen partner
+  const cour=bill.channel==='online'?COURIERS.find(c=>c.id===bill.courier):null;
+  s.courier=cour||null;s.courierWarn='';
+  s.delivery=!cour?0:cour.id==='own'?Math.max(0,num(bill.delivery)||0):cour.rate;
+  if(cour&&cour.max&&s.sub*(1+(num(settings.gst)||0)/100)>cour.max)s.courierWarn=`${cour.name} is only for parcels up to ${inr(cour.max)}. Choose another partner.`;
   s.taxable=s.sub+s.delivery;
   s.gst=s.taxable*gstP/100;s.total=s.taxable+s.gst;
   s.old=0;s.oldW=0;
@@ -2131,7 +2176,7 @@ async function pullQuotes(){
   }catch(e){}
 }
 function startNewQuote(msg){
-  bill=newBill();cur=blankTag();editingId=null;thumbs={front:null,back:null};mgrMode=false;
+  bill=newBill();if(saleMode()!=='check')bill.channel=saleMode();cur=blankTag();editingId=null;thumbs={front:null,back:null};mgrMode=false;
   store.set('bill',bill);saveDraft();paintRates();renderEditor();renderBill();setStatus(msg||'New quote. Scan the first tag.','ok');
 }
 function resetAll(msg){startNewQuote(msg)}
@@ -2142,7 +2187,7 @@ function askClear(){
 function openQuote(id){
   const q=quotes.find(x=>x.id===id);if(!q)return;
   if(bill.id!==id&&!billIsEmpty())saveBill(true);
-  bill=fixBill(clone(q));mgrMode=false;
+  bill=fixBill(clone(q));mgrMode=false;if(saleMode()!=='check'&&bill.status==='open')store.set('saleMode',bill.channel||'store');
   // a generated quote keeps the rates it was given at
   bill.overrides={};if(q.rates)PURITIES.forEach(p=>{if(q.rates[p.id]!=null)bill.overrides[p.id]=q.rates[p.id]});
   store.set('bill',bill);paintRates();renderEditor();renderBill();window.scrollTo({top:0,behavior:'smooth'});
@@ -2210,7 +2255,7 @@ function renderBill(keepInputs){
   L.push(['Total Net Weight',fmtW(s.nw)+' g']);
   L.push(['Items value (at label making)',inr(s.listSub)]);
   if(s.mkDisc>0.5)L.push(['Making discount','−'+inr(s.mkDisc),'minus','disc']);
-  if(s.delivery)L.push(['Delivery charges','+'+inr(s.delivery)]);
+  if(s.courier)L.push([`Delivery · ${s.courier.name}`,s.delivery?'+'+inr(s.delivery):'Free']);
   L.push(['Taxable value',inr(s.taxable),'strong']);
   L.push([`Total GST (${fmtN(g)}%)`,inr(s.gst)]);
   if(s.flat)L.push(['Discount','−'+inr(s.flat),'minus','disc']);
@@ -2230,8 +2275,15 @@ function renderBill(keepInputs){
   [...$('qChan').children].forEach(b=>{const on=b.dataset.c===(bill.channel||'store');b.setAttribute('aria-pressed',String(on));b.textContent=(on?'✓ ':'')+(b.dataset.c==='store'?'In-store':'Online');b.disabled=closed});
   $('qCloseBtn').hidden=closed;$('qReopen').hidden=!closed;$('qCancel').hidden=closed;
   [...$('qType').children].forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.c===(bill.channel||'store')));b.disabled=closed});
-  $('qDelRow').hidden=(bill.channel||'store')!=='online'&&!s.delivery;
+  const online=(bill.channel||'store')==='online';
+  $('qDelRow').hidden=!online;
+  $('qCourier').innerHTML=COURIERS.map(c=>`<button type="button" role="radio" class="cour${bill.courier===c.id?' on':''}" aria-checked="${bill.courier===c.id}" data-k="${c.id}"${closed?' disabled':''}><b>${esc(c.name)}</b><span>${esc(c.note)}</span></button>`).join('');
+  $('qCourier').querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{bill.courier=b.dataset.k;saveBill();renderBill(true);if(b.dataset.k==='own')setTimeout(()=>$('qDel').focus(),60)});
+  $('qDelAmtRow').hidden=bill.courier!=='own';
   if(document.activeElement!==$('qDel'))$('qDel').value=bill.delivery||'';$('qDel').readOnly=closed;
+  $('qCourierWarn').hidden=!s.courierWarn;$('qCourierWarn').textContent=s.courierWarn?'⚠ '+s.courierWarn:'';
+  $('qSaleNote').textContent=online?(s.courier?`${s.courier.name} · ${s.delivery?inr(s.delivery):'no charges'}`:'Choose a delivery partner'):'In the store';
+  paintSaleMode();
   [...$('qMkShow').children].forEach(b=>{const on=(b.dataset.v==='1')===(bill.showMk!==false);b.setAttribute('aria-pressed',String(on));b.setAttribute('aria-checked',String(on))});
   $('qRound').checked=bill.round!==false;$('qRound').disabled=closed;
   paintPhotosCount();renderRecent();
@@ -2317,6 +2369,20 @@ $('qDisc').onclick=notClosed(()=>{
 });
 ['qName','qPhone'].forEach(id=>$(id).addEventListener('input',()=>{bill.cust[id==='qName'?'name':'phone']=$(id).value;saveBill();renderRecent()}));
 $('qNew').onclick=()=>askClear();
+// Home: what this customer is here for. Price check only = nothing is saved to a quote.
+function saleMode(){return store.get('saleMode','store')}
+function paintSaleMode(){
+  const m=saleMode();
+  [...$('saleMode').children].forEach(b=>{const on=b.dataset.m===m;b.setAttribute('aria-pressed',String(on));b.setAttribute('aria-checked',String(on))});
+  document.body.classList.toggle('mode-check',m==='check');
+}
+[...$('saleMode').children].forEach(b=>b.onclick=()=>{
+  const m=b.dataset.m;store.set('saleMode',m);
+  if(m!=='check'&&!isClosed()&&bill.channel!==m){bill.channel=m;if(!billIsEmpty())saveBill()}
+  paintSaleMode();renderEditor();renderBill(true);
+  toast(m==='check'?'Price check only · items are not saved':m==='online'?'Online enquiry':'Store walk-in');
+});
+paintSaleMode();
 $('homeQNew').onclick=()=>{
   if(billIsEmpty()&&!cur.touched){toast('Ready for a new customer');return}
   if(billIsEmpty()){cur=blankTag();editingId=null;edOpen=false;saveDraft();renderEditor();toast('New quote');return}
@@ -2341,7 +2407,7 @@ $('qtDel').onclick=()=>{
     {label:'Delete quote',cls:'danger',run:()=>withPerm('delQuote','Needs a user allowed to delete quotes.',del,!!(bill.no&&sync.key))},{label:'Cancel',cls:'ghost'}]);
 };
 [...$('qChan').children].forEach(b=>b.onclick=()=>{if(isClosed())return;bill.channel=b.dataset.c;saveBill();renderBill()});
-[...$('qType').children].forEach(b=>b.onclick=()=>{if(isClosed())return;bill.channel=b.dataset.c;saveBill();renderBill();if(b.dataset.c==='online')setTimeout(()=>$('qDel').focus(),60)});
+[...$('qType').children].forEach(b=>b.onclick=()=>{if(isClosed())return;bill.channel=b.dataset.c;if(store.get('saleMode','store')!=='check')store.set('saleMode',b.dataset.c);saveBill();renderBill()});
 $('qDel').addEventListener('input',()=>{const v=num($('qDel').value);bill.delivery=isNaN(v)||v<=0?'':String(v);saveBill();renderBill(true)});
 [...$('qMkShow').children].forEach(b=>b.onclick=()=>{bill.showMk=b.dataset.v==='1';saveBill();renderBill(true)});
 $('qRound').onchange=()=>{bill.round=$('qRound').checked;saveBill();renderBill(true)};
@@ -2384,7 +2450,7 @@ function shareText(){
   });
   out.push('',`Items value: ${inr(s.listSub)}`);
   if(s.mkDisc>0.5)out.push(`Making discount: −${inr(s.mkDisc)}`);
-  if(s.delivery)out.push(`Delivery charges: +${inr(s.delivery)}`);
+  if(s.courier)out.push(`Delivery (${s.courier.name}): ${s.delivery?'+'+inr(s.delivery):'free'}`);
   out.push(`Taxable value: ${inr(s.taxable)}`,`GST ${fmtN(g)}%: ${inr(s.gst)}`);
   if(s.disc>0.5)out.push(`Discount: −${inr(s.disc)}`);
   out.push(`*Final amount: ${inr(s.final)}*`);
@@ -2499,7 +2565,7 @@ async function makeQuoteImage(withPhotos){
   const logo=await loadImg(BRAND.logoHeader);
   const sumRows=[['Items value',inr(s.listSub)]];
   if(s.mkDisc>0.5)sumRows.push(['Making discount','−'+inr(s.mkDisc)]);
-  if(s.delivery)sumRows.push(['Delivery charges','+'+inr(s.delivery)]);
+  if(s.courier)sumRows.push([`Delivery · ${s.courier.name}`,s.delivery?'+'+inr(s.delivery):'Free']);
   sumRows.push(['Taxable value',inr(s.taxable),1],[`GST (${fmtN(g)}%)`,inr(s.gst)]);
   if(s.disc>0.5)sumRows.push(['Discount','−'+inr(s.disc)]);
   sumRows.push(['Final amount',inr(s.final),1]);
@@ -2800,6 +2866,7 @@ function paintProduct(){
   $('pdGrand').textContent=ok?inr(p.value*(1+g/100)):'—';
   $('pdTotal').classList.toggle('incomplete',!ok);$('pdGrandRow').classList.toggle('incomplete',!ok);
   $('pdSave').lastChild.textContent=editingId?'Update Quote':'Save to Quote';
+  $('pdSave').hidden=saleMode()==='check'&&!editingId;$('pdCheck').hidden=!$('pdSave').hidden;
   $('pdMk').hidden=!p.hasMk;
 }
 function canEditMk(){return can('mkEdit')}
@@ -3141,7 +3208,7 @@ let curUser=null;{const ss=store.get('session',null);if(ss)curUser=users.find(u=
 let adminUntil=0; // admin override on a staff login (15 minutes)
 // ---------- roles & permissions ----------
 const PERM_LIST=[
-  ['stock','Import / update stock'],['stockdel','Delete sold tags from stock'],['rates',"Set day's rates"],
+['stockdel','Delete sold tags from stock'],['rates',"Set day's rates"],
   ['mkEdit','Update making on the price card'],['mkDisc','Making after discount on quotes'],
   ['closeSale','Close sale (invoice no.)'],['cancelQuote','Cancel quote (enquiry)'],['reopen','Reopen sold / cancelled quotes'],
   ['delQuote','Delete quotes'],['images','Add product photos'],
@@ -3155,7 +3222,8 @@ let elev={role:'',until:0};   // another user's approval, 15 minutes
 const roleName=id=>id==='admin'?'Admin':(roles.find(r=>r.id===id)||{name:id||'—'}).name;
 // 'settings' was one permission before v1.6.42; it still grants all the settings functions
 const OLD_SETTINGS=['textSize','imgShow','ratesShown','charges','mkHelper','itemCodes'];
-function roleHas(role,perm){if(role==='admin')return true;const ps=((roles.find(r=>r.id===role)||{}).perms||[]);return ps.includes(perm)||(OLD_SETTINGS.includes(perm)&&ps.includes('settings'))||(perm==='roles'&&ps.includes('users'))}
+const ADMIN_ONLY=['stock'];   // Stock data is an admin function
+function roleHas(role,perm){if(role==='admin')return true;if(ADMIN_ONLY.includes(perm))return false;const ps=((roles.find(r=>r.id===role)||{}).perms||[]);return ps.includes(perm)||(OLD_SETTINGS.includes(perm)&&ps.includes('settings'))||(perm==='roles'&&ps.includes('users'))}
 function can(perm){return !!(curUser&&roleHas(curUser.role,perm))||(Date.now()<elev.until&&roleHas(elev.role,perm))}
 // Server writes need the PIN of a user with the permission (kept in memory only)
 function credsOk(perm){return !sync.key||!!(adminCreds&&roleHas(adminCreds.role,perm))}
@@ -3222,12 +3290,14 @@ function openLogin(mode,why,next,fixedUser,perm){
   const list=users.filter(u=>u.active!==false&&(mode==='login'||okRole(u.role)));
   $('userPick').innerHTML=fixedUser?'':list.map(u=>`<button type="button" data-u="${esc(u.username)}">${esc(u.name||u.username)}</button>`).join('');
   $('loginUser').value=fixedUser||(list.length===1?list[0].username:'');
-  $('loginUser').hidden=!!fixedUser||list.length>0;
+  if(!fixedUser&&!list.length){$('userPick').innerHTML='<button type="button" data-u="admin">admin</button>';$('loginUser').value='admin'}
+  $('loginUser').hidden=true;
   $('userPick').querySelectorAll('button').forEach(b=>b.onclick=()=>{$('loginUser').value=b.dataset.u;paintPick();$('loginPin').focus()});
   paintPick();
-  $('loginHint').textContent=!users.length?(sync.key?'First time on this phone: log in with your username and PIN.':'First time: log in as admin with the starting PIN. Then add users in Admin settings.'):'';
-  if(!users.length)$('loginUser').hidden=false;
+  $('loginHint').textContent=!users.length?(sync.key?'Loading users…':'First time: tap admin and enter the starting PIN. Then add users in Settings → Users.'):'';
   $('login').hidden=false;
+  // A new phone on the shared database: fetch the user list so people just tap their name
+  if(!users.length&&sync.key&&!openLogin.fetching){openLogin.fetching=1;syncApi('users').then(d=>{if(Array.isArray(d.roles)){roles=d.roles;store.set('roles',roles)}if(Array.isArray(d.users)&&d.users.length){mergeRemoteUsers(d.users);if(!$('login').hidden&&loginMode==='login')openLogin(mode,why,next,fixedUser,perm)}}).catch(()=>{}).finally(()=>{openLogin.fetching=0;if(!users.length)$('loginHint').textContent='First time: tap admin and enter the starting PIN. Then add users in Settings → Users.'})}
   setTimeout(()=>($('loginUser').value?$('loginPin'):$('loginUser')).focus(),50);
 }
 function paintPick(){$('userPick').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.u===$('loginUser').value)))}
