@@ -707,7 +707,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .pd-spr span{font:600 18px var(--display);color:var(--muted)}
 .pd-spr input{flex:1;min-width:0;font:700 20px var(--mono);border:1.5px solid var(--maroon);border-radius:10px;padding:8px 10px;background:var(--surface);color:var(--fg)}
 /* v1.6 */
-.tabbar{grid-template-columns:repeat(6,1fr)!important}
+.tabbar{grid-template-columns:none!important;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}
 .tab{font-size:11px;padding-inline:0}
 .tab svg{width:24px;height:24px}
 .tab.on#tabFind svg{fill:none}
@@ -740,6 +740,11 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .prod-tile{position:relative}
 .pd-addimg{position:absolute;right:8px;bottom:8px;width:38px;height:38px;border-radius:50%;border:0;background:var(--maroon);color:#fff;display:grid;place-items:center;box-shadow:0 3px 10px rgba(0,0,0,.22);cursor:pointer;padding:0}
 .pd-addimg svg{width:20px;height:20px}
+.fp-role{padding:10px 0;border-bottom:1px solid var(--line)}.fp-role:last-child{border-bottom:0}
+.fp-role>b{display:block;font-size:14px;margin-bottom:6px}
+.fp-tabs{display:flex;flex-wrap:wrap;gap:6px}
+.fp-tabs .chip{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;padding:6px 12px;font:500 13px var(--body);cursor:pointer;text-decoration:line-through}
+.fp-tabs .chip[aria-pressed="true"]{background:color-mix(in srgb,var(--maroon) 12%,var(--surface));border-color:color-mix(in srgb,var(--maroon) 40%,transparent);color:var(--maroon);text-decoration:none}
 .pd-rowpick{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;margin-top:8px}
 @media (max-width:380px){.pd-rowpick{grid-template-columns:1fr}}
 .prod-tile.photo img,.fc-img img{width:100%;height:100%;object-fit:cover;display:block}
@@ -1318,6 +1323,11 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
       <h3 style="margin-top:14px">Colours</h3>
       <div class="sw-pick" id="accentPick"></div>
   </details>
+  <details class="card datacard setcard" id="setFoot" data-pane="settings" data-perm="footer">
+    <summary><span class="dc-t">Footer · tabs for staff</span><span class="dc-s" id="setFootMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
+      <p class="note" style="margin-block:4px 0">Tap a tab to show or hide it for that role. Home is always shown; admins see every tab.</p>
+      <div id="footPick"></div>
+  </details>
   <details class="card datacard setcard" id="setPd" data-pane="settings" data-perm="pdRows">
     <summary><span class="dc-t">Product details · items shown</span><span class="dc-s" id="setPdMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
       <p class="note" style="margin-block:4px 0">Tick the items to show on the Product Details card. Items with no value are skipped anyway.</p>
@@ -1663,14 +1673,14 @@ function applyRemoteSettings(rs){
   if('cats' in rs){settings.cats=rs.cats&&typeof rs.cats==='object'&&Object.keys(rs.cats).length?rs.cats:null;try{applyCats()}catch(e){}}
   if('showRates' in rs){settings.showRates=Array.isArray(rs.showRates)&&rs.showRates.length?rs.showRates:null;try{rebuildPurities()}catch(e){}}
   if(rs.gst!=null)settings.gst=rs.gst;if(rs.huid!=null)settings.huid=rs.huid;
-  if(rs.mkEdit)settings.mkEdit=rs.mkEdit;if(Array.isArray(rs.pdHide))settings.pdHide=rs.pdHide;if(rs.ui)settings.ui=rs.ui;if(rs.accent)settings.accent=rs.accent;try{applyTheme()}catch(e){}if('showImg' in rs)settings.showImg=rs.showImg!==false;
+  if(rs.mkEdit)settings.mkEdit=rs.mkEdit;if(Array.isArray(rs.pdHide))settings.pdHide=rs.pdHide;if(rs.tabHide&&typeof rs.tabHide==='object')settings.tabHide=rs.tabHide;try{applyTabs()}catch(e){}if(rs.ui)settings.ui=rs.ui;if(rs.accent)settings.accent=rs.accent;try{applyTheme()}catch(e){}if('showImg' in rs)settings.showImg=rs.showImg!==false;
   store.set('settings2',settings);try{paintAdminExtras()}catch(e){}
   try{renderTable('cz');renderTable('dia');$('setGst').value=settings.gst;$('setHuid').value=settings.huid;renderEditor();renderBill(true)}catch(e){}
 }
 let settingsTimer=null;
 function saveSettings(){store.set('settings2',settings);if(!sync.key)return;sync.dirtySettings=true;saveSyncState();clearTimeout(settingsTimer);settingsTimer=setTimeout(()=>{if(adminCreds)pushSettingsNow().catch(e=>syncMsg('err',syncErrText(e)))},1500)}
 async function pushSettingsNow(){
-  const r=await syncApi('settings','POST',{settings:{gst:settings.gst,huid:settings.huid,mkTable:settings.mkTable,cats:settings.cats||null,showRates:settings.showRates||null,mkEdit:settings.mkEdit||'admin',showImg:settings.showImg!==false,ui:settings.ui||'iosBrand',accent:settings.accent||'brand',pdHide:settings.pdHide||[]}},adminCreds);
+  const r=await syncApi('settings','POST',{settings:{gst:settings.gst,huid:settings.huid,mkTable:settings.mkTable,cats:settings.cats||null,showRates:settings.showRates||null,mkEdit:settings.mkEdit||'admin',showImg:settings.showImg!==false,ui:settings.ui||'iosBrand',accent:settings.accent||'brand',pdHide:settings.pdHide||[],tabHide:settings.tabHide||{}}},adminCreds);
   sync.v.settings=r.v;sync.dirtySettings=false;saveSyncState();syncMsg('ok','Settings saved to the shared database.');
 }
 async function pushRate(entry){
@@ -3098,7 +3108,7 @@ function paintProduct(){
 // Product details rows, in order: [label, value, key]. Admin can hide any of them (Settings → Product details).
 const PD_ROWS=[['purity','Purity'],['gw','Gr. Wt'],['sw','St. Wt'],['nw','Nt. Wt'],['vaPct','VA %'],['va','VA (Making)'],['mkAmt','Making Rate'],
   ['dw','Diamond Wt'],['dPrice','Diamond Price'],['cw','Colour Stone Wt'],['cPrice','Colour Stone Price'],['huid','HUID Count'],['huidNo','HUID No.'],
-  ['stones','Stones'],['pcs','Pcs'],['supplier','Supplier']];
+  ['stones','Stones'],['pcs','Pcs'],['location','Location'],['labelDate','Labelling Date'],['supplier','Supplier']];
 function pdRows(t,st,p,w){
   const dia=isDiamond(t)||!!(st&&(num(st.dw)>0||st.saDia>0)),clr=!!(st&&(st.saClr>0||num(st.cw)>0||num(st.sq)>0));
   const pct=p.hasMk&&t.mkType==='pct';
@@ -3114,7 +3124,7 @@ function pdRows(t,st,p,w){
     cw:clr&&st&&num(st.cw)>0?`${w(st.cw)}${num(st.sq)>0?` · ${fmtN(num(st.sq))}\u00a0pcs`:''}`:'',
     cPrice:cPrice>0?inr(cPrice):'',
     huid:p.huidN?`${p.huidN}\u00a0×\u00a0${inr(settings.huid)}`:'',huidNo:codes,
-    stones:st&&st.stoneName,pcs:st&&st.pcs>1?fmtN(st.pcs):'',supplier:st&&st.supplier};
+    stones:st&&st.stoneName,pcs:st&&st.pcs>1?fmtN(st.pcs):'',location:st&&st.location,labelDate:st&&fmtDate(st.labelDate),supplier:st&&st.supplier};
   return PD_ROWS.map(([k,l])=>[l,v[k],k]);
 }
 function paintPdRowsSet(){
@@ -3206,9 +3216,9 @@ function itemName(v){
 }
 const COLS={barcode:['BARCODE','BARCODENO','BARCODENUMBER','TAGNO','BARCODES','LABELNO','LABELNUMBER','TAGNUMBER'],item:['ITEMNAME','ITEM'],category:['ITEMTYPE','CATEGORY','TYPE'],stoneName:['STONENAMES','STONENAME','STONES'],saClr:['CLRSA','COLORSA','COLOURSA','CLRSTONEAMOUNT'],saDia:['DIASA','DIAMONDSA','DIAAMOUNT','DIAMONDAMOUNT'],carat:['CARRET','CARAT','KARAT','PURITY','PURITYK','CARATAGE','CARET'],
   gw:['GROSSWT','GROSSWTG','GROSSWEIGHT','GWT','GRWT'],nw:['NETWT','NETWTG','NETWEIGHT','NWT'],sw:['STONEWT','STONEWTG','STONEWEIGHT','SWT','STWT'],cw:['CLRSTNWT','COLORSTONEWT','COLOURSTONEWT','CLRSTONEWT','CLRWT','COLORSTONEWEIGHT','COLOURSTONEWEIGHT','CSWT'],dw:['DIAMONDWT','DIAMONDWEIGHT','DIAWT','DWT','DAIWT','DAIMONDWT','DIAWTCT','DIAMONDWTCT','DIAWTG','DIAMONDCT','DIACT'],dq:['DIAMONDQTY','DIAQTY','DIAMONDPCS','DAIPCS','DIAPCS','DAIQTY','DIACOUNT','DIAMONDCOUNT','DIANOS','DIAMONDNOS','NOOFDIAMONDS'],
-  sa:['STONEAMOUNT','STONEAMT','SA','SPR','STONEPRICE','STONEVALUE'],serial:['SERIAL','SERIALNO','SLNO'],label:['LABELCODE','LABEL'],location:['LOCATION'],pcs:['PCS','PIECES'],sq:['STONEQTY','STONEPCS','CLRSTNPCS','COLORSTONEPCS','COLOURSTONEPCS'],supplier:['SUPPLIER','VENDOR'],
+  sa:['STONEAMOUNT','STONEAMT','SA','SPR','STONEPRICE','STONEVALUE'],serial:['SERIAL','SERIALNO','SLNO'],label:['LABELCODE','LABEL'],location:['LOCATION','LOC'],labelDate:['LABELLINGDATE','LABELINGDATE','LABELDATE','TAGDATE','DATE'],pcs:['PCS','PIECES'],sq:['STONEQTY','STONEPCS','CLRSTNPCS','COLORSTONEPCS','COLOURSTONEPCS'],supplier:['SUPPLIER','VENDOR'],
   mk:['MAKING','MAKINGCHARGE','MAKINGCHARGES','MC','MCRATE','VA','VARATE','MAKINGMBD','MBD'],mkType:['MAKINGTYPE','MCTYPE','VATYPE','MAKINGON'],
-  mkPct:['WSTG','WSTGPCT','WASTAGE','WASTAGEPCT','WASTAGEPERCENT','MAKINGPCT','MAKINGPERCENT','MAKINGPERCENTAGE','VAPCT','VAPERCENT','MCPCT','MCPERCENT'],mkPg:['MAKINGRATE','LABOURRATE','LABORRATE','LABOURRATEPERGRAM','MAKINGPG','MAKINGPERGRAM','MAKINGPERGM','MCPG','MCPERGRAM','MCPERGM'],mkFix:['LABOURCHARGES','LABOURCHARGE','LABORCHARGES','LABORCHARGE','MAKINGFIXED','MAKINGAMOUNT','MAKINGAMT','MCAMOUNT','MCAMT','MCFIXED','MAKINGPERPIECE','MCPERPIECE'],
+  mkPct:['WSTG','WSTGPCT','WASTAGE','WASTAGEPCT','WASTAGEPERCENT','MAKINGPCT','MAKINGPERCENT','MAKINGPERCENTAGE','VAPCT','VAPERCENT','MCPCT','MCPERCENT'],mkPg:['MAKINGRATE','LABOURRATE','LABORRATE','LABOURRATEPERGRAM','MAKINGPG','MAKINGPERGRAM','MAKINGPERGM','MCPG','MCPERGRAM','MCPERGM'],mkFix:['FIXEDCHARGE','FIXEDCHARGES','FIXEDCHARGERS','LABOURCHARGES','LABOURCHARGE','LABORCHARGES','LABORCHARGE','MAKINGFIXED','MAKINGAMOUNT','MAKINGAMT','MCAMOUNT','MCAMT','MCFIXED','MAKINGPERPIECE','MCPERPIECE'],
   huid:['HUIDCOUNT','HUID','HUIDQTY','HUIDNOS','HUIDNO','NOOFHUID','HUIDPCS','HUIDS']};
 const NUMCOLS=['gw','nw','sw','cw','dw','dq','sa','pcs','sq','saClr','saDia'];
 // Making and HUID from the stock sheet. Making: one "Making" column ("14%", "2500 PG", "1500 fixed"; a plain number
@@ -3217,9 +3227,11 @@ function stockMaking(rec){
   const typeOf=t=>{t=String(t||'').toUpperCase();return /GRAM|PG|\/G|GM/.test(t)?'pergram':/%|PCT|PERC|VA|WAST/.test(t)?'pct':/FIX|FLAT|PIECE|PC|AMOUNT|AMT|RS/.test(t)?'fixed':''};
   let mk=null;
   const n=v=>{const x=typeof v==='number'?v:num(v);return x>0?x:NaN};
-  // Database sheet: Labour Charges → fixed making; else Labour Rate → per gram of net wt; else Wastage % → % making
-  if(!isNaN(n(rec.mkFix)))mk={type:'fixed',val:n(rec.mkFix)};
-  else if(!isNaN(n(rec.mkPg)))mk={type:'pergram',val:n(rec.mkPg)};
+  // Database sheet (v1.7): Making Rate → per gram of net wt, but items under 1 g pay the Making Rate itself
+  // (the sheet's Fixed Charge = Making Rate under 1 g, Making Rate × Net Wt from 1 g). Else Fixed Charge; else Wastage %.
+  const nw=n(rec.nw);
+  if(!isNaN(n(rec.mkPg)))mk=!isNaN(nw)&&nw<1?{type:'fixed',val:n(rec.mkPg)}:{type:'pergram',val:n(rec.mkPg)};
+  else if(!isNaN(n(rec.mkFix)))mk={type:'fixed',val:n(rec.mkFix)};
   else if(!isNaN(n(rec.mkPct)))mk={type:'pct',val:n(rec.mkPct)};
   else if(rec.mk!=null&&String(rec.mk).trim()!==''){
     const raw=String(rec.mk).trim(),pv=parseVal(raw.replace(/\s*(PER\s*GRAM|PERGRAM)$/i,' PG')),forced=typeOf(rec.mkType);
@@ -3233,6 +3245,14 @@ function stockMaking(rec){
 }
 let xlsxP=null;
 function loadXLSX(){if(window.XLSX)return Promise.resolve();if(!xlsxP)xlsxP=new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='vendor/xlsx.full.min.js';sc.onload=res;sc.onerror=()=>{xlsxP=null;rej(new Error('xlsx_missing'))};document.head.appendChild(sc)});return xlsxP}
+// Excel date (serial number or text) → YYYY-MM-DD where possible
+function sheetDate(v){
+  if(typeof v==='number'&&v>20000&&v<80000){const d=new Date(Math.round((v-25569)*864e5));return d.toISOString().slice(0,10)}
+  const t=String(v==null?'':v).trim();const m=t.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})$/);
+  if(m){const y=m[3].length===2?'20'+m[3]:m[3];return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`}
+  return t.slice(0,20)}
+function fmtDate(t){if(!t)return'';const m=String(t).match(/^(\d{4})-(\d{2})-(\d{2})$/);if(!m)return String(t);
+  return `${+m[3]} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m[2]-1]} ${m[1]}`}
 async function readSheet(file){
   await loadXLSX();
   const buf=file.arrayBuffer?await file.arrayBuffer():await new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.onerror=()=>rej(fr.error);fr.readAsArrayBuffer(file)});
@@ -3253,6 +3273,7 @@ async function readSheet(file){
         if(NUMCOLS.includes(f)){const n=typeof v==='number'?v:num(v);rec[f]=isNaN(n)?null:n}
         else rec[f]=v==null?'':String(v).trim()}
       stockMaking(rec);
+      if(idx.labelDate!=null)rec.labelDate=sheetDate(row[idx.labelDate]);
       // Stone value = Clr-SA + Dia-SA when the sheet splits it
       if(!(rec.sa>0)&&((rec.saClr>0)||(rec.saDia>0)))rec.sa=(rec.saClr||0)+(rec.saDia||0);
       out.set(key,rec);
@@ -3317,6 +3338,8 @@ $('ssFind').addEventListener('input',()=>{
   $('ssUse').onclick=()=>{if(editingId){cur=blankTag();editingId=null}else if(cur.touched&&cur.stockKey!==rec.key){cur=blankTag()}thumbs={front:null,back:null};applyStock(rec);closeStock();setStatus(`Found ${rec.barcode} in stock.`+(missing(cur).some(x=>x.k==='making')?(rec.label?' Pick the making from the label.':' Pick the making.'):''),'ok');window.scrollTo({top:$('editor').offsetTop-10,behavior:'smooth'})};
 });
 function applyStock(rec){
+  // Another stock item replaces the one shown: start clean so no weight or stone value carries over
+  if(cur.stockKey&&cur.stockKey!==rec.key){const id=cur.id;Object.assign(cur,blankTag(),{id})}
   cur.stockKey=rec.key;cur.stock={...rec};cur.touched=true;
   const mark=k=>{if(!cur.read.includes(k))cur.read.push(k)};
   cur.sku=rec.barcode;mark('sku');
@@ -3434,7 +3457,7 @@ function applyZoom(z){try{document.body.style.zoom=String(z)}catch(e){}}
 function zoomNow(){const z=store.get('uiZoom',null);return z!=null?z:(Math.min(screen.width||400,innerWidth)<=380?0.9:1)}
 applyZoom(zoomNow());
 function paintAdminExtras(){
-  try{paintPdRowsSet()}catch(e){}
+  try{paintPdRowsSet()}catch(e){}try{paintFooterSet()}catch(e){}
   [...$('imgSeg').children].forEach(b=>b.setAttribute('aria-pressed',String((b.dataset.i==='1')===(settings.showImg!==false))));
   const z=zoomNow();[...$('uiZoom').children].forEach(b=>b.setAttribute('aria-pressed',String(Math.abs(+b.dataset.z-z)<0.001)));
 
@@ -3492,7 +3515,7 @@ function runFind(){
   el.innerHTML=hits.map(r=>{const p=caratToPurity(r.carat),mk=r.mkType&&num(r.mk)>0?valText({type:r.mkType,val:num(r.mk)}):'';
     const rows=[['Item type',r.category],['Item name',r.item],['Purity',PLABEL[p]||r.carat],['Gross wt',W(r.gw)],['Stone wt',W(r.sw)],['Net wt',W(r.nw)],
       ['Diamond value',r.saDia>0?inr(r.saDia):''],['Colour stone',r.saClr>0?inr(r.saClr):''],['Stone value',!(r.saDia>0||r.saClr>0)&&r.sa>0?inr(r.sa):''],
-      ['Diamond wt',num(r.dw)>0?`${fmtN(num(r.dw))} ct`:''],['Diamond count',num(r.dq)>0?`${fmtN(num(r.dq))} pcs`:''],['Colour stone wt',num(r.cw)>0?num(r.cw).toFixed(3):''],['Stones',r.stoneName],['Making',mk],['HUID',r.huid!=null&&r.huid!==''?String(r.huid):''],['HUID No.',r.huidNo||''],['Label code',r.label&&keyOf(r.label)!==r.key?r.label:''],['Supplier',r.supplier]].filter(x=>x[1]);
+      ['Diamond wt',num(r.dw)>0?`${fmtN(num(r.dw))} ct`:''],['Diamond count',num(r.dq)>0?`${fmtN(num(r.dq))} pcs`:''],['Colour stone wt',num(r.cw)>0?num(r.cw).toFixed(3):''],['Stones',r.stoneName],['Making',mk],['HUID',r.huid!=null&&r.huid!==''?String(r.huid):''],['HUID No.',r.huidNo||''],['Labelling date',fmtDate(r.labelDate)],['Label code',r.label&&keyOf(r.label)!==r.key?r.label:''],['Supplier',r.supplier]].filter(x=>x[1]);
     return `<div class="find-card" data-k="${esc(r.key)}">
       <div class="fc-top"><div class="fc-img" data-img="${esc(r.key)}">${icoFor(r.category||r.item||'')}</div>
         <div class="fc-h"><b>${esc(r.barcode||r.key)}</b><span class="in-st">In stock</span><div class="fc-name">${esc(r.category||r.item||'')}</div></div></div>
@@ -3534,7 +3557,7 @@ const PERM_LIST=[
   ['delQuote','Delete quotes'],['images','Add product photos'],
   ['textSize','Text size'],['imgShow','Product image show / hide'],['ratesShown','Rates shown'],['charges','Charges · GST · HUID'],
   ['mkHelper','Making helpers'],['itemCodes','Item codes'],['pdRows','Product details items'],['sync','Shared database · shop key'],['roles','Roles & permissions'],['users','Users']];
-const SET_PERMS=['theme','stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users'];
+const SET_PERMS=['theme','footer','stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users'];
 const permLabel=k=>(PERM_LIST.find(p=>p[0]===k)||[0,k])[1];
 const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote']}];
 let roles=store.get('roles',null)||clone(DEFAULT_ROLES);
@@ -3542,7 +3565,7 @@ let elev={role:'',until:0};   // another user's approval, 15 minutes
 const roleName=id=>id==='admin'?'Admin':(roles.find(r=>r.id===id)||{name:id||'—'}).name;
 // 'settings' was one permission before v1.6.42; it still grants all the settings functions
 const OLD_SETTINGS=['textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows'];
-const ADMIN_ONLY=['stock','theme'];   // Stock data is an admin function
+const ADMIN_ONLY=['stock','theme','footer'];   // Stock data is an admin function
 function roleHas(role,perm){if(role==='admin')return true;if(ADMIN_ONLY.includes(perm))return false;const ps=((roles.find(r=>r.id===role)||{}).perms||[]);return ps.includes(perm)||(OLD_SETTINGS.includes(perm)&&ps.includes('settings'))||(perm==='roles'&&ps.includes('users'))}
 function can(perm){return !!(curUser&&roleHas(curUser.role,perm))||(Date.now()<elev.until&&roleHas(elev.role,perm))}
 // Server writes need the PIN of a user with the permission (kept in memory only)
@@ -3643,7 +3666,23 @@ function logout(msg){
   curUser=null;adminCreds=null;adminUntil=0;elev={role:'',until:0};store.set('session',null);
   paintUserChip();paintAdmin();openLogin('login',msg||'Logged out. Log in to continue.');
 }
-function paintUserChip(){const c=$('userChip');c.hidden=!curUser;if(curUser)c.textContent='👤 '+(curUser.name||curUser.username)+' · Log out';$('heroName').textContent=$('sbName').textContent=curUser?(curUser.name||curUser.username):'—'}
+// Footer tabs each role sees (admin chooses; admins always see all). Home is always shown.
+const FOOT_TABS=[['tabScan','Scan'],['tabFind','Search'],['tabQuote','Quote'],['tabRates','Gold Rates'],['tabSet','Settings']];
+function applyTabs(){
+  const role=curUser?curUser.role:'',hid=role&&role!=='admin'?((settings.tabHide||{})[role]||[]):[];
+  FOOT_TABS.forEach(([id])=>{const b=$(id);if(b)b.hidden=hid.includes(id)});
+  try{paintFooterSet()}catch(e){}
+}
+function paintFooterSet(){
+  const el=$('footPick');if(!el)return;const th=settings.tabHide||{};
+  const rs=roles.filter(r=>r.id!=='admin');
+  el.innerHTML=rs.length?rs.map(r=>`<div class="fp-role"><b>${esc(r.name)}</b><div class="fp-tabs">${FOOT_TABS.map(([id,l])=>`<button type="button" class="chip" data-r="${esc(r.id)}" data-t="${id}" aria-pressed="${!(th[r.id]||[]).includes(id)}">${l}</button>`).join('')}</div></div>`).join(''):'<p class="note">No staff roles yet. Add roles in Roles &amp; permissions.</p>';
+  $('setFootMini').textContent=Object.values(th).some(a=>a&&a.length)?'Some tabs hidden':'All tabs shown';
+  el.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>withPerm('footer','Only an admin can change the footer.',()=>{
+    const t=Object.assign({},settings.tabHide||{}),cur=new Set(t[b.dataset.r]||[]);cur.has(b.dataset.t)?cur.delete(b.dataset.t):cur.add(b.dataset.t);
+    t[b.dataset.r]=[...cur];settings.tabHide=t;saveSettings();applyTabs();toast('Footer updated')},true));
+}
+function paintUserChip(){try{applyTabs()}catch(e){}const c=$('userChip');c.hidden=!curUser;if(curUser)c.textContent='👤 '+(curUser.name||curUser.username)+' · Log out';$('heroName').textContent=$('sbName').textContent=curUser?(curUser.name||curUser.username):'—'}
 $('heroUser').onclick=()=>{if(curUser)$('userChip').click()};
 $('userChip').onclick=()=>showModal(`${curUser.name||curUser.username}`,`Logged in as ${roleName(curUser.role)} (${curUser.username}).`,[
   {label:'Log out',cls:'danger',run:()=>logout()},{label:'Cancel',cls:'ghost'}]);

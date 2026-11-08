@@ -198,3 +198,11 @@ A card is locked for users without that permission; opening it asks for a user w
 - **Stock sheet**: colour stone weight columns (Clr Stn Wt / Colour Stone Wt) and HUID codes in the HUID column are kept.
 - **Quote → Discount**: each item shows its making rate and amount; after the manager's making, the new making amount.
 - **Logo** in the app bar on the True iOS and Android styles too.
+
+## V 1.7.0 (8 Nov 2026)
+
+- **New database sheet** (Label No · Item Name · Item Type · Purity (K) · Gross Wt (g) · Stone Wt (g) · Net Wt (g) · Clr-SA · Dia – SA · Diamond Qty · Diamond Wt · Wstg % · Fixed Charge · Making Rate · HUID No · Stone Name(s) · Location · Labelling Date) reads directly.
+- **Making**: Making Rate is per gram of net weight; items under 1 g pay the Making Rate itself (same as the sheet's Fixed Charge). Without a Making Rate, Fixed Charge is used; otherwise Wstg %.
+- **Location and Labelling Date** show on Product Details (can be hidden) and in Search.
+- Looking up another item no longer carries the previous item's stone weight or stone value over.
+- **Settings → Footer · tabs for staff** (admin only): choose which bottom tabs (Scan, Search, Quote, Gold Rates, Settings) each role sees. Home is always shown; admins see all.
