@@ -214,3 +214,9 @@ A card is locked for users without that permission; opening it asks for a user w
 - **WhatsApp leads**: managers/admins (permission "Share WhatsApp leads") give a lead to a staff member (name, number, enquiry), from the bell or by sharing a WhatsApp message to the app (Android share → Price Check). The staff member is notified; tapping the lead starts an online quote with the customer filled in and the enquiry shown.
 - **Close sale** asks for the **Acme invoice number**.
 - Existing roles that could give making discounts get both new permissions once.
+
+## V 1.7.2 (8 Nov 2026)
+
+- **Document control**: each user sees only their own quotes. Admins see all; an admin can allow any user to see all quotes (Settings → Users → user → "Can see all quotes"). Managers also see quotes sent to them for approval.
+- **Numbering**: a quote gets a provisional number per user when first saved (`P-RAVI-0001`, `P-RAVI-0002` …). When the sale is closed it gets the next number in the common series (`QT-000001` …); the provisional number is kept with it. Quotes numbered before this version keep their numbers.
+- User and role changes made by an admin reach phones within a minute (no longer only at the morning sync).

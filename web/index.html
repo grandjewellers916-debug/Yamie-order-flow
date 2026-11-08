@@ -654,6 +654,8 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .q-search{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:15px var(--body);background:var(--surface);color:var(--fg)}
 .q-filter{margin-bottom:2px}
 .r-item .st{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:6px;background:var(--sunk);margin-left:6px}
+.r-item .st.prov{background:color-mix(in srgb,#E8A33A 22%,var(--surface));color:#8A5A00}
+.r-item .st.by{text-transform:none;letter-spacing:0;font-weight:600;color:var(--muted)}
 .r-item .st.closed{background:color-mix(in srgb,var(--ok) 18%,var(--surface));color:var(--ok)}
 .r-item.cur{border-color:var(--maroon)}
 @media (max-width:380px){.qi-row{grid-template-columns:16px minmax(0,1.6fr) 34px 44px 44px minmax(0,1.4fr) 48px;font-size:12.5px;padding-left:8px;padding-right:6px}.qt{font-size:10.5px;min-height:70px}.qt svg{width:23px;height:23px}}
@@ -1430,6 +1432,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
           <div class="f"><label for="uPin">PIN</label><input class="num" id="uPin" type="password" inputmode="numeric" maxlength="8" autocomplete="new-password"></div>
           <div class="f"><label for="uPin2">Repeat PIN</label><input class="num" id="uPin2" type="password" inputmode="numeric" maxlength="8" autocomplete="new-password"></div>
           <label class="f full chk"><input type="checkbox" id="uActive" checked> Active (can log in)</label>
+          <label class="f full chk" id="uSeeAllL"><input type="checkbox" id="uSeeAll"> Can see all quotes (set by an admin)</label>
         </div>
         <div class="rs-acts" style="margin-top:8px"><button class="btn primary" type="button" id="uSave">Save user</button><button class="btn" type="button" id="uCancel">Cancel</button></div>
         <button class="linkbtn" type="button" id="uDelete" style="color:var(--bad)" hidden>Delete this user</button>
@@ -2396,10 +2399,16 @@ function billIsEmpty(){return !bill.items.length&&!bill.oldGold.length&&!bill.re
 function isClosed(){return bill.status==='closed'||bill.status==='cancelled'}
 function phoneDigits(p){let d=String(p||'').replace(/\D/g,'');if(d.length===10)d='91'+d;if(d.length===11&&d[0]==='0')d='91'+d.slice(1);return d}
 function quoteLabel(q){return q.no||'Draft'}
+const isProv=q=>/^P-/.test((q&&q.no)||'');
+// Document control: each user sees their own quotes. Admins, and users an admin allows (Users → See all quotes), see all.
+// Managers also see quotes sent to them for approval.
+function seesAll(){return !curUser||curUser.role==='admin'||!!curUser.seeAll}
+function isMine(q){if(!curUser)return true;const nm=curUser.name||curUser.username;return q.byId?q.byId===curUser.id:(!q.by||q.by===nm)}
+function canSeeQuote(q){if(!q)return false;if(seesAll()||isMine(q))return true;return !!(q.appr&&q.appr.state&&can('approve'))}
 // Every change saves the quote on this phone; with a shop key it is sent to all phones a moment later
 let qPushT=null;
 function saveBill(noPush){
-  bill.updated=Date.now();if(!bill.by&&curUser)bill.by=curUser.name||curUser.username;
+  bill.updated=Date.now();if(!bill.by&&curUser)bill.by=curUser.name||curUser.username;if(!bill.byId&&curUser&&bill.by===(curUser.name||curUser.username))bill.byId=curUser.id;
   store.set('bill',bill);
   if(!billIsEmpty()){upsertQuote(clone(bill));if(!noPush)queueQuotePush()}
 }
@@ -2411,7 +2420,7 @@ async function pushQuote(id){
   try{const r=await syncApi('quote','POST',{quote:q});
     if(r&&r.quote){
       if(r.conflict){upsertQuote(r.quote);if(bill.id===id){bill=fixBill(clone(r.quote));store.set('bill',bill);renderBill();toast('This quote was changed on another phone. Showing the latest.',null,true)}}
-      else{q.no=r.quote.no;q.pushed=q.updated;upsertQuote(q);if(bill.id===id&&!bill.no){bill.no=r.quote.no;store.set('bill',bill);paintQuoteHead()}}
+      else{const nn=q.no!==r.quote.no;q.no=r.quote.no;q.pno=r.quote.pno||q.pno;q.pushed=q.updated;upsertQuote(q);if(bill.id===id&&(bill.no!==r.quote.no||bill.pno!==q.pno)){bill.no=r.quote.no;bill.pno=q.pno;store.set('bill',bill);paintQuoteHead();renderBill(true)}if(nn&&/^QT-/.test(r.quote.no)&&q.pno)toast(`${q.pno} is now ${r.quote.no}`)}
       sync.v.quotes=Math.max(sync.v.quotes||0,r.v||0);saveSyncState();renderRecent();
     }
     return true;
@@ -2441,7 +2450,7 @@ function askClear(){
   startNewQuote('New quote started. The last one is kept under Quotes.');toast(`${quoteLabel(quotes.find(q=>q.updated)||{})} kept in Quotes`);
 }
 function openQuote(id){
-  const q=quotes.find(x=>x.id===id);if(!q)return;
+  const q=quotes.find(x=>x.id===id);if(!q)return;if(!canSeeQuote(q)){toast('This quote belongs to another user',null,true);return}
   if(bill.id!==id&&!billIsEmpty())saveBill(true);
   bill=fixBill(clone(q));mgrMode=false;if(saleMode()!=='check'&&bill.status==='open')store.set('saleMode',bill.channel||'store');
   // a generated quote keeps the rates it was given at
@@ -2772,11 +2781,12 @@ $('saveBill').onclick=async()=>{
 };
 function renderRecent(){
   const el=$('recent'),q=($('qSearch').value||'').trim().toLowerCase();
-  const list=quotes.filter(x=>(qFilter==='all'||(qFilter==='open'?(!x.status||x.status==='open'):x.status===qFilter))&&(!q||[x.no,x.cust&&x.cust.name,x.cust&&x.cust.phone,x.invoice,...(x.items||[]).map(t=>t.sku)].some(v=>String(v||'').toLowerCase().includes(q))));
-  if(!list.length){el.innerHTML=`<div class="empty">${quotes.length?'No quotes match.':'Quotes appear here once an item is saved to a quote.'}</div>`;return}
+  const vis=quotes.filter(canSeeQuote);
+  const list=vis.filter(x=>(qFilter==='all'||(qFilter==='open'?(!x.status||x.status==='open'):x.status===qFilter))&&(!q||[x.no,x.cust&&x.cust.name,x.cust&&x.cust.phone,x.invoice,...(x.items||[]).map(t=>t.sku)].some(v=>String(v||'').toLowerCase().includes(q))));
+  if(!list.length){el.innerHTML=`<div class="empty">${vis.length?'No quotes match.':'Quotes appear here once an item is saved to a quote.'}</div>`;return}
   el.innerHTML=list.slice(0,80).map(x=>{const n=(x.items||[]).length;
     let net='';try{const keep=bill;bill=fixBill(clone(x));if(x.rates){bill.overrides={};PURITIES.forEach(p=>{if(x.rates[p.id]!=null)bill.overrides[p.id]=x.rates[p.id]})}net=inr(Math.abs(totals().net));bill=keep}catch(e){}
-    return `<button class="r-item${x.id===bill.id?' cur':''}" type="button" data-open="${x.id}"><span><b>${esc(quoteLabel(x))}</b>${x.status==='closed'?'<span class="st closed">Sold</span>':x.status==='cancelled'?'<span class="st cancel">Enquiry</span>':''}${x.id===bill.id?'<span class="st">Open now</span>':''}<br><span class="m">${esc((x.cust&&x.cust.name)||'No name')}${x.cust&&x.cust.phone?' · '+esc(x.cust.phone):''} · ${n} item${n===1?'':'s'} · ${new Date(x.updated||x.started).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})}${x.by?' · '+esc(x.by):''}${x.invoice?' · Inv '+esc(x.invoice):''}</span></span><span class="v">${net}</span></button>`}).join('');
+    return `<button class="r-item${x.id===bill.id?' cur':''}" type="button" data-open="${x.id}"><span><b>${esc(quoteLabel(x))}</b>${isProv(x)?'<span class="st prov">Provisional</span>':''}${seesAll()&&!isMine(x)&&x.by?`<span class="st by">${esc(x.by)}</span>`:''}${x.status==='closed'?'<span class="st closed">Sold</span>':x.status==='cancelled'?'<span class="st cancel">Enquiry</span>':''}${x.id===bill.id?'<span class="st">Open now</span>':''}<br><span class="m">${esc((x.cust&&x.cust.name)||'No name')}${x.cust&&x.cust.phone?' · '+esc(x.cust.phone):''} · ${n} item${n===1?'':'s'} · ${new Date(x.updated||x.started).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})}${x.by?' · '+esc(x.by):''}${x.invoice?' · Inv '+esc(x.invoice):''}</span></span><span class="v">${net}</span></button>`}).join('');
   el.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{if(b.dataset.open!==bill.id)openQuote(b.dataset.open)});
 }
 [...$('qFilter').children].forEach(b=>b.onclick=()=>{qFilter=b.dataset.f;[...$('qFilter').children].forEach(x=>x.setAttribute('aria-pressed',String(x===b)));renderRecent()});
@@ -3634,7 +3644,7 @@ function mergeRemoteUsers(list){
   users=list.map(u=>{const o=old.get(u.id);return (!u.hash&&o&&o.hash&&o.salt)?{...u,salt:o.salt,hash:o.hash}:u});
   saveUsersLocal();
   if(curUser){const me=users.find(u=>u.id===curUser.id);if(!me||me.active===false){logout('Your user was removed or switched off by an admin.');return}curUser=me}
-  paintUserChip();renderUsers();
+  paintUserChip();renderUsers();try{renderRecent()}catch(e){}
 }
 async function pushUsers(){
   if(!sync.key)return;
@@ -3831,6 +3841,8 @@ async function pollInboxNow(){
   try{const r=await syncApi('inbox');inbox={pending:r.pending||[],approved:r.approved||[],leads:r.leads||[]};store.set('inbox',inbox);
     if((r.q||0)>(sync.v.quotes||0))pullQuotes().then(()=>{try{paintAppr()}catch(e){}});
     if((r.l||0)>leadsV)pullLeads();
+    // users and roles changed by an admin (e.g. "See all quotes"): pick them up now, not at the morning sync
+    if((r.u||0)>(sync.v.users||0)){try{const d=await syncApi('users','GET',null,adminCreds);if(Array.isArray(d.roles)){roles=d.roles;store.set('roles',roles)}if(Array.isArray(d.users)&&d.users.length)mergeRemoteUsers(d.users);sync.v.users=d.v||r.u;saveSyncState()}catch(e){}}
     const items=myInbox(),fresh=items.filter(x=>!inbNotified.has(x.k));
     fresh.forEach(x=>inbNotified.add(x.k));store.set('inbNotified',[...inbNotified].slice(-400));
     if(inbFirst){inbFirst=false;store.set('inbInit',true)}
@@ -3883,7 +3895,7 @@ function paintFooterSet(){
     const t=Object.assign({},settings.tabHide||{}),cur=new Set(t[b.dataset.r]||[]);cur.has(b.dataset.t)?cur.delete(b.dataset.t):cur.add(b.dataset.t);
     t[b.dataset.r]=[...cur];settings.tabHide=t;saveSettings();applyTabs();toast('Footer updated')},true));
 }
-function paintUserChip(){try{applyTabs()}catch(e){}try{paintBell();nativeInbox();if(curUser)setTimeout(()=>pollInbox(true),800)}catch(e){}const c=$('userChip');c.hidden=!curUser;if(curUser)c.textContent='👤 '+(curUser.name||curUser.username)+' · Log out';$('heroName').textContent=$('sbName').textContent=curUser?(curUser.name||curUser.username):'—'}
+function paintUserChip(){try{applyTabs()}catch(e){}try{if(curUser&&bill&&!billIsEmpty()&&!canSeeQuote(bill))startNewQuote('New quote.')}catch(e){}try{paintBell();nativeInbox();if(curUser)setTimeout(()=>pollInbox(true),800)}catch(e){}const c=$('userChip');c.hidden=!curUser;if(curUser)c.textContent='👤 '+(curUser.name||curUser.username)+' · Log out';$('heroName').textContent=$('sbName').textContent=curUser?(curUser.name||curUser.username):'—'}
 $('heroUser').onclick=()=>{if(curUser)$('userChip').click()};
 $('userChip').onclick=()=>showModal(`${curUser.name||curUser.username}`,`Logged in as ${roleName(curUser.role)} (${curUser.username}).`,[
   {label:'Log out',cls:'danger',run:()=>logout()},{label:'Cancel',cls:'ghost'}]);
@@ -3923,7 +3935,7 @@ $('ssBack2').onclick=()=>{closeStock();window.scrollTo({top:0,behavior:'smooth'}
 let editUserId=null,editRole='staff';
 function renderUsers(){
   const el=$('userList');if(!el)return;
-  el.innerHTML=users.length?users.map(u=>`<div class="u-row${u.active===false?' off':''}"><div><b>${esc(u.name||u.username)}</b><span class="role ${u.role}">${esc(roleName(u.role))}</span><div class="m">${esc(u.username)}${u.active===false?' · switched off':''}${curUser&&u.id===curUser.id?' · you':''}</div></div><button class="linkbtn" type="button" data-edit-user="${u.id}">Edit</button></div>`).join(''):'<div class="empty">No users yet.</div>';
+  el.innerHTML=users.length?users.map(u=>`<div class="u-row${u.active===false?' off':''}"><div><b>${esc(u.name||u.username)}</b><span class="role ${u.role}">${esc(roleName(u.role))}</span><div class="m">${esc(u.username)}${u.active===false?' · switched off':''}${u.seeAll&&u.role!=='admin'?' · sees all quotes':''}${curUser&&u.id===curUser.id?' · you':''}</div></div><button class="linkbtn" type="button" data-edit-user="${u.id}">Edit</button></div>`).join(''):'<div class="empty">No users yet.</div>';
   el.querySelectorAll('[data-edit-user]').forEach(b=>b.onclick=()=>openUserForm(b.dataset.editUser));
 }
 function paintRole(){
@@ -3960,6 +3972,7 @@ function openUserForm(id){
   $('uName').value=u?u.name:'';$('uUser').value=u?u.username:'';$('uPin').value=$('uPin2').value='';
   $('uPin').placeholder=u?'Leave blank to keep':'';$('uPin2').placeholder=u?'Leave blank to keep':'';
   $('uActive').checked=u?u.active!==false:true;editRole=u?u.role:'staff';paintRole();
+  $('uSeeAll').checked=!!(u&&u.seeAll);$('uSeeAll').disabled=!(curUser&&curUser.role==='admin');
   $('uDelete').hidden=!u;$('userForm').hidden=false;$('userStatus').textContent='';
   setTimeout(()=>$('uName').focus(),30);
 }
@@ -3976,7 +3989,7 @@ $('uSave').onclick=()=>withPin('Needs a user allowed to manage users.',async()=>
   const active=$('uActive').checked;
   const next=users.map(u=>({...u}));
   let u=old?next.find(x=>x.id===old.id):{id:'u_'+uid()};
-  u.name=name;u.username=username;u.role=editRole;u.active=active;
+  u.name=name;u.username=username;u.role=editRole;u.active=active;if(curUser&&curUser.role==='admin')u.seeAll=$('uSeeAll').checked;
   if(p1){u.salt=newSalt();u.hash=await pbkdf(p1,u.salt)}
   if(!old)next.push(u);
   if(!next.some(x=>x.role==='admin'&&x.active!==false))return userErr('Keep at least one active admin.');

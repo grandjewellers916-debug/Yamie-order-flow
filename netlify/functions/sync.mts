@@ -70,7 +70,9 @@ function cleanQuote(q: any) {
   if (!q || typeof q !== "object" || typeof q.id !== "string" || !q.id) return null
   const out = JSON.parse(JSON.stringify(q, (k, v) => (k === "photos" || k === "thumbs" ? undefined : v)))
   out.id = cleanStr(out.id, 24)
-  out.no = /^QT-\d{1,9}$/.test(out.no || "") ? out.no : ""
+  out.no = /^(QT-\d{1,9}|P-[A-Z0-9]{1,8}-\d{1,6})$/.test(out.no || "") ? out.no : ""
+  out.pno = /^P-[A-Z0-9]{1,8}-\d{1,6}$/.test(out.pno || "") ? out.pno : ""
+  out.byId = cleanStr(out.byId, 40)
   out.updated = cleanNum(out.updated) || Date.now()
   if (JSON.stringify(out).length > 120000) return null
   return out
@@ -143,7 +145,7 @@ export default async (req: Request) => {
     if (!users.length && (await legacyOk(req.headers.get("x-admin-pin") || ""))) return "admin"
     return ""
   }
-  const publicUser = (u: any, withHash: boolean) => ({ id: u.id, name: u.name, username: u.username, role: u.role, active: u.active !== false, ...(withHash ? { salt: u.salt, hash: u.hash } : {}) })
+  const publicUser = (u: any, withHash: boolean) => ({ id: u.id, name: u.name, username: u.username, role: u.role, active: u.active !== false, seeAll: !!u.seeAll, ...(withHash ? { salt: u.salt, hash: u.hash } : {}) })
 
   try {
     if (req.method === "GET") {
@@ -173,7 +175,7 @@ export default async (req: Request) => {
         const approved = qs.filter((q) => q?.appr?.state === "approved" && q.appr.at > Date.now() - 3 * 864e5).slice(0, 50)
           .map((q) => ({ id: q.id, no: q.no || "", name: cleanStr(q.cust?.name, 40), to: q.appr.reqBy || "", byName: cleanStr(q.appr.by, 40), at: q.appr.at || 0 }))
         const leads = ls.filter((l) => l.state === "new").slice(0, 50).map((l) => ({ id: l.id, to: l.to || "", name: cleanStr(l.name, 40), byName: cleanStr(l.byName, 40), at: l.at || 0 }))
-        return json(req, { q: meta.quotes, l: meta.leads || 0, pending, approved, leads })
+        return json(req, { q: meta.quotes, l: meta.leads || 0, u: meta.users || 0, pending, approved, leads })
       }
       return json(req, { error: "bad_op" }, 400)
     }
@@ -208,10 +210,24 @@ export default async (req: Request) => {
       const list: any[] = ((await st.get("quotes", { type: "json" })) as any[]) || []
       const prev = list.find((x) => x.id === q.id)
       if (prev && (prev.updated || 0) > (q.updated || 0)) return json(req, { v: meta.quotes, quote: prev, conflict: true })
+      // Numbers are given here so they never clash:
+      //  - a provisional number per user (P-RAVI-0001) when the quote is first saved
+      //  - the common series number (QT-000001…) once the sale is closed
       if (prev?.no) q.no = prev.no
+      if (prev?.pno) q.pno = prev.pno
       if (!q.no) {
+        const us: any[] = ((await st.get("users", { type: "json" })) as any[]) || []
+        const u = us.find((x) => x.id === q.byId) || us.find((x) => x.name === q.by)
+        const code = ((u?.username || q.by || "USER").toUpperCase().replace(/[^A-Z0-9]/g, "") || "USER").slice(0, 6)
+        const sk = "pseq-" + (u?.id || code).replace(/[^\w-]/g, "")
+        const n = (Number(((await st.get(sk, { type: "json" })) as any)?.n) || 0) + 1
+        await st.setJSON(sk, { n })
+        q.no = q.pno = "P-" + code + "-" + String(n).padStart(4, "0")
+      }
+      if (q.status === "closed" && !/^QT-/.test(q.no)) {
         const seq = (Number(((await st.get("quoteseq", { type: "json" })) as any)?.n) || 0) + 1
         await st.setJSON("quoteseq", { n: seq })
+        q.pno = q.pno || q.no
         q.no = "QT-" + String(seq).padStart(6, "0")
       }
       const next = [q, ...list.filter((x) => x.id !== q.id)].sort((a, b) => (b.updated || 0) - (a.updated || 0)).slice(0, 600)
@@ -349,6 +365,8 @@ export default async (req: Request) => {
           username: cleanStr(u?.username, 30).trim().toLowerCase().replace(/[^a-z0-9._-]/g, ""),
           role: roleIds.has(u?.role) ? u.role : roleIds.has("staff") ? "staff" : [...roleIds][1] || "admin",
           active: u?.active !== false,
+          // "See all quotes" is set by an admin only
+          seeAll: role === "admin" ? !!u?.seeAll : !!prev?.seeAll,
           // keep the stored PIN if this phone did not send one (admin hashes are not sent to staff phones)
           salt: /^[0-9a-f]{32}$/.test(u?.salt || "") ? u.salt : prev?.salt,
           hash: /^[0-9a-f]{64}$/.test(u?.hash || "") ? u.hash : prev?.hash,
