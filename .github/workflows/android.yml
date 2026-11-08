@@ -21,7 +21,9 @@ jobs:
 
       - name: Install Gradle 8.7
         run: |
-          for i in 1 2 3 4 5; do curl -fsSL -o /tmp/gradle.zip https://downloads.gradle.org/distributions/gradle-8.7-bin.zip && break; sleep 10; done
+          for u in https://github.com/gradle/gradle-distributions/releases/download/v8.7.0/gradle-8.7-bin.zip https://downloads.gradle.org/distributions/gradle-8.7-bin.zip https://services.gradle.org/distributions/gradle-8.7-bin.zip; do
+            for i in 1 2 3; do curl -fsSL -o /tmp/gradle.zip "$u" && break 2; sleep 10; done
+          done
           unzip -q /tmp/gradle.zip -d /opt
           echo "/opt/gradle-8.7/bin" >> $GITHUB_PATH
 
