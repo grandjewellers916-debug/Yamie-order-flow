@@ -3970,7 +3970,8 @@ const roleName=id=>id==='admin'?'Admin':(roles.find(r=>r.id===id)||{name:id||'â€
 const OLD_SETTINGS=['textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows'];
 const ADMIN_ONLY=['stock','theme','footer','apprSet','export'];   // Stock data is an admin function
 function roleHas(role,perm){if(role==='admin')return true;if(ADMIN_ONLY.includes(perm))return false;const ps=((roles.find(r=>r.id===role)||{}).perms||[]);return ps.includes(perm)||(OLD_SETTINGS.includes(perm)&&ps.includes('settings'))||(perm==='roles'&&ps.includes('users'))}
-function can(perm){return !!(curUser&&roleHas(curUser.role,perm))||(Date.now()<elev.until&&roleHas(elev.role,perm))}
+// A manager's PIN approval covers only what it was asked for (e.g. sharing), not everything the manager can do
+function can(perm){return !!(curUser&&roleHas(curUser.role,perm))||(Date.now()<elev.until&&roleHas(elev.role,perm)&&(!elev.perms||elev.perms.includes(perm)))}
 // Server writes need the PIN of a user with the permission (kept in memory only)
 function credsOk(perm){return !sync.key||!!(adminCreds&&roleHas(adminCreds.role,perm))}
 function withPerm(perm,why,fn,needCreds){
@@ -4058,7 +4059,7 @@ $('loginForm').addEventListener('submit',async e=>{
   if(loginMode==='perm'&&loginPerm&&!loginPerm.split('|').some(p=>roleHas(u.role,p))){$('loginErr').textContent=`${u.name||u.username} (${roleName(u.role)}) does not have this permission.`;$('loginPin').value='';return}
   $('login').hidden=true;
   if(loginMode==='login'){curUser=u;store.set('session',{id:u.id,at:Date.now()});adminCreds={username:u.username,pin,role:u.role};toast(`Welcome, ${u.name||u.username}`)}
-  else{adminCreds={username:u.username,pin,role:u.role};if(!(curUser&&curUser.id===u.id))elev={role:u.role,until:Date.now()+15*60*1000};if(!curUser){curUser=u;store.set('session',{id:u.id,at:Date.now()})}}
+  else{adminCreds={username:u.username,pin,role:u.role};if(!(curUser&&curUser.id===u.id)){const ps=loginPerm?loginPerm.split('|'):null,same=elev.role===u.role&&Date.now()<elev.until&&elev.perms;elev={role:u.role,until:Date.now()+15*60*1000,perms:ps?[...new Set([...(same?elev.perms:[]),...ps])]:null}}if(!curUser){curUser=u;store.set('session',{id:u.id,at:Date.now()})}}
   paintUserChip();paintAdmin();renderUsers();
   const f=loginNext;loginNext=null;f&&f();
   if(loginMode==='login')morningSync();
