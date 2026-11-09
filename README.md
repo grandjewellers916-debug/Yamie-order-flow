@@ -302,3 +302,11 @@ A card is locked for users without that permission; opening it asks for a user w
 - **Top box** (Total Label Value · Savings · Net Payable) stays on screen while scrolling the Quote page.
 - **Special Price** (was Discount), below the Summary, folded by default. Setting it is an **admin** function; managers see it and **Forward to admin for special price** (the admin is notified, sets it and approves; the manager is notified).
 - **WhatsApp quote image** redesigned around the savings: a "Your special price" banner (label value struck through, the price to pay, a gold "You save ₹… · …% off" badge), each item with its label price struck through, the special price and a green SAVE pill (all incl. GST), savings lines on green bands, and "You save ₹… on this purchase" under the balance.
+
+## V 1.7.66 (9 Nov 2026)
+
+- **Special promotions** (Settings → Special promotions, admin only): name, benefit (% off making · % off diamond value · ₹ off gold rate per gram · % off the quote · ₹ off the quote), applies to (every quote · quote value from ₹ · gold net weight from g · diamond value from ₹), sale type, dates, message, running on/off. The best running offer that applies is taken off before GST on every user's quotes; it shows in the Summary, the top box and the WhatsApp image. Users get a pop-up of running offers when they open the app (once a day) and an offer bar on Home.
+- WhatsApp image: the quote number is sized so it never overlaps the logo.
+- Close sale: the **Yamie ERP** invoice number can be entered then or added later on the closed quote (saved to the shared database).
+- **Reports** (Settings → Reports; permission "Reports", managers and admins): quoted, generated, approved, total sales from completed quotes, savings and offers given, open / enquiry only, conversion; by user, by sale type, sold by item, completed sales with invoice numbers. Period and sale type filters; **Export Excel** (Summary, By user, By sale type, By item, Sales, Quotes).
+- Settings changed by an admin (promotions etc.) reach phones within about a minute.

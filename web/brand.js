@@ -8,7 +8,7 @@
       site:'https://yamie-price-check.netlify.app',
       manifest:'manifest.webmanifest',icon:'icons/icon-192.png',touch:'icons/icon-180.png',
       theme:'#7A1418',
-      logoHeader:'brand/yamie/header-w.png',logoLogin:'brand/yamie/logo-cream.png',mark:'brand/yamie/mark-w.png',tagline:'Legacy 1986',erp:'Acme',
+      logoHeader:'brand/yamie/header-w.png',logoLogin:'brand/yamie/logo-cream.png',mark:'brand/yamie/mark-w.png',tagline:'Legacy 1986',erp:'Yamie ERP',
       address:['YAMIE FINE JEWELLERY','63/322 Aa, Level G','Grand Business Center','K K Road, Kadavanthra','Kochi, Kerala - 682020','Contact: +91 8714122750','Website: www.yamie.in','GSTIN 32AACFY4685K1ZR'],
       // Quote image and WhatsApp text: firm name, then the address in 2 lines
       addr2:['63/322 Aa, Level G, Grand Business Center, K K Road, Kadavanthra, Kochi, Kerala - 682020','Contact: +91 8714122750 · www.yamie.in · GSTIN 32AACFY4685K1ZR'],

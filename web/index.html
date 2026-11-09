@@ -864,6 +864,24 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .qd-head{width:100%;border:0;background:none;padding:0;cursor:pointer;color:inherit;text-align:left;display:flex;align-items:center;gap:8px}
 .qd-head h2{flex:1}.qd-head .dc-chev{transition:transform .2s}.qd-head[aria-expanded="true"] .dc-chev{transform:rotate(180deg)}
 #qDiscBody{margin-top:8px}
+.promo-bar{display:flex;align-items:center;gap:10px;width:100%;border:0;border-radius:14px;padding:10px 14px;margin:0 0 10px;background:linear-gradient(135deg,#3B1A5C,#6B2F9A);color:#fff;font:600 14px var(--body);text-align:left;cursor:pointer;box-shadow:0 4px 14px rgba(59,26,92,.25)}
+.promo-bar b{color:#FFE08A}.promo-bar .pb-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pr-row{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0;display:flex;gap:10px;align-items:flex-start}
+.pr-row .pr-m{flex:1;min-width:0}.pr-row b{display:block}.pr-row small{color:var(--muted);display:block;font-size:12.5px}
+.pr-row .live{color:#2E7D4F;font-weight:700}.pr-row .off{color:var(--muted)}
+.pr-form{display:grid;grid-template-columns:1fr 1fr;gap:8px}.pr-form .full{grid-column:1/-1}
+.pr-form label{font-size:12px;color:var(--muted);display:block;margin-bottom:3px}
+.pr-form input,.pr-form select,.pr-form textarea,.rp-f select,.rp-f input{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px 10px;font:14px var(--body);background:var(--surface);color:var(--fg)}
+.offer-pop{border-radius:14px;padding:12px 14px;margin:8px 0;background:linear-gradient(135deg,#3B1A5C,#6B2F9A);color:#fff}
+.offer-pop b{display:block;font-size:17px}.offer-pop span{color:#FFE08A;font-weight:700}.offer-pop small{display:block;opacity:.85;margin-top:4px}
+.rp-f{display:flex;gap:8px;margin-top:8px}.rp-f>*{flex:1;min-width:0}
+.rp-k{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.rp-k div{border-radius:12px;padding:10px;background:var(--sunk)}.rp-k small{display:block;color:var(--muted);font-size:12px}.rp-k b{font:800 18px var(--body)}
+.rp-k .hl{background:linear-gradient(135deg,#1F6B45,#2E8B57);color:#fff}.rp-k .hl small{color:rgba(255,255,255,.85)}
+.rp-t{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}.rp-t th,.rp-t td{padding:6px 4px;border-bottom:1px solid var(--line);text-align:right}.rp-t th:first-child,.rp-t td:first-child{text-align:left}
+.rp-t th{color:var(--muted);font-weight:600;font-size:12px}
+.rp-h{margin:14px 0 0;font:700 13px var(--body);text-transform:uppercase;letter-spacing:.05em;color:var(--maroon)}
+.qs-lines .line.offer{background:linear-gradient(135deg,#3B1A5C,#6B2F9A)}
 .fp-role{padding:10px 0;border-bottom:1px solid var(--line)}.fp-role:last-child{border-bottom:0}
 .fp-role>b{display:block;font-size:14px;margin-bottom:6px}
 .fp-tabs{display:flex;flex-wrap:wrap;gap:6px}
@@ -1213,6 +1231,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
   </section>
 
   <!-- Sale / enquiry type -->
+  <button type="button" class="promo-bar" id="promoBar" data-pane="home" hidden></button>
   <div class="seg sale-mode" id="saleMode" data-pane="home" role="radiogroup" aria-label="Sale or enquiry type">
     <button type="button" role="radio" data-m="online">Online enquiry</button>
     <button type="button" role="radio" data-m="store">Store walk-in</button>
@@ -1428,6 +1447,20 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
   </section>
 
   <div class="set-head" data-pane="settings"><h2>Settings</h2><button class="btn sm" type="button" id="setStock">Stock list</button></div>
+  <details class="card datacard setcard" id="setPromo" data-pane="settings" data-perm="promos">
+    <summary><span class="dc-t">Special promotions</span><span class="dc-s" id="setPromoMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
+      <p class="note" style="margin-block:4px 0">Offers applied to every quote, for all users, while they run. The best offer that applies is taken off before GST. Users see the running offers when they open the app.</p>
+      <div id="promoList"></div>
+      <button class="btn" type="button" id="promoAdd">+ New promotion</button>
+  </details>
+  <details class="card datacard setcard" id="setReports" data-pane="settings" data-perm="reports">
+    <summary><span class="dc-t">Reports</span><span class="dc-s">Quotes · sales</span><span class="dc-chev" aria-hidden="true">▾</span></summary>
+      <div class="rp-f"><select id="rpRange" aria-label="Period"><option value="today">Today</option><option value="7">Last 7 days</option><option value="month" selected>This month</option><option value="lastmonth">Last month</option><option value="all">All time</option><option value="custom">Custom…</option></select>
+        <select id="rpType" aria-label="Sale type"><option value="">All sale types</option><option value="store">Store walk-in</option><option value="online">Online enquiry</option></select></div>
+      <div class="rp-f" id="rpCustom" hidden><input type="date" id="rpFrom" aria-label="From"><input type="date" id="rpTo" aria-label="To"></div>
+      <div id="rpOut"></div>
+      <div class="rs-acts" style="margin-top:8px"><button class="btn" type="button" id="rpRefresh">Refresh</button><button class="btn primary" type="button" id="rpXlsx">Export Excel</button></div>
+  </details>
   <details class="card datacard setcard" id="setExport" data-pane="settings" data-perm="export">
     <summary><span class="dc-t">Export stock database</span><span class="dc-s" id="setExpMini">Excel · PDF</span><span class="dc-chev" aria-hidden="true">▾</span></summary>
       <p class="note" style="margin-block:4px 0">Every item in the stock list with its product photo. Photos are fetched from the shared database, so a large stock list can take a minute.</p>
@@ -1837,14 +1870,14 @@ function applyRemoteSettings(rs){
   if('cats' in rs){settings.cats=rs.cats&&typeof rs.cats==='object'&&Object.keys(rs.cats).length?rs.cats:null;try{applyCats()}catch(e){}}
   if('showRates' in rs){settings.showRates=Array.isArray(rs.showRates)&&rs.showRates.length?rs.showRates:null;try{rebuildPurities()}catch(e){}}
   if(rs.gst!=null)settings.gst=rs.gst;if(rs.huid!=null)settings.huid=rs.huid;
-  if(rs.mkEdit)settings.mkEdit=rs.mkEdit;if(Array.isArray(rs.pdHide))settings.pdHide=rs.pdHide;if(rs.tabHide&&typeof rs.tabHide==='object')settings.tabHide=rs.tabHide;if(typeof rs.apprOn==='boolean')settings.apprOn=rs.apprOn;try{paintApprSet();renderBill(true)}catch(e){}try{applyTabs()}catch(e){}if(rs.ui)settings.ui=rs.ui;if(rs.accent)settings.accent=rs.accent;try{applyTheme()}catch(e){}if('showImg' in rs)settings.showImg=rs.showImg!==false;
+  if(rs.mkEdit)settings.mkEdit=rs.mkEdit;if(Array.isArray(rs.pdHide))settings.pdHide=rs.pdHide;if(rs.tabHide&&typeof rs.tabHide==='object')settings.tabHide=rs.tabHide;if(typeof rs.apprOn==='boolean')settings.apprOn=rs.apprOn;if(Array.isArray(rs.promos))settings.promos=rs.promos;try{paintPromoBar()}catch(e){}try{paintApprSet();renderBill(true)}catch(e){}try{applyTabs()}catch(e){}if(rs.ui)settings.ui=rs.ui;if(rs.accent)settings.accent=rs.accent;try{applyTheme()}catch(e){}if('showImg' in rs)settings.showImg=rs.showImg!==false;
   store.set('settings2',settings);try{paintAdminExtras()}catch(e){}
   try{renderTable('cz');renderTable('dia');$('setGst').value=settings.gst;$('setHuid').value=settings.huid;renderEditor();renderBill(true)}catch(e){}
 }
 let settingsTimer=null;
 function saveSettings(){store.set('settings2',settings);if(!sync.key)return;sync.dirtySettings=true;saveSyncState();clearTimeout(settingsTimer);settingsTimer=setTimeout(()=>{if(adminCreds)pushSettingsNow().catch(e=>syncMsg('err',syncErrText(e)))},1500)}
 async function pushSettingsNow(){
-  const r=await syncApi('settings','POST',{settings:{gst:settings.gst,huid:settings.huid,mkTable:settings.mkTable,cats:settings.cats||null,showRates:settings.showRates||null,mkEdit:settings.mkEdit||'admin',showImg:settings.showImg!==false,ui:settings.ui||'iosBrand',accent:settings.accent||'brand',pdHide:settings.pdHide||[],tabHide:settings.tabHide||{},apprOn:settings.apprOn!==false}},adminCreds);
+  const r=await syncApi('settings','POST',{settings:{gst:settings.gst,huid:settings.huid,mkTable:settings.mkTable,cats:settings.cats||null,showRates:settings.showRates||null,mkEdit:settings.mkEdit||'admin',showImg:settings.showImg!==false,ui:settings.ui||'iosBrand',accent:settings.accent||'brand',pdHide:settings.pdHide||[],tabHide:settings.tabHide||{},apprOn:settings.apprOn!==false,promos:(settings.promos||[]).map(x=>Object.assign({},x,{min:num(x.min)||0,val:num(x.val)||0}))}},adminCreds);
   sync.v.settings=r.v;sync.dirtySettings=false;saveSyncState();syncMsg('ok','Settings saved to the shared database.');
 }
 async function pushRate(entry){
@@ -2060,6 +2093,24 @@ const r100=x=>Math.round(x/100)*100;
 // Price at FVA (before GST) and the saving against the label price; null when there is nothing to save
 function fvaPrice(t,p){p=p||priceTag(t);if(!p.ok||!p.hasMk)return null;const f=fvaMaking(t);if(!f)return null;
   const val=p.value-p.making+f.amt,save=p.value-val;return save>0.5?{value:val,save,label:f.label,mk:f.amt}:null}
+// ---- Special promotions ----
+const PROMO_BASIS={all:'Every quote',value:'Quote value (incl. GST) from ₹',weight:'Gold net weight from (g)',diamond:'Diamond value from ₹'};
+const PROMO_KIND={mkPct:'% off making charges',diaPct:'% off diamond value',goldPg:'₹ off gold rate per gram',flat:'₹ off the quote',valPct:'% off the quote value'};
+function todayStr(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function promoLive(x){const t=todayStr();return x&&x.on!==false&&(!x.from||x.from<=t)&&(!x.to||x.to>=t)}
+function livePromos(){return (settings.promos||[]).filter(promoLive)}
+function promoText(x){const v=num(x.val);const ben=x.kind==='mkPct'?`${fmtN(v)}% off making`:x.kind==='diaPct'?`${fmtN(v)}% off diamond value`:x.kind==='goldPg'?`${inr(v)} off per gram of gold`:x.kind==='valPct'?`${fmtN(v)}% off`:`${inr(v)} off`;
+  const cond=x.basis==='value'?` on purchases from ${inr(x.min)}`:x.basis==='weight'?` on ${fmtN(x.min)} g gold and above`:x.basis==='diamond'?` on diamond value from ${inr(x.min)}`:'';return ben+cond+(x.sale&&x.sale!=='any'?` · ${x.sale==='online'?'online':'in store'}`:'')}
+function bestPromo(s){
+  if(bill.noPromo||!bill.items.length)return null;const G=1+(num(settings.gst)||0)/100;let best=null;
+  livePromos().forEach(x=>{
+    if(x.sale&&x.sale!=='any'&&x.sale!==(bill.channel||'store'))return;
+    const v=num(x.val)||0,min=num(x.min)||0;
+    const ok=x.basis==='value'?s.sub*G>=min:x.basis==='weight'?s.nw>=min:x.basis==='diamond'?s.dia>=min&&s.dia>0:true;if(!ok)return;
+    const amt=x.kind==='mkPct'?s.making*v/100:x.kind==='diaPct'?s.dia*v/100:x.kind==='goldPg'?s.nw*v:x.kind==='valPct'?s.sub*v/100:v/G;
+    const a=Math.max(0,Math.min(amt,s.sub));if(a>0.5&&(!best||a>best.amt))best={p:x,amt:a}});
+  return best;
+}
 function quotedValue(t,p){p=p||priceTag(t);if(!p.ok||!t.qMk)return p.value;const v=num(t.qMk.val);if(isNaN(v)||v<0)return p.value;
   const m=makingFor(t,t.qMk.type||t.mkType,v);return isNaN(m)?p.value:p.value-p.making+m}
 function oldRate(o){const r=num(o.rate);return !isNaN(r)?r:rateFor(o.purity)}
@@ -2067,7 +2118,7 @@ function oldValue(o){const w=num(o.wt),r=oldRate(o);return isNaN(w)||r==null?NaN
 function totals(){
   const s={gold:0,stone:0,making:0,huid:0,huidN:0,sub:0,bad:0};
   s.listSub=0;s.listMk=0;s.mkDisc=0;s.nw=0;s.gw=0;
-  bill.items.forEach(t=>{const p=priceTag(t),q=quotedValue(t,p);if(!p.ok){s.bad++;return}s.nw+=num(t.nw)||0;s.gw+=num(t.gw)||0;s.gold+=p.gold;s.stone+=p.stone;s.making+=p.making-(p.value-q);s.huid+=p.huid;s.huidN+=p.huidN;s.sub+=q;s.listSub+=p.value;s.listMk+=p.making;s.mkDisc+=p.value-q});
+  s.dia=0;bill.items.forEach(t=>{const p=priceTag(t),q=quotedValue(t,p);if(!p.ok){s.bad++;return}{const st=t.stock||{};s.dia+=st.saDia>0?num(st.saDia):(isDiamond(t)&&!(st.saClr>0)?p.stone:0)}s.nw+=num(t.nw)||0;s.gw+=num(t.gw)||0;s.gold+=p.gold;s.stone+=p.stone;s.making+=p.making-(p.value-q);s.huid+=p.huid;s.huidN+=p.huidN;s.sub+=q;s.listSub+=p.value;s.listMk+=p.making;s.mkDisc+=p.value-q});
   const gstP=num(settings.gst)||0;
   // Taxable value = items after making discount + delivery charges (online); GST on that
   // Delivery: online enquiries only, by the chosen partner
@@ -2075,7 +2126,9 @@ function totals(){
   s.courier=cour||null;s.courierWarn='';
   s.delivery=!cour?0:cour.id==='own'?Math.max(0,num(bill.delivery)||0):cour.rate;
   if(cour&&cour.max&&s.sub*(1+(num(settings.gst)||0)/100)>cour.max)s.courierWarn=`${cour.name} is only for parcels up to ${inr(cour.max)}. Choose another partner.`;
-  s.taxable=s.sub+s.delivery;
+  // Special promotion running today (admin, all users): the best one that applies, taken off before GST
+  {const pr=bestPromo(s);s.promo=pr?pr.p:null;s.promoAmt=pr?pr.amt:0}
+  s.taxable=s.sub-s.promoAmt+s.delivery;
   s.gst=s.taxable*gstP/100;s.total=s.taxable+s.gst;
   s.old=0;s.oldW=0;
   bill.oldGold.forEach(o=>{const v=oldValue(o);if(!isNaN(v)){s.old+=v;s.oldW+=num(o.wt)}});
@@ -2739,6 +2792,7 @@ function renderBill(keepInputs){
   L.push(['Total Making Charges',mkOn?inr(s.listMk):'•••','mkline']);
   L.push(['Total Value at Making Label',inr(s.listSub),'strong']);
   L.push(['Less Total Savings (Discount)',s.mkDisc>0.5?'−'+inr(s.mkDisc):inr(0),'minus save']);
+  if(s.promoAmt>0.5)L.push([`Offer · ${s.promo.name}`,'−'+inr(s.promoAmt),'minus save offer']);
   if(s.courier)L.push([`Delivery charges · ${s.courier.name}`,s.delivery?'+'+inr(s.delivery):'Free']);
   L.push(['Taxable Value',inr(s.taxable),'strong']);
   L.push([`GST (${fmtN(g)}%)`,inr(s.gst)]);
@@ -2755,7 +2809,7 @@ function renderBill(keepInputs){
   $('qBalRow').classList.toggle('refund',refund);
   $('net').textContent=inr(Math.abs(s.net));
   // close sale
-  $('qInv').value=document.activeElement===$('qInv')?$('qInv').value:(bill.invoice||'');$('qInv').readOnly=closed;$('qInv').closest('.f').hidden=!closed&&!bill.invoice;
+  $('qInv').value=document.activeElement===$('qInv')?$('qInv').value:(bill.invoice||'');$('qInv').readOnly=bill.status==='cancelled'||(closed&&!!bill.pushedInvoice);$('qInv').closest('.f').hidden=!closed&&!bill.invoice;
   [...$('qChan').children].forEach(b=>{const on=b.dataset.c===(bill.channel||'store');b.setAttribute('aria-pressed',String(on));b.textContent=(on?'✓ ':'')+(b.dataset.c==='store'?'In-store':'Online');b.disabled=closed});
   $('qCloseBtn').hidden=closed;$('qReopen').hidden=!closed;$('qCancel').hidden=closed;
   [...$('qType').children].forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.c===(bill.channel||'store')));b.disabled=closed});
@@ -2922,18 +2976,19 @@ $('qDel').addEventListener('input',()=>{const v=num($('qDel').value);bill.delive
 [...$('qMkShow').children].forEach(b=>b.onclick=()=>{bill.showMk=b.dataset.v==='1';saveBill();renderBill(true)});
 $('qRound').onchange=()=>{if(!can('round')){$('qRound').checked=bill.round!==false;return}bill.round=$('qRound').checked;saveBill();renderBill(true)};
 $('qInv').addEventListener('input',()=>{bill.invoice=$('qInv').value.trim();saveBill(true)});
+$('qInv').addEventListener('change',()=>{if(isClosed()&&bill.invoice){bill.updated=Date.now();saveBill(true);pushQuote(bill.id).then(ok=>toast(ok?`Invoice ${bill.invoice} saved`:'Saved on this phone',null,!ok))}});
 $('qCloseBtn').onclick=()=>withPerm('closeSale','Needs a user allowed to close sales.',()=>{
   if(!bill.items.length){toast('Add items first',null,true);return}
   // Ask for the invoice number from the billing software (Acme) as the sale is closed
   const erp=BRAND.erp||'ERP';
   $('modalTitle').textContent=`Close sale ${quoteLabel(bill)}`;$('modalTitle').classList.remove('price-pop');
-  $('modalBody').innerHTML=`${bill.channel==='online'?'Online':'In-store'} sale · ${inr(Math.abs(totals().net))}<div class="lead-f"><label for="acmeInv">${esc(erp)} invoice number</label><input id="acmeInv" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Invoice no. from ${esc(erp)}" value="${esc(bill.invoice||'')}"></div>`;
+  $('modalBody').innerHTML=`${bill.channel==='online'?'Online':'In-store'} sale · ${inr(Math.abs(totals().net))}<div class="lead-f"><label for="acmeInv">${esc(erp)} invoice number</label><input id="acmeInv" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Invoice no. from ${esc(erp)} (can be added later)" value="${esc(bill.invoice||'')}"></div>`;
   const ma=$('modalActs');ma.innerHTML='';
   const okb=document.createElement('button');okb.className='btn primary';okb.type='button';okb.textContent='Close sale';
   const cnb=document.createElement('button');cnb.className='btn ghost';cnb.type='button';cnb.textContent='Cancel';cnb.onclick=closeModal;
   ma.append(okb,cnb);$('modal').hidden=false;setTimeout(()=>$('acmeInv').focus(),60);
   $('acmeInv').addEventListener('keydown',e=>{if(e.key==='Enter')okb.click()});
-  okb.onclick=()=>{const v=$('acmeInv').value.trim();if(!v){toast(`Enter the ${erp} invoice number`,null,true);$('acmeInv').focus();return}bill.invoice=v;closeModal();doClose()};
+  okb.onclick=()=>{const v=$('acmeInv').value.trim();bill.invoice=v;closeModal();doClose();if(!v)setTimeout(()=>toast(`Sale closed. Add the ${erp} invoice number when it is ready.`),900)};
   const doClose=[
     {label:'Close sale',cls:'primary',run:async()=>{
       bill.status='closed';bill.closedAt=Date.now();bill.closedBy=curUser?(curUser.name||curUser.username):'';mgrMode=false;
@@ -3095,6 +3150,7 @@ async function makeQuoteImage(withPhotos){
   const G=1+g/100,labelTot=s.listSub*G+s.delivery*G,saveTot=Math.max(0,labelTot-s.final),savePct=labelTot>0?saveTot/labelTot*100:0,hasSave=saveTot>=1;
   const sumRows=[['Value at label price',inr(s.listSub)]];
   if(s.mkDisc>0.5)sumRows.push(['Your savings','−'+inr(s.mkDisc),2]);
+  if(s.promoAmt>0.5)sumRows.push([`Offer · ${s.promo.name}`,'−'+inr(s.promoAmt),2]);
   if(s.courier)sumRows.push([`Delivery · ${s.courier.name}`,s.delivery?'+'+inr(s.delivery):'Free']);
   sumRows.push(['Taxable value',inr(s.taxable),1],[`GST (${fmtN(g)}%)`,inr(s.gst)]);
   if(s.disc>0.5)sumRows.push(['Extra savings','−'+inr(s.disc),2]);
@@ -3107,10 +3163,13 @@ async function makeQuoteImage(withPhotos){
   c.fillStyle='#FBF8F5';c.fillRect(0,0,W,H);
   // header
   const gr=c.createLinearGradient(0,0,W,270);gr.addColorStop(0,BAND);gr.addColorStop(1,MAROON);c.fillStyle=gr;c.fillRect(0,0,W,270);
-  if(logo){const h=150,w=logo.width*h/logo.height;c.drawImage(logo,P,60,w,h)}
-  else{c.fillStyle='#fff';c.font=F(700,60);c.fillText(BRAND.full,P,150)}
+  // logo on the left, quote number on the right — sized so they never overlap
+  let logoEnd=P;
+  if(logo){const h=120,w=Math.min(logo.width*h/logo.height,W*0.5);c.drawImage(logo,P,75,w,w*logo.height/logo.width);logoEnd=P+w}
+  else{c.fillStyle='#fff';c.font=F(700,56);c.fillText(fitText(c,BRAND.full,W*0.5),P,150);logoEnd=P+Math.min(c.measureText(BRAND.full).width,W*0.5)}
+  const room=W-P-logoEnd-40;
   c.textAlign='right';c.fillStyle='#F3D9B1';c.font=F(600,26);c.fillText('Q U O T A T I O N',W-P,92);
-  c.fillStyle='#fff';c.font=F(700,52);c.fillText(quoteLabel(bill),W-P,158);
+  {let fs=52;c.font=F(700,fs);while(fs>28&&c.measureText(quoteLabel(bill)).width>room){fs-=2;c.font=F(700,fs)}c.fillStyle='#fff';c.fillText(quoteLabel(bill),W-P,158)}
   c.font=F(400,28);c.fillStyle='rgba(255,255,255,.85)';c.fillText(new Date(bill.generated||bill.started||Date.now()).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'}),W-P,206);
   if(bill.channel==='online'){c.font=F(600,22);c.fillStyle='#F3D9B1';c.fillText('ONLINE ENQUIRY',W-P,244)}
   c.textAlign='left';
@@ -3130,7 +3189,7 @@ async function makeQuoteImage(withPhotos){
   if(hasSave){
     rrect(c,P,y,W-2*P,270,28);const hg=c.createLinearGradient(P,y,W-P,y+270);hg.addColorStop(0,'#3B1A5C');hg.addColorStop(1,'#6B2F9A');c.fillStyle=hg;c.fill();
     c.fillStyle='rgba(255,255,255,.07)';c.beginPath();c.arc(W-P-60,y+40,150,0,Math.PI*2);c.fill();
-    c.fillStyle='#F3D9B1';c.font=F(600,24);c.fillText('Y O U R   S P E C I A L   P R I C E',P+36,y+52);
+    c.fillStyle='#F3D9B1';c.font=F(600,24);c.fillText(s.promoAmt>0.5?fitText(c,('O F F E R  ·  '+s.promo.name).toUpperCase(),W-2*P-420):'Y O U R   S P E C I A L   P R I C E',P+36,y+52);
     c.fillStyle='rgba(255,255,255,.75)';c.font=F(400,30);const lv='Label value '+inr(r100(labelTot));c.fillText(lv,P+36,y+100);
     const lw=c.measureText(lv).width;c.strokeStyle='rgba(255,255,255,.75)';c.lineWidth=3;c.beginPath();c.moveTo(P+36+c.measureText('Label value ').width,y+90);c.lineTo(P+36+lw,y+90);c.stroke();
     c.fillStyle='#fff';c.font=F(700,64);c.fillText(inr(s.final),P+36,y+172);
@@ -3837,6 +3896,7 @@ function paintApprSet(){const el=$('apprPick');if(!el)return;const on=settings.a
   [...el.children].forEach(b=>{b.setAttribute('aria-pressed',String((b.dataset.v==='on')===on));b.onclick=()=>withPerm('apprSet','Only an admin can change quote approval.',()=>{settings.apprOn=b.dataset.v==='on';saveSettings();paintApprSet();renderBill(true);toast(settings.apprOn?'Quote approval is on':'Quote approval is off')},true)});
   $('setApprMini').textContent=on?'On':'Off'}
 function paintAdminExtras(){
+  try{paintPromoSet();paintPromoBar()}catch(e){}
   try{paintApprSet()}catch(e){}
   try{paintPdRowsSet()}catch(e){}try{paintFooterSet()}catch(e){}
   [...$('imgSeg').children].forEach(b=>b.setAttribute('aria-pressed',String((b.dataset.i==='1')===(settings.showImg!==false))));
@@ -3882,6 +3942,113 @@ function askProdPhoto(k){
 }
 ['pimgFile','pimgCam'].forEach(id=>$(id).addEventListener('change',async e=>{const f=e.target.files&&e.target.files[0];e.target.value='';const k=photoDest;photoDest=null;if(!f||!k)return;const u=await shrink(f);if(u)setProdImg(k,u)}));
 
+
+// ---------- Special promotions (admin) ----------
+function paintPromoBar(){
+  const b=$('promoBar');if(!b)return;const lp=livePromos();b.hidden=!lp.length;
+  if(lp.length)b.innerHTML=`<span aria-hidden="true">🎁</span><span class="pb-t"><b>${lp.length>1?lp.length+' offers running':'Offer'}</b> · ${esc(lp.map(x=>x.name).join(' · '))}</span><span aria-hidden="true">›</span>`;
+}
+function promoPopup(force){
+  const lp=livePromos();if(!lp.length||!curUser)return;
+  const key=todayStr()+'|'+lp.map(x=>x.id+(x.val||'')).join(',');if(!force&&store.get('promoSeen','')===key)return;
+  if(!force&&!$('modal').hidden)return;
+  store.set('promoSeen',key);
+  showModal(lp.length>1?'Offers running today':'Offer running today','',[{label:'OK',cls:'primary'}]);
+  $('modalBody').innerHTML=lp.map(x=>`<div class="offer-pop"><b>${esc(x.name)}</b><span>${esc(promoText(x))}</span>${x.msg?`<small>${esc(x.msg)}</small>`:''}${x.to?`<small>Until ${esc(fmtDate(x.to))}</small>`:''}</div>`).join('')+'<p class="note">Applied to quotes automatically.</p>';
+}
+$('promoBar').onclick=()=>promoPopup(true);
+function paintPromoSet(){
+  const el=$('promoList');if(!el)return;const ps=settings.promos||[];
+  $('setPromoMini').textContent=livePromos().length?`${livePromos().length} running`:ps.length?'None running':'None';
+  el.innerHTML=ps.length?ps.map(x=>`<div class="pr-row"><div class="pr-m"><b>${esc(x.name)}</b><small>${esc(promoText(x))}</small><small>${x.from||x.to?`${x.from?fmtDate(x.from):'…'} → ${x.to?fmtDate(x.to):'…'}`:'No end date'} · <span class="${promoLive(x)?'live':'off'}">${promoLive(x)?'Running':x.on===false?'Off':'Not running'}</span></small></div>
+    <button class="btn sm" type="button" data-pe="${esc(x.id)}">Edit</button></div>`).join(''):'<p class="note">No promotions yet.</p>';
+  el.querySelectorAll('[data-pe]').forEach(b=>b.onclick=()=>promoForm(b.dataset.pe));
+}
+function promoForm(id){
+  withPerm('promos','Only an admin can set promotions.',()=>{
+  const x=Object.assign({id:uid(),name:'',msg:'',on:true,from:todayStr(),to:'',basis:'all',min:0,kind:'mkPct',val:10,sale:'any'},(settings.promos||[]).find(p=>p.id===id)||{});
+  const opt=(o,v)=>Object.entries(o).map(([k,l])=>`<option value="${k}"${k===v?' selected':''}>${esc(l)}</option>`).join('');
+  $('modalTitle').textContent=id?'Edit promotion':'New promotion';$('modalTitle').classList.remove('price-pop');
+  $('modalBody').innerHTML=`<div class="pr-form">
+    <div class="full"><label for="prName">Name</label><input id="prName" value="${esc(x.name)}" placeholder="e.g. Diwali Diamond Festival"></div>
+    <div class="full"><label for="prKind">Benefit</label><select id="prKind">${opt(PROMO_KIND,x.kind)}</select></div>
+    <div><label for="prVal">Value</label><input id="prVal" inputmode="decimal" value="${esc(x.val)}"></div>
+    <div><label for="prSale">Sale type</label><select id="prSale">${opt({any:'Any',store:'Store walk-in',online:'Online enquiry'},x.sale||'any')}</select></div>
+    <div class="full"><label for="prBasis">Applies to</label><select id="prBasis">${opt(PROMO_BASIS,x.basis)}</select></div>
+    <div class="full" id="prMinW"><label for="prMin">Minimum</label><input id="prMin" inputmode="decimal" value="${esc(x.min||'')}"></div>
+    <div><label for="prFrom">From</label><input type="date" id="prFrom" value="${esc(x.from||'')}"></div>
+    <div><label for="prTo">To</label><input type="date" id="prTo" value="${esc(x.to||'')}"></div>
+    <div class="full"><label for="prMsg">Message for staff / customers</label><textarea id="prMsg" rows="2">${esc(x.msg||'')}</textarea></div>
+    <label class="full rc-p"><input type="checkbox" id="prOn"${x.on!==false?' checked':''}> Running (untick to pause)</label></div>`;
+  const syncMin=()=>{$('prMinW').hidden=$('prBasis').value==='all'};$('prBasis').onchange=syncMin;syncMin();
+  const a=$('modalActs');a.innerHTML='';const mk=(t,c,f)=>{const b=document.createElement('button');b.type='button';b.className='btn '+c;b.textContent=t;b.onclick=f;a.appendChild(b)};
+  mk('Save','primary',()=>{const n=$('prName').value.trim(),v=num($('prVal').value);if(!n){toast('Give the promotion a name',null,true);return}if(!(v>0)){toast('Enter the benefit value',null,true);return}
+    if(($('prKind').value.endsWith('Pct'))&&v>90){toast('Percentage looks too high',null,true);return}
+    const y={id:x.id,name:n,msg:$('prMsg').value.trim(),on:$('prOn').checked,from:$('prFrom').value,to:$('prTo').value,basis:$('prBasis').value,min:num($('prMin').value)||0,kind:$('prKind').value,val:v,sale:$('prSale').value};
+    const list=(settings.promos||[]).filter(p=>p.id!==y.id);list.push(y);settings.promos=list;saveSettings();closeModal();paintPromoSet();paintPromoBar();renderBill(true);toast('Promotion saved · all phones get it within a minute')});
+  if(id)mk('Delete','danger',()=>{settings.promos=(settings.promos||[]).filter(p=>p.id!==id);saveSettings();closeModal();paintPromoSet();paintPromoBar();renderBill(true);toast('Promotion deleted')});
+  mk('Cancel','ghost',closeModal);$('modal').hidden=false;
+  });
+}
+$('promoAdd').onclick=()=>promoForm('');
+// ---------- Reports ----------
+function quoteTotals(q){const keep=bill;try{bill=Object.assign({oldGold:[],returns:[],advances:[],items:[]},q);return totals()}finally{bill=keep}}
+function rpRange(){
+  const v=$('rpRange').value,d=new Date(),day=x=>new Date(x.getFullYear(),x.getMonth(),x.getDate()).getTime();let a=0,b=Infinity;
+  if(v==='today')a=day(d);else if(v==='7')a=day(d)-6*864e5;else if(v==='month')a=new Date(d.getFullYear(),d.getMonth(),1).getTime();
+  else if(v==='lastmonth'){a=new Date(d.getFullYear(),d.getMonth()-1,1).getTime();b=new Date(d.getFullYear(),d.getMonth(),1).getTime()-1}
+  else if(v==='custom'){const f=$('rpFrom').value,t=$('rpTo').value;if(f)a=new Date(f+'T00:00').getTime();if(t)b=new Date(t+'T23:59:59').getTime()}
+  return [a,b];
+}
+let rpData=null;
+function buildReport(){
+  $('rpCustom').hidden=$('rpRange').value!=='custom';
+  const [a,b]=rpRange(),ty=$('rpType').value;
+  const qs=quotes.filter(canSeeQuote).filter(q=>q.items&&q.items.length&&(!ty||(q.channel||'store')===ty));
+  const when=q=>q.started||q.updated||0,inR=t=>t>=a&&t<=b;
+  const made=qs.filter(q=>inR(when(q))),gen=made.filter(q=>q.generated),appr=made.filter(q=>q.appr&&q.appr.state==='approved');
+  const sold=qs.filter(q=>q.status==='closed'&&inR(q.closedAt||q.updated||0)),canc=made.filter(q=>q.status==='cancelled'),open=made.filter(q=>!q.status||q.status==='open');
+  const T=q=>quoteTotals(q),G=1+gstPct()/100;
+  const sum=(arr,f)=>arr.reduce((x,q)=>x+f(q),0);
+  const soldT=sold.map(q=>({q,s:T(q)}));
+  const sales=sum(soldT,x=>x.s.final),saved=sum(soldT,x=>Math.max(0,x.s.listSub*G+x.s.delivery*G-x.s.final)),gold=sum(soldT,x=>x.s.nw),promo=sum(soldT,x=>x.s.promoAmt||0);
+  const quotedVal=sum(made,q=>T(q).final);
+  const by=(arr,keyf)=>{const m=new Map();arr.forEach(x=>{const k=keyf(x)||'—';m.set(k,(m.get(k)||[]).concat([x]))});return [...m.entries()]};
+  const users=by(made,q=>q.by).map(([u,list])=>{const sd=soldT.filter(x=>(x.q.by||'—')===u);return [u,list.length,sd.length,sum(sd,x=>x.s.final)]});
+  soldT.forEach(x=>{if(!users.some(r=>r[0]===(x.q.by||'—')))users.push([x.q.by||'—',0,0,0])});
+  users.forEach(r=>{const sd=soldT.filter(x=>(x.q.by||'—')===r[0]);r[2]=sd.length;r[3]=sum(sd,x=>x.s.final)});
+  const cats=new Map();soldT.forEach(({q})=>q.items.forEach(t=>{const k=(t.stock&&t.stock.category)||t.item||itemFromSku(t.sku)||'Other',p=priceTag(t),v=quotedValue(t,p)*G;const c=cats.get(k)||[0,0,0];c[0]++;c[1]+=num(t.nw)||0;c[2]+=v;cats.set(k,c)}));
+  const types=['store','online'].map(c=>{const m=made.filter(q=>(q.channel||'store')===c),sd=soldT.filter(x=>(x.q.channel||'store')===c);return [c==='online'?'Online enquiry':'Store walk-in',m.length,sd.length,sum(sd,x=>x.s.final)]});
+  rpData={made,gen,appr,sold:soldT,canc,open,sales,saved,gold,promo,quotedVal,users,cats:[...cats.entries()].sort((x,y)=>y[1][2]-x[1][2]),types,a,b};
+  const conv=made.length?Math.round(sold.filter(q=>inR(when(q))).length/made.length*100):0;
+  $('rpOut').innerHTML=`<div class="rp-k">
+    <div><small>Quoted</small><b>${made.length}</b><small>${inr(quotedVal)}</small></div>
+    <div><small>Generated</small><b>${gen.length}</b><small>approved ${appr.length}</small></div>
+    <div class="hl"><small>Total sales (completed)</small><b>${inr(sales)}</b><small>${sold.length} sale${sold.length===1?'':'s'} · ${fmtW(gold)} g gold</small></div>
+    <div><small>Savings given</small><b>${inr(saved)}</b><small>offers ${inr(promo)}</small></div>
+    <div><small>Open</small><b>${open.length}</b><small>enquiry only ${canc.length}</small></div>
+    <div><small>Conversion</small><b>${conv}%</b><small>quotes → sales</small></div></div>
+    <div class="rp-h">By user</div><table class="rp-t"><tr><th>User</th><th>Quotes</th><th>Sales</th><th>Sales value</th></tr>${users.map(r=>`<tr><td>${esc(r[0])}</td><td>${r[1]}</td><td>${r[2]}</td><td>${inr(r[3])}</td></tr>`).join('')||'<tr><td colspan="4">—</td></tr>'}</table>
+    <div class="rp-h">By sale type</div><table class="rp-t"><tr><th>Type</th><th>Quotes</th><th>Sales</th><th>Sales value</th></tr>${types.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${inr(r[3])}</td></tr>`).join('')}</table>
+    <div class="rp-h">Sold by item</div><table class="rp-t"><tr><th>Item</th><th>Pcs</th><th>Net wt</th><th>Value</th></tr>${rpData.cats.map(([k,c])=>`<tr><td>${esc(k)}</td><td>${c[0]}</td><td>${fmtW(c[1])}</td><td>${inr(c[2])}</td></tr>`).join('')||'<tr><td colspan="4">No sales in this period</td></tr>'}</table>
+    <div class="rp-h">Completed sales</div><table class="rp-t"><tr><th>Quote</th><th>Customer</th><th>Invoice</th><th>Amount</th></tr>${soldT.slice(0,50).map(({q,s})=>`<tr><td>${esc(q.no||'—')}</td><td>${esc((q.cust&&q.cust.name)||'')}</td><td>${esc(q.invoice||'—')}</td><td>${inr(s.final)}</td></tr>`).join('')||'<tr><td colspan="4">—</td></tr>'}</table>
+    <p class="note">${seesAll()?'All users’ quotes on this phone.':'Your quotes only.'} Refresh quotes first for the latest.</p>`;
+}
+['rpRange','rpType','rpFrom','rpTo'].forEach(id=>$(id).addEventListener('change',buildReport));
+$('rpRefresh').onclick=async()=>{await pullQuotes();buildReport();toast('Report updated')};
+$('setReports').addEventListener('toggle',()=>{if($('setReports').open)withPerm('reports','Needs permission: Reports.',buildReport)});
+$('rpXlsx').onclick=()=>withPerm('reports','Needs permission: Reports.',async()=>{
+  if(!rpData)buildReport();const d=rpData;
+  await loadScript('vendor/exceljs.min.js',()=>!!window.ExcelJS);const wb=new ExcelJS.Workbook();
+  const sheet=(name,head,rows)=>{const ws=wb.addWorksheet(name);ws.addRow(head);ws.getRow(1).font={bold:true,color:{argb:'FFFFFFFF'}};ws.getRow(1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF5B2A86'}};rows.forEach(r=>ws.addRow(r));ws.columns.forEach(c=>c.width=18)};
+  sheet('Summary',['Measure','Value'],[['Quoted',d.made.length],['Quoted value',Math.round(d.quotedVal)],['Generated',d.gen.length],['Approved',d.appr.length],['Completed sales',d.sold.length],['Total sales',Math.round(d.sales)],['Gold sold (g)',+d.gold.toFixed(3)],['Savings given',Math.round(d.saved)],['Offers given',Math.round(d.promo)],['Open',d.open.length],['Enquiry only',d.canc.length]]);
+  sheet('By user',['User','Quotes','Sales','Sales value'],d.users.map(r=>[r[0],r[1],r[2],Math.round(r[3])]));
+  sheet('By sale type',['Type','Quotes','Sales','Sales value'],d.types.map(r=>[r[0],r[1],r[2],Math.round(r[3])]));
+  sheet('By item',['Item','Pcs','Net wt (g)','Value'],d.cats.map(([k,c])=>[k,c[0],+c[1].toFixed(3),Math.round(c[2])]));
+  sheet('Sales',['Quote','Provisional','Date','Customer','Phone','User','Sale type','Invoice','Items','Net wt','Label value','Savings','Final amount'],d.sold.map(({q,s})=>[q.no||'',q.pno||'',new Date(q.closedAt||q.updated||0).toLocaleDateString('en-IN'),(q.cust&&q.cust.name)||'',(q.cust&&q.cust.phone)||'',q.by||'',q.channel==='online'?'Online':'Store',q.invoice||'',q.items.length,+s.nw.toFixed(3),Math.round(s.listSub*(1+gstPct()/100)),Math.round(Math.max(0,s.listSub*(1+gstPct()/100)+s.delivery*(1+gstPct()/100)-s.final)),Math.round(s.final)]));
+  sheet('Quotes',['Quote','Date','Customer','User','Sale type','Status','Final amount'],d.made.map(q=>{const s=quoteTotals(q);return [q.no||'',new Date(q.started||q.updated||0).toLocaleDateString('en-IN'),(q.cust&&q.cust.name)||'',q.by||'',q.channel==='online'?'Online':'Store',q.status==='closed'?'Sold':q.status==='cancelled'?'Enquiry only':(q.appr&&q.appr.state)||'Open',Math.round(s.final)]}));
+  deliverFile(`${BRAND.name}-report-${todayStr()}.xlsx`,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',await wb.xlsx.writeBuffer());
+});
 // ---------- Export the stock database with photos (admin) ----------
 function loadScript(src,ok){return ok()?Promise.resolve():new Promise((res,rej)=>{const sc=document.createElement('script');sc.src=src;sc.onload=res;sc.onerror=()=>rej(new Error('Could not load '+src));document.head.appendChild(sc)})}
 const EXP_COLS=[['Label No',r=>r.barcode||r.key],['Item Name',r=>r.item],['Item Type',r=>r.category],['Purity (K)',r=>r.carat],['Gross Wt (g)',r=>numOr(r.gw)],['Stone Wt (g)',r=>numOr(r.sw)],['Net Wt (g)',r=>numOr(r.nw)],
@@ -3993,23 +4160,24 @@ const PERM_LIST=[
 ['stockdel','Delete sold tags from stock'],['rates',"Set day's rates"],
   ['mkEdit','Update making on the price card'],['mkDisc','Making after discount on quotes'],
   ['closeSale','Close sale (invoice no.)'],['cancelQuote','Cancel quote (enquiry)'],['reopen','Reopen sold / cancelled quotes'],
-  ['delQuote','Delete quotes'],['images','Add product photos'],['addDisc','Additional discount (flat)'],['round','Round final amount down to ₹100'],['share','Share quotes on WhatsApp'],['pdHidden','See hidden details (NLC, FVA…)'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],
+  ['delQuote','Delete quotes'],['images','Add product photos'],['addDisc','Additional discount (flat)'],['round','Round final amount down to ₹100'],['reports','Reports'],['share','Share quotes on WhatsApp'],['pdHidden','See hidden details (NLC, FVA…)'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],
   ['textSize','Text size'],['imgShow','Product image show / hide'],['ratesShown','Rates shown'],['charges','Charges · GST · HUID'],
   ['mkHelper','Making helpers'],['itemCodes','Item codes'],['pdRows','Product details items'],['sync','Shared database · shop key'],['roles','Roles & permissions'],['users','Users']];
-const SET_PERMS=['theme','footer','apprSet','export','stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users'];
+const SET_PERMS=['theme','footer','apprSet','export','promos','reports','stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users'];
 const permLabel=k=>(PERM_LIST.find(p=>p[0]===k)||[0,k])[1];
-const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','approve','leads','share','pdHidden','addDisc','round']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share']}];
+const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','approve','leads','share','pdHidden','addDisc','round','reports']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share']}];
 let roles=store.get('roles',null)||clone(DEFAULT_ROLES);
 // WhatsApp sharing became a permission (v1.7.3): roles on this phone keep it once
 if(!store.get('permShare',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&!r.perms.includes('share'))r.perms.push('share')});store.set('roles',roles);store.set('permShare',true)}
 if(!store.get('permHid',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('mkDisc')&&!r.perms.includes('pdHidden'))r.perms.push('pdHidden')});store.set('roles',roles);store.set('permHid',true)}
+if(!store.get('permRep',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('mkDisc')&&!r.perms.includes('reports'))r.perms.push('reports')});store.set('roles',roles);store.set('permRep',true)}
 if(!store.get('permRound',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('mkDisc')&&!r.perms.includes('round'))r.perms.push('round')});store.set('roles',roles);store.set('permRound',true)}
 if(!store.get('permAddDisc',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('mkDisc')&&!r.perms.includes('addDisc'))r.perms.push('addDisc')});store.set('roles',roles);store.set('permAddDisc',true)}
 let elev={role:'',until:0};   // another user's approval, 15 minutes
 const roleName=id=>id==='admin'?'Admin':(roles.find(r=>r.id===id)||{name:id||'—'}).name;
 // 'settings' was one permission before v1.6.42; it still grants all the settings functions
 const OLD_SETTINGS=['textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows'];
-const ADMIN_ONLY=['stock','theme','footer','apprSet','export','special'];   // Stock data is an admin function
+const ADMIN_ONLY=['stock','theme','footer','apprSet','export','special','promos'];   // Stock data is an admin function
 function roleHas(role,perm){if(role==='admin')return true;if(ADMIN_ONLY.includes(perm))return false;const ps=((roles.find(r=>r.id===role)||{}).perms||[]);return ps.includes(perm)||(OLD_SETTINGS.includes(perm)&&ps.includes('settings'))||(perm==='roles'&&ps.includes('users'))}
 // A manager's PIN approval covers only what it was asked for (e.g. sharing), not everything the manager can do
 function can(perm){return !!(curUser&&roleHas(curUser.role,perm))||(Date.now()<elev.until&&roleHas(elev.role,perm)&&(!elev.perms||elev.perms.includes(perm)))}
@@ -4279,6 +4447,7 @@ async function pollInboxNow(){
       if(bill.id===id&&was==='pending'&&apprState(bill)==='approved'){toast(`${bill.no} approved by ${bill.appr.by||'the manager'} · discount applied`);try{navigator.vibrate&&navigator.vibrate([120,80,120])}catch(e){}}}
     if((r.l||0)>leadsV)pullLeads();
     // users and roles changed by an admin (e.g. "See all quotes"): pick them up now, not at the morning sync
+    if((r.s||0)>(sync.v.settings||0)&&!sync.dirtySettings){try{const d=await syncApi('settings');if(d.settings)applyRemoteSettings(d.settings);sync.v.settings=d.v||r.s;saveSyncState();setTimeout(promoPopup,400)}catch(e){}}
     if((r.u||0)>(sync.v.users||0)){try{const d=await syncApi('users','GET',null,adminCreds);if(Array.isArray(d.roles)){roles=d.roles;store.set('roles',roles)}if(Array.isArray(d.users)&&d.users.length)mergeRemoteUsers(d.users);sync.v.users=d.v||r.u;saveSyncState()}catch(e){}}
     const items=myInbox(),fresh=items.filter(x=>!inbNotified.has(x.k));
     fresh.forEach(x=>inbNotified.add(x.k));store.set('inbNotified',[...inbNotified].slice(-400));
@@ -4341,7 +4510,7 @@ function paintFooterSet(){
     const t=Object.assign({},settings.tabHide||{}),cur=new Set(t[b.dataset.r]||[]);cur.has(b.dataset.t)?cur.delete(b.dataset.t):cur.add(b.dataset.t);
     t[b.dataset.r]=[...cur];settings.tabHide=t;saveSettings();applyTabs();toast('Footer updated')},true));
 }
-function paintUserChip(){try{applyTabs()}catch(e){}try{if(curUser&&bill&&!billIsEmpty()&&!canSeeQuote(bill))startNewQuote('New quote.')}catch(e){}try{paintBell();nativeInbox();if(curUser)setTimeout(()=>pollInbox(true),800)}catch(e){}const c=$('userChip');c.hidden=!curUser;if(curUser)c.textContent='👤 '+(curUser.name||curUser.username)+' · Log out';$('heroName').textContent=$('sbName').textContent=curUser?(curUser.name||curUser.username):'—'}
+function paintUserChip(){try{applyTabs()}catch(e){}try{paintPromoBar();if(curUser)setTimeout(()=>promoPopup(),1500)}catch(e){}try{if(curUser&&bill&&!billIsEmpty()&&!canSeeQuote(bill))startNewQuote('New quote.')}catch(e){}try{paintBell();nativeInbox();if(curUser)setTimeout(()=>pollInbox(true),800)}catch(e){}const c=$('userChip');c.hidden=!curUser;if(curUser)c.textContent='👤 '+(curUser.name||curUser.username)+' · Log out';$('heroName').textContent=$('sbName').textContent=curUser?(curUser.name||curUser.username):'—'}
 $('heroUser').onclick=()=>{if(curUser)$('userChip').click()};
 $('userChip').onclick=()=>showModal(`${curUser.name||curUser.username}`,`Logged in as ${roleName(curUser.role)} (${curUser.username}).`,[
   {label:'Log out',cls:'danger',run:()=>logout()},{label:'Cancel',cls:'ghost'}]);

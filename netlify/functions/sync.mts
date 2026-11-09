@@ -59,10 +59,10 @@ function cleanRow(r: any) {
   return o.key ? o : null
 }
 // Permissions an admin can give to a role (admin always has all)
-const PERMS = ["stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "share", "addDisc", "round", "approve", "leads", "textSize", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows", "pdHidden", "sync", "roles", "users", "settings"]
+const PERMS = ["stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "share", "addDisc", "round", "reports", "approve", "leads", "textSize", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows", "pdHidden", "sync", "roles", "users", "settings"]
 const SETTINGS_PERMS = ["imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows"]
 const DEFAULT_ROLES = [
-  { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "images", "approve", "leads", "share", "pdHidden", "addDisc", "round"] },
+  { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "images", "approve", "leads", "share", "pdHidden", "addDisc", "round", "reports"] },
   { id: "staff", name: "Staff", perms: ["rates", "closeSale", "cancelQuote", "share"] },
 ]
 // A quote as the app keeps it, minus anything large (photos stay on the phone that took them)
@@ -147,9 +147,16 @@ export default async (req: Request) => {
     if (ch && (await st.get("roles"))) { await st.setJSON("roles", roles); meta.users = Date.now() }
     ;(meta as any).v1763 = 1; await saveMeta()
   }
+  // Reports: roles that give making discounts (managers) can see them (once)
+  if (!(meta as any).v1766) {
+    let ch = false
+    for (const r of roles) if (r?.perms?.includes("mkDisc") && !r.perms.includes("reports")) { r.perms.push("reports"); ch = true }
+    if (ch && (await st.get("roles"))) { await st.setJSON("roles", roles); meta.users = Date.now() }
+    ;(meta as any).v1766 = 1; await saveMeta()
+  }
   const roleHas = (role: string, perm: string) => {
     if (role === "admin") return true
-    if (perm === "stock" || perm === "theme" || perm === "footer" || perm === "apprSet" || perm === "special") return false   // stock data and theme: admins only
+    if (perm === "stock" || perm === "theme" || perm === "footer" || perm === "apprSet" || perm === "special" || perm === "promos") return false   // stock data and theme: admins only
     const ps: string[] = roles.find((r) => r.id === role)?.perms || []
     return ps.includes(perm) || (ps.includes("settings") && [...SETTINGS_PERMS, "textSize"].includes(perm)) || (perm === "roles" && ps.includes("users"))
   }
@@ -203,7 +210,7 @@ export default async (req: Request) => {
         const approved = qs.filter((q) => q?.appr?.state === "approved" && q.appr.at > Date.now() - 3 * 864e5).slice(0, 50)
           .map((q) => ({ id: q.id, no: q.no || "", name: cleanStr(q.cust?.name, 40), to: q.appr.reqBy || "", byName: cleanStr(q.appr.by, 40), at: q.appr.at || 0 }))
         const leads = ls.filter((l) => l.state === "new").slice(0, 50).map((l) => ({ id: l.id, to: l.to || "", name: cleanStr(l.name, 40), byName: cleanStr(l.byName, 40), at: l.at || 0 }))
-        return json(req, { q: meta.quotes, l: meta.leads || 0, u: meta.users || 0, pending, approved, leads })
+        return json(req, { q: meta.quotes, l: meta.leads || 0, u: meta.users || 0, s: meta.settings || 0, pending, approved, leads })
       }
       return json(req, { error: "bad_op" }, 400)
     }
@@ -288,7 +295,7 @@ export default async (req: Request) => {
 
     const OP_PERM: Record<string, string> = { img: "images", quotedel: "delQuote", stock: "stock", stockdel: "stockdel", ratelog: "rates" }
     const role = await callerRole()
-    if (op === "settings") { if (!role || ![...SETTINGS_PERMS, "theme", "footer", "apprSet"].some((p) => roleHas(role, p))) return json(req, { error: "bad_pin" }, 403) }
+    if (op === "settings") { if (!role || ![...SETTINGS_PERMS, "theme", "footer", "apprSet", "promos"].some((p) => roleHas(role, p))) return json(req, { error: "bad_pin" }, 403) }
     else if (op === "users") { if (!role || !(roleHas(role, "users") || roleHas(role, "roles"))) return json(req, { error: "bad_pin" }, 403) }
     else if (!(await permOk(OP_PERM[op] || "users"))) return json(req, { error: "bad_pin" }, 403)
 
@@ -369,13 +376,21 @@ export default async (req: Request) => {
         accent: ["brand", "blue", "maroon", "gold", "emerald", "navy", "rose"].includes(s?.accent) ? s.accent : "brand",
         tabHide: Object.fromEntries(Object.entries(s?.tabHide && typeof s.tabHide === "object" ? s.tabHide : {}).slice(0, 20).filter(([k]) => /^[\w-]{1,40}$/.test(k)).map(([k, v]) => [k, (Array.isArray(v) ? v : []).filter((x: any) => ["tabScan", "tabFind", "tabQuote", "tabRates", "tabSet"].includes(x))])),
         apprOn: s?.apprOn !== false,
+        // Special promotions (admin): applied to every quote while running
+        promos: (Array.isArray(s?.promos) ? s.promos : []).slice(0, 20).map((x: any) => ({
+          id: cleanStr(x?.id, 24), name: cleanStr(x?.name, 60), msg: cleanStr(x?.msg, 300), on: x?.on !== false,
+          from: /^\d{4}-\d{2}-\d{2}$/.test(x?.from || "") ? x.from : "", to: /^\d{4}-\d{2}-\d{2}$/.test(x?.to || "") ? x.to : "",
+          basis: ["all", "value", "weight", "diamond"].includes(x?.basis) ? x.basis : "all", min: Math.max(0, cleanNum(x?.min) || 0),
+          kind: ["mkPct", "diaPct", "goldPg", "flat", "valPct"].includes(x?.kind) ? x.kind : "mkPct", val: Math.max(0, cleanNum(x?.val) || 0),
+          sale: ["any", "store", "online"].includes(x?.sale) ? x.sale : "any",
+        })).filter((x: any) => x.id && x.name),
         pdHide: (Array.isArray(s?.pdHide) ? s.pdHide : []).filter((x: any) => typeof x === "string" && /^[a-zA-Z]{1,16}$/.test(x)).slice(0, 30),
         showRates: Array.isArray(s?.showRates) ? s.showRates.filter((x: any) => ["22k", "18k", "14k", "9k", "platinum", "silver"].includes(x)) : null,
       }
       // Keep the parts this user may not change
       const prev: any = (await st.get("settings", { type: "json" })) || {}
       const keep = (perm: string, keys: string[]) => { if (!roleHas(role, perm)) keys.forEach((k) => { if (k in prev) (out as any)[k] = prev[k] }) }
-      keep("charges", ["gst", "huid"]); keep("mkHelper", ["mkTable"]); keep("itemCodes", ["cats"]); keep("ratesShown", ["showRates"]); keep("imgShow", ["showImg", "mkEdit"]); keep("theme", ["ui", "accent"]); keep("pdRows", ["pdHide"]); keep("footer", ["tabHide"]); keep("apprSet", ["apprOn"])
+      keep("charges", ["gst", "huid"]); keep("mkHelper", ["mkTable"]); keep("itemCodes", ["cats"]); keep("ratesShown", ["showRates"]); keep("imgShow", ["showImg", "mkEdit"]); keep("theme", ["ui", "accent"]); keep("pdRows", ["pdHide"]); keep("footer", ["tabHide"]); keep("apprSet", ["apprOn"]); keep("promos", ["promos"])
       await st.setJSON("settings", out)
       meta.settings = Date.now(); await saveMeta()
       return json(req, { v: meta.settings })
