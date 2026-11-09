@@ -271,3 +271,12 @@ A card is locked for users without that permission; opening it asks for a user w
 - FVA column: `9%` (or 0.09) → percentage like VA; a number → ₹ per gram × net weight.
 - Nosepins: fair value making ₹450 per piece. Diamond nosepins under 1.00 g: the FVA number is a fixed amount.
 - Discount checker has an **FVA** chip; Quote → Discount helper has **Fair value (FVA)** to apply it to every item.
+
+## V 1.7.8 (9 Nov 2026)
+
+- **FVA is a percentage or a fixed amount** (a number in the FVA column = fixed ₹). Nosepins ₹450 per piece; diamond nosepins under 1.00 g use the fixed FVA.
+- Product card: **Fair value price in a purple box**; the savings are folded away and shown in large figures only when "Show savings" is tapped (for when the customer asks).
+- **Grand Total and Fair value price rounded to the nearest ₹100.**
+- Discount checker removed. Quote page: Fair value and Savings in bold purple on every line; the discount helper (−% buttons, budget fit) removed.
+- **Additional (flat) discount** is a permission ("Additional discount (flat)"), managers and admins only by default.
+- **Edit details / Hide editing** toggles the tag editing panel.

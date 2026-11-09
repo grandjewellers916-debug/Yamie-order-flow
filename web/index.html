@@ -712,11 +712,16 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .hq-new{flex:none;display:flex;align-items:center;gap:6px;border-radius:14px;background:color-mix(in srgb,var(--maroon) 8%,var(--surface));color:var(--maroon);border:1px solid color-mix(in srgb,var(--maroon) 25%,transparent);font-weight:700;padding:0 16px}
 .hq-new svg{width:22px;height:22px}
 .pd-links{display:flex;justify-content:center;gap:22px}
-.fva-box{margin-top:10px;border:1.5px dashed color-mix(in srgb,#2E7D4F 55%,transparent);border-radius:14px;padding:10px 14px;background:color-mix(in srgb,#2E7D4F 7%,var(--surface))}
-.fva-box .fv-r{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:15px}
-.fva-box .fv-r small{color:var(--muted);font-size:12px}.fva-box .fv-r b{font:800 20px var(--body);color:#2E7D4F;white-space:nowrap}
-.fva-box .fv-s{margin-top:4px;font-size:15px;font-weight:700;color:#2E7D4F}.fva-box .fv-s b{font-weight:900;font-size:17px}
-.qi-fva{grid-column:1/-1;font-size:12.5px;color:#2E7D4F;padding-left:22px}.qi-fva small{color:var(--muted)}.qi-fva b{font-weight:800}
+:root{--fva:#5B2A86;--fva-bg:#F1E9F8}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--fva:#C9A7EA;--fva-bg:#2A1F33}}
+:root[data-theme="dark"]{--fva:#C9A7EA;--fva-bg:#2A1F33}
+.fva-box{margin-top:10px;border-radius:16px;padding:12px 16px;background:linear-gradient(135deg,#5B2A86,#7B3FA8);color:#fff;box-shadow:0 6px 18px rgba(91,42,134,.28)}
+.fva-box .fv-r{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:16px;font-weight:600}
+.fva-box .fv-r small{color:rgba(255,255,255,.75);font-size:12px;font-weight:500}.fva-box .fv-r b{font:800 24px var(--body);white-space:nowrap}
+.fva-box .fv-t{margin-top:6px;border:0;background:rgba(255,255,255,.16);color:#fff;border-radius:999px;padding:6px 14px;font:600 13px var(--body);cursor:pointer}
+.fva-box .fv-s{margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.25);display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:16px;font-weight:700}
+.fva-box .fv-s b{font:900 32px var(--body);white-space:nowrap;color:#FFE08A}
+.qi-fva{grid-column:1/-1;font-size:13px;color:var(--fva);padding-left:22px;font-weight:700}.qi-fva small{color:var(--muted);font-weight:500}.qi-fva b{font-weight:900}
 .pd-hid{margin:6px 0 2px;text-align:center}.pd-hid dl{text-align:left}
 .pd-dchk{width:100%;margin:8px 0 4px;border-color:color-mix(in srgb,var(--maroon) 40%,transparent);color:var(--maroon);display:flex;align-items:center;justify-content:center;gap:8px}
 .pd-dchk svg{width:20px;height:20px}
@@ -1222,10 +1227,10 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
       <div class="pt-row pt-gst"><span id="pdGstL">+ GST (3%)</span><span id="pdGst">—</span></div>
     </div>
     <div class="grand" id="pdGrandRow"><span>Grand Total</span><strong id="pdGrand">—</strong></div>
-    <div class="fva-box" id="pdFva" hidden><div class="fv-r"><span>Fair value price <small id="pdFvaL"></small></span><b id="pdFvaV"></b></div><div class="fv-s">Discount · You save <b id="pdFvaS"></b></div></div>
+    <div class="fva-box" id="pdFva" hidden><div class="fv-r"><span>Fair value price <small id="pdFvaL"></small></span><b id="pdFvaV"></b></div>
+      <button type="button" class="fv-t" id="pdFvaT" aria-expanded="false">Show savings ▾</button><div class="fv-s" id="pdFvaSW" hidden><span>Discount · You save</span><b id="pdFvaS"></b></div></div>
     <div class="prod-acts"><button class="btn" type="button" id="pdDel">Clear</button><span class="pd-check" id="pdCheck" hidden>Price check only · not saved</span><button class="btn primary" type="button" id="pdClose" hidden>Close</button><button class="btn primary" type="button" id="pdSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>Save to Quote</button></div>
     <div class="pd-hid" id="pdHidW" hidden><button class="linkbtn" type="button" id="pdHidT" aria-expanded="false">Show hidden details</button><dl class="specs specs-more" id="pdHidL" hidden></dl></div>
-    <button class="btn pd-dchk" type="button" id="pdDisc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.3"/><path d="M10 15l5-5"/></svg>Discount checker</button>
     <div class="pd-links"><button class="linkbtn" type="button" id="pdMk" hidden>Update making</button><button class="linkbtn pd-edit" type="button" id="pdEdit">Edit details</button></div>
   </section>
 
@@ -2014,11 +2019,12 @@ function fvaMaking(t){
     if(!dia){const pc=Math.max(1,num(st.pcs)||1);return {amt:NOSE_PC*pc,label:`${inr(NOSE_PC)} per piece${pc>1?' × '+pc:''}`}}
   }
   if(!raw||isNaN(v))return null;
+  // FVA is either a percentage ("5%", or 0.05 from Excel) or a fixed amount
   const pct=/%/.test(raw)?v:(typeof st.fva==='number'||/^0?\.\d+$/.test(raw))&&v<1?v*100:null;
   if(pct!=null){const m=makingFor(t,'pct',pct);return isNaN(m)?null:{amt:m,label:`FVA ${fmtN(pct)}%`}}
-  if(isNaN(nw))return null;
-  return {amt:v*nw,label:`FVA ${inr(v)}/g × ${fmtW(nw)} g`};
+  return {amt:v,label:`FVA fixed ${inr(v)}`};
 }
+const r100=x=>Math.round(x/100)*100;
 // Price at FVA (before GST) and the saving against the label price; null when there is nothing to save
 function fvaPrice(t,p){p=p||priceTag(t);if(!p.ok||!p.hasMk)return null;const f=fvaMaking(t);if(!f)return null;
   const val=p.value-p.making+f.amt,save=p.value-val;return save>0.5?{value:val,save,label:f.label,mk:f.amt}:null}
@@ -2245,7 +2251,7 @@ function renderPreview(){
   $('priceSub').textContent=complete?`Before GST ${inr(p.value)}`:(m.length?'Needs: '+m.map(x=>({nw:'NWT',spr:'stone price',rate:'gold rate',huid:'HUID',purity:'purity',making:'making'})[x.k]).join(', '):'');
   renderValidation();
 }
-$('clearTag').onclick=()=>{cur=blankTag();editingId=null;edOpen=false;thumbs={front:null,back:null};saveDraft();setStatus('Scan the front of the tag. Scan the back too if details are printed there.');renderEditor()};
+$('clearTag').onclick=()=>{cur=blankTag();editingId=null;edOpen=false;edHide=false;thumbs={front:null,back:null};saveDraft();setStatus('Scan the front of the tag. Scan the back too if details are printed there.');renderEditor()};
 $('addTag').onclick=()=>{
   const m=missing(cur);
   if(m.length){
@@ -2659,7 +2665,7 @@ function renderBill(keepInputs){
       <span>${fmtW(num(t.nw))}</span>
       <span class="qi-amt">${p.ok?inr(p.value*(1+gstPct()/100)):'—'}</span>
       <span class="qi-acts">${closed?'':`<button type="button" data-edit="${t.id}" aria-label="Edit item ${i+1}">${IC_EDIT}</button><button type="button" data-del="${t.id}" aria-label="Remove item ${i+1}">${IC_DEL}</button>`}</span>
-      ${(()=>{const fv=fvaPrice(t,p),G=1+gstPct()/100;return fv?`<span class="qi-fva">Fair value ${inr(fv.value*G)} <small>(${esc(fv.label)})</small> · <b>You save ${inr(fv.save*G)}</b></span>`:''})()}
+      ${(()=>{const fv=fvaPrice(t,p),G=1+gstPct()/100;if(!fv)return '';const fvp=r100(fv.value*G);return `<span class="qi-fva">Fair value <b>${inr(fvp)}</b> <small>(${esc(fv.label)})</small> · Savings <b>${inr(r100(p.value*G)-fvp)}</b></span>`})()}
     </div>`}).join(''):'<div class="empty-q">No items yet. Scan a product or add it manually, then tap Save to Quote.</div>';
   $('items').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{
     const t=bill.items.find(x=>x.id===b.dataset.edit);if(!t)return;
@@ -2729,9 +2735,7 @@ function gstPct(){return num(settings.gst)||0}
 function renderDiscount(s){
   const el=$('qDiscList'),g=gstPct(),closed=isClosed(),edit=(can('mkDisc')||can('approve'))&&!closed;
   if(!bill.items.length){el.innerHTML='<div class="empty-q">Discount is set here once items are in the quote.</div>';$('qDiscTot').textContent='';$('qDiscMgr').hidden=true;$('qDiscExtraRow').hidden=true;return}
-  const help=edit?`<div class="qd-help"><b>Discount helper · making on every item</b>${[10,20,30,50].map(x=>`<button type="button" data-all="${x}">−${x}%</button>`).join('')}<button type="button" data-all="0">Reset</button><button type="button" id="qFvaAll">Fair value (FVA)</button>
-    <div class="bud"><input id="qBudget" inputmode="decimal" placeholder="Budget ₹ incl. GST" aria-label="Customer budget"><button type="button" id="qFit">Fit budget</button></div></div>`:'';
-  el.innerHTML=help+bill.items.map((t,i)=>{const p=priceTag(t),q=quotedValue(t,p),d=p.value-q,u=t.mkType==='pct'?'%':t.mkType==='pergram'?'₹/g':'₹';
+  el.innerHTML=bill.items.map((t,i)=>{const p=priceTag(t),q=quotedValue(t,p),d=p.value-q,u=t.mkType==='pct'?'%':t.mkType==='pergram'?'₹/g':'₹';
     return `<div class="qd-row"><div class="qd-a"><b>${i+1}. ${esc(keyOf(t.sku))}</b> <span class="m">${esc((t.stock&&t.stock.category)||t.item||'')}</span></div>
       <div class="qd-b"><span class="m">Making ${p.hasMk?esc(valText({type:t.mkType,val:num(t.mkVal)}))+(p.making>0?` · <b class="qd-mk">${inr(p.making)}</b>`:''):'— (no making rate)'}</span><span class="qd-arrow">→</span>
       ${edit&&p.hasMk?`<span class="qd-in"><input data-qmk="${t.id}" inputmode="decimal" value="${esc(t.qMk?t.qMk.val:'')}" placeholder="${esc(fmtN(num(t.mkVal)))}" aria-label="Making after discount, item ${i+1}"><small>${u}</small></span>`:`<b>${t.qMk?esc(valText({type:t.mkType,val:num(t.qMk.val)})):'no discount'}</b>`}${t.qMk&&p.hasMk?(()=>{const m=makingFor(t,t.qMk.type||t.mkType,num(t.qMk.val));return isNaN(m)?'':` <span class="m">= ${inr(m)}</span>`})():''}</div>
@@ -2741,18 +2745,7 @@ function renderDiscount(s){
       ${!closed&&!(needsAppr()&&apprState(bill)==='pending')?`<button type="button" class="qd-x" data-rm="${t.id}">Remove item</button>`:''}</div>`}).join('');
   el.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{const t=bill.items.find(x=>x.id===b.dataset.rm);if(!t)return;
     showModal('Remove this item?',`${keyOf(t.sku)} · ${t.item||''} will be taken off the quote.`,[{label:'Remove',cls:'danger',run:()=>{bill.items=bill.items.filter(x=>x.id!==t.id);saveBill();renderBill();toast('Item removed')}},{label:'Keep',cls:'ghost'}])});
-  const setAll=f=>{bill.items.forEach(t=>{const p=priceTag(t);if(!p.hasMk)return;if(f<=0){delete t.qMk;return}
-    t.qMk={type:t.mkType,val:fmtN(Math.round(num(t.mkVal)*(1-f)*100)/100),by:curUser?(curUser.name||curUser.username):'',at:Date.now()}})};
-  el.querySelectorAll('[data-all]').forEach(b=>b.onclick=()=>{setAll(+b.dataset.all/100);saveBill();renderBill();toast(+b.dataset.all?`Making −${b.dataset.all}% on every item`:'Discounts cleared')});
-  const fa=$('qFvaAll');if(fa)fa.onclick=()=>{let n=0;bill.items.forEach(t=>{const fv=fvaPrice(t);if(fv){t.qMk={type:t.mkType,val:fmtN(mkValFor(t,fv.mk)),by:curUser?(curUser.name||curUser.username):'',at:Date.now()};n++}});
-    saveBill();renderBill();toast(n?`Fair value making on ${n} item${n>1?'s':''}`:'No item has a fair value (FVA) lower than its making',null,!n)};
-  const fit=$('qFit');if(fit)fit.onclick=()=>{
-    const target=num($('qBudget').value);if(!(target>0)){toast('Enter the customer budget',null,true);return}
-    const keep=bill.items.map(t=>t.qMk);const fin=()=>totals().final;
-    setAll(0);if(fin()<=target){saveBill();renderBill();toast('Already within budget');return}
-    setAll(1);const low=fin();if(low>target){bill.items.forEach((t,i)=>{if(keep[i])t.qMk=keep[i];else delete t.qMk});toast(`Too low even with no making · lowest ${inr(low)}`,null,true);renderBill();return}
-    let lo=0,hi=1;for(let k=0;k<32;k++){const m=(lo+hi)/2;setAll(m);if(fin()>target)lo=m;else hi=m}
-    setAll(hi);saveBill();renderBill();toast(`Making −${Math.round(hi*100)}% on every item · final ${inr(fin())}`)};
+
   el.querySelectorAll('[data-qmk]').forEach(inp=>inp.addEventListener('change',()=>{
     const t=bill.items.find(x=>x.id===inp.dataset.qmk);if(!t)return;const v=num(inp.value);
     if(inp.value.trim()===''||isNaN(v))delete t.qMk;
@@ -2763,7 +2756,7 @@ function renderDiscount(s){
   const tot=s.mkDisc+s.disc;
   $('qDiscTot').textContent=tot>0.5?`Total discount −${inr(tot)}`:'';
   $('qDiscMgr').hidden=can('mkDisc')||can('approve')||closed;
-  $('qDiscExtraRow').hidden=false;$('qDiscExtraV').textContent=s.flat?'−'+inr(s.flat):'None';
+  $('qDiscExtraRow').hidden=!can('addDisc')&&!s.flat;$('qDiscExtraV').textContent=s.flat?'−'+inr(s.flat):'None';$('qDiscExtraBtn').hidden=!can('addDisc')||closed;
 }
 function oldLine(o){const v=oldValue(o),r=oldRate(o);return isNaN(v)?'Enter net weight':`${fmtW(num(o.wt))} g × ${inr(r)} = ${inr2(v)}`}
 function renderDeductions(){
@@ -2808,7 +2801,7 @@ $('addAdv').onclick=notClosed(()=>{const a={id:uid(),amount:'',mode:'Cash',note:
 $('qtUrd').onclick=()=>{$('addOld').click();$('qUrdSec').scrollIntoView({behavior:'smooth',block:'center'})};
 $('qtSr').onclick=()=>{$('addRet').click();$('qSrSec').scrollIntoView({behavior:'smooth',block:'center'})};
 $('qDiscMgr').onclick=()=>withManager('A manager must log in to enter the discount.',()=>renderBill());
-$('qDiscExtraBtn').onclick=()=>$('qDisc').click();
+$('qDiscExtraBtn').onclick=()=>withPerm('addDisc','Additional discount is for managers and admins.',()=>$('qDisc').click());
 $('qDiscGo').onclick=()=>$('qDiscCard').scrollIntoView({behavior:'smooth',block:'start'});
 $('qAdv').onclick=()=>{$('addAdv').click();$('qAdvSec').scrollIntoView({behavior:'smooth',block:'center'})};
 $('qDisc').onclick=notClosed(()=>{
@@ -3303,12 +3296,12 @@ function showPricePop(){
 }
 let lpLast='';
 let prodSeen=false;
-let edOpen=false;
+let edOpen=false,edHide=false;
 function paintProduct(){
   const card=$('prodCard'),k=keyOf(cur.sku),m=missing(cur);
   // Home shows only the price card; the tag form opens to fix missing details or on Edit details
-  $('editor').hidden=!(edOpen||editingId||(cur.touched&&k&&m.some(x=>x.k!=='making'&&x.k!=='rate'&&x.k!=='spr')));
-  $('pdEdit').textContent=$('editor').hidden?'Edit details':'Hide details';
+  $('editor').hidden=edHide||!(edOpen||editingId||(cur.touched&&k&&m.some(x=>x.k!=='making'&&x.k!=='rate'&&x.k!=='spr')));
+  $('pdEdit').textContent=$('editor').hidden?'Edit details':'Hide editing';
   card.hidden=!(cur.touched&&k);if(card.hidden)return;
   const st=cur.stockKey&&cur.stock?cur.stock:null,name=(st&&st.category&&String(st.category).trim())||cur.item||itemFromSku(cur.sku)||'Item';
   $('pdSku').textContent='SKU: '+k;
@@ -3351,14 +3344,16 @@ function paintProduct(){
   $('pdGstL').textContent=`+ GST (${fmtN(g)}%)`;$('pdGst').textContent=ok?inr(p.value*g/100):'—';
   $('pdGrand').textContent=ok?inr(p.value*(1+g/100)):'—';
   $('pdTotal').classList.toggle('incomplete',!ok);$('pdGrandRow').classList.toggle('incomplete',!ok);
-  {const fv=ok?fvaPrice(cur,p):null;$('pdFva').hidden=!fv;if(fv){$('pdFvaL').textContent='('+fv.label+')';$('pdFvaV').textContent=inr(fv.value*(1+g/100));$('pdFvaS').textContent=inr(fv.save*(1+g/100))}}
+  // Grand total and fair value price rounded to the nearest ₹100; savings stay folded until the customer asks
+  if(ok)$('pdGrand').textContent=inr(r100(p.value*(1+g/100)));
+  {const fv=ok?fvaPrice(cur,p):null,G=1+g/100;$('pdFva').hidden=!fv;if(fv){const gt=r100(p.value*G),fvp=r100(fv.value*G);$('pdFvaL').textContent='('+fv.label+')';$('pdFvaV').textContent=inr(fvp);$('pdFvaS').textContent=inr(gt-fvp)}
+   const key=cur.sku+'|'+(cur.stockKey||'');if(pdFvaKey!==key){pdFvaKey=key;$('pdFvaSW').hidden=true;$('pdFvaT').textContent='Show savings ▾';$('pdFvaT').setAttribute('aria-expanded','false')}}
   $('pdSave').lastChild.textContent=editingId?'Update Quote':'Save to Quote';
   // Sale type: price check = nothing saved, just Close; online = Save; store walk-in = Save + Edit
   const sm=saleMode(),chk=sm==='check'&&!editingId;
   $('pdSave').hidden=chk;$('pdCheck').hidden=!chk;$('pdClose').hidden=!chk;$('pdDel').hidden=chk;
   $('pdEdit').hidden=!editingId&&sm!=='store';
   $('pdMk').hidden=!p.hasMk;
-  $('pdDisc').hidden=!ok||!p.hasMk;
 }
 // Product details rows, in order: [label, value, key]. Admin can hide any of them (Settings → Product details).
 const PD_ROWS=[['purity','Purity'],['gw','Gr. Wt'],['sw','St. Wt'],['nw','Nt. Wt'],['size','Size'],['vaPct','VA %'],['va','VA (Making)'],['mkAmt','Making Charges'],
@@ -3395,8 +3390,9 @@ function canEditMk(){return can('mkEdit')}
 $('pdMk').onclick=()=>withPerm('mkEdit','Needs a user allowed to update making.',()=>openMkPop(()=>{},true));
 function imgOn(){const l=store.get('imgLocal',null);return l==null?settings.showImg!==false:!!l}
 $('pdImgTog').onclick=()=>{store.set('imgLocal',!imgOn());renderEditor();toast(imgOn()?'Product images shown':'Product images hidden')};
-$('pdEdit').onclick=()=>{edOpen=$('editor').hidden;renderEditor();if(edOpen)$('editor').scrollIntoView({behavior:'smooth',block:'start'})};
-let pdHidOpen=false;
+$('pdEdit').onclick=()=>{const show=$('editor').hidden;edHide=!show;edOpen=show;renderEditor();if(show)$('editor').scrollIntoView({behavior:'smooth',block:'start'})};
+var pdHidOpen=false,pdFvaKey='';
+$('pdFvaT').onclick=()=>{const open=$('pdFvaSW').hidden;$('pdFvaSW').hidden=!open;$('pdFvaT').textContent=open?'Hide savings ▴':'Show savings ▾';$('pdFvaT').setAttribute('aria-expanded',String(open))};
 $('pdHidT').onclick=()=>{if(pdHidOpen){pdHidOpen=false;$('pdHidL').hidden=true;$('pdHidT').textContent='Show hidden details';$('pdHidT').setAttribute('aria-expanded','false');return}
   withPerm('pdHidden','Needs permission to see hidden details (NLC, FVA…).',()=>{pdHidOpen=true;$('pdHidL').hidden=false;$('pdHidT').textContent='Hide details';$('pdHidT').setAttribute('aria-expanded','true')})};
 // Discount checker: try a lower making, compare the price before and after, save the item to the quote
@@ -3433,7 +3429,6 @@ function openDiscCheck(){
   const cl=document.createElement('button');cl.className='btn ghost';cl.type='button';cl.textContent='Close';cl.onclick=closeModal;
   a.append(sv,cl);$('modal').hidden=false;setTimeout(()=>$('dcIn').focus(),60);
 }
-$('pdDisc').onclick=openDiscCheck;
 $('pdDel').onclick=()=>$('clearTag').click();
 $('pdClose').onclick=()=>{$('clearTag').click();window.scrollTo({top:0,behavior:'smooth'})};
 $('pdSave').onclick=()=>$('addTag').click();
@@ -3912,16 +3907,17 @@ const PERM_LIST=[
 ['stockdel','Delete sold tags from stock'],['rates',"Set day's rates"],
   ['mkEdit','Update making on the price card'],['mkDisc','Making after discount on quotes'],
   ['closeSale','Close sale (invoice no.)'],['cancelQuote','Cancel quote (enquiry)'],['reopen','Reopen sold / cancelled quotes'],
-  ['delQuote','Delete quotes'],['images','Add product photos'],['share','Share quotes on WhatsApp'],['pdHidden','See hidden details (NLC, FVA…)'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],
+  ['delQuote','Delete quotes'],['images','Add product photos'],['addDisc','Additional discount (flat)'],['share','Share quotes on WhatsApp'],['pdHidden','See hidden details (NLC, FVA…)'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],
   ['textSize','Text size'],['imgShow','Product image show / hide'],['ratesShown','Rates shown'],['charges','Charges · GST · HUID'],
   ['mkHelper','Making helpers'],['itemCodes','Item codes'],['pdRows','Product details items'],['sync','Shared database · shop key'],['roles','Roles & permissions'],['users','Users']];
 const SET_PERMS=['theme','footer','apprSet','export','stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users'];
 const permLabel=k=>(PERM_LIST.find(p=>p[0]===k)||[0,k])[1];
-const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','approve','leads','share','pdHidden']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share']}];
+const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','approve','leads','share','pdHidden','addDisc']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share']}];
 let roles=store.get('roles',null)||clone(DEFAULT_ROLES);
 // WhatsApp sharing became a permission (v1.7.3): roles on this phone keep it once
 if(!store.get('permShare',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&!r.perms.includes('share'))r.perms.push('share')});store.set('roles',roles);store.set('permShare',true)}
 if(!store.get('permHid',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('mkDisc')&&!r.perms.includes('pdHidden'))r.perms.push('pdHidden')});store.set('roles',roles);store.set('permHid',true)}
+if(!store.get('permAddDisc',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('mkDisc')&&!r.perms.includes('addDisc'))r.perms.push('addDisc')});store.set('roles',roles);store.set('permAddDisc',true)}
 let elev={role:'',until:0};   // another user's approval, 15 minutes
 const roleName=id=>id==='admin'?'Admin':(roles.find(r=>r.id===id)||{name:id||'—'}).name;
 // 'settings' was one permission before v1.6.42; it still grants all the settings functions
