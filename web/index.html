@@ -2290,7 +2290,9 @@ function itemImg(code,name){
 const LOOSE='EXT';
 function openManual(){
   if(!CAT[LOOSE])CAT[LOOSE]='Loose Findings';
-  const codes=Object.keys(CAT).sort((a,b)=>(a===LOOSE)-(b===LOOSE)||a.localeCompare(b));
+  // order as on the shop's card design; other codes after, Loose Findings last
+  const ORD=['CHN','BGL','FRG','STD','BRC','NLC','DIA','PND','NSP','RST','LDJ','FIN','MMP'],o=c=>c===LOOSE?999:ORD.includes(c)?ORD.indexOf(c):500;
+  const codes=Object.keys(CAT).sort((a,b)=>o(a)-o(b)||a.localeCompare(b));
   $('manQ').value='';
   $('manCats').innerHTML=codes.length?codes.map(c=>{const im=itemImg(c,CAT[c]);return `<button class="cat-card${c===LOOSE?' new':''}" type="button" data-c="${esc(c)}" data-s="${esc((c+' '+CAT[c]).toLowerCase())}">${c===LOOSE?'<span class="nb">NO LABEL</span>':''}${im?`<img class="ci" src="${im}" alt="" loading="lazy">`:`<span class="cv">${icoFor(CAT[c])}</span>`}<span class="cl"><span class="cc">${esc(c)}</span><span class="cn">${esc(CAT[c])}</span></span></button>`}).join(''):'<p class="note">No item codes yet. Add them in Admin settings → Item codes.</p>';
   $('manCats').querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>manStep(b.dataset.c));
