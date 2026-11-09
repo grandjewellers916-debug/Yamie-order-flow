@@ -245,3 +245,9 @@ A card is locked for users without that permission; opening it asks for a user w
 
 - New permission **Share quotes on WhatsApp** (Settings → Roles & permissions). It covers the quote image, Send as text and Copy quote text. Without it, the app asks for a user who has it (manager PIN) before sharing.
 - Every existing role keeps sharing once (no change on day one); untick it for a role to require it.
+
+## V 1.7.4 (9 Nov 2026)
+
+- **Pick the item** (M / Add manually) is a picture card grid with a search box (item code or name). Pictures are in `web/brand/items/` (Grand's codes match by name).
+- **Loose Findings (EXT)**: items without a label. Choose purity, weight (quick 0.1–2 g or type it, ± 0.05 g) and making (VA %, ₹ per g or ₹ fixed, with quick values); the price at today's rate shows live, and **Add to quote** adds it.
+- **Settings → Export stock database** (admin only): Excel (.xlsx) or PDF of the whole stock list with product photos. On Android it is saved to Downloads and the share sheet opens.

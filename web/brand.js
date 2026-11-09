@@ -16,7 +16,7 @@
       light:{'--maroon':'#971B1E','--band':'#6B1014','--gold':'#B58A3C','--bg':'#F8F5F2','--sunk':'#F0EAE5'},
       dark:{'--maroon':'#E0575B','--band':'#4A0D10','--gold':'#D9A94E'},
       tableName:'Yamie',
-      categories:{BGL:'Bangle',BRC:'Bracelet',CHN:'Chain',RST:'Designer Set',DIA:'Diamond Ornament',FIN:'Hooks & Findings',NLC:'Necklace',NSP:'Nosepins (18K)',FRG:'Ring',STD:'Stud',PND:'Pendant',LDJ:'CVD',MMP:'Platinum'},
+      categories:{BGL:'Bangle',BRC:'Bracelet',CHN:'Chain',RST:'Designer Set',DIA:'Diamond Ornament',FIN:'Hooks & Findings',NLC:'Necklace',NSP:'Nosepins (18K)',FRG:'Ring',STD:'Stud',PND:'Pendant',LDJ:'CVD',MMP:'Platinum',EXT:'Loose Findings'},
       table:'yamie',
       rates:['22k','18k','14k','9k']
     },
@@ -28,7 +28,7 @@
       light:{'--maroon':'#C41230','--band':'#8C0D24','--gold':'#B08A4E','--bg':'#FBF8F2','--sunk':'#F1EAE0','--fg':'#17130F'},
       dark:{'--maroon':'#E2475F','--band':'#5C0817','--gold':'#D9C39A'},
       tableName:'starting',
-      categories:{BGL:'Bangle',BRS:'Birthstone Ring',BCL:'Bracelet',CHN:'Chain',DSS:'Designer Set',DIA:'Diamond Ornament',ACC:'Hooks & Findings',LKT:'Locket',JWL:'Navaratna Ring',NCL:'Necklace',NSP:'Nosepin',RNG:'Ring',STD:'Stud',TLY:'Thali'},
+      categories:{BGL:'Bangle',BRS:'Birthstone Ring',BCL:'Bracelet',CHN:'Chain',DSS:'Designer Set',DIA:'Diamond Ornament',ACC:'Hooks & Findings',LKT:'Locket',JWL:'Navaratna Ring',NCL:'Necklace',NSP:'Nosepin',RNG:'Ring',STD:'Stud',TLY:'Thali',EXT:'Loose Findings'},
       table:'empty',
       rates:['22k','18k','14k','9k']   // purities shown by default (admins can change in Admin settings → Rates shown)
     }
