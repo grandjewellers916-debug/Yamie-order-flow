@@ -1050,6 +1050,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
   .h-grid:has(.h-col.r:not(:has(> :not([hidden])))){grid-template-columns:minmax(0,640px)}
   /* Quote: main column + sale type / delivery panel */
   body[data-view="quote"] #bill{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,380px);gap:20px;align-items:start}
+  .q-hsum{top:calc(var(--dkh,82px) + 10px);z-index:4}
   .q-main,.q-side{display:flex;flex-direction:column;gap:16px;min-width:0}
   .q-pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
   #bill .q-step,#qNew{display:none}
@@ -3864,15 +3865,18 @@ function deskLayout(){
   if(!WIDE.matches)return;
   // Home: left = rates, sale type, scan; right = product details and tag
   deskOrig.set(wrap,[...wrap.children]);
-  const band=$('band'),at=band.previousSibling;
+  const band=$('band'),promo=$('promoBar');
+  const anchor=band.previousSibling;
+  if(promo)wrap.insertBefore(promo,band); // offer bar runs full width above the columns
   const left=box('h-col l',[band,$('saleMode'),wrap.querySelector('.scan-card')]);
   const right=box('h-col r',[$('prodCard'),$('editor')]);
-  wrap.insertBefore(box('h-grid',[left,right],'home'),at?at.nextSibling:wrap.firstChild);
+  const grid=box('h-grid',[left,right],'home');
+  if(promo)wrap.insertBefore(grid,promo.nextSibling);else wrap.insertBefore(grid,anchor?anchor.nextSibling:wrap.firstChild);
   // Quote: main column + side panel
   deskOrig.set(b,[...b.children]);
   const steps=[...b.querySelectorAll(':scope > .q-step')];
-  const main=box('q-main',[$('qTop'),...steps,q('.q-top'),q('.q-tools'),q('.q-items'),box('q-pair',[$('qDiscCard'),q('.q-sum')]),q('.q-acts')]);
-  const side=box('q-side',[$('qSale'),$('qDed'),q('.q-photos'),$('qClose'),q('.q-list')]);
+  const main=box('q-main',[$('qTop'),$('qAppr'),...steps,q('.q-top'),q('.q-tools'),q('.q-items'),q('.q-sum'),q('.q-acts')]);
+  const side=box('q-side',[$('qSale'),$('qDiscCard'),$('qDed'),q('.q-photos'),$('qClose'),q('.q-list')]);
   b.prepend(main,side);
 }
 WIDE.addEventListener?WIDE.addEventListener('change',deskLayout):WIDE.addListener(deskLayout);
