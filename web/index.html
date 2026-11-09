@@ -715,6 +715,12 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 :root{--fva:#5B2A86;--fva-bg:#F1E9F8}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--fva:#C9A7EA;--fva-bg:#2A1F33}}
 :root[data-theme="dark"]{--fva:#C9A7EA;--fva-bg:#2A1F33}
+.fva-ask{width:100%;margin-top:10px;border:1.5px solid #7B3FA8;color:#5B2A86;background:#F1E9F8;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:700}
+.fva-ask svg{width:20px;height:20px}
+:root[data-theme="dark"] .fva-ask{color:#E2CCF5;background:#2A1F33}
+.qi-fva .fa{border:1px solid currentColor;background:none;color:inherit;border-radius:999px;padding:1px 8px;font:700 11.5px var(--body);margin-left:6px;cursor:pointer}
+.qi-fva.on{background:color-mix(in srgb,#7B3FA8 8%,transparent);border-radius:8px;padding-top:3px;padding-bottom:3px}
+.qs-lines .mkeye{border:0;background:none;color:var(--maroon);font:600 12px var(--body);text-decoration:underline;cursor:pointer;margin-left:6px}
 .fva-box{margin-top:10px;border-radius:16px;padding:12px 16px;background:linear-gradient(135deg,#5B2A86,#7B3FA8);color:#fff;box-shadow:0 6px 18px rgba(91,42,134,.28)}
 .fva-box .fv-r{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:16px;font-weight:600}
 .fva-box .fv-r small{color:rgba(255,255,255,.75);font-size:12px;font-weight:500}.fva-box .fv-r b{font:800 24px var(--body);white-space:nowrap}
@@ -823,7 +829,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .qa-to select{flex:1;min-width:0;font:15px var(--body);padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg)}
 .qa-acts{display:flex;gap:8px;margin-top:10px}.qa-acts .btn{flex:1}.qa-acts:empty{display:none}
 /* Staff view of the quote page: only what staff need (discount, close and photos come in when allowed) */
-#bill.staff:not(.apprd) #qDiscCard,#bill.staff .q-photos.hold,#bill.staff #qClose.hold{display:none}
+#bill:not(.mgr) #qDiscCard,#bill.staff:not(.apprd) #qDiscCard,#bill.staff .q-photos.hold,#bill.staff #qClose.hold{display:none}
 #bill.staff .q-step{margin-top:14px}
 #bill.staff .q-mkshow{display:none}
 #bill.locked .q-tools,#bill.locked .q-items,#bill.locked #qSale,#bill.locked #qDed,#bill.locked .q-cust{pointer-events:none;opacity:.6}
@@ -1227,8 +1233,8 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
       <div class="pt-row pt-gst"><span id="pdGstL">+ GST (3%)</span><span id="pdGst">—</span></div>
     </div>
     <div class="grand" id="pdGrandRow"><span>Grand Total</span><strong id="pdGrand">—</strong></div>
-    <div class="fva-box" id="pdFva" hidden><div class="fv-r"><span>Fair value price <small id="pdFvaL"></small></span><b id="pdFvaV"></b></div>
-      <button type="button" class="fv-t" id="pdFvaT" aria-expanded="false">Show savings ▾</button><div class="fv-s" id="pdFvaSW" hidden><span>Discount · You save</span><b id="pdFvaS"></b></div></div>
+    <button class="btn fva-ask" type="button" id="pdFvaAsk" hidden aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.3"/></svg>Discounted price</button>
+    <div class="fva-box" id="pdFva" hidden><div class="fv-r"><span>Fair value price <small id="pdFvaL"></small></span><b id="pdFvaV"></b></div><div class="fv-s"><span>Discount · You save</span><b id="pdFvaS"></b></div><button type="button" class="fv-t" id="pdFvaHide">Hide ▴</button></div>
     <div class="prod-acts"><button class="btn" type="button" id="pdDel">Clear</button><span class="pd-check" id="pdCheck" hidden>Price check only · not saved</span><button class="btn primary" type="button" id="pdClose" hidden>Close</button><button class="btn primary" type="button" id="pdSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>Save to Quote</button></div>
     <div class="pd-hid" id="pdHidW" hidden><button class="linkbtn" type="button" id="pdHidT" aria-expanded="false">Show hidden details</button><dl class="specs specs-more" id="pdHidL" hidden></dl></div>
     <div class="pd-links"><button class="linkbtn" type="button" id="pdMk" hidden>Update making</button><button class="linkbtn pd-edit" type="button" id="pdEdit">Edit details</button></div>
@@ -1326,12 +1332,10 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
       <div class="qo-row q-mkshow"><span class="flabel">Making charges on the quote</span><div class="seg" id="qMkShow" role="radiogroup"><button type="button" role="radio" data-v="1">Show</button><button type="button" role="radio" data-v="0">Hide</button></div></div>
     </div>
 
-    <div class="card q-disc" id="qDiscCard">
-      <div class="sec-head"><h2>Discount</h2><span class="qd-tot" id="qDiscTot"></span></div>
-      <p class="note" style="margin:0">Manager enters the making after discount for each item. The difference is shown as discount.</p>
-      <div id="qDiscList"></div>
-      <button class="btn" type="button" id="qDiscMgr" hidden>Manager login to enter discount</button>
-      <div class="qd-extra" id="qDiscExtraRow"><span>Additional discount (flat)</span><span><b id="qDiscExtraV">None</b> <button class="linkbtn" type="button" id="qDiscExtraBtn">Change</button><button type="button" id="qDisc" hidden></button></span></div>
+    <div class="card q-ded" id="qDed">
+      <div class="qd-sec" id="qUrdSec"><div class="sec-head"><h3>URD · old gold</h3><button class="linkbtn" type="button" id="addOld">+ Add URD</button></div><div id="oldList" class="ded-list"></div></div>
+      <div class="qd-sec" id="qSrSec"><div class="sec-head"><h3>Sales return</h3><button class="linkbtn" type="button" id="addRet">+ Add return</button></div><div id="retList" class="ded-list"></div></div>
+      <div class="qd-sec" id="qAdvSec"><div class="sec-head"><h3>Advance</h3><button class="linkbtn" type="button" id="addAdv">+ Add advance</button></div><div id="advList" class="ded-list"></div></div>
     </div>
 
     <div class="card q-opts" id="qSale">
@@ -1345,12 +1349,6 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
       </div>
     </div>
 
-    <div class="card q-ded" id="qDed">
-      <div class="qd-sec" id="qUrdSec"><div class="sec-head"><h3>URD · old gold</h3><button class="linkbtn" type="button" id="addOld">+ Add URD</button></div><div id="oldList" class="ded-list"></div></div>
-      <div class="qd-sec" id="qSrSec"><div class="sec-head"><h3>Sales return</h3><button class="linkbtn" type="button" id="addRet">+ Add return</button></div><div id="retList" class="ded-list"></div></div>
-      <div class="qd-sec" id="qAdvSec"><div class="sec-head"><h3>Advance</h3><button class="linkbtn" type="button" id="addAdv">+ Add advance</button></div><div id="advList" class="ded-list"></div></div>
-    </div>
-
     <div class="card q-sum">
       <div class="qs-h"><span class="qs-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M8 15h2M12 15h2M16 11v4"/></svg></span><h2>Summary</h2></div>
       <div class="qs-lines" id="totals"></div>
@@ -1359,9 +1357,16 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
     </div>
 
     <div class="q-acts">
-      <button class="btn q-soft" type="button" id="qDiscGo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 5 5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/></svg>Discount</button>
       <button class="btn q-soft" type="button" id="qAdv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 14h2"/></svg>Advance</button>
       <button class="btn primary q-gen" type="button" id="saveBill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>Generate Quote</button>
+    </div>
+
+    <div class="card q-disc" id="qDiscCard" data-mgr>
+      <div class="sec-head"><h2>Discount</h2><span class="qd-tot" id="qDiscTot"></span></div>
+      <p class="note" style="margin:0">Manager enters the making after discount for each item. The difference is shown as discount.</p>
+      <div id="qDiscList"></div>
+      <button class="btn" type="button" id="qDiscMgr" hidden>Manager login to enter discount</button>
+      <div class="qd-extra" id="qDiscExtraRow"><span>Additional discount (flat)</span><span><b id="qDiscExtraV">None</b> <button class="linkbtn" type="button" id="qDiscExtraBtn">Change</button><button type="button" id="qDisc" hidden></button></span></div>
     </div>
 
     <div class="card q-photos">
@@ -2034,8 +2039,8 @@ function oldRate(o){const r=num(o.rate);return !isNaN(r)?r:rateFor(o.purity)}
 function oldValue(o){const w=num(o.wt),r=oldRate(o);return isNaN(w)||r==null?NaN:w*r}
 function totals(){
   const s={gold:0,stone:0,making:0,huid:0,huidN:0,sub:0,bad:0};
-  s.listSub=0;s.mkDisc=0;s.nw=0;s.gw=0;
-  bill.items.forEach(t=>{const p=priceTag(t),q=quotedValue(t,p);if(!p.ok){s.bad++;return}s.nw+=num(t.nw)||0;s.gw+=num(t.gw)||0;s.gold+=p.gold;s.stone+=p.stone;s.making+=p.making-(p.value-q);s.huid+=p.huid;s.huidN+=p.huidN;s.sub+=q;s.listSub+=p.value;s.mkDisc+=p.value-q});
+  s.listSub=0;s.listMk=0;s.mkDisc=0;s.nw=0;s.gw=0;
+  bill.items.forEach(t=>{const p=priceTag(t),q=quotedValue(t,p);if(!p.ok){s.bad++;return}s.nw+=num(t.nw)||0;s.gw+=num(t.gw)||0;s.gold+=p.gold;s.stone+=p.stone;s.making+=p.making-(p.value-q);s.huid+=p.huid;s.huidN+=p.huidN;s.sub+=q;s.listSub+=p.value;s.listMk+=p.making;s.mkDisc+=p.value-q});
   const gstP=num(settings.gst)||0;
   // Taxable value = items after making discount + delivery charges (online); GST on that
   // Delivery: online enquiries only, by the chosen partner
@@ -2274,6 +2279,9 @@ $('addTag').onclick=()=>{
   commitTag();
 };
 function commitTag(){
+  // customer asked for the discounted price: quote the item at its fair value (unless a manager set a making discount)
+  if(cur.fvaAsk&&(!cur.qMk||cur.qMk.fva)){const fv=fvaPrice(cur);if(fv)cur.qMk={type:cur.mkType,val:fmtN(mkValFor(cur,fv.mk)),fva:true,by:curUser?(curUser.name||curUser.username):'',at:Date.now()}}
+  else if(!cur.fvaAsk&&cur.qMk&&cur.qMk.fva)delete cur.qMk;
   if(isClosed())startNewQuote('The last quote was closed. New quote started.');
   const t=clone(cur);
   const i=bill.items.findIndex(x=>x.id===editingId);
@@ -2665,7 +2673,8 @@ function renderBill(keepInputs){
       <span>${fmtW(num(t.nw))}</span>
       <span class="qi-amt">${p.ok?inr(p.value*(1+gstPct()/100)):'—'}</span>
       <span class="qi-acts">${closed?'':`<button type="button" data-edit="${t.id}" aria-label="Edit item ${i+1}">${IC_EDIT}</button><button type="button" data-del="${t.id}" aria-label="Remove item ${i+1}">${IC_DEL}</button>`}</span>
-      ${(()=>{const fv=fvaPrice(t,p),G=1+gstPct()/100;if(!fv)return '';const fvp=r100(fv.value*G);return `<span class="qi-fva">Fair value <b>${inr(fvp)}</b> <small>(${esc(fv.label)})</small> · Savings <b>${inr(r100(p.value*G)-fvp)}</b></span>`})()}
+      ${(()=>{const fv=fvaPrice(t,p),G=1+gstPct()/100;if(!fv)return '';const fvp=r100(fv.value*G),on=t.qMk&&t.qMk.fva,mgr=t.qMk&&!t.qMk.fva;
+        return `<span class="qi-fva${on?' on':''}">Fair value <b>${inr(fvp)}</b> <small>(${esc(fv.label)})</small> · Savings <b>${inr(r100(p.value*G)-fvp)}</b>${closed||mgr?(mgr?' <small>· manager discount</small>':''):`<button type="button" class="fa" data-fva="${t.id}">${on?'Applied ✓':'Apply'}</button>`}</span>`})()}
     </div>`}).join(''):'<div class="empty-q">No items yet. Scan a product or add it manually, then tap Save to Quote.</div>';
   $('items').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{
     const t=bill.items.find(x=>x.id===b.dataset.edit);if(!t)return;
@@ -2679,6 +2688,9 @@ function renderBill(keepInputs){
     saveBill();saveDraft();renderEditor();renderBill();
     toast('Item removed',()=>{bill.items.splice(i,0,gone);saveBill();renderEditor();renderBill()});
   });
+  $('items').querySelectorAll('[data-fva]').forEach(b=>b.onclick=()=>{const t=bill.items.find(x=>x.id===b.dataset.fva);if(!t)return;
+    if(t.qMk&&t.qMk.fva){delete t.qMk;t.fvaAsk=false}else{const fv=fvaPrice(t);if(!fv)return;t.fvaAsk=true;t.qMk={type:t.mkType,val:fmtN(mkValFor(t,fv.mk)),fva:true,by:curUser?(curUser.name||curUser.username):'',at:Date.now()}}
+    saveBill();renderBill()});
   $('items').querySelectorAll('[data-qmk]').forEach(el=>el.addEventListener('change',()=>{
     const t=bill.items.find(x=>x.id===el.dataset.qmk);if(!t)return;
     const v=num(el.value);
@@ -2693,20 +2705,24 @@ function renderBill(keepInputs){
   if(!keepInputs)renderDeductions();else refreshDeductionValues();
 
   const g=gstPct(),L=[];
+  const mkOn=store.get('sumMk',true);
+  L.push(['Total Gross Weight',fmtW(s.gw)+' g']);
   L.push(['Total Net Weight',fmtW(s.nw)+' g']);
-  L.push(['Items value (at label making)',inr(s.listSub)]);
-  if(s.mkDisc>0.5)L.push(['Making discount','−'+inr(s.mkDisc),'minus','disc']);
-  if(s.courier)L.push([`Delivery · ${s.courier.name}`,s.delivery?'+'+inr(s.delivery):'Free']);
-  L.push(['Taxable value',inr(s.taxable),'strong']);
-  L.push([`Total GST (${fmtN(g)}%)`,inr(s.gst)]);
-  if(s.flat)L.push(['Discount','−'+inr(s.flat),'minus','disc']);
+  L.push(['Total Stone Charges',inr(s.stone)]);
+  L.push(['Total Making Charges',mkOn?inr(s.listMk):'•••','mkline']);
+  L.push(['Total Value at Making Label',inr(s.listSub),'strong']);
+  L.push(['Less Total Savings (Discount)',s.mkDisc>0.5?'−'+inr(s.mkDisc):inr(0),'minus save']);
+  if(s.courier)L.push([`Delivery charges · ${s.courier.name}`,s.delivery?'+'+inr(s.delivery):'Free']);
+  L.push(['Taxable Value',inr(s.taxable),'strong']);
+  L.push([`GST (${fmtN(g)}%)`,inr(s.gst)]);
+  if(s.flat)L.push(['Additional discount','−'+inr(s.flat),'minus','disc']);
   if(s.roundOff>0.004)L.push(['Round-off discount','−'+inr2(s.roundOff),'minus']);
-  if(s.allDisc>0.5)L.push(['Total discount',inr(s.allDisc),'save']);
-  L.push(['Final amount',inr(s.final),'strong final']);
+  L.push(['Final Amount',inr(s.final),'strong final']);
   L.push(['Advance','−'+inr(s.adv),'minus','adv']);
   if(s.bad)L.push([`${s.bad} item${s.bad>1?'s':''} not priced (missing rate or weight)`,'','staff']);
   $('totals').innerHTML=L.map(l=>`<div class="line ${l[2]||''}"><span>${esc(l[0])}${l[3]&&!closed?`<button class="ed" type="button" data-go="${l[3]}" aria-label="Change ${esc(l[0])}">${IC_EDIT}</button>`:''}</span><span>${esc(l[1])}</span></div>`).join('');
   $('totals').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>b.dataset.go==='disc'?$('qDiscCard').scrollIntoView({behavior:'smooth',block:'start'}):$('qAdv').click());
+  {const ml=$('totals').querySelector('.mkline span');if(ml){const e=document.createElement('button');e.type='button';e.className='mkeye';e.textContent=mkOn?'Hide':'Show';e.onclick=()=>{store.set('sumMk',!mkOn);renderBill(true)};ml.appendChild(e)}}
   const refund=s.net<0;
   $('netLabel').textContent=refund?'Refund to customer':'Balance Amount';
   $('qBalRow').classList.toggle('refund',refund);
@@ -2802,7 +2818,6 @@ $('qtUrd').onclick=()=>{$('addOld').click();$('qUrdSec').scrollIntoView({behavio
 $('qtSr').onclick=()=>{$('addRet').click();$('qSrSec').scrollIntoView({behavior:'smooth',block:'center'})};
 $('qDiscMgr').onclick=()=>withManager('A manager must log in to enter the discount.',()=>renderBill());
 $('qDiscExtraBtn').onclick=()=>withPerm('addDisc','Additional discount is for managers and admins.',()=>$('qDisc').click());
-$('qDiscGo').onclick=()=>$('qDiscCard').scrollIntoView({behavior:'smooth',block:'start'});
 $('qAdv').onclick=()=>{$('addAdv').click();$('qAdvSec').scrollIntoView({behavior:'smooth',block:'center'})};
 $('qDisc').onclick=notClosed(()=>{
   if(!$('modal').hidden)return;
@@ -3346,8 +3361,9 @@ function paintProduct(){
   $('pdTotal').classList.toggle('incomplete',!ok);$('pdGrandRow').classList.toggle('incomplete',!ok);
   // Grand total and fair value price rounded to the nearest ₹100; savings stay folded until the customer asks
   if(ok)$('pdGrand').textContent=inr(r100(p.value*(1+g/100)));
-  {const fv=ok?fvaPrice(cur,p):null,G=1+g/100;$('pdFva').hidden=!fv;if(fv){const gt=r100(p.value*G),fvp=r100(fv.value*G);$('pdFvaL').textContent='('+fv.label+')';$('pdFvaV').textContent=inr(fvp);$('pdFvaS').textContent=inr(gt-fvp)}
-   const key=cur.sku+'|'+(cur.stockKey||'');if(pdFvaKey!==key){pdFvaKey=key;$('pdFvaSW').hidden=true;$('pdFvaT').textContent='Show savings ▾';$('pdFvaT').setAttribute('aria-expanded','false')}}
+  {const fv=ok?fvaPrice(cur,p):null,G=1+g/100;$('pdFva').hidden=!fv||!cur.fvaAsk;if(fv){const gt=r100(p.value*G),fvp=r100(fv.value*G);$('pdFvaL').textContent='('+fv.label+')';$('pdFvaV').textContent=inr(fvp);$('pdFvaS').textContent=inr(gt-fvp)}
+   // folded until the customer asks; opening it means the item is quoted at the fair value
+   $('pdFvaAsk').hidden=!fv||!!cur.fvaAsk;$('pdFvaAsk').setAttribute('aria-expanded',String(!!cur.fvaAsk))}
   $('pdSave').lastChild.textContent=editingId?'Update Quote':'Save to Quote';
   // Sale type: price check = nothing saved, just Close; online = Save; store walk-in = Save + Edit
   const sm=saleMode(),chk=sm==='check'&&!editingId;
@@ -3391,8 +3407,9 @@ $('pdMk').onclick=()=>withPerm('mkEdit','Needs a user allowed to update making.'
 function imgOn(){const l=store.get('imgLocal',null);return l==null?settings.showImg!==false:!!l}
 $('pdImgTog').onclick=()=>{store.set('imgLocal',!imgOn());renderEditor();toast(imgOn()?'Product images shown':'Product images hidden')};
 $('pdEdit').onclick=()=>{const show=$('editor').hidden;edHide=!show;edOpen=show;renderEditor();if(show)$('editor').scrollIntoView({behavior:'smooth',block:'start'})};
-var pdHidOpen=false,pdFvaKey='';
-$('pdFvaT').onclick=()=>{const open=$('pdFvaSW').hidden;$('pdFvaSW').hidden=!open;$('pdFvaT').textContent=open?'Hide savings ▴':'Show savings ▾';$('pdFvaT').setAttribute('aria-expanded',String(open))};
+var pdHidOpen=false;
+$('pdFvaAsk').onclick=()=>{cur.fvaAsk=true;saveDraft();renderEditor()};
+$('pdFvaHide').onclick=()=>{cur.fvaAsk=false;saveDraft();renderEditor()};
 $('pdHidT').onclick=()=>{if(pdHidOpen){pdHidOpen=false;$('pdHidL').hidden=true;$('pdHidT').textContent='Show hidden details';$('pdHidT').setAttribute('aria-expanded','false');return}
   withPerm('pdHidden','Needs permission to see hidden details (NLC, FVA…).',()=>{pdHidOpen=true;$('pdHidL').hidden=false;$('pdHidT').textContent='Hide details';$('pdHidT').setAttribute('aria-expanded','true')})};
 // Discount checker: try a lower making, compare the price before and after, save the item to the quote
@@ -4052,6 +4069,7 @@ function paintAppr(){
   const st=apprState(bill),closed=isClosed(),lead=bill.leadNote||'',need=needsAppr();
   const sec=$('bill');
   sec.classList.toggle('staff',need);
+  sec.classList.toggle('mgr',can('mkDisc')||can('approve')||can('addDisc'));
   sec.classList.toggle('locked',need&&st==='pending');
   sec.classList.toggle('apprd',st==='approved');
   const okShare=!need||st==='approved'||closed;

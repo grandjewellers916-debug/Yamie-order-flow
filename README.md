@@ -281,3 +281,10 @@ A card is locked for users without that permission; opening it asks for a user w
 - **Additional (flat) discount** is a permission ("Additional discount (flat)"), managers and admins only by default.
 - **Edit details / Hide editing** toggles the tag editing panel.
 - **Wstg %** is always a percentage: 12, "12%" and Excel's 0.12 (a cell formatted as %) all mean 12%. Stock already loaded with 0.12 is read as 12%.
+
+## V 1.7.62 (9 Nov 2026)
+
+- **Home**: the fair value section is folded behind a **Discounted price** button (tap only if the customer asks). Opening it means the item is saved to the quote at its fair value; **Hide** takes it back to the label price.
+- **Quote page order**: Customer details · buttons · Quoted items · URD / Sales return / Advance · Sale type · Summary. The Discount button is removed; the manager's discount card (making after discount, additional discount) is below the summary for managers and admins only.
+- Each quote line: Fair value and Savings in bold purple with **Apply / Applied ✓**.
+- **Summary**: Total Gross Wt · Total Net Wt · Total Stone Charges · Total Making Charges (Hide/Show) · Total Value at Making Label · Less Total Savings (Discount) · Delivery charges (online) · Taxable Value · GST · Final Amount.
