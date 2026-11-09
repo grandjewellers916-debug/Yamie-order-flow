@@ -6,7 +6,7 @@ import type { Config } from "@netlify/functions"
 // Stored in one site-wide Blobs store: meta, stock, rates, settings, users, auth (legacy admin PIN).
 
 const APP_ORIGINS = ["https://appassets.androidplatform.net", "https://yamie-price-check.netlify.app"]
-const STOCK_FIELDS = ["key", "barcode", "item", "category", "carat", "gw", "nw", "sw", "dw", "dq", "sa", "serial", "label", "location", "pcs", "sq", "supplier", "mk", "mkType", "huid", "huidNo", "cw", "stoneName", "saDia", "saClr", "labelDate", "at"]
+const STOCK_FIELDS = ["key", "barcode", "item", "category", "carat", "gw", "nw", "sw", "dw", "dq", "sa", "serial", "label", "location", "pcs", "sq", "supplier", "mk", "mkType", "huid", "huidNo", "cw", "stoneName", "saDia", "saClr", "labelDate", "size", "model", "nlc", "fva", "at"]
 const RATE_KEYS = ["22k", "18k", "14k", "9k", "platinum", "silver"]
 
 type Meta = { stock: number; rates: number; settings: number; users: number; quotes: number; leads?: number; imgs: number; count: number; history: any[] }
@@ -52,17 +52,17 @@ function cleanRow(r: any) {
   if (!r || typeof r.key !== "string" || !r.key) return null
   const o: any = {}
   for (const f of STOCK_FIELDS) {
-    if (["gw", "nw", "sw", "cw", "dw", "dq", "sa", "saDia", "saClr", "pcs", "sq", "huid", "at"].includes(f)) o[f] = cleanNum(r[f])
+    if (["gw", "nw", "sw", "cw", "dw", "dq", "sa", "saDia", "saClr", "pcs", "sq", "huid", "nlc", "at"].includes(f)) o[f] = cleanNum(r[f])
     else o[f] = cleanStr(r[f])
   }
   o.key = o.key.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 40)
   return o.key ? o : null
 }
 // Permissions an admin can give to a role (admin always has all)
-const PERMS = ["stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "share", "approve", "leads", "textSize", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows", "sync", "roles", "users", "settings"]
+const PERMS = ["stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "share", "approve", "leads", "textSize", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows", "pdHidden", "sync", "roles", "users", "settings"]
 const SETTINGS_PERMS = ["imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows"]
 const DEFAULT_ROLES = [
-  { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "images", "approve", "leads", "share"] },
+  { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "images", "approve", "leads", "share", "pdHidden"] },
   { id: "staff", name: "Staff", perms: ["rates", "closeSale", "cancelQuote", "share"] },
 ]
 // A quote as the app keeps it, minus anything large (photos stay on the phone that took them)
@@ -125,6 +125,13 @@ export default async (req: Request) => {
     for (const r of roles) if (Array.isArray(r?.perms) && !r.perms.includes("share")) { r.perms.push("share"); ch = true }
     if (ch && (await st.get("roles"))) { await st.setJSON("roles", roles); meta.users = Date.now() }
     ;(meta as any).v173 = 1; await saveMeta()
+  }
+  // Hidden details (NLC, FVA…): roles that give making discounts can see them (once)
+  if (!(meta as any).v175) {
+    let ch = false
+    for (const r of roles) if (r?.perms?.includes("mkDisc") && !r.perms.includes("pdHidden")) { r.perms.push("pdHidden"); ch = true }
+    if (ch && (await st.get("roles"))) { await st.setJSON("roles", roles); meta.users = Date.now() }
+    ;(meta as any).v175 = 1; await saveMeta()
   }
   const roleHas = (role: string, perm: string) => {
     if (role === "admin") return true

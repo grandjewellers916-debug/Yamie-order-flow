@@ -712,6 +712,21 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .hq-new{flex:none;display:flex;align-items:center;gap:6px;border-radius:14px;background:color-mix(in srgb,var(--maroon) 8%,var(--surface));color:var(--maroon);border:1px solid color-mix(in srgb,var(--maroon) 25%,transparent);font-weight:700;padding:0 16px}
 .hq-new svg{width:22px;height:22px}
 .pd-links{display:flex;justify-content:center;gap:22px}
+.pd-hid{margin:6px 0 2px;text-align:center}.pd-hid dl{text-align:left}
+.pd-dchk{width:100%;margin:8px 0 4px;border-color:color-mix(in srgb,var(--maroon) 40%,transparent);color:var(--maroon);display:flex;align-items:center;justify-content:center;gap:8px}
+.pd-dchk svg{width:20px;height:20px}
+.dc-cmp{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.dc-cmp div{border-radius:12px;padding:10px;background:var(--sunk);text-align:center}
+.dc-cmp small{display:block;color:var(--muted);font-size:12px}.dc-cmp b{font:800 19px var(--body)}
+.dc-cmp .af{background:color-mix(in srgb,#2E7D4F 12%,var(--surface))}.dc-cmp .af b{color:#2E7D4F}
+.dc-save{text-align:center;margin-top:8px;font-weight:700;color:#2E7D4F}
+.qd-help{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 10px;padding:10px;border-radius:12px;background:var(--sunk)}
+.qd-help b{font-size:12.5px;color:var(--muted);width:100%}
+.qd-help button{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:6px 11px;font:600 13px var(--body);cursor:pointer}
+.qd-help .bud{display:flex;gap:6px;width:100%;margin-top:4px}.qd-help .bud input{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:15px var(--body);background:var(--surface);color:var(--fg)}
+.qd-fin{display:flex;justify-content:space-between;font-size:13px;margin-top:2px}.qd-fin s{color:var(--muted)}.qd-fin b{color:#2E7D4F}
+.qd-x{border:0;background:none;color:var(--muted);font-size:13px;text-decoration:underline;cursor:pointer;padding:2px 0}
+.qd-ask{font-size:12px;color:#8A5A00}
 .pd-links .linkbtn{font-size:13.5px}
 .q-cancel{border-color:color-mix(in srgb,var(--bad) 45%,transparent);color:var(--bad);background:none}
 .q-status.cancel{background:color-mix(in srgb,var(--warn) 16%,var(--surface))}
@@ -1203,6 +1218,8 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
     </div>
     <div class="grand" id="pdGrandRow"><span>Grand Total</span><strong id="pdGrand">—</strong></div>
     <div class="prod-acts"><button class="btn" type="button" id="pdDel">Clear</button><span class="pd-check" id="pdCheck" hidden>Price check only · not saved</span><button class="btn primary" type="button" id="pdClose" hidden>Close</button><button class="btn primary" type="button" id="pdSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>Save to Quote</button></div>
+    <div class="pd-hid" id="pdHidW" hidden><button class="linkbtn" type="button" id="pdHidT" aria-expanded="false">Show hidden details</button><dl class="specs specs-more" id="pdHidL" hidden></dl></div>
+    <button class="btn pd-dchk" type="button" id="pdDisc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.3"/><path d="M10 15l5-5"/></svg>Discount checker</button>
     <div class="pd-links"><button class="linkbtn" type="button" id="pdMk" hidden>Update making</button><button class="linkbtn pd-edit" type="button" id="pdEdit">Edit details</button></div>
   </section>
 
@@ -2683,11 +2700,28 @@ function gstPct(){return num(settings.gst)||0}
 function renderDiscount(s){
   const el=$('qDiscList'),g=gstPct(),closed=isClosed(),edit=(can('mkDisc')||can('approve'))&&!closed;
   if(!bill.items.length){el.innerHTML='<div class="empty-q">Discount is set here once items are in the quote.</div>';$('qDiscTot').textContent='';$('qDiscMgr').hidden=true;$('qDiscExtraRow').hidden=true;return}
-  el.innerHTML=bill.items.map((t,i)=>{const p=priceTag(t),q=quotedValue(t,p),d=p.value-q,u=t.mkType==='pct'?'%':t.mkType==='pergram'?'₹/g':'₹';
+  const help=edit?`<div class="qd-help"><b>Discount helper · making on every item</b>${[10,20,30,50].map(x=>`<button type="button" data-all="${x}">−${x}%</button>`).join('')}<button type="button" data-all="0">Reset</button>
+    <div class="bud"><input id="qBudget" inputmode="decimal" placeholder="Budget ₹ incl. GST" aria-label="Customer budget"><button type="button" id="qFit">Fit budget</button></div></div>`:'';
+  el.innerHTML=help+bill.items.map((t,i)=>{const p=priceTag(t),q=quotedValue(t,p),d=p.value-q,u=t.mkType==='pct'?'%':t.mkType==='pergram'?'₹/g':'₹';
     return `<div class="qd-row"><div class="qd-a"><b>${i+1}. ${esc(keyOf(t.sku))}</b> <span class="m">${esc((t.stock&&t.stock.category)||t.item||'')}</span></div>
       <div class="qd-b"><span class="m">Making ${p.hasMk?esc(valText({type:t.mkType,val:num(t.mkVal)}))+(p.making>0?` · <b class="qd-mk">${inr(p.making)}</b>`:''):'— (no making rate)'}</span><span class="qd-arrow">→</span>
       ${edit&&p.hasMk?`<span class="qd-in"><input data-qmk="${t.id}" inputmode="decimal" value="${esc(t.qMk?t.qMk.val:'')}" placeholder="${esc(fmtN(num(t.mkVal)))}" aria-label="Making after discount, item ${i+1}"><small>${u}</small></span>`:`<b>${t.qMk?esc(valText({type:t.mkType,val:num(t.qMk.val)})):'no discount'}</b>`}${t.qMk&&p.hasMk?(()=>{const m=makingFor(t,t.qMk.type||t.mkType,num(t.qMk.val));return isNaN(m)?'':` <span class="m">= ${inr(m)}</span>`})():''}</div>
-      <div class="qd-c"><span>${p.ok?inr(p.value):'—'}${d>0.5?` → <b>${inr(q)}</b>`:''} <small class="m">+ GST</small></span><span class="qd-d">${d>0.5?'−'+inr(d):''}</span></div></div>`}).join('');
+      <div class="qd-c"><span>${p.ok?inr(p.value):'—'}${d>0.5?` → <b>${inr(q)}</b>`:''} <small class="m">+ GST</small></span><span class="qd-d">${d>0.5?'−'+inr(d):''}</span></div>
+      ${p.ok?`<div class="qd-fin"><span>First price <s>${d>0.5?inr(p.value*(1+g/100)):''}</s>${d>0.5?'':inr(p.value*(1+g/100))}</span><span>Final <b>${inr(q*(1+g/100))}</b></span></div>`:''}
+      ${t.qMkReq&&!t.qMk?`<div class="qd-ask">Asked: ${esc(valText({type:t.mkType,val:num(t.qMkReq.val)}))} by ${esc(t.qMkReq.by||'staff')}</div>`:''}
+      ${!closed&&!(needsAppr()&&apprState(bill)==='pending')?`<button type="button" class="qd-x" data-rm="${t.id}">Remove item</button>`:''}</div>`}).join('');
+  el.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{const t=bill.items.find(x=>x.id===b.dataset.rm);if(!t)return;
+    showModal('Remove this item?',`${keyOf(t.sku)} · ${t.item||''} will be taken off the quote.`,[{label:'Remove',cls:'danger',run:()=>{bill.items=bill.items.filter(x=>x.id!==t.id);saveBill();renderBill();toast('Item removed')}},{label:'Keep',cls:'ghost'}])});
+  const setAll=f=>{bill.items.forEach(t=>{const p=priceTag(t);if(!p.hasMk)return;if(f<=0){delete t.qMk;return}
+    t.qMk={type:t.mkType,val:fmtN(Math.round(num(t.mkVal)*(1-f)*100)/100),by:curUser?(curUser.name||curUser.username):'',at:Date.now()}})};
+  el.querySelectorAll('[data-all]').forEach(b=>b.onclick=()=>{setAll(+b.dataset.all/100);saveBill();renderBill();toast(+b.dataset.all?`Making −${b.dataset.all}% on every item`:'Discounts cleared')});
+  const fit=$('qFit');if(fit)fit.onclick=()=>{
+    const target=num($('qBudget').value);if(!(target>0)){toast('Enter the customer budget',null,true);return}
+    const keep=bill.items.map(t=>t.qMk);const fin=()=>totals().final;
+    setAll(0);if(fin()<=target){saveBill();renderBill();toast('Already within budget');return}
+    setAll(1);const low=fin();if(low>target){bill.items.forEach((t,i)=>{if(keep[i])t.qMk=keep[i];else delete t.qMk});toast(`Too low even with no making · lowest ${inr(low)}`,null,true);renderBill();return}
+    let lo=0,hi=1;for(let k=0;k<32;k++){const m=(lo+hi)/2;setAll(m);if(fin()>target)lo=m;else hi=m}
+    setAll(hi);saveBill();renderBill();toast(`Making −${Math.round(hi*100)}% on every item · final ${inr(fin())}`)};
   el.querySelectorAll('[data-qmk]').forEach(inp=>inp.addEventListener('change',()=>{
     const t=bill.items.find(x=>x.id===inp.dataset.qmk);if(!t)return;const v=num(inp.value);
     if(inp.value.trim()===''||isNaN(v))delete t.qMk;
@@ -3253,7 +3287,11 @@ function paintProduct(){
   const p=priceTag(cur),g=num(settings.gst)||0,ok=p.ok&&!m.length;
   const w=v=>v!=null&&v!==''&&!isNaN(num(v))?num(v).toFixed(3):'';
   const mk=p.hasMk?valText({type:cur.mkType,val:num(cur.mkVal)}):'';
-  const rows=pdRows(cur,st,p,w).filter(r=>r[1]&&!(settings.pdHide||[]).includes(r[2]));
+  const allRows=pdRows(cur,st,p,w),hidKeys=PD_HIDDEN.map(x=>x[0]);
+  const rows=allRows.filter(r=>r[1]&&!hidKeys.includes(r[2])&&!(settings.pdHide||[]).includes(r[2]));
+  const hrows=allRows.filter(r=>r[1]&&hidKeys.includes(r[2]));
+  $('pdHidW').hidden=!hrows.length;$('pdHidL').innerHTML=hrows.map(([l,v])=>`<dt>${l}</dt><dd>${esc(v)}</dd>`).join('');
+  if(!pdHidOpen){$('pdHidL').hidden=true;$('pdHidT').textContent='Show hidden details'}
   // Beside the image: the first rows; the rest run full width under it
   const html=rr=>rr.map(([l,v,k])=>`<dt>${l}</dt><dd${['stones','supplier','huidNo'].includes(k)?' class="ddw"':''}>${esc(v)}</dd>`).join('');
   const nTop=showImg&&!matchMedia('(min-width:900px)').matches?5:rows.length;
@@ -3288,11 +3326,14 @@ function paintProduct(){
   $('pdSave').hidden=chk;$('pdCheck').hidden=!chk;$('pdClose').hidden=!chk;$('pdDel').hidden=chk;
   $('pdEdit').hidden=!editingId&&sm!=='store';
   $('pdMk').hidden=!p.hasMk;
+  $('pdDisc').hidden=!ok||!p.hasMk;
 }
 // Product details rows, in order: [label, value, key]. Admin can hide any of them (Settings → Product details).
-const PD_ROWS=[['purity','Purity'],['gw','Gr. Wt'],['sw','St. Wt'],['nw','Nt. Wt'],['vaPct','VA %'],['va','VA (Making)'],['mkAmt','Making Rate'],
-  ['dw','Diamond Wt'],['dPrice','Diamond Price'],['cw','Colour Stone Wt'],['cPrice','Colour Stone Price'],['huid','HUID Count'],['huidNo','HUID No.'],
-  ['stones','Stones'],['pcs','Pcs'],['location','Location'],['labelDate','Labelling Date'],['supplier','Supplier']];
+const PD_ROWS=[['purity','Purity'],['gw','Gr. Wt'],['sw','St. Wt'],['nw','Nt. Wt'],['size','Size'],['vaPct','VA %'],['va','VA (Making)'],['mkAmt','Making Charges'],
+  ['dw','Diamond Wt'],['dq','Diamond Pcs'],['dPrice','Diamond Price'],['cw','Colour Stone Wt'],['cPrice','Colour Stone Price'],['huid','HUID Count'],
+  ['pcs','Pcs'],['location','Location'],['labelDate','Labelling Date']];
+// Hidden details (tap to show; needs "See hidden details")
+const PD_HIDDEN=[['nlc','NLC'],['fva','FVA'],['huidNo','HUID'],['model','Model'],['stones','Stone Names'],['supplier','Supplier']];
 function pdRows(t,st,p,w){
   const dia=isDiamond(t)||!!(st&&(num(st.dw)>0||st.saDia>0)),clr=!!(st&&(st.saClr>0||num(st.cw)>0||num(st.sq)>0));
   const pct=p.hasMk&&t.mkType==='pct';
@@ -3303,13 +3344,13 @@ function pdRows(t,st,p,w){
     vaPct:pct?fmtN(num(t.mkVal))+'%':'',
     va:p.hasMk&&!pct?valText({type:t.mkType,val:num(t.mkVal)}):(p.hasMk?'':'—'),
     mkAmt:p.hasMk&&p.making>0?inr(p.making):'',
-    dw:dia&&st&&num(st.dw)>0?`${fmtN(num(st.dw))}\u00a0ct${num(st.dq)>0?` · ${fmtN(num(st.dq))}\u00a0pcs`:''}`:'',
+    dw:dia&&st&&num(st.dw)>0?`${fmtN(num(st.dw))}\u00a0ct`:'',dq:st&&num(st.dq)>0?fmtN(num(st.dq)):'',size:st&&st.size?String(st.size):'',model:st&&st.model?String(st.model):'',nlc:st&&num(st.nlc)>0?inr(num(st.nlc)):'',fva:st&&st.fva!=null&&st.fva!==''?String(st.fva):'',
     dPrice:dia?(dPrice>0?inr(dPrice):'—'):'',
     cw:clr&&st&&num(st.cw)>0?`${w(st.cw)}${num(st.sq)>0?` · ${fmtN(num(st.sq))}\u00a0pcs`:''}`:'',
     cPrice:cPrice>0?inr(cPrice):'',
     huid:p.huidN?`${p.huidN}\u00a0×\u00a0${inr(settings.huid)}`:'',huidNo:codes,
     stones:st&&st.stoneName,pcs:st&&st.pcs>1?fmtN(st.pcs):'',location:st&&st.location,labelDate:st&&fmtDate(st.labelDate),supplier:st&&st.supplier};
-  return PD_ROWS.map(([k,l])=>[l,v[k],k]);
+  return PD_ROWS.concat(PD_HIDDEN).map(([k,l])=>[l,v[k],k]);
 }
 function paintPdRowsSet(){
   const el=$('pdRowPick');if(!el)return;const hid=settings.pdHide||[];
@@ -3323,6 +3364,39 @@ $('pdMk').onclick=()=>withPerm('mkEdit','Needs a user allowed to update making.'
 function imgOn(){const l=store.get('imgLocal',null);return l==null?settings.showImg!==false:!!l}
 $('pdImgTog').onclick=()=>{store.set('imgLocal',!imgOn());renderEditor();toast(imgOn()?'Product images shown':'Product images hidden')};
 $('pdEdit').onclick=()=>{edOpen=$('editor').hidden;renderEditor();if(edOpen)$('editor').scrollIntoView({behavior:'smooth',block:'start'})};
+let pdHidOpen=false;
+$('pdHidT').onclick=()=>{if(pdHidOpen){pdHidOpen=false;$('pdHidL').hidden=true;$('pdHidT').textContent='Show hidden details';$('pdHidT').setAttribute('aria-expanded','false');return}
+  withPerm('pdHidden','Needs permission to see hidden details (NLC, FVA…).',()=>{pdHidOpen=true;$('pdHidL').hidden=false;$('pdHidT').textContent='Hide details';$('pdHidT').setAttribute('aria-expanded','true')})};
+// Discount checker: try a lower making, compare the price before and after, save the item to the quote
+function openDiscCheck(){
+  const t=cur,p=priceTag(t),g=gstPct();
+  if(!p.ok){toast('Price the item first',null,true);return}
+  if(!p.hasMk){toast('This item has no making to discount',null,true);return}
+  const u=t.mkType==='pct'?'%':t.mkType==='pergram'?'₹ per g':'₹';const base=num(t.mkVal);
+  $('modalTitle').textContent='Discount checker';$('modalTitle').classList.remove('price-pop');
+  $('modalBody').innerHTML=`<div class="note">Making on the label: <b>${esc(valText({type:t.mkType,val:base}))}</b> · ${inr(p.making)}</div>
+    <div class="lead-f"><label for="dcIn">Discounted making (${u})</label><input id="dcIn" inputmode="decimal" placeholder="${esc(fmtN(base))}" value="${t.qMk?esc(t.qMk.val):''}"></div>
+    <div class="lf-chips" id="dcChips">${[10,20,30,40,50].map(x=>`<button type="button" data-p="${x}">−${x}%</button>`).join('')}</div>
+    <div class="dc-cmp"><div><small>Before</small><b id="dcB">${inr(p.value*(1+g/100))}</b></div><div class="af"><small>After</small><b id="dcA">—</b></div></div>
+    <div class="dc-save" id="dcS"></div><p class="note" style="text-align:center;margin-top:4px">Prices include GST ${fmtN(g)}%.</p>`;
+  const calc=()=>{const v=num($('dcIn').value);if($('dcIn').value.trim()===''||isNaN(v)||v>=base){$('dcA').textContent='—';$('dcS').textContent=v>=base?'Must be lower than the label making':'';return null}
+    const tt=Object.assign({},t,{qMk:{type:t.mkType,val:fmtN(v)}}),after=quotedValue(tt,priceTag(tt))*(1+g/100),before=p.value*(1+g/100);
+    $('dcA').textContent=inr(after);$('dcS').textContent=`Saves ${inr(before-after)}`;return v};
+  $('dcIn').addEventListener('input',calc);
+  $('dcChips').querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{$('dcIn').value=fmtN(Math.round(base*(1-b.dataset.p/100)*100)/100);calc()});
+  calc();
+  const a=$('modalActs');a.innerHTML='';
+  const sv=document.createElement('button');sv.className='btn primary';sv.type='button';sv.textContent=editingId?'Update quote':'Save to quote';
+  sv.onclick=()=>{const v=calc();if(v==null){toast('Enter the discounted making',null,true);return}
+    const m=missing(cur);if(m.length){closeModal();toast('Required: '+m.map(x=>x.t).join(', '),null,true);return}
+    const rec={type:t.mkType,val:fmtN(v),by:curUser?(curUser.name||curUser.username):'',at:Date.now()};
+    // managers/admins apply it; others save it as the discount asked for (the manager applies it on approval)
+    if(can('mkDisc')||can('approve')){cur.qMk=rec;delete cur.qMkReq}else{cur.qMkReq=rec}
+    closeModal();if(cur.huidCount==null)cur.huidCount=0;commitTag();toast(cur.qMk?'Saved with the discount':'Saved · discount asked for, the manager applies it');};
+  const cl=document.createElement('button');cl.className='btn ghost';cl.type='button';cl.textContent='Close';cl.onclick=closeModal;
+  a.append(sv,cl);$('modal').hidden=false;setTimeout(()=>$('dcIn').focus(),60);
+}
+$('pdDisc').onclick=openDiscCheck;
 $('pdDel').onclick=()=>$('clearTag').click();
 $('pdClose').onclick=()=>{$('clearTag').click();window.scrollTo({top:0,behavior:'smooth'})};
 $('pdSave').onclick=()=>$('addTag').click();
@@ -3401,11 +3475,11 @@ function itemName(v){
 }
 const COLS={barcode:['BARCODE','BARCODENO','BARCODENUMBER','TAGNO','BARCODES','LABELNO','LABELNUMBER','TAGNUMBER'],item:['ITEMNAME','ITEM'],category:['ITEMTYPE','CATEGORY','TYPE'],stoneName:['STONENAMES','STONENAME','STONES'],saClr:['CLRSA','COLORSA','COLOURSA','CLRSTONEAMOUNT'],saDia:['DIASA','DIAMONDSA','DIAAMOUNT','DIAMONDAMOUNT'],carat:['CARRET','CARAT','KARAT','PURITY','PURITYK','CARATAGE','CARET'],
   gw:['GROSSWT','GROSSWTG','GROSSWEIGHT','GWT','GRWT'],nw:['NETWT','NETWTG','NETWEIGHT','NWT'],sw:['STONEWT','STONEWTG','STONEWEIGHT','SWT','STWT'],cw:['CLRSTNWT','COLORSTONEWT','COLOURSTONEWT','CLRSTONEWT','CLRWT','COLORSTONEWEIGHT','COLOURSTONEWEIGHT','CSWT'],dw:['DIAMONDWT','DIAMONDWEIGHT','DIAWT','DWT','DAIWT','DAIMONDWT','DIAWTCT','DIAMONDWTCT','DIAWTG','DIAMONDCT','DIACT'],dq:['DIAMONDQTY','DIAQTY','DIAMONDPCS','DAIPCS','DIAPCS','DAIQTY','DIACOUNT','DIAMONDCOUNT','DIANOS','DIAMONDNOS','NOOFDIAMONDS'],
-  sa:['STONEAMOUNT','STONEAMT','SA','SPR','STONEPRICE','STONEVALUE'],serial:['SERIAL','SERIALNO','SLNO'],label:['LABELCODE','LABEL'],location:['LOCATION','LOC'],labelDate:['LABELLINGDATE','LABELINGDATE','LABELDATE','TAGDATE','DATE'],pcs:['PCS','PIECES'],sq:['STONEQTY','STONEPCS','CLRSTNPCS','COLORSTONEPCS','COLOURSTONEPCS'],supplier:['SUPPLIER','VENDOR'],
+  sa:['STONEAMOUNT','STONEAMT','SA','SPR','STONEPRICE','STONEVALUE'],serial:['SERIAL','SERIALNO','SLNO'],label:['LABELCODE','LABEL'],location:['LOCATION','LOC'],size:['SIZE','RINGSIZE','LENGTH','SIZEINCH','SIZEMM'],model:['MODEL','MODELNO','MODELNUMBER','DESIGN','DESIGNNO','STYLE','STYLENO'],nlc:['NLC','NETLANDINGCOST','LANDINGCOST'],fva:['FVA','FIXEDVA','FACTORYVA','FVAPCT'],labelDate:['LABELLINGDATE','LABELINGDATE','LABELDATE','TAGDATE','DATE'],pcs:['PCS','PIECES'],sq:['STONEQTY','STONEPCS','CLRSTNPCS','COLORSTONEPCS','COLOURSTONEPCS'],supplier:['SUPPLIER','VENDOR'],
   mk:['MAKING','MAKINGCHARGE','MAKINGCHARGES','MC','MCRATE','VA','VARATE','MAKINGMBD','MBD'],mkType:['MAKINGTYPE','MCTYPE','VATYPE','MAKINGON'],
   mkPct:['WSTG','WSTGPCT','WASTAGE','WASTAGEPCT','WASTAGEPERCENT','MAKINGPCT','MAKINGPERCENT','MAKINGPERCENTAGE','VAPCT','VAPERCENT','MCPCT','MCPERCENT'],mkPg:['MAKINGRATE','LABOURRATE','LABORRATE','LABOURRATEPERGRAM','MAKINGPG','MAKINGPERGRAM','MAKINGPERGM','MCPG','MCPERGRAM','MCPERGM'],mkFix:['FIXEDCHARGE','FIXEDCHARGES','FIXEDCHARGERS','LABOURCHARGES','LABOURCHARGE','LABORCHARGES','LABORCHARGE','MAKINGFIXED','MAKINGAMOUNT','MAKINGAMT','MCAMOUNT','MCAMT','MCFIXED','MAKINGPERPIECE','MCPERPIECE'],
   huid:['HUIDCOUNT','HUID','HUIDQTY','HUIDNOS','HUIDNO','NOOFHUID','HUIDPCS','HUIDS']};
-const NUMCOLS=['gw','nw','sw','cw','dw','dq','sa','pcs','sq','saClr','saDia'];
+const NUMCOLS=['gw','nw','sw','cw','nlc','dw','dq','sa','pcs','sq','saClr','saDia'];
 // Making and HUID from the stock sheet. Making: one "Making" column ("14%", "2500 PG", "1500 fixed"; a plain number
 // up to 100 is %, above 100 is fixed unless a Making Type column says per gram), or separate %, per-gram and fixed columns.
 function stockMaking(rec){
@@ -3801,15 +3875,16 @@ const PERM_LIST=[
 ['stockdel','Delete sold tags from stock'],['rates',"Set day's rates"],
   ['mkEdit','Update making on the price card'],['mkDisc','Making after discount on quotes'],
   ['closeSale','Close sale (invoice no.)'],['cancelQuote','Cancel quote (enquiry)'],['reopen','Reopen sold / cancelled quotes'],
-  ['delQuote','Delete quotes'],['images','Add product photos'],['share','Share quotes on WhatsApp'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],
+  ['delQuote','Delete quotes'],['images','Add product photos'],['share','Share quotes on WhatsApp'],['pdHidden','See hidden details (NLC, FVA…)'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],
   ['textSize','Text size'],['imgShow','Product image show / hide'],['ratesShown','Rates shown'],['charges','Charges · GST · HUID'],
   ['mkHelper','Making helpers'],['itemCodes','Item codes'],['pdRows','Product details items'],['sync','Shared database · shop key'],['roles','Roles & permissions'],['users','Users']];
 const SET_PERMS=['theme','footer','apprSet','export','stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users'];
 const permLabel=k=>(PERM_LIST.find(p=>p[0]===k)||[0,k])[1];
-const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','approve','leads','share']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share']}];
+const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','approve','leads','share','pdHidden']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share']}];
 let roles=store.get('roles',null)||clone(DEFAULT_ROLES);
 // WhatsApp sharing became a permission (v1.7.3): roles on this phone keep it once
 if(!store.get('permShare',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&!r.perms.includes('share'))r.perms.push('share')});store.set('roles',roles);store.set('permShare',true)}
+if(!store.get('permHid',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('mkDisc')&&!r.perms.includes('pdHidden'))r.perms.push('pdHidden')});store.set('roles',roles);store.set('permHid',true)}
 let elev={role:'',until:0};   // another user's approval, 15 minutes
 const roleName=id=>id==='admin'?'Admin':(roles.find(r=>r.id===id)||{name:id||'—'}).name;
 // 'settings' was one permission before v1.6.42; it still grants all the settings functions

@@ -257,3 +257,10 @@ A card is locked for users without that permission; opening it asks for a user w
 - **Quote search** (Quote → Quotes): party name or phone, quote number (final or provisional), user (for those who see all quotes) and date.
 - **Separate final number series** by sale type, given on approval or when the sale is closed: Online enquiry `ON-000001…`, Store walk-in `SW-000001…` (older `QT-` numbers stay).
 - **Product card by sale type**: Just price check — nothing is saved, a **Close** button clears the card; Online enquiry — **Save to Quote**; Store walk-in — **Save to Quote** and **Edit details**.
+
+## V 1.7.6 (9 Nov 2026)
+
+- **Product details**: "Making Rate" is now **Making Charges**; new rows **Diamond Pcs** and **Size** (stock column Size / Ring Size / Length).
+- **Hidden details** (tap "Show hidden details"; permission "See hidden details (NLC, FVA…)", managers have it): NLC, FVA, HUID, Model, Stone Names, Supplier (stock columns NLC, FVA, HUID No, Model / Design No, Stone Name(s), Supplier).
+- **Discount checker** on the product card (Home): enter the discounted making (or −10…−50%), see the price before and after (incl. GST) and save the item to the quote. Managers/admins save it with the discount; others save it as "asked", shown to the manager in the Discount section.
+- **Quote → Discount**: helper buttons (−10/−20/−30/−50% making on every item, Reset), **Fit budget** (finds the making discount that brings the final price to the customer's budget), first and final price per item, and **Remove item** for items the customer did not choose.
