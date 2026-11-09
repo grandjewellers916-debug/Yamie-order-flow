@@ -310,3 +310,4 @@ A card is locked for users without that permission; opening it asks for a user w
 - Close sale: the **Yamie ERP** invoice number can be entered then or added later on the closed quote (saved to the shared database).
 - **Reports** (Settings → Reports; permission "Reports", managers and admins): quoted, generated, approved, total sales from completed quotes, savings and offers given, open / enquiry only, conversion; by user, by sale type, sold by item, completed sales with invoice numbers. Period and sale type filters; **Export Excel** (Summary, By user, By sale type, By item, Sales, Quotes).
 - Settings changed by an admin (promotions etc.) reach phones within about a minute.
+- **Quotation number** (given when a quote is first saved): first 3 letters of the staff member's name / year / their number — e.g. `RAV/26/274`. Each person's count starts again every year. Older P- numbers stay; the final ON-/SW- numbers are unchanged.

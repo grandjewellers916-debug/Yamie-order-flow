@@ -70,8 +70,9 @@ function cleanQuote(q: any) {
   if (!q || typeof q !== "object" || typeof q.id !== "string" || !q.id) return null
   const out = JSON.parse(JSON.stringify(q, (k, v) => (k === "photos" || k === "thumbs" ? undefined : v)))
   out.id = cleanStr(out.id, 24)
-  out.no = /^((QT|ON|SW)-\d{1,9}|P-[A-Z0-9]{1,8}-\d{1,6})$/.test(out.no || "") ? out.no : ""
-  out.pno = /^P-[A-Z0-9]{1,8}-\d{1,6}$/.test(out.pno || "") ? out.pno : ""
+  const PROV = /^(P-[A-Z0-9]{1,8}-\d{1,6}|[A-Z0-9]{1,3}\/\d{2}\/\d{3,6})$/
+  out.no = /^(QT|ON|SW)-\d{1,9}$/.test(out.no || "") || PROV.test(out.no || "") ? out.no : ""
+  out.pno = PROV.test(out.pno || "") ? out.pno : ""
   out.byId = cleanStr(out.byId, 40)
   out.updated = cleanNum(out.updated) || Date.now()
   if (JSON.stringify(out).length > 120000) return null
@@ -249,18 +250,21 @@ export default async (req: Request) => {
       if (prev?.appr?.state === "approved" && q.appr?.state === "pending" && (q.appr.reqAt || 0) <= (prev.appr.reqAt || 0))
         return json(req, { v: meta.quotes, quote: prev, conflict: true })
       // Numbers are given here so they never clash:
-      //  - a provisional number per user (P-RAVI-0001) when the quote is first saved
+      //  - a quotation number per staff member when the quote is first saved: first 3 letters of the name / year / number
+      //    e.g. RAV/26/274 (Ravi's 274th quote of 2026; the count starts again each year)
       //  - the common series number (QT-000001…) once the sale is closed
       if (prev?.no) q.no = prev.no
       if (prev?.pno) q.pno = prev.pno
       if (!q.no) {
         const us: any[] = ((await st.get("users", { type: "json" })) as any[]) || []
         const u = us.find((x) => x.id === q.byId) || us.find((x) => x.name === q.by)
-        const code = ((u?.username || q.by || "USER").toUpperCase().replace(/[^A-Z0-9]/g, "") || "USER").slice(0, 6)
-        const sk = "pseq-" + (u?.id || code).replace(/[^\w-]/g, "")
+        const nm = String(u?.name || q.by || u?.username || "USR").toUpperCase().replace(/[^A-Z]/g, "")
+        const code = (nm || String(u?.username || "USR").toUpperCase().replace(/[^A-Z0-9]/g, "") || "USR").slice(0, 3)
+        const yy = String(new Date(Date.now() + 5.5 * 3600e3).getUTCFullYear()).slice(-2)   // India time
+        const sk = "qseq-" + (u?.id || code).replace(/[^\w-]/g, "") + "-" + yy
         const n = (Number(((await st.get(sk, { type: "json" })) as any)?.n) || 0) + 1
         await st.setJSON(sk, { n })
-        q.no = q.pno = "P-" + code + "-" + String(n).padStart(4, "0")
+        q.no = q.pno = code + "/" + yy + "/" + String(n).padStart(3, "0")
       }
       // The final number is given when a manager/admin approves the quote, or when the sale is closed.
       // Separate series by sale type: online enquiries ON-000001…, store walk-ins SW-000001… (older QT- numbers stay).
