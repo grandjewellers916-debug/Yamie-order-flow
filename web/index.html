@@ -3523,7 +3523,8 @@ function stockMaking(rec){
   const nw=n(rec.nw);
   if(!isNaN(n(rec.mkPg)))mk=!isNaN(nw)&&nw<1?{type:'fixed',val:n(rec.mkPg)}:{type:'pergram',val:n(rec.mkPg)};
   else if(!isNaN(n(rec.mkFix)))mk={type:'fixed',val:n(rec.mkFix)};
-  else if(!isNaN(n(rec.mkPct)))mk={type:'pct',val:n(rec.mkPct)};
+  // Wstg % is always a percentage: 12, "12%" or Excel's 0.12 all mean 12%
+  else if(!isNaN(n(rec.mkPct))){let v=n(rec.mkPct);if(v<1)v=Math.round(v*10000)/100;mk={type:'pct',val:v}}
   else if(rec.mk!=null&&String(rec.mk).trim()!==''){
     const raw=String(rec.mk).trim(),pv=parseVal(raw.replace(/\s*(PER\s*GRAM|PERGRAM)$/i,' PG')),forced=typeOf(rec.mkType);
     if(pv&&pv.val>0)mk={type:forced||pv.type,val:pv.val};
@@ -3629,6 +3630,8 @@ $('ssFind').addEventListener('input',()=>{
   $('ssUse').onclick=()=>{if(editingId){cur=blankTag();editingId=null}else if(cur.touched&&cur.stockKey!==rec.key){cur=blankTag()}thumbs={front:null,back:null};applyStock(rec);closeStock();setStatus(`Found ${rec.barcode} in stock.`+(missing(cur).some(x=>x.k==='making')?(rec.label?' Pick the making from the label.':' Pick the making.'):''),'ok');window.scrollTo({top:$('editor').offsetTop-10,behavior:'smooth'})};
 });
 function applyStock(rec){
+  // stock loaded before v1.7.8 may hold Excel's 0.12 for 12% wastage
+  if(rec&&rec.mkType==='pct'&&num(rec.mk)>0&&num(rec.mk)<1)rec=Object.assign({},rec,{mk:String(Math.round(num(rec.mk)*10000)/100)});
   // Another stock item replaces the one shown: start clean so no weight or stone value carries over
   if(cur.stockKey&&cur.stockKey!==rec.key){const id=cur.id;Object.assign(cur,blankTag(),{id})}
   cur.stockKey=rec.key;cur.stock={...rec};cur.touched=true;
