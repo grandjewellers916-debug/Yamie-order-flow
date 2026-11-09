@@ -296,3 +296,9 @@ A card is locked for users without that permission; opening it asks for a user w
 - **Top of the Quote page**: Total Label Value · Savings · Net Payable in one box.
 - Summary in colour: Savings on a green band in bold, Final Amount highlighted.
 - Fix: a manager's PIN given for one thing (e.g. sharing or hidden details) no longer unlocks everything the manager can do for 15 minutes — only that permission. Staff no longer see or edit the discount section after such an approval.
+
+## V 1.7.65 (9 Nov 2026)
+
+- **Top box** (Total Label Value · Savings · Net Payable) stays on screen while scrolling the Quote page.
+- **Special Price** (was Discount), below the Summary, folded by default. Setting it is an **admin** function; managers see it and **Forward to admin for special price** (the admin is notified, sets it and approves; the manager is notified).
+- **WhatsApp quote image** redesigned around the savings: a "Your special price" banner (label value struck through, the price to pay, a gold "You save ₹… · …% off" badge), each item with its label price struck through, the special price and a green SAVE pill (all incl. GST), savings lines on green bands, and "You save ₹… on this purchase" under the balance.

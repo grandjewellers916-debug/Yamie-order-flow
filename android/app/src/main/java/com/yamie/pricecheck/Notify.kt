@@ -109,7 +109,7 @@ object Notify {
         val first = !prefs(c).getBoolean("init", false)
         fun each(name: String, f: (JSONObject) -> Unit) { val a = j.optJSONArray(name) ?: return; for (i in 0 until a.length()) a.optJSONObject(i)?.let(f) }
         if (approver) each("pending") { p ->
-            if (p.optString("by") != me && (p.optString("to").isEmpty() || p.optString("to") == me)) {
+            if (p.optString("by") != me && (p.optString("to").isEmpty() || p.optString("to") == me) && (p.optString("kind") != "special" || cfg.optBoolean("admin"))) {
                 val k = "p:" + p.optString("id") + ":" + p.optLong("at")
                 if (markSeen(c, k) && !first) show(c, "Approve " + p.optString("no", "quote") + nameOf(p),
                     "From " + p.optString("byName", "staff") + " · tap to set the discount and approve", k, "pending:" + p.optString("id"))

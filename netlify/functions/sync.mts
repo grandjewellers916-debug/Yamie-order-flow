@@ -149,7 +149,7 @@ export default async (req: Request) => {
   }
   const roleHas = (role: string, perm: string) => {
     if (role === "admin") return true
-    if (perm === "stock" || perm === "theme" || perm === "footer" || perm === "apprSet") return false   // stock data and theme: admins only
+    if (perm === "stock" || perm === "theme" || perm === "footer" || perm === "apprSet" || perm === "special") return false   // stock data and theme: admins only
     const ps: string[] = roles.find((r) => r.id === role)?.perms || []
     return ps.includes(perm) || (ps.includes("settings") && [...SETTINGS_PERMS, "textSize"].includes(perm)) || (perm === "roles" && ps.includes("users"))
   }
@@ -199,7 +199,7 @@ export default async (req: Request) => {
         const qs: any[] = ((await st.get("quotes", { type: "json" })) as any[]) || []
         const ls: any[] = ((await st.get("leads", { type: "json" })) as any[]) || []
         const pending = qs.filter((q) => q?.appr?.state === "pending" && q.status !== "cancelled" && q.status !== "closed").slice(0, 50)
-          .map((q) => ({ id: q.id, no: q.no || "", name: cleanStr(q.cust?.name, 40), by: q.appr.reqBy || "", byName: cleanStr(q.appr.reqName, 40), to: cleanStr(q.appr.to, 40), at: q.appr.reqAt || q.updated || 0 }))
+          .map((q) => ({ id: q.id, no: q.no || "", name: cleanStr(q.cust?.name, 40), by: q.appr.reqBy || "", byName: cleanStr(q.appr.reqName, 40), to: cleanStr(q.appr.to, 40), kind: cleanStr(q.appr.kind, 12), at: q.appr.reqAt || q.updated || 0 }))
         const approved = qs.filter((q) => q?.appr?.state === "approved" && q.appr.at > Date.now() - 3 * 864e5).slice(0, 50)
           .map((q) => ({ id: q.id, no: q.no || "", name: cleanStr(q.cust?.name, 40), to: q.appr.reqBy || "", byName: cleanStr(q.appr.by, 40), at: q.appr.at || 0 }))
         const leads = ls.filter((l) => l.state === "new").slice(0, 50).map((l) => ({ id: l.id, to: l.to || "", name: cleanStr(l.name, 40), byName: cleanStr(l.byName, 40), at: l.at || 0 }))

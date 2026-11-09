@@ -729,7 +729,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .qi-fva{grid-column:1/-1;margin:4px 0 0 18px;font-size:13px;color:#fff;background:linear-gradient(135deg,#3B1A5C,#5B2A86);border-radius:10px;padding:7px 10px;font-weight:700;line-height:1.5}
 .qi-fva small{color:rgba(255,255,255,.7);font-weight:500}.qi-fva b{font-weight:900;color:#FFE08A;font-size:14px}
 .qi-fva .fa{color:#fff}.qi-fva.on{outline:2px solid #FFE08A}
-.q-hsum{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;margin:0 0 12px;border-radius:16px;overflow:hidden;box-shadow:0 6px 18px rgba(59,26,92,.22);background:linear-gradient(135deg,#3B1A5C,#5B2A86)}
+.q-hsum{position:sticky;top:max(8px,env(safe-area-inset-top));z-index:30;display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;margin:0 0 12px;border-radius:16px;overflow:hidden;box-shadow:0 6px 18px rgba(59,26,92,.22);background:linear-gradient(135deg,#3B1A5C,#5B2A86)}
 .q-hsum>div{padding:12px 10px;text-align:center;color:#fff;display:flex;flex-direction:column;gap:2px;min-width:0}
 .q-hsum>div+div{border-left:1px solid rgba(255,255,255,.18)}
 .q-hsum small{font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;opacity:.8}
@@ -861,6 +861,9 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .lead-f input,.lead-f textarea,.lead-f select{width:100%;font:15px var(--body);padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg)}
 .lead-f textarea{min-height:76px;resize:vertical}
 .lead-f label{font-size:12.5px;color:var(--muted);margin-bottom:-4px}
+.qd-head{width:100%;border:0;background:none;padding:0;cursor:pointer;color:inherit;text-align:left;display:flex;align-items:center;gap:8px}
+.qd-head h2{flex:1}.qd-head .dc-chev{transition:transform .2s}.qd-head[aria-expanded="true"] .dc-chev{transform:rotate(180deg)}
+#qDiscBody{margin-top:8px}
 .fp-role{padding:10px 0;border-bottom:1px solid var(--line)}.fp-role:last-child{border-bottom:0}
 .fp-role>b{display:block;font-size:14px;margin-bottom:6px}
 .fp-tabs{display:flex;flex-wrap:wrap;gap:6px}
@@ -1383,11 +1386,14 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
     </div>
 
     <div class="card q-disc" id="qDiscCard" data-mgr>
-      <div class="sec-head"><h2>Discount</h2><span class="qd-tot" id="qDiscTot"></span></div>
-      <p class="note" style="margin:0">Manager enters the making after discount for each item. The difference is shown as discount.</p>
+      <button type="button" class="sec-head qd-head" id="qDiscHead" aria-expanded="false"><h2>Special Price</h2><span class="qd-tot" id="qDiscTot"></span><span class="dc-chev" aria-hidden="true">▾</span></button>
+      <div id="qDiscBody" hidden>
+      <p class="note" style="margin:0" id="qDiscNote">Admin sets the special making for each item. The difference is shown as savings.</p>
       <div id="qDiscList"></div>
+      <button class="btn primary" type="button" id="qDiscFwd" hidden>Forward to admin for special price</button>
       <button class="btn" type="button" id="qDiscMgr" hidden>Manager login to enter discount</button>
       <div class="qd-extra" id="qDiscExtraRow"><span>Additional discount (flat)</span><span><b id="qDiscExtraV">None</b> <button class="linkbtn" type="button" id="qDiscExtraBtn">Change</button><button type="button" id="qDisc" hidden></button></span></div>
+      </div>
     </div>
 
     <div class="card q-photos">
@@ -2774,7 +2780,7 @@ function renderBill(keepInputs){
 function gstPct(){return num(settings.gst)||0}
 // Discount section: manager enters making after discount per item; the difference is the discount
 function renderDiscount(s){
-  const el=$('qDiscList'),g=gstPct(),closed=isClosed(),edit=(can('mkDisc')||can('approve'))&&!closed;
+  const el=$('qDiscList'),g=gstPct(),closed=isClosed(),edit=can('special')&&!closed;
   if(!bill.items.length){el.innerHTML='<div class="empty-q">Discount is set here once items are in the quote.</div>';$('qDiscTot').textContent='';$('qDiscMgr').hidden=true;$('qDiscExtraRow').hidden=true;return}
   el.innerHTML=bill.items.map((t,i)=>{const p=priceTag(t),q=quotedValue(t,p),d=p.value-q,u=t.mkType==='pct'?'%':t.mkType==='pergram'?'₹/g':'₹';
     return `<div class="qd-row"><div class="qd-a"><b>${i+1}. ${esc(keyOf(t.sku))}</b> <span class="m">${esc((t.stock&&t.stock.category)||t.item||'')}</span></div>
@@ -2796,8 +2802,12 @@ function renderDiscount(s){
   }));
   const tot=s.mkDisc+s.disc;
   $('qDiscTot').textContent=tot>0.5?`Total discount −${inr(tot)}`:'';
-  $('qDiscMgr').hidden=can('mkDisc')||can('approve')||closed;
-  $('qDiscExtraRow').hidden=!can('addDisc')&&!s.flat;$('qDiscExtraV').textContent=s.flat?'−'+inr(s.flat):'None';$('qDiscExtraBtn').hidden=!can('addDisc')||closed;
+  $('qDiscMgr').hidden=true;
+  $('qDiscExtraRow').hidden=!can('special')&&!s.flat;$('qDiscExtraV').textContent=s.flat?'−'+inr(s.flat):'None';$('qDiscExtraBtn').hidden=!can('special')||closed;
+  // managers forward the quote to an admin for a special price
+  {const a=bill.appr||{},sent=a.state==='pending'&&a.kind==='special';$('qDiscFwd').hidden=can('special')||closed||!can('mkDisc')&&!can('approve')||!sync.key;
+   $('qDiscFwd').textContent=sent?'Forwarded to admin · waiting':'Forward to admin for special price';$('qDiscFwd').disabled=sent;
+   $('qDiscNote').textContent=can('special')?'Set the special making for each item. The difference is shown as savings.':'Special price is set by an admin. Forward the quote to ask for one.'}
 }
 function oldLine(o){const v=oldValue(o),r=oldRate(o);return isNaN(v)?'Enter net weight':`${fmtW(num(o.wt))} g × ${inr(r)} = ${inr2(v)}`}
 function renderDeductions(){
@@ -2842,7 +2852,18 @@ $('addAdv').onclick=notClosed(()=>{const a={id:uid(),amount:'',mode:'Cash',note:
 $('qtUrd').onclick=()=>{$('addOld').click();$('qUrdSec').scrollIntoView({behavior:'smooth',block:'center'})};
 $('qtSr').onclick=()=>{$('addRet').click();$('qSrSec').scrollIntoView({behavior:'smooth',block:'center'})};
 $('qDiscMgr').onclick=()=>withManager('A manager must log in to enter the discount.',()=>renderBill());
-$('qDiscExtraBtn').onclick=()=>withPerm('addDisc','Additional discount is for managers and admins.',()=>$('qDisc').click());
+$('qDiscExtraBtn').onclick=()=>withPerm('special','Special price is set by an admin.',()=>$('qDisc').click());
+$('qDiscHead').onclick=()=>{const o=$('qDiscBody').hidden;$('qDiscBody').hidden=!o;$('qDiscHead').setAttribute('aria-expanded',String(o))};
+$('qDiscFwd').onclick=()=>{
+  const ad=users.filter(u=>u.active!==false&&u.role==='admin'&&(!curUser||u.id!==curUser.id));
+  if(!ad.length){toast('No admin user to forward to',null,true);return}
+  if(!bill.items.length){toast('Add an item first',null,true);return}
+  showModal('Forward for special price','',[{label:'Forward',cls:'primary',run:async()=>{const r=document.querySelector('#fwdList input:checked'),to=r?r.value:'';
+    saveBill(true);if(!bill.no)await pushQuote(bill.id);
+    bill.appr={state:'pending',kind:'special',reqBy:curUser.id,reqName:meName(),reqAt:Date.now(),to};saveBill(true);renderBill();const ok=await pushQuote(bill.id);renderBill();
+    toast(ok?`${bill.no||'Quote'} forwarded to ${to?(users.find(u=>u.id===to)||{}).name||'admin':'admins'}`:'Saved. It will be sent when online.',null,!ok)}},{label:'Cancel',cls:'ghost'}]);
+  $('modalBody').innerHTML='<p>The admin sets the special price and approves it; you are notified.</p><div class="ap-list" id="fwdList">'+(ad.length>1?'<label class="ap-opt"><input type="radio" name="fwd" value="" checked> Any admin</label>':'')+ad.map((u,i)=>`<label class="ap-opt"><input type="radio" name="fwd" value="${esc(u.id)}"${ad.length===1&&!i?' checked':''}> ${esc(u.name||u.username)} <small>Admin</small></label>`).join('')+'</div>';
+};
 $('qAdv').onclick=()=>{$('addAdv').click();$('qAdvSec').scrollIntoView({behavior:'smooth',block:'center'})};
 $('qDisc').onclick=notClosed(()=>{
   if(!$('modal').hidden)return;
@@ -3071,16 +3092,17 @@ async function makeQuoteImage(withPhotos){
   const items=bill.items.map(t=>{const p=priceTag(t),q=quotedValue(t,p);return {t,p,q,st:t.stock||{}}});
   const thumbs=withPhotos?await Promise.all(items.map(async x=>loadImg(await getProdImg(keyOf(x.t.sku))))):items.map(()=>null);
   const logo=await loadImg(BRAND.logoHeader);
-  const sumRows=[['Items value',inr(s.listSub)]];
-  if(s.mkDisc>0.5)sumRows.push(['Making discount','−'+inr(s.mkDisc)]);
+  const G=1+g/100,labelTot=s.listSub*G+s.delivery*G,saveTot=Math.max(0,labelTot-s.final),savePct=labelTot>0?saveTot/labelTot*100:0,hasSave=saveTot>=1;
+  const sumRows=[['Value at label price',inr(s.listSub)]];
+  if(s.mkDisc>0.5)sumRows.push(['Your savings','−'+inr(s.mkDisc),2]);
   if(s.courier)sumRows.push([`Delivery · ${s.courier.name}`,s.delivery?'+'+inr(s.delivery):'Free']);
   sumRows.push(['Taxable value',inr(s.taxable),1],[`GST (${fmtN(g)}%)`,inr(s.gst)]);
-  if(s.disc>0.5)sumRows.push(['Discount','−'+inr(s.disc)]);
+  if(s.disc>0.5)sumRows.push(['Extra savings','−'+inr(s.disc),2]);
   sumRows.push(['Final amount',inr(s.final),1]);
   if(s.old)sumRows.push([`Old gold (URD) ${fmtW(s.oldW)} g`,'−'+inr(s.old)]);
   if(s.ret)sumRows.push(['Sales return','−'+inr(s.ret)]);
   if(s.adv)sumRows.push(['Advance paid','−'+inr(s.adv)]);
-  const ROW=262,H=270+150+110+items.length*(ROW+20)+40+sumRows.length*60+150+110+(firmAddr()?3:1)*34-20;
+  const HERO=hasSave?300:0,ROW=262,H=270+150+110+HERO+items.length*(ROW+20)+40+sumRows.length*60+150+(hasSave?70:0)+110+(firmAddr()?3:1)*34-20;
   const cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');
   c.fillStyle='#FBF8F5';c.fillRect(0,0,W,H);
   // header
@@ -3104,6 +3126,21 @@ async function makeQuoteImage(withPhotos){
   c.fillStyle=INK;c.font=F(600,27);
   c.fillText(fitText(c,SHOWN().map(p=>{const r=rateFor(p.id);return `${p.label} ${r==null?'—':inr(r)}`}).join('   ·   '),W-2*P-48),P+24,y+68);
   y+=110;
+  // savings banner: anchor on the label value, then the price they pay and what they save
+  if(hasSave){
+    rrect(c,P,y,W-2*P,270,28);const hg=c.createLinearGradient(P,y,W-P,y+270);hg.addColorStop(0,'#3B1A5C');hg.addColorStop(1,'#6B2F9A');c.fillStyle=hg;c.fill();
+    c.fillStyle='rgba(255,255,255,.07)';c.beginPath();c.arc(W-P-60,y+40,150,0,Math.PI*2);c.fill();
+    c.fillStyle='#F3D9B1';c.font=F(600,24);c.fillText('Y O U R   S P E C I A L   P R I C E',P+36,y+52);
+    c.fillStyle='rgba(255,255,255,.75)';c.font=F(400,30);const lv='Label value '+inr(r100(labelTot));c.fillText(lv,P+36,y+100);
+    const lw=c.measureText(lv).width;c.strokeStyle='rgba(255,255,255,.75)';c.lineWidth=3;c.beginPath();c.moveTo(P+36+c.measureText('Label value ').width,y+90);c.lineTo(P+36+lw,y+90);c.stroke();
+    c.fillStyle='#fff';c.font=F(700,64);c.fillText(inr(s.final),P+36,y+172);
+    c.fillStyle='rgba(255,255,255,.8)';c.font=F(400,24);c.fillText('incl. GST · at today\'s gold rate',P+36,y+212);
+    // savings badge
+    const bx=W-P-330,by=y+70;rrect(c,bx,by,300,150,24);c.fillStyle='#FFE08A';c.fill();
+    c.fillStyle='#3B1A5C';c.textAlign='center';c.font=F(600,26);c.fillText('YOU SAVE',bx+150,by+42);
+    c.font=F(700,52);c.fillText(inr(saveTot),bx+150,by+100);c.font=F(600,24);c.fillText(`${fmtN(Math.round(savePct*10)/10)}% off`,bx+150,by+134);c.textAlign='left';
+    y+=HERO;
+  }
   // items
   items.forEach((x,i)=>{
     const {t,p,q,st}=x,top=y;
@@ -3126,24 +3163,28 @@ async function makeQuoteImage(withPhotos){
     if(stoneTxt){c.fillText(fitText(c,stoneTxt,mid-X+40),X,ly);ly+=32}
     if(st.stoneName)c.fillText(fitText(c,st.stoneName,mid-X+40),X,ly);
     c.textAlign='right';
-    const list=p.value,net=q;
-    if(p.ok&&net<list-0.5){c.fillStyle=MUTED;c.font=F(400,26);const lt=inr(list);c.fillText(lt,RX,ty+60);const lw=c.measureText(lt).width;c.strokeStyle=MUTED;c.lineWidth=2;c.beginPath();c.moveTo(RX-lw,ty+51);c.lineTo(RX,ty+51);c.stroke();
-      c.fillStyle=MAROON;c.font=F(700,40);c.fillText(inr(net),RX,ty+108);c.fillStyle='#2E7D4F';c.font=F(600,22);c.fillText('You save '+inr(list-net),RX,ty+144)}
-    else{c.fillStyle=MAROON;c.font=F(700,40);c.fillText(p.ok?inr(list):'—',RX,ty+84)}
-    c.fillStyle=MUTED;c.font=F(400,20);c.fillText('+ GST',RX,ty+210);
+    const list=p.value*G,net=q*G;
+    if(p.ok&&net<list-0.5){c.fillStyle=MUTED;c.font=F(400,26);const lt=inr(r100(list));c.fillText(lt,RX,ty+52);const lw=c.measureText(lt).width;c.strokeStyle='#B04040';c.lineWidth=3;c.beginPath();c.moveTo(RX-lw,ty+43);c.lineTo(RX,ty+43);c.stroke();
+      c.fillStyle='#3B1A5C';c.font=F(700,42);c.fillText(inr(r100(net)),RX,ty+102);
+      const sv='SAVE '+inr(r100(list)-r100(net));c.font=F(700,24);const sw=c.measureText(sv).width+32;rrect(c,RX-sw,ty+124,sw,44,22);c.fillStyle='#1F7A4D';c.fill();c.fillStyle='#fff';c.fillText(sv,RX-16,ty+154)}
+    else{c.fillStyle=MAROON;c.font=F(700,40);c.fillText(p.ok?inr(r100(list)):'—',RX,ty+84)}
+    c.fillStyle=MUTED;c.font=F(400,20);c.fillText('incl. GST',RX,ty+210);
     c.textAlign='left';
     y+=ROW+20;
   });
   // summary
   y+=20;
-  sumRows.forEach(([l,v,b])=>{c.fillStyle=b?INK:MUTED;c.font=F(b?600:400,b?30:28);c.fillText(l,P+8,y+36);c.textAlign='right';c.fillText(v,W-P-8,y+36);c.textAlign='left';
+  sumRows.forEach(([l,v,b])=>{
+    if(b===2){rrect(c,P,y+4,W-2*P,52,14);c.fillStyle='#1F7A4D';c.fill();c.fillStyle='#fff';c.font=F(700,30);c.fillText(l,P+20,y+40);c.textAlign='right';c.fillText(v,W-P-20,y+40);c.textAlign='left';y+=60;return}
+    c.fillStyle=b?INK:MUTED;c.font=F(b?600:400,b?30:28);c.fillText(l,P+8,y+36);c.textAlign='right';c.fillText(v,W-P-8,y+36);c.textAlign='left';
     c.strokeStyle=LINE;c.lineWidth=2;c.beginPath();c.moveTo(P,y+56);c.lineTo(W-P,y+56);c.stroke();y+=60});
   y+=24;
   rrect(c,P,y,W-2*P,104,20);const g3=c.createLinearGradient(P,y,W-P,y);g3.addColorStop(0,BAND);g3.addColorStop(1,MAROON);c.fillStyle=g3;c.fill();
   c.fillStyle='#fff';c.font=F(600,34);c.fillText(s.net<0?'Refund':'Balance amount',P+32,y+66);c.textAlign='right';c.font=F(700,48);c.fillText(inr(Math.abs(s.net)),W-P-32,y+70);c.textAlign='left';
-  y+=140;
+  y+=130;
+  if(hasSave){c.textAlign='center';c.fillStyle='#1F7A4D';c.font=F(700,34);c.fillText(`You save ${inr(saveTot)} on this purchase`,W/2,y+22);c.textAlign='left';y+=70}
   c.fillStyle=MUTED;c.font=F(400,22);c.textAlign='center';
-  c.fillText(`Item prices before ${fmtN(g)}% GST${s.huidN?', including HUID charges':''}. Valid today at the rates shown.`,W/2,y+10);
+  c.fillText(`Item prices include ${fmtN(g)}% GST${s.huidN?' and HUID charges':''}. Special price valid today at the gold rate shown.`,W/2,y+10);
   const A=firmAddr()||{name:BRAND.full,lines:[]};
   c.fillStyle=MAROON;c.font=F(700,26);c.fillText(A.name,W/2,y+56);
   c.fillStyle=INK;A.lines.forEach((l,i)=>{let fs=23;c.font=F(400,fs);while(fs>16&&c.measureText(l).width>W-2*P){fs--;c.font=F(400,fs)}c.fillText(l,W/2,y+92+i*32)});c.textAlign='left';
@@ -3936,7 +3977,7 @@ $('tabFind').onclick=()=>openFind();
 $('tabRates').onclick=()=>openRates();
 $('tabSet').onclick=()=>openSettings();
 setView('home');
-window.__pc={totals:()=>totals(),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
+window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
 const APP_VERSION='1.7.__BUILD__';
@@ -3968,7 +4009,7 @@ let elev={role:'',until:0};   // another user's approval, 15 minutes
 const roleName=id=>id==='admin'?'Admin':(roles.find(r=>r.id===id)||{name:id||'—'}).name;
 // 'settings' was one permission before v1.6.42; it still grants all the settings functions
 const OLD_SETTINGS=['textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows'];
-const ADMIN_ONLY=['stock','theme','footer','apprSet','export'];   // Stock data is an admin function
+const ADMIN_ONLY=['stock','theme','footer','apprSet','export','special'];   // Stock data is an admin function
 function roleHas(role,perm){if(role==='admin')return true;if(ADMIN_ONLY.includes(perm))return false;const ps=((roles.find(r=>r.id===role)||{}).perms||[]);return ps.includes(perm)||(OLD_SETTINGS.includes(perm)&&ps.includes('settings'))||(perm==='roles'&&ps.includes('users'))}
 // A manager's PIN approval covers only what it was asked for (e.g. sharing), not everything the manager can do
 function can(perm){return !!(curUser&&roleHas(curUser.role,perm))||(Date.now()<elev.until&&roleHas(elev.role,perm)&&(!elev.perms||elev.perms.includes(perm)))}
@@ -4096,7 +4137,7 @@ function paintAppr(){
   const st=apprState(bill),closed=isClosed(),lead=bill.leadNote||'',need=needsAppr();
   const sec=$('bill');
   sec.classList.toggle('staff',need);
-  sec.classList.toggle('mgr',can('mkDisc')||can('approve')||can('addDisc'));
+  sec.classList.toggle('mgr',can('special')||can('mkDisc')||can('approve'));
   sec.classList.toggle('locked',need&&st==='pending');
   sec.classList.toggle('apprd',st==='approved');
   const okShare=!need||st==='approved'||closed;
@@ -4105,7 +4146,8 @@ function paintAppr(){
   c.hidden=!lead;$('qApprLead').textContent=lead?'WhatsApp lead: '+lead:'';
   const mode=apprMode()&&!closed,b=$('qtAppr');
   b.hidden=!mode;$('qtScan').hidden=mode;
-  const lab=canApprove()?(st==='pending'?'Approve':st==='changed'?'Approve again':st==='approved'?'Approved':'Approval'):(st==='pending'?'Sent':st==='approved'?'Approved':'Send for approval');
+  const spc=(bill.appr||{}).kind==='special'&&!can('special');
+  const lab=spc?(st==='pending'?'With admin':st==='approved'?'Approved':'Approval'):canApprove()?(st==='pending'?'Approve':st==='changed'?'Approve again':st==='approved'?'Approved':'Approval'):(st==='pending'?'Sent':st==='approved'?'Approved':'Send for approval');
   $('qtApprL').textContent=lab;b.classList.toggle('pending',st==='pending');b.classList.toggle('approved',st==='approved');
   const pill=$('qNoSt'),tag={pending:'Waiting',approved:'Approved',changed:'Changed'}[st]||'';
   pill.hidden=!tag||closed;pill.textContent=tag;pill.className='qa-pill '+(st||'');
@@ -4115,8 +4157,9 @@ function apprPop(){
   const st=apprState(bill),a=bill.appr||{};
   const acts=[];let body='';
   const who=id=>{const u=id?users.find(x=>x.id===id):null;return u?(u.name||u.username):''};
-  if(canApprove()){
-    if(st==='pending'||st==='changed'){body=`<p>${st==='changed'?'Changed after approval by '+esc(a.by||'—')+'.':`${esc(a.reqName||'Staff')} asked ${ago(a.reqAt)}.`} Set the discount in the Discount section, then approve. ${esc(a.reqName||'Staff')} will be notified and can share it.</p>`;
+  if((a.kind==='special')&&!can('special')&&st==='pending'){body=`<p>Forwarded to ${esc(who(a.to)||'an admin')} for a special price ${ago(a.reqAt)}. You will be notified when it is approved.</p>`}
+  else if(canApprove()){
+    if(st==='pending'||st==='changed'){body=`<p>${st==='changed'?'Changed after approval by '+esc(a.by||'—')+'.':`${esc(a.reqName||'Staff')} asked ${ago(a.reqAt)}.`} Set the special price in the Special Price section, then approve. ${esc(a.reqName||'Staff')} will be notified and can share it.</p>`;
       acts.push({label:'Approve & send to '+(a.reqName||'staff'),cls:'primary',run:approveQuote})}
     else body=`<p>Approved by ${esc(a.by||'—')} ${ago(a.at)}.</p>`;
   }else if(st==='pending'){body=`<p>Waiting for ${esc(who(a.to)||'a manager or admin')} · sent ${ago(a.reqAt)}.</p><p class="note">The quote updates by itself once approved. It is locked until then.</p>`;
@@ -4206,7 +4249,7 @@ let inbox=store.get('inbox',{pending:[],approved:[],leads:[]});
 const inbNotified=new Set(store.get('inbNotified',[]));let inbRead=new Set(store.get('inbRead',[]));let inbFirst=!store.get('inbInit',false);
 function myInbox(){
   const me=curUser&&curUser.id;if(!me)return [];const out=[];
-  if(canApprove())(inbox.pending||[]).filter(p=>p.by!==me&&(!p.to||p.to===me)).forEach(p=>out.push({k:'p:'+p.id+':'+p.at,kind:'pending',id:p.id,t:`Approve ${p.no||'quote'}${p.name?' · '+p.name:''}`,s:`From ${p.byName||'staff'} · ${ago(p.at)}`,at:p.at,act:true}));
+  if(canApprove())(inbox.pending||[]).filter(p=>p.by!==me&&(!p.to||p.to===me)&&(p.kind!=='special'||can('special'))).forEach(p=>out.push({k:'p:'+p.id+':'+p.at,kind:'pending',id:p.id,t:`${p.kind==='special'?'Special price':'Approve'} ${p.no||'quote'}${p.name?' · '+p.name:''}`,s:`From ${p.byName||'staff'} · ${ago(p.at)}`,at:p.at,act:true}));
   (inbox.approved||[]).filter(a=>a.to===me).forEach(a=>out.push({k:'a:'+a.id+':'+a.at,kind:'approved',id:a.id,t:`${a.no||'Quote'} approved${a.name?' · '+a.name:''}`,s:`By ${a.byName||'manager'} · ready to share · ${ago(a.at)}`,at:a.at}));
   (inbox.leads||[]).filter(l=>l.to===me).forEach(l=>out.push({k:'l:'+l.id,kind:'lead',id:l.id,t:`New WhatsApp lead${l.name?' · '+l.name:''}`,s:`From ${l.byName||'manager'} · ${ago(l.at)}`,at:l.at,act:true}));
   return out.sort((a,b)=>b.at-a.at);
@@ -4216,7 +4259,7 @@ function paintBell(){
   document.querySelectorAll('.bell').forEach(b=>{b.hidden=!on;const c=b.querySelector('.bell-n');c.hidden=!n;c.textContent=n>9?'9+':String(n);b.setAttribute('aria-label',n?`${n} notifications`:'Notifications')});
 }
 function nativeInbox(){
-  try{if(NATIVE&&NATIVE.setInbox)NATIVE.setInbox(sync.key&&curUser?JSON.stringify({site:SYNC_BASE||BRAND.site,key:sync.key,user:curUser.id,approver:canApprove(),app:BRAND.app}):'')}catch(e){}
+  try{if(NATIVE&&NATIVE.setInbox)NATIVE.setInbox(sync.key&&curUser?JSON.stringify({site:SYNC_BASE||BRAND.site,key:sync.key,user:curUser.id,approver:canApprove(),admin:can('special'),app:BRAND.app}):'')}catch(e){}
 }
 let inboxBusy=false,inboxP=null,inboxAgain=false,inbNative=false;
 // Browsers that allow it (Android Chrome, desktop): a system notification for the web version
@@ -4269,7 +4312,7 @@ function openInbox(again){
     if(b.dataset.k==='lead'){startLead(id);return}
     if(!quotes.some(q=>q.id===id))await pullQuotes();
     if(!quotes.some(q=>q.id===id)){toast('Quote not found. Try again in a moment.',null,true);return}
-    openQuote(id);setView('quote');if(b.dataset.k==='pending')setTimeout(apprPop,400)});
+    openQuote(id);setView('quote');if(b.dataset.k==='pending'){if(can('special')){$('qDiscBody').hidden=false;$('qDiscHead').setAttribute('aria-expanded','true')}setTimeout(apprPop,400)}});
   items.forEach(x=>inbRead.add(x.k));store.set('inbRead',[...inbRead].slice(-400));paintBell();
   $('modal').hidden=false;
   if(!again){const before=JSON.stringify(items.map(x=>x.k));pollInbox(true).then(()=>{if(!$('modal').hidden&&$('modalTitle').textContent==='Notifications'&&JSON.stringify(myInbox().map(x=>x.k))!==before)openInbox(true)})}
