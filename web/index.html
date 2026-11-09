@@ -712,6 +712,11 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .hq-new{flex:none;display:flex;align-items:center;gap:6px;border-radius:14px;background:color-mix(in srgb,var(--maroon) 8%,var(--surface));color:var(--maroon);border:1px solid color-mix(in srgb,var(--maroon) 25%,transparent);font-weight:700;padding:0 16px}
 .hq-new svg{width:22px;height:22px}
 .pd-links{display:flex;justify-content:center;gap:22px}
+.fva-box{margin-top:10px;border:1.5px dashed color-mix(in srgb,#2E7D4F 55%,transparent);border-radius:14px;padding:10px 14px;background:color-mix(in srgb,#2E7D4F 7%,var(--surface))}
+.fva-box .fv-r{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:15px}
+.fva-box .fv-r small{color:var(--muted);font-size:12px}.fva-box .fv-r b{font:800 20px var(--body);color:#2E7D4F;white-space:nowrap}
+.fva-box .fv-s{margin-top:4px;font-size:15px;font-weight:700;color:#2E7D4F}.fva-box .fv-s b{font-weight:900;font-size:17px}
+.qi-fva{grid-column:1/-1;font-size:12.5px;color:#2E7D4F;padding-left:22px}.qi-fva small{color:var(--muted)}.qi-fva b{font-weight:800}
 .pd-hid{margin:6px 0 2px;text-align:center}.pd-hid dl{text-align:left}
 .pd-dchk{width:100%;margin:8px 0 4px;border-color:color-mix(in srgb,var(--maroon) 40%,transparent);color:var(--maroon);display:flex;align-items:center;justify-content:center;gap:8px}
 .pd-dchk svg{width:20px;height:20px}
@@ -1217,6 +1222,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
       <div class="pt-row pt-gst"><span id="pdGstL">+ GST (3%)</span><span id="pdGst">—</span></div>
     </div>
     <div class="grand" id="pdGrandRow"><span>Grand Total</span><strong id="pdGrand">—</strong></div>
+    <div class="fva-box" id="pdFva" hidden><div class="fv-r"><span>Fair value price <small id="pdFvaL"></small></span><b id="pdFvaV"></b></div><div class="fv-s">Discount · You save <b id="pdFvaS"></b></div></div>
     <div class="prod-acts"><button class="btn" type="button" id="pdDel">Clear</button><span class="pd-check" id="pdCheck" hidden>Price check only · not saved</span><button class="btn primary" type="button" id="pdClose" hidden>Close</button><button class="btn primary" type="button" id="pdSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>Save to Quote</button></div>
     <div class="pd-hid" id="pdHidW" hidden><button class="linkbtn" type="button" id="pdHidT" aria-expanded="false">Show hidden details</button><dl class="specs specs-more" id="pdHidL" hidden></dl></div>
     <button class="btn pd-dchk" type="button" id="pdDisc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.3"/><path d="M10 15l5-5"/></svg>Discount checker</button>
@@ -1994,6 +2000,28 @@ function missing(t){
   return m;
 }
 // Manager's making after discount on a quoted item (t.qMk {type,val}): same item, cheaper making
+// ---- Fair value (FVA) price ----
+// Label making (rate / % / labour) gives the list price. The FVA column gives the fair value making:
+//  "9%" (or 0.09) → % like VA · a number → ₹ per gram of net wt × net wt.
+// Nosepins: ₹450 per piece. Diamond nosepins under 1.00 g: the FVA number is a fixed amount.
+const NOSE_PC=450;
+function isNosepin(t){const st=t.stock||{};return /^NSP/i.test(keyOf(t.sku))||/NOSE/i.test(`${st.category||''} ${t.item||''}`)}
+function fvaMaking(t){
+  const st=t.stock||{},nw=num(t.nw),dia=isDiamond(t)||num(st.dw)>0||num(st.saDia)>0;
+  const raw=st.fva==null?'':String(st.fva).trim(),v=num(raw.replace(/[^\d.]/g,''));
+  if(isNosepin(t)){
+    if(dia&&!isNaN(nw)&&nw<1&&raw&&!isNaN(v))return {amt:v,label:`FVA fixed ${inr(v)}`};
+    if(!dia){const pc=Math.max(1,num(st.pcs)||1);return {amt:NOSE_PC*pc,label:`${inr(NOSE_PC)} per piece${pc>1?' × '+pc:''}`}}
+  }
+  if(!raw||isNaN(v))return null;
+  const pct=/%/.test(raw)?v:(typeof st.fva==='number'||/^0?\.\d+$/.test(raw))&&v<1?v*100:null;
+  if(pct!=null){const m=makingFor(t,'pct',pct);return isNaN(m)?null:{amt:m,label:`FVA ${fmtN(pct)}%`}}
+  if(isNaN(nw))return null;
+  return {amt:v*nw,label:`FVA ${inr(v)}/g × ${fmtW(nw)} g`};
+}
+// Price at FVA (before GST) and the saving against the label price; null when there is nothing to save
+function fvaPrice(t,p){p=p||priceTag(t);if(!p.ok||!p.hasMk)return null;const f=fvaMaking(t);if(!f)return null;
+  const val=p.value-p.making+f.amt,save=p.value-val;return save>0.5?{value:val,save,label:f.label,mk:f.amt}:null}
 function quotedValue(t,p){p=p||priceTag(t);if(!p.ok||!t.qMk)return p.value;const v=num(t.qMk.val);if(isNaN(v)||v<0)return p.value;
   const m=makingFor(t,t.qMk.type||t.mkType,v);return isNaN(m)?p.value:p.value-p.making+m}
 function oldRate(o){const r=num(o.rate);return !isNaN(r)?r:rateFor(o.purity)}
@@ -2631,6 +2659,7 @@ function renderBill(keepInputs){
       <span>${fmtW(num(t.nw))}</span>
       <span class="qi-amt">${p.ok?inr(p.value*(1+gstPct()/100)):'—'}</span>
       <span class="qi-acts">${closed?'':`<button type="button" data-edit="${t.id}" aria-label="Edit item ${i+1}">${IC_EDIT}</button><button type="button" data-del="${t.id}" aria-label="Remove item ${i+1}">${IC_DEL}</button>`}</span>
+      ${(()=>{const fv=fvaPrice(t,p),G=1+gstPct()/100;return fv?`<span class="qi-fva">Fair value ${inr(fv.value*G)} <small>(${esc(fv.label)})</small> · <b>You save ${inr(fv.save*G)}</b></span>`:''})()}
     </div>`}).join(''):'<div class="empty-q">No items yet. Scan a product or add it manually, then tap Save to Quote.</div>';
   $('items').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{
     const t=bill.items.find(x=>x.id===b.dataset.edit);if(!t)return;
@@ -2700,7 +2729,7 @@ function gstPct(){return num(settings.gst)||0}
 function renderDiscount(s){
   const el=$('qDiscList'),g=gstPct(),closed=isClosed(),edit=(can('mkDisc')||can('approve'))&&!closed;
   if(!bill.items.length){el.innerHTML='<div class="empty-q">Discount is set here once items are in the quote.</div>';$('qDiscTot').textContent='';$('qDiscMgr').hidden=true;$('qDiscExtraRow').hidden=true;return}
-  const help=edit?`<div class="qd-help"><b>Discount helper · making on every item</b>${[10,20,30,50].map(x=>`<button type="button" data-all="${x}">−${x}%</button>`).join('')}<button type="button" data-all="0">Reset</button>
+  const help=edit?`<div class="qd-help"><b>Discount helper · making on every item</b>${[10,20,30,50].map(x=>`<button type="button" data-all="${x}">−${x}%</button>`).join('')}<button type="button" data-all="0">Reset</button><button type="button" id="qFvaAll">Fair value (FVA)</button>
     <div class="bud"><input id="qBudget" inputmode="decimal" placeholder="Budget ₹ incl. GST" aria-label="Customer budget"><button type="button" id="qFit">Fit budget</button></div></div>`:'';
   el.innerHTML=help+bill.items.map((t,i)=>{const p=priceTag(t),q=quotedValue(t,p),d=p.value-q,u=t.mkType==='pct'?'%':t.mkType==='pergram'?'₹/g':'₹';
     return `<div class="qd-row"><div class="qd-a"><b>${i+1}. ${esc(keyOf(t.sku))}</b> <span class="m">${esc((t.stock&&t.stock.category)||t.item||'')}</span></div>
@@ -2715,6 +2744,8 @@ function renderDiscount(s){
   const setAll=f=>{bill.items.forEach(t=>{const p=priceTag(t);if(!p.hasMk)return;if(f<=0){delete t.qMk;return}
     t.qMk={type:t.mkType,val:fmtN(Math.round(num(t.mkVal)*(1-f)*100)/100),by:curUser?(curUser.name||curUser.username):'',at:Date.now()}})};
   el.querySelectorAll('[data-all]').forEach(b=>b.onclick=()=>{setAll(+b.dataset.all/100);saveBill();renderBill();toast(+b.dataset.all?`Making −${b.dataset.all}% on every item`:'Discounts cleared')});
+  const fa=$('qFvaAll');if(fa)fa.onclick=()=>{let n=0;bill.items.forEach(t=>{const fv=fvaPrice(t);if(fv){t.qMk={type:t.mkType,val:fmtN(mkValFor(t,fv.mk)),by:curUser?(curUser.name||curUser.username):'',at:Date.now()};n++}});
+    saveBill();renderBill();toast(n?`Fair value making on ${n} item${n>1?'s':''}`:'No item has a fair value (FVA) lower than its making',null,!n)};
   const fit=$('qFit');if(fit)fit.onclick=()=>{
     const target=num($('qBudget').value);if(!(target>0)){toast('Enter the customer budget',null,true);return}
     const keep=bill.items.map(t=>t.qMk);const fin=()=>totals().final;
@@ -3320,6 +3351,7 @@ function paintProduct(){
   $('pdGstL').textContent=`+ GST (${fmtN(g)}%)`;$('pdGst').textContent=ok?inr(p.value*g/100):'—';
   $('pdGrand').textContent=ok?inr(p.value*(1+g/100)):'—';
   $('pdTotal').classList.toggle('incomplete',!ok);$('pdGrandRow').classList.toggle('incomplete',!ok);
+  {const fv=ok?fvaPrice(cur,p):null;$('pdFva').hidden=!fv;if(fv){$('pdFvaL').textContent='('+fv.label+')';$('pdFvaV').textContent=inr(fv.value*(1+g/100));$('pdFvaS').textContent=inr(fv.save*(1+g/100))}}
   $('pdSave').lastChild.textContent=editingId?'Update Quote':'Save to Quote';
   // Sale type: price check = nothing saved, just Close; online = Save; store walk-in = Save + Edit
   const sm=saleMode(),chk=sm==='check'&&!editingId;
@@ -3368,6 +3400,10 @@ let pdHidOpen=false;
 $('pdHidT').onclick=()=>{if(pdHidOpen){pdHidOpen=false;$('pdHidL').hidden=true;$('pdHidT').textContent='Show hidden details';$('pdHidT').setAttribute('aria-expanded','false');return}
   withPerm('pdHidden','Needs permission to see hidden details (NLC, FVA…).',()=>{pdHidOpen=true;$('pdHidL').hidden=false;$('pdHidT').textContent='Hide details';$('pdHidT').setAttribute('aria-expanded','true')})};
 // Discount checker: try a lower making, compare the price before and after, save the item to the quote
+// Making amount (₹) → the item's own making unit (%, ₹/g or ₹), so a discount can be entered the usual way
+function mkValFor(t,amt){const p=priceTag(t);if(t.mkType==='fixed')return Math.round(amt);
+  if(t.mkType==='pergram'){const nw=num(t.nw);return nw>0?Math.round(amt/nw*100)/100:amt}
+  const per=p.making/num(t.mkVal);return per>0?Math.round(amt/per*100)/100:0}
 function openDiscCheck(){
   const t=cur,p=priceTag(t),g=gstPct();
   if(!p.ok){toast('Price the item first',null,true);return}
@@ -3376,7 +3412,7 @@ function openDiscCheck(){
   $('modalTitle').textContent='Discount checker';$('modalTitle').classList.remove('price-pop');
   $('modalBody').innerHTML=`<div class="note">Making on the label: <b>${esc(valText({type:t.mkType,val:base}))}</b> · ${inr(p.making)}</div>
     <div class="lead-f"><label for="dcIn">Discounted making (${u})</label><input id="dcIn" inputmode="decimal" placeholder="${esc(fmtN(base))}" value="${t.qMk?esc(t.qMk.val):''}"></div>
-    <div class="lf-chips" id="dcChips">${[10,20,30,40,50].map(x=>`<button type="button" data-p="${x}">−${x}%</button>`).join('')}</div>
+    <div class="lf-chips" id="dcChips">${fvaPrice(t,p)?'<button type="button" data-fva="1">FVA</button>':''}${[10,20,30,40,50].map(x=>`<button type="button" data-p="${x}">−${x}%</button>`).join('')}</div>
     <div class="dc-cmp"><div><small>Before</small><b id="dcB">${inr(p.value*(1+g/100))}</b></div><div class="af"><small>After</small><b id="dcA">—</b></div></div>
     <div class="dc-save" id="dcS"></div><p class="note" style="text-align:center;margin-top:4px">Prices include GST ${fmtN(g)}%.</p>`;
   const calc=()=>{const v=num($('dcIn').value);if($('dcIn').value.trim()===''||isNaN(v)||v>=base){$('dcA').textContent='—';$('dcS').textContent=v>=base?'Must be lower than the label making':'';return null}
@@ -3384,6 +3420,7 @@ function openDiscCheck(){
     $('dcA').textContent=inr(after);$('dcS').textContent=`Saves ${inr(before-after)}`;return v};
   $('dcIn').addEventListener('input',calc);
   $('dcChips').querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{$('dcIn').value=fmtN(Math.round(base*(1-b.dataset.p/100)*100)/100);calc()});
+  {const fb=$('dcChips').querySelector('[data-fva]');if(fb)fb.onclick=()=>{$('dcIn').value=fmtN(mkValFor(t,fvaPrice(t,p).mk));calc()}}
   calc();
   const a=$('modalActs');a.innerHTML='';
   const sv=document.createElement('button');sv.className='btn primary';sv.type='button';sv.textContent=editingId?'Update quote':'Save to quote';

@@ -264,3 +264,10 @@ A card is locked for users without that permission; opening it asks for a user w
 - **Hidden details** (tap "Show hidden details"; permission "See hidden details (NLC, FVA…)", managers have it): NLC, FVA, HUID, Model, Stone Names, Supplier (stock columns NLC, FVA, HUID No, Model / Design No, Stone Name(s), Supplier).
 - **Discount checker** on the product card (Home): enter the discounted making (or −10…−50%), see the price before and after (incl. GST) and save the item to the quote. Managers/admins save it with the discount; others save it as "asked", shown to the manager in the Discount section.
 - **Quote → Discount**: helper buttons (−10/−20/−30/−50% making on every item, Reset), **Fit budget** (finds the making discount that brings the final price to the customer's budget), first and final price per item, and **Remove item** for items the customer did not choose.
+
+## V 1.7.7 (9 Nov 2026) — Fair value (FVA) price
+
+- Each scanned item is priced from the label making (rate / % / labour). Below it, the **Fair value price** at the FVA column is shown with the difference as **Discount · You save ₹…** (product card and every quote line).
+- FVA column: `9%` (or 0.09) → percentage like VA; a number → ₹ per gram × net weight.
+- Nosepins: fair value making ₹450 per piece. Diamond nosepins under 1.00 g: the FVA number is a fixed amount.
+- Discount checker has an **FVA** chip; Quote → Discount helper has **Fair value (FVA)** to apply it to every item.
