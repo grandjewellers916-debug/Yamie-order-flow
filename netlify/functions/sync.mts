@@ -59,10 +59,10 @@ function cleanRow(r: any) {
   return o.key ? o : null
 }
 // Permissions an admin can give to a role (admin always has all)
-const PERMS = ["stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "share", "addDisc", "approve", "leads", "textSize", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows", "pdHidden", "sync", "roles", "users", "settings"]
+const PERMS = ["stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "share", "addDisc", "round", "approve", "leads", "textSize", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows", "pdHidden", "sync", "roles", "users", "settings"]
 const SETTINGS_PERMS = ["imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows"]
 const DEFAULT_ROLES = [
-  { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "images", "approve", "leads", "share", "pdHidden", "addDisc"] },
+  { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "images", "approve", "leads", "share", "pdHidden", "addDisc", "round"] },
   { id: "staff", name: "Staff", perms: ["rates", "closeSale", "cancelQuote", "share"] },
 ]
 // A quote as the app keeps it, minus anything large (photos stay on the phone that took them)
@@ -139,6 +139,13 @@ export default async (req: Request) => {
     for (const r of roles) if (r?.perms?.includes("mkDisc") && !r.perms.includes("addDisc")) { r.perms.push("addDisc"); ch = true }
     if (ch && (await st.get("roles"))) { await st.setJSON("roles", roles); meta.users = Date.now() }
     ;(meta as any).v178 = 1; await saveMeta()
+  }
+  // Round final amount down to ₹100 became a permission: roles that give making discounts keep it (once)
+  if (!(meta as any).v1763) {
+    let ch = false
+    for (const r of roles) if (r?.perms?.includes("mkDisc") && !r.perms.includes("round")) { r.perms.push("round"); ch = true }
+    if (ch && (await st.get("roles"))) { await st.setJSON("roles", roles); meta.users = Date.now() }
+    ;(meta as any).v1763 = 1; await saveMeta()
   }
   const roleHas = (role: string, perm: string) => {
     if (role === "admin") return true

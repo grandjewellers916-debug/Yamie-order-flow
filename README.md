@@ -288,3 +288,10 @@ A card is locked for users without that permission; opening it asks for a user w
 - **Quote page order**: Customer details · buttons · Quoted items · URD / Sales return / Advance · Sale type · Summary. The Discount button is removed; the manager's discount card (making after discount, additional discount) is below the summary for managers and admins only.
 - Each quote line: Fair value and Savings in bold purple with **Apply / Applied ✓**.
 - **Summary**: Total Gross Wt · Total Net Wt · Total Stone Charges · Total Making Charges (Hide/Show) · Total Value at Making Label · Less Total Savings (Discount) · Delivery charges (online) · Taxable Value · GST · Final Amount.
+
+## V 1.7.63 (9 Nov 2026)
+
+- **Round the final amount down to ₹100** is a permission ("Round final amount down to ₹100"); users without it don't see the option (managers keep it).
+- Quote lines: Fair value and Savings in bold on a dark purple box (gold outline when applied).
+- **Top of the Quote page**: Total Label Value · Savings · Net Payable in one box.
+- Summary in colour: Savings on a green band in bold, Final Amount highlighted.

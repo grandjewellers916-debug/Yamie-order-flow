@@ -719,7 +719,6 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .fva-ask svg{width:20px;height:20px}
 :root[data-theme="dark"] .fva-ask{color:#E2CCF5;background:#2A1F33}
 .qi-fva .fa{border:1px solid currentColor;background:none;color:inherit;border-radius:999px;padding:1px 8px;font:700 11.5px var(--body);margin-left:6px;cursor:pointer}
-.qi-fva.on{background:color-mix(in srgb,#7B3FA8 8%,transparent);border-radius:8px;padding-top:3px;padding-bottom:3px}
 .qs-lines .mkeye{border:0;background:none;color:var(--maroon);font:600 12px var(--body);text-decoration:underline;cursor:pointer;margin-left:6px}
 .fva-box{margin-top:10px;border-radius:16px;padding:12px 16px;background:linear-gradient(135deg,#5B2A86,#7B3FA8);color:#fff;box-shadow:0 6px 18px rgba(91,42,134,.28)}
 .fva-box .fv-r{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:16px;font-weight:600}
@@ -727,7 +726,24 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .fva-box .fv-t{margin-top:6px;border:0;background:rgba(255,255,255,.16);color:#fff;border-radius:999px;padding:6px 14px;font:600 13px var(--body);cursor:pointer}
 .fva-box .fv-s{margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.25);display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:16px;font-weight:700}
 .fva-box .fv-s b{font:900 32px var(--body);white-space:nowrap;color:#FFE08A}
-.qi-fva{grid-column:1/-1;font-size:13px;color:var(--fva);padding-left:22px;font-weight:700}.qi-fva small{color:var(--muted);font-weight:500}.qi-fva b{font-weight:900}
+.qi-fva{grid-column:1/-1;margin:4px 0 0 18px;font-size:13px;color:#fff;background:linear-gradient(135deg,#3B1A5C,#5B2A86);border-radius:10px;padding:7px 10px;font-weight:700;line-height:1.5}
+.qi-fva small{color:rgba(255,255,255,.7);font-weight:500}.qi-fva b{font-weight:900;color:#FFE08A;font-size:14px}
+.qi-fva .fa{color:#fff}.qi-fva.on{outline:2px solid #FFE08A}
+.q-hsum{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;margin:0 0 12px;border-radius:16px;overflow:hidden;box-shadow:0 6px 18px rgba(59,26,92,.22);background:linear-gradient(135deg,#3B1A5C,#5B2A86)}
+.q-hsum>div{padding:12px 10px;text-align:center;color:#fff;display:flex;flex-direction:column;gap:2px;min-width:0}
+.q-hsum>div+div{border-left:1px solid rgba(255,255,255,.18)}
+.q-hsum small{font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;opacity:.8}
+.q-hsum b{font:800 17px var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.q-hsum .sv b{color:#FFE08A;font-size:19px}.q-hsum .np{background:rgba(255,255,255,.1)}
+.q-hsum.nosave .sv b{color:#fff;opacity:.7}
+@media (max-width:360px){.q-hsum b{font-size:15px}.q-hsum .sv b{font-size:16px}}
+.q-sum{background:linear-gradient(180deg,color-mix(in srgb,#5B2A86 6%,var(--surface)),var(--surface))}
+.qs-lines .line.save{background:linear-gradient(135deg,#1F6B45,#2E8B57);color:#fff;border-radius:10px;padding:10px 12px;margin:6px 0;border:0;font-weight:800;font-size:16px}
+.qs-lines .line.save span{color:#fff!important}.qs-lines .line.save span:last-child{font-size:18px;font-weight:900}
+.qs-lines .line.final{background:color-mix(in srgb,var(--maroon) 10%,var(--surface));border-radius:10px;padding:10px 12px;border:0;margin-top:6px}
+.qs-lines .line.final span:last-child{color:var(--maroon);font-weight:900;font-size:19px}
+.qs-lines .line.strong span{font-weight:800}
+.qs-lines .line.mkline span:last-child{color:#8A5A00}
 .pd-hid{margin:6px 0 2px;text-align:center}.pd-hid dl{text-align:left}
 .pd-dchk{width:100%;margin:8px 0 4px;border-color:color-mix(in srgb,var(--maroon) 40%,transparent);color:var(--maroon);display:flex;align-items:center;justify-content:center;gap:8px}
 .pd-dchk svg{width:20px;height:20px}
@@ -1299,6 +1315,11 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 
   <!-- Quote -->
   <section class="qv" data-pane="quote" id="bill" aria-label="Quote">
+    <div class="q-hsum" id="qTop" hidden>
+      <div><small>Total Label Value</small><b id="qtLabel">—</b></div>
+      <div class="sv"><small>Savings</small><b id="qtSave">—</b></div>
+      <div class="np"><small>Net Payable</small><b id="qtNet">—</b></div>
+    </div>
     <div class="card q-lead" id="qAppr" hidden><div class="qa-lead" id="qApprLead"></div></div>
     <h3 class="q-step">Customer details</h3>
     <div class="q-top">
@@ -2743,7 +2764,11 @@ function renderBill(keepInputs){
   $('qSaleNote').textContent=online?(s.courier?`${s.courier.name} · ${s.delivery?inr(s.delivery):'no charges'}`:'Choose a delivery partner'):'In the store';
   paintSaleMode();
   [...$('qMkShow').children].forEach(b=>{const on=(b.dataset.v==='1')===(bill.showMk!==false);b.setAttribute('aria-pressed',String(on));b.setAttribute('aria-checked',String(on))});
-  $('qRound').checked=bill.round!==false;$('qRound').disabled=closed;
+  $('qRound').checked=bill.round!==false;$('qRound').disabled=closed;$('qRound').closest('label').hidden=!can('round');
+  // box on top: label value, savings, net payable
+  $('qTop').hidden=!bill.items.length;$('qtLabel').textContent=inr(s.listSub*(1+g/100));
+  {const sv=s.listSub*(1+g/100)+s.delivery*(1+g/100)-s.final;$('qtSave').textContent=sv>0.5?inr(sv):inr(0);$('qTop').classList.toggle('nosave',!(sv>0.5))}
+  $('qtNet').textContent=inr(s.net);
   paintPhotosCount();renderRecent();
 }
 function gstPct(){return num(settings.gst)||0}
@@ -2874,7 +2899,7 @@ $('qtDel').onclick=()=>{
 [...$('qType').children].forEach(b=>b.onclick=()=>{if(isClosed())return;bill.channel=b.dataset.c;if(store.get('saleMode','store')!=='check')store.set('saleMode',b.dataset.c);saveBill();renderBill()});
 $('qDel').addEventListener('input',()=>{const v=num($('qDel').value);bill.delivery=isNaN(v)||v<=0?'':String(v);saveBill();renderBill(true)});
 [...$('qMkShow').children].forEach(b=>b.onclick=()=>{bill.showMk=b.dataset.v==='1';saveBill();renderBill(true)});
-$('qRound').onchange=()=>{bill.round=$('qRound').checked;saveBill();renderBill(true)};
+$('qRound').onchange=()=>{if(!can('round')){$('qRound').checked=bill.round!==false;return}bill.round=$('qRound').checked;saveBill();renderBill(true)};
 $('qInv').addEventListener('input',()=>{bill.invoice=$('qInv').value.trim();saveBill(true)});
 $('qCloseBtn').onclick=()=>withPerm('closeSale','Needs a user allowed to close sales.',()=>{
   if(!bill.items.length){toast('Add items first',null,true);return}
@@ -3746,7 +3771,7 @@ function deskLayout(){
   // Quote: main column + side panel
   deskOrig.set(b,[...b.children]);
   const steps=[...b.querySelectorAll(':scope > .q-step')];
-  const main=box('q-main',[...steps,q('.q-top'),q('.q-tools'),q('.q-items'),box('q-pair',[$('qDiscCard'),q('.q-sum')]),q('.q-acts')]);
+  const main=box('q-main',[$('qTop'),...steps,q('.q-top'),q('.q-tools'),q('.q-items'),box('q-pair',[$('qDiscCard'),q('.q-sum')]),q('.q-acts')]);
   const side=box('q-side',[$('qSale'),$('qDed'),q('.q-photos'),$('qClose'),q('.q-list')]);
   b.prepend(main,side);
 }
@@ -3927,16 +3952,17 @@ const PERM_LIST=[
 ['stockdel','Delete sold tags from stock'],['rates',"Set day's rates"],
   ['mkEdit','Update making on the price card'],['mkDisc','Making after discount on quotes'],
   ['closeSale','Close sale (invoice no.)'],['cancelQuote','Cancel quote (enquiry)'],['reopen','Reopen sold / cancelled quotes'],
-  ['delQuote','Delete quotes'],['images','Add product photos'],['addDisc','Additional discount (flat)'],['share','Share quotes on WhatsApp'],['pdHidden','See hidden details (NLC, FVA…)'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],
+  ['delQuote','Delete quotes'],['images','Add product photos'],['addDisc','Additional discount (flat)'],['round','Round final amount down to ₹100'],['share','Share quotes on WhatsApp'],['pdHidden','See hidden details (NLC, FVA…)'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],
   ['textSize','Text size'],['imgShow','Product image show / hide'],['ratesShown','Rates shown'],['charges','Charges · GST · HUID'],
   ['mkHelper','Making helpers'],['itemCodes','Item codes'],['pdRows','Product details items'],['sync','Shared database · shop key'],['roles','Roles & permissions'],['users','Users']];
 const SET_PERMS=['theme','footer','apprSet','export','stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users'];
 const permLabel=k=>(PERM_LIST.find(p=>p[0]===k)||[0,k])[1];
-const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','approve','leads','share','pdHidden','addDisc']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share']}];
+const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','approve','leads','share','pdHidden','addDisc','round']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share']}];
 let roles=store.get('roles',null)||clone(DEFAULT_ROLES);
 // WhatsApp sharing became a permission (v1.7.3): roles on this phone keep it once
 if(!store.get('permShare',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&!r.perms.includes('share'))r.perms.push('share')});store.set('roles',roles);store.set('permShare',true)}
 if(!store.get('permHid',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('mkDisc')&&!r.perms.includes('pdHidden'))r.perms.push('pdHidden')});store.set('roles',roles);store.set('permHid',true)}
+if(!store.get('permRound',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('mkDisc')&&!r.perms.includes('round'))r.perms.push('round')});store.set('roles',roles);store.set('permRound',true)}
 if(!store.get('permAddDisc',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('mkDisc')&&!r.perms.includes('addDisc'))r.perms.push('addDisc')});store.set('roles',roles);store.set('permAddDisc',true)}
 let elev={role:'',until:0};   // another user's approval, 15 minutes
 const roleName=id=>id==='admin'?'Admin':(roles.find(r=>r.id===id)||{name:id||'—'}).name;
