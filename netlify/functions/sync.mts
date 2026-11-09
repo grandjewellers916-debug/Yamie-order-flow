@@ -70,7 +70,7 @@ function cleanQuote(q: any) {
   if (!q || typeof q !== "object" || typeof q.id !== "string" || !q.id) return null
   const out = JSON.parse(JSON.stringify(q, (k, v) => (k === "photos" || k === "thumbs" ? undefined : v)))
   out.id = cleanStr(out.id, 24)
-  out.no = /^(QT-\d{1,9}|P-[A-Z0-9]{1,8}-\d{1,6})$/.test(out.no || "") ? out.no : ""
+  out.no = /^((QT|ON|SW)-\d{1,9}|P-[A-Z0-9]{1,8}-\d{1,6})$/.test(out.no || "") ? out.no : ""
   out.pno = /^P-[A-Z0-9]{1,8}-\d{1,6}$/.test(out.pno || "") ? out.pno : ""
   out.byId = cleanStr(out.byId, 40)
   out.updated = cleanNum(out.updated) || Date.now()
@@ -234,12 +234,14 @@ export default async (req: Request) => {
         await st.setJSON(sk, { n })
         q.no = q.pno = "P-" + code + "-" + String(n).padStart(4, "0")
       }
-      // The common series number (QT-…) is given when a manager/admin approves the quote, or when the sale is closed
-      if ((q.status === "closed" || q.appr?.state === "approved") && !/^QT-/.test(q.no)) {
-        const seq = (Number(((await st.get("quoteseq", { type: "json" })) as any)?.n) || 0) + 1
-        await st.setJSON("quoteseq", { n: seq })
+      // The final number is given when a manager/admin approves the quote, or when the sale is closed.
+      // Separate series by sale type: online enquiries ON-000001…, store walk-ins SW-000001… (older QT- numbers stay).
+      if ((q.status === "closed" || q.appr?.state === "approved") && !/^(QT|ON|SW)-/.test(q.no)) {
+        const online = q.channel === "online", sk = online ? "quoteseq-online" : "quoteseq-store"
+        const seq = (Number(((await st.get(sk, { type: "json" })) as any)?.n) || 0) + 1
+        await st.setJSON(sk, { n: seq })
         q.pno = q.pno || q.no
-        q.no = "QT-" + String(seq).padStart(6, "0")
+        q.no = (online ? "ON-" : "SW-") + String(seq).padStart(6, "0")
       }
       const next = [q, ...list.filter((x) => x.id !== q.id)].sort((a, b) => (b.updated || 0) - (a.updated || 0)).slice(0, 600)
       await st.setJSON("quotes", next)

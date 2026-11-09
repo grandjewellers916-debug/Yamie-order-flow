@@ -251,3 +251,9 @@ A card is locked for users without that permission; opening it asks for a user w
 - **Pick the item** (M / Add manually) is a picture card grid with a search box (item code or name). Pictures are in `web/brand/items/` (Grand's codes match by name).
 - **Loose Findings (EXT)**: items without a label. Choose purity, weight (quick 0.1–2 g or type it, ± 0.05 g) and making (VA %, ₹ per g or ₹ fixed, with quick values); the price at today's rate shows live, and **Add to quote** adds it.
 - **Settings → Export stock database** (admin only): Excel (.xlsx) or PDF of the whole stock list with product photos. On Android it is saved to Downloads and the share sheet opens.
+
+## V 1.7.5 (9 Nov 2026)
+
+- **Quote search** (Quote → Quotes): party name or phone, quote number (final or provisional), user (for those who see all quotes) and date.
+- **Separate final number series** by sale type, given on approval or when the sale is closed: Online enquiry `ON-000001…`, Store walk-in `SW-000001…` (older `QT-` numbers stay).
+- **Product card by sale type**: Just price check — nothing is saved, a **Close** button clears the card; Online enquiry — **Save to Quote**; Store walk-in — **Save to Quote** and **Edit details**.

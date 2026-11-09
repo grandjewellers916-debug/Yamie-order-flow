@@ -674,6 +674,9 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .q-photos .linkbtn{align-self:center}
 .q-close .seg button{font-weight:600}
 .q-closed .q-tools,.q-closed #qDed .linkbtn,.q-closed .q-acts #qDisc,.q-closed .q-acts #qAdv{pointer-events:none;opacity:.45}
+.qf-row{display:flex;gap:8px;margin-top:8px}
+.r-item b{white-space:nowrap}
+.qf-row select,.qf-row input{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:9px 10px;font:14px var(--body);background:var(--surface);color:var(--fg)}
 .q-search{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:15px var(--body);background:var(--surface);color:var(--fg)}
 .q-filter{margin-bottom:2px}
 .r-item .st{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:6px;background:var(--sunk);margin-left:6px}
@@ -1199,7 +1202,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
       <div class="pt-row pt-gst"><span id="pdGstL">+ GST (3%)</span><span id="pdGst">—</span></div>
     </div>
     <div class="grand" id="pdGrandRow"><span>Grand Total</span><strong id="pdGrand">—</strong></div>
-    <div class="prod-acts"><button class="btn" type="button" id="pdDel">Clear</button><span class="pd-check" id="pdCheck" hidden>Price check only · not saved</span><button class="btn primary" type="button" id="pdSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>Save to Quote</button></div>
+    <div class="prod-acts"><button class="btn" type="button" id="pdDel">Clear</button><span class="pd-check" id="pdCheck" hidden>Price check only · not saved</span><button class="btn primary" type="button" id="pdClose" hidden>Close</button><button class="btn primary" type="button" id="pdSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>Save to Quote</button></div>
     <div class="pd-links"><button class="linkbtn" type="button" id="pdMk" hidden>Update making</button><button class="linkbtn pd-edit" type="button" id="pdEdit">Edit details</button></div>
   </section>
 
@@ -1358,7 +1361,8 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
     <div class="card q-list">
       <div class="sec-head"><h2>Quotes</h2><button class="linkbtn" type="button" id="qRefresh">↻ Refresh</button></div>
       <div class="seg q-filter" id="qFilter"><button type="button" data-f="open" aria-pressed="true">Open</button><button type="button" data-f="closed">Sold</button><button type="button" data-f="cancelled">Enquiry</button><button type="button" data-f="all">All</button></div>
-      <input id="qSearch" class="q-search" placeholder="Search name, phone, quote no." autocomplete="off">
+      <input id="qSearch" class="q-search" type="search" placeholder="Search party name, phone or quote no." autocomplete="off">
+      <div class="qf-row"><select id="qUser" aria-label="Quotes by user" hidden><option value="">All users</option></select><input id="qDate" type="date" aria-label="Quote date"><button type="button" class="btn sm ghost" id="qFClear" hidden>Clear</button></div>
       <div class="recent" id="recent"></div>
     </div>
   </section>
@@ -2539,7 +2543,7 @@ async function pushQuote(id){
   try{const r=await syncApi('quote','POST',{quote:q});
     if(r&&r.quote){
       if(r.conflict){upsertQuote(r.quote);if(bill.id===id){bill=fixBill(clone(r.quote));store.set('bill',bill);renderBill();toast('This quote was changed on another phone. Showing the latest.',null,true)}}
-      else{const nn=q.no!==r.quote.no;q.no=r.quote.no;q.pno=r.quote.pno||q.pno;q.pushed=q.updated;upsertQuote(q);if(bill.id===id&&(bill.no!==r.quote.no||bill.pno!==q.pno)){bill.no=r.quote.no;bill.pno=q.pno;store.set('bill',bill);paintQuoteHead();renderBill(true)}if(nn&&/^QT-/.test(r.quote.no)&&q.pno)toast(`${q.pno} is now ${r.quote.no}`)}
+      else{const nn=q.no!==r.quote.no;q.no=r.quote.no;q.pno=r.quote.pno||q.pno;q.pushed=q.updated;upsertQuote(q);if(bill.id===id&&(bill.no!==r.quote.no||bill.pno!==q.pno)){bill.no=r.quote.no;bill.pno=q.pno;store.set('bill',bill);paintQuoteHead();renderBill(true)}if(nn&&/^(QT|ON|SW)-/.test(r.quote.no)&&q.pno)toast(`${q.pno} is now ${r.quote.no}`)}
       sync.v.quotes=Math.max(sync.v.quotes||0,r.v||0);saveSyncState();renderRecent();
     }
     return true;
@@ -2761,6 +2765,7 @@ function paintSaleMode(){
   const m=saleMode();
   [...$('saleMode').children].forEach(b=>{const on=b.dataset.m===m;b.setAttribute('aria-pressed',String(on));b.setAttribute('aria-checked',String(on))});
   document.body.classList.toggle('mode-check',m==='check');
+  try{if(cur&&cur.touched)renderEditor()}catch(e){}
 }
 [...$('saleMode').children].forEach(b=>b.onclick=()=>{
   const m=b.dataset.m;store.set('saleMode',m);
@@ -2900,8 +2905,13 @@ $('saveBill').onclick=async()=>{
 };
 function renderRecent(){
   const el=$('recent'),q=($('qSearch').value||'').trim().toLowerCase();
-  const vis=quotes.filter(canSeeQuote);
-  const list=vis.filter(x=>(qFilter==='all'||(qFilter==='open'?(!x.status||x.status==='open'):x.status===qFilter))&&(!q||[x.no,x.cust&&x.cust.name,x.cust&&x.cust.phone,x.invoice,...(x.items||[]).map(t=>t.sku)].some(v=>String(v||'').toLowerCase().includes(q))));
+  // search: party name / phone / quote no. (text), user, date
+  const us=$('qUser'),all=seesAll();us.hidden=!all;
+  if(all){const cur=us.value,names=[...new Set(quotes.map(x=>x.by).filter(Boolean))].sort();us.innerHTML='<option value="">All users</option>'+names.map(n=>`<option${n===cur?' selected':''}>${esc(n)}</option>`).join('')}
+  const fu=all?us.value:'',fd=$('qDate').value;$('qFClear').hidden=!q&&!fu&&!fd;
+  const dayOf=t=>{const d=new Date(t||0);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
+  const vis=quotes.filter(canSeeQuote).filter(x=>(!fu||x.by===fu)&&(!fd||dayOf(x.started||x.updated)===fd||dayOf(x.updated)===fd));
+  const list=vis.filter(x=>(qFilter==='all'||(qFilter==='open'?(!x.status||x.status==='open'):x.status===qFilter))&&(!q||[x.no,x.pno,x.by,x.cust&&x.cust.name,x.cust&&x.cust.phone,x.invoice,...(x.items||[]).map(t=>t.sku)].some(v=>String(v||'').toLowerCase().includes(q))));
   if(!list.length){el.innerHTML=`<div class="empty">${vis.length?'No quotes match.':'Quotes appear here once an item is saved to a quote.'}</div>`;return}
   el.innerHTML=list.slice(0,80).map(x=>{const n=(x.items||[]).length;
     let net='';try{const keep=bill;bill=fixBill(clone(x));if(x.rates){bill.overrides={};PURITIES.forEach(p=>{if(x.rates[p.id]!=null)bill.overrides[p.id]=x.rates[p.id]})}net=inr(Math.abs(totals().net));bill=keep}catch(e){}
@@ -2909,7 +2919,8 @@ function renderRecent(){
   el.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{if(b.dataset.open!==bill.id)openQuote(b.dataset.open)});
 }
 [...$('qFilter').children].forEach(b=>b.onclick=()=>{qFilter=b.dataset.f;[...$('qFilter').children].forEach(x=>x.setAttribute('aria-pressed',String(x===b)));renderRecent()});
-$('qSearch').addEventListener('input',renderRecent);
+$('qSearch').addEventListener('input',renderRecent);$('qUser').addEventListener('change',renderRecent);$('qDate').addEventListener('change',renderRecent);
+$('qFClear').onclick=()=>{$('qSearch').value='';$('qUser').value='';$('qDate').value='';renderRecent()};
 $('qRefresh').onclick=async()=>{if(!sync.key){toast('Connect the shared database to see quotes from other phones');return}toast('Refreshing quotes…');await pullQuotes();toast('Quotes up to date')};
 
 // ---------- photos for the customer (kept on this phone, per quote) ----------
@@ -3272,7 +3283,10 @@ function paintProduct(){
   $('pdGrand').textContent=ok?inr(p.value*(1+g/100)):'—';
   $('pdTotal').classList.toggle('incomplete',!ok);$('pdGrandRow').classList.toggle('incomplete',!ok);
   $('pdSave').lastChild.textContent=editingId?'Update Quote':'Save to Quote';
-  $('pdSave').hidden=saleMode()==='check'&&!editingId;$('pdCheck').hidden=!$('pdSave').hidden;
+  // Sale type: price check = nothing saved, just Close; online = Save; store walk-in = Save + Edit
+  const sm=saleMode(),chk=sm==='check'&&!editingId;
+  $('pdSave').hidden=chk;$('pdCheck').hidden=!chk;$('pdClose').hidden=!chk;$('pdDel').hidden=chk;
+  $('pdEdit').hidden=!editingId&&sm!=='store';
   $('pdMk').hidden=!p.hasMk;
 }
 // Product details rows, in order: [label, value, key]. Admin can hide any of them (Settings → Product details).
@@ -3310,6 +3324,7 @@ function imgOn(){const l=store.get('imgLocal',null);return l==null?settings.show
 $('pdImgTog').onclick=()=>{store.set('imgLocal',!imgOn());renderEditor();toast(imgOn()?'Product images shown':'Product images hidden')};
 $('pdEdit').onclick=()=>{edOpen=$('editor').hidden;renderEditor();if(edOpen)$('editor').scrollIntoView({behavior:'smooth',block:'start'})};
 $('pdDel').onclick=()=>$('clearTag').click();
+$('pdClose').onclick=()=>{$('clearTag').click();window.scrollTo({top:0,behavior:'smooth'})};
 $('pdSave').onclick=()=>$('addTag').click();
 if('IntersectionObserver' in window)new IntersectionObserver(es=>{prodSeen=es[0].isIntersecting;paintLivePrice()},{threshold:0,rootMargin:'0px 0px -120px 0px'}).observe($('prodCard'));
 function paintLivePrice(){
