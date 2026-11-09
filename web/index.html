@@ -548,7 +548,7 @@ body{padding-top:0}
 .login-in .brand.with-logo{text-align:center;align-self:center}
 
 /* ===== v1.4: views, compact header, price card, quote page, login ===== */
-body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote"] [data-pane]:not([data-pane="quote"]),body[data-view="settings"] [data-pane]:not([data-pane="settings"]),body[data-view="search"] [data-pane]:not([data-pane="search"]){display:none!important}
+body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote"] [data-pane]:not([data-pane="quote"]),body[data-view="settings"] [data-pane]:not([data-pane="settings"]),body[data-view="search"] [data-pane]:not([data-pane="search"]),body[data-view="reports"] [data-pane]{display:none!important}
 .hero{padding:calc(10px + env(safe-area-inset-top,0px)) 12px 12px;background:linear-gradient(180deg,#7A0F1E 0%,var(--band) 100%)}
 .hero::after{display:none}
 .hero-in{display:grid!important;grid-template-columns:44px 1fr auto 44px;align-items:center;gap:6px;flex-wrap:nowrap}
@@ -729,7 +729,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .qi-fva{grid-column:1/-1;margin:4px 0 0 18px;font-size:13px;color:#fff;background:linear-gradient(135deg,#3B1A5C,#5B2A86);border-radius:10px;padding:7px 10px;font-weight:700;line-height:1.5}
 .qi-fva small{color:rgba(255,255,255,.7);font-weight:500}.qi-fva b{font-weight:900;color:#FFE08A;font-size:14px}
 .qi-fva .fa{color:#fff}.qi-fva.on{outline:2px solid #FFE08A}
-.q-hsum{position:sticky;top:max(8px,env(safe-area-inset-top));z-index:30;display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;margin:0 0 12px;border-radius:16px;overflow:hidden;box-shadow:0 6px 18px rgba(59,26,92,.22);background:linear-gradient(135deg,#3B1A5C,#5B2A86)}
+.q-hsum{position:sticky;top:max(8px,env(safe-area-inset-top));z-index:9;display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;margin:0 0 12px;border-radius:16px;overflow:hidden;box-shadow:0 6px 18px rgba(59,26,92,.22);background:linear-gradient(135deg,#3B1A5C,#5B2A86)}
 .q-hsum>div{padding:12px 10px;text-align:center;color:#fff;display:flex;flex-direction:column;gap:2px;min-width:0}
 .q-hsum>div+div{border-left:1px solid rgba(255,255,255,.18)}
 .q-hsum small{font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;opacity:.8}
@@ -1084,6 +1084,138 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 }
 @media (min-width:1440px){.q-tools{grid-template-columns:repeat(6,minmax(0,1fr))}}
 
+/* ===== v1.8 web / desktop (>= 1280px): wide Quote with summary beside the items, stock table, Reports page, print ===== */
+.qx,.tab-dk,.bc-l-d,.dk-wide,.qimg-pc,.rp-charts,.kb{display:none}
+.qi-row>span:nth-child(9){text-align:right;font-variant-numeric:tabular-nums}
+.bc-l-m{display:inline}
+#printArea{display:none}
+@media (min-width:900px){.q-hsum{top:90px}.dk-wide{display:grid}#dkPrint.dk-wide{display:inline-flex}body:not([data-view="quote"]) #dkPrint{display:none}}
+@media (min-width:1280px) and (pointer:fine){
+  :root{--sb:236px}
+  .tab-dk:not([hidden]){display:flex}
+  .wrap{max-width:1880px}
+  /* Home: scanner first */
+  .bc-l-m{display:none}.bc-l-d{display:inline}
+  body[data-view="home"] .h-grid{grid-template-columns:minmax(420px,.9fr) minmax(0,1.1fr)}
+  #bcNum{font-size:22px;min-height:54px;letter-spacing:.04em}
+  .bc-type:focus-within{box-shadow:0 0 0 3px color-mix(in srgb,var(--maroon) 22%,transparent);border-radius:14px}
+  [data-kb]::after{content:attr(data-kb);display:inline-block;font:600 11px var(--mono,monospace);border:1px solid currentColor;border-radius:5px;padding:0 5px;margin-left:8px;opacity:.7;line-height:16px;vertical-align:middle}
+  /* Quote: items table with every column on the left, summary and actions on the right */
+  body[data-view="quote"] #bill{grid-template-columns:minmax(0,1fr) minmax(360px,420px);gap:24px}
+  .q-side{position:sticky;top:96px;max-height:calc(100vh - 110px);overflow-y:auto;padding-bottom:12px;scrollbar-width:thin}
+  .q-side .q-sum{order:-2}.q-side .q-acts{order:-1;border-top:0;padding-top:0;display:grid!important;grid-template-columns:1fr 1.6fr}
+  .q-side .q-acts .btn{padding-inline:12px}
+  .q-items .qx{display:block}
+  .q-items .qi-row{grid-template-columns:28px minmax(150px,2.2fr) 56px 72px 64px 72px minmax(80px,1fr) minmax(84px,1fr) minmax(104px,1.2fr) 64px!important;gap:10px;font-size:15px}
+  .q-items .qi-row>span:nth-child(n+3):nth-child(-n+9){text-align:right;font-variant-numeric:tabular-nums}
+  .q-items .qi-row>span:nth-child(3){text-align:center!important}
+  .q-items .qi-row .qi-mkc small{display:block;color:var(--muted);font-size:12px}
+  .q-items .qi-fva{margin-left:38px}
+  .q-items .qi-row:not(.qi-th):hover{background:color-mix(in srgb,var(--maroon) 4%,var(--surface))}
+  .q-pair{grid-template-columns:1fr}
+  .q-tools{grid-template-columns:repeat(6,minmax(0,1fr))}
+  /* Search: whole stock as a table */
+  .find-view .find-list.st-tbl{display:block}
+  .st-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px;max-height:calc(100vh - 290px);background:var(--surface)}
+  .stk{width:100%;border-collapse:separate;border-spacing:0;font-size:14px;font-variant-numeric:tabular-nums}
+  .stk th{position:sticky;top:0;z-index:1;background:var(--sunk);text-align:left;font-weight:600;font-size:13px;padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap;cursor:pointer;user-select:none}
+  .stk th.r,.stk td.r{text-align:right}
+  .stk th[aria-sort="ascending"]::after{content:" ▲";font-size:10px}.stk th[aria-sort="descending"]::after{content:" ▼";font-size:10px}
+  .stk td{padding:7px 10px;border-bottom:1px solid var(--line);white-space:nowrap;max-width:240px;overflow:hidden;text-overflow:ellipsis}
+  .stk tbody tr{cursor:pointer}.stk tbody tr:hover,.stk tbody tr:focus{background:color-mix(in srgb,var(--maroon) 7%,var(--surface));outline:none}
+  .stk tbody tr.hit{background:color-mix(in srgb,#1F6B45 10%,var(--surface))}
+  .stk .st-img{width:38px;height:38px;border-radius:8px;background:var(--sunk);display:grid;place-items:center;overflow:hidden}
+  .stk .st-img img{width:100%;height:100%;object-fit:cover}.stk .st-img svg{width:22px;height:22px;color:var(--maroon)}
+  .stk td.st-act{overflow:visible}.stk td.st-act .btn{min-height:32px;padding:4px 12px;font-size:13px}
+  .st-foot{display:flex;align-items:center;gap:12px;margin-top:10px;color:var(--muted);font-size:13px}
+  /* Reports as its own page */
+  body[data-view="reports"] .wrap{display:block}
+  body[data-view="reports"] #setReports[data-pane]{display:block!important;border:0;background:none;box-shadow:none;padding:0;max-width:none}
+  body[data-view="reports"] #setReports>summary{display:none}
+  body[data-view="reports"] .rp-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:16px 0}
+  body[data-view="reports"] .rp-f{display:flex;gap:10px;max-width:640px}
+  body[data-view="reports"] .rp-k{grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+  body[data-view="reports"] .rp-k div{padding:14px 16px}body[data-view="reports"] .rp-k div:not(.hl){background:var(--surface);border:1px solid var(--line)}
+  body[data-view="reports"] .rp-k .hl{border:0}
+  body[data-view="reports"] .rp-k b{font-size:24px}
+  body[data-view="reports"] .rp-t{background:var(--surface)}
+  body[data-view="reports"] .rp-t th,body[data-view="reports"] .rp-t td{padding:8px 10px;font-size:14px}
+  .rc{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px 10px;min-width:0;position:relative}
+  .rc.wide{grid-column:1/-1}
+  .rc h4{margin:0 0 2px;font:600 15px var(--body);color:var(--fg)}.rc .rc-s{margin:0 0 8px;color:var(--muted);font-size:12.5px}
+  .rc svg{display:block;width:100%;height:auto;overflow:visible}
+  .rc .ax{font:11px var(--body);fill:var(--muted)}.rc .vl{font:600 11.5px var(--body);fill:var(--fg)}
+  .rc .gl{stroke:var(--line);stroke-width:1}
+  .rc .rbar{fill:var(--maroon)}.rc .rbar:hover,.rc .rbar.on{fill:var(--band)}
+  .rc .hit{fill:transparent;cursor:default}
+  .rc-tip{position:absolute;pointer-events:none;background:var(--fg);color:var(--surface);font-size:12.5px;padding:6px 9px;border-radius:8px;white-space:nowrap;transform:translate(-50%,-110%);z-index:2}
+  .rc-empty{color:var(--muted);font-size:13px;padding:24px 0;text-align:center}
+  /* computer sharing */
+  .qimg-pc{display:flex;flex-direction:row!important;gap:8px}.qimg-pc .btn{flex:1}
+  .qimg-sheet{max-width:720px}
+}
+@media (min-width:1280px) and (max-width:1439px) and (pointer:fine){
+  :root{--sb:208px}
+  .tab{font-size:16px;gap:13px;padding:11px 13px}
+  body[data-view="quote"] #bill{grid-template-columns:minmax(0,1fr) 330px;gap:18px}
+  .q-items .qsw{display:none!important}
+  .q-items .qi-row{grid-template-columns:22px minmax(112px,2fr) 42px 62px 62px minmax(66px,1fr) minmax(72px,1fr) minmax(86px,1.1fr) 52px!important;gap:6px;font-size:13.5px;padding-left:10px;padding-right:8px}
+  .q-tools{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .q-items .qi-th{font-size:12.5px}
+  .q-items .qi-fva{margin-left:26px;font-size:12.5px}
+  .q-tools .qt{font-size:14px}.q-tools .qt svg{width:20px!important;height:20px!important}
+  .dk-b{padding:8px 13px;font-size:15px}
+  body[data-view="reports"] .rp-k{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media (min-width:1280px) and (max-width:1599px) and (pointer:fine){.stk .stw{display:none}.stk td,.stk th{padding-left:8px;padding-right:8px}.stk td{max-width:180px}}
+@media (min-width:1700px) and (pointer:fine){.q-tools{grid-template-columns:repeat(6,minmax(0,1fr))}body[data-view="reports"] .rp-charts{grid-template-columns:repeat(3,minmax(0,1fr))}}
+/* print preview (shown on screen) */
+.pr-sheet{max-width:min(980px,96vw);max-height:94vh}
+.pr-sheet .find-head{display:flex;align-items:center;gap:10px}.pr-sheet .find-head h4{flex:1;margin:0}
+.pr-opt{margin:0;white-space:nowrap}
+.pr-scroll{overflow:auto;background:#8a8a8a;border-radius:10px;padding:18px;max-height:calc(94vh - 150px)}
+.pr-paper{background:#fff;width:210mm;min-height:297mm;margin:0 auto;box-shadow:0 4px 18px rgba(0,0,0,.35);transform-origin:top center}
+/* A4 quotation layout (preview and print) */
+.a4{box-sizing:border-box;width:210mm;min-height:297mm;padding:12mm 12mm 10mm;color:#1d1d1f;font:10pt/1.35 "Inter","Segoe UI",Roboto,system-ui,sans-serif;display:flex;flex-direction:column;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.a4 *{box-sizing:border-box}
+.a4-h{display:flex;align-items:flex-start;justify-content:space-between;gap:10mm;border-bottom:2px solid var(--a4c);padding-bottom:4mm}
+.a4-logo{height:16mm;max-width:60mm;object-fit:contain;object-position:left}
+.a4-firm{font:700 15pt var(--display,Georgia,serif);color:var(--a4c)}
+.a4-addr{font-size:8.5pt;color:#555;margin-top:1mm}
+.a4-t{text-align:right}.a4-t b{display:block;font:700 17pt var(--display,Georgia,serif);color:var(--a4c);letter-spacing:.06em}
+.a4-t div{font-size:9.5pt;color:#333}
+.a4-meta{display:grid;grid-template-columns:1.2fr 1fr;gap:6mm;margin:5mm 0 3mm}
+.a4-box{border:1px solid #ddd;border-radius:2.5mm;padding:2.5mm 3.5mm}
+.a4-box small{display:block;color:#777;font-size:7.5pt;text-transform:uppercase;letter-spacing:.06em}
+.a4-box b{font-size:11pt}
+.a4-rates{font-size:8.5pt;color:#444}
+.a4-tb{width:100%;border-collapse:collapse;margin-top:2mm;font-variant-numeric:tabular-nums}
+.a4-tb th{background:var(--a4c);color:#fff;font-weight:600;font-size:8pt;padding:2mm 1.6mm;text-align:right}
+.a4-tb th:nth-child(-n+2),.a4-tb td:nth-child(-n+2){text-align:left}
+.a4-tb td{padding:2mm 1.6mm;border-bottom:1px solid #e3e3e3;font-size:9pt;text-align:right;vertical-align:top}
+.a4-tb td small{display:block;color:#777;font-size:7.5pt}
+.a4-tb .a4-img{width:14mm;height:14mm;object-fit:cover;border-radius:1.5mm;float:left;margin-right:2mm}
+.a4-tb td s{color:#999}.a4-tb .sp{color:#1F6B45;font-weight:700}
+.a4-low{display:grid;grid-template-columns:1fr 78mm;gap:7mm;margin-top:4mm;align-items:start}
+.a4-sum{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.a4-sum td{padding:1.4mm 2mm;font-size:9.5pt;border-bottom:1px solid #eee}.a4-sum td:last-child{text-align:right;white-space:nowrap}
+.a4-sum .sv td{color:#1F6B45;font-weight:700;background:#EAF5EE}
+.a4-sum .fin td{font-weight:800;font-size:11.5pt;border-top:2px solid var(--a4c);border-bottom:0}
+.a4-sum .bal td{font-weight:800;font-size:12.5pt;background:var(--a4c);color:#fff}
+.a4-save{border:1.5px solid #1F6B45;color:#1F6B45;border-radius:2.5mm;padding:3mm;font-weight:700;font-size:10.5pt;margin-bottom:3mm}
+.a4-save s{color:#888;font-weight:500}
+.a4-notes{font-size:8.5pt;color:#555}.a4-notes ul{margin:1mm 0 0;padding-left:4.5mm}
+.a4-sig{margin-top:12mm;display:flex;justify-content:space-between;font-size:8.5pt;color:#555}.a4-sig span{border-top:1px solid #999;padding-top:1.5mm;min-width:50mm;text-align:center}
+.a4-f{margin-top:auto;padding-top:4mm;border-top:1px solid #ddd;font-size:8pt;color:#666;text-align:center}
+@media print{
+  @page{size:A4 portrait;margin:0}
+  html,body{background:#fff!important;padding:0!important;zoom:1!important}
+  body>*:not(#printArea){display:none!important}
+  #printArea{display:block!important}
+  .a4{page-break-after:auto}
+  .a4-tb tr{page-break-inside:avoid}
+}
+
 /* ===== Theme styles: 01 iOS colour (default) · 02 true iOS · 03 Android ===== */
 .ui-pick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
 .ui-pick button{display:flex;flex-direction:column;align-items:center;gap:4px;border:1.5px solid var(--line);background:var(--surface);border-radius:14px;padding:10px 6px;cursor:pointer;color:var(--fg);text-align:center}
@@ -1213,6 +1345,8 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
     <button class="btn dk-b dk-q" type="button" id="dkSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v5h7V3M8 21v-7h8v7"/></svg>Save</button>
     <button class="btn dk-b dk-q" type="button" id="dkShare"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8V3h10v5"/><rect x="3" y="8" width="18" height="9" rx="2"/><path d="M7 14h10v7H7z"/></svg>Quote image</button>
     <button class="btn dk-b dk-h" type="button" id="dkQuote"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg><span id="dkQuoteT">Quote</span></button>
+    <button class="btn dk-b dk-q dk-wide" type="button" id="dkPrint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/></svg>Print</button>
+    <button class="dk-more dk-wide" type="button" id="dkKeys" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h1M9.5 10h1M13 10h1M16.5 10h1M7 14h10"/></svg></button>
     <button class="dk-more" type="button" id="dkMore" aria-label="More"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></svg></button>
   </div>
 </header>
@@ -1248,7 +1382,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
       <button class="scan-plus" type="button" id="homeQNew" aria-label="Start a new quote">+</button>
       <button class="scan-m" type="button" id="manBc" aria-label="Pick the item code by hand">M</button>
     </div>
-    <div class="bc-type"><label for="bcNum">Or type the barcode</label>
+    <div class="bc-type"><label for="bcNum"><span class="bc-l-m">Or type the barcode</span><span class="bc-l-d">Scan or type the label number · Enter</span></label>
       <div class="bc"><span class="bc-pre" id="bcPre" hidden>—</span><input id="bcNum" class="num" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="e.g. DIA1164"></div>
       <div class="bc-item" id="bcItem" hidden></div>
       <input id="sku" type="hidden">
@@ -1368,7 +1502,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
       <div class="qi-head"><h2>Quoted Items <span id="billCount">(0)</span></h2><span class="q-no">Quote No: <b id="qNo">New</b><span class="qa-pill" id="qNoSt" hidden></span></span></div>
       <div class="q-status" id="qStatus" hidden></div>
       <div class="qi-table" role="table" aria-label="Quoted items">
-        <div class="qi-row qi-th" role="row"><span>#</span><span>SKU / Item</span><span>Purity</span><span>Gr. Wt</span><span>Nt. Wt</span><span>Amount</span><span></span></div>
+        <div class="qi-row qi-th" role="row"><span>#</span><span>SKU / Item</span><span>Purity</span><span>Gr. Wt</span><span class="qx qsw">St. Wt</span><span>Nt. Wt</span><span class="qx">Stone ₹</span><span class="qx">Making</span><span>Amount</span><span></span></div>
         <div id="items"></div>
       </div>
       <div class="q-mgr" id="qMgrNote" hidden></div>
@@ -1516,6 +1650,16 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
       <p class="note" style="margin-block:4px 0">Tick the items to show on the Product Details card. Items with no value are skipped anyway.</p>
       <div class="pd-rowpick" id="pdRowPick"></div>
   </details>
+  <details class="card datacard setcard" id="setDevice" data-pane="settings" data-perm="textSize">
+    <summary><span class="dc-t">This computer · log-out &amp; alerts</span><span class="dc-s" id="setDevMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
+      <p class="note" style="margin-block:4px 0">For this computer or phone only. Staff stay logged in until they log out; on a shared shop computer, log out after it has not been used for a while.</p>
+      <span class="flabel" style="margin-top:8px;display:block">Log out after no use for</span>
+      <div class="seg" id="idlePick"><button type="button" data-m="0">Never</button><button type="button" data-m="5">5 min</button><button type="button" data-m="15">15 min</button><button type="button" data-m="30">30 min</button><button type="button" data-m="60">1 hour</button></div>
+      <span class="flabel" style="margin-top:12px;display:block">Desktop notifications</span>
+      <p class="note" id="wnState" style="margin-block:2px 6px"></p>
+      <div class="rs-acts"><button class="btn" type="button" id="wnOn">Turn on notifications</button><button class="btn" type="button" id="wnTest">Test</button></div>
+      <button class="linkbtn" type="button" id="keysOpen" style="margin-top:8px">Keyboard shortcuts</button>
+  </details>
   <details class="card datacard setcard" id="setText" data-pane="settings" data-perm="textSize">
     <summary><span class="dc-t">Text size</span><span class="dc-s" id="setTextMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
       <p class="note" style="margin-block:4px 0">Make everything smaller if the rates or prices don't fit the screen.</p>
@@ -1595,12 +1739,14 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 
 </div>
 
+<div id="printArea" aria-hidden="true"></div>
 <nav class="tabbar" id="tabbar" aria-label="Sections">
   <div class="sb-brand" aria-hidden="true"><span class="sb-mark" id="sbMark"></span><span class="sb-txt"><b id="sbNm">Yamie</b><small>Price Check &amp; Quote</small></span></div>
   <button type="button" class="tab on" id="tabHome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.2 12 3.8l9 7.4h-2.5V20.2h-5v-5.5h-3v5.5h-5V11.2z"/></svg><span>Home</span></button>
   <button type="button" class="tab" id="tabScan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M7.5 8v8M10.5 8v8M13.5 8v8M16.5 8v8"/></svg><span>Scan</span></button>
   <button type="button" class="tab" id="tabFind"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><span>Search</span></button>
   <button type="button" class="tab" id="tabQuote"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg><span>Quote</span><b class="tab-badge" id="tabBadge" hidden>0</b></button>
+  <button type="button" class="tab tab-dk" id="tabRep" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/></svg><span>Reports</span></button>
   <button type="button" class="tab" id="tabRates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18"/><path d="M5 20l1.5-5h5L13 20"/><path d="M11 20l1.5-5h5L19 20"/><path d="M8 15l1.5-5h5L16 15"/></svg><span>Gold Rates</span></button>
   <button type="button" class="tab" id="tabSet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="6.6"/><path d="M12 2.5v2.9M12 18.6v2.9M2.5 12h2.9M18.6 12h2.9M5.3 5.3l2 2M16.7 16.7l2 2M5.3 18.7l2-2M16.7 7.3l2-2"/></svg><span>Settings</span></button>
   <button type="button" class="sb-user" id="sbUser" aria-label="Account and log out"><span class="sb-av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span><b id="sbName">—</b><span class="sb-out">Log out</span></button>
@@ -1723,6 +1869,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
     <label class="rc-p"><input type="checkbox" id="qimgPhotos" checked> Show product photos in the image</label>
     <p class="note" id="qimgNote"></p>
     <div class="acts"><button class="btn wa-btn" type="button" id="qimgSend">Send on WhatsApp</button><button class="btn ghost" type="button" id="qimgText">Send as text instead</button></div>
+    <div class="acts qimg-pc"><button class="btn" type="button" id="qimgCopy">Copy image</button><button class="btn" type="button" id="qimgDl">Download image</button><button class="btn" type="button" id="qimgPrint">Print A4</button></div>
   </div>
 </div>
 <div class="modal" id="mkPop" hidden role="dialog" aria-modal="true" aria-labelledby="mkPopT">
@@ -1736,6 +1883,13 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
     <button class="linkbtn" type="button" id="mkPopHelper">Open making helper</button>
     <div class="acts"><button class="btn primary" type="submit">Apply</button><button class="btn ghost" type="button" id="mkPopCancel">Later</button></div>
   </form>
+</div>
+<div class="modal pr-pop" id="prPop" hidden role="dialog" aria-modal="true" aria-labelledby="prT">
+  <div class="sheet pr-sheet">
+    <div class="find-head"><h4 id="prT">Print quotation · A4</h4><label class="rc-p pr-opt"><input type="checkbox" id="prImgs"> Product photos</label><button class="btn" type="button" id="prPdf">Save as PDF</button><button class="btn primary" type="button" id="prGo">Print</button><button class="menu-x" type="button" id="prClose" aria-label="Close">✕</button></div>
+    <div class="pr-scroll"><div class="pr-paper" id="prPaper"></div></div>
+    <p class="note" style="margin:0">Print opens the browser's print window (A4, portrait). To save a PDF there, choose “Save as PDF” as the printer, or use Save as PDF here.</p>
+  </div>
 </div>
 <div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modalTitle">
   <div class="sheet"><h4 id="modalTitle"></h4><p id="modalBody"></p><div class="acts" id="modalActs"></div></div>
@@ -1807,7 +1961,8 @@ function saveBill(){store.set('bill',bill)}
 function saveDraft(){store.set('draft',{cur,editingId})}
 
 // ---------- shared database (Netlify) ----------
-const SYNC_BASE=(location.protocol==='https:'&&/netlify\.app$/.test(location.hostname))?'':BRAND.site;
+const OWN_HOST=location.protocol==='https:'&&(/netlify\.app$/.test(location.hostname)||/^pricecheck\./i.test(location.hostname));
+const SYNC_BASE=OWN_HOST?'':BRAND.site;
 const sync={key:store.get('syncKey',''),v:Object.assign({stock:0,rates:0,settings:0,users:0,quotes:0},store.get('syncV',{})),q:store.get('syncQ',[]),dirtySettings:store.get('syncDirty',false),state:'',at:0,busy:false};
 let adminCreds=null; // {username,pin} of the admin acting now (memory only)
 function saveSyncState(){store.set('syncV',sync.v);store.set('syncQ',sync.q);store.set('syncDirty',sync.dirtySettings)}
@@ -2010,7 +2165,7 @@ async function loadRates(){
     let j;
     if(NATIVE)j=await nativeRates();
     else{
-      let r=await fetch((location.protocol==='https:'&&/netlify\.app$/.test(location.hostname))?'/api/rates':BRAND.site+'/api/rates',{cache:'no-store'}).catch(()=>null);
+      let r=await fetch(OWN_HOST?'/api/rates':BRAND.site+'/api/rates',{cache:'no-store'}).catch(()=>null);
       if(!r||!r.ok)r=await fetch('https://grandjewellers.com/api/kiosk-rates',{cache:'no-store'});
       if(!r.ok)throw new Error('HTTP '+r.status);
       j=await r.json();
@@ -2200,7 +2355,10 @@ function paintBarcode(){
   }else el.innerHTML=name?`Item <b>${esc(name)}</b>${CAT[sp.pre]?` · ${sp.pre}`:''}`:(sp.pre&&sp.pre.length>=3?'Prefix not recognised':'');
   el.hidden=!!st||!el.innerHTML;
 }
-$('bcNum').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('bcNum').blur();lookupTyped(true);setTimeout(()=>{if(cur.stockKey)startTagFlow()},60)}});
+$('bcNum').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();
+  if(kbFirst()){const v=$('bcNum').value.trim();clearTimeout(lookTimer);if(v.length>=3){useScannedCode(v);paintBarcode()}$('bcNum').select();return}
+  $('bcNum').blur();lookupTyped(true);setTimeout(()=>{if(cur.stockKey)startTagFlow()},60)}});
+$('bcNum').addEventListener('focus',()=>{if(kbFirst())setTimeout(()=>{try{$('bcNum').select()}catch(e){}},0)});
 $('bcNum').addEventListener('input',()=>{
   const v=$('bcNum').value.toUpperCase().replace(/[^A-Z0-9]/g,'');
   if($('bcNum').value!==v)$('bcNum').value=v;
@@ -2750,7 +2908,10 @@ function renderBill(keepInputs){
       <span class="qi-sku"><b>${esc(keyOf(t.sku)||'—')}</b><small>${esc((t.stock&&t.stock.category)||t.item||'')}</small></span>
       <span>${esc(PLABEL[t.purity]||'—')}</span>
       <span>${fmtW(num(t.gw))}</span>
+      <span class="qx qsw">${num(t.sw)>0?fmtW(num(t.sw)):'—'}</span>
       <span>${fmtW(num(t.nw))}</span>
+      <span class="qx">${p.ok&&p.stone?inr(p.stone):'—'}</span>
+      <span class="qx qi-mkc">${p.ok&&p.hasMk?`${inr(p.making)}<small>${esc(mkTxt)}</small>`:'—'}</span>
       <span class="qi-amt">${p.ok?inr(p.value*(1+gstPct()/100)):'—'}</span>
       <span class="qi-acts">${closed?'':`<button type="button" data-edit="${t.id}" aria-label="Edit item ${i+1}">${IC_EDIT}</button><button type="button" data-del="${t.id}" aria-label="Remove item ${i+1}">${IC_DEL}</button>`}</span>
       ${(()=>{const fv=fvaPrice(t,p),G=1+gstPct()/100;if(!fv)return '';const fvp=r100(fv.value*G),on=t.qMk&&t.qMk.fva,mgr=t.qMk&&!t.qMk.fva;
@@ -3130,9 +3291,9 @@ $('waText').onclick=async()=>{
   if(!shareOk(()=>$('waText').click()))return;
   const text=shareText(),ph=phoneDigits(bill.cust.phone);
   if(NATIVE&&NATIVE.shareWhatsApp){NATIVE.shareWhatsApp(ph,text,JSON.stringify(photos));return}
-  if(photos.length&&navigator.canShare){try{const files=photos.map(dataUrlFile);if(navigator.canShare({files})){await navigator.share({files,text});return}}catch(e){if(e&&e.name==='AbortError')return}}
+  if(photos.length&&navigator.canShare&&!onComputer()){try{const files=photos.map(dataUrlFile);if(navigator.canShare({files})){await navigator.share({files,text});return}}catch(e){if(e&&e.name==='AbortError')return}}
   if(photos.length)toast('This browser cannot attach photos. Sending the text; attach photos in WhatsApp.',null,true);
-  const url=`https://wa.me/${ph}?text=${encodeURIComponent(text)}`;
+  const url=waUrl(ph,text);
   if(NATIVE&&NATIVE.openUrl)NATIVE.openUrl(url);else window.open(url,'_blank','noopener');
 };
 // ---------- quote as an image (WhatsApp) ----------
@@ -3257,7 +3418,7 @@ async function openQuoteImage(){
   if(!bill.items.length){toast('Add an item first');return}
   if(!shareOk(openQuoteImage))return;
   if(!bill.no&&sync.key&&navigator.onLine){await pushQuote(bill.id)}
-  $('qimgPop').hidden=false;$('qimgImg').removeAttribute('src');$('qimgNote').textContent='Making the quote image…';
+  $('qimgPop').hidden=false;$('qimgImg').removeAttribute('src');try{$('qimgSend').textContent=onComputer()?'Send on WhatsApp Web':'Send on WhatsApp'}catch(e){}$('qimgNote').textContent='Making the quote image…';
   const withP=store.get('qimgPhotos',true);$('qimgPhotos').checked=!!withP;
   qImgUrl=await makeQuoteImage(withP&&imgOn());
   $('qimgImg').src=qImgUrl;$('qimgNote').textContent=photos.length?`+ ${photos.length} customer photo${photos.length>1?'s':''} will be sent with it.`:'';
@@ -3271,12 +3432,18 @@ $('qimgSend').onclick=async()=>{
   const caption=`*${BRAND.full}*\nQuote ${quoteLabel(bill)}${bill.cust.name?' for '+bill.cust.name:''}\n${s.net<0?'Refund':'Balance'}: *${inr(Math.abs(s.net))}* (incl. GST)`;
   const imgs=[qImgUrl,...photos];
   if(NATIVE&&NATIVE.shareWhatsApp){NATIVE.shareWhatsApp(ph,caption,JSON.stringify(imgs));$('qimgPop').hidden=true;return}
+  if(onComputer()){
+    let copied=false;try{const im=await loadImg(qImgUrl),cv=document.createElement('canvas');cv.width=im.width;cv.height=im.height;cv.getContext('2d').drawImage(im,0,0);const blob=await new Promise(r=>cv.toBlob(r,'image/png'));await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);copied=true}catch(e){}
+    if(!copied){const a=document.createElement('a');a.href=qImgUrl;a.download=`${quoteLabel(bill)}.jpg`.replace(/[\/\\]/g,'-');document.body.appendChild(a);a.click();a.remove()}
+    window.open(waUrl(ph,caption),'whatsapp');$('qimgPop').hidden=true;
+    toast(copied?'WhatsApp Web opened. Paste the quote image in the chat with Ctrl+V.':'Quote image downloaded. Attach it in WhatsApp Web.',null,true);return;
+  }
   try{const files=imgs.map(dataUrlFile);files[0]=new File([files[0]],`${quoteLabel(bill)}.jpg`,{type:'image/jpeg'});
     if(navigator.canShare&&navigator.canShare({files})){await navigator.share({files,text:caption});$('qimgPop').hidden=true;return}}catch(e){if(e&&e.name==='AbortError')return}
   // No file sharing here: save the image, then open WhatsApp with the text
   const a=document.createElement('a');a.href=qImgUrl;a.download=`${quoteLabel(bill)}.jpg`;document.body.appendChild(a);a.click();a.remove();
   toast('Quote image saved. Attach it in WhatsApp.',null,true);
-  const url=`https://wa.me/${ph}?text=${encodeURIComponent(caption)}`;
+  const url=waUrl(ph,caption);
   if(NATIVE&&NATIVE.openUrl)NATIVE.openUrl(url);else window.open(url,'_blank','noopener');
 };
 $('qimgText').onclick=()=>{$('qimgPop').hidden=true;$('waText').click()};
@@ -3815,12 +3982,15 @@ function setMenu(on){$('menu').hidden=!on;$('menuScrim').hidden=!on;$('menuBtn')
 $('menuBtn').onclick=()=>setMenu(true);$('menuClose').onclick=$('menuScrim').onclick=()=>setMenu(false);
 $('menu').addEventListener('click',e=>{if(e.target.closest('.menu-acts button'))setMenu(false)});
 // Views: Home (price check), Quote, Settings (stock data + admin settings)
-const VIEW_TITLE={home:'Price Check',quote:'Quote',settings:'Settings',search:'Search'};
+const VIEW_TITLE={home:'Price Check',quote:'Quote',settings:'Settings',search:'Search',reports:'Reports'};
 function setView(v){
   const was=document.body.dataset.view;document.body.dataset.view=v;
-  $('viewTitle').textContent=VIEW_TITLE[v];$('dkTitle').textContent=VIEW_TITLE[v];{const t=$({home:'tabHome',quote:'tabQuote',settings:'tabSet',search:'tabFind'}[v]);const g=t&&t.querySelector('svg');if(g)$('dkIco').innerHTML=g.outerHTML}$('heroBack').hidden=v==='home';
-  [['tabHome','home'],['tabFind','search'],['tabQuote','quote'],['tabSet','settings']].forEach(([id,k])=>$(id).classList.toggle('on',k===v));
+  $('viewTitle').textContent=VIEW_TITLE[v];$('dkTitle').textContent=VIEW_TITLE[v];{const t=$({home:'tabHome',quote:'tabQuote',settings:'tabSet',search:'tabFind',reports:'tabRep'}[v]);const g=t&&t.querySelector('svg');if(g)$('dkIco').innerHTML=g.outerHTML}$('heroBack').hidden=v==='home';
+  [['tabHome','home'],['tabFind','search'],['tabQuote','quote'],['tabSet','settings'],['tabRep','reports']].forEach(([id,k])=>$(id).classList.toggle('on',k===v));
   if(v==='quote'){renderBill();if(sync.key)pullQuotes()}
+  if(v==='reports'){$('setReports').open=true;buildReport();if(sync.key)pullQuotes().then(()=>{if(document.body.dataset.view==='reports')buildReport()}).catch(()=>{})}
+  else if(was==='reports')$('setReports').open=false;
+  if(v==='home')setTimeout(()=>scanFocus(),60);
   if(was!==v)window.scrollTo({top:0});
 }
 function openSettings(card){setView('settings');if(card){const c=$(card);if(!c.open)c.querySelector('summary').click();setTimeout(()=>c.scrollIntoView({behavior:'smooth',block:'start'}),150)}}
@@ -3850,6 +4020,8 @@ applyTheme();
 // ---------- tablet / wide screens (>= 900px): side bar, page header, multi-column Home and Quote ----------
 // Same screens and controls as the phone; on wide screens they are only regrouped into columns.
 const WIDE=window.matchMedia('(min-width:900px)');
+const DESK=window.matchMedia('(min-width:1280px) and (pointer:fine)');
+const FINE_PTR=window.matchMedia('(pointer:fine)'); // web version on a computer: summary beside the items, stock table, Reports page
 const deskOrig=new Map();
 function ungroup(parent){
   const orig=deskOrig.get(parent);if(!orig)return;
@@ -3871,11 +4043,13 @@ function deskLayout(){
   // Quote: main column + side panel
   deskOrig.set(b,[...b.children]);
   const steps=[...b.querySelectorAll(':scope > .q-step')];
-  const main=box('q-main',[$('qTop'),...steps,q('.q-top'),q('.q-tools'),q('.q-items'),box('q-pair',[$('qDiscCard'),q('.q-sum')]),q('.q-acts')]);
-  const side=box('q-side',[$('qSale'),$('qDed'),q('.q-photos'),$('qClose'),q('.q-list')]);
+  const desk=DESK.matches;
+  const main=box('q-main',[$('qTop'),...steps,q('.q-top'),q('.q-tools'),q('.q-items'),box('q-pair',[$('qDiscCard'),desk?null:q('.q-sum')]),desk?null:q('.q-acts')]);
+  const side=box('q-side',[desk?q('.q-sum'):null,desk?q('.q-acts'):null,$('qSale'),$('qDed'),q('.q-photos'),$('qClose'),q('.q-list')]);
   b.prepend(main,side);
 }
 WIDE.addEventListener?WIDE.addEventListener('change',deskLayout):WIDE.addListener(deskLayout);
+DESK.addEventListener?DESK.addEventListener('change',()=>{deskLayout();try{if(document.body.dataset.view==='search')runFind();if(document.body.dataset.view==='reports'&&!DESK.matches)setView('settings')}catch(e){}}):DESK.addListener(deskLayout);
 deskLayout();
 // side bar logo + name
 (()=>{const m=$('sbMark');$('sbNm').textContent=BRAND.name;
@@ -3888,6 +4062,242 @@ $('dkQuote').onclick=()=>setView('quote');
 $('dkOpen').onclick=()=>{const l=$('bill').querySelector('.q-list');if(l)l.scrollIntoView({behavior:'smooth',block:'start'});const f=$('qSearch');if(f)setTimeout(()=>f.focus({preventScroll:true}),400)};
 $('dkSave').onclick=()=>{if(billIsEmpty()){toast('Add an item to the quote first',null,true);return}saveBill();toast('Quote saved')};
 $('dkShare').onclick=()=>$('waBtn').click();
+// ===================== v1.8 web version on a computer =====================
+// Same app and data as the phones and tablets. On a computer (>= 1280 px with a mouse) it adds:
+// scanner-first Home and keyboard shortcuts, the full stock table in Search, a Reports page with charts,
+// A4 print / PDF of the quote, WhatsApp Web sharing, auto log-out after idle and desktop notifications.
+function kbFirst(){return !NATIVE&&DESK.matches}
+function overlayOpen(){return !!document.querySelector('.modal:not([hidden]),#login:not([hidden]),#rsheet:not([hidden]),#ssheet:not([hidden]),#menu:not([hidden])')}
+function isTyping(el){return !!(el&&(el.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)))}
+// The label box on Home keeps the focus, so a USB scanner (keyboard mode, Enter at the end) always lands there.
+function scanFocus(){
+  if(!kbFirst()||document.body.dataset.view!=='home'||overlayOpen()||document.hidden)return;
+  const a=document.activeElement;if(a===$('bcNum')||(isTyping(a)&&a.offsetParent!==null))return;
+  try{$('bcNum').focus({preventScroll:true})}catch(e){}
+}
+setInterval(scanFocus,700);
+document.addEventListener('focusout',()=>setTimeout(scanFocus,0));
+// ---- keyboard shortcuts ----
+const KEYS=[['F2','Scan / type a label (Home)'],['Enter','Price the label in the box'],['F4','Save to Quote'],['Esc','Clear the product card'],['F6','New quote'],['F7','Open the quote'],['F8','Generate quote'],['F9 · Ctrl+P','Print the quote (A4) / PDF'],['F3','Search stock'],['F10','Reports'],['?','This list']];
+function showKeys(){
+  showModal('Keyboard shortcuts','',[{label:'Close',cls:'primary'}]);
+  $('modalBody').innerHTML=`<table class="rp-t kb-t">${KEYS.map(([k,t])=>`<tr><td style="text-align:left"><kbd>${esc(k)}</kbd></td><td style="text-align:left">${esc(t)}</td></tr>`).join('')}</table><p class="note">A USB barcode scanner works anywhere on Home: scan the label and the price shows.</p>`;
+}
+function visible(id){const el=$(id);return !!(el&&!el.hidden&&el.offsetParent!==null)}
+function keyAct(k){
+  const v=document.body.dataset.view;
+  if(k==='F2'){if(v!=='home')setView('home');setTimeout(()=>{$('bcNum').focus();$('bcNum').select()},30);return true}
+  if(k==='F3'){openFind();return true}
+  if(k==='F4'){if(v!=='home')return false;if(visible('pdSave')){$('pdSave').click();return true}if(visible('addTag')){$('addTag').click();return true}toast('Scan an item first',null,true);return true}
+  if(k==='F6'){$('dkNew').click();return true}
+  if(k==='F7'){setView('quote');return true}
+  if(k==='F8'){setView('quote');setTimeout(()=>$('saveBill').click(),60);return true}
+  if(k==='F9'){openPrint();return true}
+  if(k==='F10'){if(!$('tabRep').hidden)$('tabRep').click();return true}
+  return false;
+}
+document.addEventListener('keydown',e=>{
+  if(NATIVE||!WIDE.matches)return;
+  if(/^F([2-9]|10)$/.test(e.key)&&!e.ctrlKey&&!e.metaKey&&!e.altKey){if(!$('login').hidden)return;if(overlayOpen()&&e.key!=='F2')return;if(keyAct(e.key))e.preventDefault();return}
+  if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&!e.altKey&&(e.key==='p'||e.key==='P')&&document.body.dataset.view==='quote'&&!overlayOpen()){e.preventDefault();openPrint();return}
+  if(isTyping(e.target)&&e.target!==$('bcNum'))return;
+  if(e.key==='?'&&!isTyping(e.target)&&!overlayOpen()){e.preventDefault();showKeys();return}
+  if(e.key==='Escape'&&document.body.dataset.view==='home'&&!overlayOpen()&&visible('pdDel')&&kbFirst()){e.preventDefault();$('pdDel').click();$('bcNum').value='';setTimeout(scanFocus,30)}
+});
+$('dkKeys').onclick=showKeys;$('keysOpen').onclick=showKeys;
+// shortcut hints on the buttons (computer only; hidden by CSS elsewhere)
+[['pdSave','F4'],['dkNew','F6'],['saveBill','F8'],['dkPrint','F9'],['dkQuote','F7']].forEach(([id,k])=>{const b=$(id);if(b)b.dataset.kb=k});
+$('tabRep').onclick=()=>withPerm('reports','Needs permission: Reports.',()=>setView('reports'));
+function paintRepTab(){$('tabRep').hidden=!(curUser&&can('reports'))}
+
+// ---- Search: the whole stock list as a table (sortable; click or Enter prices the item) ----
+const ST_COLS=[['img','',0],['key','Label no.',0],['category','Item type',0],['item','Item name',0],['carat','Purity',0],['gw','Gr. wt',1],['sw','St. wt',1],['nw','Net wt',1],['dw','Dia ct',1,1],['sa','Stone ₹',1],['mk','Making',1],['huid','HUID',1,1],['location','Location',0],['supplier','Supplier',0],['labelDate','Labelled',0,1],['act','',0]];
+let stSort={k:'key',d:1},stLimit=200;
+function stVal(r,k){if(k==='sa')return (num(r.saDia)||0)+(num(r.saClr)||0)||num(r.sa)||0;if(['gw','sw','nw','dw','huid','mk'].includes(k)){const n=num(r[k]);return isNaN(n)?-1:n}return String(r[k]||'').toLowerCase()}
+function runFindTable(){
+  const q=$('findQ').value.trim(),k=keyOf(q),ql=q.toLowerCase(),el=$('findList');el.classList.add('st-tbl');
+  if(!stockMap.size){$('findNote').textContent='No stock loaded yet.';el.innerHTML='';return}
+  const exact=q?findStock(q):null;
+  let rows=[...stockMap.values()];
+  if(q)rows=rows.filter(r=>r===exact||(k.length>=2&&(r.key.includes(k)||keyOf(r.label||'').includes(k)))||[r.item,r.category,r.supplier,r.stoneName,r.location].some(v=>String(v||'').toLowerCase().includes(ql)));
+  rows.sort((a,b)=>{const x=stVal(a,stSort.k),y=stVal(b,stSort.k);return (x<y?-1:x>y?1:0)*stSort.d});
+  if(exact){rows=[exact,...rows.filter(r=>r!==exact)]}
+  $('findNote').innerHTML=(exact?`<b class="ok-t">✓ ${esc(exact.barcode||exact.key)} is in stock.</b> Press Enter to price it. `:q&&!rows.length?`<b class="bad-t">✗ Not in stock.</b> No item matches “${esc(q)}”. `:'')+`${rows.length.toLocaleString('en-IN')} of ${stockMap.size.toLocaleString('en-IN')} items.`;
+  const W=v=>num(v)>0?num(v).toFixed(3):'',show=rows.slice(0,stLimit);
+  el.innerHTML=`<div class="st-wrap"><table class="stk"><thead><tr>${ST_COLS.map(([c,l,r,w])=>`<th class="${r?'r':''}${w?' stw':''}" data-c="${c}"${stSort.k===c?` aria-sort="${stSort.d>0?'ascending':'descending'}"`:''}>${l}</th>`).join('')}</tr></thead><tbody>${show.map(r=>{
+    const p=caratToPurity(r.carat),mk=r.mkType&&num(r.mk)>0?valText({type:r.mkType,val:num(r.mk)}):'',sa=stVal(r,'sa');
+    return `<tr tabindex="0" data-k="${esc(r.key)}"${r===exact?' class="hit"':''}><td><div class="st-img" data-img="${esc(r.key)}">${icoFor(r.category||r.item||'')}</div></td><td><b>${esc(r.barcode||r.key)}</b></td><td>${esc(r.category||'')}</td><td title="${esc(r.item||'')}">${esc(r.item||'')}</td><td>${esc(PLABEL[p]||r.carat||'')}</td><td class="r">${W(r.gw)}</td><td class="r">${W(r.sw)}</td><td class="r">${W(r.nw)}</td><td class="r stw">${num(r.dw)>0?fmtN(num(r.dw)):''}</td><td class="r">${sa>0?inr(sa):''}</td><td class="r">${esc(mk)}</td><td class="r stw">${r.huid!=null&&r.huid!==''?esc(String(r.huid)):''}</td><td>${esc(r.location||'')}</td><td>${esc(r.supplier||'')}</td><td class="stw">${esc(fmtDate(r.labelDate)||'')}</td><td class="st-act"><button class="btn sm primary" type="button" data-price="${esc(r.key)}">Price it</button></td></tr>`}).join('')}</tbody></table></div>
+    <div class="st-foot"><span>Showing ${show.length.toLocaleString('en-IN')} of ${rows.length.toLocaleString('en-IN')}</span>${rows.length>show.length?'<button class="btn sm" type="button" id="stMore">Show 200 more</button>':''}<span style="margin-left:auto">Click a column to sort · click a row or press Enter to price it</span></div>`;
+  const price=key=>{const r=stockMap.get(key);if(r){setView('home');useScannedCode(r.barcode||r.key);paintBarcode()}};
+  el.querySelectorAll('th[data-c]').forEach(th=>th.onclick=()=>{const c=th.dataset.c;if(c==='img'||c==='act')return;stSort=stSort.k===c?{k:c,d:-stSort.d}:{k:c,d:1};runFindTable()});
+  el.querySelectorAll('tbody tr').forEach(tr=>{tr.onclick=e=>{if(e.target.closest('[data-price]'))return;price(tr.dataset.k)};tr.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();price(tr.dataset.k)}else if(e.key==='ArrowDown'&&tr.nextElementSibling){e.preventDefault();tr.nextElementSibling.focus()}else if(e.key==='ArrowUp'){e.preventDefault();(tr.previousElementSibling||$('findQ')).focus()}}});
+  el.querySelectorAll('[data-price]').forEach(b=>b.onclick=()=>price(b.dataset.price));
+  const more=$('stMore');if(more)more.onclick=()=>{stLimit+=200;runFindTable()};
+  el.querySelectorAll('[data-img]').forEach(d=>{const k=d.dataset.img;if(!imgIdx[k]&&!imgMem.get(k))return;getProdImg(k).then(u=>{if(u)d.innerHTML=`<img src="${u}" alt="">`})});
+}
+$('findQ').addEventListener('keydown',e=>{
+  if(!DESK.matches)return;
+  if(e.key==='Enter'){e.preventDefault();const r=findStock($('findQ').value.trim());if(r){setView('home');useScannedCode(r.barcode||r.key);paintBarcode()}else{const f=$('findList').querySelector('tbody tr');if(f)f.focus()}}
+  else if(e.key==='ArrowDown'){const f=$('findList').querySelector('tbody tr');if(f){e.preventDefault();f.focus()}}
+});
+$('findQ').addEventListener('input',()=>{stLimit=200});
+
+// ---- Reports page charts (single-series bars: one colour, hover for the value) ----
+function rcWrap(title,sub,svg,wide){return `<div class="rc${wide?' wide':''}"><h4>${esc(title)}</h4><p class="rc-s">${esc(sub)}</p><div class="rc-b"></div></div>`}
+function niceMax(v){if(!(v>0))return 1;const p=Math.pow(10,Math.floor(Math.log10(v))),n=v/p;return (n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*p}
+function shortInr(v){return v>=1e7?'₹'+fmtN(Math.round(v/1e5)/100)+' Cr':v>=1e5?'₹'+fmtN(Math.round(v/1e3)/100)+' L':v>=1e3?'₹'+fmtN(Math.round(v/100)/10)+'k':'₹'+Math.round(v)}
+function vBars(data,W){
+  if(!data.some(d=>d.v>0))return '<div class="rc-empty">No sales in this period</div>';
+  const H=250,L=64,B=26,T=14,max=niceMax(Math.max(...data.map(d=>d.v))),n=data.length,bw=(W-L)/n,gap=Math.max(Math.min(8,bw*.25),bw-44);
+  const y=v=>T+(H-T-B)*(1-v/max),ticks=[0,.2,.4,.6,.8,1].map(f=>f*max),every=Math.ceil(n/Math.max(4,Math.floor(W/90)));
+  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img">${ticks.map(t=>`<line class="gl" x1="${L}" x2="${W}" y1="${y(t)}" y2="${y(t)}"/><text class="ax" x="${L-8}" y="${y(t)+4}" text-anchor="end">${shortInr(t)}</text>`).join('')}
+    ${data.map((d,i)=>{const x=L+i*bw+gap/2,w=Math.max(1,bw-gap),h=Math.max(0,y(0)-y(d.v));return `${d.v>0?`<path class="rbar" d="M${x},${y(0)}V${y(0)-h+Math.min(4,h)}q0,-${Math.min(4,h)} ${Math.min(4,w/2)},-${Math.min(4,h)}H${x+w-Math.min(4,w/2)}q${Math.min(4,w/2)},0 ${Math.min(4,w/2)},${Math.min(4,h)}V${y(0)}Z"/>`:''}<rect class="hit" x="${L+i*bw}" y="${T}" width="${bw}" height="${H-T-B}" data-tip="${esc(d.tip)}"/>${i%every===0?`<text class="ax" x="${L+i*bw+bw/2}" y="${H-8}" text-anchor="middle">${esc(d.l)}</text>`:''}`}).join('')}
+    <line x1="${L}" x2="${W}" y1="${y(0)}" y2="${y(0)}" stroke="var(--muted)" stroke-width="1"/></svg>`;
+}
+function hBars(data,empty,W){
+  data=data.filter(d=>d.v>0).slice(0,8);if(!data.length)return `<div class="rc-empty">${esc(empty||'Nothing in this period')}</div>`;
+  const R=34,L=Math.min(150,W*.3),VR=80,H=data.length*R+6,max=Math.max(...data.map(d=>d.v)),x=v=>(W-L-VR)*v/max;
+  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img">${data.map((d,i)=>{const yy=i*R+6,w=Math.max(2,x(d.v));return `<text class="ax" x="${L-10}" y="${yy+17}" text-anchor="end" style="font-size:12.5px;fill:var(--fg)">${esc(String(d.l).slice(0,20))}</text><path class="rbar" d="M${L},${yy+4}H${L+w-4}q4,0 4,4V${yy+20}q0,4 -4,4H${L}Z"/><text class="vl" x="${L+w+8}" y="${yy+18}">${esc(d.vl)}</text><rect class="hit" x="0" y="${yy}" width="${W}" height="${R}" data-tip="${esc(d.tip)}"/>`}).join('')}</svg>`;
+}
+function paintRpCharts(){
+  if(!rpData||document.body.dataset.view!=='reports')return;
+  const box=document.createElement('div');box.className='rp-charts';const k=$('rpOut').querySelector('.rp-k');if(k)k.after(box);else $('rpOut').prepend(box);
+  const d=rpData,DAY=864e5;let a=d.a,b=Math.min(d.b,Date.now());
+  if(!a){const ts=d.sold.map(x=>x.q.closedAt||x.q.updated||0).filter(Boolean);a=ts.length?Math.min(...ts):Date.now()-29*DAY}
+  const days=[];for(let t=new Date(new Date(a).toDateString()).getTime();t<=b&&days.length<400;t+=DAY)days.push(t);
+  const per=days.map(t=>{const list=d.sold.filter(x=>{const c=x.q.closedAt||x.q.updated||0;return c>=t&&c<t+DAY});const v=list.reduce((s,x)=>s+x.s.final,0);
+    const l=new Date(t).toLocaleDateString('en-IN',{day:'numeric',month:'short'});return {l,v,tip:`${l}: ${inr(v)} · ${list.length} sale${list.length===1?'':'s'}`}});
+  const C=[['Sales by day',`Completed sales value (incl. GST) · ${inr(d.sales)} in total`,W=>vBars(per,W),1],
+    ['Sales by user','Completed sales value',W=>hBars(d.users.map(r=>({l:r[0],v:r[3],vl:shortInr(r[3]),tip:`${r[0]}: ${inr(r[3])} · ${r[2]} sales from ${r[1]} quotes`})).sort((x,y)=>y.v-x.v),'No sales in this period',W)],
+    ['Sold by item','Value of items sold',W=>hBars(d.cats.map(([k,c])=>({l:k,v:c[2],vl:shortInr(c[2]),tip:`${k}: ${c[0]} pcs · ${fmtW(c[1])} g · ${inr(c[2])}`})),'No sales in this period',W)],
+    ['Quotes by user','Quotes made in this period',W=>hBars(d.users.map(r=>({l:r[0],v:r[1],vl:String(r[1]),tip:`${r[0]}: ${r[1]} quotes · ${r[2]} sold`})).sort((x,y)=>y.v-x.v),'No quotes in this period',W)],
+    ['Sales by sale type','Completed sales value',W=>hBars(d.types.map(r=>({l:r[0],v:r[3],vl:shortInr(r[3]),tip:`${r[0]}: ${inr(r[3])} · ${r[2]} sales from ${r[1]} quotes`})),'No sales in this period',W)]];
+  box.innerHTML=C.map(c=>rcWrap(c[0],c[1],'',c[3])).join('');
+  box.querySelectorAll('.rc').forEach((rc,i)=>{rc.querySelector('.rc-b').innerHTML=C[i][2](Math.max(260,Math.floor(rc.clientWidth-34)))});
+  box.querySelectorAll('.rc').forEach(rc=>{const tip=document.createElement('div');tip.className='rc-tip';tip.hidden=true;rc.appendChild(tip);
+    rc.querySelectorAll('.hit').forEach(h=>{h.addEventListener('mouseenter',()=>{tip.textContent=h.dataset.tip;tip.hidden=false;const bar=h.previousElementSibling&&h.previousElementSibling.classList.contains('rbar')?h.previousElementSibling:null;rc.querySelectorAll('.rbar.on').forEach(x=>x.classList.remove('on'));if(bar)bar.classList.add('on')});
+      h.addEventListener('mousemove',e=>{const r=rc.getBoundingClientRect(),tw=tip.offsetWidth/2;tip.style.left=Math.min(r.width-tw-4,Math.max(tw+4,e.clientX-r.left))+'px';tip.style.top=(e.clientY-r.top)+'px'});
+      h.addEventListener('mouseleave',()=>{tip.hidden=true;rc.querySelectorAll('.rbar.on').forEach(x=>x.classList.remove('on'))})})});
+}
+
+let rpRz;window.addEventListener('resize',()=>{clearTimeout(rpRz);rpRz=setTimeout(()=>{if(document.body.dataset.view==='reports')buildReport()},250)});
+// ---- A4 quotation: print preview, print, PDF ----
+function quoteSums(){const s=totals(),g=gstPct(),G=1+g/100,label=s.listSub*G+s.delivery*G,save=Math.max(0,label-s.final);return {s,g,G,label,save,pct:label>0?save/label*100:0}}
+function a4Rows(){const {s,g}=quoteSums(),R=[['Value at label price',inr(s.listSub)]];
+  if(s.mkDisc>0.5)R.push(['Your savings','−'+inr(s.mkDisc),'sv']);
+  if(s.promoAmt>0.5)R.push([`Offer · ${s.promo.name}`,'−'+inr(s.promoAmt),'sv']);
+  if(s.courier)R.push([`Delivery · ${s.courier.name}`,s.delivery?'+'+inr(s.delivery):'Free']);
+  R.push(['Taxable value',inr(s.taxable)],[`GST (${fmtN(g)}%)`,inr(s.gst)]);
+  if(s.disc>0.5)R.push(['Extra savings','−'+inr(s.disc),'sv']);
+  R.push(['Final amount',inr(s.final),'fin']);
+  if(s.old)R.push([`Old gold (URD) ${fmtW(s.oldW)} g`,'−'+inr(s.old)]);
+  if(s.ret)R.push(['Sales return','−'+inr(s.ret)]);
+  if(s.adv)R.push(['Advance paid','−'+inr(s.adv)]);
+  R.push([s.net<0?'Refund':'Balance amount',inr(Math.abs(s.net)),'bal']);return R}
+async function a4Html(withImgs){
+  const {s,g,G,label,save,pct}=quoteSums(),A=firmAddr()||{name:BRAND.full,lines:[]},C=(getComputedStyle(document.documentElement).getPropertyValue('--maroon')||'#971B1E').trim();
+  const imgs=withImgs?await Promise.all(bill.items.map(t=>getProdImg(keyOf(t.sku)).catch(()=>null))):[];
+  const logo=BRAND.logoHeaderColor||BRAND.markColor||'';
+  const when=new Date(bill.generated||bill.started||Date.now()).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
+  const rows=bill.items.map((t,i)=>{const p=priceTag(t),q=quotedValue(t,p),st=t.stock||{},list=p.value*G,net=q*G,disc=p.ok&&net<list-0.5;
+    const det=[[num(st.dw)>0?`Diamond ${fmtN(num(st.dw))} ct${num(st.dq)>0?` · ${fmtN(num(st.dq))} pcs`:''}`:''],[st.stoneName||''],[bill.showMk!==false&&p.hasMk?`Making ${valText({type:t.mkType,val:num(t.mkVal)})}${t.qMk?' → '+valText({type:t.mkType,val:num(t.qMk.val)}):''}`:'']].map(x=>x[0]).filter(Boolean).join(' · ');
+    return `<tr><td>${i+1}</td><td>${imgs[i]?`<img class="a4-img" src="${imgs[i]}" alt="">`:''}<b>${esc(st.category||t.item||'Item')}</b><small>${esc(keyOf(t.sku))}${det?' · '+esc(det):''}</small></td><td>${esc(PLABEL[t.purity]||'')}</td><td>${fmtW(num(t.gw))}</td><td>${fmtW(num(t.nw))}</td><td>${p.ok&&p.stone?inr(p.stone):'—'}</td><td>${p.ok?(disc?`<s>${inr(r100(list))}</s>`:inr(r100(list))):'—'}</td><td>${p.ok?(disc?`<span class="sp">${inr(r100(net))}</span>`:inr(r100(list))):'—'}</td></tr>`}).join('');
+  return `<div class="a4" style="--a4c:${C}">
+    <div class="a4-h"><div>${logo?`<img class="a4-logo" src="${logo}" alt="${esc(A.name)}">`:`<div class="a4-firm">${esc(A.name)}</div>`}<div class="a4-addr">${A.lines.map(esc).join('<br>')}</div></div>
+      <div class="a4-t"><b>QUOTATION</b><div>No. <b style="display:inline;font:inherit;font-weight:700;color:#111">${esc(quoteLabel(bill))}</b></div><div>${when}</div>${bill.channel==='online'?'<div>Online enquiry</div>':''}</div></div>
+    <div class="a4-meta"><div class="a4-box"><small>Prepared for</small><b>${esc(bill.cust.name||'Customer')}</b>${bill.cust.phone?`<div>${esc(bill.cust.phone)}</div>`:''}</div>
+      <div class="a4-box"><small>Prepared by</small><b>${esc(bill.by||meName()||'')}</b><div class="a4-rates">Today's rate / g: ${SHOWN().map(p=>{const r=rateFor(p.id);return `${esc(p.label)} ${r==null?'—':inr(r)}`}).join(' · ')}</div></div></div>
+    <table class="a4-tb"><thead><tr><th>#</th><th>Item</th><th>Purity</th><th>Gr. wt (g)</th><th>Nt. wt (g)</th><th>Stone</th><th>Label price</th><th>Your price</th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="a4-low"><div>${save>=1?`<div class="a4-save">Your special price ${inr(s.final)} <s>${inr(r100(label))}</s><br>You save ${inr(save)}${pct>=1?` · ${fmtN(Math.round(pct*10)/10)}% off`:''}</div>`:''}
+      <div class="a4-notes"><b>Notes</b><ul><li>Prices include ${fmtN(g)}% GST${s.huidN?' and HUID charges':''}.</li><li>Valid today at the gold rate shown; the final bill is at the rate on the day of billing.</li><li>Weights as per the item label.</li></ul></div>
+      <div class="a4-sig"><span>Customer</span><span>For ${esc(A.name)}</span></div></div>
+      <table class="a4-sum">${a4Rows().map(([l,v,c])=>`<tr class="${c||''}"><td>${esc(l)}</td><td>${esc(v)}</td></tr>`).join('')}</table></div>
+    <div class="a4-f">${esc(A.name)} · ${A.lines.map(esc).join(' · ')}</div></div>`;
+}
+let prImgs=store.get('prImgs',false);
+async function openPrint(){
+  if(document.body.dataset.view!=='quote')setView('quote');
+  if(!bill.items.length){toast('Add an item to the quote first',null,true);return}
+  if(!shareOk(openPrint))return;
+  if(!bill.no&&sync.key&&navigator.onLine){try{await pushQuote(bill.id)}catch(e){}}
+  $('prImgs').checked=!!prImgs;$('prPaper').innerHTML='';$('prPop').hidden=false;
+  $('prPaper').innerHTML=await a4Html(prImgs);
+  const sc=$('prPop').querySelector('.pr-scroll'),k=Math.min(1,(sc.clientWidth-36)/$('prPaper').offsetWidth);$('prPaper').style.transform=k<1?`scale(${k})`:'';$('prPaper').style.marginBottom=k<1?`-${Math.round($('prPaper').offsetHeight*(1-k))}px`:'';
+  setTimeout(()=>$('prGo').focus(),50);
+}
+async function doPrint(){
+  $('printArea').innerHTML=await a4Html(prImgs);
+  const imgs=[...$('printArea').querySelectorAll('img')];await Promise.all(imgs.map(i=>i.complete?0:new Promise(r=>{i.onload=i.onerror=r})));
+  const t=document.title;document.title=`${BRAND.name} quotation ${quoteLabel(bill)}`.replace(/[\/\\]/g,'-');
+  window.print();document.title=t;
+}
+window.addEventListener('afterprint',()=>{$('printArea').innerHTML=''});
+async function quotePdf(){
+  await loadScript('vendor/jspdf.umd.min.js',()=>!!(window.jspdf&&window.jspdf.jsPDF));await loadScript('vendor/jspdf.plugin.autotable.min.js',()=>!!(window.jspdf.jsPDF.API.autoTable));
+  const R=v=>String(v).replace(/₹/g,'Rs. ').replace(/−/g,'-').replace(/→/g,'>').replace(/·/g,'-');
+  const doc=new jspdf.jsPDF({unit:'mm',format:'a4'}),{s,g,G,label,save,pct}=quoteSums(),A=firmAddr()||{name:BRAND.full,lines:[]};
+  const hex=(getComputedStyle(document.documentElement).getPropertyValue('--maroon')||'#971B1E').trim(),C=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)||0);
+  let y=14;const logo=await loadImg(BRAND.logoHeaderColor||BRAND.markColor||'');
+  if(logo){const h=15,w=Math.min(60,logo.width*h/logo.height);try{const cv=document.createElement('canvas');cv.width=logo.width;cv.height=logo.height;cv.getContext('2d').drawImage(logo,0,0);doc.addImage(cv.toDataURL('image/png'),'PNG',12,y-2,w,w*logo.height/logo.width)}catch(e){}y+=16}
+  else{doc.setFont('helvetica','bold');doc.setFontSize(15);doc.setTextColor(...C);doc.text(R(A.name),12,y+4);y+=9}
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(90);A.lines.forEach(l=>{doc.text(R(l),12,y);y+=3.8});
+  doc.setFont('helvetica','bold');doc.setFontSize(17);doc.setTextColor(...C);doc.text('QUOTATION',198,18,{align:'right'});
+  doc.setFontSize(10);doc.setTextColor(30);doc.text('No. '+R(quoteLabel(bill)),198,25,{align:'right'});doc.setFont('helvetica','normal');
+  doc.text(new Date(bill.generated||bill.started||Date.now()).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'}),198,30,{align:'right'});
+  y=Math.max(y,34)+2;doc.setDrawColor(...C);doc.setLineWidth(.6);doc.line(12,y,198,y);y+=6;
+  doc.setFontSize(7.5);doc.setTextColor(120);doc.text('PREPARED FOR',12,y);doc.text('PREPARED BY',110,y);y+=5;
+  doc.setFontSize(11);doc.setTextColor(20);doc.setFont('helvetica','bold');doc.text(R(bill.cust.name||'Customer'),12,y);doc.text(R(bill.by||meName()||''),110,y);doc.setFont('helvetica','normal');
+  y+=4.5;doc.setFontSize(8.5);doc.setTextColor(80);if(bill.cust.phone)doc.text(R(bill.cust.phone),12,y);
+  doc.text(doc.splitTextToSize(R("Today's rate / g: "+SHOWN().map(p=>{const r=rateFor(p.id);return `${p.label} ${r==null?'-':inr(r)}`}).join('  ')),88),110,y);y+=8;
+  const body=bill.items.map((t,i)=>{const p=priceTag(t),q=quotedValue(t,p),st=t.stock||{},list=p.value*G,net=q*G;
+    return [i+1,R(`${st.category||t.item||'Item'}\n${keyOf(t.sku)}${num(st.dw)>0?` - Dia ${fmtN(num(st.dw))} ct`:''}${bill.showMk!==false&&p.hasMk?` - Making ${valText({type:t.mkType,val:num(t.mkVal)})}`:''}`),PLABEL[t.purity]||'',fmtW(num(t.gw)),fmtW(num(t.nw)),p.ok&&p.stone?R(inr(p.stone)):'-',p.ok?R(inr(r100(list))):'-',p.ok?R(inr(r100(net<list-0.5?net:list))):'-']});
+  doc.autoTable({head:[['#','Item','Purity','Gr. wt','Nt. wt','Stone','Label price','Your price']],body,startY:y,margin:{left:12,right:12},theme:'grid',
+    styles:{fontSize:8.5,cellPadding:1.8,lineColor:[225,225,225],lineWidth:.2},headStyles:{fillColor:C,textColor:255,fontSize:8},
+    columnStyles:{0:{cellWidth:7},2:{halign:'center'},3:{halign:'right'},4:{halign:'right'},5:{halign:'right'},6:{halign:'right'},7:{halign:'right',fontStyle:'bold'}}});
+  y=doc.lastAutoTable.finalY+6;if(y>215){doc.addPage();y=16}
+  doc.autoTable({body:a4Rows().map(([l,v])=>[R(l),R(v)]),startY:y,margin:{left:118,right:12},theme:'plain',styles:{fontSize:9,cellPadding:1.4},columnStyles:{1:{halign:'right'}},
+    didParseCell:d=>{const c=a4Rows()[d.row.index][2];if(c==='sv'){d.cell.styles.textColor=[31,107,69];d.cell.styles.fontStyle='bold';d.cell.styles.fillColor=[234,245,238]}if(c==='fin'){d.cell.styles.fontStyle='bold';d.cell.styles.fontSize=10.5}if(c==='bal'){d.cell.styles.fontStyle='bold';d.cell.styles.fontSize=11;d.cell.styles.fillColor=C;d.cell.styles.textColor=255}}});
+  let ly=y;doc.setFontSize(9);
+  if(save>=1){doc.setDrawColor(31,107,69);doc.setTextColor(31,107,69);doc.setFont('helvetica','bold');doc.roundedRect(12,ly,98,14,2,2);doc.text(R(`Your special price ${inr(s.final)}`),15,ly+5.5);doc.text(R(`You save ${inr(save)}${pct>=1?` - ${fmtN(Math.round(pct*10)/10)}% off`:''}`),15,ly+10.5);ly+=19;doc.setFont('helvetica','normal')}
+  doc.setTextColor(80);doc.setFontSize(8.5);doc.text(['Notes',`- Prices include ${fmtN(g)}% GST${s.huidN?' and HUID charges':''}.`,'- Valid today at the gold rate shown; the final bill is at the','  rate on the day of billing.','- Weights as per the item label.'],12,ly+3);
+  const fy=285;doc.setDrawColor(200);doc.line(12,fy-4,198,fy-4);doc.setFontSize(7.5);doc.setTextColor(110);doc.text(doc.splitTextToSize(R([A.name,...A.lines].join(' - ')),186),105,fy,{align:'center'});
+  deliverFile(`${BRAND.name}-quotation-${quoteLabel(bill)}.pdf`.replace(/[\/\\\s]+/g,'-'),'application/pdf',doc.output('arraybuffer'));
+}
+$('dkPrint').onclick=openPrint;$('qimgPrint').onclick=()=>{$('qimgPop').hidden=true;openPrint()};
+$('prClose').onclick=()=>{$('prPop').hidden=true};$('prPop').addEventListener('click',e=>{if(e.target===$('prPop'))$('prPop').hidden=true});
+$('prGo').onclick=()=>{doPrint()};
+$('prPdf').onclick=async()=>{const b=$('prPdf');b.disabled=true;try{await quotePdf()}catch(e){toast('Could not make the PDF',null,true)}b.disabled=false};
+$('prImgs').onchange=()=>{prImgs=$('prImgs').checked;store.set('prImgs',prImgs);openPrint()};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('prPop').hidden){$('prPop').hidden=true}});
+
+// ---- sharing from a computer: WhatsApp Web, copy or download the quote image ----
+function onComputer(){return !NATIVE&&FINE_PTR.matches&&WIDE.matches}
+function waUrl(ph,text){return onComputer()?`https://web.whatsapp.com/send?${ph?`phone=${ph}&`:''}text=${encodeURIComponent(text)}`:`https://wa.me/${ph}?text=${encodeURIComponent(text)}`}
+$('qimgDl').onclick=()=>{if(!qImgUrl)return;const a=document.createElement('a');a.href=qImgUrl;a.download=`${quoteLabel(bill)}.jpg`.replace(/[\/\\]/g,'-');document.body.appendChild(a);a.click();a.remove();toast('Quote image downloaded')};
+$('qimgCopy').onclick=async()=>{
+  if(!qImgUrl)return;
+  try{const im=await loadImg(qImgUrl),cv=document.createElement('canvas');cv.width=im.width;cv.height=im.height;cv.getContext('2d').drawImage(im,0,0);
+    const blob=await new Promise(r=>cv.toBlob(r,'image/png'));await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
+    toast('Image copied. Paste it in WhatsApp with Ctrl+V.')}catch(e){toast('This browser cannot copy images. Use Download image.',null,true)}
+};
+
+// ---- auto log-out after no use (per computer) ----
+let idleAt=Date.now();
+['pointerdown','keydown','wheel','touchstart'].forEach(ev=>document.addEventListener(ev,()=>{idleAt=Date.now()},{passive:true,capture:true}));
+function idleMins(){return +store.get('idleMin',0)||0}
+setInterval(()=>{const m=idleMins();if(!m||!curUser||!$('login').hidden&&loginMode==='login')return;if(Date.now()-idleAt>m*60000){idleAt=Date.now();$('prPop').hidden=true;['modal','qimgPop'].forEach(id=>{const el=$(id);if(el)el.hidden=true});logout(`Logged out after ${m} minutes without use.`)}},15000);
+function paintDevice(){
+  const m=idleMins();[...$('idlePick').children].forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.m===m)));
+  const st=!('Notification' in window)?'na':Notification.permission;
+  $('wnState').textContent=NATIVE?'The Android app shows phone notifications.':st==='granted'?'On · approvals, special prices and WhatsApp leads pop up on this computer.':st==='denied'?'Blocked in this browser. Allow notifications for this site in the browser’s site settings (the icon left of the address).':st==='na'?'This browser cannot show notifications.':'Off · turn on to see approvals and leads even when the app is in the background.';
+  $('wnOn').hidden=NATIVE||st!=='default';$('wnTest').hidden=NATIVE||st!=='granted';
+  const mini=$('setDevMini');if(mini&&mini.textContent!=='🔒')mini.textContent=(m?`Log out after ${m} min`:'Stay logged in')+(st==='granted'?' · alerts on':'');
+}
+[...$('idlePick').children].forEach(b=>b.onclick=()=>{store.set('idleMin',+b.dataset.m);idleAt=Date.now();paintDevice();toast(+b.dataset.m?`This computer logs out after ${b.dataset.m} minutes without use`:'Stays logged in')});
+$('wnOn').onclick=async()=>{try{await Notification.requestPermission()}catch(e){}paintDevice()};
+$('wnTest').onclick=()=>{try{new Notification(BRAND.name+' Price Check',{body:'Notifications are on for this computer.',icon:BRAND.icon,tag:'test'})}catch(e){}toast('Test notification sent')};
+$('setDevice').addEventListener('toggle',paintDevice);
+
 // Text size (per phone) and who may change making on the price card (shared setting)
 function applyZoom(z){try{document.body.style.zoom=String(z)}catch(e){}}
 function zoomNow(){const z=store.get('uiZoom',null);return z!=null?z:(Math.min(screen.width||400,innerWidth)<=380?0.9:1)}
@@ -4033,6 +4443,7 @@ function buildReport(){
     <div class="rp-h">Sold by item</div><table class="rp-t"><tr><th>Item</th><th>Pcs</th><th>Net wt</th><th>Value</th></tr>${rpData.cats.map(([k,c])=>`<tr><td>${esc(k)}</td><td>${c[0]}</td><td>${fmtW(c[1])}</td><td>${inr(c[2])}</td></tr>`).join('')||'<tr><td colspan="4">No sales in this period</td></tr>'}</table>
     <div class="rp-h">Completed sales</div><table class="rp-t"><tr><th>Quote</th><th>Customer</th><th>Invoice</th><th>Amount</th></tr>${soldT.slice(0,50).map(({q,s})=>`<tr><td>${esc(q.no||'—')}</td><td>${esc((q.cust&&q.cust.name)||'')}</td><td>${esc(q.invoice||'—')}</td><td>${inr(s.final)}</td></tr>`).join('')||'<tr><td colspan="4">—</td></tr>'}</table>
     <p class="note">${seesAll()?'All users’ quotes on this phone.':'Your quotes only.'} Refresh quotes first for the latest.</p>`;
+  try{paintRpCharts()}catch(e){}
 }
 ['rpRange','rpType','rpFrom','rpTo'].forEach(id=>$(id).addEventListener('change',buildReport));
 $('rpRefresh').onclick=async()=>{await pullQuotes();buildReport();toast('Report updated')};
@@ -4109,6 +4520,8 @@ $('expPdf').onclick=()=>withPerm('export','Only an admin can export the database
 // Search stock: is a label available?
 function openFind(q){setView('search');if(sync.key&&!openFind.pulled){openFind.pulled=1;pullImgIdx().then(runFind)}if(q!=null)$('findQ').value=q;runFind();setTimeout(()=>$('findQ').focus(),80)}
 function runFind(){
+  if(DESK.matches){runFindTable();return}
+  $('findList').classList.remove('st-tbl');
   const q=$('findQ').value.trim(),k=keyOf(q),el=$('findList');
   if(!stockMap.size){$('findNote').textContent='No stock loaded on this phone yet.';el.innerHTML='';return}
   if(!q){$('findNote').textContent=`${stockMap.size.toLocaleString('en-IN')} items in stock. Type a label number, label code, item or supplier.`;el.innerHTML='';return}
@@ -4510,7 +4923,7 @@ function paintFooterSet(){
     const t=Object.assign({},settings.tabHide||{}),cur=new Set(t[b.dataset.r]||[]);cur.has(b.dataset.t)?cur.delete(b.dataset.t):cur.add(b.dataset.t);
     t[b.dataset.r]=[...cur];settings.tabHide=t;saveSettings();applyTabs();toast('Footer updated')},true));
 }
-function paintUserChip(){try{applyTabs()}catch(e){}try{paintPromoBar();if(curUser)setTimeout(()=>promoPopup(),1500)}catch(e){}try{if(curUser&&bill&&!billIsEmpty()&&!canSeeQuote(bill))startNewQuote('New quote.')}catch(e){}try{paintBell();nativeInbox();if(curUser)setTimeout(()=>pollInbox(true),800)}catch(e){}const c=$('userChip');c.hidden=!curUser;if(curUser)c.textContent='👤 '+(curUser.name||curUser.username)+' · Log out';$('heroName').textContent=$('sbName').textContent=curUser?(curUser.name||curUser.username):'—'}
+function paintUserChip(){try{applyTabs()}catch(e){}try{paintRepTab()}catch(e){}try{paintPromoBar();if(curUser)setTimeout(()=>promoPopup(),1500)}catch(e){}try{if(curUser&&bill&&!billIsEmpty()&&!canSeeQuote(bill))startNewQuote('New quote.')}catch(e){}try{paintBell();nativeInbox();if(curUser)setTimeout(()=>pollInbox(true),800)}catch(e){}const c=$('userChip');c.hidden=!curUser;if(curUser)c.textContent='👤 '+(curUser.name||curUser.username)+' · Log out';$('heroName').textContent=$('sbName').textContent=curUser?(curUser.name||curUser.username):'—'}
 $('heroUser').onclick=()=>{if(curUser)$('userChip').click()};
 $('userChip').onclick=()=>showModal(`${curUser.name||curUser.username}`,`Logged in as ${roleName(curUser.role)} (${curUser.username}).`,[
   {label:'Log out',cls:'danger',run:()=>logout()},{label:'Cancel',cls:'ghost'}]);

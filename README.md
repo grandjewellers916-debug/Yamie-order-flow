@@ -311,3 +311,18 @@ A card is locked for users without that permission; opening it asks for a user w
 - **Reports** (Settings → Reports; permission "Reports", managers and admins): quoted, generated, approved, total sales from completed quotes, savings and offers given, open / enquiry only, conversion; by user, by sale type, sold by item, completed sales with invoice numbers. Period and sale type filters; **Export Excel** (Summary, By user, By sale type, By item, Sales, Quotes).
 - Settings changed by an admin (promotions etc.) reach phones within about a minute.
 - **Quotation number** (given when a quote is first saved): first 3 letters of the staff member's name / year / their number — e.g. `RAV/26/274`. Each person's count starts again every year. Older P- numbers stay; the final ON-/SW- numbers are unchanged.
+
+## V 1.8 — web version on a computer (9 Nov 2026)
+
+Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edge, window ≥ 1280 px with a mouse); phones and tablets (touch) keep their layouts.
+
+- **Scanner first**: on Home the label box always has the focus. A USB / keyboard-wedge scanner (Enter at the end) or typing + Enter prices the item; the box is selected for the next scan.
+- **Keyboard shortcuts** (also the keyboard button in the header, or `?`): F2 label box · F3 Search · F4 Save to Quote · Esc clear the product · F6 New quote · F7 Quote · F8 Generate quote · F9 / Ctrl+P print · F10 Reports.
+- **Quote page**: items table with every column (St. wt, Stone ₹, Making; St. wt hidden below 1440 px), Summary and Generate Quote beside it.
+- **Search**: the whole stock list as a sortable table (click a column; click a row or Enter prices the item; 200 rows at a time).
+- **Reports** in the side bar (permission "Reports"): KPI tiles, charts (sales by day, by user, by item, quotes by user, by sale type), tables and Export Excel.
+- **Print**: A4 quotation with print preview (header **Print**, F9, or Quote image → Print A4); **Save as PDF** makes a PDF directly. Product photos optional.
+- **Sharing**: Send on WhatsApp opens **WhatsApp Web** with the caption and copies the quote image (paste with Ctrl+V); also Copy image / Download image.
+- **Settings → This computer · log-out & alerts**: log out after 5 / 15 / 30 / 60 min without use (per computer); turn on and test desktop notifications.
+- **Own host name**: a host starting with `pricecheck.` (e.g. `pricecheck.yamie.in`) calls `/api/sync` and `/api/rates` on the same site. Brand is still picked by host (`grand…` → Grand).
+- Fix: the sticky Label value / Savings / Net Payable box no longer covers pop-ups.
