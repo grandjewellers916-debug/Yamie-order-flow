@@ -715,9 +715,9 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 :root{--fva:#5B2A86;--fva-bg:#F1E9F8}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--fva:#C9A7EA;--fva-bg:#2A1F33}}
 :root[data-theme="dark"]{--fva:#C9A7EA;--fva-bg:#2A1F33}
-.fva-ask{width:100%;margin-top:10px;border:1.5px solid #7B3FA8;color:#5B2A86;background:#F1E9F8;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:700}
+.fva-ask{width:100%;margin-top:10px;border:0;color:#FFE08A;background:linear-gradient(135deg,#2A1240,#5B2A86);display:flex;align-items:center;justify-content:center;gap:8px;font:800 16px var(--body);letter-spacing:.04em;box-shadow:0 4px 14px rgba(42,18,64,.35)}
 .fva-ask svg{width:20px;height:20px}
-:root[data-theme="dark"] .fva-ask{color:#E2CCF5;background:#2A1F33}
+:root[data-theme="dark"] .fva-ask{color:#FFE08A;background:linear-gradient(135deg,#2A1240,#5B2A86)}
 .qi-fva .fa{border:1px solid currentColor;background:none;color:inherit;border-radius:999px;padding:1px 8px;font:700 11.5px var(--body);margin-left:6px;cursor:pointer}
 .qs-lines .mkeye{border:0;background:none;color:var(--maroon);font:600 12px var(--body);text-decoration:underline;cursor:pointer;margin-left:6px}
 .fva-box{margin-top:10px;border-radius:16px;padding:12px 16px;background:linear-gradient(135deg,#5B2A86,#7B3FA8);color:#fff;box-shadow:0 6px 18px rgba(91,42,134,.28)}
@@ -1272,7 +1272,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
       <div class="pt-row pt-gst"><span id="pdGstL">+ GST (3%)</span><span id="pdGst">—</span></div>
     </div>
     <div class="grand" id="pdGrandRow"><span>Grand Total</span><strong id="pdGrand">—</strong></div>
-    <button class="btn fva-ask" type="button" id="pdFvaAsk" hidden aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.3"/></svg>Discounted price</button>
+    <button class="btn fva-ask" type="button" id="pdFvaAsk" hidden aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.3"/></svg>Fair Value</button>
     <div class="fva-box" id="pdFva" hidden><div class="fv-r"><span>Fair value price <small id="pdFvaL"></small></span><b id="pdFvaV"></b></div><div class="fv-s"><span>Discount · You save</span><b id="pdFvaS"></b></div><button type="button" class="fv-t" id="pdFvaHide">Hide ▴</button></div>
     <div class="prod-acts"><button class="btn" type="button" id="pdDel">Clear</button><span class="pd-check" id="pdCheck" hidden>Price check only · not saved</span><button class="btn primary" type="button" id="pdClose" hidden>Close</button><button class="btn primary" type="button" id="pdSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>Save to Quote</button></div>
     <div class="pd-hid" id="pdHidW" hidden><button class="linkbtn" type="button" id="pdHidT" aria-expanded="false">Show hidden details</button><dl class="specs specs-more" id="pdHidL" hidden></dl></div>
@@ -2754,7 +2754,7 @@ function renderBill(keepInputs){
       <span>${fmtW(num(t.nw))}</span>
       <span class="qi-amt">${p.ok?inr(p.value*(1+gstPct()/100)):'—'}</span>
       <span class="qi-acts">${closed?'':`<button type="button" data-edit="${t.id}" aria-label="Edit item ${i+1}">${IC_EDIT}</button><button type="button" data-del="${t.id}" aria-label="Remove item ${i+1}">${IC_DEL}</button>`}</span>
-      ${(()=>{const fv=fvaPrice(t,p),G=1+gstPct()/100;if(!fv)return '';const fvp=r100(fv.value*G),on=t.qMk&&t.qMk.fva,mgr=t.qMk&&!t.qMk.fva;
+      ${(()=>{const fv=fvaPrice(t,p),G=1+gstPct()/100;if(!fv||(!can('fva')&&!(t.qMk&&t.qMk.fva)))return '';const fvp=r100(fv.value*G),on=t.qMk&&t.qMk.fva,mgr=t.qMk&&!t.qMk.fva;
         return `<span class="qi-fva${on?' on':''}">Fair value <b>${inr(fvp)}</b> <small>(${esc(fv.label)})</small> · Savings <b>${inr(r100(p.value*G)-fvp)}</b>${closed||mgr?(mgr?' <small>· manager discount</small>':''):`<button type="button" class="fa" data-fva="${t.id}">${on?'Applied ✓':'Apply'}</button>`}</span>`})()}
     </div>`}).join(''):'<div class="empty-q">No items yet. Scan a product or add it manually, then tap Save to Quote.</div>';
   $('items').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{
@@ -3487,9 +3487,9 @@ function paintProduct(){
   $('pdTotal').classList.toggle('incomplete',!ok);$('pdGrandRow').classList.toggle('incomplete',!ok);
   // Grand total and fair value price rounded to the nearest ₹100; savings stay folded until the customer asks
   if(ok)$('pdGrand').textContent=inr(r100(p.value*(1+g/100)));
-  {const fv=ok?fvaPrice(cur,p):null,G=1+g/100;$('pdFva').hidden=!fv||!cur.fvaAsk;if(fv){const gt=r100(p.value*G),fvp=r100(fv.value*G);$('pdFvaL').textContent='('+fv.label+')';$('pdFvaV').textContent=inr(fvp);$('pdFvaS').textContent=inr(gt-fvp)}
+  {const fv=ok?fvaPrice(cur,p):null,G=1+g/100;$('pdFva').hidden=!fv||!cur.fvaAsk||!can('fva');if(fv){const gt=r100(p.value*G),fvp=r100(fv.value*G);$('pdFvaL').textContent='('+fv.label+')';$('pdFvaV').textContent=inr(fvp);$('pdFvaS').textContent=inr(gt-fvp)}
    // folded until the customer asks; opening it means the item is quoted at the fair value
-   $('pdFvaAsk').hidden=!fv||!!cur.fvaAsk;$('pdFvaAsk').setAttribute('aria-expanded',String(!!cur.fvaAsk))}
+   $('pdFvaAsk').hidden=!fv||!!cur.fvaAsk||!can('fva');$('pdFvaAsk').setAttribute('aria-expanded',String(!!cur.fvaAsk))}
   $('pdSave').lastChild.textContent=editingId?'Update Quote':'Save to Quote';
   // Sale type: price check = nothing saved, just Close; online = Save; store walk-in = Save + Edit
   const sm=saleMode(),chk=sm==='check'&&!editingId;
@@ -4164,16 +4164,17 @@ const PERM_LIST=[
 ['stockdel','Delete sold tags from stock'],['rates',"Set day's rates"],
   ['mkEdit','Update making on the price card'],['mkDisc','Making after discount on quotes'],
   ['closeSale','Close sale (invoice no.)'],['cancelQuote','Cancel quote (enquiry)'],['reopen','Reopen sold / cancelled quotes'],
-  ['delQuote','Delete quotes'],['images','Add product photos'],['addDisc','Additional discount (flat)'],['round','Round final amount down to ₹100'],['reports','Reports'],['share','Share quotes on WhatsApp'],['pdHidden','See hidden details (NLC, FVA…)'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],
+  ['delQuote','Delete quotes'],['images','Add product photos'],['addDisc','Additional discount (flat)'],['round','Round final amount down to ₹100'],['reports','Reports'],['fva','Fair Value price'],['share','Share quotes on WhatsApp'],['pdHidden','See hidden details (NLC, FVA…)'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],
   ['textSize','Text size'],['imgShow','Product image show / hide'],['ratesShown','Rates shown'],['charges','Charges · GST · HUID'],
   ['mkHelper','Making helpers'],['itemCodes','Item codes'],['pdRows','Product details items'],['sync','Shared database · shop key'],['roles','Roles & permissions'],['users','Users']];
 const SET_PERMS=['theme','footer','apprSet','export','promos','reports','stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users'];
 const permLabel=k=>(PERM_LIST.find(p=>p[0]===k)||[0,k])[1];
-const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','approve','leads','share','pdHidden','addDisc','round','reports']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share']}];
+const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','approve','leads','share','pdHidden','addDisc','round','reports','fva']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share','fva']}];
 let roles=store.get('roles',null)||clone(DEFAULT_ROLES);
 // WhatsApp sharing became a permission (v1.7.3): roles on this phone keep it once
 if(!store.get('permShare',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&!r.perms.includes('share'))r.perms.push('share')});store.set('roles',roles);store.set('permShare',true)}
 if(!store.get('permHid',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('mkDisc')&&!r.perms.includes('pdHidden'))r.perms.push('pdHidden')});store.set('roles',roles);store.set('permHid',true)}
+if(!store.get('permFva',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&!r.perms.includes('fva'))r.perms.push('fva')});store.set('roles',roles);store.set('permFva',true)}
 if(!store.get('permRep',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('mkDisc')&&!r.perms.includes('reports'))r.perms.push('reports')});store.set('roles',roles);store.set('permRep',true)}
 if(!store.get('permRound',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('mkDisc')&&!r.perms.includes('round'))r.perms.push('round')});store.set('roles',roles);store.set('permRound',true)}
 if(!store.get('permAddDisc',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('mkDisc')&&!r.perms.includes('addDisc'))r.perms.push('addDisc')});store.set('roles',roles);store.set('permAddDisc',true)}
