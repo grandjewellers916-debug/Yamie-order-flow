@@ -164,7 +164,7 @@ export default async (req: Request) => {
   }
   const roleHas = (role: string, perm: string) => {
     if (role === "admin") return true
-    if (perm === "stock" || perm === "theme" || perm === "footer" || perm === "apprSet" || perm === "special" || perm === "promos") return false   // stock data and theme: admins only
+    if (perm === "stock" || perm === "theme" || perm === "footer" || perm === "apprSet" || perm === "special" || perm === "promos" || perm === "rules") return false   // stock data and theme: admins only
     const ps: string[] = roles.find((r) => r.id === role)?.perms || []
     return ps.includes(perm) || (ps.includes("settings") && [...SETTINGS_PERMS, "textSize"].includes(perm)) || (perm === "roles" && ps.includes("users"))
   }
@@ -304,9 +304,9 @@ export default async (req: Request) => {
       return json(req, { v: meta.leads, lead })
     }
 
-    const OP_PERM: Record<string, string> = { img: "images", quotedel: "delQuote", stock: "stock", stockdel: "stockdel", ratelog: "rates" }
+    const OP_PERM: Record<string, string> = { img: "images", quotedel: "delQuote", stock: "stock", stockdel: "stockdel", ratelog: "rates", pubrates: "rates" }
     const role = await callerRole()
-    if (op === "settings") { if (!role || ![...SETTINGS_PERMS, "theme", "footer", "apprSet", "promos"].some((p) => roleHas(role, p))) return json(req, { error: "bad_pin" }, 403) }
+    if (op === "settings") { if (!role || ![...SETTINGS_PERMS, "theme", "footer", "apprSet", "promos", "rules"].some((p) => roleHas(role, p))) return json(req, { error: "bad_pin" }, 403) }
     else if (op === "users") { if (!role || !(roleHas(role, "users") || roleHas(role, "roles"))) return json(req, { error: "bad_pin" }, 403) }
     else if (!(await permOk(OP_PERM[op] || "users"))) return json(req, { error: "bad_pin" }, 403)
 
@@ -359,6 +359,51 @@ export default async (req: Request) => {
       return json(req, { v: meta.stock, count: left.length, removed, history: meta.history })
     }
 
+    if (op === "pubrates") {
+      // Publish the day's rates: the Grand Jewellers kiosk and the Yamie Shopify store (rate metafields)
+      const rin = body?.rates || {}, pick = (v: any) => { const n = Number(v); return Number.isFinite(n) && n > 0 ? Math.round(n) : null }
+      const rates: Record<string, number> = {}
+      for (const [k, src] of [["r22", "22k"], ["r18", "18k"], ["r14", "14k"], ["r9", "9k"], ["platinum", "platinum"], ["silver", "silver"]]) { const v = pick(rin[src]); if (v) rates[k] = v }
+      if (!rates.r22) return json(req, { error: "no_rates" }, 400)
+      const out: any = {}
+      if (body?.kiosk) {
+        const pin = process.env.KIOSK_RATES_PIN, url = process.env.KIOSK_URL || "https://grandjewellers.com"
+        if (!pin) out.kiosk = { ok: false, msg: "Not set up: add KIOSK_RATES_PIN in Netlify" }
+        else try {
+          const r = await fetch(url + "/api/kiosk-rates", { method: "POST", headers: { "content-type": "application/json", "x-admin-pin": pin }, body: JSON.stringify({ pin, ...rates }) })
+          out.kiosk = r.ok ? { ok: true, msg: "Kiosk updated" } : { ok: false, msg: r.status === 401 ? "Kiosk PIN is wrong" : "Kiosk said " + r.status }
+        } catch (e) { out.kiosk = { ok: false, msg: "Kiosk not reachable" } }
+      }
+      if (body?.shopify) {
+        const dom = (process.env.SHOPIFY_STORE_DOMAIN || "").replace(/^https?:\/\//, "").replace(/\/.*$/, "")
+        try {
+          if (!dom) throw new Error("Not set up: add SHOPIFY_STORE_DOMAIN in Netlify")
+          let token = process.env.SHOPIFY_ADMIN_TOKEN || ""
+          if (!token) {
+            const id = process.env.SHOPIFY_CLIENT_ID, sec = process.env.SHOPIFY_CLIENT_SECRET
+            if (!id || !sec) throw new Error("Not set up: add SHOPIFY_CLIENT_ID and SHOPIFY_CLIENT_SECRET in Netlify")
+            const tr = await fetch(`https://${dom}/admin/oauth/access_token`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ client_id: id, client_secret: sec, grant_type: "client_credentials" }) })
+            const tj: any = await tr.json().catch(() => ({}))
+            if (!tr.ok || !tj.access_token) throw new Error("Shopify login failed (" + tr.status + ")")
+            token = tj.access_token
+          }
+          const gql = async (query: string, variables?: any) => {
+            const r = await fetch(`https://${dom}/admin/api/2025-01/graphql.json`, { method: "POST", headers: { "content-type": "application/json", "x-shopify-access-token": token }, body: JSON.stringify({ query, variables }) })
+            const j: any = await r.json().catch(() => ({}))
+            if (!r.ok || j.errors) throw new Error("Shopify error " + r.status)
+            return j.data
+          }
+          const shopId = (await gql("{ shop { id } }"))?.shop?.id
+          const keys: Record<string, string> = { r22: "gold_rate_22k", r18: "gold_rate_18k", r14: "gold_rate_14k", r9: "gold_rate_9k", platinum: "gold_rate_platinum", silver: "gold_rate_silver" }
+          const metafields = Object.entries(rates).map(([k, v]) => ({ ownerId: shopId, namespace: "custom", key: keys[k], type: "single_line_text_field", value: String(v) }))
+          const d = await gql("mutation($m:[MetafieldsSetInput!]!){ metafieldsSet(metafields:$m){ userErrors{ message } } }", { m: metafields })
+          const ue = d?.metafieldsSet?.userErrors || []
+          out.shopify = ue.length ? { ok: false, msg: ue[0].message } : { ok: true, msg: "Shopify rates updated" }
+        } catch (e: any) { out.shopify = { ok: false, msg: String(e?.message || e) } }
+      }
+      return json(req, out)
+    }
+
     if (op === "ratelog") {
       // One-time seeding of rate history from a phone (admin)
       const log = (Array.isArray(body?.log) ? body.log : []).map((e: any) => ({ id: cleanStr(e?.id, 20), at: cleanNum(e?.at) || 0, day: cleanStr(e?.day, 10), rates: cleanRates(e?.rates) })).filter((e: any) => e.id && e.at && e.rates["22k"])
@@ -388,6 +433,17 @@ export default async (req: Request) => {
         tabHide: Object.fromEntries(Object.entries(s?.tabHide && typeof s.tabHide === "object" ? s.tabHide : {}).slice(0, 20).filter(([k]) => /^[\w-]{1,40}$/.test(k)).map(([k, v]) => [k, (Array.isArray(v) ? v : []).filter((x: any) => ["tabScan", "tabFind", "tabQuote", "tabRates", "tabSet"].includes(x))])),
         apprOn: s?.apprOn !== false,
         // Special promotions (admin): applied to every quote while running
+        // Pricing rules (admin): making / wastage / labour, fair value and diamond rate by purity, weight, type, supplier, NLC…
+        priceRules: (Array.isArray(s?.priceRules) ? s.priceRules : []).slice(0, 80).map((r: any) => ({
+          id: cleanStr(r?.id, 24), name: cleanStr(r?.name, 60), on: r?.on !== false, mode: r?.mode === "fill" ? "fill" : "over",
+          pur: (Array.isArray(r?.pur) ? r.pur : []).filter((x: any) => ["24k", "22k", "18k", "14k", "9k", "platinum", "silver"].includes(x)),
+          wMin: cleanNum(r?.wMin), wMax: cleanNum(r?.wMax), nlcMin: cleanNum(r?.nlcMin), nlcMax: cleanNum(r?.nlcMax),
+          cats: (Array.isArray(r?.cats) ? r.cats : []).filter((x: any) => typeof x === "string" && /^[A-Z]{2,4}$/.test(x)).slice(0, 40),
+          mkt: ["", "pct", "pergram", "fixed", "none"].includes(r?.mkt) ? r.mkt : "", sup: cleanStr(r?.sup, 40), pre: cleanStr(r?.pre, 12),
+          dia: ["", "yes", "no"].includes(r?.dia) ? r.dia : "",
+          mkType: ["", "pct", "pergram", "fixed"].includes(r?.mkType) ? r.mkType : "", mkVal: cleanNum(r?.mkVal),
+          fvaType: ["", "pct", "fixed"].includes(r?.fvaType) ? r.fvaType : "", fvaVal: cleanNum(r?.fvaVal), diaRate: cleanNum(r?.diaRate),
+        })).filter((r: any) => r.id && r.name),
         promos: (Array.isArray(s?.promos) ? s.promos : []).slice(0, 20).map((x: any) => ({
           id: cleanStr(x?.id, 24), name: cleanStr(x?.name, 60), msg: cleanStr(x?.msg, 300), on: x?.on !== false,
           from: /^\d{4}-\d{2}-\d{2}$/.test(x?.from || "") ? x.from : "", to: /^\d{4}-\d{2}-\d{2}$/.test(x?.to || "") ? x.to : "",
@@ -401,7 +457,7 @@ export default async (req: Request) => {
       // Keep the parts this user may not change
       const prev: any = (await st.get("settings", { type: "json" })) || {}
       const keep = (perm: string, keys: string[]) => { if (!roleHas(role, perm)) keys.forEach((k) => { if (k in prev) (out as any)[k] = prev[k] }) }
-      keep("charges", ["gst", "huid"]); keep("mkHelper", ["mkTable"]); keep("itemCodes", ["cats"]); keep("ratesShown", ["showRates"]); keep("imgShow", ["showImg", "mkEdit"]); keep("theme", ["ui", "accent"]); keep("pdRows", ["pdHide"]); keep("footer", ["tabHide"]); keep("apprSet", ["apprOn"]); keep("promos", ["promos"])
+      keep("charges", ["gst", "huid"]); keep("mkHelper", ["mkTable"]); keep("itemCodes", ["cats"]); keep("ratesShown", ["showRates"]); keep("imgShow", ["showImg", "mkEdit"]); keep("theme", ["ui", "accent"]); keep("pdRows", ["pdHide"]); keep("footer", ["tabHide"]); keep("apprSet", ["apprOn"]); keep("promos", ["promos"]); keep("rules", ["priceRules"])
       await st.setJSON("settings", out)
       meta.settings = Date.now(); await saveMeta()
       return json(req, { v: meta.settings })

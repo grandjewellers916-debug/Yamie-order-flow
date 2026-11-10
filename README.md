@@ -312,3 +312,9 @@ A card is locked for users without that permission; opening it asks for a user w
 - Settings changed by an admin (promotions etc.) reach phones within about a minute.
 - **Quotation number** (given when a quote is first saved): first 3 letters of the staff member's name / year / their number — e.g. `RAV/26/274`. Each person's count starts again every year. Older P- numbers stay; the final ON-/SW- numbers are unchanged.
 - **Fair Value** (was "Discounted price") on the Home product card: dark purple button with gold text. It is a permission ("Fair Value price", Roles & permissions); every existing role keeps it once. Without it the button and the fair value lines on quotes are hidden.
+
+## V 1.7.70 (10 Nov 2026)
+
+- **Publish & share the day's rates** (after Save rates, or Gold Rates → Publish & share): update the **Grand Jewellers kiosk** (grandjewellers.com), the **Yamie Shopify** rate metafields (gold_rate_22k/18k/14k/9k/platinum/silver) and send a **WhatsApp rate message**. Netlify env vars on the price-check site (set by the owner): `KIOSK_RATES_PIN` (same as the kiosk's RATES_PIN; optional `KIOSK_URL`), `SHOPIFY_STORE_DOMAIN` with `SHOPIFY_CLIENT_ID` + `SHOPIFY_CLIENT_SECRET` (or `SHOPIFY_ADMIN_TOKEN`).
+- **Pricing rules (making conventions)** — Settings, admin only: rules by karat, net weight range, product type, making type in the database, diamond / plain gold, supplier, label prefix, NLC range. Each sets making (wastage %, labour ₹/g or ₹ fixed), fair value (FVA % or fixed) and diamond price (₹ per carat), and either overrides the database or only fills empty values. First matching rule wins (order with ↑); a Test box shows what a label would get; the product card shows the rule used.
+- Pop-ups scroll when they are taller than the screen.

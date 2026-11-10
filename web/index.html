@@ -397,6 +397,7 @@ details.settings .grid{margin-top:10px}
 /* Pop-up */
 .modal{position:fixed;inset:0;z-index:20;background:rgba(20,8,8,.55);display:flex;align-items:flex-end;justify-content:center;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
 .sheet{background:var(--surface);color:var(--fg);border-radius:16px;padding:18px 16px 14px;width:100%;max-width:520px;display:flex;flex-direction:column;gap:10px;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+#modal .sheet{max-height:calc(100dvh - 32px - env(safe-area-inset-bottom,0px));overflow-y:auto;overscroll-behavior:contain}
 .sheet h4{margin:0;font-family:var(--display);font-size:24px;line-height:1.15}
 .sheet p{margin:0;color:var(--muted);font-size:15px}
 .sheet .acts{display:flex;flex-direction:column;gap:8px;margin-top:6px}
@@ -864,6 +865,9 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .qd-head{width:100%;border:0;background:none;padding:0;cursor:pointer;color:inherit;text-align:left;display:flex;align-items:center;gap:8px}
 .qd-head h2{flex:1}.qd-head .dc-chev{transition:transform .2s}.qd-head[aria-expanded="true"] .dc-chev{transform:rotate(180deg)}
 #qDiscBody{margin-top:8px}
+.rl-sec{font:700 12px var(--body);text-transform:uppercase;letter-spacing:.06em;color:var(--maroon);margin-top:6px}
+.rl-chips{display:flex;flex-wrap:wrap;gap:6px 14px}.rl-chips .rc-p{font-size:13px;display:inline-flex!important;flex-direction:row!important;align-items:center;gap:6px;width:auto!important}.rl-chips .rc-p input{margin:0}
+.rl-b{display:flex;flex-direction:column;gap:6px}
 .promo-bar{display:flex;align-items:center;gap:10px;width:100%;border:0;border-radius:14px;padding:10px 14px;margin:0 0 10px;background:linear-gradient(135deg,#3B1A5C,#6B2F9A);color:#fff;font:600 14px var(--body);text-align:left;cursor:pointer;box-shadow:0 4px 14px rgba(59,26,92,.25)}
 .promo-bar b{color:#FFE08A}.promo-bar .pb-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pr-row{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0;display:flex;gap:10px;align-items:flex-start}
@@ -1448,6 +1452,14 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
   </section>
 
   <div class="set-head" data-pane="settings"><h2>Settings</h2><button class="btn sm" type="button" id="setStock">Stock list</button></div>
+  <details class="card datacard setcard" id="setRules" data-pane="settings" data-perm="rules">
+    <summary><span class="dc-t">Pricing rules (making conventions)</span><span class="dc-s" id="setRulesMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
+      <p class="note" style="margin-block:4px 0">Making charges, wastage %, labour, fair value (FVA) and diamond price by karat, weight, product type, making type, supplier, NLC and more. The first rule that matches an item is used; it can override the database or only fill empty values.</p>
+      <div id="ruleList"></div>
+      <button class="btn" type="button" id="ruleAdd">+ New rule</button>
+      <div class="rp-f" style="margin-top:10px"><input id="ruleTestIn" placeholder="Test a label no." autocapitalize="characters"><button class="btn sm" type="button" id="ruleTest" style="flex:0 0 auto">Test</button></div>
+      <p class="note" id="ruleTestOut"></p>
+  </details>
   <details class="card datacard setcard" id="setPromo" data-pane="settings" data-perm="promos">
     <summary><span class="dc-t">Special promotions</span><span class="dc-s" id="setPromoMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
       <p class="note" style="margin-block:4px 0">Offers applied to every quote, for all users, while they run. The best offer that applies is taken off before GST. Users see the running offers when they open the app.</p>
@@ -1644,6 +1656,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
       <div class="rs-acts">
         <button class="btn" type="button" id="rsKiosk">Fill from kiosk</button>
         <button class="btn primary" type="button" id="rsSave">Save rates</button>
+        <button class="btn" type="button" id="rsPub">Publish &amp; share</button>
       </div>
     </div>
     <div class="sec-head"><h2>Rate history</h2><span class="note">This phone</span></div>
@@ -1871,14 +1884,14 @@ function applyRemoteSettings(rs){
   if('cats' in rs){settings.cats=rs.cats&&typeof rs.cats==='object'&&Object.keys(rs.cats).length?rs.cats:null;try{applyCats()}catch(e){}}
   if('showRates' in rs){settings.showRates=Array.isArray(rs.showRates)&&rs.showRates.length?rs.showRates:null;try{rebuildPurities()}catch(e){}}
   if(rs.gst!=null)settings.gst=rs.gst;if(rs.huid!=null)settings.huid=rs.huid;
-  if(rs.mkEdit)settings.mkEdit=rs.mkEdit;if(Array.isArray(rs.pdHide))settings.pdHide=rs.pdHide;if(rs.tabHide&&typeof rs.tabHide==='object')settings.tabHide=rs.tabHide;if(typeof rs.apprOn==='boolean')settings.apprOn=rs.apprOn;if(Array.isArray(rs.promos))settings.promos=rs.promos;try{paintPromoBar()}catch(e){}try{paintApprSet();renderBill(true)}catch(e){}try{applyTabs()}catch(e){}if(rs.ui)settings.ui=rs.ui;if(rs.accent)settings.accent=rs.accent;try{applyTheme()}catch(e){}if('showImg' in rs)settings.showImg=rs.showImg!==false;
+  if(rs.mkEdit)settings.mkEdit=rs.mkEdit;if(Array.isArray(rs.pdHide))settings.pdHide=rs.pdHide;if(rs.tabHide&&typeof rs.tabHide==='object')settings.tabHide=rs.tabHide;if(typeof rs.apprOn==='boolean')settings.apprOn=rs.apprOn;if(Array.isArray(rs.promos))settings.promos=rs.promos;if(Array.isArray(rs.priceRules))settings.priceRules=rs.priceRules;try{paintPromoBar()}catch(e){}try{paintApprSet();renderBill(true)}catch(e){}try{applyTabs()}catch(e){}if(rs.ui)settings.ui=rs.ui;if(rs.accent)settings.accent=rs.accent;try{applyTheme()}catch(e){}if('showImg' in rs)settings.showImg=rs.showImg!==false;
   store.set('settings2',settings);try{paintAdminExtras()}catch(e){}
   try{renderTable('cz');renderTable('dia');$('setGst').value=settings.gst;$('setHuid').value=settings.huid;renderEditor();renderBill(true)}catch(e){}
 }
 let settingsTimer=null;
 function saveSettings(){store.set('settings2',settings);if(!sync.key)return;sync.dirtySettings=true;saveSyncState();clearTimeout(settingsTimer);settingsTimer=setTimeout(()=>{if(adminCreds)pushSettingsNow().catch(e=>syncMsg('err',syncErrText(e)))},1500)}
 async function pushSettingsNow(){
-  const r=await syncApi('settings','POST',{settings:{gst:settings.gst,huid:settings.huid,mkTable:settings.mkTable,cats:settings.cats||null,showRates:settings.showRates||null,mkEdit:settings.mkEdit||'admin',showImg:settings.showImg!==false,ui:settings.ui||'iosBrand',accent:settings.accent||'brand',pdHide:settings.pdHide||[],tabHide:settings.tabHide||{},apprOn:settings.apprOn!==false,promos:(settings.promos||[]).map(x=>Object.assign({},x,{min:num(x.min)||0,val:num(x.val)||0}))}},adminCreds);
+  const r=await syncApi('settings','POST',{settings:{gst:settings.gst,huid:settings.huid,mkTable:settings.mkTable,cats:settings.cats||null,showRates:settings.showRates||null,mkEdit:settings.mkEdit||'admin',showImg:settings.showImg!==false,ui:settings.ui||'iosBrand',accent:settings.accent||'brand',pdHide:settings.pdHide||[],tabHide:settings.tabHide||{},apprOn:settings.apprOn!==false,priceRules:settings.priceRules||[],promos:(settings.promos||[]).map(x=>Object.assign({},x,{min:num(x.min)||0,val:num(x.val)||0}))}},adminCreds);
   sync.v.settings=r.v;sync.dirtySettings=false;saveSyncState();syncMsg('ok','Settings saved to the shared database.');
 }
 async function pushRate(entry){
@@ -1981,6 +1994,7 @@ function saveDayRates(){
     pushRate(rateLog[0]);
     closeRates();paintRates();renderEditor();renderBill();
     toast('Day\'s rates saved');
+    if(sync.key&&can('rates'))setTimeout(()=>publishRates(rateLog[0]),500);
   };
   if(big.length){
     showModal('Check these rates',big.map(p=>`${p.label}: ${inr(rates[p.id])} vs last ${inr(prev.rates[p.id])}`).join(' · ')+'. That is more than 10% different.',[
@@ -3500,7 +3514,7 @@ function paintProduct(){
 // Product details rows, in order: [label, value, key]. Admin can hide any of them (Settings → Product details).
 const PD_ROWS=[['purity','Purity'],['gw','Gr. Wt'],['sw','St. Wt'],['nw','Nt. Wt'],['size','Size'],['vaPct','VA %'],['va','VA (Making)'],['mkAmt','Making Charges'],
   ['dw','Diamond Wt'],['dq','Diamond Pcs'],['dPrice','Diamond Price'],['cw','Colour Stone Wt'],['cPrice','Colour Stone Price'],['huid','HUID Count'],
-  ['pcs','Pcs'],['location','Location'],['labelDate','Labelling Date']];
+  ['pcs','Pcs'],['location','Location'],['labelDate','Labelling Date'],['rule','Pricing rule']];
 // Hidden details (tap to show; needs "See hidden details")
 const PD_HIDDEN=[['nlc','NLC'],['fva','FVA'],['huidNo','HUID'],['model','Model'],['stones','Stone Names'],['supplier','Supplier']];
 function pdRows(t,st,p,w){
@@ -3518,7 +3532,7 @@ function pdRows(t,st,p,w){
     cw:clr&&st&&num(st.cw)>0?`${w(st.cw)}${num(st.sq)>0?` · ${fmtN(num(st.sq))}\u00a0pcs`:''}`:'',
     cPrice:cPrice>0?inr(cPrice):'',
     huid:p.huidN?`${p.huidN}\u00a0×\u00a0${inr(settings.huid)}`:'',huidNo:codes,
-    stones:st&&st.stoneName,pcs:st&&st.pcs>1?fmtN(st.pcs):'',location:st&&st.location,labelDate:st&&fmtDate(st.labelDate),supplier:st&&st.supplier};
+    stones:st&&st.stoneName,pcs:st&&st.pcs>1?fmtN(st.pcs):'',location:st&&st.location,rule:st&&st.rule?st.rule:'',labelDate:st&&fmtDate(st.labelDate),supplier:st&&st.supplier};
   return PD_ROWS.concat(PD_HIDDEN).map(([k,l])=>[l,v[k],k]);
 }
 function paintPdRowsSet(){
@@ -3775,6 +3789,8 @@ $('ssFind').addEventListener('input',()=>{
 function applyStock(rec){
   // stock loaded before v1.7.8 may hold Excel's 0.12 for 12% wastage
   if(rec&&rec.mkType==='pct'&&num(rec.mk)>0&&num(rec.mk)<1)rec=Object.assign({},rec,{mk:String(Math.round(num(rec.mk)*10000)/100)});
+  // pricing rules (admin) override or fill making, fair value and diamond price
+  rec=applyRules(rec);
   // Another stock item replaces the one shown: start clean so no weight or stone value carries over
   if(cur.stockKey&&cur.stockKey!==rec.key){const id=cur.id;Object.assign(cur,blankTag(),{id})}
   cur.stockKey=rec.key;cur.stock={...rec};cur.touched=true;
@@ -3900,6 +3916,7 @@ function paintApprSet(){const el=$('apprPick');if(!el)return;const on=settings.a
   [...el.children].forEach(b=>{b.setAttribute('aria-pressed',String((b.dataset.v==='on')===on));b.onclick=()=>withPerm('apprSet','Only an admin can change quote approval.',()=>{settings.apprOn=b.dataset.v==='on';saveSettings();paintApprSet();renderBill(true);toast(settings.apprOn?'Quote approval is on':'Quote approval is off')},true)});
   $('setApprMini').textContent=on?'On':'Off'}
 function paintAdminExtras(){
+  try{paintRulesSet()}catch(e){}
   try{paintPromoSet();paintPromoBar()}catch(e){}
   try{paintApprSet()}catch(e){}
   try{paintPdRowsSet()}catch(e){}try{paintFooterSet()}catch(e){}
@@ -3947,6 +3964,133 @@ function askProdPhoto(k){
 ['pimgFile','pimgCam'].forEach(id=>$(id).addEventListener('change',async e=>{const f=e.target.files&&e.target.files[0];e.target.value='';const k=photoDest;photoDest=null;if(!f||!k)return;const u=await shrink(f);if(u)setProdImg(k,u)}));
 
 
+
+// ---------- Pricing rules (admin): conventions for making, wastage, labour, fair value and diamond price ----------
+// The first running rule that matches a stock item wins. "Override" replaces the database values; "Fill" only fills empty ones.
+const RULE_PUR=[['22k','22K'],['18k','18K'],['14k','14K'],['9k','9K'],['24k','24K'],['platinum','Platinum']];
+const MKT_TXT={pct:'Wastage %',pergram:'Labour ₹ per g',fixed:'Labour ₹ fixed'};
+function codeOf(rec){const m=String(rec.barcode||rec.key||'').toUpperCase().match(/^[A-Z]+/);return m?m[0]:''}
+function ruleMatch(r,rec){
+  const pu=caratToPurity(rec.carat)||(/^MMP/.test(rec.key||'')?'platinum':''),nw=num(rec.nw),nlc=num(rec.nlc),hasDia=num(rec.dw)>0||num(rec.saDia)>0;
+  if(r.pur&&r.pur.length&&!r.pur.includes(pu))return false;
+  if(r.wMin!=null&&r.wMin!==''&&!(nw>=r.wMin))return false;
+  if(r.wMax!=null&&r.wMax!==''&&!(nw<r.wMax))return false;
+  if(r.cats&&r.cats.length){const c=codeOf(rec),cat=String(rec.category||'').toUpperCase();if(!r.cats.some(k=>k===c||(CAT[k]&&cat.includes(String(CAT[k]).toUpperCase()))))return false}
+  if(r.mkt){const t=rec.mkType&&num(rec.mk)>0?rec.mkType:'none';if(t!==r.mkt)return false}
+  if(r.sup&&!String(rec.supplier||'').toLowerCase().includes(r.sup.toLowerCase()))return false;
+  if(r.nlcMin!=null&&r.nlcMin!==''&&!(nlc>=r.nlcMin))return false;
+  if(r.nlcMax!=null&&r.nlcMax!==''&&!(nlc<=r.nlcMax))return false;
+  if(r.dia==='yes'&&!hasDia)return false;if(r.dia==='no'&&hasDia)return false;
+  if(r.pre&&!String(rec.barcode||'').toUpperCase().startsWith(r.pre.toUpperCase()))return false;
+  return true;
+}
+function ruleFor(rec){return (settings.priceRules||[]).find(r=>r.on!==false&&ruleMatch(r,rec))||null}
+function applyRules(rec){
+  if(!rec)return rec;const r=ruleFor(rec);if(!r)return rec;const o=Object.assign({},rec),over=r.mode!=='fill';const ch=[];
+  if(r.mkType&&num(r.mkVal)>0&&(over||!(o.mkType&&num(o.mk)>0))){o.mkType=r.mkType;o.mk=String(r.mkVal);ch.push('making')}
+  if(r.fvaType&&num(r.fvaVal)>0&&(over||!o.fva)){o.fva=r.fvaType==='pct'?r.fvaVal+'%':String(r.fvaVal);ch.push('fair value')}
+  if(num(r.diaRate)>0&&num(o.dw)>0&&(over||!(num(o.saDia)>0))){o.saDia=Math.round(num(o.dw)*num(r.diaRate));o.sa=(num(o.saClr)||0)+o.saDia;ch.push('diamond')}
+  if(ch.length){o.rule=r.name;o.ruleSet=ch}
+  return o;
+}
+function ruleText(r){
+  const c=[];if(r.pur&&r.pur.length)c.push(r.pur.map(p=>p.toUpperCase().replace('PLATINUM','Pt')).join('/'));
+  if(r.wMin!=null&&r.wMin!==''||r.wMax!=null&&r.wMax!=='')c.push(`${r.wMin!=null&&r.wMin!==''?fmtN(r.wMin):'0'}–${r.wMax!=null&&r.wMax!==''?fmtN(r.wMax):'∞'} g`);
+  if(r.cats&&r.cats.length)c.push(r.cats.join(', '));if(r.mkt)c.push(r.mkt==='none'?'no making in sheet':MKT_TXT[r.mkt]+' in sheet');
+  if(r.sup)c.push('supplier '+r.sup);if(r.nlcMin!=null&&r.nlcMin!==''||r.nlcMax!=null&&r.nlcMax!=='')c.push(`NLC ${r.nlcMin?inr(r.nlcMin):'₹0'}–${r.nlcMax?inr(r.nlcMax):'∞'}`);
+  if(r.dia)c.push(r.dia==='yes'?'diamond':'plain gold');if(r.pre)c.push('label '+r.pre+'…');
+  const t=[];if(r.mkType)t.push(r.mkType==='pct'?`VA ${fmtN(r.mkVal)}%`:r.mkType==='pergram'?`Labour ${inr(r.mkVal)}/g`:`Labour ${inr(r.mkVal)}`);
+  if(r.fvaType)t.push(`FVA ${r.fvaType==='pct'?fmtN(r.fvaVal)+'%':inr(r.fvaVal)}`);if(num(r.diaRate)>0)t.push(`Diamond ${inr(r.diaRate)}/ct`);
+  return {when:c.join(' · ')||'All items',then:t.join(' · ')||'—'};
+}
+function paintRulesSet(){
+  const el=$('ruleList');if(!el)return;const rs=settings.priceRules||[];
+  $('setRulesMini').textContent=rs.length?`${rs.filter(r=>r.on!==false).length} active`:'None';
+  el.innerHTML=rs.length?rs.map((r,i)=>{const t=ruleText(r);return `<div class="pr-row"><div class="pr-m"><b>${i+1}. ${esc(r.name)}</b><small>When: ${esc(t.when)}</small><small>Then: <b style="display:inline">${esc(t.then)}</b> · ${r.mode==='fill'?'fills empty':'overrides database'} · <span class="${r.on!==false?'live':'off'}">${r.on!==false?'On':'Off'}</span></small></div>
+    <div class="rl-b"><button class="btn sm" type="button" data-ru="${i}" aria-label="Move up"${i?'':' disabled'}>↑</button><button class="btn sm" type="button" data-re="${esc(r.id)}">Edit</button></div></div>`}).join(''):'<p class="note">No rules yet. Database values are used as they are.</p>';
+  el.querySelectorAll('[data-re]').forEach(b=>b.onclick=()=>ruleForm(b.dataset.re));
+  el.querySelectorAll('[data-ru]').forEach(b=>b.onclick=()=>withPerm('rules','Only an admin can change pricing rules.',()=>{const i=+b.dataset.ru,a=settings.priceRules.slice();[a[i-1],a[i]]=[a[i],a[i-1]];settings.priceRules=a;saveSettings();paintRulesSet()}));
+}
+function ruleForm(id){
+  withPerm('rules','Only an admin can change pricing rules.',()=>{
+  const r=Object.assign({id:uid(),name:'',on:true,mode:'over',pur:[],wMin:'',wMax:'',cats:[],mkt:'',sup:'',nlcMin:'',nlcMax:'',dia:'',pre:'',mkType:'',mkVal:'',fvaType:'',fvaVal:'',diaRate:''},(settings.priceRules||[]).find(x=>x.id===id)||{});
+  const v=x=>x==null?'':esc(x),sel=(o,cur)=>Object.entries(o).map(([k,l])=>`<option value="${k}"${k===(cur||'')?' selected':''}>${esc(l)}</option>`).join('');
+  const chips=(name,list,on)=>list.map(([k,l])=>`<label class="rc-p"><input type="checkbox" name="${name}" value="${esc(k)}"${on.includes(k)?' checked':''}> ${esc(l)}</label>`).join('');
+  $('modalTitle').textContent=id?'Edit pricing rule':'New pricing rule';$('modalTitle').classList.remove('price-pop');
+  $('modalBody').innerHTML=`<div class="pr-form">
+    <div class="full"><label for="rlName">Name</label><input id="rlName" value="${v(r.name)}" placeholder="e.g. 18K diamond studs under 2 g"></div>
+    <div class="full rl-sec">When the item is…</div>
+    <div class="full"><label>Karat / purity</label><div class="rl-chips">${chips('rlPur',RULE_PUR,r.pur||[])}</div></div>
+    <div><label for="rlWMin">Net wt from (g)</label><input id="rlWMin" inputmode="decimal" value="${v(r.wMin)}"></div>
+    <div><label for="rlWMax">Net wt below (g)</label><input id="rlWMax" inputmode="decimal" value="${v(r.wMax)}"></div>
+    <div class="full"><label>Product type</label><div class="rl-chips">${chips('rlCat',Object.keys(CAT).map(k=>[k,k+' '+CAT[k]]),r.cats||[])}</div></div>
+    <div><label for="rlMkt">Making type in database</label><select id="rlMkt">${sel({'':'Any',pct:'Wastage %',pergram:'Labour per g',fixed:'Labour fixed',none:'None given'},r.mkt)}</select></div>
+    <div><label for="rlDia">Diamond</label><select id="rlDia">${sel({'':'Any',yes:'Diamond items',no:'Plain gold'},r.dia)}</select></div>
+    <div><label for="rlSup">Supplier contains</label><input id="rlSup" value="${v(r.sup)}"></div>
+    <div><label for="rlPre">Label starts with</label><input id="rlPre" value="${v(r.pre)}" autocapitalize="characters"></div>
+    <div><label for="rlNMin">NLC from ₹</label><input id="rlNMin" inputmode="decimal" value="${v(r.nlcMin)}"></div>
+    <div><label for="rlNMax">NLC up to ₹</label><input id="rlNMax" inputmode="decimal" value="${v(r.nlcMax)}"></div>
+    <div class="full rl-sec">…then price it with</div>
+    <div><label for="rlMkType">Making</label><select id="rlMkType">${sel({'':'From database',pct:'Wastage %',pergram:'Labour ₹ per g',fixed:'Labour ₹ fixed'},r.mkType)}</select></div>
+    <div><label for="rlMkVal">Value</label><input id="rlMkVal" inputmode="decimal" value="${v(r.mkVal)}"></div>
+    <div><label for="rlFvaType">Fair value (FVA)</label><select id="rlFvaType">${sel({'':'From database',pct:'%',fixed:'₹ fixed'},r.fvaType)}</select></div>
+    <div><label for="rlFvaVal">Value</label><input id="rlFvaVal" inputmode="decimal" value="${v(r.fvaVal)}"></div>
+    <div class="full"><label for="rlDiaRate">Diamond price ₹ per carat (blank = from database)</label><input id="rlDiaRate" inputmode="decimal" value="${v(r.diaRate)}"></div>
+    <div class="full"><label for="rlMode">Database values</label><select id="rlMode">${sel({over:'Override the database',fill:'Use only when the database is empty'},r.mode)}</select></div>
+    <label class="full rc-p"><input type="checkbox" id="rlOn"${r.on!==false?' checked':''}> Rule is on</label></div>`;
+  const a=$('modalActs');a.innerHTML='';const mk=(t,c,f)=>{const b=document.createElement('button');b.type='button';b.className='btn '+c;b.textContent=t;b.onclick=f;a.appendChild(b)};
+  const n=id2=>{const x=$(id2).value.trim();return x===''?null:num(x)};
+  mk('Save','primary',()=>{const nm=$('rlName').value.trim();if(!nm){toast('Give the rule a name',null,true);return}
+    const y={id:r.id,name:nm,on:$('rlOn').checked,mode:$('rlMode').value,pur:[...document.querySelectorAll('[name=rlPur]:checked')].map(x=>x.value),wMin:n('rlWMin'),wMax:n('rlWMax'),
+      cats:[...document.querySelectorAll('[name=rlCat]:checked')].map(x=>x.value),mkt:$('rlMkt').value,sup:$('rlSup').value.trim(),pre:$('rlPre').value.trim().toUpperCase(),nlcMin:n('rlNMin'),nlcMax:n('rlNMax'),dia:$('rlDia').value,
+      mkType:$('rlMkType').value,mkVal:n('rlMkVal'),fvaType:$('rlFvaType').value,fvaVal:n('rlFvaVal'),diaRate:n('rlDiaRate')};
+    if(y.mkType&&!(y.mkVal>0)){toast('Enter the making value',null,true);return}
+    if(y.fvaType&&!(y.fvaVal>0)){toast('Enter the fair value',null,true);return}
+    if(!y.mkType&&!y.fvaType&&!(y.diaRate>0)){toast('Set the making, fair value or diamond price',null,true);return}
+    const list=(settings.priceRules||[]).slice(),i=list.findIndex(x=>x.id===y.id);if(i>=0)list[i]=y;else list.push(y);
+    settings.priceRules=list;saveSettings();closeModal();paintRulesSet();toast('Rule saved · applies to items scanned from now on, on all phones')});
+  if(id)mk('Delete','danger',()=>{settings.priceRules=(settings.priceRules||[]).filter(x=>x.id!==id);saveSettings();closeModal();paintRulesSet();toast('Rule deleted')});
+  mk('Cancel','ghost',closeModal);$('modal').hidden=false;
+  });
+}
+$('ruleAdd').onclick=()=>ruleForm('');
+$('ruleTest').onclick=()=>{const k=keyOf($('ruleTestIn').value);const rec=k&&findStock(k);if(!rec){$('ruleTestOut').textContent='Label not found in stock.';return}
+  const r=ruleFor(rec),o=applyRules(rec);$('ruleTestOut').innerHTML=r?`<b>${esc(r.name)}</b> applies: making ${esc(o.mkType&&num(o.mk)>0?valText({type:o.mkType,val:num(o.mk)}):'—')}${o.fva?' · FVA '+esc(o.fva):''}${o.saDia>0?' · diamond '+inr(o.saDia):''} (database: ${esc(rec.mkType&&num(rec.mk)>0?valText({type:rec.mkType,val:num(rec.mk)}):'—')}${rec.fva?' · FVA '+esc(rec.fva):''})`:'No rule matches. Database values are used.'};
+
+// ---------- Publish the day's rates: kiosk, Shopify (Yamie), WhatsApp ----------
+function ratesMsg(e){
+  const d=new Date(e.at||Date.now()),ds=d.toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
+  const L=[`*${BRAND.full}*`,`✨ Today's Gold Rate · ${ds}`,''];
+  PURITIES.forEach(p=>{const v=e.rates[p.id];if(v>0)L.push(`${p.id==='platinum'?'Platinum':p.id==='silver'?'Silver':p.label+' Gold'}: *${inr(v)}*/g`)});
+  L.push('',`Rates per gram, before GST · subject to change`);
+  if(BRAND.id==='yamie')L.push('Shop online: www.yamie.in','Contact: +91 8714122750');
+  return L.join('\n');
+}
+function publishRates(e){
+  e=e||rateLog[0];if(!e){toast('Save the day\'s rates first',null,true);return}
+  withPerm('rates',"Needs a user allowed to set the day's rates.",()=>{
+  const yam=BRAND.id==='yamie';
+  $('modalTitle').textContent="Publish today's rates";$('modalTitle').classList.remove('price-pop');
+  $('modalBody').innerHTML=`<p class="note">${PURITIES.filter(p=>e.rates[p.id]>0).map(p=>`${p.label} ${inr(e.rates[p.id])}`).join(' · ')}</p>
+    <div class="ap-list"><label class="ap-opt"><input type="checkbox" id="pubKiosk" checked> Update the kiosk <small>grandjewellers.com</small></label>
+    ${yam?'<label class="ap-opt"><input type="checkbox" id="pubShop" checked> Update Shopify <small>yamie.in prices</small></label>':''}
+    <label class="ap-opt"><input type="checkbox" id="pubWa" checked> Share on WhatsApp <small>rate message</small></label></div>
+    <p class="note" id="pubOut" aria-live="polite"></p>`;
+  const a=$('modalActs');a.innerHTML='';
+  const go=document.createElement('button');go.className='btn primary';go.type='button';go.textContent='Publish';
+  const cl=document.createElement('button');cl.className='btn ghost';cl.type='button';cl.textContent='Close';cl.onclick=closeModal;a.append(go,cl);$('modal').hidden=false;
+  go.onclick=async()=>{
+    const k=$('pubKiosk').checked,sh=yam&&$('pubShop')&&$('pubShop').checked,wa=$('pubWa').checked;go.disabled=true;
+    if(k||sh){$('pubOut').textContent='Publishing…';
+      try{const r=await syncApi('pubrates','POST',{rates:e.rates,kiosk:k,shopify:sh},adminCreds);
+        $('pubOut').innerHTML=[r.kiosk&&`${r.kiosk.ok?'✅':'⚠️'} ${esc(r.kiosk.msg)}`,r.shopify&&`${r.shopify.ok?'✅':'⚠️'} ${esc(r.shopify.msg)}`].filter(Boolean).join('<br>')}
+      catch(x){$('pubOut').textContent='⚠️ '+(x&&x.message==='bad_pin'?'Not allowed for this user.':'Could not publish. Check the internet.')}}
+    if(wa){const t=ratesMsg(e);if(NATIVE&&NATIVE.shareWhatsApp)NATIVE.shareWhatsApp('',t,'[]');else window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank','noopener')}
+    go.disabled=false;go.textContent='Publish again';
+  };
+  });
+}
+$('rsPub').onclick=()=>publishRates(dayEntry()||rateLog[0]);
 // ---------- Special promotions (admin) ----------
 function paintPromoBar(){
   const b=$('promoBar');if(!b)return;const lp=livePromos();b.hidden=!lp.length;
@@ -4167,7 +4311,7 @@ const PERM_LIST=[
   ['delQuote','Delete quotes'],['images','Add product photos'],['addDisc','Additional discount (flat)'],['round','Round final amount down to ₹100'],['reports','Reports'],['fva','Fair Value price'],['share','Share quotes on WhatsApp'],['pdHidden','See hidden details (NLC, FVA…)'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],
   ['textSize','Text size'],['imgShow','Product image show / hide'],['ratesShown','Rates shown'],['charges','Charges · GST · HUID'],
   ['mkHelper','Making helpers'],['itemCodes','Item codes'],['pdRows','Product details items'],['sync','Shared database · shop key'],['roles','Roles & permissions'],['users','Users']];
-const SET_PERMS=['theme','footer','apprSet','export','promos','reports','stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users'];
+const SET_PERMS=['theme','footer','apprSet','export','promos','rules','reports','stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users'];
 const permLabel=k=>(PERM_LIST.find(p=>p[0]===k)||[0,k])[1];
 const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','approve','leads','share','pdHidden','addDisc','round','reports','fva']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share','fva']}];
 let roles=store.get('roles',null)||clone(DEFAULT_ROLES);
@@ -4182,7 +4326,7 @@ let elev={role:'',until:0};   // another user's approval, 15 minutes
 const roleName=id=>id==='admin'?'Admin':(roles.find(r=>r.id===id)||{name:id||'—'}).name;
 // 'settings' was one permission before v1.6.42; it still grants all the settings functions
 const OLD_SETTINGS=['textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows'];
-const ADMIN_ONLY=['stock','theme','footer','apprSet','export','special','promos'];   // Stock data is an admin function
+const ADMIN_ONLY=['stock','theme','footer','apprSet','export','special','promos','rules'];   // Stock data is an admin function
 function roleHas(role,perm){if(role==='admin')return true;if(ADMIN_ONLY.includes(perm))return false;const ps=((roles.find(r=>r.id===role)||{}).perms||[]);return ps.includes(perm)||(OLD_SETTINGS.includes(perm)&&ps.includes('settings'))||(perm==='roles'&&ps.includes('users'))}
 // A manager's PIN approval covers only what it was asked for (e.g. sharing), not everything the manager can do
 function can(perm){return !!(curUser&&roleHas(curUser.role,perm))||(Date.now()<elev.until&&roleHas(elev.role,perm)&&(!elev.perms||elev.perms.includes(perm)))}
