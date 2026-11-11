@@ -311,6 +311,45 @@ A card is locked for users without that permission; opening it asks for a user w
 - **Reports** (Settings → Reports; permission "Reports", managers and admins): quoted, generated, approved, total sales from completed quotes, savings and offers given, open / enquiry only, conversion; by user, by sale type, sold by item, completed sales with invoice numbers. Period and sale type filters; **Export Excel** (Summary, By user, By sale type, By item, Sales, Quotes).
 - Settings changed by an admin (promotions etc.) reach phones within about a minute.
 - **Quotation number** (given when a quote is first saved): first 3 letters of the staff member's name / year / their number — e.g. `RAV/26/274`. Each person's count starts again every year. Older P- numbers stay; the final ON-/SW- numbers are unchanged.
+- **Fair Value** (was "Discounted price") on the Home product card: dark purple button with gold text. It is a permission ("Fair Value price", Roles & permissions); every existing role keeps it once. Without it the button and the fair value lines on quotes are hidden.
+
+## V 1.7.75 (11 Nov 2026)
+
+- **Bulk update · Scan labels:** scan tags straight into the list. The phone scanner reopens for the next tag until you go back; in the browser the camera keeps scanning until Done; a handheld scanner adds tags while the form is open. Repeats are skipped, tags not in stock are flagged.
+- **Bulk update stock items** is its own permission (`stockBulk`); roles that could edit stock items get it once.
+- Roles & permissions: the stock database permissions (delete sold tags, edit items, add items, bulk update) are grouped in a **Stock database** box on each role.
+
+## V 1.7.74 (11 Nov 2026)
+
+- **FVA set by a manager wins:** an FVA saved through Edit in database, Bulk update or a pricing rule (`fvaMan`) is used as it is, also for nosepins (instead of ₹450 per piece). FVA from the sheet keeps the nosepin defaults.
+- **Bulk update** (Search tab, permission Edit stock items): pick items by label numbers and/or everything matching a word (type, supplier, location, model…), fill only the details to change (making, FVA, type, purity, location, supplier, stones, size, model, NLC, labelling date), confirm. Saved to the shared database (`stockrow` with `rows`), with a line in the stock history.
+- **RNG · Remaining new gold** (Quote, each item): an item altered before sale (Reduce length, Change stone, Others). Enter the weight removed (gold or stone; for a stone change also new stone weight and price). Gross / net / stone weights and the price update, fair value is recalculated, the change shows on the item and in the WhatsApp text. Undo RNG restores the original weights.
+
+## V 1.7.73 (11 Nov 2026)
+
+- Item form: **Making Rate is always ₹ per gram of net wt**, also under 1 g (the sheet import keeps its under-1 g fixed rule). Typing in Wstg %, Fixed Charge or Making Rate clears the other two, so the value typed is the one saved.
+- Item form warns when a pricing rule overrides the making or FVA of that item.
+- Fix: the HUID number is kept on save (it was cleared).
+
+## V 1.7.72 (11 Nov 2026)
+
+- Fix: **Edit in database** and **+ New item** failed with "not allowed" after the app was reopened (the app keeps the login but not the PIN). They now ask for the PIN once, like other server changes. **Close sale** does the same, so sold tags are removed for every phone.
+- Fix: the HUID number typed in the item form is saved as the HUID number (it was going into the HUID count and was dropped).
+- Two permissions under Roles & permissions: **Edit stock items** (making, FVA, label details) and **Add new items to stock**. Roles that could edit get both once.
+- Netlify: `KIOSK_RATES_PIN` is skipped by the secret scan (a short PIN blocked the Yamie build).
+
+## V 1.7.71 (11 Nov 2026)
+
+- **Edit in database** (product card, new permission `stockEdit`, given to managers): correct the making (Wstg %, fixed charge or making rate), FVA or any label detail of a scanned item. It is saved to the shared database (`stockrow` op) and every phone picks it up within about 30 seconds through the inbox poll (`st` stock version).
+- **+ New item** (Search tab header): add a new tagged item with all the label details. It is saved to the shared database for all staff.
+- **Close sale removes the sold tags** from the stock database on every phone (`stocksold` op), with a note in the stock history.
+
+## V 1.7.70 (10 Nov 2026)
+
+- **Publish & share the day's rates** (after Save rates, or Gold Rates → Publish & share): update the **Grand Jewellers kiosk** (grandjewellers.com), the **Yamie Shopify** rate metafields (gold_rate_22k/18k/14k/9k/platinum/silver) and send a **WhatsApp rate message**. Netlify env vars on the price-check site (set by the owner): `KIOSK_RATES_PIN` (same as the kiosk's RATES_PIN; optional `KIOSK_URL`), `SHOPIFY_STORE_DOMAIN` with `SHOPIFY_CLIENT_ID` + `SHOPIFY_CLIENT_SECRET` (or `SHOPIFY_ADMIN_TOKEN`).
+- **Pricing rules (making conventions)** — Settings, admin only: rules by karat, net weight range, product type, making type in the database, diamond / plain gold, supplier, label prefix, NLC range. Each sets making (wastage %, labour ₹/g or ₹ fixed), fair value (FVA % or fixed) and diamond price (₹ per carat), and either overrides the database or only fills empty values. First matching rule wins (order with ↑); a Test box shows what a label would get; the product card shows the rule used.
+- Pop-ups scroll when they are taller than the screen.
+
 
 ## V 1.8 — web version on a computer (9 Nov 2026)
 
