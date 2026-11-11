@@ -22,9 +22,9 @@ export default async (req: Request) => {
       updated_at: typeof j.updated_at === "string" ? j.updated_at : null,
       source: "grandjewellers.com",
     }
-    return Response.json(body, { headers: { "cache-control": "public, max-age=60" } })
+    return Response.json(body, { headers: { "cache-control": "public, max-age=60", "access-control-allow-origin": "*" } })
   } catch (e) {
-    return Response.json({ error: "Rates are unavailable right now." }, { status: 502, headers: { "cache-control": "no-store" } })
+    return Response.json({ error: "Rates are unavailable right now." }, { status: 502, headers: { "cache-control": "no-store", "access-control-allow-origin": "*" } })
   }
 }
 
