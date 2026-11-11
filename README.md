@@ -392,3 +392,9 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 - **Web page design on a computer** (≥ 1280 px with a mouse): maroon top header with the logo, item-type tabs (top types by stock count, the rest under More) that open Search filtered to that type, a stock search box (an exact label prices it straight away), alerts and the user; page titles with a subtitle; Home shows today's rates as a rate board and the item as a pricing sheet (photo, Item Details, Description / Rate / Amount table, Grand Total bar); Settings as a grid of cards that open on their own page.
 - **Stock search on a computer:** filters for item type, purity, stone (any / diamond / colour / none), supplier, location, labelled and photo, with Clear all; item count, sort, list or photo-grid view, pages of 25 / 50 / 100 / 200, photo column, Labelled ✓, **Price it** and **⋯** (Edit in database).
 - Server: `settings` keeps `mkConv` and `chkOn` (permission Making helpers).
+
+## V 1.7.80 — Special FVA on the quote (admin) (11 Nov 2026)
+
+- **Special FVA** button on each quote item's fair value line, for admins only (permission Special price). Set the FVA as **% of gold value** or **₹ for the piece**, with a note (customer / reason). The pop-up shows the label making, the usual FVA, the label price and a live preview: making at the special FVA, the special price, what the customer saves and the usual fair value. A special FVA that is not below the label making is refused (no saving).
+- **Apply special price** stores it on that quote item only (`t.fvaX {raw, note, by, at}`) and applies it as the item's fair value making; the stock data is not changed. The item shows a gold **Special price** tag with the special FVA; **Remove special FVA** goes back to the usual fair value. Staff see the special price but cannot change it.
+- Fix: the RNG and Special FVA toggles now show the selected option.

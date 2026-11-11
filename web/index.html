@@ -733,6 +733,8 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .qi-rng.on .fa{margin-left:6px;padding:1px 8px;font-size:11.5px}
 .rng-prev{display:grid;grid-template-columns:auto 1fr 1fr;gap:4px 10px;font-size:14px;margin:10px 0 2px;background:var(--surface,#faf6f0);border-radius:12px;padding:10px 12px}
 .rng-prev b{font-weight:800}.rng-prev .h{font-size:11.5px;color:var(--muted)}
+.qi-fva .fa-sp{border-color:#C9A227;color:#C9A227}.qi-fva.sp-only{background:none!important;padding:2px 0!important}.qi-fva.sp-only .fa-sp{color:#8a6a10;border-color:#C9A227;background:#FFF8E6}
+.qi-fva .sp-tag{font-style:normal;background:#C9A227;color:#2a1600;border-radius:999px;padding:1px 8px;font-size:11.5px;font-weight:700}
 .qi-fva{grid-column:1/-1;margin:4px 0 0 18px;font-size:13px;color:#fff;background:linear-gradient(135deg,#3B1A5C,#5B2A86);border-radius:10px;padding:7px 10px;font-weight:700;line-height:1.5}
 .qi-fva small{color:rgba(255,255,255,.7);font-weight:500}.qi-fva b{font-weight:900;color:#FFE08A;font-size:14px}
 .qi-fva .fa{color:#fff}.qi-fva.on{outline:2px solid #FFE08A}
@@ -2496,6 +2498,9 @@ function missing(t){
 const NOSE_PC=450;
 function isNosepin(t){const st=t.stock||{};return /^NSP/i.test(keyOf(t.sku))||/NOSE/i.test(`${st.category||''} ${t.item||''}`)}
 function fvaMaking(t){
+  // Special FVA (admin, on this quote only): a customer's special price, as % of gold value or ₹ for the piece
+  if(t.fvaX&&t.fvaX.raw!=null&&t.fvaX.raw!==''){const r=String(t.fvaX.raw),x=num(r.replace(/[^\d.]/g,''));
+    if(!isNaN(x)&&x>=0)return /%/.test(r)?{amt:makingFor(t,'pct',x),label:`Special FVA ${fmtN(x)}%`,special:true}:{amt:x,label:`Special FVA ${inr(x)}`,special:true}}
   const st=t.stock||{},nw=num(t.nw),dia=isDiamond(t)||num(st.dw)>0||num(st.saDia)>0;
   const raw=st.fva==null?'':String(st.fva).trim(),v=num(raw.replace(/[^\d.]/g,''));
   if(isNosepin(t)&&!(st.fvaMan&&raw)){
@@ -2511,7 +2516,7 @@ function fvaMaking(t){
 const r50=x=>Math.round(x/RND)*RND;   // V1.7.78: final amount and fair value to the nearest ₹50 (V1.7.77: ₹10)
 // Price at FVA (before GST) and the saving against the label price; null when there is nothing to save
 function fvaPrice(t,p){p=p||priceTag(t);if(!p.ok||!p.hasMk)return null;const f=fvaMaking(t);if(!f)return null;
-  const val=p.value-p.making+f.amt,save=p.value-val;return save>0.5?{value:val,save,label:f.label,mk:f.amt}:null}
+  const val=p.value-p.making+f.amt,save=p.value-val;return save>0.5?{value:val,save,label:f.label,mk:f.amt,special:!!f.special}:null}
 // ---- Special promotions ----
 const PROMO_BASIS={all:'Every quote',value:'Quote value (incl. GST) from ₹',weight:'Gold net weight from (g)',diamond:'Diamond value from ₹'};
 const PROMO_KIND={mkPct:'% off making charges',diaPct:'% off diamond value',goldPg:'₹ off gold rate per gram',flat:'₹ off the quote',valPct:'% off the quote value'};
@@ -3232,8 +3237,10 @@ function renderBill(keepInputs){
       ${(()=>{const g=gstPct(),mkOn=store.get('sumMk',true),M=Math.round,d=M(p.value)-M(q),ro=itemRound(t,p,q),fin=q*(1+g/100),R=v=>p.ok?inr(v):'—';return `<span class="qd qw">${fmtW(num(t.gw))}<small>${fmtW(num(t.nw))}</small></span><span class="qd o4 qdr">${p.rate==null?'—':inr(p.rate)}</span><span class="qd o5">${R(p.gold)}</span><span class="qd o6">${R(p.stone)}</span><span class="qd o7">${!p.ok?'—':!mkOn?'•••':p.hasMk?inr(p.making):'—'}</span><span class="qd qa">${!p.ok?'—':!mkOn?'•••':p.hasMk?`${inr(M(p.making)-d)}${p.making>0.5&&d/p.making>=0.001?`<small>−${fmtN(Math.round(d/p.making*1000)/10)}%</small>`:''}`:'—'}</span><span class="qd qh">${p.huidN?`${inr(p.huid)}<small>${p.huidN} × ${inr(settings.huid)}</small>`:'—'}</span><span class="qd o8">${R(p.value)}</span><span class="qd o9${d>0.5?' qd-disc':''}">${!p.ok?'—':d<0?'+'+inr(-d):inr(d)}${p.ok&&Math.abs(ro)>0.5?`<small>${ro>0?'incl.':'after'} ${inr2(Math.abs(ro)).replace(/\.00$/,'')} round-off</small>`:''}</span><span class="qd o10">${R(q)}</span><span class="qd o11">${fmtN(g)}% /<br>${p.ok?inr(M(fin)-M(q)):'—'}</span><span class="qd o12 qd-fin"><b>${R(q*(1+g/100))}</b></span>`})()}
       <span class="qi-acts o13">${closed?'':`<button type="button" data-edit="${t.id}" aria-label="Edit item ${i+1}">${IC_EDIT}</button><button type="button" data-del="${t.id}" aria-label="Remove item ${i+1}">${IC_DEL}</button>`}</span>
       ${t.rng?`<span class="qi-rng o14 on">RNG · ${esc(rngText(t))}${closed?'':` <button type="button" class="fa" data-rng="${t.id}">Edit</button>`}</span>`:closed?'':`<span class="qi-rng o14"><button type="button" class="fa" data-rng="${t.id}">RNG · alter weight</button></span>`}
-      ${(()=>{const fv=fvaPrice(t,p),G=1+gstPct()/100;if(!fv||(!can('fva')&&!(t.qMk&&t.qMk.fva)))return '';const fvp=r50(fv.value*G),on=t.qMk&&t.qMk.fva,mgr=t.qMk&&!t.qMk.fva;
-        return `<span class="qi-fva o15${on?' on':''}">Fair value <b>${inr(fvp)}</b> <small>(${esc(fv.label)})</small> · Savings <b>${inr(r50(p.value*G)-fvp)}</b>${closed||mgr?(mgr?' <small>· manager discount</small>':''):`<button type="button" class="fa" data-fva="${t.id}">${on?'Applied ✓':'Apply'}</button>`}</span>`})()}
+      ${(()=>{const fv=fvaPrice(t,p),G=1+gstPct()/100,adm=can('special')&&!closed,spB=adm?`<button type="button" class="fa fa-sp" data-fvx="${t.id}">${t.fvaX?'Special FVA ✎':'Special FVA'}</button>`:'';
+        if(!fv||(!can('fva')&&!(t.qMk&&t.qMk.fva))){return t.fvaX?`<span class="qi-fva o15 sp">Special FVA ${esc(fvxText(t.fvaX))} gives no saving on this item${spB?' '+spB:''}</span>`:spB?`<span class="qi-fva o15 sp-only">${spB}</span>`:''}
+        const fvp=r50(fv.value*G),on=t.qMk&&t.qMk.fva,mgr=t.qMk&&!t.qMk.fva;
+        return `<span class="qi-fva o15${on?' on':''}${fv.special?' sp':''}">${fv.special?'<em class="sp-tag">Special price</em> ':''}Fair value <b>${inr(fvp)}</b> <small>(${esc(fv.label)})</small> · Savings <b>${inr(r50(p.value*G)-fvp)}</b>${closed||mgr?(mgr?' <small>· manager discount</small>':''):`<button type="button" class="fa" data-fva="${t.id}">${on?'Applied ✓':'Apply'}</button>`}${spB?' '+spB:''}</span>`})()}
     </div>`}).join(''):'<div class="empty-q">No items yet. Scan a product or add it manually, then tap Save to Quote.</div>';
   $('items').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{
     const t=bill.items.find(x=>x.id===b.dataset.edit);if(!t)return;
@@ -3248,6 +3255,7 @@ function renderBill(keepInputs){
     toast('Item removed',()=>{bill.items.splice(i,0,gone);saveBill();renderEditor();renderBill()});
   });
   $('items').querySelectorAll('[data-rng]').forEach(b=>b.onclick=()=>rngForm(b.dataset.rng));
+  $('items').querySelectorAll('[data-fvx]').forEach(b=>b.onclick=()=>withPerm('special','Special FVA is set by an admin.',()=>fvaSpecialForm(b.dataset.fvx)));
   $('items').querySelectorAll('[data-fva]').forEach(b=>b.onclick=()=>{const t=bill.items.find(x=>x.id===b.dataset.fva);if(!t)return;
     if(t.qMk&&t.qMk.fva){delete t.qMk;t.fvaAsk=false}else{const fv=fvaPrice(t);if(!fv)return;t.fvaAsk=true;t.qMk={type:t.mkType,val:fmtN(mkValFor(t,fv.mk)),fva:true,by:curUser?(curUser.name||curUser.username):'',at:Date.now()}}
     saveBill();renderBill()});
@@ -3491,6 +3499,43 @@ $('qCancel').onclick=()=>withPerm('cancelQuote','Needs a user allowed to cancel 
   a.append(ok,cn);$('modal').hidden=false;
 });
 
+// ---------- V1.7.80 Special FVA (admin): a customer's special price on one quote item ----------
+const fvxText=x=>{const r=String(x&&x.raw||''),v=num(r.replace(/[^\d.]/g,''));return /%/.test(r)?fmtN(v)+'%':inr(v)};
+function fvaSpecialForm(id){
+  const t=bill.items.find(x=>x.id===id);if(!t||isClosed())return;
+  const p=priceTag(t),G=1+gstPct()/100,old=t.fvaX||null,base=Object.assign({},t);delete base.fvaX;
+  const fv0=fvaMaking(base),fvp0=fvaPrice(base,p);
+  let unit=old?(/%/.test(old.raw)?'pct':'fixed'):'pct';
+  $('modalTitle').textContent='Special FVA · '+keyOf(t.sku);$('modalTitle').classList.remove('price-pop');
+  $('modalBody').innerHTML=`<p class="note" style="margin-top:0">A special fair value making for this customer, on this quote only. The stock data is not changed.</p>
+    <div class="rng-prev" style="grid-template-columns:auto 1fr"><span>Making on the label</span><b>${p.hasMk?esc(p.mkLabel)+' = '+inr(p.making):'—'}</b>
+      <span>Fair value now</span><b>${fv0?esc(fv0.label)+' = '+inr(fv0.amt):'none'}</b>
+      <span>Label price</span><b>${p.ok?inr(r50(p.value*G)):'—'}</b></div>
+    <div class="f full" style="margin-top:12px"><span class="flabel">Special FVA</span><div class="seg" id="fxU"><button type="button" data-u="pct">% of gold value</button><button type="button" data-u="fixed">₹ for the piece</button></div></div>
+    <div class="pr-form"><div><label for="fxV" id="fxL">FVA %</label><input id="fxV" inputmode="decimal" value="${old?esc(String(num(String(old.raw).replace(/[^\d.]/g,'')))):''}" placeholder="e.g. 6"></div>
+      <div><label for="fxN">Note (customer / reason)</label><input id="fxN" value="${esc(old&&old.note||'')}" placeholder="e.g. Regular customer"></div></div>
+    <div id="fxPrev" aria-live="polite"></div>`;
+  const raw=()=>{const v=$('fxV').value.trim();return v===''?'':unit==='pct'?num(v)+'%':String(num(v))};
+  const paint=()=>{
+    $('fxU').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.u===unit));$('fxL').textContent=unit==='pct'?'FVA %':'FVA ₹ for the piece';
+    const r=raw(),x=num($('fxV').value);if(r===''||isNaN(x)||x<0){$('fxPrev').innerHTML='<p class="note">Enter the special FVA.</p>';return null}
+    const t2=Object.assign({},t,{fvaX:{raw:r}}),f=fvaMaking(t2),fp=fvaPrice(t2,p);
+    if(!fp){$('fxPrev').innerHTML=`<p class="note lc-w" style="font-weight:600">${esc(f.label)} = ${inr(f.amt)} is not below the label making, so there is no saving.</p>`;return null}
+    const sp=r50(fp.value*G);
+    $('fxPrev').innerHTML=`<div class="rng-prev" style="grid-template-columns:auto 1fr"><span>Making at special FVA</span><b>${inr(f.amt)}</b><span>Special price</span><b style="color:#5B2A86;font-size:18px">${inr(sp)}</b><span>Customer saves</span><b>${inr(r50(p.value*G)-sp)}</b>${fvp0?`<span>Usual fair value</span><span>${inr(r50(fvp0.value*G))}</span>`:''}</div>`;
+    return {r,fp}};
+  $('fxU').querySelectorAll('button').forEach(b=>b.onclick=()=>{unit=b.dataset.u;paint()});['fxV','fxN'].forEach(k=>$(k).addEventListener('input',paint));
+  const a=$('modalActs');a.innerHTML='';const mk=(tx,c,f)=>{const b=document.createElement('button');b.type='button';b.className='btn '+c;b.textContent=tx;b.onclick=f;a.appendChild(b)};
+  const by=()=>curUser?(curUser.name||curUser.username):'';
+  mk('Apply special price','primary',()=>{const c=paint();if(!c){toast('No saving at this FVA',null,true);return}
+    t.fvaX={raw:c.r,note:$('fxN').value.trim(),by:by(),at:Date.now()};t.fvaAsk=true;
+    t.qMk={type:t.mkType,val:fmtN(mkValFor(t,fvaMaking(t).amt)),fva:true,special:true,by:by(),at:Date.now()};
+    saveBill();renderBill();closeModal();toast('Special price applied · '+inr(r50(fvaPrice(t).value*G)))});
+  if(old)mk('Remove special FVA','ghost',()=>{delete t.fvaX;
+    if(t.qMk&&t.qMk.fva){const fv=fvaPrice(t);if(fv){t.qMk={type:t.mkType,val:fmtN(mkValFor(t,fv.mk)),fva:true,by:by(),at:Date.now()}}else{delete t.qMk;t.fvaAsk=false}}
+    saveBill();renderBill();closeModal();toast('Special FVA removed')});
+  mk('Cancel','ghost',closeModal);$('modal').hidden=false;paint();setTimeout(()=>$('fxV').focus(),60);
+}
 // ---------- RNG (Remaining new gold): weight removed when an item is altered before sale ----------
 const RNG_WHY={length:'Reduce length',stone:'Change stone',other:'Others'};
 function rngText(t){const r=t.rng||{};const why=r.why==='other'&&r.note?r.note:RNG_WHY[r.why]||'Altered';
@@ -3521,7 +3566,7 @@ function rngForm(id){
       <div class="rg-st full"><label for="rgSpr">New stone price (₹, blank keeps ${inr(num(o.spr)||0)})</label><input id="rgSpr" inputmode="decimal" value="${esc(r0.spr??'')}"></div></div>
     <div id="rgPrev" aria-live="polite"></div>`;
   const paint=()=>{
-    $('rgWhy').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.w===why));$('rgFrom').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.f===from));
+    $('rgWhy').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.w===why));$('rgFrom').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.f===from));
     $('rgNoteF').hidden=why!=='other';document.querySelectorAll('.rg-st').forEach(e=>e.hidden=from!=='stone');
     const c=rngCalc(t,why,from,$('rgRem').value,$('rgAdd').value,$('rgSpr').value),G=1+gstPct()/100;
     if(c.err){$('rgPrev').innerHTML=`<p class="note">${esc(c.err)}</p>`;return c}
