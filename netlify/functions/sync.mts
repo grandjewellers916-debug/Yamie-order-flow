@@ -20,7 +20,9 @@ function cors(req: Request): Record<string, string> {
     Vary: "Origin",
     "Cache-Control": "no-store",
   }
-  if (APP_ORIGINS.includes(o) || /^https:\/\/[a-z0-9-]+--yamie-price-check\.netlify\.app$/.test(o)) h["Access-Control-Allow-Origin"] = o
+  // Any web address may call (the web version on a computer, a downloaded copy, a custom domain, deploy links):
+  // the data is guarded by the shop key and user PINs in headers, never by cookies, so the caller's origin adds nothing
+  h["Access-Control-Allow-Origin"] = APP_ORIGINS.includes(o) || o ? o : "*"
   return h
 }
 const json = (req: Request, body: unknown, status = 200) =>
