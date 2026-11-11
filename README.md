@@ -377,3 +377,9 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 - **Final amount and fair value round to the nearest ₹10** (was down to ₹100). The round-off (up or down) is adjusted in the discount before GST: taxable value and GST are recalculated, so Gross − Discount = Taxable and Taxable + GST = Final exactly. Shown as "Round-off discount · before GST" in the summary, quote text, quote image and A4. Setting/permission renamed "Round final amount to the nearest ₹10".
 - **Computer items table:** new **Gr. / Nt. Wt** column (gross over net) and **HUID** column (₹, pieces × rate).
 - **Quote Summary strip:** chips for gross wt, net wt, item count and HUID count; new **HUID Charges** tile; **Less Discount** includes the round-off. Below 1440 px the Gold Rate box sits in a row above the tiles.
+
+## V 1.7.78 — every item to the nearest ₹50, making after discount (11 Nov 2026)
+
+- **Each item's final amount (incl. GST) rounds to the nearest ₹50.** The round-off is added to that item's discount before GST (value before GST = rounded final ÷ 1.03). The quote's final amount is the sum of the items, also a multiple of ₹50; offers, delivery and a flat discount are covered by a last ₹50 round-off on the total. Fair value and grand total on the product card show the same ₹50 figure. Untick "Round each item and the final amount to the nearest ₹50" on the quote to switch it off.
+- **Computer items table:** new **Making (After Disc.)** column (making − item discount, with the % off). The Discount column shows the item's round-off ("incl. ₹7.59 round-off", or "+₹15 after round-off" when rounded up).
+- Shown figures are derived from the rounded values, so every row and the summary tiles add up exactly: Gross − Discount = Taxable, Taxable + GST = Final, Making before − Discount = Making after.
