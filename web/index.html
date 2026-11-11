@@ -2992,7 +2992,7 @@ $('qDel').addEventListener('input',()=>{const v=num($('qDel').value);bill.delive
 $('qRound').onchange=()=>{if(!can('round')){$('qRound').checked=bill.round!==false;return}bill.round=$('qRound').checked;saveBill();renderBill(true)};
 $('qInv').addEventListener('input',()=>{bill.invoice=$('qInv').value.trim();saveBill(true)});
 $('qInv').addEventListener('change',()=>{if(isClosed()&&bill.invoice){bill.updated=Date.now();saveBill(true);pushQuote(bill.id).then(ok=>toast(ok?`Invoice ${bill.invoice} saved`:'Saved on this phone',null,!ok))}});
-$('qCloseBtn').onclick=()=>withPerm('closeSale','Needs a user allowed to close sales.',()=>{
+$('qCloseBtn').onclick=()=>withPerm('closeSale','Enter your PIN to close the sale.',()=>{
   if(!bill.items.length){toast('Add items first',null,true);return}
   // Ask for the invoice number from the billing software (Acme) as the sale is closed
   const erp=BRAND.erp||'ERP';
@@ -3012,7 +3012,7 @@ $('qCloseBtn').onclick=()=>withPerm('closeSale','Needs a user allowed to close s
       const keys=bill.items.map(t=>t.stockKey).filter(k=>k&&stockMap.has(k));
       if(keys.length){const n=await soldStock(keys,`Sold · ${bill.no||''}${bill.invoice?' · invoice '+bill.invoice:''}`);if(n)setTimeout(()=>toast(`${n} sold tag${n>1?'s':''} removed from stock`),700)}
     }}][0].run;
-});
+},true);
 $('qReopen').onclick=()=>withManager('Needs a user allowed to reopen quotes.',()=>{const was=bill.status;bill.status='open';delete bill.closedAt;delete bill.cancelledAt;saveBill();renderBill();toast(was==='cancelled'?'Quote reopened':'Sale reopened')},'reopen');
 // Cancel: the customer only enquired. Kept under Quotes → Enquiry.
 $('qCancel').onclick=()=>withPerm('cancelQuote','Needs a user allowed to cancel quotes.',()=>{
@@ -3588,7 +3588,7 @@ function openDiscCheck(){
 }
 $('pdDel').onclick=()=>$('clearTag').click();
 $('findNew').onclick=()=>stockForm(null);
-function paintFindNew(){const b=$('findNew');if(b)b.hidden=!can('stockEdit')}
+function paintFindNew(){const b=$('findNew');if(b)b.hidden=!can('stockAdd')}
 $('pdDb').onclick=()=>{const r=stockMap.get(cur.stockKey);if(r)stockForm(r)};
 $('pdClose').onclick=()=>{$('clearTag').click();window.scrollTo({top:0,behavior:'smooth'})};
 $('pdSave').onclick=()=>$('addTag').click();
@@ -4110,7 +4110,8 @@ const SF=[['barcode','Label No','text',1],['item','Item Name','text',1],['catego
   ['fva','FVA (% or ₹)','text'],['huidNo','HUID No','text'],['stoneName','Stone Name(s)','text'],['location','Location','text'],['labelDate','Labelling Date','date'],
   ['size','Size','text'],['model','Model','text'],['nlc','NLC (₹)','num'],['supplier','Supplier','text']];
 function stockForm(rec){
-  withPerm('stockEdit','Needs a manager: edit stock items.',()=>{
+  const pm=rec?'stockEdit':'stockAdd';
+  withPerm(pm,rec?'Enter your PIN to edit stock items.':'Enter your PIN to add items to stock.',()=>{
   const isNew=!rec,r=rec||{};
   const v0={...r,mkPct:r.mkType==='pct'?r.mk:'',mkPg:r.mkType==='pergram'?r.mk:'',mkFix:r.mkType==='fixed'?r.mk:'',huidNo:r.huidNo||(r.huid&&!r.huidNo?'':''),labelDate:r.labelDate||(isNew?todayStr():'')};
   const val=k=>v0[k]==null?'':esc(String(v0[k]));
@@ -4133,8 +4134,9 @@ function stockForm(rec){
     if(!(n('gw')>0)||!(n('nw')>0)){toast('Enter the gross and net weight',null,true);return}
     if(n('nw')>n('gw')){toast('Net weight is more than gross weight',null,true);return}
     const o={key,barcode:bc,item:g('item'),category:g('category'),carat:g('carat'),gw:n('gw'),sw:n('sw'),nw:n('nw'),saClr:n('saClr'),saDia:n('saDia'),dq:n('dq'),dw:n('dw'),
-      mkPct:n('mkPct'),mkFix:n('mkFix'),mkPg:n('mkPg'),fva:g('fva'),huid:g('huidNo'),stoneName:g('stoneName'),location:g('location'),labelDate:g('labelDate'),size:g('size'),model:g('model'),nlc:n('nlc'),supplier:g('supplier')};
+      mkPct:n('mkPct'),mkFix:n('mkFix'),mkPg:n('mkPg'),fva:g('fva'),huidNo:g('huidNo').toUpperCase(),stoneName:g('stoneName'),location:g('location'),labelDate:g('labelDate'),size:g('size'),model:g('model'),nlc:n('nlc'),supplier:g('supplier')};
     if(o.mkPct==null&&o.mkFix==null&&o.mkPg==null){toast('Enter the making: Wstg %, Fixed Charge or Making Rate',null,true);return}
+    {const hc=o.huidNo.split(/[\s,;\/]+/).filter(Boolean);o.huid=hc.length||(r.huidNo?null:r.huid)||null}
     stockMaking(o);if((o.saClr>0)||(o.saDia>0))o.sa=(o.saClr||0)+(o.saDia||0);
     const row={};['key','barcode','item','category','carat','gw','nw','sw','dw','dq','sa','location','supplier','mk','mkType','huid','huidNo','stoneName','saDia','saClr','labelDate','size','model','nlc','fva'].forEach(f=>{if(o[f]!=null&&o[f]!=='')row[f]=o[f]});
     ['serial','label','pcs','sq','cw'].forEach(f=>{if(r[f]!=null&&r[f]!=='')row[f]=r[f]});
@@ -4146,10 +4148,10 @@ function stockForm(rec){
       indexRec(row);paintStockSummary();closeModal();
       toast(isNew?`${bc} added to stock · all staff have it`:`${bc} updated · all staff have it`);
       if(!isNew&&cur.stockKey===key){cur.stockKey='';applyStock(row)}
-    }catch(e){sv.disabled=false;sv.textContent=isNew?'Add to stock':'Save to database';toast(e&&e.message==='bad_pin'?'Not allowed for this user':'Could not save. Check the internet.',null,true)}
+    }catch(e){sv.disabled=false;sv.textContent=isNew?'Add to stock':'Save to database';toast(e&&e.message==='bad_pin'?(isNew?'Not allowed: Add new items to stock is off for this role':'Not allowed: Edit stock items is off for this role')+' (Roles & permissions)':'Could not save. Check the internet.',null,true)}
   });
   mk('Cancel','ghost',closeModal);$('modal').hidden=false;
-  });
+  },true);
 }
 // ---------- Special promotions (admin) ----------
 function paintPromoBar(){
@@ -4368,17 +4370,18 @@ const PERM_LIST=[
 ['stockdel','Delete sold tags from stock'],['rates',"Set day's rates"],
   ['mkEdit','Update making on the price card'],['mkDisc','Making after discount on quotes'],
   ['closeSale','Close sale (invoice no.)'],['cancelQuote','Cancel quote (enquiry)'],['reopen','Reopen sold / cancelled quotes'],
-  ['delQuote','Delete quotes'],['images','Add product photos'],['addDisc','Additional discount (flat)'],['round','Round final amount down to ₹100'],['stockEdit','Edit stock items · add new items'],['reports','Reports'],['fva','Fair Value price'],['share','Share quotes on WhatsApp'],['pdHidden','See hidden details (NLC, FVA…)'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],
+  ['delQuote','Delete quotes'],['images','Add product photos'],['addDisc','Additional discount (flat)'],['round','Round final amount down to ₹100'],['stockEdit','Edit stock items · making, FVA, label details'],['stockAdd','Add new items to stock'],['reports','Reports'],['fva','Fair Value price'],['share','Share quotes on WhatsApp'],['pdHidden','See hidden details (NLC, FVA…)'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],
   ['textSize','Text size'],['imgShow','Product image show / hide'],['ratesShown','Rates shown'],['charges','Charges · GST · HUID'],
   ['mkHelper','Making helpers'],['itemCodes','Item codes'],['pdRows','Product details items'],['sync','Shared database · shop key'],['roles','Roles & permissions'],['users','Users']];
 const SET_PERMS=['theme','footer','apprSet','export','promos','rules','reports','stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users'];
 const permLabel=k=>(PERM_LIST.find(p=>p[0]===k)||[0,k])[1];
-const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','approve','leads','share','pdHidden','addDisc','round','reports','fva','stockEdit']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share','fva']}];
+const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','approve','leads','share','pdHidden','addDisc','round','reports','fva','stockEdit','stockAdd']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share','fva']}];
 let roles=store.get('roles',null)||clone(DEFAULT_ROLES);
 // WhatsApp sharing became a permission (v1.7.3): roles on this phone keep it once
 if(!store.get('permShare',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&!r.perms.includes('share'))r.perms.push('share')});store.set('roles',roles);store.set('permShare',true)}
 if(!store.get('permHid',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('mkDisc')&&!r.perms.includes('pdHidden'))r.perms.push('pdHidden')});store.set('roles',roles);store.set('permHid',true)}
 if(!store.get('permStockEd',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('mkDisc')&&!r.perms.includes('stockEdit'))r.perms.push('stockEdit')});store.set('roles',roles);store.set('permStockEd',true)}
+if(!store.get('permStockAdd',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('stockEdit')&&!r.perms.includes('stockAdd'))r.perms.push('stockAdd')});store.set('roles',roles);store.set('permStockAdd',true)}
 if(!store.get('permFva',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&!r.perms.includes('fva'))r.perms.push('fva')});store.set('roles',roles);store.set('permFva',true)}
 if(!store.get('permRep',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('mkDisc')&&!r.perms.includes('reports'))r.perms.push('reports')});store.set('roles',roles);store.set('permRep',true)}
 if(!store.get('permRound',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('mkDisc')&&!r.perms.includes('round'))r.perms.push('round')});store.set('roles',roles);store.set('permRound',true)}

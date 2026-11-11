@@ -313,6 +313,13 @@ A card is locked for users without that permission; opening it asks for a user w
 - **Quotation number** (given when a quote is first saved): first 3 letters of the staff member's name / year / their number — e.g. `RAV/26/274`. Each person's count starts again every year. Older P- numbers stay; the final ON-/SW- numbers are unchanged.
 - **Fair Value** (was "Discounted price") on the Home product card: dark purple button with gold text. It is a permission ("Fair Value price", Roles & permissions); every existing role keeps it once. Without it the button and the fair value lines on quotes are hidden.
 
+## V 1.7.72 (11 Nov 2026)
+
+- Fix: **Edit in database** and **+ New item** failed with "not allowed" after the app was reopened (the app keeps the login but not the PIN). They now ask for the PIN once, like other server changes. **Close sale** does the same, so sold tags are removed for every phone.
+- Fix: the HUID number typed in the item form is saved as the HUID number (it was going into the HUID count and was dropped).
+- Two permissions under Roles & permissions: **Edit stock items** (making, FVA, label details) and **Add new items to stock**. Roles that could edit get both once.
+- Netlify: `KIOSK_RATES_PIN` is skipped by the secret scan (a short PIN blocked the Yamie build).
+
 ## V 1.7.71 (11 Nov 2026)
 
 - **Edit in database** (product card, new permission `stockEdit`, given to managers): correct the making (Wstg %, fixed charge or making rate), FVA or any label detail of a scanned item. It is saved to the shared database (`stockrow` op) and every phone picks it up within about 30 seconds through the inbox poll (`st` stock version).
