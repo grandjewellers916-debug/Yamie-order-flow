@@ -522,13 +522,19 @@ export default async (req: Request) => {
           kind: ["mkPct", "diaPct", "goldPg", "flat", "valPct"].includes(x?.kind) ? x.kind : "mkPct", val: Math.max(0, cleanNum(x?.val) || 0),
           sale: ["any", "store", "online"].includes(x?.sale) ? x.sale : "any",
         })).filter((x: any) => x.id && x.name),
+        // Making conventions per item type and purity (making, fair value, note) and the label check after a scan
+        mkConv: (Array.isArray(s?.mkConv) ? s.mkConv : []).slice(0, 150).map((x: any) => ({
+          code: /^[A-Z]{2,4}$/.test(x?.code || "") ? x.code : "", pur: ["", "24k", "22k", "18k", "14k", "9k", "platinum", "silver"].includes(x?.pur) ? x.pur : "",
+          mk: cleanStr(x?.mk, 20), fva: cleanStr(x?.fva, 20), note: cleanStr(x?.note, 120),
+        })).filter((x: any) => x.mk || x.fva || x.note),
+        chkOn: s?.chkOn !== false,
         pdHide: (Array.isArray(s?.pdHide) ? s.pdHide : []).filter((x: any) => typeof x === "string" && /^[a-zA-Z]{1,16}$/.test(x)).slice(0, 30),
         showRates: Array.isArray(s?.showRates) ? s.showRates.filter((x: any) => ["22k", "18k", "14k", "9k", "platinum", "silver"].includes(x)) : null,
       }
       // Keep the parts this user may not change
       const prev: any = (await st.get("settings", { type: "json" })) || {}
       const keep = (perm: string, keys: string[]) => { if (!roleHas(role, perm)) keys.forEach((k) => { if (k in prev) (out as any)[k] = prev[k] }) }
-      keep("charges", ["gst", "huid"]); keep("mkHelper", ["mkTable"]); keep("itemCodes", ["cats"]); keep("ratesShown", ["showRates"]); keep("imgShow", ["showImg", "mkEdit"]); keep("theme", ["ui", "accent"]); keep("pdRows", ["pdHide"]); keep("footer", ["tabHide"]); keep("apprSet", ["apprOn"]); keep("promos", ["promos"]); keep("rules", ["priceRules"])
+      keep("charges", ["gst", "huid"]); keep("mkHelper", ["mkTable", "mkConv", "chkOn"]); keep("itemCodes", ["cats"]); keep("ratesShown", ["showRates"]); keep("imgShow", ["showImg", "mkEdit"]); keep("theme", ["ui", "accent"]); keep("pdRows", ["pdHide"]); keep("footer", ["tabHide"]); keep("apprSet", ["apprOn"]); keep("promos", ["promos"]); keep("rules", ["priceRules"])
       await st.setJSON("settings", out)
       meta.settings = Date.now(); await saveMeta()
       return json(req, { v: meta.settings })
