@@ -59,10 +59,10 @@ function cleanRow(r: any) {
   return o.key ? o : null
 }
 // Permissions an admin can give to a role (admin always has all)
-const PERMS = ["stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "share", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "approve", "leads", "textSize", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows", "pdHidden", "sync", "roles", "users", "settings"]
+const PERMS = ["stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "share", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "stockBulk", "approve", "leads", "textSize", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows", "pdHidden", "sync", "roles", "users", "settings"]
 const SETTINGS_PERMS = ["imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows"]
 const DEFAULT_ROLES = [
-  { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "images", "approve", "leads", "share", "pdHidden", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd"] },
+  { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "images", "approve", "leads", "share", "pdHidden", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "stockBulk"] },
   { id: "staff", name: "Staff", perms: ["rates", "closeSale", "cancelQuote", "share", "fva"] },
 ]
 // A quote as the app keeps it, minus anything large (photos stay on the phone that took them)
@@ -175,6 +175,13 @@ export default async (req: Request) => {
     for (const r of roles) if (r?.perms?.includes("stockEdit") && !r.perms.includes("stockAdd")) { r.perms.push("stockAdd"); ch = true }
     if (ch && (await st.get("roles"))) { await st.setJSON("roles", roles); meta.users = Date.now() }
     ;(meta as any).v1772 = 1; await saveMeta()
+  }
+  // Bulk update became its own permission: roles that edit stock items keep it (once)
+  if (!(meta as any).v1775) {
+    let ch = false
+    for (const r of roles) if (r?.perms?.includes("stockEdit") && !r.perms.includes("stockBulk")) { r.perms.push("stockBulk"); ch = true }
+    if (ch && (await st.get("roles"))) { await st.setJSON("roles", roles); meta.users = Date.now() }
+    ;(meta as any).v1775 = 1; await saveMeta()
   }
   const roleHas = (role: string, perm: string) => {
     if (role === "admin") return true
@@ -322,7 +329,7 @@ export default async (req: Request) => {
     const role = await callerRole()
     if (op === "settings") { if (!role || ![...SETTINGS_PERMS, "theme", "footer", "apprSet", "promos", "rules"].some((p) => roleHas(role, p))) return json(req, { error: "bad_pin" }, 403) }
     else if (op === "users") { if (!role || !(roleHas(role, "users") || roleHas(role, "roles"))) return json(req, { error: "bad_pin" }, 403) }
-    else if (op === "stockrow") { if (!(await permOk("stockEdit")) && !(await permOk("stockAdd"))) return json(req, { error: "bad_pin" }, 403) }
+    else if (op === "stockrow") { if (!(await permOk("stockEdit")) && !(await permOk("stockAdd")) && !(await permOk("stockBulk"))) return json(req, { error: "bad_pin" }, 403) }
     else if (!(await permOk(OP_PERM[op] || "users"))) return json(req, { error: "bad_pin" }, 403)
 
     if (op === "img") {
@@ -362,7 +369,7 @@ export default async (req: Request) => {
 
     if (op === "stockrow" && Array.isArray(body?.rows)) {
       // Bulk update: label details changed on many existing items at once (never adds items)
-      if (!(await permOk("stockEdit"))) return json(req, { error: "bad_pin", need: "stockEdit" }, 403)
+      if (!(await permOk("stockBulk"))) return json(req, { error: "bad_pin", need: "stockBulk" }, 403)
       const rows = body.rows.slice(0, 1000).map(cleanRow).filter(Boolean)
       const cur: any[] = ((await st.get("stock", { type: "json" })) as any[]) || []
       const idx = new Map(cur.map((x, i) => [x.key, i]))

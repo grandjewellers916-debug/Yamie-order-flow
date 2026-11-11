@@ -313,6 +313,12 @@ A card is locked for users without that permission; opening it asks for a user w
 - **Quotation number** (given when a quote is first saved): first 3 letters of the staff member's name / year / their number — e.g. `RAV/26/274`. Each person's count starts again every year. Older P- numbers stay; the final ON-/SW- numbers are unchanged.
 - **Fair Value** (was "Discounted price") on the Home product card: dark purple button with gold text. It is a permission ("Fair Value price", Roles & permissions); every existing role keeps it once. Without it the button and the fair value lines on quotes are hidden.
 
+## V 1.7.75 (11 Nov 2026)
+
+- **Bulk update · Scan labels:** scan tags straight into the list. The phone scanner reopens for the next tag until you go back; in the browser the camera keeps scanning until Done; a handheld scanner adds tags while the form is open. Repeats are skipped, tags not in stock are flagged.
+- **Bulk update stock items** is its own permission (`stockBulk`); roles that could edit stock items get it once.
+- Roles & permissions: the stock database permissions (delete sold tags, edit items, add items, bulk update) are grouped in a **Stock database** box on each role.
+
 ## V 1.7.74 (11 Nov 2026)
 
 - **FVA set by a manager wins:** an FVA saved through Edit in database, Bulk update or a pricing rule (`fvaMan`) is used as it is, also for nosepins (instead of ₹450 per piece). FVA from the sheet keeps the nosepin defaults.

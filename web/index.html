@@ -808,6 +808,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .rc-name{flex:1;min-width:0;font:600 15px var(--body);border:0;border-bottom:1px dashed var(--line);background:none;color:var(--fg);padding:4px 0}
 .rc-h .x{border:0;background:none;font-size:20px;color:var(--bad);cursor:pointer;width:30px}
 .rc-perms{display:grid;grid-template-columns:1fr;gap:2px;margin-top:8px}
+.rc-grp{border:1px solid var(--line);border-radius:12px;padding:6px 10px 2px;margin-bottom:6px;background:rgba(201,162,39,.07)}.rc-grp>b{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--maroon)}
 .rc-p{display:flex;align-items:flex-start;gap:8px;font-size:13.5px;padding:5px 0;cursor:pointer}
 .rc-p input{width:18px;height:18px;margin:1px 0 0;accent-color:var(--maroon);flex:none}
 #uRole{flex-wrap:wrap}
@@ -879,6 +880,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .pr-row{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0;display:flex;gap:10px;align-items:flex-start}
 .pr-row .pr-m{flex:1;min-width:0}.pr-row b{display:block}.pr-row small{color:var(--muted);display:block;font-size:12.5px}
 .pr-row .live{color:#2E7D4F;font-weight:700}.pr-row .off{color:var(--muted)}
+.bk-lh{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}.bk-lh label{margin:0}
 .find-acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .pr-form{display:grid;grid-template-columns:1fr 1fr;gap:8px}.pr-form .full{grid-column:1/-1}
 .pr-form label{font-size:12px;color:var(--muted);display:block;margin-bottom:3px}
@@ -2534,23 +2536,29 @@ async function openCamScan(){
     const fmts=['CODE_128','CODE_39','CODE_93','EAN_13','EAN_8','UPC_A','UPC_E','ITF','CODABAR','QR_CODE','DATA_MATRIX'].map(k=>F[k]).filter(x=>x!=null);
     qr=new L.Html5Qrcode('camView',{formatsToSupport:fmts,verbose:false});
     await qr.start({facingMode:'environment'},{fps:12,qrbox:(w,h)=>({width:Math.min(300,w*0.9),height:Math.min(140,h*0.5)})},
-      text=>{closeCamScan();try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}useScannedCode(text)},()=>{});
-    $('camMsg').textContent='Point the camera at the barcode on the tag.';
+      text=>{if(scanTarget==='bulk'){const k=keyOf(text),now=Date.now();if(k&&!(camSeen[k]&&now-camSeen[k]<2500)){camSeen[k]=now;useScannedCode(text)}return}
+        closeCamScan();try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}useScannedCode(text)},()=>{});
+    $('camMsg').textContent=scanTarget==='bulk'?'Scan each tag in turn. Tap Done when finished.':'Point the camera at the barcode on the tag.';
   }catch(e){
     const denied=e&&(/Permission|NotAllowed/i.test(String(e.name||e)+String(e.message||e)));
     $('camMsg').textContent=denied?'Camera access is off. Allow the camera for this app in Settings, then try again.':'Could not start the camera. Type the barcode instead.';
   }
 }
+const camSeen={};
 async function closeCamScan(fromPop){
   if($('camScan').hidden)return;$('camScan').hidden=true;
+  if(scanTarget==='bulk')scanTarget='';$('camCancel').textContent=camCancelTxt;
   try{if(qr){const q=qr;qr=null;if(q.isScanning)await q.stop();q.clear()}}catch(e){}
   if(!fromPop){try{if(history.state&&history.state.cam)history.back()}catch(e){}}
 }
+const camCancelTxt=$('camCancel').textContent;
 $('camCancel').onclick=()=>closeCamScan();
 window.addEventListener('popstate',()=>closeCamScan(true));
 let scanTarget='';
 function useScannedCode(code){
   if(scanTarget==='sold'){scanTarget='';addSold(code);return}
+  // Bulk update: every scanned tag goes into the list; the phone scanner reopens for the next tag until cancelled
+  if(scanTarget==='bulk'){if(bulkAdd&&$('bkLabels')&&!$('modal').hidden){bulkAdd(code);if(canNativeBc)setTimeout(()=>{if(scanTarget==='bulk')NATIVE.scanBarcode()},700);return}scanTarget=''}
   const k=keyOf(code);if(!k){setStatus('No barcode read. Try again or type the number.','err');return}
   if(editingId||(cur.touched&&cur.stockKey&&cur.stockKey!==k)){cur=blankTag();editingId=null}
   const rec=findStock(k);
@@ -2569,6 +2577,7 @@ document.addEventListener('keydown',e=>{
     const code=wedge.buf.trim();wedge.buf='';
     if(code.length>=4&&wedge.fast>=code.length-2){
       e.preventDefault();e.stopPropagation();
+      if(!$('modal').hidden&&$('bkLabels')&&bulkAdd){bulkAdd(code);return}
       if(!$('modal').hidden)closeModal();if(!$('helper').hidden)closeHelper(true);
       if(scanTarget==='sold'){scanTarget='';addSold(code)}else{window.scrollTo({top:0,behavior:'smooth'});useScannedCode(code)}
     }
@@ -2578,6 +2587,7 @@ document.addEventListener('keydown',e=>{
 },true);
 window.onNativeBarcode=function(code,err){
   if(code){useScannedCode(code);return}
+  if(scanTarget==='bulk'){scanTarget='';return}
   if(err==='fallback'){toast('Opening camera…');scanSide='front';NATIVE.scan('camera');return}
   if(err&&err!=='cancelled')setStatus(err,'err');
 };
@@ -3657,7 +3667,7 @@ function openDiscCheck(){
 }
 $('pdDel').onclick=()=>$('clearTag').click();
 $('findNew').onclick=()=>stockForm(null);
-function paintFindNew(){const b=$('findNew');if(b)b.hidden=!can('stockAdd');const c=$('findBulk');if(c)c.hidden=!can('stockEdit')}
+function paintFindNew(){const b=$('findNew');if(b)b.hidden=!can('stockAdd');const c=$('findBulk');if(c)c.hidden=!can('stockBulk')}
 $('findBulk').onclick=()=>bulkForm();
 $('pdDb').onclick=()=>{const r=stockMap.get(cur.stockKey);if(r)stockForm(r)};
 $('pdClose').onclick=()=>{$('clearTag').click();window.scrollTo({top:0,behavior:'smooth'})};
@@ -4232,6 +4242,7 @@ function stockForm(rec){
 const BF=[['mkPct','Wstg %','num'],['mkFix','Fixed Charge (₹)','num'],['mkPg','Making Rate (₹/g)','num'],['fva','FVA (% or ₹)','text'],['category','Item Type','cat'],
   ['carat','Purity (K)','pur'],['location','Location','text'],['supplier','Supplier','text'],['stoneName','Stone Name(s)','text'],['size','Size','text'],['model','Model','text'],
   ['nlc','NLC (₹)','num'],['labelDate','Labelling Date','date']];
+let bulkAdd=null;
 function bulkPick(labels,q){
   const out=new Map(),miss=[];
   labels.split(/[\s,;]+/).map(x=>x.trim()).filter(Boolean).forEach(l=>{const r=findStock(l);if(r)out.set(r.key,r);else miss.push(l)});
@@ -4240,11 +4251,11 @@ function bulkPick(labels,q){
   return {list:[...out.values()],miss};
 }
 function bulkForm(){
-  withPerm('stockEdit','Enter your PIN to update stock items.',()=>{
+  withPerm('stockBulk','Enter your PIN to bulk update stock items.',()=>{
   const cats=Object.values(CAT).filter(Boolean);
   $('modalTitle').textContent='Bulk update label details';$('modalTitle').classList.remove('price-pop');
   $('modalBody').innerHTML=`<p class="note">Pick the items, fill only what should change. Blank fields stay as they are. Saved to the shared database for all staff.</p>
-    <div class="lead-f"><label for="bkLabels">Label numbers</label><textarea id="bkLabels" rows="3" placeholder="FRG382, STD101… (one per line or with commas)"></textarea></div>
+    <div class="lead-f"><div class="bk-lh"><label for="bkLabels">Label numbers</label><button type="button" class="btn sm" id="bkScan">Scan labels</button></div><textarea id="bkLabels" rows="3" placeholder="Scan tags, or type FRG382, STD101… (one per line or with commas)"></textarea></div>
     <div class="lead-f"><label for="bkQ">And/or all items matching</label><input id="bkQ" placeholder="e.g. NSP, Nose Pin, a supplier or location"></div>
     <p class="note" id="bkCount" aria-live="polite">No items picked.</p>
     <div class="pr-form">`+BF.map(([k,l,t])=>{const id='bk_'+k,lab=`<label for="${id}">${esc(l)}</label>`;
@@ -4258,6 +4269,16 @@ function bulkForm(){
   const upd=()=>{pick=bulkPick($('bkLabels').value,$('bkQ').value);const n=pick.list.length;
     $('bkCount').innerHTML=(n?`<b>${n} item${n>1?'s':''} picked</b>: ${esc(pick.list.slice(0,8).map(r=>r.barcode||r.key).join(', '))}${n>8?' …':''}`:'No items picked.')+(pick.miss.length?`<br><span class="bad-t">Not in stock: ${esc(pick.miss.slice(0,8).join(', '))}</span>`:'')};
   $('bkLabels').addEventListener('input',upd);$('bkQ').addEventListener('input',upd);
+  bulkAdd=code=>{const k=keyOf(code);if(!k)return;const r=findStock(k),ta=$('bkLabels');if(!ta)return;
+    const have=new Set(ta.value.split(/[\s,;]+/).map(keyOf).filter(Boolean));
+    try{navigator.vibrate&&navigator.vibrate(r?50:[60,60,60])}catch(e){}
+    if(have.has(k)){toast(`${k} is already in the list`);return}
+    ta.value=(ta.value.trim()?ta.value.trim()+'\n':'')+(r?(r.barcode||r.key):k);upd();
+    toast(r?`${r.barcode||r.key} added · ${pick.list.length} picked`:`${k} is not in stock`,null,!r);
+    if(!$('camScan').hidden)$('camMsg').textContent=`${pick.list.length} picked · last ${r?(r.barcode||r.key):k+' (not in stock)'} · tap Done when finished`};
+  $('bkScan').onclick=()=>{scanTarget='bulk';
+    if(canNativeBc)NATIVE.scanBarcode();else if(canWebBc){openCamScan();$('camCancel').textContent='Done'}
+    else{scanTarget='';$('bkLabels').focus();toast('No camera here. Use a handheld scanner into the box, or type.')}};
   const a=$('modalActs');a.innerHTML='';const mk=(t,c,f)=>{const b=document.createElement('button');b.type='button';b.className='btn '+c;b.textContent=t;b.onclick=f;a.appendChild(b);return b};
   const sv=mk('Update items','primary',async()=>{
     const g=k=>$('bk_'+k).value.trim(),n=k=>{const x=num(g(k));return g(k)===''||isNaN(x)?null:x};
@@ -4281,7 +4302,7 @@ function bulkForm(){
         toast(`${rows.length} item${rows.length>1?'s':''} updated · all staff have it`);
         if(cur.stockKey&&rows.some(r=>r.key===cur.stockKey)){const r=stockMap.get(cur.stockKey);cur.stockKey='';applyStock(r)}
         try{runFind()}catch(e){}
-      }catch(e){sv.disabled=false;sv.textContent='Update items';toast(e&&e.message==='bad_pin'?'Not allowed: Edit stock items is off for this role (Roles & permissions)':'Could not save. Check the internet.',null,true)}
+      }catch(e){sv.disabled=false;sv.textContent='Update items';toast(e&&e.message==='bad_pin'?'Not allowed: Bulk update stock items is off for this role (Roles & permissions)':'Could not save. Check the internet.',null,true)}
     };
     $('bkCount').innerHTML=`<b>Change ${rows.length} item${rows.length>1?'s':''}:</b> ${esc(what.join(' · '))}. Tap Update items again to confirm.`;
     if(sv.dataset.ok===String(rows.length)+what.join())go();else{sv.dataset.ok=String(rows.length)+what.join();sv.textContent='Confirm · update '+rows.length}
@@ -4506,17 +4527,19 @@ const PERM_LIST=[
 ['stockdel','Delete sold tags from stock'],['rates',"Set day's rates"],
   ['mkEdit','Update making on the price card'],['mkDisc','Making after discount on quotes'],
   ['closeSale','Close sale (invoice no.)'],['cancelQuote','Cancel quote (enquiry)'],['reopen','Reopen sold / cancelled quotes'],
-  ['delQuote','Delete quotes'],['images','Add product photos'],['addDisc','Additional discount (flat)'],['round','Round final amount down to ₹100'],['stockEdit','Edit stock items · making, FVA, label details'],['stockAdd','Add new items to stock'],['reports','Reports'],['fva','Fair Value price'],['share','Share quotes on WhatsApp'],['pdHidden','See hidden details (NLC, FVA…)'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],
+  ['delQuote','Delete quotes'],['images','Add product photos'],['addDisc','Additional discount (flat)'],['round','Round final amount down to ₹100'],['stockEdit','Edit stock items · making, FVA, label details'],['stockAdd','Add new items to stock'],['stockBulk','Bulk update stock items'],['reports','Reports'],['fva','Fair Value price'],['share','Share quotes on WhatsApp'],['pdHidden','See hidden details (NLC, FVA…)'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],
   ['textSize','Text size'],['imgShow','Product image show / hide'],['ratesShown','Rates shown'],['charges','Charges · GST · HUID'],
   ['mkHelper','Making helpers'],['itemCodes','Item codes'],['pdRows','Product details items'],['sync','Shared database · shop key'],['roles','Roles & permissions'],['users','Users']];
 const SET_PERMS=['theme','footer','apprSet','export','promos','rules','reports','stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users'];
+const STOCK_PERMS=['stockEdit','stockAdd','stockBulk','stockdel'];
 const permLabel=k=>(PERM_LIST.find(p=>p[0]===k)||[0,k])[1];
-const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','approve','leads','share','pdHidden','addDisc','round','reports','fva','stockEdit','stockAdd']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share','fva']}];
+const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','approve','leads','share','pdHidden','addDisc','round','reports','fva','stockEdit','stockAdd','stockBulk']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share','fva']}];
 let roles=store.get('roles',null)||clone(DEFAULT_ROLES);
 // WhatsApp sharing became a permission (v1.7.3): roles on this phone keep it once
 if(!store.get('permShare',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&!r.perms.includes('share'))r.perms.push('share')});store.set('roles',roles);store.set('permShare',true)}
 if(!store.get('permHid',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('mkDisc')&&!r.perms.includes('pdHidden'))r.perms.push('pdHidden')});store.set('roles',roles);store.set('permHid',true)}
 if(!store.get('permStockEd',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('mkDisc')&&!r.perms.includes('stockEdit'))r.perms.push('stockEdit')});store.set('roles',roles);store.set('permStockEd',true)}
+if(!store.get('permStockBulk',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('stockEdit')&&!r.perms.includes('stockBulk'))r.perms.push('stockBulk')});store.set('roles',roles);store.set('permStockBulk',true)}
 if(!store.get('permStockAdd',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('stockEdit')&&!r.perms.includes('stockAdd'))r.perms.push('stockAdd')});store.set('roles',roles);store.set('permStockAdd',true)}
 if(!store.get('permFva',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&!r.perms.includes('fva'))r.perms.push('fva')});store.set('roles',roles);store.set('permFva',true)}
 if(!store.get('permRep',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('mkDisc')&&!r.perms.includes('reports'))r.perms.push('reports')});store.set('roles',roles);store.set('permRep',true)}
@@ -4917,7 +4940,8 @@ function renderRoles(){
   const used=id=>users.filter(u=>u.role===id).length;
   el.innerHTML=`<div class="role-card locked"><div class="rc-h"><b>Admin</b><span class="note">All permissions · ${used('admin')} user${used('admin')===1?'':'s'}</span></div></div>`+
     roleDraft.map((r,i)=>`<div class="role-card" data-i="${i}"><div class="rc-h"><input class="rc-name" value="${esc(r.name)}" maxlength="30" aria-label="Role name"><span class="note">${used(r.id)} user${used(r.id)===1?'':'s'}</span>${used(r.id)?'':`<button class="x" type="button" data-rdel="${i}" aria-label="Delete role ${esc(r.name)}">×</button>`}</div>
-      <div class="rc-perms">${PERM_LIST.map(([k,t])=>`<label class="rc-p"><input type="checkbox" data-p="${k}"${r.perms.includes(k)?' checked':''}> ${esc(t)}</label>`).join('')}</div></div>`).join('');
+      <div class="rc-perms">${(()=>{const cb=([k,t])=>`<label class="rc-p"><input type="checkbox" data-p="${k}"${r.perms.includes(k)?' checked':''}> ${esc(t)}</label>`;
+        return `<div class="rc-grp"><b>Stock database</b>${PERM_LIST.filter(p=>STOCK_PERMS.includes(p[0])).map(cb).join('')}</div>`+PERM_LIST.filter(p=>!STOCK_PERMS.includes(p[0])).map(cb).join('')})()}</div></div>`).join('');
   el.querySelectorAll('.role-card[data-i]').forEach(c=>{const r=roleDraft[+c.dataset.i];
     c.querySelector('.rc-name').addEventListener('input',e=>{r.name=e.target.value});
     c.querySelectorAll('[data-p]').forEach(cb=>cb.onchange=()=>{r.perms=cb.checked?[...new Set([...r.perms,cb.dataset.p])]:r.perms.filter(x=>x!==cb.dataset.p)});
