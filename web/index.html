@@ -1179,6 +1179,8 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 :root[data-ui="android"] .login-in #loginHint,:root[data-ui="android"] .login-in .note{color:var(--muted)}
 :root[data-ui="android"] .user-pick button{background:var(--surface);color:var(--fg);border-color:#CFC4C4}
 :root[data-ui="android"] .user-pick button[aria-pressed="true"]{background:var(--maroon);color:#fff}
+
+.sf-rule{color:#8a4b00!important;background:#fff4e0;border-radius:10px;padding:8px 10px}
 </style>
 <script src="brand-id.js"></script>
 <script src="brand.js"></script>
@@ -4123,7 +4125,9 @@ function stockForm(rec){
     if(t==='pur')return `<div>${lab}<select id="${id}">${['22','18','14','9','24','PT','925'].map(x=>`<option${String(v0.carat||'22').toUpperCase()===x?' selected':''}>${x}</option>`).join('')}</select></div>`;
     if(t==='date')return `<div>${lab}<input id="${id}" type="date" value="${val(k)}"></div>`;
     return `<div${k==='item'||k==='stoneName'?' class="full"':''}>${lab}<input id="${id}"${t==='num'?' inputmode="decimal"':''}${k==='barcode'?' autocapitalize="characters"'+(isNew?'':' readonly'):''} value="${val(k)}"></div>`}).join('')+`</div>
-    <p class="note">Making: fill one of Wstg %, Fixed Charge or Making Rate (under 1 g the Making Rate is charged as a fixed amount, as in the sheet).</p>`;
+    <p class="note">Making: fill one of Wstg %, Fixed Charge (₹ per piece) or Making Rate (₹ per gram of net wt). Typing in one clears the other two.</p>${(()=>{const ru=isNew?null:ruleFor(r);return ru&&ru.mode!=='fill'&&(ru.mkType||ru.fvaType)?`<p class="note sf-rule">Pricing rule “${esc(ru.name)}” sets the ${[ru.mkType?'making':'',ru.fvaType?'FVA':''].filter(Boolean).join(' and ')} for this item and overrides what is saved here. Change or switch off the rule in Pricing rules.</p>`:''})()}`;
+  // one making field at a time: typing in one clears the other two
+  const MKF=['mkPct','mkFix','mkPg'];MKF.forEach(k=>$('sf_'+k).addEventListener('input',e=>{if(e.target.value.trim())MKF.filter(x=>x!==k).forEach(x=>$('sf_'+x).value='')}));
   const a=$('modalActs');a.innerHTML='';const mk=(t,c,f)=>{const b=document.createElement('button');b.type='button';b.className='btn '+c;b.textContent=t;b.onclick=f;a.appendChild(b);return b};
   const sv=mk(isNew?'Add to stock':'Save to database','primary',async()=>{
     const g=k=>$('sf_'+k).value.trim(),n=k=>{const x=num(g(k));return isNaN(x)||g(k)===''?null:x};
@@ -4136,8 +4140,11 @@ function stockForm(rec){
     const o={key,barcode:bc,item:g('item'),category:g('category'),carat:g('carat'),gw:n('gw'),sw:n('sw'),nw:n('nw'),saClr:n('saClr'),saDia:n('saDia'),dq:n('dq'),dw:n('dw'),
       mkPct:n('mkPct'),mkFix:n('mkFix'),mkPg:n('mkPg'),fva:g('fva'),huidNo:g('huidNo').toUpperCase(),stoneName:g('stoneName'),location:g('location'),labelDate:g('labelDate'),size:g('size'),model:g('model'),nlc:n('nlc'),supplier:g('supplier')};
     if(o.mkPct==null&&o.mkFix==null&&o.mkPg==null){toast('Enter the making: Wstg %, Fixed Charge or Making Rate',null,true);return}
-    {const hc=o.huidNo.split(/[\s,;\/]+/).filter(Boolean);o.huid=hc.length||(r.huidNo?null:r.huid)||null}
-    stockMaking(o);if((o.saClr>0)||(o.saDia>0))o.sa=(o.saClr||0)+(o.saDia||0);
+    // making exactly as typed: Making Rate is per gram of net wt (whatever the weight); Fixed Charge per piece; Wstg %
+    const hc=o.huidNo.split(/[\s,;\/]+/).filter(Boolean),huidN=hc.length||(r.huidNo?null:r.huid)||null;
+    const pg=o.mkPg;
+    stockMaking(o);if(pg!=null){o.mkType='pergram';o.mk=String(pg)}o.huid=huidN;o.huidNo=hc.join(', ');
+    if((o.saClr>0)||(o.saDia>0))o.sa=(o.saClr||0)+(o.saDia||0);
     const row={};['key','barcode','item','category','carat','gw','nw','sw','dw','dq','sa','location','supplier','mk','mkType','huid','huidNo','stoneName','saDia','saClr','labelDate','size','model','nlc','fva'].forEach(f=>{if(o[f]!=null&&o[f]!=='')row[f]=o[f]});
     ['serial','label','pcs','sq','cw'].forEach(f=>{if(r[f]!=null&&r[f]!=='')row[f]=r[f]});
     row.at=Date.now();
