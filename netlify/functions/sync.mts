@@ -232,6 +232,22 @@ export default async (req: Request) => {
       }
       if (op === "quotes") return json(req, { v: meta.quotes, quotes: (await st.get("quotes", { type: "json" })) || [] })
       if (op === "leads") return json(req, { v: meta.leads || 0, leads: (await st.get("leads", { type: "json" })) || [] })
+      if (op === "held") {
+        // One label, one open quote: which of these labels are already in another open quote (not closed)
+        const K = (v: any) => String(v ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "")
+        const keys = new Set(String(new URL(req.url).searchParams.get("keys") || "").split(",").map(K).filter(Boolean).slice(0, 50))
+        const me = cleanStr(new URL(req.url).searchParams.get("id"), 24)
+        const list: any[] = ((await st.get("quotes", { type: "json" })) as any[]) || []
+        const held: any[] = []
+        for (const q of list) {
+          if (!q || q.id === me || q.status === "closed" || q.void) continue
+          for (const it of q.items || []) {
+            const k = K(it?.sku)
+            if (keys.has(k) && !held.some((h) => h.key === k)) held.push({ key: k, id: q.id, no: q.no || "", by: q.by || "", cust: q.cust?.name || "", at: q.updated || 0 })
+          }
+        }
+        return json(req, { held })
+      }
       if (op === "inbox") {
         // Small summary for notifications (phones poll this): quotes waiting for approval, approved quotes, leads
         const qs: any[] = ((await st.get("quotes", { type: "json" })) as any[]) || []
@@ -327,7 +343,7 @@ export default async (req: Request) => {
       return json(req, { v: meta.leads, lead })
     }
 
-    const OP_PERM: Record<string, string> = { img: "images", quotedel: "delQuote", stock: "stock", stockdel: "stockdel", ratelog: "rates", pubrates: "rates", stockrow: "stockEdit", stocksold: "closeSale" }
+    const OP_PERM: Record<string, string> = { release: "approve", img: "images", quotedel: "delQuote", stock: "stock", stockdel: "stockdel", ratelog: "rates", pubrates: "rates", stockrow: "stockEdit", stocksold: "closeSale" }
     const role = await callerRole()
     if (op === "settings") { if (!role || ![...SETTINGS_PERMS, "theme", "footer", "apprSet", "promos", "rules"].some((p) => roleHas(role, p))) return json(req, { error: "bad_pin" }, 403) }
     else if (op === "users") { if (!role || !(roleHas(role, "users") || roleHas(role, "roles"))) return json(req, { error: "bad_pin" }, 403) }
@@ -343,6 +359,23 @@ export default async (req: Request) => {
       await st.setJSON("imgidx", idx)
       meta.imgs = Date.now(); await saveMeta()
       return json(req, { v: meta.imgs, idx })
+    }
+
+    if (op === "release") {
+      // A manager / admin takes a label out of another open quote (an abandoned quote holding it)
+      const K = (v: any) => String(v ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "")
+      const key = K(body?.key), from = cleanStr(body?.from, 24)
+      const list: any[] = ((await st.get("quotes", { type: "json" })) as any[]) || []
+      const q = list.find((x) => x.id === from)
+      if (!key || !q) return json(req, { error: "not_found" }, 404)
+      const before = (q.items || []).length
+      q.items = (q.items || []).filter((it: any) => K(it?.sku) !== key)
+      if (q.items.length === before) return json(req, { error: "not_held" }, 409)
+      q.updated = Date.now()
+      q.released = [...(Array.isArray(q.released) ? q.released : []), { key, by: cleanStr(body?.by, 60), at: q.updated }].slice(-20)
+      await st.setJSON("quotes", [q, ...list.filter((x) => x.id !== q.id)])
+      meta.quotes = Date.now(); await saveMeta()
+      return json(req, { v: meta.quotes, quote: q })
     }
 
     if (op === "quotedel") {

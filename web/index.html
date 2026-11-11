@@ -660,6 +660,8 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .qs-bal strong{font:700 24px var(--display);color:var(--maroon)}
 .qs-bal.refund{background:color-mix(in srgb,var(--ok) 14%,var(--surface))}
 .q-acts{display:grid;grid-template-columns:1fr 1fr 1.6fr;gap:8px}
+.q-acts .q-apb{grid-column:1/-1;order:-1}.q-apb{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:700!important}.q-apb svg{width:20px;height:20px}
+.q-apb.go{background:#C9A227;border-color:#C9A227;color:#2a1600}.q-apb.wait{background:#FFF4E0;border-color:#E8B86A;color:#7A4A00}.q-apb.done{background:#E8F5EC;border-color:#9CD3AE;color:#1F6B45}
 .q-acts .btn{min-height:52px;border-radius:12px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px}
 .q-acts .btn svg{width:22px;height:22px}
 .q-soft{background:color-mix(in srgb,var(--maroon) 7%,var(--surface));border:1px solid transparent;color:var(--maroon)}
@@ -1106,6 +1108,8 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .mg-ico{flex:none;width:42px;height:42px;border-radius:12px;background:var(--maroon);color:#F6E7D0;display:grid;place-items:center}.mg-ico svg{width:24px;height:24px}
 .mg-t{flex:1;min-width:0}.mg-t b{display:block;font:700 16px var(--body);color:var(--maroon)}.mg-t small{display:block;color:var(--muted);font-size:12.5px;line-height:1.3}
 .mg-chev{flex:none;width:20px;height:20px;color:var(--maroon)}
+.pa.held{background:#FDECEE!important;border-color:#E6A1A8!important;color:#8E1B24!important;font-weight:600}
+.held-box{border:1px solid #E8B86A;background:#FFF4E0;border-radius:12px;padding:10px 12px;font-size:15px;line-height:1.4}.held-box small{color:#7A4A00}
 .lc-alert{background:#FFF4E0;color:#7A4A00;border-radius:10px;padding:8px 10px;font-weight:600;font-size:13.5px;margin:0 0 8px}
 .lc-list{display:flex;flex-direction:column;gap:6px}
 .lc-row{display:grid;grid-template-columns:22px 26px minmax(96px,.8fr) minmax(0,1.6fr);align-items:start;gap:4px 8px;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer;font-size:14px;line-height:1.35}
@@ -1951,6 +1955,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 
     <div class="q-acts">
       <button class="btn q-soft" type="button" id="qAdv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 14h2"/></svg>Advance</button>
+      <button class="btn q-apb" type="button" id="qApprBtn" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.6-3 8.5-7 10-4-1.5-7-5.4-7-10V6z"/><path d="M8.8 12.2l2.2 2.2 4.2-4.4"/></svg><span id="qApprBtnL">Send for approval</span></button>
       <button class="btn primary q-gen" type="button" id="saveBill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>Generate Quote</button>
     </div>
 
@@ -2803,7 +2808,7 @@ function paintBarcode(){
 }
 $('bcNum').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();
   if(kbFirst()){const v=$('bcNum').value.trim();clearTimeout(lookTimer);if(v.length>=3){useScannedCode(v);paintBarcode()}$('bcNum').select();return}
-  $('bcNum').blur();lookupTyped(true);setTimeout(()=>{if(cur.stockKey)labelCheck(startTagFlow)},60)}});
+  $('bcNum').blur();lookupTyped(true);setTimeout(()=>{if(cur.stockKey){labelCheck(startTagFlow);heldWarn(cur.stockKey)}},60)}});
 $('bcNum').addEventListener('focus',()=>{if(kbFirst())setTimeout(()=>{try{$('bcNum').select()}catch(e){}},0)});
 $('bcNum').addEventListener('input',()=>{
   const v=$('bcNum').value.toUpperCase().replace(/[^A-Z0-9]/g,'');
@@ -2962,7 +2967,33 @@ $('addTag').onclick=()=>{
   }
   commitTag();
 };
+// V1.7.82 one label, one open quote: check before the item goes into this quote
+function heldWarn(key){const k=keyOf(key);delete cur.held;heldBy(k).then(h=>{if(keyOf(cur.sku)!==k)return;if(h){cur.held=h;renderEditor();toast(`${k} is already in ${h.no||'another quote'} · ${h.by||''}`,null,true)}})}
+async function heldBy(k){
+  if(!sync.key||!navigator.onLine)return null;
+  try{const r=await Promise.race([syncApi('held&keys='+encodeURIComponent(k)+'&id='+encodeURIComponent(isClosed()?'':bill.id)),new Promise((_,j)=>setTimeout(()=>j(new Error('slow')),5000))]);return (r&&r.held||[])[0]||null}catch(e){return null}
+}
+function heldPop(h,k,go){
+  const mine=curUser&&h.by===(curUser.name||curUser.username);
+  $('modalTitle').textContent=`${k} is already in a quote`;$('modalTitle').classList.remove('price-pop');
+  $('modalBody').innerHTML=`<div class="held-box"><b>${esc(h.no||'A quote')}</b>${h.cust?` · ${esc(h.cust)}`:''}<br><small>${mine?'Your quote':'Made by '+esc(h.by||'another user')} · updated ${esc(ago(h.at))}</small></div>
+    <p class="note">One label can be in one open quote only. It can be added here once it is removed from that quote, the quote is deleted or the sale is closed.</p>`;
+  const a=$('modalActs');a.innerHTML='';const mk=(t,c,f)=>{const b=document.createElement('button');b.type='button';b.className='btn '+c;b.textContent=t;b.onclick=f;a.appendChild(b)};
+  if(mine&&quotes.some(x=>x.id===h.id))mk('Open that quote','',()=>{closeModal();openQuote(h.id)});
+  if(can('approve'))mk('Release it & add here','primary',()=>withPerm('approve','A manager or admin can release a label.',async()=>{
+    try{const r=await syncApi('release','POST',{key:k,from:h.id,by:meName()},adminCreds);if(r&&r.quote)upsertQuote(r.quote);closeModal();toast(`${k} released from ${h.no||'the other quote'}`);go()}
+    catch(e){if(e&&e.message==='not_held'){closeModal();toast('It was already removed. Adding it.');go()}else toast('Could not release it. Check the internet.',null,true)}},true));
+  mk('OK','ghost',closeModal);$('modal').hidden=false;
+}
 function commitTag(){
+  if(editingId||!cur.sku)return commitTagNow();
+  const k=keyOf(cur.sku);
+  if(!isClosed()&&bill.items.some(x=>keyOf(x.sku)===k)){toast(`${k} is already in this quote`,null,true);try{navigator.vibrate&&navigator.vibrate([60,60,60])}catch(e){}return}
+  const id=cur.id;
+  heldBy(k).then(h=>{if(cur.id!==id)return;if(h)heldPop(h,k,commitTagNow);else commitTagNow()});
+}
+function commitTagNow(){
+  if(goQuoteAfterAdd){goQuoteAfterAdd=false;setTimeout(()=>setView('quote'),120)}
   // customer asked for the discounted price: quote the item at its fair value (unless a manager set a making discount)
   if(cur.fvaAsk&&(!cur.qMk||cur.qMk.fva)){const fv=fvaPrice(cur);if(fv)cur.qMk={type:cur.mkType,val:fmtN(mkValFor(cur,fv.mk)),fva:true,by:curUser?(curUser.name||curUser.username):'',at:Date.now()}}
   else if(!cur.fvaAsk&&cur.qMk&&cur.qMk.fva)delete cur.qMk;
@@ -3139,7 +3170,7 @@ function useScannedCode(code){
   const k=keyOf(code);if(!k){setStatus('No barcode read. Try again or type the number.','err');return}
   if(editingId||(cur.touched&&cur.stockKey&&cur.stockKey!==k)){cur=blankTag();editingId=null}
   const rec=findStock(k);
-  if(rec){applyStock(rec);setStatus(`Found ${rec.barcode} in stock.`,'ok');labelCheck(startTagFlow)}
+  if(rec){applyStock(rec);setStatus(`Found ${rec.barcode} in stock.`,'ok');labelCheck(startTagFlow);heldWarn(rec.key)}
   else{cur.sku=k;const it=itemFromSku(k);if(it){cur.item=it;cur.itemAuto=false}cur.touched=true;saveDraft();renderEditor();setStatus(`${k} is not in the stock list. Enter the details by hand.`,'err')}
 }
 // Handheld barcode scanner (Bluetooth / USB, keyboard mode): it "types" the code fast and ends with Enter.
@@ -3285,12 +3316,13 @@ function saveBill(noPush){
   bill.updated=Date.now();if(!bill.by&&curUser)bill.by=curUser.name||curUser.username;if(!bill.byId&&curUser&&bill.by===(curUser.name||curUser.username))bill.byId=curUser.id;
   store.set('bill',bill);
   if(!billIsEmpty()){upsertQuote(clone(bill));if(!noPush)queueQuotePush()}
+  else{const q=quotes.find(x=>x.id===bill.id);if(q&&q.pushed&&q.items.length){upsertQuote(clone(bill));if(!noPush)queueQuotePush()}}
 }
 function upsertQuote(q){const i=quotes.findIndex(x=>x.id===q.id);if(i>=0)quotes[i]=q;else quotes.unshift(q);
   quotes.sort((a,b)=>(b.updated||0)-(a.updated||0));quotes=quotes.slice(0,400);store.set('quotes',quotes)}
 function queueQuotePush(){if(!sync.key)return;clearTimeout(qPushT);qPushT=setTimeout(()=>pushQuote(bill.id),1800)}
 async function pushQuote(id){
-  const q=quotes.find(x=>x.id===id);if(!q||!sync.key||!navigator.onLine||!q.items.length)return false;
+  const q=quotes.find(x=>x.id===id);if(!q||!sync.key||!navigator.onLine||(!q.items.length&&!q.pushed))return false;
   try{const r=await syncApi('quote','POST',{quote:q});
     if(r&&r.quote){
       if(r.conflict){upsertQuote(r.quote);if(bill.id===id){bill=fixBill(clone(r.quote));store.set('bill',bill);renderBill();toast('This quote was changed on another phone. Showing the latest.',null,true)}}
@@ -4223,8 +4255,9 @@ function paintProduct(){
   if(((swv>0)||(dwv>0))&&!(p.stone>0))al.push(['stone',`Stone weight ${fmtW(swv>0?swv:dwv)} g but no stone charges retrieved.`]);
   if(!p.hasMk)al.push(['mk','No making charges retrieved for this item.']);
   else if(st&&!cur.read.includes('making'))al.push(['mkman',`Making entered by hand (${valText({type:cur.mkType,val:num(cur.mkVal)})}); not in the stock data.`]);
+  if(cur.held&&cur.held.key===keyOf(cur.sku)&&!editingId)al.unshift(['held',`In ${cur.held.no||'another quote'}${cur.held.cust?' ('+cur.held.cust+')':''} by ${cur.held.by||'another user'}. It cannot be added to another quote.`]);
   const ae=$('pdAlerts');ae.hidden=!al.length;
-  ae.innerHTML=al.map(([k,t])=>`<div class="pa ${k==='mkman'?'info':''}"><span>⚠ ${esc(t)}</span>${k==='stone'?'<button class="btn sm" type="button" data-al="stone">Enter</button>':k==='mk'?'<button class="btn sm" type="button" data-al="mk">Enter</button>':''}</div>`).join('');
+  ae.innerHTML=al.map(([k,t])=>`<div class="pa ${k==='mkman'?'info':k==='held'?'held':''}"><span>⚠ ${esc(t)}</span>${k==='stone'?'<button class="btn sm" type="button" data-al="stone">Enter</button>':k==='mk'?'<button class="btn sm" type="button" data-al="mk">Enter</button>':''}</div>`).join('');
   ae.querySelectorAll('[data-al]').forEach(b=>b.onclick=()=>b.dataset.al==='mk'?openMkPop(()=>{}):openStonePop());
   if(al.length&&cur.alertFor!==k){cur.alertFor=k;if(al.some(a=>a[0]!=='mkman')){try{navigator.vibrate&&navigator.vibrate([80,60,80])}catch(e){}}}
   const need=$('pdNeed');need.hidden=ok;
@@ -4752,7 +4785,8 @@ function paintCalcEmpty(){if(!DESK.matches||!$('prodCard').hidden)return;$('hcBo
 new MutationObserver(paintCalcEmpty).observe($('prodCard'),{attributes:true,attributeFilter:['hidden']});
 $('hbReset').onclick=()=>$('pdDel').click();
 $('hbClose').onclick=()=>$('pdClose').click();
-$('hbAdd').onclick=()=>{$('pdSave').click();setTimeout(()=>{if(!editingId)setView('quote')},150)};
+let goQuoteAfterAdd=false;
+$('hbAdd').onclick=()=>{goQuoteAfterAdd=true;$('pdSave').click();setTimeout(()=>{goQuoteAfterAdd=false},8000)};
 $('hbNext').onclick=()=>{$('pdSave').click();setTimeout(()=>{setView('home');const b=$('bcNum');b.value='';b.focus()},150)};
 // ---- Settings: card grid ----
 function paintSetGrid(){
@@ -5927,6 +5961,13 @@ function paintAppr(){
   const spc=(bill.appr||{}).kind==='special'&&!can('special');
   const lab=spc?(st==='pending'?'With admin':st==='approved'?'Approved':'Approval'):canApprove()?(st==='pending'?'Approve':st==='changed'?'Approve again':st==='approved'?'Approved':'Approval'):(st==='pending'?'Sent':st==='approved'?'Approved':'Send for approval');
   $('qtApprL').textContent=lab;b.classList.toggle('pending',st==='pending');b.classList.toggle('approved',st==='approved');
+  // big approval button beside Generate: staff send, managers / admins approve & send back with the number
+  {const ab=$('qApprBtn'),ap=canApprove(),items=bill.items.length>0;
+    let lab='',cls='';
+    if(closed||!sync.key||!curUser||!items){}
+    else if(ap){if(st==='pending'||st==='changed'){lab=`Approve & send back${(bill.appr||{}).reqName?' to '+(bill.appr.reqName):''}`;cls='go'}else if(st==='approved'){lab=`Approved ✓ ${bill.no||''}`;cls='done'}}
+    else{lab=st==='pending'?'Waiting for approval…':st==='approved'?`Approved ✓ ${bill.no||''}`:st==='changed'?'Send again for approval':'Send for approval';cls=st==='approved'?'done':st==='pending'?'wait':'go'}
+    ab.hidden=!lab;$('qApprBtnL').textContent=lab;ab.className='btn q-apb '+cls;}
   const pill=$('qNoSt'),tag={pending:'Waiting',approved:'Approved',changed:'Changed'}[st]||'';
   pill.hidden=!tag||closed;pill.textContent=tag;pill.className='qa-pill '+(st||'');
 }
@@ -5938,7 +5979,7 @@ function apprPop(){
   if((a.kind==='special')&&!can('special')&&st==='pending'){body=`<p>Forwarded to ${esc(who(a.to)||'an admin')} for a special price ${ago(a.reqAt)}. You will be notified when it is approved.</p>`}
   else if(canApprove()){
     if(st==='pending'||st==='changed'){body=`<p>${st==='changed'?'Changed after approval by '+esc(a.by||'—')+'.':`${esc(a.reqName||'Staff')} asked ${ago(a.reqAt)}.`} Set the special price in the Special Price section, then approve. ${esc(a.reqName||'Staff')} will be notified and can share it.</p>`;
-      acts.push({label:'Approve & send to '+(a.reqName||'staff'),cls:'primary',run:approveQuote})}
+      acts.push({label:'Approve, give number & send to '+(a.reqName||'staff'),cls:'primary',run:approveQuote})}
     else body=`<p>Approved by ${esc(a.by||'—')} ${ago(a.at)}.</p>`;
   }else if(st==='pending'){body=`<p>Waiting for ${esc(who(a.to)||'a manager or admin')} · sent ${ago(a.reqAt)}.</p><p class="note">The quote updates by itself once approved. It is locked until then.</p>`;
     acts.push({label:'Withdraw to edit',run:withdrawAppr})}
@@ -5956,7 +5997,7 @@ function apprPop(){
   showModal(st==='approved'?`${bill.no||'Quote'} approved`:canApprove()?'Approve quote':'Send for approval','',acts);
   $('modalBody').innerHTML=body;
 }
-$('qtAppr').onclick=apprPop;
+$('qtAppr').onclick=apprPop;$('qApprBtn').onclick=apprPop;
 async function withdrawAppr(){
   bill.appr=null;saveBill(true);renderBill();await pushQuote(bill.id);renderBill();toast('Withdrawn. You can edit the quote now.');
 }
@@ -5975,7 +6016,7 @@ async function approveQuote(){
   withPerm('approve','Needs a manager or admin to approve.',async()=>{
     bill.appr=Object.assign({},bill.appr||{},{state:'approved',by:meName(),byId:curUser?curUser.id:'',at:Date.now()});bill.appr.sig=apprSig(bill);
     saveBill(true);renderBill();const ok=await pushQuote(bill.id);renderBill();
-    toast(ok?`${bill.no||'Quote'} approved · ${bill.appr.reqName||'staff'} will be notified`:'Approved. It will be sent when online.',null,!ok);
+    toast(ok?`Approved · number ${bill.no||'—'} · sent back to ${bill.appr.reqName||'staff'}`:'Approved. It will be sent when online.',null,!ok);
   });
 }
 // --- leads ---
