@@ -6,7 +6,7 @@ import type { Config } from "@netlify/functions"
 // Stored in one site-wide Blobs store: meta, stock, rates, settings, users, auth (legacy admin PIN).
 
 const APP_ORIGINS = ["https://appassets.androidplatform.net", "https://yamie-price-check.netlify.app"]
-const STOCK_FIELDS = ["key", "barcode", "item", "category", "carat", "gw", "nw", "sw", "dw", "dq", "sa", "serial", "label", "location", "pcs", "sq", "supplier", "mk", "mkType", "huid", "huidNo", "cw", "stoneName", "saDia", "saClr", "labelDate", "size", "model", "nlc", "fva", "at"]
+const STOCK_FIELDS = ["key", "barcode", "item", "category", "carat", "gw", "nw", "sw", "dw", "dq", "sa", "serial", "label", "location", "pcs", "sq", "supplier", "mk", "mkType", "huid", "huidNo", "cw", "stoneName", "saDia", "saClr", "labelDate", "size", "model", "nlc", "fva", "fvaMan", "at"]
 const RATE_KEYS = ["22k", "18k", "14k", "9k", "platinum", "silver"]
 
 type Meta = { stock: number; rates: number; settings: number; users: number; quotes: number; leads?: number; imgs: number; count: number; history: any[] }
@@ -358,6 +358,22 @@ export default async (req: Request) => {
       meta.history = [{ at: meta.stock, file: cleanStr(body.file, 80), rows: rows.length, added, updated, skipped: cleanNum(body.skipped) || 0, mode }, ...(meta.history || [])].slice(0, 100)
       await saveMeta()
       return json(req, { v: meta.stock, count: all.length, added, updated, history: meta.history })
+    }
+
+    if (op === "stockrow" && Array.isArray(body?.rows)) {
+      // Bulk update: label details changed on many existing items at once (never adds items)
+      if (!(await permOk("stockEdit"))) return json(req, { error: "bad_pin", need: "stockEdit" }, 403)
+      const rows = body.rows.slice(0, 1000).map(cleanRow).filter(Boolean)
+      const cur: any[] = ((await st.get("stock", { type: "json" })) as any[]) || []
+      const idx = new Map(cur.map((x, i) => [x.key, i]))
+      let updated = 0
+      for (const r of rows) { const i = idx.get(r.key); if (i != null) { cur[i] = r; updated++ } }
+      if (!updated) return json(req, { error: "no_rows" }, 400)
+      await st.setJSON("stock", cur)
+      meta.stock = Date.now(); meta.count = cur.length
+      meta.history = [{ at: meta.stock, file: "Bulk update · " + cleanStr(body?.what, 60) + (body?.by ? " · " + cleanStr(body.by, 40) : ""), rows: updated, added: 0, updated, skipped: rows.length - updated, mode: "edit" }, ...(meta.history || [])].slice(0, 100)
+      await saveMeta()
+      return json(req, { v: meta.stock, count: cur.length, updated, history: meta.history })
     }
 
     if (op === "stockrow") {

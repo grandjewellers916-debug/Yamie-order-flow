@@ -313,6 +313,12 @@ A card is locked for users without that permission; opening it asks for a user w
 - **Quotation number** (given when a quote is first saved): first 3 letters of the staff member's name / year / their number — e.g. `RAV/26/274`. Each person's count starts again every year. Older P- numbers stay; the final ON-/SW- numbers are unchanged.
 - **Fair Value** (was "Discounted price") on the Home product card: dark purple button with gold text. It is a permission ("Fair Value price", Roles & permissions); every existing role keeps it once. Without it the button and the fair value lines on quotes are hidden.
 
+## V 1.7.74 (11 Nov 2026)
+
+- **FVA set by a manager wins:** an FVA saved through Edit in database, Bulk update or a pricing rule (`fvaMan`) is used as it is, also for nosepins (instead of ₹450 per piece). FVA from the sheet keeps the nosepin defaults.
+- **Bulk update** (Search tab, permission Edit stock items): pick items by label numbers and/or everything matching a word (type, supplier, location, model…), fill only the details to change (making, FVA, type, purity, location, supplier, stones, size, model, NLC, labelling date), confirm. Saved to the shared database (`stockrow` with `rows`), with a line in the stock history.
+- **RNG · Remaining new gold** (Quote, each item): an item altered before sale (Reduce length, Change stone, Others). Enter the weight removed (gold or stone; for a stone change also new stone weight and price). Gross / net / stone weights and the price update, fair value is recalculated, the change shows on the item and in the WhatsApp text. Undo RNG restores the original weights.
+
 ## V 1.7.73 (11 Nov 2026)
 
 - Item form: **Making Rate is always ₹ per gram of net wt**, also under 1 g (the sheet import keeps its under-1 g fixed rule). Typing in Wstg %, Fixed Charge or Making Rate clears the other two, so the value typed is the one saved.

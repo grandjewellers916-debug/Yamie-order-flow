@@ -727,6 +727,12 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .fva-box .fv-t{margin-top:6px;border:0;background:rgba(255,255,255,.16);color:#fff;border-radius:999px;padding:6px 14px;font:600 13px var(--body);cursor:pointer}
 .fva-box .fv-s{margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.25);display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:16px;font-weight:700}
 .fva-box .fv-s b{font:900 32px var(--body);white-space:nowrap;color:#FFE08A}
+.qi-rng{grid-column:1/-1;margin:4px 0 0 18px;font-size:12.5px;color:var(--maroon);font-weight:700}
+.qi-rng.on{background:#FFF4E0;color:#7A4A00;border-radius:10px;padding:6px 10px}
+.qi-rng .fa{border:1px solid currentColor;background:none;color:inherit;border-radius:999px;padding:2px 10px;font:700 12px var(--body);cursor:pointer}
+.qi-rng.on .fa{margin-left:6px;padding:1px 8px;font-size:11.5px}
+.rng-prev{display:grid;grid-template-columns:auto 1fr 1fr;gap:4px 10px;font-size:14px;margin:10px 0 2px;background:var(--surface,#faf6f0);border-radius:12px;padding:10px 12px}
+.rng-prev b{font-weight:800}.rng-prev .h{font-size:11.5px;color:var(--muted)}
 .qi-fva{grid-column:1/-1;margin:4px 0 0 18px;font-size:13px;color:#fff;background:linear-gradient(135deg,#3B1A5C,#5B2A86);border-radius:10px;padding:7px 10px;font-weight:700;line-height:1.5}
 .qi-fva small{color:rgba(255,255,255,.7);font-weight:500}.qi-fva b{font-weight:900;color:#FFE08A;font-size:14px}
 .qi-fva .fa{color:#fff}.qi-fva.on{outline:2px solid #FFE08A}
@@ -873,6 +879,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .pr-row{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0;display:flex;gap:10px;align-items:flex-start}
 .pr-row .pr-m{flex:1;min-width:0}.pr-row b{display:block}.pr-row small{color:var(--muted);display:block;font-size:12.5px}
 .pr-row .live{color:#2E7D4F;font-weight:700}.pr-row .off{color:var(--muted)}
+.find-acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .pr-form{display:grid;grid-template-columns:1fr 1fr;gap:8px}.pr-form .full{grid-column:1/-1}
 .pr-form label{font-size:12px;color:var(--muted);display:block;margin-bottom:3px}
 .pr-form input,.pr-form select,.pr-form textarea,.rp-f select,.rp-f input{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px 10px;font:14px var(--body);background:var(--surface);color:var(--fg)}
@@ -1335,7 +1342,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 
   <!-- Search -->
   <section class="card find-view" data-pane="search" aria-label="Search stock">
-    <div class="sec-head"><h2>Search stock</h2><button class="btn sm" type="button" id="findNew" hidden>+ New item</button></div>
+    <div class="sec-head"><h2>Search stock</h2><span class="find-acts"><button class="btn sm" type="button" id="findBulk" hidden>Bulk update</button><button class="btn sm" type="button" id="findNew" hidden>+ New item</button></span></div>
     <p class="note">Check if a label is available. Search by label no., item name, item type or stone.</p>
     <div class="find-in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input id="findQ" type="search" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. FRG382 or ring" aria-label="Search stock"></div>
     <p class="note" id="findNote"></p>
@@ -2091,12 +2098,13 @@ function missing(t){
 // Label making (rate / % / labour) gives the list price. The FVA column gives the fair value making:
 //  "9%" (or 0.09) → % like VA · a number → ₹ per gram of net wt × net wt.
 // Nosepins: ₹450 per piece. Diamond nosepins under 1.00 g: the FVA number is a fixed amount.
+// An FVA a manager set (Edit in database, bulk update or a pricing rule: fvaMan) is used as it is, nosepins included.
 const NOSE_PC=450;
 function isNosepin(t){const st=t.stock||{};return /^NSP/i.test(keyOf(t.sku))||/NOSE/i.test(`${st.category||''} ${t.item||''}`)}
 function fvaMaking(t){
   const st=t.stock||{},nw=num(t.nw),dia=isDiamond(t)||num(st.dw)>0||num(st.saDia)>0;
   const raw=st.fva==null?'':String(st.fva).trim(),v=num(raw.replace(/[^\d.]/g,''));
-  if(isNosepin(t)){
+  if(isNosepin(t)&&!(st.fvaMan&&raw)){
     if(dia&&!isNaN(nw)&&nw<1&&raw&&!isNaN(v))return {amt:v,label:`FVA fixed ${inr(v)}`};
     if(!dia){const pc=Math.max(1,num(st.pcs)||1);return {amt:NOSE_PC*pc,label:`${inr(NOSE_PC)} per piece${pc>1?' × '+pc:''}`}}
   }
@@ -2770,6 +2778,7 @@ function renderBill(keepInputs){
       <span>${fmtW(num(t.nw))}</span>
       <span class="qi-amt">${p.ok?inr(p.value*(1+gstPct()/100)):'—'}</span>
       <span class="qi-acts">${closed?'':`<button type="button" data-edit="${t.id}" aria-label="Edit item ${i+1}">${IC_EDIT}</button><button type="button" data-del="${t.id}" aria-label="Remove item ${i+1}">${IC_DEL}</button>`}</span>
+      ${t.rng?`<span class="qi-rng on">RNG · ${esc(rngText(t))}${closed?'':` <button type="button" class="fa" data-rng="${t.id}">Edit</button>`}</span>`:closed?'':`<span class="qi-rng"><button type="button" class="fa" data-rng="${t.id}">RNG · alter weight</button></span>`}
       ${(()=>{const fv=fvaPrice(t,p),G=1+gstPct()/100;if(!fv||(!can('fva')&&!(t.qMk&&t.qMk.fva)))return '';const fvp=r100(fv.value*G),on=t.qMk&&t.qMk.fva,mgr=t.qMk&&!t.qMk.fva;
         return `<span class="qi-fva${on?' on':''}">Fair value <b>${inr(fvp)}</b> <small>(${esc(fv.label)})</small> · Savings <b>${inr(r100(p.value*G)-fvp)}</b>${closed||mgr?(mgr?' <small>· manager discount</small>':''):`<button type="button" class="fa" data-fva="${t.id}">${on?'Applied ✓':'Apply'}</button>`}</span>`})()}
     </div>`}).join(''):'<div class="empty-q">No items yet. Scan a product or add it manually, then tap Save to Quote.</div>';
@@ -2785,6 +2794,7 @@ function renderBill(keepInputs){
     saveBill();saveDraft();renderEditor();renderBill();
     toast('Item removed',()=>{bill.items.splice(i,0,gone);saveBill();renderEditor();renderBill()});
   });
+  $('items').querySelectorAll('[data-rng]').forEach(b=>b.onclick=()=>rngForm(b.dataset.rng));
   $('items').querySelectorAll('[data-fva]').forEach(b=>b.onclick=()=>{const t=bill.items.find(x=>x.id===b.dataset.fva);if(!t)return;
     if(t.qMk&&t.qMk.fva){delete t.qMk;t.fvaAsk=false}else{const fv=fvaPrice(t);if(!fv)return;t.fvaAsk=true;t.qMk={type:t.mkType,val:fmtN(mkValFor(t,fv.mk)),fva:true,by:curUser?(curUser.name||curUser.username):'',at:Date.now()}}
     saveBill();renderBill()});
@@ -3028,6 +3038,62 @@ $('qCancel').onclick=()=>withPerm('cancelQuote','Needs a user allowed to cancel 
   a.append(ok,cn);$('modal').hidden=false;
 });
 
+// ---------- RNG (Remaining new gold): weight removed when an item is altered before sale ----------
+const RNG_WHY={length:'Reduce length',stone:'Change stone',other:'Others'};
+function rngText(t){const r=t.rng||{};const why=r.why==='other'&&r.note?r.note:RNG_WHY[r.why]||'Altered';
+  return `${why} · −${fmtW(r.rem)} g ${r.from==='stone'?'stone':'gold'}${num(r.add)>0?` · +${fmtW(r.add)} g new stone`:''} · Net ${fmtW(num(r.orig.nw))} → ${fmtW(num(t.nw))} g`}
+function rngCalc(t,why,from,rem,add,spr){
+  const o=t.rng?t.rng.orig:{gw:t.gw,nw:t.nw,sw:t.sw,spr:t.spr};
+  const gw=num(o.gw),nw=num(o.nw),sw=num(o.sw)||0;rem=num(rem);add=num(add)||0;
+  if(!(rem>0))return {err:'Enter the weight removed'};
+  let n={gw,nw,sw};
+  if(from==='stone'){if(rem>sw+1e-9)return {err:`Only ${fmtW(sw)} g of stone on this item`};n={gw:gw-rem+add,nw,sw:sw-rem+add}}
+  else{if(rem>=nw)return {err:`Net weight is ${fmtW(nw)} g`};n={gw:gw-rem,nw:nw-rem,sw}}
+  if(!(n.gw>0))n.gw=n.nw+n.sw;
+  const t2=Object.assign({},t,{gw:fmtN(Math.round(n.gw*1000)/1000),nw:fmtN(Math.round(n.nw*1000)/1000),sw:fmtN(Math.round(n.sw*1000)/1000)});
+  if(from==='stone'&&spr!==''&&spr!=null&&!isNaN(num(spr)))t2.spr=fmtN(num(spr));else t2.spr=o.spr;
+  t2.rng={why,from,rem,add,note:'',orig:o};return {t2,o};
+}
+function rngForm(id){
+  const t=bill.items.find(x=>x.id===id);if(!t||isClosed())return;
+  const r0=t.rng||{why:'length',from:'gold',rem:'',add:'',spr:''},o=t.rng?t.rng.orig:{gw:t.gw,nw:t.nw,sw:t.sw,spr:t.spr};
+  let why=r0.why,from=r0.from;
+  $('modalTitle').textContent='RNG · Remaining new gold';$('modalTitle').classList.remove('price-pop');
+  $('modalBody').innerHTML=`<p class="note"><b>${esc(keyOf(t.sku))}</b> ${esc((t.stock&&t.stock.category)||t.item||'')} · Gross ${fmtW(num(o.gw))} g · Stone ${fmtW(num(o.sw)||0)} g · Net ${fmtW(num(o.nw))} g</p>
+    <div class="f full"><span class="flabel">Alteration</span><div class="seg" id="rgWhy">${Object.entries(RNG_WHY).map(([k,l])=>`<button type="button" data-w="${k}">${l}</button>`).join('')}</div></div>
+    <div class="lead-f" id="rgNoteF"><label for="rgNote">What was done</label><input id="rgNote" value="${esc(r0.note||'')}" placeholder="e.g. Hook changed"></div>
+    <div class="f full"><span class="flabel">Weight removed from</span><div class="seg" id="rgFrom"><button type="button" data-f="gold">Gold (net wt)</button><button type="button" data-f="stone">Stone</button></div></div>
+    <div class="pr-form"><div><label for="rgRem">Weight removed (g)</label><input id="rgRem" inputmode="decimal" value="${esc(r0.rem||'')}"></div>
+      <div class="rg-st"><label for="rgAdd">New stone added (g)</label><input id="rgAdd" inputmode="decimal" value="${esc(r0.add||'')}"></div>
+      <div class="rg-st full"><label for="rgSpr">New stone price (₹, blank keeps ${inr(num(o.spr)||0)})</label><input id="rgSpr" inputmode="decimal" value="${esc(r0.spr??'')}"></div></div>
+    <div id="rgPrev" aria-live="polite"></div>`;
+  const paint=()=>{
+    $('rgWhy').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.w===why));$('rgFrom').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.f===from));
+    $('rgNoteF').hidden=why!=='other';document.querySelectorAll('.rg-st').forEach(e=>e.hidden=from!=='stone');
+    const c=rngCalc(t,why,from,$('rgRem').value,$('rgAdd').value,$('rgSpr').value),G=1+gstPct()/100;
+    if(c.err){$('rgPrev').innerHTML=`<p class="note">${esc(c.err)}</p>`;return c}
+    const b4=Object.assign({},t,{gw:o.gw,nw:o.nw,sw:o.sw,spr:o.spr}),p0=priceTag(b4),p1=priceTag(c.t2);
+    $('rgPrev').innerHTML=`<div class="rng-prev"><span></span><span class="h">Before</span><span class="h">After</span>
+      <span>Gross</span><span>${fmtW(num(o.gw))} g</span><b>${fmtW(num(c.t2.gw))} g</b>
+      <span>Net</span><span>${fmtW(num(o.nw))} g</span><b>${fmtW(num(c.t2.nw))} g</b>
+      ${from==='stone'?`<span>Stone</span><span>${fmtW(num(o.sw)||0)} g</span><b>${fmtW(num(c.t2.sw))} g</b>`:''}
+      <span>Price</span><span>${p0.ok?inr(p0.value*G):'—'}</span><b>${p1.ok?inr(p1.value*G):'—'}</b></div><p class="note">Prices incl. GST. The quote updates when you apply.</p>`;
+    return c};
+  $('rgWhy').querySelectorAll('button').forEach(b=>b.onclick=()=>{why=b.dataset.w;from=why==='stone'?'stone':'gold';paint()});
+  $('rgFrom').querySelectorAll('button').forEach(b=>b.onclick=()=>{from=b.dataset.f;paint()});
+  ['rgRem','rgAdd','rgSpr'].forEach(k=>$(k).addEventListener('input',paint));
+  const a=$('modalActs');a.innerHTML='';const mk=(tx,c,f)=>{const b=document.createElement('button');b.type='button';b.className='btn '+c;b.textContent=tx;b.onclick=f;a.appendChild(b);return b};
+  mk('Apply','primary',()=>{const c=paint();if(c.err){toast(c.err,null,true);return}
+    const fvOn=t.qMk&&t.qMk.fva;
+    t.gw=c.t2.gw;t.nw=c.t2.nw;t.sw=c.t2.sw;t.spr=c.t2.spr;
+    t.rng={why,from,rem:num($('rgRem').value),add:from==='stone'?num($('rgAdd').value)||0:0,spr:from==='stone'?$('rgSpr').value.trim():'',note:why==='other'?$('rgNote').value.trim():'',orig:o,by:meName(),at:Date.now()};
+    if(fvOn){const fv=fvaPrice(t);if(fv)t.qMk.val=fmtN(mkValFor(t,fv.mk));else delete t.qMk}
+    saveBill();renderBill();closeModal();toast('RNG applied · prices updated')});
+  if(t.rng)mk('Undo RNG','ghost',()=>{const fvOn=t.qMk&&t.qMk.fva;t.gw=o.gw;t.nw=o.nw;t.sw=o.sw;t.spr=o.spr;delete t.rng;
+    if(fvOn){const fv=fvaPrice(t);if(fv)t.qMk.val=fmtN(mkValFor(t,fv.mk));else delete t.qMk}
+    saveBill();renderBill();closeModal();toast('RNG removed · original weights back')});
+  mk('Cancel','ghost',closeModal);$('modal').hidden=false;paint();
+}
 function shareText(){
   const s=totals(),g=gstPct();
   const out=['*'+BRAND.full+'*',`Quote ${quoteLabel(bill)} · ${new Date(bill.started||Date.now()).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}`];
@@ -3036,6 +3102,7 @@ function shareText(){
   bill.items.forEach((t,i)=>{const p=priceTag(t);
     out.push(`${i+1}. ${keyOf(t.sku)||'—'} ${(t.stock&&t.stock.category)||t.item||''} · ${PLABEL[t.purity]||''}`);
     out.push(`   Gr ${fmtW(num(t.gw))} g · Net ${fmtW(num(t.nw))} g${p.stone?` · Stone ${inr(p.stone)}`:''}${bill.showMk!==false&&p.hasMk?` · Making ${valText({type:t.mkType,val:num(t.mkVal)})}`:''}`);
+    if(t.rng)out.push(`   Altered (RNG): ${rngText(t)}`);
     out.push(`   ${p.ok?inr(p.value):'—'} + GST`);
   });
   out.push('',`Items value: ${inr(s.listSub)}`);
@@ -3590,7 +3657,8 @@ function openDiscCheck(){
 }
 $('pdDel').onclick=()=>$('clearTag').click();
 $('findNew').onclick=()=>stockForm(null);
-function paintFindNew(){const b=$('findNew');if(b)b.hidden=!can('stockAdd')}
+function paintFindNew(){const b=$('findNew');if(b)b.hidden=!can('stockAdd');const c=$('findBulk');if(c)c.hidden=!can('stockEdit')}
+$('findBulk').onclick=()=>bulkForm();
 $('pdDb').onclick=()=>{const r=stockMap.get(cur.stockKey);if(r)stockForm(r)};
 $('pdClose').onclick=()=>{$('clearTag').click();window.scrollTo({top:0,behavior:'smooth'})};
 $('pdSave').onclick=()=>$('addTag').click();
@@ -3993,7 +4061,7 @@ function ruleFor(rec){return (settings.priceRules||[]).find(r=>r.on!==false&&rul
 function applyRules(rec){
   if(!rec)return rec;const r=ruleFor(rec);if(!r)return rec;const o=Object.assign({},rec),over=r.mode!=='fill';const ch=[];
   if(r.mkType&&num(r.mkVal)>0&&(over||!(o.mkType&&num(o.mk)>0))){o.mkType=r.mkType;o.mk=String(r.mkVal);ch.push('making')}
-  if(r.fvaType&&num(r.fvaVal)>0&&(over||!o.fva)){o.fva=r.fvaType==='pct'?r.fvaVal+'%':String(r.fvaVal);ch.push('fair value')}
+  if(r.fvaType&&num(r.fvaVal)>0&&(over||!o.fva)){o.fva=r.fvaType==='pct'?r.fvaVal+'%':String(r.fvaVal);o.fvaMan='1';ch.push('fair value')}
   if(num(r.diaRate)>0&&num(o.dw)>0&&(over||!(num(o.saDia)>0))){o.saDia=Math.round(num(o.dw)*num(r.diaRate));o.sa=(num(o.saClr)||0)+o.saDia;ch.push('diamond')}
   if(ch.length){o.rule=r.name;o.ruleSet=ch}
   return o;
@@ -4145,7 +4213,7 @@ function stockForm(rec){
     const pg=o.mkPg;
     stockMaking(o);if(pg!=null){o.mkType='pergram';o.mk=String(pg)}o.huid=huidN;o.huidNo=hc.join(', ');
     if((o.saClr>0)||(o.saDia>0))o.sa=(o.saClr||0)+(o.saDia||0);
-    const row={};['key','barcode','item','category','carat','gw','nw','sw','dw','dq','sa','location','supplier','mk','mkType','huid','huidNo','stoneName','saDia','saClr','labelDate','size','model','nlc','fva'].forEach(f=>{if(o[f]!=null&&o[f]!=='')row[f]=o[f]});
+    const row={};['key','barcode','item','category','carat','gw','nw','sw','dw','dq','sa','location','supplier','mk','mkType','huid','huidNo','stoneName','saDia','saClr','labelDate','size','model','nlc','fva'].forEach(f=>{if(o[f]!=null&&o[f]!=='')row[f]=o[f]});if(row.fva)row.fvaMan='1';
     ['serial','label','pcs','sq','cw'].forEach(f=>{if(r[f]!=null&&r[f]!=='')row[f]=r[f]});
     row.at=Date.now();
     sv.disabled=true;sv.textContent='Saving…';
@@ -4156,6 +4224,67 @@ function stockForm(rec){
       toast(isNew?`${bc} added to stock · all staff have it`:`${bc} updated · all staff have it`);
       if(!isNew&&cur.stockKey===key){cur.stockKey='';applyStock(row)}
     }catch(e){sv.disabled=false;sv.textContent=isNew?'Add to stock':'Save to database';toast(e&&e.message==='bad_pin'?(isNew?'Not allowed: Add new items to stock is off for this role':'Not allowed: Edit stock items is off for this role')+' (Roles & permissions)':'Could not save. Check the internet.',null,true)}
+  });
+  mk('Cancel','ghost',closeModal);$('modal').hidden=false;
+  },true);
+}
+// ---------- Bulk update: the same label details on many items at once ----------
+const BF=[['mkPct','Wstg %','num'],['mkFix','Fixed Charge (₹)','num'],['mkPg','Making Rate (₹/g)','num'],['fva','FVA (% or ₹)','text'],['category','Item Type','cat'],
+  ['carat','Purity (K)','pur'],['location','Location','text'],['supplier','Supplier','text'],['stoneName','Stone Name(s)','text'],['size','Size','text'],['model','Model','text'],
+  ['nlc','NLC (₹)','num'],['labelDate','Labelling Date','date']];
+function bulkPick(labels,q){
+  const out=new Map(),miss=[];
+  labels.split(/[\s,;]+/).map(x=>x.trim()).filter(Boolean).forEach(l=>{const r=findStock(l);if(r)out.set(r.key,r);else miss.push(l)});
+  q=q.trim();if(q){const k=keyOf(q),ql=q.toLowerCase();for(const r of stockMap.values())
+    if((k.length>=2&&(r.key.startsWith(k)||keyOf(r.label||'')===k))||[r.item,r.category,r.supplier,r.stoneName,r.location,r.model].some(v=>String(v||'').toLowerCase().includes(ql)))out.set(r.key,r)}
+  return {list:[...out.values()],miss};
+}
+function bulkForm(){
+  withPerm('stockEdit','Enter your PIN to update stock items.',()=>{
+  const cats=Object.values(CAT).filter(Boolean);
+  $('modalTitle').textContent='Bulk update label details';$('modalTitle').classList.remove('price-pop');
+  $('modalBody').innerHTML=`<p class="note">Pick the items, fill only what should change. Blank fields stay as they are. Saved to the shared database for all staff.</p>
+    <div class="lead-f"><label for="bkLabels">Label numbers</label><textarea id="bkLabels" rows="3" placeholder="FRG382, STD101… (one per line or with commas)"></textarea></div>
+    <div class="lead-f"><label for="bkQ">And/or all items matching</label><input id="bkQ" placeholder="e.g. NSP, Nose Pin, a supplier or location"></div>
+    <p class="note" id="bkCount" aria-live="polite">No items picked.</p>
+    <div class="pr-form">`+BF.map(([k,l,t])=>{const id='bk_'+k,lab=`<label for="${id}">${esc(l)}</label>`;
+      if(t==='cat')return `<div>${lab}<input id="${id}" list="bkCats"><datalist id="bkCats">${cats.map(c=>`<option value="${esc(c)}">`).join('')}</datalist></div>`;
+      if(t==='pur')return `<div>${lab}<select id="${id}"><option value="">Keep</option>${['22','18','14','9','24','PT','925'].map(x=>`<option>${x}</option>`).join('')}</select></div>`;
+      if(t==='date')return `<div>${lab}<input id="${id}" type="date"></div>`;
+      return `<div${k==='stoneName'?' class="full"':''}>${lab}<input id="${id}"${t==='num'?' inputmode="decimal"':''}></div>`}).join('')+`</div>
+    <p class="note">Making: fill one of Wstg %, Fixed Charge (₹ per piece) or Making Rate (₹ per gram of net wt).</p>`;
+  const MK=['mkPct','mkFix','mkPg'];MK.forEach(k=>$('bk_'+k).addEventListener('input',e=>{if(e.target.value.trim())MK.filter(x=>x!==k).forEach(x=>$('bk_'+x).value='')}));
+  let pick={list:[],miss:[]};
+  const upd=()=>{pick=bulkPick($('bkLabels').value,$('bkQ').value);const n=pick.list.length;
+    $('bkCount').innerHTML=(n?`<b>${n} item${n>1?'s':''} picked</b>: ${esc(pick.list.slice(0,8).map(r=>r.barcode||r.key).join(', '))}${n>8?' …':''}`:'No items picked.')+(pick.miss.length?`<br><span class="bad-t">Not in stock: ${esc(pick.miss.slice(0,8).join(', '))}</span>`:'')};
+  $('bkLabels').addEventListener('input',upd);$('bkQ').addEventListener('input',upd);
+  const a=$('modalActs');a.innerHTML='';const mk=(t,c,f)=>{const b=document.createElement('button');b.type='button';b.className='btn '+c;b.textContent=t;b.onclick=f;a.appendChild(b);return b};
+  const sv=mk('Update items','primary',async()=>{
+    const g=k=>$('bk_'+k).value.trim(),n=k=>{const x=num(g(k));return g(k)===''||isNaN(x)?null:x};
+    if(!pick.list.length){toast('Pick the items first',null,true);return}
+    const ch={},what=[];
+    const mkP=n('mkPg')!=null?['pergram',n('mkPg')]:n('mkFix')!=null?['fixed',n('mkFix')]:n('mkPct')!=null?['pct',n('mkPct')]:null;
+    if(mkP){let v=mkP[1];if(mkP[0]==='pct'&&v>0&&v<1)v=Math.round(v*10000)/100;ch.mkType=mkP[0];ch.mk=String(v);what.push('making '+valText({type:mkP[0],val:v}))}
+    if(g('fva')){ch.fva=g('fva');ch.fvaMan='1';what.push('FVA '+g('fva'))}
+    [['category','type'],['carat','purity'],['location','location'],['supplier','supplier'],['stoneName','stones'],['size','size'],['model','model'],['labelDate','labelling date']].forEach(([k,w])=>{if(g(k)){ch[k]=g(k);what.push(w+' '+g(k))}});
+    if(n('nlc')!=null){ch.nlc=n('nlc');what.push('NLC '+inr(n('nlc')))}
+    if(!what.length){toast('Fill at least one detail to change',null,true);return}
+    const rows=pick.list.map(r=>Object.assign({},r,ch,{at:Date.now()}));
+    const go=async()=>{
+      sv.disabled=true;sv.textContent='Saving…';
+      try{
+        let hist=null;
+        if(sync.key)for(let i=0;i<rows.length;i+=300){const res=await syncApi('stockrow','POST',{rows:rows.slice(i,i+300),what:what.join(', '),by:meName()},adminCreds);sync.v.stock=res.v;hist=res.history}
+        saveSyncState();if(hist){stockMeta.history=hist;store.set('stockMeta',stockMeta)}
+        try{await IDB.putMany(rows,false)}catch(e){}
+        rows.forEach(indexRec);paintStockSummary();closeModal();
+        toast(`${rows.length} item${rows.length>1?'s':''} updated · all staff have it`);
+        if(cur.stockKey&&rows.some(r=>r.key===cur.stockKey)){const r=stockMap.get(cur.stockKey);cur.stockKey='';applyStock(r)}
+        try{runFind()}catch(e){}
+      }catch(e){sv.disabled=false;sv.textContent='Update items';toast(e&&e.message==='bad_pin'?'Not allowed: Edit stock items is off for this role (Roles & permissions)':'Could not save. Check the internet.',null,true)}
+    };
+    $('bkCount').innerHTML=`<b>Change ${rows.length} item${rows.length>1?'s':''}:</b> ${esc(what.join(' · '))}. Tap Update items again to confirm.`;
+    if(sv.dataset.ok===String(rows.length)+what.join())go();else{sv.dataset.ok=String(rows.length)+what.join();sv.textContent='Confirm · update '+rows.length}
   });
   mk('Cancel','ghost',closeModal);$('modal').hidden=false;
   },true);
