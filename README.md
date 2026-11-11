@@ -313,6 +313,12 @@ A card is locked for users without that permission; opening it asks for a user w
 - **Quotation number** (given when a quote is first saved): first 3 letters of the staff member's name / year / their number — e.g. `RAV/26/274`. Each person's count starts again every year. Older P- numbers stay; the final ON-/SW- numbers are unchanged.
 - **Fair Value** (was "Discounted price") on the Home product card: dark purple button with gold text. It is a permission ("Fair Value price", Roles & permissions); every existing role keeps it once. Without it the button and the fair value lines on quotes are hidden.
 
+## V 1.7.71 (11 Nov 2026)
+
+- **Edit in database** (product card, new permission `stockEdit`, given to managers): correct the making (Wstg %, fixed charge or making rate), FVA or any label detail of a scanned item. It is saved to the shared database (`stockrow` op) and every phone picks it up within about 30 seconds through the inbox poll (`st` stock version).
+- **+ New item** (Search tab header): add a new tagged item with all the label details. It is saved to the shared database for all staff.
+- **Close sale removes the sold tags** from the stock database on every phone (`stocksold` op), with a note in the stock history.
+
 ## V 1.7.70 (10 Nov 2026)
 
 - **Publish & share the day's rates** (after Save rates, or Gold Rates → Publish & share): update the **Grand Jewellers kiosk** (grandjewellers.com), the **Yamie Shopify** rate metafields (gold_rate_22k/18k/14k/9k/platinum/silver) and send a **WhatsApp rate message**. Netlify env vars on the price-check site (set by the owner): `KIOSK_RATES_PIN` (same as the kiosk's RATES_PIN; optional `KIOSK_URL`), `SHOPIFY_STORE_DOMAIN` with `SHOPIFY_CLIENT_ID` + `SHOPIFY_CLIENT_SECRET` (or `SHOPIFY_ADMIN_TOKEN`).

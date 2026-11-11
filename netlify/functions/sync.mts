@@ -59,10 +59,10 @@ function cleanRow(r: any) {
   return o.key ? o : null
 }
 // Permissions an admin can give to a role (admin always has all)
-const PERMS = ["stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "share", "addDisc", "round", "reports", "fva", "approve", "leads", "textSize", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows", "pdHidden", "sync", "roles", "users", "settings"]
+const PERMS = ["stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "share", "addDisc", "round", "reports", "fva", "stockEdit", "approve", "leads", "textSize", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows", "pdHidden", "sync", "roles", "users", "settings"]
 const SETTINGS_PERMS = ["imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows"]
 const DEFAULT_ROLES = [
-  { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "images", "approve", "leads", "share", "pdHidden", "addDisc", "round", "reports", "fva"] },
+  { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "images", "approve", "leads", "share", "pdHidden", "addDisc", "round", "reports", "fva", "stockEdit"] },
   { id: "staff", name: "Staff", perms: ["rates", "closeSale", "cancelQuote", "share", "fva"] },
 ]
 // A quote as the app keeps it, minus anything large (photos stay on the phone that took them)
@@ -162,6 +162,13 @@ export default async (req: Request) => {
     if (ch && (await st.get("roles"))) { await st.setJSON("roles", roles); meta.users = Date.now() }
     ;(meta as any).v1768 = 1; await saveMeta()
   }
+  // Stock item edits / new items: roles that give making discounts (managers) can do it (once)
+  if (!(meta as any).v1771) {
+    let ch = false
+    for (const r of roles) if (r?.perms?.includes("mkDisc") && !r.perms.includes("stockEdit")) { r.perms.push("stockEdit"); ch = true }
+    if (ch && (await st.get("roles"))) { await st.setJSON("roles", roles); meta.users = Date.now() }
+    ;(meta as any).v1771 = 1; await saveMeta()
+  }
   const roleHas = (role: string, perm: string) => {
     if (role === "admin") return true
     if (perm === "stock" || perm === "theme" || perm === "footer" || perm === "apprSet" || perm === "special" || perm === "promos" || perm === "rules") return false   // stock data and theme: admins only
@@ -218,7 +225,7 @@ export default async (req: Request) => {
         const approved = qs.filter((q) => q?.appr?.state === "approved" && q.appr.at > Date.now() - 3 * 864e5).slice(0, 50)
           .map((q) => ({ id: q.id, no: q.no || "", name: cleanStr(q.cust?.name, 40), to: q.appr.reqBy || "", byName: cleanStr(q.appr.by, 40), at: q.appr.at || 0 }))
         const leads = ls.filter((l) => l.state === "new").slice(0, 50).map((l) => ({ id: l.id, to: l.to || "", name: cleanStr(l.name, 40), byName: cleanStr(l.byName, 40), at: l.at || 0 }))
-        return json(req, { q: meta.quotes, l: meta.leads || 0, u: meta.users || 0, s: meta.settings || 0, pending, approved, leads })
+        return json(req, { q: meta.quotes, l: meta.leads || 0, u: meta.users || 0, s: meta.settings || 0, st: meta.stock || 0, pending, approved, leads })
       }
       return json(req, { error: "bad_op" }, 400)
     }
@@ -304,7 +311,7 @@ export default async (req: Request) => {
       return json(req, { v: meta.leads, lead })
     }
 
-    const OP_PERM: Record<string, string> = { img: "images", quotedel: "delQuote", stock: "stock", stockdel: "stockdel", ratelog: "rates", pubrates: "rates" }
+    const OP_PERM: Record<string, string> = { img: "images", quotedel: "delQuote", stock: "stock", stockdel: "stockdel", ratelog: "rates", pubrates: "rates", stockrow: "stockEdit", stocksold: "closeSale" }
     const role = await callerRole()
     if (op === "settings") { if (!role || ![...SETTINGS_PERMS, "theme", "footer", "apprSet", "promos", "rules"].some((p) => roleHas(role, p))) return json(req, { error: "bad_pin" }, 403) }
     else if (op === "users") { if (!role || !(roleHas(role, "users") || roleHas(role, "roles"))) return json(req, { error: "bad_pin" }, 403) }
@@ -343,6 +350,36 @@ export default async (req: Request) => {
       meta.history = [{ at: meta.stock, file: cleanStr(body.file, 80), rows: rows.length, added, updated, skipped: cleanNum(body.skipped) || 0, mode }, ...(meta.history || [])].slice(0, 100)
       await saveMeta()
       return json(req, { v: meta.stock, count: all.length, added, updated, history: meta.history })
+    }
+
+    if (op === "stockrow") {
+      // A manager corrects one item or adds a new one; every phone gets it at its next check
+      const r = cleanRow(body?.row)
+      if (!r) return json(req, { error: "bad_row" }, 400)
+      const cur: any[] = ((await st.get("stock", { type: "json" })) as any[]) || []
+      const i = cur.findIndex((x) => x.key === r.key)
+      const isNew = i < 0
+      if (isNew) cur.push(r); else cur[i] = r
+      await st.setJSON("stock", cur)
+      meta.stock = Date.now(); meta.count = cur.length
+      meta.history = [{ at: meta.stock, file: (isNew ? "New item " : "Edited ") + r.barcode + (body?.by ? " · " + cleanStr(body.by, 40) : ""), rows: 1, added: isNew ? 1 : 0, updated: isNew ? 0 : 1, skipped: 0, mode: "edit" }, ...(meta.history || [])].slice(0, 100)
+      await saveMeta()
+      return json(req, { v: meta.stock, count: cur.length, row: r, isNew, history: meta.history })
+    }
+
+    if (op === "stocksold") {
+      // Tags of a completed sale leave the stock list (whoever closes the sale)
+      const keys = new Set((Array.isArray(body?.keys) ? body.keys : []).slice(0, 200).map((k: any) => String(k || "").toUpperCase().replace(/[^A-Z0-9]/g, "")).filter(Boolean))
+      if (!keys.size) return json(req, { error: "no_keys" }, 400)
+      const cur: any[] = ((await st.get("stock", { type: "json" })) as any[]) || []
+      const left = cur.filter((r) => !keys.has(r.key)), removed = cur.length - left.length
+      if (removed) {
+        await st.setJSON("stock", left)
+        meta.stock = Date.now(); meta.count = left.length
+        meta.history = [{ at: meta.stock, file: cleanStr(body?.note, 80) || "Sold", rows: removed, added: 0, updated: 0, removed, skipped: 0, mode: "sold" }, ...(meta.history || [])].slice(0, 100)
+        await saveMeta()
+      }
+      return json(req, { v: meta.stock, count: left.length, removed, history: meta.history })
     }
 
     if (op === "stockdel") {
