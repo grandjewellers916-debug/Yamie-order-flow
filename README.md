@@ -365,3 +365,9 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 - **Settings → This computer · log-out & alerts**: log out after 5 / 15 / 30 / 60 min without use (per computer); turn on and test desktop notifications.
 - **Own host name**: a host starting with `pricecheck.` (e.g. `pricecheck.yamie.in`) calls `/api/sync` and `/api/rates` on the same site. Brand is still picked by host (`grand…` → Grand).
 - Fix: the sticky Label value / Savings / Net Payable box no longer covers pop-ups.
+
+## V 1.7.76 — Quote Summary like the ERP sheet, ERP quotation check (11 Nov 2026)
+
+- **Items table (computer, ≥ 1280 px):** photo, SKU / item · net wt, Purity, Gold Rate (₹/g, from 1440 px), Gold Value, Stone Charge, Making (before disc.), Gross Amount, Discount, Taxable Value, GST % / ₹, Final Amount. Phones and tablets keep their table.
+- **Quote Summary strip (computer):** Gold Rate (Today) box; tiles for Gold Value, Stone Charge, Making (before disc.), Gross Amount, Less Discount, (Delivery), Taxable Value, GST, Final Amount. The items table and summary run full width; the side panel moves below.
+- **ERP quotation (all screens):** enter the ERP (Yamie ERP / Acme) quotation number and its final amount. Discount = ERP final amount − app final amount, shown incl. GST and **excl. GST** (÷ 1 + GST %), the figure to enter as the discount in the ERP. A lower ERP amount is flagged. Saved on the quote as `erp {no, amt}`, shared with all phones; quote search finds the ERP quotation number; a closed sale shows it.

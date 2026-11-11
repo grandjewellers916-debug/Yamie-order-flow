@@ -1100,7 +1100,20 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 
 /* ===== v1.8 web / desktop (>= 1280px): wide Quote with summary beside the items, stock table, Reports page, print ===== */
 .qx,.tab-dk,.bc-l-d,.dk-wide,.qimg-pc,.rp-charts,.kb{display:none}
-.qi-row>span:nth-child(9){text-align:right;font-variant-numeric:tabular-nums}
+/* V1.7.76 quote: desktop-only columns (.qd), phone/tablet-only cells (.qm), summary strip, ERP check */
+.qd,.qd-ph,.qd-w,.qs2{display:none}
+.q-erp{border-top:1px solid var(--line);margin-top:12px;padding-top:12px}
+.qe-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.qe-head h3{margin:0;font:700 16px var(--display);color:var(--maroon);text-transform:none;letter-spacing:0}.qe-head .note{margin:0}
+.qe-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.qe-grid .f{margin:0}.qe-grid input{width:100%}
+.qe-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:10px}
+.qe-t{border:1px solid var(--line);border-radius:12px;padding:9px 11px;background:var(--surface);min-width:0}
+.qe-t small{display:block;color:var(--muted);font-size:12px;line-height:1.25}.qe-t b{display:block;font-size:17px;font-variant-numeric:tabular-nums;margin-top:3px}
+.qe-t em{display:block;font-style:normal;font-size:11.5px;line-height:1.3;margin-top:3px;opacity:.85}
+.qe-t.hl{background:linear-gradient(135deg,#7A1518,#A8262B);border:0;color:#fff}.qe-t.hl small,.qe-t.hl em{color:rgba(255,255,255,.85)}.qe-t.hl b{font-size:20px}
+.qe-t.ok{background:#EAF5EE;border-color:#BFE0CB;color:#1F6B45}.qe-t.ok small{color:#1F6B45}
+.qe-t.bad{background:#FDECEC;border-color:#F3C2C2;color:#A11B1B}.qe-t.bad small{color:#A11B1B}
+.qe-warn{color:#A11B1B;font-weight:600;font-size:13px;margin:8px 0 0}
 .bc-l-m{display:inline}
 #printArea{display:none}
 @media (min-width:900px){.q-hsum{top:90px}.dk-wide{display:grid}#dkPrint.dk-wide{display:inline-flex}body:not([data-view="quote"]) #dkPrint{display:none}}
@@ -1119,11 +1132,37 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
   .q-side{position:sticky;top:96px;max-height:calc(100vh - 110px);overflow-y:auto;padding-bottom:12px;scrollbar-width:thin}
   .q-side .q-sum{order:-2}.q-side .q-acts{order:-1;border-top:0;padding-top:0;display:grid!important;grid-template-columns:1fr 1.6fr}
   .q-side .q-acts .btn{padding-inline:12px}
-  .q-items .qx{display:block}
-  .q-items .qi-row{grid-template-columns:28px minmax(150px,2.2fr) 56px 72px 64px 72px minmax(80px,1fr) minmax(84px,1fr) minmax(104px,1.2fr) 64px!important;gap:10px;font-size:15px}
-  .q-items .qi-row>span:nth-child(n+3):nth-child(-n+9){text-align:right;font-variant-numeric:tabular-nums}
-  .q-items .qi-row>span:nth-child(3){text-align:center!important}
-  .q-items .qi-row .qi-mkc small{display:block;color:var(--muted);font-size:12px}
+  /* V1.7.76: items table like the ERP sheet — rate, gold, stone, making, gross, discount, taxable, GST, final */
+  body[data-view="quote"] #bill>.q-full,body[data-view="quote"] #bill>#qTop{grid-column:1/-1;min-width:0}
+  .q-items .qm{display:none!important}
+  .q-items .qd{display:block;text-align:right;font-variant-numeric:tabular-nums}
+  .q-items .qi-th .qd{text-align:center;line-height:1.2}.q-items .qi-th small{display:block;font-weight:500;color:var(--muted);font-size:11.5px}
+  .q-items .qi-row{grid-template-columns:24px minmax(190px,2.4fr) 48px minmax(70px,.9fr) minmax(76px,1fr) minmax(70px,.9fr) minmax(80px,1fr) minmax(86px,1fr) minmax(74px,.9fr) minmax(86px,1fr) minmax(62px,.8fr) minmax(104px,1.15fr) 58px!important;gap:8px;font-size:15px;align-items:center}
+  .q-items .qi-row>.o1{order:1}.q-items .qi-row>.o2{order:2}.q-items .qi-row>.o3{order:3;text-align:center!important}.q-items .qi-row>.o4{order:4}.q-items .qi-row>.o5{order:5}.q-items .qi-row>.o6{order:6}.q-items .qi-row>.o7{order:7}.q-items .qi-row>.o8{order:8}.q-items .qi-row>.o9{order:9}.q-items .qi-row>.o10{order:10}.q-items .qi-row>.o11{order:11}.q-items .qi-row>.o12{order:12}.q-items .qi-row>.o13{order:13}.q-items .qi-row>.o14{order:14}.q-items .qi-row>.o15{order:15}
+  .q-items .qi-row>.o14{grid-column:2/4;margin:2px 0 0;justify-self:start}
+  .q-items .qi-row .o11{font-size:14px;line-height:1.25}
+  .q-items .qi-row:not(.qi-th) .qd-fin{background:color-mix(in srgb,var(--maroon) 8%,var(--surface));border-radius:10px;padding:10px 8px;text-align:center;color:var(--maroon);font-size:17px}.q-items .qd-fin b{color:var(--maroon)!important}
+  .q-items .qi-th .qd-fin{background:var(--maroon);color:#fff;border-radius:10px 10px 0 0;padding:6px 4px;margin:-8px 0}.q-items .qi-th .qd-fin small{color:rgba(255,255,255,.8)}
+  .q-items .qd-disc{color:#A11B1B}
+  .q-items .qi-sku{display:flex;align-items:center;gap:10px;min-width:0}.q-items .qi-skt{min-width:0}
+  .q-items .qd-ph{display:grid;place-items:center;flex:0 0 52px;width:52px;height:52px;border-radius:10px;background:var(--sunk);overflow:hidden}.q-items .qd-ph img{width:100%;height:100%;object-fit:cover}.q-items .qd-ph svg{width:26px;height:26px;color:var(--maroon)}
+  .q-items .qd-w{display:inline}
+  .q-items .qi-fva{margin-left:34px}
+  /* Quote Summary strip */
+  .qs2:not([hidden]){display:grid;grid-template-columns:230px minmax(0,1fr);gap:18px;margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+  .qs2-rates{background:color-mix(in srgb,#C9A227 10%,var(--surface));border-radius:14px;padding:12px 14px}
+  .qs2-rates h4{display:flex;align-items:center;gap:8px;margin:0 0 6px;font:700 15px var(--body);color:var(--maroon)}.qs2-rates h4 svg{width:24px;height:24px;color:#C9A227}
+  .qs2-rates #qs2Rates>div{display:flex;justify-content:space-between;padding:6px 2px;border-top:1px solid color-mix(in srgb,#C9A227 25%,transparent);font-variant-numeric:tabular-nums}#qs2Rates>div:first-child{border-top:0}
+  .qs2-rates small{color:var(--muted);font-weight:500}
+  .qs2-main h3{margin:0 0 10px;font:700 21px var(--display);color:var(--maroon);text-transform:none;letter-spacing:0}
+  .qs2-tiles{display:flex;gap:8px}
+  .qs2-t{flex:1 1 0;min-width:0;border:1px solid var(--line);border-radius:12px;padding:10px 8px;text-align:center;background:var(--surface);display:flex;flex-direction:column;justify-content:space-between;min-height:92px}
+  .qs2-t small{font-size:13px;font-weight:600;color:var(--fg);line-height:1.25}.qs2-t small i{font-style:normal;font-weight:500;color:var(--muted);font-size:11.5px}
+  .qs2-t b{font-size:19px;font-variant-numeric:tabular-nums;margin-top:6px}.qs2-t em{font-style:normal;font-size:11px;color:var(--muted)}
+  .qs2-t.red{background:#FDF1F1;border-color:#F3D0D0}.qs2-t.red small,.qs2-t.red b{color:#B3261E}
+  .qs2-t.fin{flex:1.9 1 0;background:linear-gradient(135deg,#7A1518,#A8262B);border:0;color:#fff}.qs2-t.fin small{color:#fff;font-size:15px}.qs2-t.fin b{font-size:28px}.qs2-t.fin em{color:rgba(255,255,255,.8)}
+  .q-erp{background:var(--sunk);border:0;border-radius:14px;padding:12px 14px;margin-top:14px}
+  .qe-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
   .q-items .qi-fva{margin-left:38px}
   .q-items .qi-row:not(.qi-th):hover{background:color-mix(in srgb,var(--maroon) 4%,var(--surface))}
   .q-pair{grid-template-columns:1fr}
@@ -1172,8 +1211,12 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
   :root{--sb:208px}
   .tab{font-size:16px;gap:13px;padding:11px 13px}
   body[data-view="quote"] #bill{grid-template-columns:minmax(0,1fr) 330px;gap:18px}
-  .q-items .qsw{display:none!important}
-  .q-items .qi-row{grid-template-columns:22px minmax(112px,2fr) 42px 62px 62px minmax(66px,1fr) minmax(72px,1fr) minmax(86px,1.1fr) 52px!important;gap:6px;font-size:13.5px;padding-left:10px;padding-right:8px}
+  .q-items .qdr{display:none!important}
+  .q-items .qi-row{grid-template-columns:20px minmax(150px,2.2fr) 40px minmax(66px,1fr) minmax(58px,.85fr) minmax(66px,1fr) minmax(72px,1fr) minmax(62px,.85fr) minmax(72px,1fr) minmax(54px,.75fr) minmax(86px,1.1fr) 50px!important;gap:5px;font-size:13.5px;padding-left:8px;padding-right:6px}
+  .q-items .qi-th small{font-size:10.5px}.q-items .qi-row .o11{font-size:12.5px}
+  .q-items .qd-ph{flex-basis:40px;width:40px;height:40px}
+  .q-items .qi-row:not(.qi-th) .qd-fin{font-size:15px;padding:8px 4px}
+  .qs2:not([hidden]){grid-template-columns:165px minmax(0,1fr);gap:12px}.qs2-rates{padding:10px}.qs2-t{padding:8px 4px}.qs2-t small{font-size:12px}.qs2-t b{font-size:15px}.qs2-t.fin b{font-size:23px}
   .q-tools{grid-template-columns:repeat(3,minmax(0,1fr))}
   .q-items .qi-th{font-size:12.5px}
   .q-items .qi-fva{margin-left:26px;font-size:12.5px}
@@ -1518,10 +1561,22 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
       <div class="qi-head"><h2>Quoted Items <span id="billCount">(0)</span></h2><span class="q-no">Quote No: <b id="qNo">New</b><span class="qa-pill" id="qNoSt" hidden></span></span></div>
       <div class="q-status" id="qStatus" hidden></div>
       <div class="qi-table" role="table" aria-label="Quoted items">
-        <div class="qi-row qi-th" role="row"><span>#</span><span>SKU / Item</span><span>Purity</span><span>Gr. Wt</span><span class="qx qsw">St. Wt</span><span>Nt. Wt</span><span class="qx">Stone ₹</span><span class="qx">Making</span><span>Amount</span><span></span></div>
+        <div class="qi-row qi-th" role="row"><span class="o1">#</span><span class="o2">SKU / Item</span><span class="o3">Purity</span><span class="qm">Gr. Wt</span><span class="qm">Nt. Wt</span><span class="qm">Amount</span><span class="o13"></span><span class="qd o4 qdr">Gold Rate<small>(₹/g)</small></span><span class="qd o5">Gold Value<small>(₹)</small></span><span class="qd o6">Stone Charge<small>(₹)</small></span><span class="qd o7">Making (₹)<small>(Before Disc.)</small></span><span class="qd o8">Gross Amount<small>(₹)</small></span><span class="qd o9">Discount<small>(₹)</small></span><span class="qd o10">Taxable Value<small>(₹)</small></span><span class="qd o11">GST<small>(%) / (₹)</small></span><span class="qd o12 qd-fin">Final Amount<small>(₹)</small></span></div>
         <div id="items"></div>
       </div>
       <div class="q-mgr" id="qMgrNote" hidden></div>
+      <div class="qs2" id="qSum2">
+        <div class="qs2-rates"><h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18l-2.5-6h-13zM7 14l1.6-4h6.8L17 14M9.5 10l1-3h3l1 3"/></svg>Gold Rate (Today)</h4><div id="qs2Rates"></div></div>
+        <div class="qs2-main"><h3>Quote Summary</h3><div class="qs2-tiles" id="qs2Tiles"></div></div>
+      </div>
+      <div class="q-erp" id="qErp">
+        <div class="qe-head"><h3><span id="qErpT">ERP</span> quotation</h3><span class="note" id="qErpNote">Make the quotation in the ERP, then enter its number and final amount here.</span></div>
+        <div class="qe-grid">
+          <div class="f"><label for="qErpNo">ERP quotation no.</label><input id="qErpNo" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. QTN/2526/0457"></div>
+          <div class="f"><label for="qErpAmt">Final amount in ERP quotation (₹)</label><input id="qErpAmt" class="num" inputmode="decimal" autocomplete="off" placeholder="0"></div>
+        </div>
+        <div class="qe-out" id="qErpOut"></div>
+      </div>
       <div class="qo-row q-mkshow"><span class="flabel">Making charges on the quote</span><div class="seg" id="qMkShow" role="radiogroup"><button type="button" role="radio" data-v="1">Show</button><button type="button" role="radio" data-v="0">Hide</button></div></div>
     </div>
 
@@ -2920,6 +2975,43 @@ function paintQuoteHead(){
   $('goBill').textContent=n?`Quote (${n})`:'Quote';$('dkQuoteT').textContent=n?`Quote (${n})`:'Quote';
 
 }
+// ---- V1.7.76: Quote Summary strip (computer) and the ERP quotation check (all sizes) ----
+// The ERP (Acme) quotation is made at the full price. Staff enter its number and final amount here;
+// the app shows the discount to give in the ERP = ERP final amount − app final amount, with and without GST.
+function erpDiff(s){const a=num(bill.erp&&bill.erp.amt);if(!(a>0))return null;const g=gstPct(),d=a-s.final;return {amt:a,d,ex:d/(1+g/100),g}}
+function paintErp(s){
+  const erp=BRAND.erp||'ERP',e=bill.erp||{},closed=isClosed();
+  $('qErpT').textContent=erp;$('qErp').hidden=!bill.items.length;
+  if(document.activeElement!==$('qErpNo'))$('qErpNo').value=e.no||'';
+  if(document.activeElement!==$('qErpAmt'))$('qErpAmt').value=e.amt||'';
+  $('qErpNo').readOnly=$('qErpAmt').readOnly=closed;
+  const x=erpDiff(s),o=$('qErpOut'),T=(l,v,c,sub)=>`<div class="qe-t${c?' '+c:''}"><small>${l}</small><b>${v}</b>${sub?`<em>${sub}</em>`:''}</div>`;
+  if(!x){o.innerHTML=`<div class="qe-tiles">${T('App final amount',inr(s.final))}</div>`;return}
+  const app=T('App final amount',inr(s.final)),ev=T(`${esc(erp)} final amount`,inr(x.amt));
+  if(Math.abs(x.d)<1){o.innerHTML=`<div class="qe-tiles">${ev}${app}${T('Discount in '+esc(erp),'₹0','ok','Matches the app ✓')}</div>`;return}
+  if(x.d>0)o.innerHTML=`<div class="qe-tiles">${ev}${app}${T(`Discount (${esc(erp)} − app) incl. GST`,inr2(x.d))}${T(`Discount excl. GST`,inr2(x.ex),'hl',`Enter this as the discount in ${esc(erp)} · before ${fmtN(x.g)}% GST`)}</div>`;
+  else o.innerHTML=`<div class="qe-tiles">${ev}${app}${T(`Difference (${esc(erp)} − app) incl. GST`,'−'+inr2(-x.d),'bad')}${T('Difference excl. GST','−'+inr2(-x.ex),'bad')}</div><p class="qe-warn">The ${esc(erp)} amount is lower than the app final amount. Check the ${esc(erp)} quotation.</p>`;
+}
+function paintSum2(s){
+  const g=gstPct(),mkOn=store.get('sumMk',true),less=s.mkDisc+s.promoAmt;
+  $('qSum2').hidden=!bill.items.length;
+  $('qs2Rates').innerHTML=SHOWN().map(p=>{const r=rateFor(p.id);return `<div><span>${esc(p.label)}</span><b>${r==null?'—':inr(r)}<small> /g</small></b></div>`}).join('');
+  const T=(l,v,c,sub)=>`<div class="qs2-t${c?' '+c:''}"><small>${l}</small><b>${v}</b>${sub?`<em>${sub}</em>`:''}</div>`;
+  $('qs2Tiles').innerHTML=T('Gold Value',inr(s.gold))+T('Stone Charge',inr(s.stone))+T('Making<br><i>(Before Disc.)</i>',mkOn?inr(s.listMk):'•••')
+    +T('Gross Amount',inr(s.listSub),'',s.huid>0.5?`incl. HUID ${inr(s.huid)}`:'')+T('Less Discount',inr(less),'red',s.promoAmt>0.5?`incl. offer ${inr(s.promoAmt)}`:'')
+    +(s.courier?T('Delivery',s.delivery?inr(s.delivery):'Free'):'')+T('Taxable Value',inr(s.taxable))+T(`GST (${fmtN(g)}%)`,inr(s.gst))
+    +T('Final Amount',inr(s.final),'fin',s.disc>0.5?`after ${inr2(s.disc)} ${s.flat?'extra discount':'round-off'}`:'');
+}
+function paintQuoteExtras(s){
+  try{paintSum2(s)}catch(e){}try{paintErp(s)}catch(e){}
+  let dk=false;try{dk=DESK.matches}catch(e){}
+  if(dk)$('items').querySelectorAll('[data-ph]').forEach(d=>{const k=d.dataset.ph;if(!k||(!imgIdx[k]&&!imgMem.get(k)))return;getProdImg(k).then(u=>{if(u)d.innerHTML=`<img src="${u}" alt="">`}).catch(()=>{})});
+}
+function setErp(){const no=$('qErpNo').value.trim().toUpperCase(),amt=$('qErpAmt').value.replace(/[^\d.]/g,'');bill.erp={no,amt,by:curUser?(curUser.name||curUser.username):'',at:Date.now()};if(!no&&!amt)delete bill.erp}
+$('qErpNo').addEventListener('change',()=>{if(isClosed())return;setErp();saveBill();renderRecent()});
+$('qErpAmt').addEventListener('input',()=>{if(isClosed())return;setErp();store.set('bill',bill);paintErp(totals())});
+$('qErpAmt').addEventListener('change',()=>{if(isClosed())return;setErp();saveBill();const x=erpDiff(totals());if(x&&x.d<-0.5)toast(`${BRAND.erp||'ERP'} amount is lower than the app final amount`,null,true)});
+[$('qErpNo'),$('qErpAmt')].forEach(el=>el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();el===$('qErpNo')?$('qErpAmt').focus():el.blur()}}));
 function renderBill(keepInputs){
   try{paintAppr()}catch(e){}
   const s=totals(),n=bill.items.length,closed=isClosed(),mgr=isManager();
@@ -2930,7 +3022,7 @@ function renderBill(keepInputs){
   $('qName').readOnly=$('qPhone').readOnly=closed;
   const st=$('qStatus');st.hidden=!closed;
   if(bill.status==='cancelled')st.innerHTML=`<b>Cancelled · enquiry only</b>${bill.cancelReason?` · ${esc(bill.cancelReason)}`:''}${bill.cancelledBy?` · ${esc(bill.cancelledBy)}`:''}`;
-  else if(closed)st.innerHTML=`<b>Sale closed</b> · Invoice ${esc(bill.invoice||'—')} · ${bill.channel==='online'?'Online':'In-store'}${bill.closedBy?` · ${esc(bill.closedBy)}`:''}`;
+  else if(closed)st.innerHTML=`<b>Sale closed</b> · Invoice ${esc(bill.invoice||'—')}${bill.erp&&bill.erp.no?` · ${esc(BRAND.erp||'ERP')} quotation ${esc(bill.erp.no)}`:''} · ${bill.channel==='online'?'Online':'In-store'}${bill.closedBy?` · ${esc(bill.closedBy)}`:''}`;
   st.classList.toggle('cancel',bill.status==='cancelled');
   $('qtEdit').classList.toggle('on',mgrMode);
   $('items').innerHTML=n?bill.items.map((t,i)=>{
@@ -2939,19 +3031,17 @@ function renderBill(keepInputs){
     const showMk=(mgrMode||t.qMk)&&p.ok;
     const qv=t.qMk?t.qMk.val:'';
     return `<div class="qi-row${p.ok?'':' bad'}" role="row" data-id="${t.id}">
-      <span>${i+1}</span>
-      <span class="qi-sku"><b>${esc(keyOf(t.sku)||'—')}</b><small>${esc((t.stock&&t.stock.category)||t.item||'')}</small></span>
-      <span>${esc(PLABEL[t.purity]||'—')}</span>
-      <span>${fmtW(num(t.gw))}</span>
-      <span class="qx qsw">${num(t.sw)>0?fmtW(num(t.sw)):'—'}</span>
-      <span>${fmtW(num(t.nw))}</span>
-      <span class="qx">${p.ok&&p.stone?inr(p.stone):'—'}</span>
-      <span class="qx qi-mkc">${p.ok&&p.hasMk?`${inr(p.making)}<small>${esc(mkTxt)}</small>`:'—'}</span>
-      <span class="qi-amt">${p.ok?inr(p.value*(1+gstPct()/100)):'—'}</span>
-      <span class="qi-acts">${closed?'':`<button type="button" data-edit="${t.id}" aria-label="Edit item ${i+1}">${IC_EDIT}</button><button type="button" data-del="${t.id}" aria-label="Remove item ${i+1}">${IC_DEL}</button>`}</span>
-      ${t.rng?`<span class="qi-rng on">RNG · ${esc(rngText(t))}${closed?'':` <button type="button" class="fa" data-rng="${t.id}">Edit</button>`}</span>`:closed?'':`<span class="qi-rng"><button type="button" class="fa" data-rng="${t.id}">RNG · alter weight</button></span>`}
+      <span class="o1">${i+1}</span>
+      <span class="qi-sku o2"><span class="qd-ph" data-ph="${esc(keyOf(t.sku))}">${icoFor((t.stock&&t.stock.category)||t.item||'')}</span><span class="qi-skt"><b>${esc(keyOf(t.sku)||'—')}</b><small>${esc((t.stock&&t.stock.category)||t.item||'')}<span class="qd-w"> · ${fmtW(num(t.nw))} g</span></small></span></span>
+      <span class="o3">${esc(PLABEL[t.purity]||'—')}</span>
+      <span class="qm">${fmtW(num(t.gw))}</span>
+      <span class="qm">${fmtW(num(t.nw))}</span>
+      <span class="qi-amt qm">${p.ok?inr(p.value*(1+gstPct()/100)):'—'}</span>
+      ${(()=>{const g=gstPct(),mkOn=store.get('sumMk',true),d=p.value-q,R=v=>p.ok?inr(v):'—';return `<span class="qd o4 qdr">${p.rate==null?'—':inr(p.rate)}</span><span class="qd o5">${R(p.gold)}</span><span class="qd o6">${R(p.stone)}</span><span class="qd o7">${!p.ok?'—':!mkOn?'•••':p.hasMk?inr(p.making):'—'}</span><span class="qd o8">${R(p.value)}</span><span class="qd o9${d>0.5?' qd-disc':''}">${p.ok?inr(Math.max(0,d)):'—'}</span><span class="qd o10">${R(q)}</span><span class="qd o11">${fmtN(g)}% /<br>${R(q*g/100)}</span><span class="qd o12 qd-fin"><b>${R(q*(1+g/100))}</b></span>`})()}
+      <span class="qi-acts o13">${closed?'':`<button type="button" data-edit="${t.id}" aria-label="Edit item ${i+1}">${IC_EDIT}</button><button type="button" data-del="${t.id}" aria-label="Remove item ${i+1}">${IC_DEL}</button>`}</span>
+      ${t.rng?`<span class="qi-rng o14 on">RNG · ${esc(rngText(t))}${closed?'':` <button type="button" class="fa" data-rng="${t.id}">Edit</button>`}</span>`:closed?'':`<span class="qi-rng o14"><button type="button" class="fa" data-rng="${t.id}">RNG · alter weight</button></span>`}
       ${(()=>{const fv=fvaPrice(t,p),G=1+gstPct()/100;if(!fv||(!can('fva')&&!(t.qMk&&t.qMk.fva)))return '';const fvp=r100(fv.value*G),on=t.qMk&&t.qMk.fva,mgr=t.qMk&&!t.qMk.fva;
-        return `<span class="qi-fva${on?' on':''}">Fair value <b>${inr(fvp)}</b> <small>(${esc(fv.label)})</small> · Savings <b>${inr(r100(p.value*G)-fvp)}</b>${closed||mgr?(mgr?' <small>· manager discount</small>':''):`<button type="button" class="fa" data-fva="${t.id}">${on?'Applied ✓':'Apply'}</button>`}</span>`})()}
+        return `<span class="qi-fva o15${on?' on':''}">Fair value <b>${inr(fvp)}</b> <small>(${esc(fv.label)})</small> · Savings <b>${inr(r100(p.value*G)-fvp)}</b>${closed||mgr?(mgr?' <small>· manager discount</small>':''):`<button type="button" class="fa" data-fva="${t.id}">${on?'Applied ✓':'Apply'}</button>`}</span>`})()}
     </div>`}).join(''):'<div class="empty-q">No items yet. Scan a product or add it manually, then tap Save to Quote.</div>';
   $('items').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{
     const t=bill.items.find(x=>x.id===b.dataset.edit);if(!t)return;
@@ -2977,7 +3067,7 @@ function renderBill(keepInputs){
     else t.qMk={type:t.mkType,val:fmtN(v),by:curUser?(curUser.name||curUser.username):'',at:Date.now()};
     saveBill();renderBill();
   }));
-  $('qMgrNote').hidden=true;renderDiscount(s);
+  $('qMgrNote').hidden=true;renderDiscount(s);paintQuoteExtras(s);
   $('qMgrNote').textContent='Manager: enter the making after discount for each item. Prices update straight away.';
 
   if(!keepInputs)renderDeductions();else refreshDeductionValues();
@@ -3339,7 +3429,7 @@ function renderRecent(){
   const fu=all?us.value:'',fd=$('qDate').value;$('qFClear').hidden=!q&&!fu&&!fd;
   const dayOf=t=>{const d=new Date(t||0);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
   const vis=quotes.filter(canSeeQuote).filter(x=>(!fu||x.by===fu)&&(!fd||dayOf(x.started||x.updated)===fd||dayOf(x.updated)===fd));
-  const list=vis.filter(x=>(qFilter==='all'||(qFilter==='open'?(!x.status||x.status==='open'):x.status===qFilter))&&(!q||[x.no,x.pno,x.by,x.cust&&x.cust.name,x.cust&&x.cust.phone,x.invoice,...(x.items||[]).map(t=>t.sku)].some(v=>String(v||'').toLowerCase().includes(q))));
+  const list=vis.filter(x=>(qFilter==='all'||(qFilter==='open'?(!x.status||x.status==='open'):x.status===qFilter))&&(!q||[x.no,x.pno,x.by,x.cust&&x.cust.name,x.cust&&x.cust.phone,x.invoice,x.erp&&x.erp.no,...(x.items||[]).map(t=>t.sku)].some(v=>String(v||'').toLowerCase().includes(q))));
   if(!list.length){el.innerHTML=`<div class="empty">${vis.length?'No quotes match.':'Quotes appear here once an item is saved to a quote.'}</div>`;return}
   el.innerHTML=list.slice(0,80).map(x=>{const n=(x.items||[]).length;
     let net='';try{const keep=bill;bill=fixBill(clone(x));if(x.rates){bill.overrides={};PURITIES.forEach(p=>{if(x.rates[p.id]!=null)bill.overrides[p.id]=x.rates[p.id]})}net=inr(Math.abs(totals().net));bill=keep}catch(e){}
@@ -4147,6 +4237,12 @@ function deskLayout(){
   deskOrig.set(b,[...b.children]);
   const steps=[...b.querySelectorAll(':scope > .q-step')];
   const desk=DESK.matches;
+  if(desk){ // computer: items table and summary full width; below it the side panel (summary, generate, sale type, URD) and the rest
+    const full=box('q-full',[$('qAppr'),...steps,q('.q-top'),q('.q-tools'),q('.q-items')]);
+    const main=box('q-main',[$('qDiscCard'),q('.q-photos'),$('qClose'),q('.q-list')]);
+    const side=box('q-side',[q('.q-sum'),q('.q-acts'),$('qSale'),$('qDed')]);
+    b.prepend($('qTop'),full,main,side);return;
+  }
   const main=box('q-main',[$('qTop'),$('qAppr'),...steps,q('.q-top'),q('.q-tools'),q('.q-items'),box('q-pair',[$('qDiscCard'),desk?null:q('.q-sum')]),desk?null:q('.q-acts')]);
   const side=box('q-side',[desk?q('.q-sum'):null,desk?q('.q-acts'):null,$('qSale'),$('qDed'),q('.q-photos'),$('qClose'),q('.q-list')]);
   b.prepend(main,side);
