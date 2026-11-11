@@ -371,3 +371,9 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 - **Items table (computer, ≥ 1280 px):** photo, SKU / item · net wt, Purity, Gold Rate (₹/g, from 1440 px), Gold Value, Stone Charge, Making (before disc.), Gross Amount, Discount, Taxable Value, GST % / ₹, Final Amount. Phones and tablets keep their table.
 - **Quote Summary strip (computer):** Gold Rate (Today) box; tiles for Gold Value, Stone Charge, Making (before disc.), Gross Amount, Less Discount, (Delivery), Taxable Value, GST, Final Amount. The items table and summary run full width; the side panel moves below.
 - **ERP quotation (all screens):** enter the ERP (Yamie ERP / Acme) quotation number and its final amount. Discount = ERP final amount − app final amount, shown incl. GST and **excl. GST** (÷ 1 + GST %), the figure to enter as the discount in the ERP. A lower ERP amount is flagged. Saved on the quote as `erp {no, amt}`, shared with all phones; quote search finds the ERP quotation number; a closed sale shows it.
+
+## V 1.7.77 — nearest ₹10, HUID and weights on the computer quote (11 Nov 2026)
+
+- **Final amount and fair value round to the nearest ₹10** (was down to ₹100). The round-off (up or down) is adjusted in the discount before GST: taxable value and GST are recalculated, so Gross − Discount = Taxable and Taxable + GST = Final exactly. Shown as "Round-off discount · before GST" in the summary, quote text, quote image and A4. Setting/permission renamed "Round final amount to the nearest ₹10".
+- **Computer items table:** new **Gr. / Nt. Wt** column (gross over net) and **HUID** column (₹, pieces × rate).
+- **Quote Summary strip:** chips for gross wt, net wt, item count and HUID count; new **HUID Charges** tile; **Less Discount** includes the round-off. Below 1440 px the Gold Rate box sits in a row above the tiles.
