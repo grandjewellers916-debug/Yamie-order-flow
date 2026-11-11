@@ -1363,6 +1363,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
   .st-count{font-size:15px}.st-count b{font-size:17px}
   .st-tools{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:14px;color:var(--muted)}
   .st-tools select{min-height:38px;border:1px solid var(--line);border-radius:10px;padding:4px 10px;background:var(--surface);font:500 14px var(--body);color:var(--fg)}
+  .st-dir{display:inline-flex;align-items:center;gap:4px;min-height:38px;border:1px solid var(--line);border-radius:10px;padding:4px 10px;background:var(--surface);font:600 13px var(--body);color:var(--fg);cursor:pointer;white-space:nowrap}.st-dir span{font-size:15px;color:var(--maroon)}.st-dir:hover{border-color:var(--maroon)}
   .st-view{width:42px;height:38px;border:1px solid var(--line);background:var(--surface);border-radius:10px;display:grid;place-items:center;cursor:pointer;color:var(--muted)}.st-view svg{width:20px;height:20px}
   .st-view.on{background:var(--maroon);border-color:var(--maroon);color:#fff}
   .st-wrap{max-height:none;border-radius:16px}
@@ -4869,10 +4870,19 @@ const ratesKey=()=>['24k','22k','18k','14k','9k','platinum','silver'].map(rateFo
 const stPriceMem=new Map();let stPriceKey='';
 function stPrice(r){const k=JSON.stringify([ratesKey(),gstPct(),settings.huid]);if(k!==stPriceKey){stPriceMem.clear();stPriceKey=k}
   let o=stPriceMem.get(r.key);if(o)return o;const t=recItem(r),p=priceTag(t),G=1+gstPct()/100;
-  if(!p.ok)o={lp:NaN,fv:NaN,save:NaN,fl:''};else{const fv=can('fva')?fvaPrice(t,p):null,lp=r50(p.value*G),fp=fv?r50(fv.value*G):NaN;o={lp,fv:fp,save:fv?lp-fp:NaN,fl:fv?fv.label:''}}
+  if(!p.ok)o={lp:NaN,fv:NaN,save:NaN,fl:'',mk:NaN};else{const fv=can('fva')?fvaPrice(t,p):null,lp=r50(p.value*G),fp=fv?r50(fv.value*G):NaN;o={lp,fv:fp,save:fv?lp-fp:NaN,fl:fv?fv.label:'',mk:p.hasMk?p.making:NaN}}
   stPriceMem.set(r.key,o);return o}
-let stSort={k:'key',d:1},stLimit=200;
-function stVal(r,k){if(k==='price'||k==='fv'||k==='save'){const v=stPrice(r)[k==='price'?'lp':k];return isNaN(v)?-1:v}if(k==='dq'||k==='nlc'){const n=num(r[k]);return isNaN(n)?-1:n}if(k==='sa')return (num(r.saDia)||0)+(num(r.saClr)||0)||num(r.sa)||0;if(['gw','sw','nw','dw','huid','mk'].includes(k)){const n=num(r[k]);return isNaN(n)?-1:n}return String(r[k]||'').toLowerCase()}
+let stSort=(()=>{const v=store.get('stSort',null);return v&&v.k&&(v.d===1||v.d===-1)?v:{k:'key',d:1}})(),stLimit=200;
+function stVal(r,k){
+  const N=v=>{const n=num(v);return isNaN(n)?null:n};
+  if(k==='price'||k==='fv'||k==='save'){const v=stPrice(r)[k==='price'?'lp':k];return isNaN(v)?null:v}
+  if(k==='mk'){const v=stPrice(r).mk;if(!isNaN(v))return v;return N(r.mk)}          // making in ₹ at today's rate
+  if(k==='sa'){const v=(num(r.saDia)||0)+(num(r.saClr)||0)||num(r.sa)||0;return v>0?v:null}
+  if(k==='fva'){const raw=String(r.fva||'').trim();if(!raw)return null;const v=num(raw.replace(/[^\d.]/g,''));return isNaN(v)?null:(/%/.test(raw)||v<100?v:1000+v)}  // % first, then ₹ amounts
+  if(k==='carat'){const pu=caratToPurity(r.carat);const o={'24k':24,'22k':22,'18k':18,'14k':14,'9k':9,platinum:30,silver:1};return pu&&o[pu]!=null?o[pu]:N(r.carat)}
+  if(['gw','sw','nw','dw','dq','huid','nlc'].includes(k)){const n=N(r[k]);return n!=null&&(n>0||k==='huid')?n:null}
+  const v=String(r[k]||'').trim().toLowerCase();return v||null}
+const ST_SORT_NUM=['price','fv','save','mk','sa','fva','carat','gw','sw','nw','dw','dq','huid','nlc'];
 function stCell(r,c,img,W,mkOf){
   const n=v=>num(v)>0?fmtN(num(v)):'–';
   switch(c){
@@ -4921,13 +4931,14 @@ function runFindTable(){
   stFilterBar(all);
   let rows=all.filter(stPass);
   if(q)rows=rows.filter(r=>r===exact||(k.length>=2&&(r.key.includes(k)||keyOf(r.label||'').includes(k)))||[r.item,r.category,r.supplier,r.stoneName,r.location,r.model].some(v=>String(v||'').toLowerCase().includes(ql)));
-  rows.sort((a,b)=>{const x=stVal(a,stSort.k),y=stVal(b,stSort.k);return (x<y?-1:x>y?1:0)*stSort.d});
+  rows.sort((a,b)=>{const x=stVal(a,stSort.k),y=stVal(b,stSort.k);if(x==null||y==null){if(x==null&&y==null)return a.key<b.key?-1:1;return x==null?1:-1}
+    const c=typeof x==='number'&&typeof y==='number'?x-y:String(x).localeCompare(String(y),'en',{numeric:true});return (c||(a.key<b.key?-1:1)*(stSort.d))*stSort.d});
   if(exact&&rows.includes(exact)){rows=[exact,...rows.filter(r=>r!==exact)]}
   const total=rows.length,pages=Math.max(1,Math.ceil(total/stPer));stPage=Math.min(Math.max(1,stPage),pages);
   const show=rows.slice((stPage-1)*stPer,stPage*stPer);
   $('findNote').innerHTML=(exact?`<b class="ok-t">✓ ${esc(exact.barcode||exact.key)} is in stock.</b> Press Enter to price it. `:q&&!total?`<b class="bad-t">✗ Not in stock.</b> No item matches “${esc(q)}”. `:'')+
     `<span class="st-count"><b>${total.toLocaleString('en-IN')}</b> item${total===1?'':'s'} found${total<all.length?` <small>of ${all.length.toLocaleString('en-IN')}</small>`:''}</span>`+
-    `<span class="st-tools"><label>Sort by <select id="stSortSel">${[['key','Label no.'],['category','Item type'],['carat','Purity'],['gw','Gross wt'],['nw','Net wt'],['sa','Stone ₹'],['mk','Making'],['labelDate','Labelled']].map(([c,l])=>`<option value="${c}"${stSort.k===c?' selected':''}>${l}</option>`).join('')}</select></label><button type="button" class="btn sm st-colb" id="stColsB">Columns</button>${can('export')?'<button type="button" class="btn sm st-colb" id="stXlsx">Export Excel</button>':''}<button type="button" class="st-view${stGrid?'':' on'}" id="stList" aria-label="List view" aria-pressed="${!stGrid}">${'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>'}</button><button type="button" class="st-view${stGrid?' on':''}" id="stGridB" aria-label="Photo grid" aria-pressed="${stGrid}">${'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>'}</button></span>`;
+    `<span class="st-tools"><label>Sort by <select id="stSortSel">${ST_ALL.filter(([c])=>c!=='img'&&(!ST_ADMIN.includes(c)||can('pdHidden'))&&(!['fv','save'].includes(c)||can('fva'))).map(([c,l])=>`<option value="${c}"${stSort.k===c?' selected':''}>${l}${['mk'].includes(c)?' (₹)':''}</option>`).join('')}</select></label><button type="button" class="st-dir" id="stDir" aria-label="${stSort.d>0?'Ascending, change to descending':'Descending, change to ascending'}" title="${stSort.d>0?'Low to high / A to Z':'High to low / Z to A'}">${ST_SORT_NUM.includes(stSort.k)?(stSort.d>0?'0→9':'9→0'):(stSort.d>0?'A→Z':'Z→A')}<span aria-hidden="true">${stSort.d>0?'↑':'↓'}</span></button><button type="button" class="btn sm st-colb" id="stColsB">Columns</button>${can('export')?'<button type="button" class="btn sm st-colb" id="stXlsx">Export Excel</button>':''}<button type="button" class="st-view${stGrid?'':' on'}" id="stList" aria-label="List view" aria-pressed="${!stGrid}">${'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>'}</button><button type="button" class="st-view${stGrid?' on':''}" id="stGridB" aria-label="Photo grid" aria-pressed="${stGrid}">${'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>'}</button></span>`;
   const W=v=>num(v)>0?num(v).toFixed(3):'–',ed=can('stockEdit');
   const cols=stCols.filter(k=>!ST_ADMIN.includes(k)||can('pdHidden')).map(k=>ST_ALL.find(c=>c[0]===k)).filter(Boolean);
   const mkOf=r=>r.mkType&&num(r.mk)>0?valText({type:r.mkType,val:num(r.mk)}):'–';
@@ -4937,13 +4948,14 @@ function runFindTable(){
     :`<div class="st-wrap"><table class="stk"><thead><tr><th class="st-n">#</th>${cols.map(([c,l,r])=>`<th class="${r?'r':''} c-${c}" data-c="${c}"${stSort.k===c?` aria-sort="${stSort.d>0?'ascending':'descending'}"`:''}>${l}</th>`).join('')}<th class="c-act">Action</th></tr></thead><tbody>${show.map((r,i)=>`<tr tabindex="0" data-k="${esc(r.key)}"${r===exact?' class="hit"':''}><td class="st-n">${(stPage-1)*stPer+i+1}</td>${cols.map(([c,,ra])=>`<td class="${ra?'r ':''}c-${c}">${stCell(r,c,img,W,mkOf)}</td>`).join('')}${acts(r)}</tr>`).join('')}</tbody></table></div>`;
   el.innerHTML=body+stPager(total);
   const price=key=>{const r=stockMap.get(key);if(r){setView('home');useScannedCode(r.barcode||r.key);paintBarcode()}};
-  el.querySelectorAll('th[data-c]').forEach(th=>th.onclick=()=>{const c=th.dataset.c;if(c==='img'||c==='act')return;stSort=stSort.k===c?{k:c,d:-stSort.d}:{k:c,d:1};runFindTable()});
+  el.querySelectorAll('th[data-c]').forEach(th=>th.onclick=()=>{const c=th.dataset.c;if(c==='img'||c==='act')return;stSort=stSort.k===c?{k:c,d:-stSort.d}:{k:c,d:1};store.set('stSort',stSort);runFindTable()});
   el.querySelectorAll('tbody tr,.stg-c').forEach(tr=>{tr.onclick=e=>{if(e.target.closest('[data-price],[data-ed]'))return;price(tr.dataset.k)};tr.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();price(tr.dataset.k)}else if(e.key==='ArrowDown'&&tr.nextElementSibling){e.preventDefault();tr.nextElementSibling.focus()}else if(e.key==='ArrowUp'){e.preventDefault();(tr.previousElementSibling||$('findQ')).focus()}}});
   el.querySelectorAll('[data-price]').forEach(b=>b.onclick=()=>price(b.dataset.price));
   el.querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>{const r=stockMap.get(b.dataset.ed);if(r)stockForm(r)});
   el.querySelectorAll('[data-pg]').forEach(b=>b.onclick=()=>{stPage=+b.dataset.pg;runFindTable();$('findQ').scrollIntoView({block:'nearest'})});
   $('stPer').onchange=()=>{stPer=+$('stPer').value;stPage=1;runFindTable()};
-  $('stSortSel').onchange=()=>{stSort={k:$('stSortSel').value,d:1};runFindTable()};
+  $('stSortSel').onchange=()=>{const k=$('stSortSel').value;stSort={k,d:['price','fv','save','gw','nw','sa','mk','dw','dq','labelDate'].includes(k)?-1:1};store.set('stSort',stSort);runFindTable()};
+  $('stDir').onclick=()=>{stSort={k:stSort.k,d:-stSort.d};store.set('stSort',stSort);runFindTable()};
   $('stColsB').onclick=stColsForm;if($('stXlsx'))$('stXlsx').onclick=()=>withPerm('export','Needs permission: Export.',()=>stExport(rows));
   $('stList').onclick=()=>{stGrid=false;runFindTable()};$('stGridB').onclick=()=>{stGrid=true;runFindTable()};
   el.querySelectorAll('[data-img]').forEach(d=>{const k=d.dataset.img;if(!imgIdx[k]&&!imgMem.get(k))return;getProdImg(k).then(u=>{if(u)d.innerHTML=`<img src="${u}" alt="">`})});
