@@ -1,7 +1,7 @@
 [build]
   publish = "web"
   functions = "netlify/functions"
-  command = "sed -i \"s/[0-9]*\\.[0-9]*\\.__BUILD__/web-${COMMIT_REF:0:7}/\" web/index.html"
+  command = "sed -i \"s/__BUILD__/web-${COMMIT_REF:0:7}/\" web/index.html"
 
 # ADMIN_PIN and KIOSK_RATES_PIN are short PINs; ADMIN_PIN is only the first-login starting PIN (changed after setup); a 4-digit value also matches digits inside bundled libraries
 [build.environment]

@@ -888,6 +888,11 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .rl-wiz .rl-names .rc-p{white-space:normal;text-align:left}
 .rl-names{max-height:220px;overflow:auto;margin-top:6px}#rlNameQ{width:100%;min-height:40px;border:1px solid var(--line);border-radius:10px;padding:6px 10px;font:15px var(--body);background:var(--surface);color:var(--fg)}
 .rl-wp{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font:500 14px var(--body);cursor:pointer;color:var(--fg)}.rl-wp.on{background:var(--maroon);border-color:var(--maroon);color:#fff}
+.prod-tcol{display:flex;flex-direction:column;gap:6px;min-width:0}
+.shop-lk{display:inline-flex;align-items:center;justify-content:center;gap:5px;font:600 13px var(--body);color:#0B7A4B;text-decoration:none;padding:4px 8px;border-radius:999px;border:1px solid color-mix(in srgb,#0B7A4B 35%,transparent);background:color-mix(in srgb,#0B7A4B 7%,var(--surface));min-height:30px;white-space:nowrap}
+.shop-lk:hover{background:color-mix(in srgb,#0B7A4B 14%,var(--surface))}.shop-lk svg{width:15px;height:15px;flex:none}
+.shop-lk.sm{font-size:11px;padding:1px 6px;min-height:22px;margin-top:4px}.shop-lk.sm svg{width:12px;height:12px}
+.fc-ic{display:flex;flex-direction:column;gap:6px;align-items:center;flex:none}
 .stf-row{display:contents}
 .st-rng{flex-basis:100%;display:flex;flex-wrap:wrap;gap:8px;margin-top:2px}
 .st-rng .rg{display:flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:999px;padding:3px 5px 3px 12px;background:var(--surface);font-size:13px}
@@ -1766,7 +1771,7 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
   <div class="menu-ver">Price check &amp; bill · <span id="appVer"></span> <span class="sync-dot" id="syncDot" hidden></span></div>
 </nav>
 <header class="wtop" id="wtop" aria-label="Yamie Price Check">
-  <button class="wt-brand" type="button" id="wtHome" aria-label="Home"><span class="wt-mark" id="wtMark"></span><span class="wt-nm"><b id="wtNm">Yamie</b><small>Price Check &amp; Quote</small></span></button>
+  <button class="wt-brand" type="button" id="wtHome" aria-label="Home"><span class="wt-mark" id="wtMark"></span><span class="wt-nm"><b id="wtNm">Yamie</b><small>Price Check &amp; Quote · <span id="wtVer"></span></small></span></button>
   <nav class="wt-cats" id="wtCats" aria-label="Item types"></nav>
   <form class="wt-search" id="wtSearch" role="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input id="wtQ" type="search" placeholder="Search label no., item, supplier…" aria-label="Search stock" autocomplete="off"></form>
   <span class="wt-bellslot" id="wtBellSlot"></span>
@@ -1840,7 +1845,7 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
   <section class="card prod" id="prodCard" data-pane="home" hidden aria-label="Product details">
     <div class="prod-head"><button class="pd-imgtog" type="button" id="pdImgTog" aria-label="Hide product image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 17-5-5-9 8"/></svg></button><span class="ph-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 3.5 7.5v9L12 21l8.5-4.5v-9z"/><path d="M3.5 7.5 12 12l8.5-4.5M12 12v9"/></svg>Product Details</span><span class="sku-chip" id="pdSku"></span></div>
     <div class="prod-body">
-      <div class="prod-tile" id="pdTile"></div>
+      <div class="prod-tcol"><div class="prod-tile" id="pdTile"></div><a class="shop-lk" id="pdShop" href="#" target="_blank" rel="noopener" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8Z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>Shopify link</a></div>
       <div class="prod-info"><div class="prod-name" id="pdName"></div><dl class="specs" id="pdSpecs"></dl></div>
     </div>
     <dl class="specs specs-more" id="pdSpecs2" hidden></dl>
@@ -4308,7 +4313,7 @@ function paintProduct(){
   const st=cur.stockKey&&cur.stock?cur.stock:null,name=(st&&st.category&&String(st.category).trim())||cur.item||itemFromSku(cur.sku)||'Item';
   $('pdSku').textContent='SKU: '+k;
   const showImg=imgOn();$('pdTile').hidden=!showImg;$('prodCard').classList.toggle('no-img',!showImg);$('pdImgTog').classList.toggle('off',!showImg);$('pdImgTog').setAttribute('aria-label',showImg?'Hide product image':'Show product image');
-  paintProdImg(k,name);
+  paintProdImg(k,name);paintShopLink(st||{key:k});
   $('pdName').textContent=name;
   const p=priceTag(cur),g=num(settings.gst)||0,ok=p.ok&&!m.length;
   const w=v=>v!=null&&v!==''&&!isNaN(num(v))?num(v).toFixed(3):'';
@@ -4890,6 +4895,21 @@ function openSetCard(id){
   show();
 }
 {const sv=setView;setView=function(v){if(v!=='settings')delete document.body.dataset.sc;sv(v);if(v==='settings')try{paintSetGrid()}catch(e){}}}
+// ---- V1.8.0 Shopify product pages: the label no. is the product's SKU on the store ----
+let shopLinks=store.get('shopLinks',{at:0,map:{}});if(!shopLinks||typeof shopLinks.map!=='object')shopLinks={at:0,map:{}};
+const shopN=x=>String(x||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+function shopOn(){return !!(shopLinks&&shopLinks.map&&Object.keys(shopLinks.map).length)}
+function shopUrl(r){if(!r)return '';const m=shopLinks.map||{};const h=m[shopN(r.key)]||m[shopN(r.barcode)];return h&&/^https:\/\//.test(h.u)?h.u:''}
+function shopA(r,small){const u=shopUrl(r);return u?`<a class="shop-lk${small?' sm':''}" href="${esc(u)}" target="_blank" rel="noopener" title="${esc((shopLinks.map[shopN(r.key)]||shopLinks.map[shopN(r.barcode)]||{}).t||'Open on the Shopify store')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8Z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>${small?'Shopify':'Shopify link'}</a>`:''}
+function paintShopLink(r){const a=$('pdShop');if(!a)return;const u=shopUrl(r);a.hidden=!u;if(u){a.href=u;const h=shopLinks.map[shopN(r.key)]||shopLinks.map[shopN(r.barcode)];a.title=h&&h.t?h.t:'Open on the Shopify store'}}
+let shopPulling=false;
+async function pullShopLinks(force){
+  if(shopPulling||!sync.key||!navigator.onLine)return;if(!force&&Date.now()-(+store.get('shopLinksAt',0)||0)<3600e3)return;
+  shopPulling=true;try{const r=await syncApi('shoplinks'+(force?'&refresh=1':''));if(r&&r.map&&typeof r.map==='object'){shopLinks={at:r.at||Date.now(),map:r.map,ok:r.ok,msg:r.msg||''};store.set('shopLinks',shopLinks);store.set('shopLinksAt',Date.now());
+    try{if(cur&&cur.sku)paintShopLink(cur.stock||{key:keyOf(cur.sku)})}catch(e){}try{if(document.body.dataset.view==='search')runFind()}catch(e){}}}catch(e){}finally{shopPulling=false}
+}
+setTimeout(()=>pullShopLinks(),3000);setInterval(()=>pullShopLinks(),15*60e3);
+document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a.shop-lk');if(!a)return;e.stopPropagation();if(NATIVE&&NATIVE.openUrl){e.preventDefault();NATIVE.openUrl(a.href)}},true);
 // ---- V1.7.88 Search: pick items, then share them on WhatsApp, as a PDF or with another app user ----
 function sharedBanner(){
   if(!shareList)return '';const n=shareList.keys.size;
@@ -4920,9 +4940,9 @@ function openSharedList(l){
   if(l.state==='new'){l.state='done';store.set('leads',leads);pushLead(l)}
   openFind('');
 }
-const SH_F=[['img','Photo'],['key','Label no.'],['item','Item name'],['category','Item type'],['carat','Purity'],['gw','Gross wt'],['nw','Net wt'],['stone','Stone / diamond'],['mk','Making'],['price','Label price'],['fv','Fair value'],['fva','FVA'],['huidNo','HUID no.'],['size','Size'],['location','Location'],['supplier','Supplier'],['nlc','NLC']];
-const SH_DEF=['img','key','item','category','carat','gw','nw','stone','price','fv'];
-function shFieldsOk(){return SH_F.filter(([k])=>(!['fv','fva'].includes(k)||can('fva'))&&(!['supplier','nlc'].includes(k)||can('pdHidden')))}
+const SH_F=[['img','Photo'],['key','Label no.'],['item','Item name'],['category','Item type'],['carat','Purity'],['gw','Gross wt'],['nw','Net wt'],['stone','Stone / diamond'],['mk','Making'],['price','Label price'],['fv','Fair value'],['fva','FVA'],['huidNo','HUID no.'],['size','Size'],['location','Location'],['shop','Shopify link'],['supplier','Supplier'],['nlc','NLC']];
+const SH_DEF=['img','key','item','category','carat','gw','nw','stone','price','fv','shop'];
+function shFieldsOk(){return SH_F.filter(([k])=>(k!=='shop'||shopOn())&&(!['fv','fva'].includes(k)||can('fva'))&&(!['supplier','nlc'].includes(k)||can('pdHidden')))}
 function shVal(r,k){
   const W=v=>num(v)>0?num(v).toFixed(3)+' g':'';
   switch(k){
@@ -4936,6 +4956,7 @@ function shVal(r,k){
     case 'fv':{const o=stPrice(r);return isNaN(o.fv)?'':inr(o.fv)}
     case 'fva':{const o=stPrice(r);return o.fl||String(r.fva||'')}
     case 'nlc':return num(r.nlc)>0?inr(num(r.nlc)):'';
+    case 'shop':return shopUrl(r);
     default:return String(r[k]??'').trim();
   }
 }
@@ -4973,7 +4994,7 @@ async function shCard(r,f,ph){
   try{await document.fonts.load('600 30px Jost')}catch(e){}
   const F=(w,px)=>`${w} ${px}px Jost, "Segoe UI", Roboto, sans-serif`,css=getComputedStyle(document.documentElement);
   const MAROON=(css.getPropertyValue('--maroon')||'#971B1E').trim(),INK='#1E1414',MUTED='#7A6A66',LINE='#EADFD8';
-  const W=1080,P=56,rows=f.filter(k=>!['img','item','key'].includes(k)).map(k=>[SH_F.find(c=>c[0]===k)[1],shVal(r,k),k]).filter(x=>x[1]);
+  const W=1080,P=56,rows=f.filter(k=>!['img','item','key','shop'].includes(k)).map(k=>[SH_F.find(c=>c[0]===k)[1],shVal(r,k),k]).filter(x=>x[1]);
   const photoH=f.includes('img')&&ph?W-2*P:0,H=P+photoH+(photoH?36:0)+64+(f.includes('key')?44:0)+18+rows.length*58+96;
   const cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');
   c.fillStyle='#fff';c.fillRect(0,0,W,H);let y=P;
@@ -5220,7 +5241,7 @@ function runFindTable(){
   const W=v=>num(v)>0?num(v).toFixed(3):'–',ed=can('stockEdit');
   const cols=stCols.filter(k=>!ST_ADMIN.includes(k)||can('pdHidden')).map(k=>ST_ALL.find(c=>c[0]===k)).filter(Boolean);
   const mkOf=r=>r.mkType&&num(r.mk)>0?valText({type:r.mkType,val:num(r.mk)}):'–';
-  const img=r=>`<div class="st-img" data-img="${esc(r.key)}">${itemImg(bcSplit(r.key).pre,r.category||r.item)?`<img src="${itemImg(bcSplit(r.key).pre,r.category||r.item)}" alt="" loading="lazy">`:icoFor(r.category||r.item||'')}</div>`;
+  const img=r=>`<div class="st-img" data-img="${esc(r.key)}">${itemImg(bcSplit(r.key).pre,r.category||r.item)?`<img src="${itemImg(bcSplit(r.key).pre,r.category||r.item)}" alt="" loading="lazy">`:icoFor(r.category||r.item||'')}</div>${shopA(r,true)}`;
   const acts=r=>`<td class="st-act"><button class="btn sm st-price" type="button" data-price="${esc(r.key)}">Price it</button>${ed?`<button class="st-dots" type="button" data-ed="${esc(r.key)}" aria-label="Edit ${esc(r.barcode||r.key)} in database" title="Edit in database">⋯</button>`:''}</td>`;
   const body=stGrid?`<div class="st-gridv">${show.map(r=>{const sa=stVal(r,'sa');return `<div class="stg-c${r===exact?' hit':''}${stSel.has(r.key)?' sel':''}" tabindex="0" data-k="${esc(r.key)}"><label class="stg-ck"><input type="checkbox" data-sel="${esc(r.key)}"${stSel.has(r.key)?' checked':''} aria-label="Select ${esc(r.barcode||r.key)}"></label>${img(r)}<div class="stg-x"><b>${esc(r.barcode||r.key)}</b><span>${esc(r.item||r.category||'')}</span><small>${esc(PLABEL[caratToPurity(r.carat)]||r.carat||'')} · ${W(r.gw)} g${sa>0?' · '+inr(sa):''} · ${esc(mkOf(r))}</small>${(()=>{const o=stPrice(r);return isNaN(o.lp)?'':`<span class="stg-p"><b>${inr(o.lp)}</b>${isNaN(o.fv)?'':` <em>FV ${inr(o.fv)}</em>`}</span>`})()}</div><button class="btn sm st-price" type="button" data-price="${esc(r.key)}">Price it</button></div>`}).join('')}</div>`
     :`<div class="st-wrap"><table class="stk"><thead><tr><th class="st-ck"><input type="checkbox" id="stAll" aria-label="Select all on this page"${show.length&&show.every(r=>stSel.has(r.key))?' checked':''}></th><th class="st-n">#</th>${cols.map(([c,l,r])=>`<th class="${r?'r':''} c-${c}" data-c="${c}"${stSort.k===c?` aria-sort="${stSort.d>0?'ascending':'descending'}"`:''}>${l}</th>`).join('')}<th class="c-act">Action</th></tr></thead><tbody>${show.map((r,i)=>`<tr tabindex="0" data-k="${esc(r.key)}" class="${r===exact?'hit':''}${stSel.has(r.key)?' sel':''}"><td class="st-ck"><input type="checkbox" data-sel="${esc(r.key)}"${stSel.has(r.key)?' checked':''} aria-label="Select ${esc(r.barcode||r.key)}"></td><td class="st-n">${(stPage-1)*stPer+i+1}</td>${cols.map(([c,,ra])=>`<td class="${ra?'r ':''}c-${c}">${stCell(r,c,img,W,mkOf)}</td>`).join('')}${acts(r)}</tr>`).join('')}</tbody></table></div>`;
@@ -6071,7 +6092,7 @@ function runFind(){
       ['Diamond value',r.saDia>0?inr(r.saDia):''],['Colour stone',r.saClr>0?inr(r.saClr):''],['Stone value',!(r.saDia>0||r.saClr>0)&&r.sa>0?inr(r.sa):''],
       ['Diamond wt',num(r.dw)>0?`${fmtN(num(r.dw))} ct`:''],['Diamond count',num(r.dq)>0?`${fmtN(num(r.dq))} pcs`:''],['Colour stone wt',num(r.cw)>0?num(r.cw).toFixed(3):''],['Stones',r.stoneName],['Making',mk],['HUID',r.huid!=null&&r.huid!==''?String(r.huid):''],['HUID No.',r.huidNo||''],['Labelling date',fmtDate(r.labelDate)],['Label code',r.label&&keyOf(r.label)!==r.key?r.label:''],['Supplier',r.supplier]].filter(x=>x[1]);
     return `<div class="find-card" data-k="${esc(r.key)}">
-      <div class="fc-top"><div class="fc-img" data-img="${esc(r.key)}">${icoFor(r.category||r.item||'')}</div>
+      <div class="fc-top"><div class="fc-ic"><div class="fc-img" data-img="${esc(r.key)}">${icoFor(r.category||r.item||'')}</div>${shopA(r)}</div>
         <div class="fc-h"><b>${esc(r.barcode||r.key)}</b><span class="in-st">In stock</span><div class="fc-name">${esc(r.category||r.item||'')}</div></div></div>
       <dl class="specs fc-specs">${rows.map(([l,v])=>`<dt>${esc(l)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>
       <div class="fc-acts"><label class="fc-ck"><input type="checkbox" data-sel="${esc(r.key)}"${stSel.has(r.key)?' checked':''}> Select</label><button class="btn sm" type="button" data-photo="${esc(r.key)}">📷 ${imgIdx[r.key]?'Change photo':'Add photo'}</button><button class="btn sm primary" type="button" data-price="${esc(r.key)}">Price it</button></div>
@@ -6095,8 +6116,8 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.7.__BUILD__';
-$('appVer').textContent='v'+(APP_VERSION.includes('__')?'dev':APP_VERSION);$('heroVer').textContent=$('appVer').textContent;
+const APP_VERSION='1.8.0',APP_BUILD='__BUILD__';
+{const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------
 const DEFAULT_PIN_HASH='70249d509e52362f5d41ae4cc1bfeabc6af135b10b4c2ba234fdf87639485ccf'; // starting admin PIN (stored as a hash only)

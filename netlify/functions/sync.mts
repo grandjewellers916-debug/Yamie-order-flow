@@ -249,6 +249,36 @@ export default async (req: Request) => {
         const sold = ((await st.get("sold", { type: "json" })) as any) || {}
         return json(req, { v: (meta as any).sold || 0, sold })
       }
+      if (op === "shoplinks") {
+        // V1.8.0 label no. (product SKU) -> the product page on the Shopify store; cached for an hour
+        const cached: any = await st.get("shoplinks", { type: "json" })
+        const want = new URL(req.url).searchParams.get("refresh") === "1" && (!cached || Date.now() - (cached.at || 0) > 60e3)
+        if (cached && !want && Date.now() - (cached.at || 0) < 3600e3) return json(req, cached)
+        try {
+          const { gql } = await shopifyApi()
+          const map: Record<string, { u: string; t: string }> = {}
+          let after: string | null = null, base = ""
+          for (let page = 0; page < 100; page++) {
+            const d: any = await gql("query($a:String){ shop { primaryDomain { url } } products(first:100, after:$a, query:\"status:active\") { pageInfo { hasNextPage endCursor } nodes { title handle onlineStoreUrl variants(first:5) { nodes { sku } } } } }", { a: after })
+            base = base || String(d?.shop?.primaryDomain?.url || "").replace(/\/$/, "")
+            for (const p of d?.products?.nodes || []) {
+              const u = p.onlineStoreUrl || (base && p.handle ? base + "/products/" + p.handle : "")
+              if (!u) continue
+              for (const v of p.variants?.nodes || []) { const k = String(v?.sku || "").toUpperCase().replace(/[^A-Z0-9]/g, ""); if (k) map[k] = { u: cleanStr(u, 300), t: cleanStr(p.title, 120) } }
+            }
+            if (!d?.products?.pageInfo?.hasNextPage) break
+            after = d.products.pageInfo.endCursor
+          }
+          const out = { at: Date.now(), ok: true, n: Object.keys(map).length, map }
+          await st.setJSON("shoplinks", out)
+          return json(req, out)
+        } catch (e: any) {
+          const msg = String(e?.message || e).slice(0, 200)
+          const out = cached && cached.ok ? { ...cached, stale: true, msg } : { at: Date.now(), ok: false, msg, map: {} }
+          if (!(cached && cached.ok)) await st.setJSON("shoplinks", out)
+          return json(req, out)
+        }
+      }
       if (op === "held") {
         // One label, one open quote: which of these labels are already in another open quote (not closed)
         const K = (v: any) => String(v ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "")
@@ -522,21 +552,7 @@ export default async (req: Request) => {
         const dom = (process.env.SHOPIFY_STORE_DOMAIN || "").replace(/^https?:\/\//, "").replace(/\/.*$/, "")
         try {
           if (!dom) throw new Error("Not set up: add SHOPIFY_STORE_DOMAIN in Netlify")
-          let token = process.env.SHOPIFY_ADMIN_TOKEN || ""
-          if (!token) {
-            const id = process.env.SHOPIFY_CLIENT_ID, sec = process.env.SHOPIFY_CLIENT_SECRET
-            if (!id || !sec) throw new Error("Not set up: add SHOPIFY_CLIENT_ID and SHOPIFY_CLIENT_SECRET in Netlify")
-            const tr = await fetch(`https://${dom}/admin/oauth/access_token`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ client_id: id, client_secret: sec, grant_type: "client_credentials" }) })
-            const tj: any = await tr.json().catch(() => ({}))
-            if (!tr.ok || !tj.access_token) throw new Error("Shopify login failed (" + tr.status + ")")
-            token = tj.access_token
-          }
-          const gql = async (query: string, variables?: any) => {
-            const r = await fetch(`https://${dom}/admin/api/2025-01/graphql.json`, { method: "POST", headers: { "content-type": "application/json", "x-shopify-access-token": token }, body: JSON.stringify({ query, variables }) })
-            const j: any = await r.json().catch(() => ({}))
-            if (!r.ok || j.errors) throw new Error("Shopify error " + r.status)
-            return j.data
-          }
+          const { gql } = await shopifyApi()
           const shopId = (await gql("{ shop { id } }"))?.shop?.id
           const keys: Record<string, string> = { r22: "gold_rate_22k", r18: "gold_rate_18k", r14: "gold_rate_14k", r9: "gold_rate_9k", platinum: "gold_rate_platinum", silver: "gold_rate_silver" }
           const metafields = Object.entries(rates).map(([k, v]) => ({ ownerId: shopId, namespace: "custom", key: keys[k], type: "single_line_text_field", value: String(v) }))
@@ -659,3 +675,25 @@ export default async (req: Request) => {
 }
 
 export const config: Config = { path: "/api/sync", method: ["GET", "POST", "OPTIONS"] }
+
+// Shopify Admin API for the store in SHOPIFY_STORE_DOMAIN (token, or client id + secret). Secrets stay in Netlify.
+async function shopifyApi() {
+  const dom = (process.env.SHOPIFY_STORE_DOMAIN || "").replace(/^https?:\/\//, "").replace(/\/.*$/, "")
+  if (!dom) throw new Error("Not set up: add SHOPIFY_STORE_DOMAIN in Netlify")
+  let token = process.env.SHOPIFY_ADMIN_TOKEN || ""
+  if (!token) {
+    const id = process.env.SHOPIFY_CLIENT_ID, sec = process.env.SHOPIFY_CLIENT_SECRET
+    if (!id || !sec) throw new Error("Not set up: add SHOPIFY_CLIENT_ID and SHOPIFY_CLIENT_SECRET in Netlify")
+    const tr = await fetch(`https://${dom}/admin/oauth/access_token`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ client_id: id, client_secret: sec, grant_type: "client_credentials" }) })
+    const tj: any = await tr.json().catch(() => ({}))
+    if (!tr.ok || !tj.access_token) throw new Error("Shopify login failed (" + tr.status + ")")
+    token = tj.access_token
+  }
+  const gql = async (query: string, variables?: any) => {
+    const r = await fetch(`https://${dom}/admin/api/2025-01/graphql.json`, { method: "POST", headers: { "content-type": "application/json", "x-shopify-access-token": token }, body: JSON.stringify({ query, variables }) })
+    const j: any = await r.json().catch(() => ({}))
+    if (!r.ok || j.errors) throw new Error("Shopify error " + r.status + (j?.errors ? ": " + JSON.stringify(j.errors).slice(0, 160) : ""))
+    return j.data
+  }
+  return { gql, dom }
+}

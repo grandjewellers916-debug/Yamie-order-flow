@@ -441,3 +441,7 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
   - **WhatsApp** – one picture per item (up to 20, only the item's own uploaded photo) and a message listing every item. Phone app: straight into WhatsApp; computer: pictures copied as one sheet to paste into WhatsApp Web. Needs the WhatsApp share permission.
   - **PDF** – A4 table with photos and the chosen details.
   - **Send to user** – another app user gets a notification "Items shared with you"; tapping it opens Search showing only those items, with the sender's note.
+
+## V 1.8.0
+- **Version number** – fixed name 1.8.0, shown in the web top bar (next to "Price Check & Quote"), the phone header and the menu (with the build number / web commit). Android versionName is 1.8.0.
+- **Shopify link** – the server (op `shoplinks`) reads the active products on the Shopify store in SHOPIFY_STORE_DOMAIN and matches each variant SKU to a label no. (cached 1 hour, the app re-checks every 15 min). A green "Shopify link" shows under the item image on Home, under the photo in Search (table, grid and phone cards), and can be included when sharing items. Draft products are not linked. Uses the same Netlify Shopify settings as the gold-rate sync; the Shopify app needs the read_products permission. Sites without Shopify settings (Grand) show no links.
