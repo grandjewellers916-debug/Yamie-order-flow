@@ -460,3 +460,4 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 - **WhatsApp quote image** – new tick "Send the item photos too": the database photos of the quote's items (up to 3 per item, 15 in all) go with the quote image.
 - **Phone app Search list** – with an empty search box the app shows the full stock list with the same filters, ranges, sort, pages and select-and-share as the web; tap a row for the full details card.
 - **Reports in the app** – a Reports button on the phone Home (with the Reports permission) opens the report.
+- Phone stock list: the filter and range bar scrolls sideways inside the card (page no longer wider than the screen).
