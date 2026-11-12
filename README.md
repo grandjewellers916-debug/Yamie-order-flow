@@ -479,3 +479,11 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 - **WhatsApp pictures fixed** – sharing items always sends a picture card per item (earlier, with "Photo" unticked, only the text went). Order of attempts: phone app → straight into WhatsApp with the pictures; browsers that can share files (Android Chrome, Windows/Mac Chrome & Edge) → the share sheet with the pictures; otherwise a panel shows the pictures to drag / copy (Ctrl+V) into WhatsApp Web or download, plus "Open WhatsApp" with the message. The quote image uses the same path.
 - **Multiple pictures** – "Also send all photos of each item" sends every photo after its card (up to 30 pictures). Android: with several pictures WhatsApp asks which chat (a number still opens the chat directly for a single picture).
 - **Picture card** – logo band, the item photo, product name, item name and label no., the ticked details, Label price / Fair value boxes, and a footer with phone, website and address. A live preview in the Share window follows the ticks. "Message only" sends just the text.
+
+## V 1.8.6
+- **Permissions, grouped** – the role editor shows functions in folding groups with "All / None" and a count: Prices & making · Quotes · Search · WhatsApp & sharing · Stock database · Product photos & details · Reports · Settings.
+- New permissions – Search: Search page, Search filters, Range search, Select items, Export Search to Excel (was admin-only "Export"). WhatsApp & sharing: Share items on WhatsApp (picture cards), Send all photos of an item, Items as PDF, Send items to another user, Share fair value & savings, Share making / NLC / supplier. Existing roles keep what they could do (one-time migration v186: everyone gets search, filters and ranges; roles that could share get the sharing ones; roles with hidden details get "making, NLC & supplier"; roles with Reports get the Excel export).
+- **Picture card only** – a third choice beside "Picture card + message" and "Message only".
+- **Savings as the hero** – with "Savings" ticked the card shows a big "YOU SAVE ₹…" box with the % off, the struck-out label price and "You pay".
+- **All photos on the card** – the main photo plus up to 4 more as thumbnails.
+- Cards are built while the Share window is open, so the share sheet / WhatsApp opens on the first click.

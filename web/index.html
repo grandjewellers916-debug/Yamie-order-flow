@@ -925,6 +925,7 @@ body.stm .st-pager{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justif
 .wa-one{display:inline-flex;align-items:center;justify-content:center;gap:5px;font:600 13px var(--body);color:#128C4A;padding:4px 8px;border-radius:999px;border:1px solid color-mix(in srgb,#128C4A 35%,transparent);background:color-mix(in srgb,#128C4A 7%,var(--surface));min-height:30px;cursor:pointer;white-space:nowrap}.wa-one[hidden]{display:none}.wa-one svg{width:15px;height:15px}
 .st-wa{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;margin-left:6px;border-radius:50%;border:1px solid color-mix(in srgb,#128C4A 35%,transparent);background:transparent;color:#128C4A;cursor:pointer;vertical-align:middle}.st-wa svg{width:16px;height:16px}.st-wa:hover{background:color-mix(in srgb,#128C4A 10%,transparent)}
 .pm-name{margin-bottom:12px}
+.rc-grp>summary{display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none;padding:4px 0}.rc-grp>summary::-webkit-details-marker{display:none}.rc-grp>summary .note{margin-left:auto}.rc-grp>summary::before{content:'▸';color:var(--maroon)}.rc-grp[open]>summary::before{content:'▾'}
 .sh-card{display:grid;grid-template-columns:minmax(150px,210px) 1fr;gap:14px;margin-top:12px;align-items:start}.sh-card canvas{width:100%;height:auto;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.14);background:#fff}
 .sh-opts{display:flex;flex-direction:column;gap:8px}.sh-opts>b{font:600 13px var(--body);color:var(--maroon);text-transform:uppercase;letter-spacing:.05em}.sh-opts .rc-p{justify-content:flex-start}
 @media (max-width:520px){.sh-card{grid-template-columns:110px 1fr}}
@@ -4351,7 +4352,7 @@ function paintProduct(){
   const st=cur.stockKey&&cur.stock?cur.stock:null,name=(st&&st.category&&String(st.category).trim())||cur.item||itemFromSku(cur.sku)||'Item';
   $('pdSku').textContent='SKU: '+k;
   const showImg=imgOn();$('pdTile').hidden=!showImg;$('prodCard').classList.toggle('no-img',!showImg);$('pdImgTog').classList.toggle('off',!showImg);$('pdImgTog').setAttribute('aria-label',showImg?'Hide product image':'Show product image');
-  paintProdImg(k,name);paintShopLink(st||{key:k});{const w=$('pdWa');w.hidden=!st;w.onclick=()=>{const r=stockMap.get(k);if(r)openShareSel([r])}}
+  paintProdImg(k,name);paintShopLink(st||{key:k});{const w=$('pdWa');w.hidden=!st||!can('shareItems');w.onclick=()=>{const r=stockMap.get(k);if(r)openShareSel([r])}}
   $('pdName').textContent=pnameOf(st)||name;
   const p=priceTag(cur),g=num(settings.gst)||0,ok=p.ok&&!m.length;
   const w=v=>v!=null&&v!==''&&!isNaN(num(v))?num(v).toFixed(3):'';
@@ -5030,6 +5031,8 @@ function sharedBanner(){
 }
 window.__clrShared=()=>{shareList=null;stPage=1;runFind()};
 function wireSel(el,show){
+  const okS=can('stSelect');el.querySelectorAll('.st-ck,.stg-ck,.fc-ck,.mr-ck').forEach(x=>x.hidden=!okS);if(!okS){stSel.clear();paintSelBar();}
+  const okW=can('shareItems');el.querySelectorAll('[data-wa]').forEach(x=>x.hidden=!okW);
   el.querySelectorAll('[data-sel]').forEach(c=>{c.onclick=e=>e.stopPropagation();c.onchange=()=>{const k=c.dataset.sel;if(c.checked)stSel.add(k);else stSel.delete(k);
     const row=c.closest('tr,.stg-c,.find-card');if(row)row.classList.toggle('sel',c.checked);const all=$('stAll');if(all)all.checked=show.length>0&&show.every(r=>stSel.has(r.key));paintSelBar()}});
   const all=$('stAll');if(all)all.onchange=()=>{show.forEach(r=>{if(all.checked)stSel.add(r.key);else stSel.delete(r.key)});runFind();paintSelBar()};
@@ -5039,23 +5042,23 @@ function paintSelBar(){
   let b=$('stSelBar');
   if(!b){b=document.createElement('div');b.id='stSelBar';b.className='st-selbar';b.setAttribute('role','region');b.setAttribute('aria-label','Selected items');document.body.appendChild(b)}
   for(const k of [...stSel])if(!stockMap.has(k))stSel.delete(k);
-  const on=document.body.dataset.view==='search'&&stSel.size>0;b.hidden=!on;if(!on)return;
+  const on=document.body.dataset.view==='search'&&stSel.size>0&&can('stSelect');b.hidden=!on;if(!on)return;
   const tot=stLastRows.length,more=stLastRows.some(r=>!stSel.has(r.key));
   b.innerHTML=`<span class="ss-n"><b>${stSel.size.toLocaleString('en-IN')}</b> selected</span>${more&&tot>1?`<button type="button" class="linkbtn" id="ssAll">${DESK.matches?'Select all '+tot.toLocaleString('en-IN')+' found':'All '+tot.toLocaleString('en-IN')}</button>`:''}<button type="button" class="btn primary" id="ssShare">Share…</button><button type="button" class="btn ss-clr" id="ssClr">Clear</button>`;
   if($('ssAll'))$('ssAll').onclick=()=>{stLastRows.slice(0,500).forEach(r=>stSel.add(r.key));if(tot>500)toast('First 500 items selected',null,true);runFind()};
   $('ssClr').onclick=()=>{stSel.clear();runFind();paintSelBar()};
   $('ssShare').onclick=openShareSel;
 }
-{const sv=setView;setView=function(v){sv(v);try{paintSelBar()}catch(e){}}}
+{const sv=setView;setView=function(v){if(v==='search'&&curUser&&!can('search')){withPerm('search','Needs permission: Search page.',()=>{sv(v);try{paintSelBar()}catch(e){}});return}sv(v);try{paintSelBar()}catch(e){}}}
 function openSharedList(l){
   shareList={keys:new Set(l.keys||[]),from:l.byName||'',note:l.note||''};
   findType='';Object.keys(findF).forEach(k=>findF[k]='');const g=document.querySelector('#stFilters .st-rng');if(g)g.remove();stPage=1;stSel.clear();
   if(l.state==='new'){l.state='done';store.set('leads',leads);pushLead(l)}
   openFind('');
 }
-const SH_F=[['img','Photo on the card'],['pname','Product name'],['jt','Design'],['key','Label no.'],['item','Item name'],['category','Item type'],['carat','Purity'],['gw','Gross wt'],['nw','Net wt'],['stone','Stone / diamond'],['scol','Stone colour'],['mk','Making'],['price','Label price'],['fv','Fair value'],['fva','FVA'],['huidNo','HUID no.'],['size','Size'],['location','Location'],['shop','Shopify link'],['supplier','Supplier'],['nlc','NLC']];
-const SH_DEF=['img','pname','jt','scol','key','item','category','carat','gw','nw','stone','price','fv','shop'];
-function shFieldsOk(){return SH_F.filter(([k])=>(k!=='shop'||shopOn())&&(!['fv','fva'].includes(k)||can('fva'))&&(!['supplier','nlc'].includes(k)||can('pdHidden')))}
+const SH_F=[['img','Photo on the card'],['pname','Product name'],['jt','Design'],['key','Label no.'],['item','Item name'],['category','Item type'],['carat','Purity'],['gw','Gross wt'],['nw','Net wt'],['stone','Stone / diamond'],['scol','Stone colour'],['mk','Making'],['price','Label price'],['fv','Fair value'],['save','Savings'],['fva','FVA'],['huidNo','HUID no.'],['size','Size'],['location','Location'],['shop','Shopify link'],['supplier','Supplier'],['nlc','NLC']];
+const SH_DEF=['img','pname','jt','scol','key','item','category','carat','gw','nw','stone','price','fv','save','shop'];
+function shFieldsOk(){return SH_F.filter(([k])=>(k!=='shop'||shopOn())&&(!['fv','fva','save'].includes(k)||(can('fva')&&can('shareFv')))&&(k!=='mk'||can('shareCost'))&&(!['supplier','nlc'].includes(k)||(can('pdHidden')&&can('shareCost'))))}
 function shVal(r,k){
   const W=v=>num(v)>0?num(v).toFixed(3)+' g':'';
   switch(k){
@@ -5071,6 +5074,7 @@ function shVal(r,k){
     case 'price':{const o=stPrice(r);return isNaN(o.lp)?'':inr(o.lp)}
     case 'fv':{const o=stPrice(r);return isNaN(o.fv)?'':inr(o.fv)}
     case 'fva':{const o=stPrice(r);return o.fl||String(r.fva||'')}
+    case 'save':{const o=stPrice(r);const d=!isNaN(o.lp)&&!isNaN(o.fv)?o.lp-o.fv:0;return d>0?`${inr(d)} (${Math.round(d*100/o.lp)}%)`:''}
     case 'nlc':return num(r.nlc)>0?inr(num(r.nlc)):'';
     case 'shop':return shopUrl(r);
     default:return String(r[k]??'').trim();
@@ -5088,21 +5092,25 @@ function openShareSel(only){
       <p class="note sh-prev" id="shPrev"></p>
       <div class="sh-card"><canvas id="shCardCv" aria-label="Picture card preview"></canvas><div class="sh-opts">
         <b>WhatsApp sends</b>
-        <label class="rc-p"><input type="radio" name="shMode" value="card"${store.get('shMode','card')!=='text'?' checked':''}> Picture card for each item + message</label>
-        <label class="rc-p"><input type="radio" name="shMode" value="text"${store.get('shMode','card')==='text'?' checked':''}> Message only</label>
-        <label class="rc-p"><input type="checkbox" id="shAllPh"${store.get('shAllPh',false)?' checked':''}> Also send all photos of each item</label>
-        <small class="note">The card has the ${esc(BRAND.name)} logo, the photo, the ticked details, the price and your contact.</small></div></div></div>
+        ${(()=>{const m=store.get('shMode','card');return [['card','Picture card + message'],['cardOnly','Picture card only'],['text','Message only']].map(([v,l])=>`<label class="rc-p"><input type="radio" name="shMode" value="${v}"${m===v?' checked':''}> ${l}</label>`).join('')})()}
+        ${can('shareAllPh')?`<label class="rc-p"><input type="checkbox" id="shAllPh"${store.get('shAllPh',false)?' checked':''}> Also send all photos of each item</label>`:''}
+        <small class="note">The card has the ${esc(BRAND.name)} logo, all the item's photos, the ticked details, the savings and your contact.</small></div></div></div>
     <div class="sh-sec"><h5>Customer · WhatsApp or PDF</h5><div class="sh-row"><input id="shPh" inputmode="tel" autocomplete="off" placeholder="Customer WhatsApp no. (optional)" aria-label="Customer WhatsApp number">
-      <button type="button" class="btn primary" id="shWa">WhatsApp</button><button type="button" class="btn" id="shPdf">PDF</button></div></div>
-    <div class="sh-sec"><h5>Another app user</h5><div class="sh-row"><select id="shUser" aria-label="Send to user">${staff.length?staff.map(u=>`<option value="${esc(u.id)}">${esc(u.name||u.username)} · ${esc(roleName(u.role))}</option>`).join(''):'<option value="">No other users yet</option>'}</select>
+      ${can('shareItems')?'<button type="button" class="btn primary" id="shWa">WhatsApp</button>':''}${can('sharePdf')?'<button type="button" class="btn" id="shPdf">PDF</button>':''}</div></div>
+    <div class="sh-sec"${can('shareUser')?'':' hidden'}><h5>Another app user</h5><div class="sh-row"><select id="shUser" aria-label="Send to user">${staff.length?staff.map(u=>`<option value="${esc(u.id)}">${esc(u.name||u.username)} · ${esc(roleName(u.role))}</option>`).join(''):'<option value="">No other users yet</option>'}</select>
       <input id="shNote" autocomplete="off" placeholder="Note (optional)" aria-label="Note"><button type="button" class="btn" id="shUserGo"${staff.length?'':' disabled'}>Send to user</button></div></div></div>`;
   const pick=()=>{const v=[...$('modalBody').querySelectorAll('.sh-f input:checked')].map(i=>i.value);store.set('shFields',v);return v};
   const prev=()=>{const v=pick(),r=list[0];$('shPrev').textContent=v.length?'Preview · '+[shTitle(r),...v.filter(k=>k!=='img'&&k!=='item'&&k!=='pname').map(k=>{const x=shVal(r,k);return x?`${SH_F.find(c=>c[0]===k)[1]}: ${x}`:''}).filter(Boolean)].join(' · '):'Pick at least one detail'};
-  let cvT=0;const cardPrev=()=>{clearTimeout(cvT);cvT=setTimeout(async()=>{const v=pick(),r=list[0];const all=await getProdImgs(r.key).catch(()=>[]);const cv=await shCard(r,v,v.includes('img')&&all[0]?await loadImg(all[0]):null);const o=$('shCardCv');if(!o)return;o.width=cv.width;o.height=cv.height;o.getContext('2d').drawImage(cv,0,0)},120)};
+  let cvT=0;const cardPrev=()=>{clearTimeout(cvT);cvT=setTimeout(async()=>{const v=pick(),r=list[0];const all=v.includes('img')?await getProdImgs(r.key).catch(()=>[]):[];const ims=(await Promise.all(all.slice(0,5).map(u=>loadImg(u)))).filter(Boolean);const cv=await shCard(r,v,ims[0]||null,ims.slice(1));const o=$('shCardCv');if(!o)return;o.width=cv.width;o.height=cv.height;o.getContext('2d').drawImage(cv,0,0)},120)};
   $('modalBody').querySelectorAll('.sh-f input').forEach(i=>i.addEventListener('change',()=>{prev();cardPrev()}));prev();cardPrev();
-  $('modalBody').querySelectorAll('[name=shMode]').forEach(i=>i.onchange=()=>store.set('shMode',i.value));$('shAllPh').onchange=()=>store.set('shAllPh',$('shAllPh').checked);
-  $('shWa').onclick=()=>{const v=pick();if(!v.length){toast('Pick what to share',null,true);return}const opt={textOnly:(($('modalBody').querySelector('[name=shMode]:checked')||{}).value)==='text',allPh:$('shAllPh').checked};withPerm('share','Needs permission to share on WhatsApp.',()=>shareItemsWa(list,v,$('shPh')?phoneDigits($('shPh').value):'',opt))};
-  $('shPdf').onclick=async()=>{const v=pick();if(!v.length){toast('Pick what to share',null,true);return}const b=$('shPdf');b.disabled=true;b.textContent='Making the PDF…';try{await shareItemsPdf(list,v)}catch(e){toast('Could not make the PDF',null,true)}b.disabled=false;b.textContent='PDF'};
+  // build the cards while the window is open, so WhatsApp opens on the first click
+  const mode=()=>(($('modalBody').querySelector('[name=shMode]:checked')||{}).value)||'card',allPh=()=>!!($('shAllPh')&&$('shAllPh').checked);
+  let pre={sig:'',imgs:null},pT=0;const sigOf=()=>JSON.stringify([pick(),allPh()]);
+  const prebuild=()=>{clearTimeout(pT);if(mode()==='text'||list.length>20){pre={sig:'',imgs:null};return}pT=setTimeout(async()=>{const sg=sigOf(),v=pick();const im=await buildShareImgs(list,v,{allPh:allPh()});if(sg===sigOf())pre={sig:sg,imgs:im}},350)};
+  $('modalBody').querySelectorAll('[name=shMode]').forEach(i=>i.onchange=()=>{store.set('shMode',i.value);prebuild()});if($('shAllPh'))$('shAllPh').onchange=()=>{store.set('shAllPh',$('shAllPh').checked);prebuild()};
+  $('modalBody').querySelectorAll('.sh-f input').forEach(i=>i.addEventListener('change',prebuild));prebuild();
+  $('shWa').onclick=()=>{const v=pick();if(!v.length){toast('Pick what to share',null,true);return}const opt={textOnly:mode()==='text',cardOnly:mode()==='cardOnly',allPh:allPh()};const ready=pre.sig===sigOf()?pre.imgs:null;withPerm('shareItems','Needs permission: Share items on WhatsApp.',()=>shareItemsWa(list,v,$('shPh')?phoneDigits($('shPh').value):'',opt,ready))};
+  if($('shPdf'))$('shPdf').onclick=async()=>{const v=pick();if(!v.length){toast('Pick what to share',null,true);return}const b=$('shPdf');b.disabled=true;b.textContent='Making the PDF…';try{await shareItemsPdf(list,v)}catch(e){toast('Could not make the PDF',null,true)}b.disabled=false;b.textContent='PDF'};
   $('shUserGo').onclick=async()=>{const to=$('shUser').value,u=users.find(x=>x.id===to);if(!to)return;const v=pick();
     const l={id:uid(),kind:'items',keys:list.map(r=>r.key).slice(0,500),name:`${list.length} item${list.length===1?'':'s'}`,phone:'',note:$('shNote').value.trim(),to,toName:u?(u.name||u.username):'',by:curUser?curUser.id:'',byName:meName(),at:Date.now(),state:'new',fields:v};
     closeModal();leads.unshift(l);store.set('leads',leads);const done=await pushLead(l);toast(done?`${list.length} item${list.length===1?'':'s'} sent to ${l.toName}`:'Could not send. Check the internet.',null,!done)};
@@ -5118,46 +5126,57 @@ function shText(list,f){
 function brandContact(){const a=BRAND.address||[];const ph=(a.find(x=>/contact|phone|mob/i.test(x))||'').replace(/^[^:]*:\s*/,'');const web=(a.find(x=>/website|www\./i.test(x))||'').replace(/^[^:]*:\s*/,'');
   const addr=(BRAND.addr2&&BRAND.addr2[0])||a.slice(1,a.length).filter(x=>!/contact|website|gstin|www\./i.test(x)).join(', ');return {ph,web,addr}}
 let shLogo=null;async function shLogoImg(){if(shLogo!==null)return shLogo;shLogo=BRAND.logoHeader?await loadImg(BRAND.logoHeader):null;return shLogo}
-async function shCard(r,f,ph){
+async function shCard(r,f,ph,extra){
   try{await Promise.all(['500 30px Jost','600 30px Jost','700 30px Jost'].map(x=>document.fonts.load(x)))}catch(e){}
   const F=(w,px)=>`${w} ${px}px Jost, "Segoe UI", Roboto, sans-serif`,css=getComputedStyle(document.documentElement);
   const MAROON=(css.getPropertyValue('--maroon')||'#971B1E').trim(),BAND=(css.getPropertyValue('--band')||'#6B1014').trim(),GOLD=(css.getPropertyValue('--gold')||'#B58A3C').trim(),INK='#1E1414',MUTED='#7A6A66',LINE='#EADFD8';
   const W=1080,P=60,logo=await shLogoImg(),ct=brandContact();
-  const PR=['price','fv'].filter(k=>f.includes(k)&&shVal(r,k));
-  const rows=f.filter(k=>!['img','item','key','shop','pname','price','fv'].includes(k)).map(k=>[SH_F.find(c=>c[0]===k)[1],shVal(r,k),k]).filter(x=>x[1]);
-  const headH=170,photoH=f.includes('img')&&ph?W-2*P:0,priceH=PR.length?150:0,footH=150;
-  const H=headH+40+photoH+(photoH?40:0)+66+(f.includes('key')||f.includes('item')?46:0)+20+rows.length*60+(priceH?priceH+30:10)+footH;
+  const o=stPrice(r),lp=o.lp,fvp=o.fv,save=!isNaN(lp)&&!isNaN(fvp)&&lp-fvp>0?lp-fvp:0;
+  const hero=save>0&&f.includes('save');   // the savings is the hero of the card
+  const PR=hero?[]:['price','fv'].filter(k=>f.includes(k)&&shVal(r,k));
+  const rows=f.filter(k=>!['img','item','key','shop','pname','price','fv','save'].includes(k)).map(k=>[SH_F.find(c=>c[0]===k)[1],shVal(r,k),k]).filter(x=>x[1]);
+  const ex=(extra||[]).filter(Boolean).slice(0,4),thumbW=(W-2*P-3*16)/4;
+  const headH=170,photoH=f.includes('img')&&ph?W-2*P:0,thumbH=photoH&&ex.length?thumbW+16:0,priceH=hero?300:PR.length?150:0,footH=150;
+  const H=headH+40+photoH+thumbH+(photoH?40:0)+66+(f.includes('key')||f.includes('item')?46:0)+20+rows.length*60+(priceH?priceH+30:10)+footH;
   const cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');
   c.fillStyle='#FFFDFB';c.fillRect(0,0,W,H);
-  // header band with the logo
   const g=c.createLinearGradient(0,0,W,headH);g.addColorStop(0,BAND);g.addColorStop(1,MAROON);c.fillStyle=g;c.fillRect(0,0,W,headH);
   c.fillStyle=GOLD;c.fillRect(0,headH-6,W,6);
   if(logo){const s=Math.min(560/logo.width,96/logo.height),lw=logo.width*s,lh=logo.height*s;c.drawImage(logo,(W-lw)/2,(headH-6-lh)/2,lw,lh)}
   else{c.fillStyle='#fff';c.font=F(700,56);c.textAlign='center';c.fillText(BRAND.full.toUpperCase(),W/2,headH/2+18);c.textAlign='left'}
   let y=headH+40;
-  if(photoH){c.save();rrect(c,P,y,W-2*P,photoH,28);c.clip();c.fillStyle='#F4EDE6';c.fillRect(P,y,W-2*P,photoH);
-    const s=Math.max((W-2*P)/ph.width,photoH/ph.height),dw=ph.width*s,dh=ph.height*s;c.drawImage(ph,P+(W-2*P-dw)/2,y+(photoH-dh)/2,dw,dh);c.restore();y+=photoH+40}
+  const draw=(im,x,yy,w,h,rad)=>{c.save();rrect(c,x,yy,w,h,rad);c.clip();c.fillStyle='#F4EDE6';c.fillRect(x,yy,w,h);const s=Math.max(w/im.width,h/im.height),dw=im.width*s,dh=im.height*s;c.drawImage(im,x+(w-dw)/2,yy+(h-dh)/2,dw,dh);c.restore()};
+  if(photoH){draw(ph,P,y,W-2*P,photoH,28);y+=photoH;
+    if(ex.length){y+=16;ex.forEach((im,i)=>draw(im,P+i*(thumbW+16),y,thumbW,thumbW,18));y+=thumbW}
+    y+=40}
   c.fillStyle=MAROON;c.font=F(700,52);c.fillText(fitText(c,shTitle(r),W-2*P),P,y+48);y+=66;
   const sub=[f.includes('item')&&pnameOf(r)&&r.item?String(r.item).trim():'',f.includes('key')?(r.barcode||r.key):''].filter(Boolean).join('  ·  ');
   if(sub){c.fillStyle=MUTED;c.font=F(500,30);c.fillText(fitText(c,sub,W-2*P),P,y+30);y+=46}
-  y+=20;rows.forEach(([l,v,k])=>{c.strokeStyle=LINE;c.lineWidth=2;c.beginPath();c.moveTo(P,y);c.lineTo(W-P,y);c.stroke();
+  y+=20;rows.forEach(([l,v])=>{c.strokeStyle=LINE;c.lineWidth=2;c.beginPath();c.moveTo(P,y);c.lineTo(W-P,y);c.stroke();
     c.fillStyle=MUTED;c.font=F(400,30);c.fillText(l,P,y+41);c.fillStyle=INK;c.font=F(500,31);c.textAlign='right';c.fillText(fitText(c,v,W-2*P-280),W-P,y+42);c.textAlign='left';y+=60});
-  if(priceH){y+=20;const bw=(W-2*P-(PR.length-1)*20)/PR.length;PR.forEach((k,i)=>{const x=P+i*(bw+20),fv=k==='fv';
+  if(hero){y+=20;const bh=priceH-10,hg=c.createLinearGradient(P,y,W-P,y+bh);hg.addColorStop(0,'#4A2270');hg.addColorStop(1,MAROON);c.fillStyle=hg;rrect(c,P,y,W-2*P,bh,28);c.fill();
+    c.fillStyle=GOLD;c.font=F(700,30);c.fillText('YOU SAVE',P+40,y+62);
+    c.fillStyle='#fff';c.font=F(800,108);c.fillText(inr(save),P+36,y+178);
+    c.fillStyle='#F3D3A2';c.font=F(600,30);c.fillText(`${Math.round(save*100/lp)}% off the label price`,P+40,y+238);
+    c.textAlign='right';
+    if(f.includes('price')){c.fillStyle='rgba(255,255,255,.7)';c.font=F(500,28);c.fillText('Label price',W-P-40,y+62);c.font=F(600,40);const t=inr(lp),tw=c.measureText(t).width;c.fillText(t,W-P-40,y+110);c.strokeStyle='rgba(255,255,255,.75)';c.lineWidth=3;c.beginPath();c.moveTo(W-P-40-tw,y+96);c.lineTo(W-P-40,y+96);c.stroke()}
+    if(f.includes('fv')||true){c.fillStyle='rgba(255,255,255,.75)';c.font=F(500,28);c.fillText('You pay',W-P-40,y+172);c.fillStyle='#F3D3A2';c.font=F(700,52);c.fillText(inr(fvp),W-P-40,y+230)}
+    c.textAlign='left';y+=priceH}
+  else if(priceH){y+=20;const bw=(W-2*P-(PR.length-1)*20)/PR.length;PR.forEach((k,i)=>{const x=P+i*(bw+20),fv=k==='fv';
       c.fillStyle=fv?'#4A2270':'#F6EEDC';rrect(c,x,y,bw,priceH-10,22);c.fill();
       c.fillStyle=fv?'rgba(255,255,255,.8)':'#7A5A20';c.font=F(500,28);c.fillText(fv?'Fair value price':'Label price',x+28,y+46);
       c.fillStyle=fv?'#F3D3A2':MAROON;c.font=F(700,PR.length>1?50:58);c.fillText(fitText(c,shVal(r,k),bw-56),x+28,y+112)});y+=priceH}
-  // footer: contact
   const fy=H-footH;c.fillStyle=BAND;c.fillRect(0,fy,W,footH);c.fillStyle=GOLD;c.fillRect(0,fy,W,5);c.textAlign='center';
   c.fillStyle='#fff';c.font=F(600,34);c.fillText(fitText(c,[ct.ph?'☎ '+ct.ph:'',ct.web].filter(Boolean).join('   ·   ')||BRAND.full,W-2*P),W/2,fy+60);
-  c.fillStyle='rgba(255,255,255,.78)';c.font=F(400,24);c.fillText(fitText(c,ct.addr||BRAND.full,W-2*P),W/2,fy+104);c.textAlign='left';
-  if(f.includes('price')||f.includes('fv')){c.fillStyle='rgba(255,255,255,.55)';c.font=F(400,18);c.textAlign='center';c.fillText(`Prices at today's gold rate, incl. ${fmtN(gstPct())}% GST · ${new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}`,W/2,fy+136);c.textAlign='left'}
+  c.fillStyle='rgba(255,255,255,.78)';c.font=F(400,24);c.fillText(fitText(c,ct.addr||BRAND.full,W-2*P),W/2,fy+104);
+  if(f.includes('price')||f.includes('fv')||hero){c.fillStyle='rgba(255,255,255,.55)';c.font=F(400,18);c.fillText(`Prices at today's gold rate, incl. ${fmtN(gstPct())}% GST · ${new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}`,W/2,fy+136)}
+  c.textAlign='left';
   return cv;
 }
-// send pictures (+ text) to WhatsApp: app → WhatsApp directly; browsers → the share sheet; else a panel to copy / drag / download them
 async function waSendImgs(imgs,text,ph,base){
   if(NATIVE&&NATIVE.shareWhatsApp){NATIVE.shareWhatsApp(ph||'',text,JSON.stringify(imgs));return true}
   const files=imgs.map((u,i)=>{const fl=dataUrlFile(u,i);return new File([fl],`${base}-${i+1}.jpg`,{type:'image/jpeg'})});
-  if(files.length&&navigator.canShare){for(const d of [{files,text},{files}]){try{if(navigator.canShare(d)){await navigator.share(d);return true}}catch(e){if(e&&e.name==='AbortError')return true}}}
+  if(files.length&&navigator.canShare){for(const d of text?[{files,text},{files}]:[{files}]){try{if(navigator.canShare(d)){await navigator.share(d);return true}}catch(e){if(e&&e.name==='AbortError')return true}}}
   if(!files.length){window.open(waUrl(ph||'',text),'_blank','noopener');return true}
   waPanel(imgs,files,text,ph);return false;
 }
@@ -5168,22 +5187,27 @@ function waPanel(imgs,files,text,ph){
     <ol class="wa-steps">${canSh?'<li><b>Share…</b> sends the pictures straight to WhatsApp.</li>':''}<li><b>Open WhatsApp</b> (the message is filled in), then ${onComputer()?'<b>drag</b> the pictures below into the chat, or <b>Copy</b> one and press <b>Ctrl+V</b>':'attach the downloaded pictures'}.</li></ol>
     <div class="wa-imgs">${imgs.map((u,i)=>`<figure><img src="${u}" alt="Picture ${i+1}" draggable="true"><figcaption>${onComputer()?`<button type="button" class="linkbtn" data-cp="${i}">Copy</button>`:''}<a class="linkbtn" href="${u}" download="${esc(files[i].name)}">Download</a></figcaption></figure>`).join('')}</div>
     <div class="sh-row wa-acts">${canSh?'<button type="button" class="btn primary" id="wpShare">Share…</button>':''}<button type="button" class="btn${canSh?'':' primary'}" id="wpOpen">Open WhatsApp</button><button type="button" class="btn" id="wpAll">Download all</button></div>`;
-  if($('wpShare'))$('wpShare').onclick=async()=>{for(const d of [{files,text},{files}]){try{if(navigator.canShare(d)){await navigator.share(d);closeModal();return}}catch(e){if(e&&e.name==='AbortError')return}}toast('Could not open the share sheet',null,true)};
+  if($('wpShare'))$('wpShare').onclick=async()=>{for(const d of text?[{files,text},{files}]:[{files}]){try{if(navigator.canShare(d)){await navigator.share(d);closeModal();return}}catch(e){if(e&&e.name==='AbortError')return}}toast('Could not open the share sheet',null,true)};
   $('wpOpen').onclick=()=>{const t=text.length>3500?text.slice(0,3480)+'\n…':text;if(NATIVE&&NATIVE.openUrl)NATIVE.openUrl(waUrl(ph||'',t));else window.open(waUrl(ph||'',t),onComputer()?'whatsapp':'_blank')};
   $('wpAll').onclick=()=>files.forEach((fl,i)=>setTimeout(()=>{const a=document.createElement('a');a.href=imgs[i];a.download=fl.name;document.body.appendChild(a);a.click();a.remove()},i*250));
   $('modalBody').querySelectorAll('[data-cp]').forEach(b=>b.onclick=async()=>{try{const im=await loadImg(imgs[+b.dataset.cp]),cv=document.createElement('canvas');cv.width=im.width;cv.height=im.height;cv.getContext('2d').drawImage(im,0,0);
     const bl=await new Promise(r=>cv.toBlob(r,'image/png'));await navigator.clipboard.write([new ClipboardItem({'image/png':bl})]);b.textContent='Copied ✓';toast('Copied. Press Ctrl+V in the WhatsApp chat.')}catch(e){toast('Could not copy. Drag or download it instead.',null,true)}});
 }
-async function shareItemsWa(list,f,ph,opt){
-  opt=opt||{};const text=shText(list,f);
-  if(opt.textOnly){const t=text.length>3500?text.slice(0,3480)+'\n…':text;if(NATIVE&&NATIVE.shareWhatsApp)NATIVE.shareWhatsApp(ph||'',t,'[]');else window.open(waUrl(ph||'',t),'_blank','noopener');closeModal();return}
-  const capN=20,few=list.slice(0,capN),CAP=30;
-  toast('Making the picture cards…');
-  const imgs=[];
-  for(const r of few){if(imgs.length>=CAP)break;const all=f.includes('img')||opt.allPh?await getProdImgs(r.key).catch(()=>[]):[];const main=all[0]||null;
-    imgs.push((await shCard(r,f,f.includes('img')&&main?await loadImg(main):null)).toDataURL('image/jpeg',.9));
+// picture cards (and, if asked, every photo of each item); the card shows all the item's photos
+async function buildShareImgs(list,f,opt){
+  const capN=20,CAP=30,imgs=[];
+  for(const r of list.slice(0,capN)){if(imgs.length>=CAP)break;
+    const all=f.includes('img')||opt.allPh?await getProdImgs(r.key).catch(()=>[]):[];
+    const ims=f.includes('img')?(await Promise.all(all.slice(0,5).map(u=>loadImg(u)))).filter(Boolean):[];
+    imgs.push((await shCard(r,f,ims[0]||null,ims.slice(1))).toDataURL('image/jpeg',.9));
     if(opt.allPh)for(const u of all.slice(f.includes('img')?1:0)){if(imgs.length>=CAP)break;imgs.push(u)}}
-  if(list.length>capN)toast(`Picture cards for the first ${capN} items; the message lists all ${list.length}.`,null,true);
+  return imgs;
+}
+async function shareItemsWa(list,f,ph,opt,pre){
+  opt=opt||{};const text=opt.cardOnly?'':shText(list,f);
+  if(opt.textOnly){const t=text.length>3500?text.slice(0,3480)+'\n…':text;if(NATIVE&&NATIVE.shareWhatsApp)NATIVE.shareWhatsApp(ph||'',t,'[]');else window.open(waUrl(ph||'',t),'_blank','noopener');closeModal();return}
+  let imgs=pre;if(!imgs){toast('Making the picture cards…');imgs=await buildShareImgs(list,f,opt)}
+  if(list.length>20)toast(`Picture cards for the first 20 items${text?`; the message lists all ${list.length}`:''}.`,null,true);
   closeModal();await waSendImgs(imgs,text,ph,`${BRAND.name}-${list.length===1?(list[0].barcode||list[0].key):'items'}`);
 }
 async function shareItemsPdf(list,f){
@@ -5223,6 +5247,8 @@ function stFilterBar(rowsAll){
     bar.innerHTML=`<div class="stf-row"></div><div class="st-rng">${RNG.map(([k,l,u])=>`<div class="rg" data-rg="${k}"><span class="rg-l">${k==='w'?`<select data-r="wBy" aria-label="Weight type"><option value="">Gross wt</option><option value="nw"${findF.wBy==='nw'?' selected':''}>Net wt</option></select>`:l}</span><input data-r="${k}Min" inputmode="decimal" autocomplete="off" placeholder="${u==='₹'?'₹ from':'from'}" value="${esc(findF[k+'Min'])}" aria-label="${l} from"><span aria-hidden="true">–</span><input data-r="${k}Max" inputmode="decimal" autocomplete="off" placeholder="${u==='₹'?'₹ to':'to · '+u}" value="${esc(findF[k+'Max'])}" aria-label="${l} up to"></div>`).join('')}</div>`;
     bar.querySelectorAll('[data-r]').forEach(i=>{const go=()=>{const v=i.tagName==='SELECT'?i.value:i.value.replace(/[^\d.]/g,'');if(findF[i.dataset.r]===v)return;findF[i.dataset.r]=v;stPage=1;runFindTable()};
       i.addEventListener('change',go);if(i.tagName==='INPUT')i.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();go()}})})}
+  {const okF=can('stFilters'),okR=can('stRanges');bar.querySelector('.stf-row').hidden=!okF;bar.querySelector('.st-rng').hidden=!okR;
+   if(!okF){findType='';['item','cat','jt','sc','pur','stone','sup','loc','lab','img','imp','pn'].forEach(k=>findF[k]='')}if(!okR)['wMin','wMax','pMin','pMax','fMin','fMax','mMin','mMax','dMin','dMax'].forEach(k=>findF[k]='');bar.hidden=!okF&&!okR}
   bar.querySelectorAll('.rg').forEach(g=>{const k=g.dataset.rg;g.classList.toggle('on',findF[k+'Min']!==''||findF[k+'Max']!=='')});
   const anyR=RNG.some(([k])=>findF[k+'Min']!==''||findF[k+'Max']!=='');
   bar.querySelector('.stf-row').innerHTML=FILTERS.map(([k,l])=>`<label class="stf${val(k)?' on':''}"><span class="sr">${l}</span><select data-f="${k}"><option value="">${l}</option>${opts[k].map(([v,t])=>`<option value="${esc(v)}"${v===val(k)?' selected':''}>${esc(t)}</option>`).join('')}</select></label>`).join('')+
@@ -5425,7 +5451,7 @@ function runFindTable(){
   $('stPer').onchange=()=>{stPer=+$('stPer').value;stPage=1;runFindTable()};
   $('stSortSel').onchange=()=>{const k=$('stSortSel').value;stSort={k,d:['price','fv','save','gw','nw','sa','mk','dw','dq','labelDate'].includes(k)?-1:1};store.set('stSort',stSort);runFindTable()};
   $('stDir').onclick=()=>{stSort={k:stSort.k,d:-stSort.d};store.set('stSort',stSort);runFindTable()};
-  if($('stColsB'))$('stColsB').onclick=stColsForm;if($('stXlsx'))$('stXlsx').onclick=()=>withPerm('export','Needs permission: Export.',()=>stExport(rows));
+  if($('stColsB'))$('stColsB').onclick=stColsForm;if($('stXlsx'))$('stXlsx').onclick=()=>withPerm('stExport','Needs permission: Export Search to Excel.',()=>stExport(rows));
   $('stList').onclick=()=>{stGrid=false;runFindTable()};$('stGridB').onclick=()=>{stGrid=true;runFindTable()};
   el.querySelectorAll('[data-img]').forEach(d=>{const k=d.dataset.img;if(!imgIdx[k]&&!imgMem.get(k))return;getProdImg(k).then(u=>{if(u)d.innerHTML=`<img src="${u}" alt="">`})});
 }
@@ -6435,7 +6461,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.8.5',APP_BUILD='__BUILD__';
+const APP_VERSION='1.8.6',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------
@@ -6448,16 +6474,22 @@ const PERM_LIST=[
 ['stockdel','Delete sold tags from stock'],['rates',"Set day's rates"],
   ['mkEdit','Update making on the price card'],['mkDisc','Making after discount on quotes'],
   ['closeSale','Close sale (invoice no.)'],['cancelQuote','Cancel quote (enquiry)'],['reopen','Reopen sold / cancelled quotes'],
-  ['delQuote','Delete quotes'],['images','Add product photos'],['imgDel','Delete / replace product photos'],['imgBulk','Bulk upload photos'],['stockList','Stock list in Search (phone app)'],['addDisc','Additional discount (flat)'],['round','Round final amounts to the nearest ₹50'],['stockEdit','Edit stock items · making, FVA, label details'],['stockAdd','Add new items to stock'],['stockBulk','Bulk update stock items'],['reports','Reports'],['fva','Fair Value price'],['share','Share quotes on WhatsApp'],['pdHidden','See hidden details (NLC, FVA…)'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],
+  ['delQuote','Delete quotes'],['images','Add product photos'],['imgDel','Delete / replace product photos'],['imgBulk','Bulk upload photos'],['stockList','Stock list in Search (phone app)'],['addDisc','Additional discount (flat)'],['round','Round final amounts to the nearest ₹50'],['stockEdit','Edit stock items · making, FVA, label details'],['stockAdd','Add new items to stock'],['stockBulk','Bulk update stock items'],['reports','Reports'],['fva','Fair Value price'],['share','Share quotes on WhatsApp'],['pdHidden','See hidden details (NLC, FVA…)'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],['search','Search page · find items'],['stFilters','Search filters (item, design, colour…)'],['stRanges','Range search (weight, price, fair value…)'],['stSelect','Select items in Search'],['stExport','Export Search to Excel'],['shareItems','Share items on WhatsApp (picture cards)'],['shareAllPh','Send all photos of an item'],['sharePdf','Items as PDF'],['shareUser','Send items to another user'],['shareFv','Share fair value & savings'],['shareCost','Share making, NLC & supplier'],
   ['textSize','Text size'],['imgShow','Product image show / hide'],['ratesShown','Rates shown'],['charges','Charges · GST · HUID'],
   ['mkHelper','Making helpers'],['itemCodes','Item codes'],['pdRows','Product details items'],['sync','Shared database · shop key'],['roles','Roles & permissions'],['users','Users']];
 const SET_PERMS=['theme','footer','apprSet','export','promos','rules','reports','stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users'];
 const STOCK_PERMS=['stockEdit','stockAdd','stockBulk','stockdel'];const PHOTO_PERMS=['images','imgDel','imgBulk'];
+// V1.8.6 functions grouped for the role editor
+const PERM_GROUPS=[['Prices & making',['rates','mkEdit','mkDisc','addDisc','round','fva','pdHidden']],['Quotes',['closeSale','cancelQuote','reopen','delQuote','approve','share']],
+  ['Search',['search','stFilters','stRanges','stSelect','stExport','stockList']],['WhatsApp & sharing',['shareItems','shareAllPh','sharePdf','shareUser','shareFv','shareCost','leads']],
+  ['Stock database',['stockEdit','stockAdd','stockBulk','stockdel']],['Product photos & details',['images','imgDel','imgBulk']],['Reports',['reports']],
+  ['Settings',['textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users']]];
 const permLabel=k=>(PERM_LIST.find(p=>p[0]===k)||[0,k])[1];
-const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','imgDel','imgBulk','stockList','approve','leads','share','pdHidden','addDisc','round','reports','fva','stockEdit','stockAdd','stockBulk']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share','fva','stockList']}];
+const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','imgDel','imgBulk','stockList','approve','leads','share','pdHidden','addDisc','round','reports','fva','stockEdit','stockAdd','stockBulk','search','stFilters','stRanges','stSelect','stExport','shareItems','shareAllPh','sharePdf','shareUser','shareFv','shareCost']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share','fva','stockList','search','stFilters','stRanges','stSelect','shareItems','shareAllPh','sharePdf','shareUser','shareFv']}];
 let roles=store.get('roles',null)||clone(DEFAULT_ROLES);
 // WhatsApp sharing became a permission (v1.7.3): roles on this phone keep it once
 if(!store.get('permShare',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&!r.perms.includes('share'))r.perms.push('share')});store.set('roles',roles);store.set('permShare',true)}
+if(!store.get('perm186',false)){roles.forEach(r=>{if(!Array.isArray(r.perms))return;const add=p=>{if(!r.perms.includes(p))r.perms.push(p)};['search','stFilters','stRanges'].forEach(add);if(r.perms.includes('share'))['stSelect','shareItems','shareAllPh','sharePdf','shareUser','shareFv'].forEach(add);if(r.perms.includes('pdHidden'))add('shareCost');if(r.perms.includes('reports'))add('stExport')});store.set('roles',roles);store.set('perm186',true)}
 if(!store.get('perm182',false)){roles.forEach(r=>{if(!Array.isArray(r.perms))return;if(r.perms.includes('images'))['imgDel','imgBulk'].forEach(k=>{if(!r.perms.includes(k))r.perms.push(k)});if(!r.perms.includes('stockList'))r.perms.push('stockList')});store.set('roles',roles);store.set('perm182',true)}
 if(!store.get('permHid',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('mkDisc')&&!r.perms.includes('pdHidden'))r.perms.push('pdHidden')});store.set('roles',roles);store.set('permHid',true)}
 if(!store.get('permStockEd',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('mkDisc')&&!r.perms.includes('stockEdit'))r.perms.push('stockEdit')});store.set('roles',roles);store.set('permStockEd',true)}
@@ -6872,10 +6904,13 @@ function renderRoles(){
   el.innerHTML=`<div class="role-card locked"><div class="rc-h"><b>Admin</b><span class="note">All permissions · ${used('admin')} user${used('admin')===1?'':'s'}</span></div></div>`+
     roleDraft.map((r,i)=>`<div class="role-card" data-i="${i}"><div class="rc-h"><input class="rc-name" value="${esc(r.name)}" maxlength="30" aria-label="Role name"><span class="note">${used(r.id)} user${used(r.id)===1?'':'s'}</span>${used(r.id)?'':`<button class="x" type="button" data-rdel="${i}" aria-label="Delete role ${esc(r.name)}">×</button>`}</div>
       <div class="rc-perms">${(()=>{const cb=([k,t])=>`<label class="rc-p"><input type="checkbox" data-p="${k}"${r.perms.includes(k)?' checked':''}> ${esc(t)}</label>`;
-        return `<div class="rc-grp"><b>Stock database</b>${PERM_LIST.filter(p=>STOCK_PERMS.includes(p[0])).map(cb).join('')}</div><div class="rc-grp"><b>Product photos</b>${PERM_LIST.filter(p=>PHOTO_PERMS.includes(p[0])).map(cb).join('')}</div>`+PERM_LIST.filter(p=>!STOCK_PERMS.includes(p[0])&&!PHOTO_PERMS.includes(p[0])).map(cb).join('')})()}</div></div>`).join('');
+        const inG=new Set(PERM_GROUPS.flatMap(g=>g[1])),rest=PERM_LIST.filter(p=>!inG.has(p[0]));
+        return PERM_GROUPS.map(([g,ks])=>{const ps=ks.map(k=>PERM_LIST.find(p=>p[0]===k)).filter(Boolean);const on=ps.filter(p=>r.perms.includes(p[0])).length;
+          return `<details class="rc-grp"${on?' open':''}><summary><b>${esc(g)}</b><span class="note">${on} of ${ps.length}</span><button type="button" class="linkbtn rc-all" data-g="${esc(g)}">${on===ps.length?'None':'All'}</button></summary>${ps.map(cb).join('')}</details>`}).join('')+(rest.length?`<details class="rc-grp"><summary><b>Other</b></summary>${rest.map(cb).join('')}</details>`:'')})()}</div></div>`).join('');
   el.querySelectorAll('.role-card[data-i]').forEach(c=>{const r=roleDraft[+c.dataset.i];
     c.querySelector('.rc-name').addEventListener('input',e=>{r.name=e.target.value});
-    c.querySelectorAll('[data-p]').forEach(cb=>cb.onchange=()=>{r.perms=cb.checked?[...new Set([...r.perms,cb.dataset.p])]:r.perms.filter(x=>x!==cb.dataset.p)});
+    c.querySelectorAll('[data-p]').forEach(cb=>cb.onchange=()=>{r.perms=cb.checked?[...new Set([...r.perms,cb.dataset.p])]:r.perms.filter(x=>x!==cb.dataset.p);const d=cb.closest('details');if(d){const n=[...d.querySelectorAll('[data-p]')],on=n.filter(x=>x.checked).length;d.querySelector('summary .note').textContent=`${on} of ${n.length}`;d.querySelector('.rc-all').textContent=on===n.length?'None':'All'}});
+    c.querySelectorAll('.rc-all').forEach(b=>b.onclick=e=>{e.preventDefault();const d=b.closest('details'),n=[...d.querySelectorAll('[data-p]')],all=n.some(x=>!x.checked);n.forEach(x=>{if(x.checked!==all){x.checked=all;x.onchange()}});d.open=true});
     const d=c.querySelector('[data-rdel]');if(d)d.onclick=()=>{roleDraft.splice(+d.dataset.rdel,1);renderRoles()};
   });
 }

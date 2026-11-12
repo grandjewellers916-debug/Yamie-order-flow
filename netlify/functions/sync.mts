@@ -61,11 +61,11 @@ function cleanRow(r: any) {
   return o.key ? o : null
 }
 // Permissions an admin can give to a role (admin always has all)
-const PERMS = ["stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "imgDel", "imgBulk", "stockList", "share", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "stockBulk", "approve", "leads", "textSize", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows", "pdHidden", "sync", "roles", "users", "settings"]
+const PERMS = ["search", "stFilters", "stRanges", "stSelect", "stExport", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv", "shareCost", "stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "imgDel", "imgBulk", "stockList", "share", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "stockBulk", "approve", "leads", "textSize", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows", "pdHidden", "sync", "roles", "users", "settings"]
 const SETTINGS_PERMS = ["imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows"]
 const DEFAULT_ROLES = [
-  { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "images", "imgDel", "imgBulk", "stockList", "approve", "leads", "share", "pdHidden", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "stockBulk"] },
-  { id: "staff", name: "Staff", perms: ["rates", "closeSale", "cancelQuote", "share", "fva", "stockList"] },
+  { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "images", "imgDel", "imgBulk", "stockList", "approve", "leads", "share", "pdHidden", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "stockBulk", "search", "stFilters", "stRanges", "stSelect", "stExport", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv", "shareCost"] },
+  { id: "staff", name: "Staff", perms: ["rates", "closeSale", "cancelQuote", "share", "fva", "stockList", "search", "stFilters", "stRanges", "stSelect", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv"] },
 ]
 // A quote as the app keeps it, minus anything large (photos stay on the phone that took them)
 function cleanQuote(q: any) {
@@ -151,6 +151,20 @@ export default async (req: Request) => {
     ;(meta as any).v1763 = 1; await saveMeta()
   }
   // Reports: roles that give making discounts (managers) can see them (once)
+  // v1.8.6: search and sharing functions became permissions; existing roles keep what they could do (once)
+  if (!(meta as any).v186) {
+    let ch = false
+    const add = (r: any, p: string) => { if (!r.perms.includes(p)) { r.perms.push(p); ch = true } }
+    for (const r of roles) {
+      if (!Array.isArray(r?.perms)) continue
+      ;["search", "stFilters", "stRanges"].forEach((p) => add(r, p))
+      if (r.perms.includes("share")) ["stSelect", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv"].forEach((p) => add(r, p))
+      if (r.perms.includes("pdHidden")) add(r, "shareCost")
+      if (r.perms.includes("reports")) add(r, "stExport")
+    }
+    if (ch && (await st.get("roles"))) { await st.setJSON("roles", roles); meta.users = Date.now() }
+    ;(meta as any).v186 = 1; await saveMeta()
+  }
   if (!(meta as any).v1766) {
     let ch = false
     for (const r of roles) if (r?.perms?.includes("mkDisc") && !r.perms.includes("reports")) { r.perms.push("reports"); ch = true }
