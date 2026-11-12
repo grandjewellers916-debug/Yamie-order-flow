@@ -171,6 +171,18 @@ export default async (req: Request) => {
     if (ch && (await st.get("roles"))) { await st.setJSON("roles", roles); meta.users = Date.now() }
     ;(meta as any).v1771 = 1; await saveMeta()
   }
+  // Sold register (V1.7.83): fill it once from the sales already closed
+  if (!(meta as any).v1783) {
+    try {
+      const K = (v: any) => String(v ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "")
+      const reg: any = ((await st.get("sold", { type: "json" })) as any) || {}
+      const list: any[] = ((await st.get("quotes", { type: "json" })) as any[]) || []
+      let n = 0
+      for (const q of list) if (q?.status === "closed") for (const it of q.items || []) { const k = K(it?.sku); if (k && !reg[k]) { reg[k] = { at: q.closedAt || q.updated || 0, no: q.no || "", inv: q.invoice || "", by: q.closedBy || "" }; n++ } }
+      if (n) { await st.setJSON("sold", reg); (meta as any).sold = Date.now() }
+    } catch {}
+    ;(meta as any).v1783 = 1; await saveMeta()
+  }
   // Adding new items became its own permission: roles that edit stock items keep it (once)
   if (!(meta as any).v1772) {
     let ch = false
@@ -232,6 +244,11 @@ export default async (req: Request) => {
       }
       if (op === "quotes") return json(req, { v: meta.quotes, quotes: (await st.get("quotes", { type: "json" })) || [] })
       if (op === "leads") return json(req, { v: meta.leads || 0, leads: (await st.get("leads", { type: "json" })) || [] })
+      if (op === "soldlist") {
+        // The sold register: labels of completed sales. They never come back into stock or a quote.
+        const sold = ((await st.get("sold", { type: "json" })) as any) || {}
+        return json(req, { v: (meta as any).sold || 0, sold })
+      }
       if (op === "held") {
         // One label, one open quote: which of these labels are already in another open quote (not closed)
         const K = (v: any) => String(v ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "")
@@ -239,14 +256,16 @@ export default async (req: Request) => {
         const me = cleanStr(new URL(req.url).searchParams.get("id"), 24)
         const list: any[] = ((await st.get("quotes", { type: "json" })) as any[]) || []
         const held: any[] = []
+        const soldReg = ((await st.get("sold", { type: "json" })) as any) || {}
+        const sold = [...keys].filter((k) => soldReg[k]).map((k) => ({ key: k, ...soldReg[k] }))
         for (const q of list) {
-          if (!q || q.id === me || q.status === "closed" || q.void) continue
+          if (!q || q.id === me || q.status === "closed" || q.status === "cancelled" || q.void) continue
           for (const it of q.items || []) {
             const k = K(it?.sku)
             if (keys.has(k) && !held.some((h) => h.key === k)) held.push({ key: k, id: q.id, no: q.no || "", by: q.by || "", cust: q.cust?.name || "", at: q.updated || 0 })
           }
         }
-        return json(req, { held })
+        return json(req, { held, sold })
       }
       if (op === "inbox") {
         // Small summary for notifications (phones poll this): quotes waiting for approval, approved quotes, leads
@@ -257,7 +276,7 @@ export default async (req: Request) => {
         const approved = qs.filter((q) => q?.appr?.state === "approved" && q.appr.at > Date.now() - 3 * 864e5).slice(0, 50)
           .map((q) => ({ id: q.id, no: q.no || "", name: cleanStr(q.cust?.name, 40), to: q.appr.reqBy || "", byName: cleanStr(q.appr.by, 40), at: q.appr.at || 0 }))
         const leads = ls.filter((l) => l.state === "new").slice(0, 50).map((l) => ({ id: l.id, to: l.to || "", name: cleanStr(l.name, 40), byName: cleanStr(l.byName, 40), at: l.at || 0 }))
-        return json(req, { q: meta.quotes, l: meta.leads || 0, u: meta.users || 0, s: meta.settings || 0, st: meta.stock || 0, pending, approved, leads })
+        return json(req, { q: meta.quotes, l: meta.leads || 0, u: meta.users || 0, s: meta.settings || 0, st: meta.stock || 0, sd: (meta as any).sold || 0, pending, approved, leads })
       }
       return json(req, { error: "bad_op" }, 400)
     }
@@ -343,7 +362,7 @@ export default async (req: Request) => {
       return json(req, { v: meta.leads, lead })
     }
 
-    const OP_PERM: Record<string, string> = { release: "approve", img: "images", quotedel: "delQuote", stock: "stock", stockdel: "stockdel", ratelog: "rates", pubrates: "rates", stockrow: "stockEdit", stocksold: "closeSale" }
+    const OP_PERM: Record<string, string> = { unsell: "stock", release: "approve", img: "images", quotedel: "delQuote", stock: "stock", stockdel: "stockdel", ratelog: "rates", pubrates: "rates", stockrow: "stockEdit", stocksold: "closeSale" }
     const role = await callerRole()
     if (op === "settings") { if (!role || ![...SETTINGS_PERMS, "theme", "footer", "apprSet", "promos", "rules"].some((p) => roleHas(role, p))) return json(req, { error: "bad_pin" }, 403) }
     else if (op === "users") { if (!role || !(roleHas(role, "users") || roleHas(role, "roles"))) return json(req, { error: "bad_pin" }, 403) }
@@ -359,6 +378,16 @@ export default async (req: Request) => {
       await st.setJSON("imgidx", idx)
       meta.imgs = Date.now(); await saveMeta()
       return json(req, { v: meta.imgs, idx })
+    }
+
+    const soldReg = async () => (((await st.get("sold", { type: "json" })) as any) || {}) as Record<string, any>
+    if (op === "unsell") {
+      // Admin: take a label off the sold register (sale cancelled or returned)
+      const K = (v: any) => String(v ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "")
+      const key = K(body?.key), reg = await soldReg()
+      if (!key || !reg[key]) return json(req, { error: "not_sold" }, 404)
+      delete reg[key]; await st.setJSON("sold", reg); (meta as any).sold = Date.now(); await saveMeta()
+      return json(req, { sv: (meta as any).sold })
     }
 
     if (op === "release") {
@@ -388,7 +417,10 @@ export default async (req: Request) => {
 
     if (op === "stock") {
       const mode = body?.mode === "replace" ? "replace" : "add"
-      const rows = (Array.isArray(body?.rows) ? body.rows : []).map(cleanRow).filter(Boolean)
+      // sold labels are never loaded again from a stock sheet
+      const reg = await soldReg()
+      const all0 = (Array.isArray(body?.rows) ? body.rows : []).map(cleanRow).filter(Boolean)
+      const rows = all0.filter((r: any) => !reg[r.key]), soldOut = all0.length - rows.length
       if (!rows.length) return json(req, { error: "no_rows" }, 400)
       const map = new Map<string, any>()
       if (mode === "add") for (const r of ((await st.get("stock", { type: "json" })) as any[]) || []) map.set(r.key, r)
@@ -397,9 +429,9 @@ export default async (req: Request) => {
       const all = [...map.values()]
       await st.setJSON("stock", all)
       meta.stock = Date.now(); meta.count = all.length
-      meta.history = [{ at: meta.stock, file: cleanStr(body.file, 80), rows: rows.length, added, updated, skipped: cleanNum(body.skipped) || 0, mode }, ...(meta.history || [])].slice(0, 100)
+      meta.history = [{ at: meta.stock, file: cleanStr(body.file, 80), rows: rows.length, added, updated, skipped: cleanNum(body.skipped) || 0, sold: soldOut, mode }, ...(meta.history || [])].slice(0, 100)
       await saveMeta()
-      return json(req, { v: meta.stock, count: all.length, added, updated, history: meta.history })
+      return json(req, { v: meta.stock, count: all.length, added, updated, sold: soldOut, history: meta.history })
     }
 
     if (op === "stockrow" && Array.isArray(body?.rows)) {
@@ -409,7 +441,8 @@ export default async (req: Request) => {
       const cur: any[] = ((await st.get("stock", { type: "json" })) as any[]) || []
       const idx = new Map(cur.map((x, i) => [x.key, i]))
       let updated = 0
-      for (const r of rows) { const i = idx.get(r.key); if (i != null) { cur[i] = r; updated++ } }
+      const reg = await soldReg()
+      for (const r of rows) { const i = idx.get(r.key); if (i != null && !reg[r.key]) { cur[i] = r; updated++ } }
       if (!updated) return json(req, { error: "no_rows" }, 400)
       await st.setJSON("stock", cur)
       meta.stock = Date.now(); meta.count = cur.length
@@ -421,6 +454,7 @@ export default async (req: Request) => {
     if (op === "stockrow") {
       // A manager corrects one item or adds a new one; every phone gets it at its next check
       const r = cleanRow(body?.row)
+      { const reg = await soldReg(); if (r && reg[r.key]) return json(req, { error: "sold", sold: { key: r.key, ...reg[r.key] } }, 409) }
       if (!r) return json(req, { error: "bad_row" }, 400)
       const cur: any[] = ((await st.get("stock", { type: "json" })) as any[]) || []
       const i = cur.findIndex((x) => x.key === r.key)
@@ -438,15 +472,19 @@ export default async (req: Request) => {
       // Tags of a completed sale leave the stock list (whoever closes the sale)
       const keys = new Set((Array.isArray(body?.keys) ? body.keys : []).slice(0, 200).map((k: any) => String(k || "").toUpperCase().replace(/[^A-Z0-9]/g, "")).filter(Boolean))
       if (!keys.size) return json(req, { error: "no_keys" }, 400)
+      // every label of the sale goes on the sold register (even one missing from the stock list)
+      const reg = await soldReg(), now = Date.now()
+      for (const k of keys) if (!reg[k]) reg[k] = { at: now, no: cleanStr(body?.no, 30), inv: cleanStr(body?.inv, 40), by: cleanStr(body?.by, 40) }
+      await st.setJSON("sold", reg); (meta as any).sold = now
       const cur: any[] = ((await st.get("stock", { type: "json" })) as any[]) || []
       const left = cur.filter((r) => !keys.has(r.key)), removed = cur.length - left.length
       if (removed) {
         await st.setJSON("stock", left)
         meta.stock = Date.now(); meta.count = left.length
         meta.history = [{ at: meta.stock, file: cleanStr(body?.note, 80) || "Sold", rows: removed, added: 0, updated: 0, removed, skipped: 0, mode: "sold" }, ...(meta.history || [])].slice(0, 100)
-        await saveMeta()
       }
-      return json(req, { v: meta.stock, count: left.length, removed, history: meta.history })
+      await saveMeta()
+      return json(req, { v: meta.stock, count: left.length, removed, sv: (meta as any).sold, history: meta.history })
     }
 
     if (op === "stockdel") {

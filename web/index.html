@@ -1109,6 +1109,9 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .mg-t{flex:1;min-width:0}.mg-t b{display:block;font:700 16px var(--body);color:var(--maroon)}.mg-t small{display:block;color:var(--muted);font-size:12.5px;line-height:1.3}
 .mg-chev{flex:none;width:20px;height:20px;color:var(--maroon)}
 .pa.held{background:#FDECEE!important;border-color:#E6A1A8!important;color:#8E1B24!important;font-weight:600}
+.sold-box{border-color:#E6A1A8!important;background:#FDECEE!important;color:#8E1B24}.sold-box small{color:#8E1B24!important}
+.sold-reg{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}.sold-reg input{width:100%;min-height:42px;border:1px solid var(--line);border-radius:10px;padding:6px 10px;font:15px var(--body);background:var(--surface);color:var(--fg)}
+.sr-list{display:flex;flex-direction:column;margin-top:6px;max-height:320px;overflow:auto}.sr-r{display:flex;align-items:baseline;gap:10px;padding:7px 2px;border-bottom:1px solid var(--line)}.sr-r small{flex:1;color:var(--muted)}
 .held-box{border:1px solid #E8B86A;background:#FFF4E0;border-radius:12px;padding:10px 12px;font-size:15px;line-height:1.4}.held-box small{color:#7A4A00}
 .lc-alert{background:#FFF4E0;color:#7A4A00;border-radius:10px;padding:8px 10px;font-weight:600;font-size:13.5px;margin:0 0 8px}
 .lc-list{display:flex;flex-direction:column;gap:6px}
@@ -2047,6 +2050,9 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
             <p class="note" style="margin-block:4px 0">Scan or type the barcodes of sold items, then delete them from the stock list.</p>
       <div class="bc"><input id="soldIn" class="num" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="e.g. DIA1164"><button class="btn" type="button" id="soldAdd">Add</button><button class="btn bc-scan" type="button" id="soldScan" hidden>Scan</button></div>
       <div class="sold-list" id="soldList"></div>
+      <div class="sold-reg"><div class="sr-h"><b>Sold labels register</b> <span id="soldRegN"></span></div>
+        <p class="note" style="margin:2px 0 6px">Labels of closed sales. They cannot be priced, quoted or loaded from a stock sheet again. Restore one only when a sale is cancelled or the piece is returned (admin).</p>
+        <input id="soldRegQ" type="search" placeholder="Find a sold label" aria-label="Find a sold label" autocomplete="off"><div id="soldRegList" class="sr-list"></div></div>
       <input class="hidden-input" id="soldFileIn" type="file" accept=".xlsx,.xls,.xlsm,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" aria-label="Choose sold tags Excel">
       <div class="rs-acts"><button class="btn danger" type="button" id="soldDel" disabled>Delete tags</button><button class="btn" type="button" id="soldFile">From Excel list</button></div>
       <div class="status" id="soldStatus"></div>
@@ -2487,7 +2493,7 @@ async function pushStock(mode,rows,file,skipped){
     sync.v.stock=r.v;saveSyncState();
     if(r.history){stockMeta.history=r.history;store.set('stockMeta',stockMeta)}
     paintStockSummary();
-    impStatus(`Shared with all phones: ${r.added.toLocaleString('en-IN')} new, ${r.updated.toLocaleString('en-IN')} updated · ${r.count.toLocaleString('en-IN')} items in total.`,'ok');
+    impStatus(`Shared with all phones: ${r.added.toLocaleString('en-IN')} new, ${r.updated.toLocaleString('en-IN')} updated · ${r.count.toLocaleString('en-IN')} items in total.`+(r.sold?` ${r.sold} sold label${r.sold>1?'s were':' was'} left out.`:''),'ok');
     syncMsg('ok');afterStockChange();
   }catch(e){impStatus('Saved on this phone only. '+syncErrText(e),'err');syncMsg('err')}
 }
@@ -2808,7 +2814,7 @@ function paintBarcode(){
 }
 $('bcNum').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();
   if(kbFirst()){const v=$('bcNum').value.trim();clearTimeout(lookTimer);if(v.length>=3){useScannedCode(v);paintBarcode()}$('bcNum').select();return}
-  $('bcNum').blur();lookupTyped(true);setTimeout(()=>{if(cur.stockKey){labelCheck(startTagFlow);heldWarn(cur.stockKey)}},60)}});
+  $('bcNum').blur();if(soldInfo(cur.sku)){soldPop(cur.sku);return}lookupTyped(true);setTimeout(()=>{if(cur.stockKey){labelCheck(startTagFlow);heldWarn(cur.stockKey)}},60)}});
 $('bcNum').addEventListener('focus',()=>{if(kbFirst())setTimeout(()=>{try{$('bcNum').select()}catch(e){}},0)});
 $('bcNum').addEventListener('input',()=>{
   const v=$('bcNum').value.toUpperCase().replace(/[^A-Z0-9]/g,'');
@@ -2967,11 +2973,39 @@ $('addTag').onclick=()=>{
   }
   commitTag();
 };
+// V1.7.83 sold register: a label of a completed sale is never priced, quoted, loaded or added again
+let soldMap=new Map(Object.entries(store.get('soldReg',{})||{}));
+function soldInfo(k){return soldMap.get(keyOf(k))||null}
+function saveSoldLocal(){store.set('soldReg',Object.fromEntries(soldMap))}
+async function pullSold(){if(!sync.key)return;try{const r=await syncApi('soldlist');soldMap=new Map(Object.entries(r.sold||{}));saveSoldLocal();sync.v.sold=r.v;saveSyncState();paintSoldReg()}catch(e){}}
+function soldText(i){return `sold ${i&&i.at?new Date(i.at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):''}${i&&i.no?' · '+i.no:''}${i&&i.inv?' · invoice '+i.inv:''}`}
+function soldPop(k,i){
+  k=keyOf(k);i=i||soldInfo(k)||{};try{navigator.vibrate&&navigator.vibrate([80,60,80])}catch(e){}
+  $('modalTitle').textContent=`${k} is sold`;$('modalTitle').classList.remove('price-pop');
+  $('modalBody').innerHTML=`<div class="held-box sold-box"><b>This label was ${esc(soldText(i))}</b>${i.by?`<br><small>Sale closed by ${esc(i.by)}</small>`:''}</div><p class="note">A sold label cannot be priced or quoted again. If the sale was cancelled or the piece returned, an admin can restore the label in Settings → Remove sold tags.</p>`;
+  const a=$('modalActs');a.innerHTML='';const b=document.createElement('button');b.type='button';b.className='btn primary';b.textContent='OK';b.onclick=closeModal;a.appendChild(b);$('modal').hidden=false;
+}
+// labels from a closed sale; kept on this phone until the server has them
+async function flushSoldQ(){const q=store.get('soldQ',[]);if(!q.length||!sync.key||!navigator.onLine)return;
+  const left=[];for(const x of q){try{const r=await syncApi('stocksold','POST',x,adminCreds||undefined);if(r&&r.sv)sync.v.sold=r.sv}catch(e){left.push(x)}}
+  store.set('soldQ',left);saveSyncState()}
+function paintSoldReg(){
+  const el=$('soldRegList');if(!el)return;const q=keyOf($('soldRegQ').value||'');
+  $('soldRegN').textContent=soldMap.size?`· ${soldMap.size.toLocaleString('en-IN')} label${soldMap.size>1?'s':''}`:'· none yet';
+  const rows=[...soldMap.entries()].filter(([k])=>!q||k.includes(q)).sort((a,b)=>(b[1].at||0)-(a[1].at||0)).slice(0,30);
+  el.innerHTML=rows.map(([k,i])=>`<div class="sr-r"><b>${esc(k)}</b><small>${esc(soldText(i))}${i.by?' · '+esc(i.by):''}</small>${can('stock')?`<button type="button" class="linkbtn" data-unsell="${esc(k)}">Restore</button>`:''}</div>`).join('')||(soldMap.size?'<p class="note">No sold label matches.</p>':'');
+  el.querySelectorAll('[data-unsell]').forEach(b=>b.onclick=()=>b.dataset.arm!=='1'?(b.dataset.arm='1',b.textContent='Tap again to restore',setTimeout(()=>{b.dataset.arm='';b.textContent='Restore'},4000)):withPerm('stock','Only an admin can restore a sold label.',async()=>{const k=b.dataset.unsell;
+    try{if(sync.key){const r=await syncApi('unsell','POST',{key:k},adminCreds);sync.v.sold=r.sv;saveSyncState()}soldMap.delete(k);saveSoldLocal();paintSoldReg();toast(`${k} restored · add it back to stock (sheet or + New item)`)}
+    catch(e){toast(e&&e.message==='not_sold'?'It was not on the register.':'Could not restore it. Check the internet.',null,true)}},true));
+}
+$('soldRegQ').addEventListener('input',paintSoldReg);setTimeout(paintSoldReg,0);
 // V1.7.82 one label, one open quote: check before the item goes into this quote
-function heldWarn(key){const k=keyOf(key);delete cur.held;heldBy(k).then(h=>{if(keyOf(cur.sku)!==k)return;if(h){cur.held=h;renderEditor();toast(`${k} is already in ${h.no||'another quote'} · ${h.by||''}`,null,true)}})}
+function heldWarn(key){const k=keyOf(key);delete cur.held;heldBy(k).then(h=>{if(keyOf(cur.sku)!==k)return;if(h&&h.sold){soldPop(k,h.sold);return}if(h){cur.held=h;renderEditor();toast(`${k} is already in ${h.no||'another quote'} · ${h.by||''}`,null,true)}})}
 async function heldBy(k){
   if(!sync.key||!navigator.onLine)return null;
-  try{const r=await Promise.race([syncApi('held&keys='+encodeURIComponent(k)+'&id='+encodeURIComponent(isClosed()?'':bill.id)),new Promise((_,j)=>setTimeout(()=>j(new Error('slow')),5000))]);return (r&&r.held||[])[0]||null}catch(e){return null}
+  try{const r=await Promise.race([syncApi('held&keys='+encodeURIComponent(k)+'&id='+encodeURIComponent(isClosed()?'':bill.id)),new Promise((_,j)=>setTimeout(()=>j(new Error('slow')),5000))]);
+    const sd=(r&&r.sold||[])[0];if(sd){soldMap.set(sd.key,{at:sd.at,no:sd.no,inv:sd.inv,by:sd.by});saveSoldLocal();return {sold:sd}}
+    return (r&&r.held||[])[0]||null}catch(e){return null}
 }
 function heldPop(h,k,go){
   const mine=curUser&&h.by===(curUser.name||curUser.username);
@@ -2988,9 +3022,10 @@ function heldPop(h,k,go){
 function commitTag(){
   if(editingId||!cur.sku)return commitTagNow();
   const k=keyOf(cur.sku);
+  if(soldInfo(k)){soldPop(k);return}
   if(!isClosed()&&bill.items.some(x=>keyOf(x.sku)===k)){toast(`${k} is already in this quote`,null,true);try{navigator.vibrate&&navigator.vibrate([60,60,60])}catch(e){}return}
   const id=cur.id;
-  heldBy(k).then(h=>{if(cur.id!==id)return;if(h)heldPop(h,k,commitTagNow);else commitTagNow()});
+  heldBy(k).then(h=>{if(cur.id!==id)return;if(h&&h.sold){soldPop(k,h.sold);return}if(h)heldPop(h,k,commitTagNow);else commitTagNow()});
 }
 function commitTagNow(){
   if(goQuoteAfterAdd){goQuoteAfterAdd=false;setTimeout(()=>setView('quote'),120)}
@@ -3165,6 +3200,7 @@ window.addEventListener('popstate',()=>closeCamScan(true));
 let scanTarget='';
 function useScannedCode(code){
   if(scanTarget==='sold'){scanTarget='';addSold(code);return}
+  if(!scanTarget&&soldInfo(code)){soldPop(code);return}
   // Bulk update: every scanned tag goes into the list; the phone scanner reopens for the next tag until cancelled
   if(scanTarget==='bulk'){if(bulkAdd&&$('bkLabels')&&!$('modal').hidden){bulkAdd(code);if(canNativeBc)setTimeout(()=>{if(scanTarget==='bulk')NATIVE.scanBarcode()},700);return}scanTarget=''}
   const k=keyOf(code);if(!k){setStatus('No barcode read. Try again or type the number.','err');return}
@@ -3684,7 +3720,7 @@ $('qCloseBtn').onclick=()=>withPerm('closeSale','Enter your PIN to close the sal
       saveBill(true);renderBill();await pushQuote(bill.id);toast('Sale closed');
       // the sold tags leave the stock list on every phone
       const keys=bill.items.map(t=>t.stockKey).filter(k=>k&&stockMap.has(k));
-      if(keys.length){const n=await soldStock(keys,`Sold · ${bill.no||''}${bill.invoice?' · invoice '+bill.invoice:''}`);if(n)setTimeout(()=>toast(`${n} sold tag${n>1?'s':''} removed from stock`),700)}
+      if(keys.length){const n=await soldStock(keys,`Sold · ${bill.no||''}${bill.invoice?' · invoice '+bill.invoice:''}`,{no:bill.no||'',inv:bill.invoice||'',by:meName()});if(n)setTimeout(()=>toast(`${n} sold tag${n>1?'s':''} removed from stock`),700)}
     }}][0].run;
 },true);
 $('qReopen').onclick=()=>withManager('Needs a user allowed to reopen quotes.',()=>{const was=bill.status;bill.status='open';delete bill.closedAt;delete bill.cancelledAt;saveBill();renderBill();toast(was==='cancelled'?'Quote reopened':'Sale reopened')},'reopen');
@@ -4532,6 +4568,7 @@ $('ssFile').addEventListener('change',async e=>{
   try{
     const res=await readSheet(f);
     if(!res.rows.length){impStatus('No rows with a barcode were found in that file.','err');return}
+    {const n0=res.rows.length;res.rows=res.rows.filter(x=>!soldMap.has(x.key));res.soldOut=n0-res.rows.length;if(res.soldOut)toast(`${res.soldOut} sold label${res.soldOut>1?'s':''} left out`)}
     let added=0,updated=0;
     if(importMode==='replace'){added=res.rows.length}else res.rows.forEach(x=>stockMap.has(x.key)?updated++:added++);
     const at=Date.now();res.rows.forEach(x=>x.at=at);
@@ -5344,13 +5381,18 @@ function publishRates(e){
 $('rsPub').onclick=()=>publishRates(dayEntry()||rateLog[0]);
 
 // ---------- Stock items: managers correct an item or add a new one (saved to the shared database) ----------
-async function soldStock(keys,note){
-  keys=keys.filter(k=>stockMap.has(k));if(!keys.length)return 0;
-  try{await IDB.deleteMany(keys)}catch(e){}
-  keys.forEach(k=>{const r=stockMap.get(k);stockMap.delete(k);if(r)altMap.delete(altOf(r.key))});
-  paintStockSummary();
-  if(sync.key){try{const r=await syncApi('stocksold','POST',{keys,note},adminCreds);sync.v.stock=r.v;saveSyncState();if(r.history){stockMeta.history=r.history;store.set('stockMeta',stockMeta);paintStockSummary()}}catch(e){toast('Sold tags removed on this phone; the shared list updates when online',null,true)}}
-  return keys.length;
+async function soldStock(keys,note,info){
+  keys=[...new Set(keys.map(keyOf).filter(Boolean))];if(!keys.length)return 0;
+  info=info||{};const now=Date.now();
+  keys.forEach(k=>{if(!soldMap.has(k))soldMap.set(k,{at:now,no:info.no||'',inv:info.inv||'',by:info.by||''})});saveSoldLocal();
+  const inStock=keys.filter(k=>stockMap.has(k));
+  try{await IDB.deleteMany(inStock)}catch(e){}
+  inStock.forEach(k=>{const r=stockMap.get(k);stockMap.delete(k);if(r)altMap.delete(altOf(r.key))});
+  paintStockSummary();paintSoldReg();
+  if(sync.key){const body={keys,note,no:info.no||'',inv:info.inv||'',by:info.by||''};
+    try{if(!navigator.onLine)throw new Error('offline');const r=await syncApi('stocksold','POST',body,adminCreds);sync.v.stock=r.v;if(r.sv)sync.v.sold=r.sv;saveSyncState();if(r.history){stockMeta.history=r.history;store.set('stockMeta',stockMeta);paintStockSummary()}}
+    catch(e){const q=store.get('soldQ',[]);q.push(body);store.set('soldQ',q)}}
+  return inStock.length||keys.length;
 }
 const SF=[['barcode','Label No','text',1],['item','Item Name','text',1],['category','Item Type','cat',0],['carat','Purity (K)','pur',1],
   ['gw','Gross Wt (g)','num',1],['sw','Stone Wt (g)','num'],['nw','Net Wt (g)','num',1],['saClr','Clr-SA (₹)','num'],['saDia','Dia-SA (₹)','num'],
@@ -5380,6 +5422,7 @@ function stockForm(rec){
     const bc=g('barcode'),key=keyOf(bc);
     if(!key){toast('Enter the label number',null,true);return}
     if(isNew&&stockMap.has(key)){toast(`${bc} is already in stock`,null,true);return}
+    if(isNew&&soldInfo(key)){closeModal();soldPop(key);return}
     if(!g('item')){toast('Enter the item name',null,true);return}
     if(!(n('gw')>0)||!(n('nw')>0)){toast('Enter the gross and net weight',null,true);return}
     if(n('nw')>n('gw')){toast('Net weight is more than gross weight',null,true);return}
@@ -5401,7 +5444,7 @@ function stockForm(rec){
       indexRec(row);paintStockSummary();closeModal();
       toast(isNew?`${bc} added to stock · all staff have it`:`${bc} updated · all staff have it`);
       if(!isNew&&cur.stockKey===key){cur.stockKey='';applyStock(row)}
-    }catch(e){sv.disabled=false;sv.textContent=isNew?'Add to stock':'Save to database';toast(e&&e.message==='bad_pin'?(isNew?'Not allowed: Add new items to stock is off for this role':'Not allowed: Edit stock items is off for this role')+' (Roles & permissions)':'Could not save. Check the internet.',null,true)}
+    }catch(e){sv.disabled=false;sv.textContent=isNew?'Add to stock':'Save to database';if(e&&e.message==='sold'){closeModal();soldPop(key)}else toast(e&&e.message==='bad_pin'?(isNew?'Not allowed: Add new items to stock is off for this role':'Not allowed: Edit stock items is off for this role')+' (Roles & permissions)':'Could not save. Check the internet.',null,true)}
   });
   mk('Cancel','ghost',closeModal);$('modal').hidden=false;
   },true);
@@ -6100,6 +6143,7 @@ async function pollInboxNow(){
     // users and roles changed by an admin (e.g. "See all quotes"): pick them up now, not at the morning sync
     if((r.s||0)>(sync.v.settings||0)&&!sync.dirtySettings){try{const d=await syncApi('settings');if(d.settings)applyRemoteSettings(d.settings);sync.v.settings=d.v||r.s;saveSyncState();setTimeout(promoPopup,400)}catch(e){}}
     // stock corrected or added by a manager, or sold tags removed: refresh this phone's stock list
+    if((r.sd||0)>(sync.v.sold||0))pullSold();flushSoldQ();
     if((r.st||0)>(sync.v.stock||0)&&!stockPulling){stockPulling=true;try{const d=await syncApi('stock');try{await IDB.putMany(d.rows,true)}catch(e){}stockMap.clear();altMap.clear();d.rows.forEach(indexRec);stockMeta.history=d.history||[];store.set('stockMeta',stockMeta);sync.v.stock=d.v;saveSyncState();paintStockSummary();
       if(cur.stockKey&&stockMap.has(cur.stockKey)){const k=cur.stockKey;cur.stockKey='';applyStock(stockMap.get(k))}}catch(e){}finally{stockPulling=false}}
     if((r.u||0)>(sync.v.users||0)){try{const d=await syncApi('users','GET',null,adminCreds);if(Array.isArray(d.roles)){roles=d.roles;store.set('roles',roles)}if(Array.isArray(d.users)&&d.users.length)mergeRemoteUsers(d.users);sync.v.users=d.v||r.u;saveSyncState()}catch(e){}}

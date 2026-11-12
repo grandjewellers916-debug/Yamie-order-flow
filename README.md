@@ -413,3 +413,11 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 - A quote whose last item is removed is now saved to the server too, so its labels are released.
 - **Approval button** beside Generate Quote (web and app): staff see **Send for approval** → *Waiting for approval…* → **Approved ✓ SW-000123**; managers and admins see **Approve & send back to Ravi** on a quote waiting for them. Approving gives the quote its number (SW- / ON- series) and sends it back to the staff member (notification and the quote updates on their phone).
 - Computer Home: **Add to Quote** opens the Quote only after the item was really added.
+
+## V 1.7.83 — sold labels can never be used again (12 Nov 2026)
+
+- **Sold register** on the server (`sold`: label → date, quote no., invoice, closed by). Closing a sale puts **every** label of that sale on it (also items typed by hand or missing from that phone's stock), then removes them from stock. If the phone is offline, the labels wait on the phone (`soldQ`) and are sent at the next sync.
+- A sold label is blocked everywhere: scanning or typing it shows **"FRG382 is sold"** (date, quote number, invoice, who closed it) and it is not priced; it cannot be added to a quote (checked on the phone and with the server); a stock sheet upload leaves sold labels out (the import says how many); **+ New item** with a sold label is refused. Every phone keeps a copy of the register (`soldlist`, refreshed through the inbox `sd` version).
+- The register starts with the labels of sales already closed (one-time fill from closed quotes, `v1783`).
+- **Settings → Remove sold tags → Sold labels register:** count, search and the latest labels. **Restore** (admin, tap twice) takes a label off the register when a sale is cancelled or the piece returned (`unsell`); add it back to stock afterwards.
+- Fix: a cancelled quote (enquiry only) no longer keeps its labels in use.
