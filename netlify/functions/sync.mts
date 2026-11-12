@@ -61,11 +61,11 @@ function cleanRow(r: any) {
   return o.key ? o : null
 }
 // Permissions an admin can give to a role (admin always has all)
-const PERMS = ["stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "share", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "stockBulk", "approve", "leads", "textSize", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows", "pdHidden", "sync", "roles", "users", "settings"]
+const PERMS = ["stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "imgDel", "imgBulk", "stockList", "share", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "stockBulk", "approve", "leads", "textSize", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows", "pdHidden", "sync", "roles", "users", "settings"]
 const SETTINGS_PERMS = ["imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows"]
 const DEFAULT_ROLES = [
-  { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "images", "approve", "leads", "share", "pdHidden", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "stockBulk"] },
-  { id: "staff", name: "Staff", perms: ["rates", "closeSale", "cancelQuote", "share", "fva"] },
+  { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "images", "imgDel", "imgBulk", "stockList", "approve", "leads", "share", "pdHidden", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "stockBulk"] },
+  { id: "staff", name: "Staff", perms: ["rates", "closeSale", "cancelQuote", "share", "fva", "stockList"] },
 ]
 // A quote as the app keeps it, minus anything large (photos stay on the phone that took them)
 function cleanQuote(q: any) {
@@ -183,6 +183,17 @@ export default async (req: Request) => {
     } catch {}
     ;(meta as any).v1783 = 1; await saveMeta()
   }
+  // V1.8.2 photo permissions and the stock list in the app: roles that add photos can also delete / bulk upload; every role keeps the stock list (once)
+  if (!(meta as any).v182) {
+    let ch = false
+    for (const r of roles) {
+      if (!Array.isArray(r?.perms)) continue
+      if (r.perms.includes("images")) for (const k of ["imgDel", "imgBulk"]) if (!r.perms.includes(k)) { r.perms.push(k); ch = true }
+      if (!r.perms.includes("stockList")) { r.perms.push("stockList"); ch = true }
+    }
+    if (ch && (await st.get("roles"))) { await st.setJSON("roles", roles); meta.users = Date.now() }
+    ;(meta as any).v182 = 1; await saveMeta()
+  }
   // Adding new items became its own permission: roles that edit stock items keep it (once)
   if (!(meta as any).v1772) {
     let ch = false
@@ -237,10 +248,12 @@ export default async (req: Request) => {
         return json(req, { v: meta.users, users: users.map((u) => publicUser(u, isAdm || u.role !== "admin")), roles })
       }
       // Product photos: one small JPEG per label, plus an index of which labels have one
-      if (op === "imgidx") return json(req, { v: meta.imgs, idx: (await st.get("imgidx", { type: "json" })) || {} })
+      // V1.8.2 several photos per label: photo 1 is img/K, more are img/K/2, img/K/3 …; "imgn" counts them (labels with 2 or more)
+      if (op === "imgidx") return json(req, { v: meta.imgs, idx: (await st.get("imgidx", { type: "json" })) || {}, n: (await st.get("imgn", { type: "json" })) || {} })
       if (op === "img") {
-        const k = cleanStr(new URL(req.url).searchParams.get("k"), 40).toUpperCase().replace(/[^A-Z0-9]/g, "")
-        return json(req, { img: k ? (await st.get("img/" + k)) || null : null })
+        const sp = new URL(req.url).searchParams
+        const k = cleanStr(sp.get("k"), 40).toUpperCase().replace(/[^A-Z0-9]/g, ""), i = Math.max(1, Math.min(IMG_MAX, Number(sp.get("i")) || 1))
+        return json(req, { img: k ? (await st.get(imgPath(k, i))) || null : null, i })
       }
       if (op === "quotes") return json(req, { v: meta.quotes, quotes: (await st.get("quotes", { type: "json" })) || [] })
       if (op === "leads") return json(req, { v: meta.leads || 0, leads: (await st.get("leads", { type: "json" })) || [] })
@@ -402,14 +415,33 @@ export default async (req: Request) => {
     else if (!(await permOk(OP_PERM[op] || "users"))) return json(req, { error: "bad_pin" }, 403)
 
     if (op === "img") {
+      // act: add (next free slot) · set (replace photo i) · del (remove photo i, later ones move up) · main (photo i becomes photo 1) · none = old apps (set photo 1, or remove all)
       const k = cleanStr(body?.key, 40).toUpperCase().replace(/[^A-Z0-9]/g, "")
       const img = typeof body?.img === "string" && /^data:image\/(jpeg|png|webp);base64,/.test(body.img) && body.img.length < 400000 ? body.img : null
       if (!k) return json(req, { error: "bad_key" }, 400)
-      const idx: any = (await st.get("imgidx", { type: "json" })) || {}
-      if (img) { await st.set("img/" + k, img); idx[k] = Date.now() } else { await st.delete("img/" + k); delete idx[k] }
-      await st.setJSON("imgidx", idx)
+      const act = ["add", "set", "del", "main"].includes(body?.act) ? body.act : img ? "set" : "clear"
+      if ((act === "del" || act === "clear" || (act === "set" && !!(await st.get(imgPath(k, Number(body?.i) || 1))))) && !(await permOk("imgDel"))) return json(req, { error: "bad_pin" }, 403)
+      const idx: any = (await st.get("imgidx", { type: "json" })) || {}, cnt: any = (await st.get("imgn", { type: "json" })) || {}
+      let n = idx[k] ? Math.max(1, Number(cnt[k]) || 1) : 0
+      const i = Math.max(1, Math.min(n + (act === "add" ? 1 : 0) || 1, Number(body?.i) || 1))
+      if (act === "add" || act === "set") {
+        if (!img) return json(req, { error: "bad_img" }, 400)
+        const slot = act === "add" ? n + 1 : i
+        if (slot > IMG_MAX) return json(req, { error: "too_many", max: IMG_MAX }, 400)
+        await st.set(imgPath(k, slot), img); n = Math.max(n, slot)
+      } else if (act === "del" && n) {
+        for (let j = i; j < n; j++) { const nx = await st.get(imgPath(k, j + 1)); if (nx) await st.set(imgPath(k, j), nx) }
+        await st.delete(imgPath(k, n)); n--
+      } else if (act === "main" && i > 1 && i <= n) {
+        const a = await st.get(imgPath(k, 1)), b = await st.get(imgPath(k, i))
+        if (a && b) { await st.set(imgPath(k, 1), b); await st.set(imgPath(k, i), a) }
+      } else if (act === "clear") {
+        for (let j = 1; j <= Math.max(n, 1); j++) await st.delete(imgPath(k, j)); n = 0
+      }
+      if (n) { idx[k] = Date.now(); if (n > 1) cnt[k] = n; else delete cnt[k] } else { delete idx[k]; delete cnt[k] }
+      await st.setJSON("imgidx", idx); await st.setJSON("imgn", cnt)
       meta.imgs = Date.now(); await saveMeta()
-      return json(req, { v: meta.imgs, idx })
+      return json(req, { v: meta.imgs, idx, n: cnt, count: n })
     }
 
     const soldReg = async () => (((await st.get("sold", { type: "json" })) as any) || {}) as Record<string, any>
@@ -697,3 +729,5 @@ async function shopifyApi() {
   }
   return { gql, dom }
 }
+const IMG_MAX = 6
+const imgPath = (k: string, i: number) => (i <= 1 ? "img/" + k : "img/" + k + "/" + i)

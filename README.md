@@ -452,3 +452,11 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
   - Item Type lists the types used with the chosen Item Name first, then all other types.
   - Purity is set from the item type when its name carries it, e.g. "Kids Bangle (9K)" → 9 (unless changed by hand).
   - On a new label, the label code (e.g. BGL) fills in the most common item name and item type for that code.
+
+## V 1.8.2
+- **Several photos per item (up to 6)** – tap the item photo (Home, or "+") to open the photo manager: view large, add (camera / gallery / several files), replace, delete (tap twice), make main. Photo 1 is the main photo used in Search and quotes. Server: `img/K`, `img/K/2…`, count in `imgn`; op `img` takes `act` add / set / del / main.
+- **Permissions** (Roles → "Product photos" box): Add product photos · Delete / replace product photos (new) · Bulk upload photos (new). New "Stock list in Search (phone app)". Existing roles that add photos get delete and bulk once; every role keeps the stock list once (admin can remove).
+- **Search → Photos**: bulk upload photos named by label no. (FRG382.jpg, FRG382-2.jpg …) in lots of 10, add or replace; **Save all photos here** keeps every photo on this phone / computer (in lots of 25) so they open fast and offline. Changed photos refresh automatically.
+- **WhatsApp quote image** – new tick "Send the item photos too": the database photos of the quote's items (up to 3 per item, 15 in all) go with the quote image.
+- **Phone app Search list** – with an empty search box the app shows the full stock list with the same filters, ranges, sort, pages and select-and-share as the web; tap a row for the full details card.
+- **Reports in the app** – a Reports button on the phone Home (with the Reports permission) opens the report.

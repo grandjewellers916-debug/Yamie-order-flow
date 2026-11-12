@@ -889,6 +889,31 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .rl-names{max-height:220px;overflow:auto;margin-top:6px}#rlNameQ{width:100%;min-height:40px;border:1px solid var(--line);border-radius:10px;padding:6px 10px;font:15px var(--body);background:var(--surface);color:var(--fg)}
 .rl-wp{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font:500 14px var(--body);cursor:pointer;color:var(--fg)}.rl-wp.on{background:var(--maroon);border-color:var(--maroon);color:#fff}
 .sf-sel{width:100%}.sf-new{margin-top:6px}
+.pm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:8px}
+.pm-t{margin:0;position:relative;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface)}.pm-t.main{border-color:var(--maroon)}
+.pm-t.big{grid-column:1/-1}.pm-im{display:block;width:100%;padding:0;border:0;background:#F7F1EA;cursor:zoom-in;aspect-ratio:1}.pm-t.big .pm-im{aspect-ratio:auto;cursor:zoom-out}.pm-im img{width:100%;height:100%;object-fit:cover;display:block}.pm-t.big .pm-im img{object-fit:contain;max-height:70vh}
+.pm-badge{position:absolute;top:8px;left:8px;background:var(--maroon);color:#fff;font:600 11px var(--body);padding:2px 8px;border-radius:999px}
+.pm-t figcaption{display:flex;flex-wrap:wrap;gap:4px 12px;padding:8px 10px;font-size:13px}.pm-t .danger{color:#B3261E}
+.pm-add{display:flex;flex-direction:column;gap:8px;align-items:stretch;justify-content:center;border:2px dashed var(--line);border-radius:14px;padding:14px;min-height:150px}.pm-add small{color:var(--muted);text-align:center}
+.pd-phbtn{display:block;width:100%;height:100%;padding:0;border:0;background:none;cursor:zoom-in;position:relative}.pd-phbtn img{width:100%;height:100%;object-fit:cover;display:block}
+.pd-phn{position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.6);color:#fff;font:600 11px var(--body);padding:2px 7px;border-radius:999px}
+.pb-out{margin-top:10px}.pb-bar{height:8px;border-radius:999px;background:var(--line);overflow:hidden;margin-top:8px}.pb-bar i{display:block;height:100%;width:0;background:var(--maroon);transition:width .2s}
+/* phone stock list (V1.8.2) */
+body.stm .st-filters{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:8px;margin:10px -2px 4px;padding:2px 2px 6px;scrollbar-width:none}
+body.stm .st-filters .stf-row{display:contents}body.stm .stf select{min-height:40px;border:1px solid var(--line);border-radius:999px;padding:6px 12px;background:var(--surface);font:500 14px var(--body);color:var(--fg);max-width:170px}
+body.stm .stf.on select{border-color:var(--maroon);color:var(--maroon);font-weight:600}body.stm .stf .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+body.stm .st-rng{flex:none;flex-wrap:nowrap;flex-basis:auto;margin:0}body.stm .st-rng .rg{flex:none}body.stm .stf-clear{flex:none;white-space:nowrap}
+body.stm .st-tools{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--muted);margin-left:auto}body.stm .st-tools select{min-height:36px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg);font:500 13px var(--body);max-width:130px}
+body.stm .st-tools #stColsB,body.stm .st-tools #stXlsx,body.stm .st-tools .st-view{display:none}body.stm .st-dir{min-height:36px;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:2px 8px;font:600 12px var(--body);color:var(--fg)}
+body.stm #findNote{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+body.stm .st-pager{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;margin:12px 0}body.stm .st-pager .pg{min-width:40px;min-height:40px;border:1px solid var(--line);border-radius:10px;background:var(--surface);font:600 14px var(--body);color:var(--fg)}body.stm .st-pager .pg.on{background:var(--maroon);color:#fff;border-color:var(--maroon)}
+.st-mlist{display:flex;flex-direction:column;gap:8px}
+.mr{display:grid;grid-template-columns:auto 56px minmax(0,1fr) auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:8px 10px;background:var(--surface);cursor:pointer}
+.mr.sel{outline:2px solid var(--maroon)}.mr .mr-ck{position:static;box-shadow:none;padding:0}.mr-img{width:56px;height:56px;border-radius:10px;overflow:hidden;display:grid;place-items:center;background:linear-gradient(160deg,#F7EFE6,#EADBC9);color:#A7742C}.mr-img svg{width:60%}.mr-img img{width:100%;height:100%;object-fit:cover}
+.mr-t{min-width:0;display:flex;flex-direction:column;gap:1px}.mr-t b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mr-t small{color:var(--muted);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mr-t .mr-k{font-family:var(--mono,monospace)}.mr-t .shop-lk{align-self:flex-start}
+.mr-p{text-align:right;display:flex;flex-direction:column}.mr-p b{font-size:15px;white-space:nowrap}.mr-fv{color:#5B2A86;font-weight:600;font-size:12.5px}
+.mk-guide-btn.rep-m{margin-right:8px}
+@media (min-width:1280px) and (pointer:fine){.mk-guide-btn.rep-m{display:none!important}}
 .prod-tcol{display:flex;flex-direction:column;gap:6px;min-width:0}
 .shop-lk{display:inline-flex;align-items:center;justify-content:center;gap:5px;font:600 13px var(--body);color:#0B7A4B;text-decoration:none;padding:4px 8px;border-radius:999px;border:1px solid color-mix(in srgb,#0B7A4B 35%,transparent);background:color-mix(in srgb,#0B7A4B 7%,var(--surface));min-height:30px;white-space:nowrap}
 .shop-lk:hover{background:color-mix(in srgb,#0B7A4B 14%,var(--surface))}.shop-lk svg{width:15px;height:15px;flex:none}
@@ -1831,6 +1856,7 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
       <input id="sku" type="hidden">
       <button class="find-btn" type="button" id="findBtn" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>Search stock · check if a label is available</button>
     </div>
+      <button class="mk-guide-btn rep-m" type="button" id="repBtnM" hidden><span class="mg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>Reports</button>
       <button class="mk-guide-btn" type="button" id="mkGuideBtn"><span class="mg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.4"/><path d="m9.5 16.5 5-5"/><circle cx="10" cy="12" r=".8"/><circle cx="14" cy="16" r=".8"/></svg></span><span class="mg-t"><b>Making guide</b><small>Making &amp; fair value conventions for each item</small></span><svg class="mg-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
   </section>
 
@@ -1915,7 +1941,7 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
 
   <!-- Search -->
   <section class="card find-view" data-pane="search" aria-label="Search stock">
-    <div class="sec-head"><h2>Search stock</h2><span class="find-acts"><button class="btn sm" type="button" id="findBulk" hidden>Bulk update</button><button class="btn sm" type="button" id="findNew" hidden>+ New item</button></span></div>
+    <div class="sec-head"><h2>Search stock</h2><span class="find-acts"><button class="btn sm" type="button" id="findPhotos" hidden>Photos</button><button class="btn sm" type="button" id="findBulk" hidden>Bulk update</button><button class="btn sm" type="button" id="findNew" hidden>+ New item</button></span></div>
     <p class="note">Check if a label is available. Search by label no., item name, item type or stone.</p>
     <div class="find-in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input id="findQ" type="search" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. FRG382 or ring" aria-label="Search stock"></div>
     <p class="note" id="findNote"></p>
@@ -2352,7 +2378,7 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
   <div class="sheet qimg-sheet">
     <div class="find-head"><h4 id="qimgT">Quote image</h4><button class="menu-x" type="button" id="qimgClose" aria-label="Close">✕</button></div>
     <div class="qimg-wrap"><img id="qimgImg" alt="Quote image preview"></div>
-    <label class="rc-p"><input type="checkbox" id="qimgPhotos" checked> Show product photos in the image</label>
+    <label class="rc-p"><input type="checkbox" id="qimgPhotos" checked> Show product photos in the image</label><label class="rc-p"><input type="checkbox" id="qimgItemPh"> Send the item photos too</label>
     <p class="note" id="qimgNote"></p>
     <div class="acts"><button class="btn wa-btn" type="button" id="qimgSend">Send on WhatsApp</button><button class="btn ghost" type="button" id="qimgText">Send as text instead</button></div>
     <div class="acts qimg-pc"><button class="btn" type="button" id="qimgCopy">Copy image</button><button class="btn" type="button" id="qimgDl">Download image</button><button class="btn" type="button" id="qimgPrint">Print A4</button></div>
@@ -3982,7 +4008,7 @@ $('phFile').addEventListener('change',e=>takeFiles(e.target));$('phCamIn').addEv
 const canNativePhotos=!!(NATIVE&&NATIVE.pickPhotos);
 $('phCam').onclick=()=>canNativePhotos?NATIVE.pickPhotos('camera'):$('phCamIn').click();
 $('phGal').onclick=()=>canNativePhotos?NATIVE.pickPhotos('gallery'):$('phFile').click();
-window.onNativePhotos=json=>{let a=[];try{a=JSON.parse(json)}catch(e){}a=a.filter(x=>typeof x==='string'&&x.startsWith('data:image'));if(photoDest){const k=photoDest;photoDest=null;if(a[0])setProdImg(k,a[0]);return}addPhotos(a)};
+window.onNativePhotos=json=>{let a=[];try{a=JSON.parse(json)}catch(e){}a=a.filter(x=>typeof x==='string'&&x.startsWith('data:image'));if(photoJob){takePhotos(a);return}addPhotos(a)};
 window.onNativeShareError=()=>toast('Could not open WhatsApp',null,true);
 function dataUrlFile(u,i){const [h,b]=u.split(',');const bin=atob(b),arr=new Uint8Array(bin.length);for(let k=0;k<bin.length;k++)arr[k]=bin.charCodeAt(k);return new File([arr],`photo-${i+1}.jpg`,{type:(h.match(/data:([^;]+)/)||[])[1]||'image/jpeg'})}
 $('waBtn').onclick=()=>openQuoteImage();
@@ -4120,18 +4146,21 @@ async function openQuoteImage(){
   if(!shareOk(openQuoteImage))return;
   if(!bill.no&&sync.key&&navigator.onLine){await pushQuote(bill.id)}
   $('qimgPop').hidden=false;$('qimgImg').removeAttribute('src');try{$('qimgSend').textContent=onComputer()?'Send on WhatsApp Web':'Send on WhatsApp'}catch(e){}$('qimgNote').textContent='Making the quote image…';
-  const withP=store.get('qimgPhotos',true);$('qimgPhotos').checked=!!withP;
+  const withP=store.get('qimgPhotos',true);$('qimgPhotos').checked=!!withP;$('qimgItemPh').checked=!!store.get('qimgItemPh',false);
   qImgUrl=await makeQuoteImage(withP&&imgOn());
-  $('qimgImg').src=qImgUrl;$('qimgNote').textContent=photos.length?`+ ${photos.length} customer photo${photos.length>1?'s':''} will be sent with it.`:'';
+  $('qimgImg').src=qImgUrl;const ip=$('qimgItemPh').checked?bill.items.reduce((a,t)=>a+Math.min(3,imgCount(keyOf(t.sku))),0):0;
+  $('qimgNote').textContent=[ip?`+ ${ip} item photo${ip>1?'s':''}`:'',photos.length?`+ ${photos.length} customer photo${photos.length>1?'s':''}`:''].filter(Boolean).join(' · ')+(ip||photos.length?' will be sent with it.':'');
 }
-$('qimgPhotos').onchange=()=>{store.set('qimgPhotos',$('qimgPhotos').checked);openQuoteImage()};
+$('qimgPhotos').onchange=()=>{store.set('qimgPhotos',$('qimgPhotos').checked);openQuoteImage()};$('qimgItemPh').onchange=()=>{store.set('qimgItemPh',$('qimgItemPh').checked);openQuoteImage()};
+// the database photos of the quote's items (up to 3 per item, 15 in all), sent after the quote image
+async function quoteItemPhotos(){const out=[];for(const t of bill.items){const k=keyOf(t.sku);if(!imgCount(k)&&!imgMem.get(k))continue;const a=await getProdImgs(k);for(const u of a.slice(0,3)){if(out.length>=15)return out;out.push(u)}}return out}
 $('qimgClose').onclick=()=>{$('qimgPop').hidden=true};
 $('qimgPop').addEventListener('click',e=>{if(e.target===$('qimgPop'))$('qimgPop').hidden=true});
 $('qimgSend').onclick=async()=>{
   if(!qImgUrl)return;
   const s=totals(),ph=phoneDigits(bill.cust.phone);
   const caption=`*${BRAND.full}*\nQuote ${quoteLabel(bill)}${bill.cust.name?' for '+bill.cust.name:''}\n${s.net<0?'Refund':'Balance'}: *${inr(Math.abs(s.net))}* (incl. GST)`;
-  const imgs=[qImgUrl,...photos];
+  const imgs=[qImgUrl,...($('qimgItemPh').checked?await quoteItemPhotos():[]),...photos];
   if(NATIVE&&NATIVE.shareWhatsApp){NATIVE.shareWhatsApp(ph,caption,JSON.stringify(imgs));$('qimgPop').hidden=true;return}
   if(onComputer()){
     let copied=false;try{const im=await loadImg(qImgUrl),cv=document.createElement('canvas');cv.width=im.width;cv.height=im.height;cv.getContext('2d').drawImage(im,0,0);const blob=await new Promise(r=>cv.toBlob(r,'image/png'));await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);copied=true}catch(e){}
@@ -4446,8 +4475,8 @@ function openDiscCheck(){
   a.append(sv,cl);$('modal').hidden=false;setTimeout(()=>$('dcIn').focus(),60);
 }
 $('pdDel').onclick=()=>$('clearTag').click();
-$('findNew').onclick=()=>stockForm(null);
-function paintFindNew(){const b=$('findNew');if(b)b.hidden=!can('stockAdd');const c=$('findBulk');if(c)c.hidden=!can('stockBulk')}
+$('findNew').onclick=()=>stockForm(null);$('findPhotos').onclick=openPhotoTools;
+function paintFindNew(){const b=$('findNew');if(b)b.hidden=!can('stockAdd');const c=$('findBulk');if(c)c.hidden=!can('stockBulk');const p=$('findPhotos');if(p)p.hidden=!(can('imgBulk')||can('images')||Object.keys(imgIdx).length)}
 $('findBulk').onclick=()=>bulkForm();
 $('pdDb').onclick=()=>{const r=stockMap.get(cur.stockKey);if(r)stockForm(r)};
 $('pdClose').onclick=()=>{$('clearTag').click();window.scrollTo({top:0,behavior:'smooth'})};
@@ -5147,7 +5176,8 @@ $('dkKeys').onclick=showKeys;$('keysOpen').onclick=showKeys;
 // shortcut hints on the buttons (computer only; hidden by CSS elsewhere)
 [['pdSave','F4'],['dkNew','F6'],['saveBill','F8'],['dkPrint','F9'],['dkQuote','F7']].forEach(([id,k])=>{const b=$(id);if(b)b.dataset.kb=k});
 $('tabRep').onclick=()=>withPerm('reports','Needs permission: Reports.',()=>setView('reports'));
-function paintRepTab(){$('tabRep').hidden=!(curUser&&can('reports'))}
+function paintRepTab(){$('tabRep').hidden=!(curUser&&can('reports'));const m=$('repBtnM');if(m)m.hidden=!can('reports')}
+$('repBtnM').onclick=()=>withPerm('reports','Needs permission: Reports.',()=>DESK.matches?setView('reports'):openSettings('setReports'));
 
 // ---- Search: the whole stock list as a table (sortable; click or Enter prices the item) ----
 const ST_COLS=[['img','',0],['key','Label no.',0],['category','Item type',0],['item','Item name',0],['carat','Purity',0],['gw','Gr. wt',1],['sw','St. wt',1],['nw','Net wt',1],['dw','Dia ct',1,1],['sa','Stone ₹',1],['mk','Making',1],['huid','HUID',1,1],['location','Location',0],['supplier','Supplier',0],['labelDate','Labelled',0,1],['act','',0]];
@@ -5246,10 +5276,15 @@ function runFindTable(){
   const acts=r=>`<td class="st-act"><button class="btn sm st-price" type="button" data-price="${esc(r.key)}">Price it</button>${ed?`<button class="st-dots" type="button" data-ed="${esc(r.key)}" aria-label="Edit ${esc(r.barcode||r.key)} in database" title="Edit in database">⋯</button>`:''}</td>`;
   const body=stGrid?`<div class="st-gridv">${show.map(r=>{const sa=stVal(r,'sa');return `<div class="stg-c${r===exact?' hit':''}${stSel.has(r.key)?' sel':''}" tabindex="0" data-k="${esc(r.key)}"><label class="stg-ck"><input type="checkbox" data-sel="${esc(r.key)}"${stSel.has(r.key)?' checked':''} aria-label="Select ${esc(r.barcode||r.key)}"></label>${img(r)}<div class="stg-x"><b>${esc(r.barcode||r.key)}</b><span>${esc(r.item||r.category||'')}</span><small>${esc(PLABEL[caratToPurity(r.carat)]||r.carat||'')} · ${W(r.gw)} g${sa>0?' · '+inr(sa):''} · ${esc(mkOf(r))}</small>${(()=>{const o=stPrice(r);return isNaN(o.lp)?'':`<span class="stg-p"><b>${inr(o.lp)}</b>${isNaN(o.fv)?'':` <em>FV ${inr(o.fv)}</em>`}</span>`})()}</div><button class="btn sm st-price" type="button" data-price="${esc(r.key)}">Price it</button></div>`}).join('')}</div>`
     :`<div class="st-wrap"><table class="stk"><thead><tr><th class="st-ck"><input type="checkbox" id="stAll" aria-label="Select all on this page"${show.length&&show.every(r=>stSel.has(r.key))?' checked':''}></th><th class="st-n">#</th>${cols.map(([c,l,r])=>`<th class="${r?'r':''} c-${c}" data-c="${c}"${stSort.k===c?` aria-sort="${stSort.d>0?'ascending':'descending'}"`:''}>${l}</th>`).join('')}<th class="c-act">Action</th></tr></thead><tbody>${show.map((r,i)=>`<tr tabindex="0" data-k="${esc(r.key)}" class="${r===exact?'hit':''}${stSel.has(r.key)?' sel':''}"><td class="st-ck"><input type="checkbox" data-sel="${esc(r.key)}"${stSel.has(r.key)?' checked':''} aria-label="Select ${esc(r.barcode||r.key)}"></td><td class="st-n">${(stPage-1)*stPer+i+1}</td>${cols.map(([c,,ra])=>`<td class="${ra?'r ':''}c-${c}">${stCell(r,c,img,W,mkOf)}</td>`).join('')}${acts(r)}</tr>`).join('')}</tbody></table></div>`;
-  el.innerHTML=body+stPager(total);
+  const mob=!DESK.matches,PL=r=>{const o=stPrice(r);return isNaN(o.lp)?'':inr(o.lp)},FV=r=>{if(!can('fva'))return '';const o=stPrice(r);return isNaN(o.fv)||o.fv>=o.lp?'':inr(o.fv)};
+  const mbody=`<div class="st-mlist">${show.map(r=>`<div class="mr${stSel.has(r.key)?' sel':''}" data-k="${esc(r.key)}"><label class="stg-ck mr-ck"><input type="checkbox" data-sel="${esc(r.key)}"${stSel.has(r.key)?' checked':''} aria-label="Select ${esc(r.barcode||r.key)}"></label><div class="st-img mr-img" data-img="${esc(r.key)}">${icoFor(r.category||r.item||'')}</div>
+    <div class="mr-t"><b>${esc(r.item||r.category||'Item')}</b><small>${esc([r.category&&r.category!==r.item?r.category:'',PLABEL[caratToPurity(r.carat)]||r.carat||''].filter(Boolean).join(' · '))}</small><small class="mr-k">${esc(r.barcode||r.key)} · ${W(r.gw)} g${num(r.dw)>0?` · ${fmtN(num(r.dw))} ct`:''}</small>${shopA(r,true)}</div>
+    <div class="mr-p"><b>${PL(r)}</b>${FV(r)?`<small class="mr-fv">${FV(r)}</small>`:''}</div></div>`).join('')||'<p class="note">No items match these filters.</p>'}</div>`;
+  el.innerHTML=(mob?mbody:body)+stPager(total);
   const price=key=>{const r=stockMap.get(key);if(r){setView('home');useScannedCode(r.barcode||r.key);paintBarcode()}};
   el.querySelectorAll('th[data-c]').forEach(th=>th.onclick=()=>{const c=th.dataset.c;if(c==='img'||c==='act')return;stSort=stSort.k===c?{k:c,d:-stSort.d}:{k:c,d:1};store.set('stSort',stSort);runFindTable()});
   wireSel(el,show);
+  el.querySelectorAll('.mr').forEach(m=>m.onclick=e=>{if(e.target.closest('.stg-ck,a'))return;const r=stockMap.get(m.dataset.k);if(r){$('findQ').value=r.barcode||r.key;runFind();window.scrollTo(0,0)}});
   el.querySelectorAll('tbody tr,.stg-c').forEach(tr=>{tr.onclick=e=>{if(e.target.closest('[data-price],[data-ed],.st-ck,.stg-ck'))return;price(tr.dataset.k)};tr.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();price(tr.dataset.k)}else if(e.key==='ArrowDown'&&tr.nextElementSibling){e.preventDefault();tr.nextElementSibling.focus()}else if(e.key==='ArrowUp'){e.preventDefault();(tr.previousElementSibling||$('findQ')).focus()}}});
   el.querySelectorAll('[data-price]').forEach(b=>b.onclick=()=>price(b.dataset.price));
   el.querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>{const r=stockMap.get(b.dataset.ed);if(r)stockForm(r)});
@@ -5257,7 +5292,7 @@ function runFindTable(){
   $('stPer').onchange=()=>{stPer=+$('stPer').value;stPage=1;runFindTable()};
   $('stSortSel').onchange=()=>{const k=$('stSortSel').value;stSort={k,d:['price','fv','save','gw','nw','sa','mk','dw','dq','labelDate'].includes(k)?-1:1};store.set('stSort',stSort);runFindTable()};
   $('stDir').onclick=()=>{stSort={k:stSort.k,d:-stSort.d};store.set('stSort',stSort);runFindTable()};
-  $('stColsB').onclick=stColsForm;if($('stXlsx'))$('stXlsx').onclick=()=>withPerm('export','Needs permission: Export.',()=>stExport(rows));
+  if($('stColsB'))$('stColsB').onclick=stColsForm;if($('stXlsx'))$('stXlsx').onclick=()=>withPerm('export','Needs permission: Export.',()=>stExport(rows));
   $('stList').onclick=()=>{stGrid=false;runFindTable()};$('stGridB').onclick=()=>{stGrid=true;runFindTable()};
   el.querySelectorAll('[data-img]').forEach(d=>{const k=d.dataset.img;if(!imgIdx[k]&&!imgMem.get(k))return;getProdImg(k).then(u=>{if(u)d.innerHTML=`<img src="${u}" alt="">`})});
 }
@@ -5446,22 +5481,24 @@ function paintAdminExtras(){
 [...$('imgSeg').children].forEach(b=>b.onclick=()=>withPerm('imgShow','Needs permission: Product image show / hide.',()=>{settings.showImg=b.dataset.i==='1';saveSettings();paintAdminExtras();renderEditor();toast(settings.showImg?'Product image shown':'Product image hidden')}));
 paintAdminExtras();
 // ---------- product photos (per label; shared through the database) ----------
-let imgIdx=store.get('imgIdx',{})||{};const imgMem=new Map();let photoDest=null;
+let imgIdx=store.get('imgIdx',{})||{};const imgMem=new Map();var IMG_MAX=6,imgN=store.get('imgN',{})||{},imgT=store.get('imgT',{})||{};
 async function getProdImg(k){
   if(!k)return null;if(imgMem.has(k))return imgMem.get(k);
-  let u=(await PH.get('img:'+k));u=Array.isArray(u)?u[0]:u;
-  if(!u&&imgIdx[k]&&sync.key&&navigator.onLine){try{const r=await syncApi('img&k='+encodeURIComponent(k));u=r.img||null;if(u)PH.set('img:'+k,[u])}catch(e){}}
+  let a=await PH.get('img:'+k);a=Array.isArray(a)?a:a?[a]:[];let u=a[0]||null;
+  if(sync.key&&!imgIdx[k])u=null;
+  else if(sync.key&&imgIdx[k]&&(!u||imgT[k]!==imgIdx[k])&&navigator.onLine){try{const r=await syncApi('img&k='+encodeURIComponent(k));if(r.img){u=r.img;if(a[0]!==u||imgT[k]!==imgIdx[k]){a=imgCount(k)>1&&imgT[k]===imgIdx[k]?[u,...a.slice(1)]:[u];await PH.set('img:'+k,a);if(imgCount(k)<=1){imgT[k]=imgIdx[k];store.set('imgT',imgT)}}}}catch(e){}}
   imgMem.set(k,u||null);return u||null;
 }
 function paintProdImg(k,name){
   const t=$('pdTile');t.innerHTML=icoFor(name);t.classList.remove('photo');
   if(!imgOn())return;
   const add=()=>{const b=document.createElement('button');b.type='button';b.className='pd-addimg';b.setAttribute('aria-label','Add a photo of this item');b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';b.onclick=()=>askProdPhoto(k);t.appendChild(b)};
-  getProdImg(k).then(u=>{if(keyOf(cur.sku)!==k)return;if(u){t.innerHTML=`<img src="${u}" alt="${esc(name)}">`;t.classList.add('photo')}else add()});
+  getProdImg(k).then(u=>{if(keyOf(cur.sku)!==k)return;if(u){const n=imgCount(k);t.innerHTML=`<button type="button" class="pd-phbtn" aria-label="Photos of ${esc(k)}"><img src="${u}" alt="${esc(name)}">${n>1?`<span class="pd-phn">1 / ${n}</span>`:''}</button>`;t.classList.add('photo');t.querySelector('.pd-phbtn').onclick=()=>openPhotos(k)}else add()});
 }
-async function pullImgIdx(){if(!sync.key||!navigator.onLine)return;try{const r=await syncApi('imgidx');if(r&&r.idx){imgIdx=r.idx;store.set('imgIdx',imgIdx);sync.v.imgs=r.v||0;saveSyncState()}}catch(e){}}
+async function pullImgIdx(){if(!sync.key||!navigator.onLine)return;try{const r=await syncApi('imgidx');if(r&&r.idx){for(const k of new Set([...Object.keys(imgIdx),...Object.keys(r.idx)]))if(imgIdx[k]!==r.idx[k])imgMem.delete(k);imgIdx=r.idx;imgN=r.n||{};store.set('imgIdx',imgIdx);store.set('imgN',imgN);sync.v.imgs=r.v||0;saveSyncState()}}catch(e){}}
 function shrinkUrl(u,max){return new Promise(res=>{const im=new Image();im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.8))};im.onerror=()=>res(null);im.src=u})}
 async function setProdImg(k,u){
+  if(sync.key){if(u){await imgAct(k,imgCount(k)?'set':'add',1,u)}else{for(let j=imgCount(k);j>=1;j--)await imgAct(k,'del',j)}return}
   if(u)u=await shrinkUrl(u,640);
   imgMem.set(k,u||null);
   if(u){await PH.set('img:'+k,[u]);imgIdx[k]=Date.now()}else{await PH.del('img:'+k);delete imgIdx[k]}
@@ -5470,16 +5507,104 @@ async function setProdImg(k,u){
   else toast(u?'Photo saved':'Photo removed');
   runFind();if(keyOf(cur.sku)===k)renderEditor();
 }
-function askProdPhoto(k){
-  withPerm('images','Needs a user allowed to add product photos.',()=>{
-    showModal(`Photo for ${k}`,'Take a photo of the piece or pick one from the gallery.',[
-      {label:'Camera',cls:'primary',run:()=>{photoDest=k;if(canNativePhotos)NATIVE.pickPhotos('camera');else $('pimgCam').click()}},
-      {label:'Gallery',run:()=>{photoDest=k;if(canNativePhotos)NATIVE.pickPhotos('gallery');else $('pimgFile').click()}},
-      ...(imgIdx[k]||imgMem.get(k)?[{label:'Remove photo',cls:'danger',run:()=>setProdImg(k,null)}]:[]),
-      {label:'Cancel',cls:'ghost'}]);
-  },true);
+// ---- V1.8.2 several photos per item: view, add, replace, delete, make main; bulk upload; keep them on this device ----
+function imgCount(k){return imgIdx[k]?Math.max(1,+imgN[k]||1):0}
+async function imgArr(k){let a=await PH.get('img:'+k);return Array.isArray(a)?a.slice():a?[a]:[]}
+async function getProdImgs(k){
+  if(!k)return [];let arr=await imgArr(k);
+  if(!sync.key)return arr.filter(Boolean);
+  const n=imgCount(k);if(!n)return [];
+  const fresh=imgT[k]===imgIdx[k];
+  if((!fresh||arr.slice(0,n).filter(Boolean).length<n)&&navigator.onLine){
+    const out=[];for(let i=1;i<=n;i++){if(fresh&&arr[i-1]){out.push(arr[i-1]);continue}try{const r=await syncApi('img&k='+encodeURIComponent(k)+'&i='+i);out.push(r.img||null)}catch(e){out.push(fresh?arr[i-1]||null:null)}}
+    if(out.filter(Boolean).length){arr=out;await PH.set('img:'+k,arr);imgT[k]=imgIdx[k];store.set('imgT',imgT);imgMem.set(k,arr[0]||null)}
+  }
+  return arr.slice(0,n).filter(Boolean);
 }
-['pimgFile','pimgCam'].forEach(id=>$(id).addEventListener('change',async e=>{const f=e.target.files&&e.target.files[0];e.target.value='';const k=photoDest;photoDest=null;if(!f||!k)return;const u=await shrink(f);if(u)setProdImg(k,u)}));
+async function imgAct(k,act,i,u){
+  if(u)u=await shrinkUrl(u,1024);
+  let arr=await imgArr(k);const n0=sync.key?imgCount(k):arr.filter(Boolean).length;arr=arr.slice(0,Math.max(n0,arr.length));
+  if(act==='add'&&n0>=IMG_MAX){toast(`Up to ${IMG_MAX} photos per item`,null,true);return false}
+  if(sync.key){
+    if(!navigator.onLine){toast('Needs the internet to change photos',null,true);return false}
+    try{const r=await syncApi('img','POST',{key:k,act,i,img:u||null},adminCreds);
+      if(r&&r.idx){imgIdx=r.idx;imgN=r.n||{};store.set('imgIdx',imgIdx);store.set('imgN',imgN);sync.v.imgs=r.v||sync.v.imgs;saveSyncState()}}
+    catch(e){toast(e&&e.status===403?'Not allowed for this user':'Photo not saved. '+syncErrText(e),null,true);return false}
+  }
+  if(act==='add')arr.push(u);else if(act==='set')arr[i-1]=u;else if(act==='del')arr.splice(i-1,1);else if(act==='main'&&arr[i-1]){const t=arr[0];arr[0]=arr[i-1];arr[i-1]=t}
+  arr=arr.filter(Boolean);
+  if(arr.length)await PH.set('img:'+k,arr);else await PH.del('img:'+k);
+  if(sync.key){if(imgIdx[k]){imgT[k]=imgIdx[k]}else delete imgT[k];store.set('imgT',imgT)}
+  else{if(arr.length){imgIdx[k]=Date.now();if(arr.length>1)imgN[k]=arr.length;else delete imgN[k]}else{delete imgIdx[k];delete imgN[k]}store.set('imgIdx',imgIdx);store.set('imgN',imgN)}
+  imgMem.set(k,arr[0]||null);
+  try{runFind()}catch(e){}try{if(keyOf(cur.sku)===k)renderEditor()}catch(e){}
+  return true;
+}
+// what to do with the next picked photo(s)
+let photoJob=null;
+function pickPhotos(k,act,i,src){
+  photoJob={k,act,i};
+  if(canNativePhotos){NATIVE.pickPhotos(src||'gallery');return}
+  const inp=$(src==='camera'?'pimgCam':'pimgFile');inp.multiple=act==='add'&&src!=='camera';inp.click();
+}
+async function takePhotos(list){
+  const j=photoJob;photoJob=null;if(!j||!list.length)return;
+  if(j.act==='set'){await imgAct(j.k,'set',j.i,list[0]);toast('Photo replaced')}
+  else{let n=0;for(const u of list){if(!(await imgAct(j.k,'add',0,u)))break;n++}if(n)toast(n===1?'Photo added':`${n} photos added`)}
+  if(!$('modal').hidden&&$('modal').dataset.ph===j.k)paintPhotoMgr(j.k);
+}
+function askProdPhoto(k){openPhotos(k)}
+function openPhotos(k){
+  showModal(`Photos · ${k}`,'',[{label:'Close',cls:'ghost'}]);$('modal').dataset.ph=k;
+  const off=()=>{if($('modal').hidden)delete $('modal').dataset.ph};setTimeout(()=>{const o=new MutationObserver(()=>{if($('modal').hidden){delete $('modal').dataset.ph;o.disconnect()}});o.observe($('modal'),{attributes:true,attributeFilter:['hidden']})},0);
+  paintPhotoMgr(k);
+}
+async function paintPhotoMgr(k){
+  const b=$('modalBody');b.innerHTML='<p class="note">Loading the photos…</p>';
+  const arr=await getProdImgs(k);if($('modal').dataset.ph!==k)return;
+  const addOk=arr.length<IMG_MAX;
+  b.innerHTML=`<p class="note">${arr.length?`${arr.length} photo${arr.length===1?'':'s'} · the first is the main photo, used in quotes and search.`:'No photos yet.'} Saved for all phones and computers.</p>
+    <div class="pm-grid">${arr.map((u,ix)=>`<figure class="pm-t${ix?'':' main'}"><button type="button" class="pm-im" data-big="${ix}" aria-label="View photo ${ix+1}"><img src="${u}" alt="Photo ${ix+1} of ${esc(k)}"></button>${ix?'':'<span class="pm-badge">Main</span>'}
+      <figcaption>${ix?`<button type="button" class="linkbtn" data-main="${ix+1}">Make main</button>`:''}<button type="button" class="linkbtn" data-rep="${ix+1}">Replace</button><button type="button" class="linkbtn danger" data-del="${ix+1}">Delete</button></figcaption></figure>`).join('')}
+      ${addOk?`<div class="pm-add"><b>Add photo${arr.length?'s':''}</b><button type="button" class="btn sm primary" data-add="camera">Camera</button><button type="button" class="btn sm" data-add="gallery">${onComputer()?'Choose files':'Gallery'}</button><small>${IMG_MAX-arr.length} more allowed</small></div>`:''}</div>`;
+  b.querySelectorAll('[data-add]').forEach(x=>x.onclick=()=>withPerm('images','Needs a user allowed to add product photos.',()=>pickPhotos(k,'add',0,x.dataset.add),true));
+  b.querySelectorAll('[data-rep]').forEach(x=>x.onclick=()=>withPerm('imgDel','Needs a user allowed to replace or delete photos.',()=>pickPhotos(k,'set',+x.dataset.rep,'gallery'),true));
+  b.querySelectorAll('[data-main]').forEach(x=>x.onclick=()=>withPerm('images','Needs a user allowed to change product photos.',async()=>{if(await imgAct(k,'main',+x.dataset.main))paintPhotoMgr(k)},true));
+  b.querySelectorAll('[data-del]').forEach(x=>{let armed=false;x.onclick=()=>{if(!armed){armed=true;x.textContent='Tap again to delete';setTimeout(()=>{armed=false;x.textContent='Delete'},3000);return}
+    withPerm('imgDel','Needs a user allowed to delete photos.',async()=>{if(await imgAct(k,'del',+x.dataset.del)){toast('Photo deleted');paintPhotoMgr(k)}},true)}});
+  b.querySelectorAll('[data-big]').forEach(x=>x.onclick=()=>x.closest('.pm-t').classList.toggle('big'));
+}
+// Bulk: photos named by label no. (FRG382.jpg, FRG382-2.jpg, FRG382 (3).jpg) and keeping all photos on this device
+function openPhotoTools(){
+  showModal('Product photos','',[{label:'Close',cls:'ghost'}]);
+  const total=Object.keys(imgIdx).length,local=Object.keys(imgIdx).filter(k=>imgT[k]===imgIdx[k]).length;
+  $('modalBody').innerHTML=`<div class="sh-wrap">
+    <div class="sh-sec"><h5>Upload photos in bulk</h5><p class="note">Name each photo with its label number: <b>FRG382.jpg</b>. More photos of the same item: <b>FRG382-2.jpg</b>, <b>FRG382-3.jpg</b>. They upload in lots of 10.</p>
+      <div class="sh-row"><select id="pbMode" aria-label="Upload mode"><option value="add">Add to the item's photos</option><option value="set">Replace the item's photos</option></select><button type="button" class="btn primary" id="pbPick">Choose photos</button></div>
+      <input type="file" id="pbFiles" accept="image/*" multiple hidden><div id="pbOut" class="pb-out" aria-live="polite"></div></div>
+    <div class="sh-sec"><h5>Keep photos on this ${onComputer()?'computer':'phone'}</h5><p class="note" id="plNote">${local.toLocaleString('en-IN')} of ${total.toLocaleString('en-IN')} items' photos are saved here, so they open fast and without the internet.</p>
+      <div class="sh-row"><button type="button" class="btn" id="plGo"${total&&sync.key?'':' disabled'}>Save all photos here</button></div><div class="pb-bar" id="plBar" hidden><i></i></div></div></div>`;
+  $('pbPick').onclick=()=>withPerm('imgBulk','Needs a user allowed to bulk upload photos.',()=>$('pbFiles').click(),true);
+  $('pbFiles').onchange=async e=>{const fs=[...e.target.files];e.target.value='';if(!fs.length)return;
+    const rows=fs.map(f=>{const base=f.name.replace(/\.[a-z0-9]+$/i,'').trim(),m=base.match(/^(.*?)(?:\s*[-_ ]\s*\(?(\d{1,2})\)?)?$/),code=m?m[1]:base,k=keyOf(code),r=stockMap.get(k);return {f,k,ok:!!r,n:m&&m[2]?+m[2]:1}}).sort((a,b)=>a.k<b.k?-1:a.k>b.k?1:a.n-b.n);
+    const good=rows.filter(r=>r.ok),bad=rows.filter(r=>!r.ok),keys=new Set(good.map(r=>r.k));
+    $('pbOut').innerHTML=`<p><b>${good.length}</b> photo${good.length===1?'':'s'} for <b>${keys.size}</b> item${keys.size===1?'':'s'} in stock.${bad.length?` <span class="bad-t">${bad.length} not matched: ${bad.slice(0,6).map(r=>esc(r.f.name)).join(', ')}${bad.length>6?'…':''}</span>`:''}</p>${good.length?`<button type="button" class="btn primary" id="pbGo">Upload ${good.length}</button>`:''}<div class="pb-bar" id="pbBar" hidden><i></i></div>`;
+    if(!good.length)return;
+    $('pbGo').onclick=async()=>{const mode=$('pbMode').value;if(mode==='set'&&!can('imgDel')){toast('Replacing photos needs the delete permission',null,true);return}
+      $('pbGo').disabled=true;$('pbBar').hidden=false;let done=0,fail=0;const cleared=new Set();
+      for(let i=0;i<good.length;i+=10){const lot=good.slice(i,i+10);
+        for(const r of lot){try{const u=await shrink(r.f);
+            if(mode==='set'&&!cleared.has(r.k)){cleared.add(r.k);const n=imgCount(r.k);if(n){for(let j=n;j>=2;j--)await imgAct(r.k,'del',j);if(!(await imgAct(r.k,'set',1,u)))throw 0}else if(!(await imgAct(r.k,'add',0,u)))throw 0}
+            else if(!(await imgAct(r.k,'add',0,u)))throw 0;done++}catch(e){fail++}
+          $('pbBar').firstChild.style.width=((done+fail)/good.length*100)+'%'}
+        $('pbOut').querySelector('p').innerHTML=`Uploaded <b>${done}</b> of ${good.length}${fail?` · <span class="bad-t">${fail} failed</span>`:''}…`}
+      $('pbOut').querySelector('p').innerHTML=`<b class="ok-t">✓ ${done} photo${done===1?'':'s'} uploaded</b>${fail?` · <span class="bad-t">${fail} failed (too many photos for an item, or no internet)</span>`:''}`;$('pbGo').remove()}};
+  $('plGo').onclick=async()=>{const ks=Object.keys(imgIdx).filter(k=>imgT[k]!==imgIdx[k]);$('plGo').disabled=true;$('plBar').hidden=false;let d=0;
+    for(let i=0;i<ks.length;i+=25){await Promise.all(ks.slice(i,i+25).map(k=>getProdImgs(k).catch(()=>{})));d=Math.min(ks.length,i+25);$('plBar').firstChild.style.width=(d/ks.length*100)+'%';
+      $('plNote').textContent=`Saving… ${d.toLocaleString('en-IN')} of ${ks.length.toLocaleString('en-IN')} items`}
+    const ok=Object.keys(imgIdx).filter(k=>imgT[k]===imgIdx[k]).length;$('plNote').innerHTML=`<b class="ok-t">✓ ${ok.toLocaleString('en-IN')} of ${Object.keys(imgIdx).length.toLocaleString('en-IN')} items' photos saved here.</b> Changed photos update here when they are opened.`;$('plGo').disabled=false;$('plGo').textContent='Check again'};
+}
+['pimgFile','pimgCam'].forEach(id=>$(id).addEventListener('change',async e=>{const fs=[...(e.target.files||[])];e.target.value='';if(!fs.length||!photoJob){photoJob=null;return}const us=[];for(const f of fs.slice(0,IMG_MAX)){const u=await shrink(f);if(u)us.push(u)}takePhotos(us)}));
 
 
 
@@ -6094,7 +6219,8 @@ $('expPdf').onclick=()=>withPerm('export','Only an admin can export the database
 // Search stock: is a label available?
 function openFind(q){setView('search');if(sync.key&&!openFind.pulled){openFind.pulled=1;pullImgIdx().then(runFind)}if(q!=null)$('findQ').value=q;runFind();setTimeout(()=>$('findQ').focus(),80)}
 function runFind(){
-  if(DESK.matches){runFindTable();return}
+  if(DESK.matches||(!$('findQ').value.trim()&&stockMap.size&&can('stockList'))){document.body.classList.toggle('stm',!DESK.matches);runFindTable();return}
+  document.body.classList.remove('stm');
   $('findList').classList.remove('st-tbl');
   const q=$('findQ').value.trim(),k=keyOf(q),el=$('findList');
   if(!stockMap.size){$('findNote').textContent='No stock loaded on this phone yet.';el.innerHTML='';return}
@@ -6136,7 +6262,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.8.1',APP_BUILD='__BUILD__';
+const APP_VERSION='1.8.2',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------
@@ -6149,16 +6275,17 @@ const PERM_LIST=[
 ['stockdel','Delete sold tags from stock'],['rates',"Set day's rates"],
   ['mkEdit','Update making on the price card'],['mkDisc','Making after discount on quotes'],
   ['closeSale','Close sale (invoice no.)'],['cancelQuote','Cancel quote (enquiry)'],['reopen','Reopen sold / cancelled quotes'],
-  ['delQuote','Delete quotes'],['images','Add product photos'],['addDisc','Additional discount (flat)'],['round','Round final amounts to the nearest ₹50'],['stockEdit','Edit stock items · making, FVA, label details'],['stockAdd','Add new items to stock'],['stockBulk','Bulk update stock items'],['reports','Reports'],['fva','Fair Value price'],['share','Share quotes on WhatsApp'],['pdHidden','See hidden details (NLC, FVA…)'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],
+  ['delQuote','Delete quotes'],['images','Add product photos'],['imgDel','Delete / replace product photos'],['imgBulk','Bulk upload photos'],['stockList','Stock list in Search (phone app)'],['addDisc','Additional discount (flat)'],['round','Round final amounts to the nearest ₹50'],['stockEdit','Edit stock items · making, FVA, label details'],['stockAdd','Add new items to stock'],['stockBulk','Bulk update stock items'],['reports','Reports'],['fva','Fair Value price'],['share','Share quotes on WhatsApp'],['pdHidden','See hidden details (NLC, FVA…)'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],
   ['textSize','Text size'],['imgShow','Product image show / hide'],['ratesShown','Rates shown'],['charges','Charges · GST · HUID'],
   ['mkHelper','Making helpers'],['itemCodes','Item codes'],['pdRows','Product details items'],['sync','Shared database · shop key'],['roles','Roles & permissions'],['users','Users']];
 const SET_PERMS=['theme','footer','apprSet','export','promos','rules','reports','stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users'];
-const STOCK_PERMS=['stockEdit','stockAdd','stockBulk','stockdel'];
+const STOCK_PERMS=['stockEdit','stockAdd','stockBulk','stockdel'];const PHOTO_PERMS=['images','imgDel','imgBulk'];
 const permLabel=k=>(PERM_LIST.find(p=>p[0]===k)||[0,k])[1];
-const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','approve','leads','share','pdHidden','addDisc','round','reports','fva','stockEdit','stockAdd','stockBulk']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share','fva']}];
+const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','imgDel','imgBulk','stockList','approve','leads','share','pdHidden','addDisc','round','reports','fva','stockEdit','stockAdd','stockBulk']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share','fva','stockList']}];
 let roles=store.get('roles',null)||clone(DEFAULT_ROLES);
 // WhatsApp sharing became a permission (v1.7.3): roles on this phone keep it once
 if(!store.get('permShare',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&!r.perms.includes('share'))r.perms.push('share')});store.set('roles',roles);store.set('permShare',true)}
+if(!store.get('perm182',false)){roles.forEach(r=>{if(!Array.isArray(r.perms))return;if(r.perms.includes('images'))['imgDel','imgBulk'].forEach(k=>{if(!r.perms.includes(k))r.perms.push(k)});if(!r.perms.includes('stockList'))r.perms.push('stockList')});store.set('roles',roles);store.set('perm182',true)}
 if(!store.get('permHid',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('mkDisc')&&!r.perms.includes('pdHidden'))r.perms.push('pdHidden')});store.set('roles',roles);store.set('permHid',true)}
 if(!store.get('permStockEd',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('mkDisc')&&!r.perms.includes('stockEdit'))r.perms.push('stockEdit')});store.set('roles',roles);store.set('permStockEd',true)}
 if(!store.get('permStockBulk',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('stockEdit')&&!r.perms.includes('stockBulk'))r.perms.push('stockBulk')});store.set('roles',roles);store.set('permStockBulk',true)}
@@ -6572,7 +6699,7 @@ function renderRoles(){
   el.innerHTML=`<div class="role-card locked"><div class="rc-h"><b>Admin</b><span class="note">All permissions · ${used('admin')} user${used('admin')===1?'':'s'}</span></div></div>`+
     roleDraft.map((r,i)=>`<div class="role-card" data-i="${i}"><div class="rc-h"><input class="rc-name" value="${esc(r.name)}" maxlength="30" aria-label="Role name"><span class="note">${used(r.id)} user${used(r.id)===1?'':'s'}</span>${used(r.id)?'':`<button class="x" type="button" data-rdel="${i}" aria-label="Delete role ${esc(r.name)}">×</button>`}</div>
       <div class="rc-perms">${(()=>{const cb=([k,t])=>`<label class="rc-p"><input type="checkbox" data-p="${k}"${r.perms.includes(k)?' checked':''}> ${esc(t)}</label>`;
-        return `<div class="rc-grp"><b>Stock database</b>${PERM_LIST.filter(p=>STOCK_PERMS.includes(p[0])).map(cb).join('')}</div>`+PERM_LIST.filter(p=>!STOCK_PERMS.includes(p[0])).map(cb).join('')})()}</div></div>`).join('');
+        return `<div class="rc-grp"><b>Stock database</b>${PERM_LIST.filter(p=>STOCK_PERMS.includes(p[0])).map(cb).join('')}</div><div class="rc-grp"><b>Product photos</b>${PERM_LIST.filter(p=>PHOTO_PERMS.includes(p[0])).map(cb).join('')}</div>`+PERM_LIST.filter(p=>!STOCK_PERMS.includes(p[0])&&!PHOTO_PERMS.includes(p[0])).map(cb).join('')})()}</div></div>`).join('');
   el.querySelectorAll('.role-card[data-i]').forEach(c=>{const r=roleDraft[+c.dataset.i];
     c.querySelector('.rc-name').addEventListener('input',e=>{r.name=e.target.value});
     c.querySelectorAll('[data-p]').forEach(cb=>cb.onchange=()=>{r.perms=cb.checked?[...new Set([...r.perms,cb.dataset.p])]:r.perms.filter(x=>x!==cb.dataset.p)});
