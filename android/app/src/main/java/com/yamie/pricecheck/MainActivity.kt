@@ -278,7 +278,7 @@ class MainActivity : ComponentActivity() {
                         type = "image/jpeg"
                         if (uris.size == 1) putExtra(Intent.EXTRA_STREAM, uris[0]) else putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
                         putExtra(Intent.EXTRA_TEXT, text)
-                        if (digits.isNotEmpty()) putExtra("jid", "$digits@s.whatsapp.net")
+                        if (digits.isNotEmpty() && uris.size == 1) putExtra("jid", "$digits@s.whatsapp.net")  // several pictures: WhatsApp asks for the chat
                         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     }
                     val sent = listOf("com.whatsapp", "com.whatsapp.w4b").any { pkg ->
