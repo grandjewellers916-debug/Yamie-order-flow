@@ -275,7 +275,7 @@ export default async (req: Request) => {
           .map((q) => ({ id: q.id, no: q.no || "", name: cleanStr(q.cust?.name, 40), by: q.appr.reqBy || "", byName: cleanStr(q.appr.reqName, 40), to: cleanStr(q.appr.to, 40), kind: cleanStr(q.appr.kind, 12), at: q.appr.reqAt || q.updated || 0 }))
         const approved = qs.filter((q) => q?.appr?.state === "approved" && q.appr.at > Date.now() - 3 * 864e5).slice(0, 50)
           .map((q) => ({ id: q.id, no: q.no || "", name: cleanStr(q.cust?.name, 40), to: q.appr.reqBy || "", byName: cleanStr(q.appr.by, 40), at: q.appr.at || 0 }))
-        const leads = ls.filter((l) => l.state === "new").slice(0, 50).map((l) => ({ id: l.id, to: l.to || "", name: cleanStr(l.name, 40), byName: cleanStr(l.byName, 40), at: l.at || 0 }))
+        const leads = ls.filter((l) => l.state === "new").slice(0, 50).map((l) => ({ id: l.id, to: l.to || "", name: cleanStr(l.name, 40), byName: cleanStr(l.byName, 40), at: l.at || 0, kind: l.kind || "", n: Array.isArray(l.keys) ? l.keys.length : 0 }))
         return json(req, { q: meta.quotes, l: meta.leads || 0, u: meta.users || 0, s: meta.settings || 0, st: meta.stock || 0, sd: (meta as any).sold || 0, pending, approved, leads })
       }
       return json(req, { error: "bad_op" }, 400)
@@ -354,6 +354,8 @@ export default async (req: Request) => {
         id: cleanStr(l.id, 24), name: cleanStr(l.name, 60), phone: cleanStr(l.phone, 20), note: cleanStr(l.note, 1000),
         to: cleanStr(l.to, 40), toName: cleanStr(l.toName, 60), by: cleanStr(l.by, 40), byName: cleanStr(l.byName, 60),
         at: cleanNum(l.at) || Date.now(), state: ["new", "open", "done"].includes(l.state) ? l.state : "new", quoteId: cleanStr(l.quoteId, 24), updated: Date.now(),
+        // V1.7.88 items picked in Search and sent to a user
+        kind: l.kind === "items" ? "items" : "", keys: Array.isArray(l.keys) ? l.keys.slice(0, 500).map((k: any) => cleanStr(k, 40)).filter(Boolean) : [],
       }
       const list: any[] = ((await st.get("leads", { type: "json" })) as any[]) || []
       const next = [lead, ...list.filter((x) => x.id !== lead.id)].sort((a, b) => (b.at || 0) - (a.at || 0)).slice(0, 500)

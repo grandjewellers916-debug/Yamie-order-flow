@@ -433,3 +433,11 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 - Corrected naming: Item name = stock "Item name" column; Product sub type = stock "Item type" column.
 - **Web Home, fair value** – Grand Total stays at the label price; a separate purple Fair Value box underneath shows the fair value price, FVA %, gold rate, making collected (vs label making) and customer savings.
 - **Search** – new filters: Item Type (sheet item type), Item Name, Imported; the label-code filter is now "Label Code".
+
+## V 1.7.88
+- **Search filters reordered** – Item Name, Item Type, Purity, Label Code, then the rest. Table columns default to Photo, Item name, Item type, Purity, Label no. (applied once to each computer's saved columns).
+- **Range search** – Weight (gross or net), Label price, Fair value, Making ₹ and Diamond ct, each with from / to. Press Enter or leave the box to apply; "Clear all" resets them.
+- **Select items and share** – tick boxes in the table, grid and phone cards (tick the header box for the page, or "Select all N found", up to 500). The bar at the bottom opens **Share…**, which asks what to include (photo, label no., item name/type, purity, weights, stone, making, label price, fair value, FVA, HUID no., size, location; supplier and NLC only with Hidden product details) and then:
+  - **WhatsApp** – one picture per item (up to 20, only the item's own uploaded photo) and a message listing every item. Phone app: straight into WhatsApp; computer: pictures copied as one sheet to paste into WhatsApp Web. Needs the WhatsApp share permission.
+  - **PDF** – A4 table with photos and the chosen details.
+  - **Send to user** – another app user gets a notification "Items shared with you"; tapping it opens Search showing only those items, with the sender's note.

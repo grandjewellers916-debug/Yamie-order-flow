@@ -125,8 +125,9 @@ object Notify {
         each("leads") { l ->
             if (l.optString("to") == me) {
                 val k = "l:" + l.optString("id")
-                if (markSeen(c, k) && !first) show(c, "New WhatsApp lead" + nameOf(l),
-                    "From " + l.optString("byName", "manager") + " · tap to start the quote", k, "lead:" + l.optString("id"))
+                val items = l.optString("kind") == "items"
+                if (markSeen(c, k) && !first) show(c, if (items) "Items shared with you · " + l.optInt("n", 0) + " items" else "New WhatsApp lead" + nameOf(l),
+                    "From " + l.optString("byName", "manager") + (if (items) " · tap to see them" else " · tap to start the quote"), k, "lead:" + l.optString("id"))
             }
         }
         if (first) prefs(c).edit().putBoolean("init", true).apply()
