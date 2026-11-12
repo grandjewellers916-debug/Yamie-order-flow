@@ -461,3 +461,9 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 - **Phone app Search list** – with an empty search box the app shows the full stock list with the same filters, ranges, sort, pages and select-and-share as the web; tap a row for the full details card.
 - **Reports in the app** – a Reports button on the phone Home (with the Reports permission) opens the report.
 - Phone stock list: the filter and range bar scrolls sideways inside the card (page no longer wider than the screen).
+
+## V 1.8.3
+- **Product name** per item (e.g. "Pink Solo Ring"). Stored apart from the stock sheet (op `pname` / `pnames`, inbox `pn`), so a new stock upload never wipes it; a "Product name" sheet column also works. Set it in New item / Edit database, in the photo manager ("Save name", or typed before adding photos — saved with the photos), or from bulk photo file names: `FRG382 Pink Solo Ring.jpg`, `FRG382-2 Pink Solo Ring.jpg`. Permission: Add product photos, or the stock edit/add permissions.
+- Shown as the title on Home, in the phone list and cards, in Search (new "Product name" column and filter Named / No name yet), and in shares (WhatsApp, PDF).
+- **Name search** – Search finds items by product name; while typing a name the form shows "✓ Available" or "Already used by FRG382".
+- **Paste photos** – in the photo manager: Ctrl+V, the Paste button, or long-press the paste box on a phone. On the computer Home, Ctrl+V with an item open adds the copied photo to that item.

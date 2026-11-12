@@ -914,6 +914,9 @@ body.stm .st-pager{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justif
 .mr-p{text-align:right;display:flex;flex-direction:column}.mr-p b{font-size:15px;white-space:nowrap}.mr-fv{color:#5B2A86;font-weight:600;font-size:12.5px}
 .mk-guide-btn.rep-m{margin-right:8px}
 @media (min-width:1280px) and (pointer:fine){.mk-guide-btn.rep-m{display:none!important}}
+.pm-name{margin-bottom:12px}.pm-name label{display:block;font:600 13px var(--body);color:var(--muted);margin-bottom:4px}.pn-note{display:block;min-height:18px;margin-top:4px;font-size:13px}
+.pm-paste{margin-top:12px;border:2px dashed var(--line);border-radius:14px;padding:14px;text-align:center;color:var(--muted);font-size:14px;min-height:48px;outline:none;cursor:text;caret-color:transparent}.pm-paste:focus{border-color:var(--maroon);background:color-mix(in srgb,var(--maroon) 5%,var(--surface))}.pm-paste img{display:none}
+.pn-c{font-weight:600;color:var(--maroon)}
 .prod-tcol{display:flex;flex-direction:column;gap:6px;min-width:0}
 .shop-lk{display:inline-flex;align-items:center;justify-content:center;gap:5px;font:600 13px var(--body);color:#0B7A4B;text-decoration:none;padding:4px 8px;border-radius:999px;border:1px solid color-mix(in srgb,#0B7A4B 35%,transparent);background:color-mix(in srgb,#0B7A4B 7%,var(--surface));min-height:30px;white-space:nowrap}
 .shop-lk:hover{background:color-mix(in srgb,#0B7A4B 14%,var(--surface))}.shop-lk svg{width:15px;height:15px;flex:none}
@@ -1942,7 +1945,7 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
   <!-- Search -->
   <section class="card find-view" data-pane="search" aria-label="Search stock">
     <div class="sec-head"><h2>Search stock</h2><span class="find-acts"><button class="btn sm" type="button" id="findPhotos" hidden>Photos</button><button class="btn sm" type="button" id="findBulk" hidden>Bulk update</button><button class="btn sm" type="button" id="findNew" hidden>+ New item</button></span></div>
-    <p class="note">Check if a label is available. Search by label no., item name, item type or stone.</p>
+    <p class="note">Check if a label is available. Search by label no., product name, item name, item type or stone.</p>
     <div class="find-in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input id="findQ" type="search" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. FRG382 or ring" aria-label="Search stock"></div>
     <p class="note" id="findNote"></p>
     <div class="find-list" id="findList"></div>
@@ -4344,7 +4347,7 @@ function paintProduct(){
   $('pdSku').textContent='SKU: '+k;
   const showImg=imgOn();$('pdTile').hidden=!showImg;$('prodCard').classList.toggle('no-img',!showImg);$('pdImgTog').classList.toggle('off',!showImg);$('pdImgTog').setAttribute('aria-label',showImg?'Hide product image':'Show product image');
   paintProdImg(k,name);paintShopLink(st||{key:k});
-  $('pdName').textContent=name;
+  $('pdName').textContent=pnameOf(st)||name;
   const p=priceTag(cur),g=num(settings.gst)||0,ok=p.ok&&!m.length;
   const w=v=>v!=null&&v!==''&&!isNaN(num(v))?num(v).toFixed(3):'';
   const mk=p.hasMk?valText({type:cur.mkType,val:num(cur.mkVal)}):'';
@@ -4402,7 +4405,7 @@ function impNorm(v){return /^(y|yes|1|true|imported|imp|import)$/i.test(String(v
 // Product details rows, in order: [label, value, key]. Admin can hide any of them (Settings → Product details).
 const PD_ROWS=[['purity','Purity'],['gw','Gr. Wt'],['sw','St. Wt'],['nw','Nt. Wt'],['size','Size'],['vaPct','VA %'],['va','VA (Making)'],['mkAmt','Making Charges'],
   ['dw','Diamond Wt'],['dq','Diamond Pcs'],['dPrice','Diamond Price'],['cw','Colour Stone Wt'],['cPrice','Colour Stone Price'],['huid','HUID Count'],
-  ['pcs','Pcs'],['location','Location'],['labelDate','Labelling Date'],['imp','Imported'],['rule','Pricing rule']];
+  ['pname','Product name'],['pcs','Pcs'],['location','Location'],['labelDate','Labelling Date'],['imp','Imported'],['rule','Pricing rule']];
 // Hidden details (tap to show; needs "See hidden details")
 const PD_HIDDEN=[['nlc','NLC'],['fva','FVA'],['huidNo','HUID'],['model','Model'],['stones','Stone Names'],['supplier','Supplier']];
 function pdRows(t,st,p,w){
@@ -4420,7 +4423,7 @@ function pdRows(t,st,p,w){
     cw:clr&&st&&num(st.cw)>0?`${w(st.cw)}${num(st.sq)>0?` · ${fmtN(num(st.sq))}\u00a0pcs`:''}`:'',
     cPrice:cPrice>0?inr(cPrice):'',
     huid:p.huidN?`${p.huidN}\u00a0×\u00a0${inr(settings.huid)}`:'',huidNo:codes,
-    stones:st&&st.stoneName,pcs:st&&st.pcs>1?fmtN(st.pcs):'',location:st&&st.location,rule:st&&st.rule?st.rule:'',imp:st&&st.imp?'Yes':'',labelDate:st&&fmtDate(st.labelDate),supplier:st&&st.supplier};
+    stones:st&&st.stoneName,pcs:st&&st.pcs>1?fmtN(st.pcs):'',location:st&&st.location,rule:st&&st.rule?st.rule:'',imp:st&&st.imp?'Yes':'',pname:st?pnameOf(st):'',labelDate:st&&fmtDate(st.labelDate),supplier:st&&st.supplier};
   return PD_ROWS.concat(PD_HIDDEN).map(([k,l])=>[l,v[k],k]);
 }
 function paintPdRowsSet(){
@@ -4554,7 +4557,7 @@ function itemName(v){
   const hit=Object.values(CAT).find(n=>n.toUpperCase()===t.toUpperCase()||n.split(' /')[0].toUpperCase()===t.toUpperCase());
   return hit||t.toLowerCase().replace(/\b[a-z]/g,c=>c.toUpperCase());
 }
-const COLS={barcode:['BARCODE','BARCODENO','BARCODENUMBER','TAGNO','BARCODES','LABELNO','LABELNUMBER','TAGNUMBER'],item:['ITEMNAME','ITEM'],category:['ITEMTYPE','CATEGORY','TYPE'],stoneName:['STONENAMES','STONENAME','STONES'],saClr:['CLRSA','COLORSA','COLOURSA','CLRSTONEAMOUNT'],saDia:['DIASA','DIAMONDSA','DIAAMOUNT','DIAMONDAMOUNT'],carat:['CARRET','CARAT','KARAT','PURITY','PURITYK','CARATAGE','CARET'],
+const COLS={pname:['PRODUCTNAME','PRODNAME','PNAME','DESIGNNAME','PRODUCTTITLE'],barcode:['BARCODE','BARCODENO','BARCODENUMBER','TAGNO','BARCODES','LABELNO','LABELNUMBER','TAGNUMBER'],item:['ITEMNAME','ITEM'],category:['ITEMTYPE','CATEGORY','TYPE'],stoneName:['STONENAMES','STONENAME','STONES'],saClr:['CLRSA','COLORSA','COLOURSA','CLRSTONEAMOUNT'],saDia:['DIASA','DIAMONDSA','DIAAMOUNT','DIAMONDAMOUNT'],carat:['CARRET','CARAT','KARAT','PURITY','PURITYK','CARATAGE','CARET'],
   gw:['GROSSWT','GROSSWTG','GROSSWEIGHT','GWT','GRWT'],nw:['NETWT','NETWTG','NETWEIGHT','NWT'],sw:['STONEWT','STONEWTG','STONEWEIGHT','SWT','STWT'],cw:['CLRSTNWT','COLORSTONEWT','COLOURSTONEWT','CLRSTONEWT','CLRWT','COLORSTONEWEIGHT','COLOURSTONEWEIGHT','CSWT'],dw:['DIAMONDWT','DIAMONDWEIGHT','DIAWT','DWT','DAIWT','DAIMONDWT','DIAWTCT','DIAMONDWTCT','DIAWTG','DIAMONDCT','DIACT'],dq:['DIAMONDQTY','DIAQTY','DIAMONDPCS','DAIPCS','DIAPCS','DAIQTY','DIACOUNT','DIAMONDCOUNT','DIANOS','DIAMONDNOS','NOOFDIAMONDS'],
   sa:['STONEAMOUNT','STONEAMT','SA','SPR','STONEPRICE','STONEVALUE'],serial:['SERIAL','SERIALNO','SLNO'],label:['LABELCODE','LABEL'],location:['LOCATION','LOC'],size:['SIZE','RINGSIZE','LENGTH','SIZEINCH','SIZEMM'],model:['MODEL','MODELNO','MODELNUMBER','DESIGN','DESIGNNO','STYLE','STYLENO'],nlc:['NLC','NETLANDINGCOST','LANDINGCOST'],imp:['IMPORTED','IMPORT','IMP','ISIMPORTED','IMPORTEDITEM','IMPORTEDYN'],fva:['FVA','FIXEDVA','FACTORYVA','FVAPCT'],labelDate:['LABELLINGDATE','LABELINGDATE','LABELDATE','TAGDATE','DATE'],pcs:['PCS','PIECES'],sq:['STONEQTY','STONEPCS','CLRSTNPCS','COLORSTONEPCS','COLOURSTONEPCS'],supplier:['SUPPLIER','VENDOR'],
   mk:['MAKING','MAKINGCHARGE','MAKINGCHARGES','MC','MCRATE','VA','VARATE','MAKINGMBD','MBD'],mkType:['MAKINGTYPE','MCTYPE','VATYPE','MAKINGON'],
@@ -4826,7 +4829,7 @@ $('dkShare').onclick=()=>$('waBtn').click();
 const PS_ICO={tag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.4"/></svg>',gold:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19h18l-2.5-5h-13z"/><path d="M6.5 14 8 10h8l1.5 4"/><path d="M9 10l1-3h4l1 3"/></svg>',value:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6.5 9.5v5M17.5 9.5v5"/></svg>',stone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 7 4h10l4 5.5L12 20z"/><path d="M3 9.5h18M9 4l3 16 3-16"/></svg>',mk:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.4M12 18.8v2.4M4.2 7.5l2 1.2M17.8 15.3l2 1.2M4.2 16.5l2-1.2M17.8 8.7l2-1.2"/><circle cx="12" cy="12" r="7"/></svg>',huid:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.3 7.5 9.5 4.3-1.2 7.5-4.9 7.5-9.5V6z"/><path d="m9 12 2 2 4-4"/></svg>',sum:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 5H7l6 7-6 7h10"/></svg>',gst:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 5 5 19"/><circle cx="7" cy="7" r="2.3"/><circle cx="17" cy="17" r="2.3"/></svg>',check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.7 2.7L16.5 9.5"/></svg>'};
 const SET_ICO={setRules:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg>',setPromo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.4"/></svg>',setReports:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',setExport:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5.5" rx="7.5" ry="2.8"/><path d="M4.5 5.5v13c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8v-13M4.5 12c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8"/></svg>',dataCard:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></svg>',soldCard:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12V4h8l10 10-7 7z"/><path d="m8 8 6 6M14 8l-6 6"/></svg>',setTheme:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-1 1.6-2.1-.5-1.3.4-2.4 1.7-2.4H18a3 3 0 0 0 3-3C21 7.4 17 3 12 3z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="15" cy="7.5" r="1.2"/></svg>',setAppr:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.3 7.5 9.5 4.3-1.2 7.5-4.9 7.5-9.5V6z"/><path d="m9 12 2 2 4-4"/></svg>',setFoot:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 15h18"/></svg>',setPd:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>',setDevice:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>',setText:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7V5h11v2M9.5 5v14M7 19h5M14 12v-1.5h6V12M17 10.5V19M15.5 19h3"/></svg>',setImg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="9.5" r="1.8"/><path d="m21 16-5-5-9 9"/></svg>',setRates:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>',setCharges:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 5 5 19"/><circle cx="7" cy="7" r="2.3"/><circle cx="17" cy="17" r="2.3"/></svg>',setMk:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14.5 6.5 3 3M4 20l3.5-1L19 7.5a2.1 2.1 0 0 0-3-3L4.5 16z"/><path d="M8 4 4 8l2 2M16 20l4-4-2-2"/></svg>',setConv:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.4"/><path d="m9.5 16.5 5-5"/></svg>',setCodes:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5v14M7 5v14M10.5 5v14M13 5v14M16.5 5v14M20 5v14"/></svg>',setSync:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5.5" rx="7.5" ry="2.8"/><path d="M4.5 5.5v13c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8v-13M4.5 12c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8"/></svg>',setRoles:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.2c3 .2 5.5 2.6 5.5 5.8"/></svg>',adminCard:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20.5c0-4.1 3.4-7 7.5-7s7.5 2.9 7.5 7"/></svg>'},SET_DESC={setRules:'Making, wastage, FVA and diamond rate conventions by karat, weight, type and supplier',setPromo:'Create and manage offers and customer promotions',setReports:'Sales, quotes and staff reports with charts',setExport:'Download the stock data for backup or use elsewhere',dataCard:'Upload and manage the stock sheet',soldCard:'Remove sold item tags from the stock',setTheme:'App style and colours',setAppr:'Approval flow for staff quotes',setFoot:'Footer tabs shown to staff',setPd:'Which product details are shown',setDevice:'Auto log-out and alerts on this computer',setText:'Text size on this device',setImg:'Where product images are shown',setRates:'Purities shown and their order',setCharges:'GST rate and HUID charge',setMk:'CZ and diamond making slabs (MBD / MAD)',setConv:'Usual making and fair value per item; label check after scan',setCodes:'Barcode prefixes and item names',setSync:'Connect devices with the shop key',setRoles:'Create roles and choose what each can do',adminCard:'Add, edit and manage staff users'};
 const WT_ORDER=['CHN','BGL','FRG','STD','BRC','NLC','PND','NSP','RST','DIA','LDJ','FIN','MMP','EXT'];
-let findType='',stPage=1,stPer=25,stGrid=false;const findF={cat:'',item:'',pur:'',stone:'',sup:'',loc:'',lab:'',img:'',imp:'',wBy:'',wMin:'',wMax:'',pMin:'',pMax:'',fMin:'',fMax:'',mMin:'',mMax:'',dMin:'',dMax:''};
+let findType='',stPage=1,stPer=25,stGrid=false;const findF={pn:'',cat:'',item:'',pur:'',stone:'',sup:'',loc:'',lab:'',img:'',imp:'',wBy:'',wMin:'',wMax:'',pMin:'',pMax:'',fMin:'',fMax:'',mMin:'',mMax:'',dMin:'',dMax:''};
 // V1.7.88 picked items (Search) and a list of items another user sent
 const stSel=new Set();let shareList=null,stLastRows=[];
 const catShort=c=>String(CAT[c]||c).replace(/\s*\(.*?\)\s*/g,' ').replace(/s$/,'').trim();
@@ -4925,6 +4928,22 @@ function openSetCard(id){
   show();
 }
 {const sv=setView;setView=function(v){if(v!=='settings')delete document.body.dataset.sc;sv(v);if(v==='settings')try{paintSetGrid()}catch(e){}}}
+// ---- V1.8.3 product names ("Pink Solo Ring"): kept apart from the stock sheet, set in the item form, the photo manager or photo file names ----
+let pnames=store.get('pnames',{})||{};
+function pnameOf(r){if(!r)return '';const k=r.key||keyOf(r.barcode||'');return String((k&&pnames[k])||r.pname||'').trim()}
+function pnameUsers(name,except){const n=String(name||'').trim().toLowerCase();if(!n)return [];const out=[];for(const r of stockMap.values()){if(r.key!==except&&pnameOf(r).toLowerCase()===n)out.push(r.barcode||r.key)}return out}
+function pnameList(){const m=new Map();for(const r of stockMap.values()){const v=pnameOf(r);if(v){const k=v.toLowerCase();m.set(k,(m.get(k)||{v,n:0}));m.get(k).n++}}return [...m.values()].sort((a,b)=>a.v.localeCompare(b.v))}
+async function pullPnames(){if(!sync.key||!navigator.onLine)return;try{const r=await syncApi('pnames');if(r&&r.map){pnames=r.map;store.set('pnames',pnames);sync.v.pnames=r.v||0;saveSyncState();pnRefresh()}}catch(e){}}
+function pnRefresh(){try{if(cur&&cur.stockKey)renderEditor()}catch(e){}try{if(document.body.dataset.view==='search')runFind()}catch(e){}}
+async function savePnames(map){
+  Object.entries(map).forEach(([k,v])=>{const n=String(v||'').replace(/\s+/g,' ').trim();if(n)pnames[k]=n;else delete pnames[k]});store.set('pnames',pnames);pnRefresh();
+  if(!sync.key)return true;
+  try{const r=await syncApi('pname','POST',{map},adminCreds);if(r&&r.map){pnames=r.map;store.set('pnames',pnames);sync.v.pnames=r.v||sync.v.pnames;saveSyncState()}return true}catch(e){toast(e&&e.status===403?'Needs a user allowed to add photos or edit stock':'Name saved here; it goes to the database when online',null,true);return false}
+}
+// live "is this name free?" note under a product-name box
+function pnameCheck(inp,note,key){const f=()=>{const v=inp.value.trim(),u=pnameUsers(v,key);note.innerHTML=!v?'':u.length?`<span class="bad-t">Already used by ${esc(u.slice(0,4).join(', '))}${u.length>4?` +${u.length-4}`:''}</span>`:'<span class="ok-t">✓ Available</span>'};inp.addEventListener('input',f);f()}
+function pnameDatalist(){return `<datalist id="pnList">${pnameList().slice(0,800).map(x=>`<option value="${esc(x.v)}">`).join('')}</datalist>`}
+setTimeout(()=>pullPnames(),2500);
 // ---- V1.8.0 Shopify product pages: the label no. is the product's SKU on the store ----
 let shopLinks=store.get('shopLinks',{at:0,map:{}});if(!shopLinks||typeof shopLinks.map!=='object')shopLinks={at:0,map:{}};
 const shopN=x=>String(x||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
@@ -4970,14 +4989,15 @@ function openSharedList(l){
   if(l.state==='new'){l.state='done';store.set('leads',leads);pushLead(l)}
   openFind('');
 }
-const SH_F=[['img','Photo'],['key','Label no.'],['item','Item name'],['category','Item type'],['carat','Purity'],['gw','Gross wt'],['nw','Net wt'],['stone','Stone / diamond'],['mk','Making'],['price','Label price'],['fv','Fair value'],['fva','FVA'],['huidNo','HUID no.'],['size','Size'],['location','Location'],['shop','Shopify link'],['supplier','Supplier'],['nlc','NLC']];
-const SH_DEF=['img','key','item','category','carat','gw','nw','stone','price','fv','shop'];
+const SH_F=[['img','Photo'],['pname','Product name'],['key','Label no.'],['item','Item name'],['category','Item type'],['carat','Purity'],['gw','Gross wt'],['nw','Net wt'],['stone','Stone / diamond'],['mk','Making'],['price','Label price'],['fv','Fair value'],['fva','FVA'],['huidNo','HUID no.'],['size','Size'],['location','Location'],['shop','Shopify link'],['supplier','Supplier'],['nlc','NLC']];
+const SH_DEF=['img','pname','key','item','category','carat','gw','nw','stone','price','fv','shop'];
 function shFieldsOk(){return SH_F.filter(([k])=>(k!=='shop'||shopOn())&&(!['fv','fva'].includes(k)||can('fva'))&&(!['supplier','nlc'].includes(k)||can('pdHidden')))}
 function shVal(r,k){
   const W=v=>num(v)>0?num(v).toFixed(3)+' g':'';
   switch(k){
     case 'key':return r.barcode||r.key;
     case 'item':return String(r.item||'').trim();
+    case 'pname':return pnameOf(r);
     case 'carat':return PLABEL[caratToPurity(r.carat)]||String(r.carat||'');
     case 'gw':case 'nw':return W(r[k]);
     case 'stone':{const sa=stVal(r,'sa');return [num(r.dw)>0?fmtN(num(r.dw))+' ct':'',num(r.dq)>0?fmtN(num(r.dq))+' pcs':'',r.stoneName&&!(num(r.dw)>0)?String(r.stoneName):'',sa>0?inr(sa):''].filter(Boolean).join(' · ')}
@@ -4990,7 +5010,7 @@ function shVal(r,k){
     default:return String(r[k]??'').trim();
   }
 }
-const shTitle=r=>String(r.item||r.category||'Item').trim();
+const shTitle=r=>String(pnameOf(r)||r.item||r.category||'Item').trim();
 function shPicked(){return [...stSel].map(k=>stockMap.get(k)).filter(Boolean)}
 function openShareSel(){
   const list=shPicked();if(!list.length){toast('Select items first',null,true);return}
@@ -5015,7 +5035,7 @@ function openShareSel(){
 }
 function shText(list,f){
   const lines=[`*${BRAND.full}*`,`${list.length} item${list.length===1?'':'s'} · ${new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}`,''];
-  list.forEach((r,i)=>{lines.push(`${i+1}. *${shTitle(r)}*`);f.filter(k=>k!=='img'&&k!=='item').forEach(k=>{const v=shVal(r,k);if(v)lines.push(`   ${SH_F.find(c=>c[0]===k)[1]}: ${v}`)});lines.push('')});
+  list.forEach((r,i)=>{lines.push(`${i+1}. *${shTitle(r)}*`);f.filter(k=>k!=='img'&&k!=='item'&&k!=='pname').forEach(k=>{const v=shVal(r,k);if(v)lines.push(`   ${SH_F.find(c=>c[0]===k)[1]}: ${v}`)});lines.push('')});
   if(f.includes('price')||f.includes('fv'))lines.push(`_Prices at today's gold rate, incl. ${fmtN(gstPct())}% GST._`);
   return lines.join('\n').trim();
 }
@@ -5024,7 +5044,7 @@ async function shCard(r,f,ph){
   try{await document.fonts.load('600 30px Jost')}catch(e){}
   const F=(w,px)=>`${w} ${px}px Jost, "Segoe UI", Roboto, sans-serif`,css=getComputedStyle(document.documentElement);
   const MAROON=(css.getPropertyValue('--maroon')||'#971B1E').trim(),INK='#1E1414',MUTED='#7A6A66',LINE='#EADFD8';
-  const W=1080,P=56,rows=f.filter(k=>!['img','item','key','shop'].includes(k)).map(k=>[SH_F.find(c=>c[0]===k)[1],shVal(r,k),k]).filter(x=>x[1]);
+  const W=1080,P=56,rows=f.filter(k=>!['img','item','key','shop','pname'].includes(k)).map(k=>[SH_F.find(c=>c[0]===k)[1],shVal(r,k),k]).filter(x=>x[1]);
   const photoH=f.includes('img')&&ph?W-2*P:0,H=P+photoH+(photoH?36:0)+64+(f.includes('key')?44:0)+18+rows.length*58+96;
   const cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');
   c.fillStyle='#fff';c.fillRect(0,0,W,H);let y=P;
@@ -5084,13 +5104,13 @@ async function shareItemsPdf(list,f){
   deliverFile(`${BRAND.name}-items-${todayStr()}.pdf`.replace(/[\/\\\s]+/g,'-'),'application/pdf',doc.output('arraybuffer'));
 }
 // ---- Search: filters, pages, photos ----
-const FILTERS=[['item','Item Name'],['cat','Item Type'],['pur','Purity'],['type','Label Code'],['stone','Stone'],['sup','Supplier'],['loc','Location'],['lab','Labelled'],['img','Photo'],['imp','Imported']];
+const FILTERS=[['item','Item Name'],['cat','Item Type'],['pur','Purity'],['type','Label Code'],['stone','Stone'],['sup','Supplier'],['loc','Location'],['lab','Labelled'],['img','Photo'],['pn','Product name'],['imp','Imported']];
 function stFilterBar(rowsAll){
   let bar=$('stFilters');
   if(!bar){bar=document.createElement('div');bar.id='stFilters';bar.className='st-filters';$('findNote').before(bar)}
   const uniq=f=>[...new Set(rowsAll.map(f).filter(Boolean))].sort();
   const ci=(f)=>{const m=new Map();rowsAll.forEach(r=>{const v=String(r[f]||'').trim();if(v&&!m.has(v.toLowerCase()))m.set(v.toLowerCase(),v)});return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1],'en',{numeric:true}))};
-  const opts={cat:ci('category').filter(([k])=>!findF.item||rowsAll.some(r=>String(r.category||'').trim().toLowerCase()===k&&String(r.item||'').trim().toLowerCase()===findF.item)),item:ci('item'),imp:[['yes','Imported'],['no','Not imported']],type:wtCodes().map(c=>[c,CAT[c]||c]),pur:uniq(r=>caratToPurity(r.carat)).map(p=>[p,PLABEL[p]||p]),stone:[['any','With stone'],['dia','Diamond'],['clr','Colour stone'],['none','No stone']],
+  const opts={cat:ci('category').filter(([k])=>!findF.item||rowsAll.some(r=>String(r.category||'').trim().toLowerCase()===k&&String(r.item||'').trim().toLowerCase()===findF.item)),item:ci('item'),imp:[['yes','Imported'],['no','Not imported']],pn:[['yes','Named'],['no','No name yet']],type:wtCodes().map(c=>[c,CAT[c]||c]),pur:uniq(r=>caratToPurity(r.carat)).map(p=>[p,PLABEL[p]||p]),stone:[['any','With stone'],['dia','Diamond'],['clr','Colour stone'],['none','No stone']],
     sup:uniq(r=>r.supplier).map(x=>[x,x]),loc:uniq(r=>r.location).map(x=>[x,x]),lab:[['yes','Labelled'],['no','Not labelled']],img:[['yes','With photo'],['no','No photo']]};
   const val=k=>k==='type'?findType:findF[k];
   const RNG=[['w','Weight','g'],['p','Label price','₹'],['f','Fair value','₹'],['m','Making','₹'],['d','Diamond','ct']].filter(([k])=>k!=='f'||can('fva'));
@@ -5115,6 +5135,7 @@ function stPass(r){
   if(!rg(num(r.dw)>0?num(r.dw):0,'d'))return false;
   if(findF.cat&&String(r.category||'').trim().toLowerCase()!==findF.cat)return false;if(findF.item&&String(r.item||'').trim().toLowerCase()!==findF.item)return false;
   if(findF.imp==='yes'&&!r.imp)return false;if(findF.imp==='no'&&r.imp)return false;
+  if(findF.pn){const h=!!pnameOf(r);if(findF.pn==='yes'&&!h)return false;if(findF.pn==='no'&&h)return false}
   if(findF.pur&&caratToPurity(r.carat)!==findF.pur)return false;
   const dia=num(r.dw)>0||num(r.saDia)>0||num(r.dq)>0,clr=num(r.saClr)>0||(num(r.sw)>0&&!dia),any=dia||clr||num(r.sa)>0;
   if(findF.stone==='any'&&!any)return false;if(findF.stone==='dia'&&!dia)return false;if(findF.stone==='clr'&&!clr)return false;if(findF.stone==='none'&&any)return false;
@@ -5182,11 +5203,12 @@ $('repBtnM').onclick=()=>withPerm('reports','Needs permission: Reports.',()=>DES
 // ---- Search: the whole stock list as a table (sortable; click or Enter prices the item) ----
 const ST_COLS=[['img','',0],['key','Label no.',0],['category','Item type',0],['item','Item name',0],['carat','Purity',0],['gw','Gr. wt',1],['sw','St. wt',1],['nw','Net wt',1],['dw','Dia ct',1,1],['sa','Stone ₹',1],['mk','Making',1],['huid','HUID',1,1],['location','Location',0],['supplier','Supplier',0],['labelDate','Labelled',0,1],['act','',0]];
 // V1.7.81 the stock list on a computer: every column it can show, which ones are on and in what order (per computer)
-const ST_ALL=[['img','Photo',0],['item','Item name',0],['category','Item type',0],['carat','Purity',0],['key','Label no.',0],['gw','Gr. wt',1],['sw','St. wt',1],['nw','Net wt',1],['dw','Dia ct',1],['dq','Dia pcs',1],['sa','Stone ₹',1],['mk','Making',1],['fva','FVA',1],['price','Label price',1],['fv','Fair value',1],['save','Savings',1],['huid','HUID',1],['huidNo','HUID no.',0],['stoneName','Stones',0],['location','Location',0],['supplier','Supplier',0],['model','Model',0],['size','Size',0],['nlc','NLC',1],['imp','Imported',0],['labelDate','Labelled',0]];
-const ST_DEF=['img','item','category','carat','key','gw','nw','sa','mk','price','fv','location','labelDate'];
+const ST_ALL=[['img','Photo',0],['pname','Product name',0],['item','Item name',0],['category','Item type',0],['carat','Purity',0],['key','Label no.',0],['gw','Gr. wt',1],['sw','St. wt',1],['nw','Net wt',1],['dw','Dia ct',1],['dq','Dia pcs',1],['sa','Stone ₹',1],['mk','Making',1],['fva','FVA',1],['price','Label price',1],['fv','Fair value',1],['save','Savings',1],['huid','HUID',1],['huidNo','HUID no.',0],['stoneName','Stones',0],['location','Location',0],['supplier','Supplier',0],['model','Model',0],['size','Size',0],['nlc','NLC',1],['imp','Imported',0],['labelDate','Labelled',0]];
+const ST_DEF=['img','pname','item','category','carat','key','gw','nw','sa','mk','price','fv','location','labelDate'];
 const ST_ADMIN=['nlc','supplier','fva'];   // only with the Hidden product details permission
 let stCols=(()=>{const v=store.get('stCols',null);return Array.isArray(v)&&v.length?v.filter(k=>ST_ALL.some(c=>c[0]===k)):ST_DEF.slice()})();
-if(!store.get('stColsV88',false)){const F=['img','item','category','carat','key'];stCols=[...F.filter(k=>stCols.includes(k)),...stCols.filter(k=>!F.includes(k))];store.set('stCols',stCols);store.set('stColsV88',true)}
+if(!store.get('stColsV183',false)){if(!stCols.includes('pname'))stCols.splice(stCols.includes('img')?1:0,0,'pname');store.set('stCols',stCols);store.set('stColsV183',true)}
+if(!store.get('stColsV88',false)){const F=['img','pname','item','category','carat','key'];stCols=[...F.filter(k=>stCols.includes(k)),...stCols.filter(k=>!F.includes(k))];store.set('stCols',stCols);store.set('stColsV88',true)}
 // today's price of a stock item, without touching the item on Home
 function recItem(rec){
   if(rec.mkType==='pct'&&num(rec.mk)>0&&num(rec.mk)<1)rec=Object.assign({},rec,{mk:String(Math.round(num(rec.mk)*10000)/100)});
@@ -5203,6 +5225,7 @@ function stPrice(r){const k=JSON.stringify([ratesKey(),gstPct(),settings.huid]);
 let stSort=(()=>{const v=store.get('stSort',null);return v&&v.k&&(v.d===1||v.d===-1)?v:{k:'key',d:1}})(),stLimit=200;
 function stVal(r,k){
   const N=v=>{const n=num(v);return isNaN(n)?null:n};
+  if(k==='pname')return pnameOf(r)||null;
   if(k==='price'||k==='fv'||k==='save'){const v=stPrice(r)[k==='price'?'lp':k];return isNaN(v)?null:v}
   if(k==='mk'){const v=stPrice(r).mk;if(!isNaN(v))return v;return N(r.mk)}          // making in ₹ at today's rate
   if(k==='sa'){const v=(num(r.saDia)||0)+(num(r.saClr)||0)||num(r.sa)||0;return v>0?v:null}
@@ -5216,6 +5239,7 @@ function stCell(r,c,img,W,mkOf){
   switch(c){
     case 'img':return img(r);
     case 'key':return `<b>${esc(r.barcode||r.key)}</b>`;
+    case 'pname':{const v=pnameOf(r);return v?`<b class="pn-c">${esc(v)}</b>`:'<span class="lab-n">–</span>'}
     case 'carat':return esc(PLABEL[caratToPurity(r.carat)]||r.carat||'');
     case 'gw':case 'sw':case 'nw':return W(r[c]);
     case 'dw':case 'dq':return n(r[c]);
@@ -5259,7 +5283,7 @@ function runFindTable(){
   const exact=q?findStock(q):null,all=[...stockMap.values()];
   stFilterBar(all);
   let rows=all.filter(stPass);
-  if(q)rows=rows.filter(r=>r===exact||(k.length>=2&&(r.key.includes(k)||keyOf(r.label||'').includes(k)))||[r.item,r.category,r.supplier,r.stoneName,r.location,r.model].some(v=>String(v||'').toLowerCase().includes(ql)));
+  if(q)rows=rows.filter(r=>r===exact||(k.length>=2&&(r.key.includes(k)||keyOf(r.label||'').includes(k)))||[r.item,r.category,r.supplier,r.stoneName,r.location,r.model,pnameOf(r)].some(v=>String(v||'').toLowerCase().includes(ql)));
   rows.sort((a,b)=>{const x=stVal(a,stSort.k),y=stVal(b,stSort.k);if(x==null||y==null){if(x==null&&y==null)return a.key<b.key?-1:1;return x==null?1:-1}
     const c=typeof x==='number'&&typeof y==='number'?x-y:String(x).localeCompare(String(y),'en',{numeric:true});return (c||(a.key<b.key?-1:1)*(stSort.d))*stSort.d});
   if(exact&&rows.includes(exact)){rows=[exact,...rows.filter(r=>r!==exact)]}
@@ -5278,7 +5302,7 @@ function runFindTable(){
     :`<div class="st-wrap"><table class="stk"><thead><tr><th class="st-ck"><input type="checkbox" id="stAll" aria-label="Select all on this page"${show.length&&show.every(r=>stSel.has(r.key))?' checked':''}></th><th class="st-n">#</th>${cols.map(([c,l,r])=>`<th class="${r?'r':''} c-${c}" data-c="${c}"${stSort.k===c?` aria-sort="${stSort.d>0?'ascending':'descending'}"`:''}>${l}</th>`).join('')}<th class="c-act">Action</th></tr></thead><tbody>${show.map((r,i)=>`<tr tabindex="0" data-k="${esc(r.key)}" class="${r===exact?'hit':''}${stSel.has(r.key)?' sel':''}"><td class="st-ck"><input type="checkbox" data-sel="${esc(r.key)}"${stSel.has(r.key)?' checked':''} aria-label="Select ${esc(r.barcode||r.key)}"></td><td class="st-n">${(stPage-1)*stPer+i+1}</td>${cols.map(([c,,ra])=>`<td class="${ra?'r ':''}c-${c}">${stCell(r,c,img,W,mkOf)}</td>`).join('')}${acts(r)}</tr>`).join('')}</tbody></table></div>`;
   const mob=!DESK.matches,PL=r=>{const o=stPrice(r);return isNaN(o.lp)?'':inr(o.lp)},FV=r=>{if(!can('fva'))return '';const o=stPrice(r);return isNaN(o.fv)||o.fv>=o.lp?'':inr(o.fv)};
   const mbody=`<div class="st-mlist">${show.map(r=>`<div class="mr${stSel.has(r.key)?' sel':''}" data-k="${esc(r.key)}"><label class="stg-ck mr-ck"><input type="checkbox" data-sel="${esc(r.key)}"${stSel.has(r.key)?' checked':''} aria-label="Select ${esc(r.barcode||r.key)}"></label><div class="st-img mr-img" data-img="${esc(r.key)}">${icoFor(r.category||r.item||'')}</div>
-    <div class="mr-t"><b>${esc(r.item||r.category||'Item')}</b><small>${esc([r.category&&r.category!==r.item?r.category:'',PLABEL[caratToPurity(r.carat)]||r.carat||''].filter(Boolean).join(' · '))}</small><small class="mr-k">${esc(r.barcode||r.key)} · ${W(r.gw)} g${num(r.dw)>0?` · ${fmtN(num(r.dw))} ct`:''}</small>${shopA(r,true)}</div>
+    <div class="mr-t"><b>${esc(pnameOf(r)||r.item||r.category||'Item')}</b><small>${esc([pnameOf(r)?r.item:'',r.category&&r.category!==r.item?r.category:'',PLABEL[caratToPurity(r.carat)]||r.carat||''].filter(Boolean).join(' · '))}</small><small class="mr-k">${esc(r.barcode||r.key)} · ${W(r.gw)} g${num(r.dw)>0?` · ${fmtN(num(r.dw))} ct`:''}</small>${shopA(r,true)}</div>
     <div class="mr-p"><b>${PL(r)}</b>${FV(r)?`<small class="mr-fv">${FV(r)}</small>`:''}</div></div>`).join('')||'<p class="note">No items match these filters.</p>'}</div>`;
   el.innerHTML=(mob?mbody:body)+stPager(total);
   const price=key=>{const r=stockMap.get(key);if(r){setView('home');useScannedCode(r.barcode||r.key);paintBarcode()}};
@@ -5551,9 +5575,30 @@ async function takePhotos(list){
   const j=photoJob;photoJob=null;if(!j||!list.length)return;
   if(j.act==='set'){await imgAct(j.k,'set',j.i,list[0]);toast('Photo replaced')}
   else{let n=0;for(const u of list){if(!(await imgAct(j.k,'add',0,u)))break;n++}if(n)toast(n===1?'Photo added':`${n} photos added`)}
+  pmNameAuto(j.k);
   if(!$('modal').hidden&&$('modal').dataset.ph===j.k)paintPhotoMgr(j.k);
 }
 function askProdPhoto(k){openPhotos(k)}
+// a name typed in the photo manager is saved with the photos
+function pmNameAuto(k){const i=$('pmName');if(!i||i.dataset.k!==k||$('modal').hidden)return;const v=i.value.replace(/\s+/g,' ').trim();if(v&&v!==pnameOf(stockMap.get(k)||{key:k}))savePnames({[k]:v})}
+// V1.8.3 paste photos: the photo manager (Ctrl+V, Paste button, long-press box), or Ctrl+V on Home with an item open
+async function pastePhotos(k,blobs){
+  const room=IMG_MAX-imgCount(k);if(room<=0){toast(`An item can have ${IMG_MAX} photos`,null,true);return}
+  const us=[];for(const b of blobs.slice(0,room)){const u=await shrink(b);if(u)us.push(u)}if(!us.length){toast('That is not a photo',null,true);return}
+  let n=0;for(const u of us){if(!(await imgAct(k,'add',0,u)))break;n++}
+  if(n)toast(n===1?'Photo pasted':`${n} photos pasted`);pmNameAuto(k);
+  if(!$('modal').hidden&&$('modal').dataset.ph===k)paintPhotoMgr(k);
+}
+document.addEventListener('paste',e=>{
+  const fs=[...((e.clipboardData&&e.clipboardData.items)||[])].filter(x=>x.kind==='file'&&/^image\//.test(x.type)).map(x=>x.getAsFile()).filter(Boolean);
+  const pm=!$('modal').hidden&&$('modal').dataset.ph;
+  if(pm){if(e.target&&e.target.id==='pmName'&&!fs.length)return;e.preventDefault();const z=$('pmPaste');if(z)setTimeout(()=>{z.innerHTML=onComputer()?'Copy a photo, then press <b>Ctrl+V</b> here to add it':'Long-press here and tap <b>Paste</b> to add a copied photo'},0);
+    if(!fs.length){toast('No photo in the clipboard. Copy a photo first.',null,true);return}withPerm('images','Needs a user allowed to add product photos.',()=>pastePhotos(pm,fs),true);return}
+  if(!fs.length||!$('modal').hidden||document.body.dataset.view!=='home')return;
+  const t=e.target;if(t&&(t.tagName==='TEXTAREA'||(t.tagName==='INPUT'&&t.id!=='bcNum')||t.isContentEditable))return;
+  const k=cur&&cur.stockKey;if(!k){toast('Open an item first, then paste its photo',null,true);return}
+  e.preventDefault();withPerm('images','Needs a user allowed to add product photos.',async()=>{await pastePhotos(k,fs);openPhotos(k)},true);
+});
 function openPhotos(k){
   showModal(`Photos · ${k}`,'',[{label:'Close',cls:'ghost'}]);$('modal').dataset.ph=k;
   const off=()=>{if($('modal').hidden)delete $('modal').dataset.ph};setTimeout(()=>{const o=new MutationObserver(()=>{if($('modal').hidden){delete $('modal').dataset.ph;o.disconnect()}});o.observe($('modal'),{attributes:true,attributeFilter:['hidden']})},0);
@@ -5563,10 +5608,19 @@ async function paintPhotoMgr(k){
   const b=$('modalBody');b.innerHTML='<p class="note">Loading the photos…</p>';
   const arr=await getProdImgs(k);if($('modal').dataset.ph!==k)return;
   const addOk=arr.length<IMG_MAX;
-  b.innerHTML=`<p class="note">${arr.length?`${arr.length} photo${arr.length===1?'':'s'} · the first is the main photo, used in quotes and search.`:'No photos yet.'} Saved for all phones and computers.</p>
+  const pnv=$('pmName')&&$('pmName').dataset.k===k?$('pmName').value:pnameOf(stockMap.get(k)||{key:k});
+  b.innerHTML=`<div class="pm-name"><label for="pmName">Product name</label><div class="sh-row"><input id="pmName" data-k="${esc(k)}" list="pnList" autocomplete="off" maxlength="80" placeholder="e.g. Pink Solo Ring" value="${esc(pnv)}"><button type="button" class="btn sm" id="pmNameSave">Save name</button></div><small class="pn-note" id="pmPnNote" aria-live="polite"></small>${pnameDatalist()}</div>
+    <p class="note">${arr.length?`${arr.length} photo${arr.length===1?'':'s'} · the first is the main photo, used in quotes and search.`:'No photos yet.'} Saved for all phones and computers.</p>
     <div class="pm-grid">${arr.map((u,ix)=>`<figure class="pm-t${ix?'':' main'}"><button type="button" class="pm-im" data-big="${ix}" aria-label="View photo ${ix+1}"><img src="${u}" alt="Photo ${ix+1} of ${esc(k)}"></button>${ix?'':'<span class="pm-badge">Main</span>'}
       <figcaption>${ix?`<button type="button" class="linkbtn" data-main="${ix+1}">Make main</button>`:''}<button type="button" class="linkbtn" data-rep="${ix+1}">Replace</button><button type="button" class="linkbtn danger" data-del="${ix+1}">Delete</button></figcaption></figure>`).join('')}
-      ${addOk?`<div class="pm-add"><b>Add photo${arr.length?'s':''}</b><button type="button" class="btn sm primary" data-add="camera">Camera</button><button type="button" class="btn sm" data-add="gallery">${onComputer()?'Choose files':'Gallery'}</button><small>${IMG_MAX-arr.length} more allowed</small></div>`:''}</div>`;
+      ${addOk?`<div class="pm-add"><b>Add photo${arr.length?'s':''}</b><button type="button" class="btn sm primary" data-add="camera">Camera</button><button type="button" class="btn sm" data-add="gallery">${onComputer()?'Choose files':'Gallery'}</button><button type="button" class="btn sm" id="pmPasteBtn">Paste</button><small>${IMG_MAX-arr.length} more allowed</small></div>`:''}</div>
+    ${addOk?`<div class="pm-paste" id="pmPaste" contenteditable="true" role="textbox" aria-label="Paste a photo here" spellcheck="false">${onComputer()?'Copy a photo, then press <b>Ctrl+V</b> here to add it':'Long-press here and tap <b>Paste</b> to add a copied photo'}</div>`:''}`;
+  pnameCheck($('pmName'),$('pmPnNote'),k);
+  $('pmNameSave').onclick=()=>withPerm('images','Needs a user allowed to add product photos.',async()=>{const v=$('pmName').value.replace(/\s+/g,' ').trim();if(await savePnames({[k]:v}))toast(v?`Name saved · ${v}`:'Name removed')},true);
+  $('pmName').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('pmNameSave').click()}});
+  if($('pmPasteBtn'))$('pmPasteBtn').onclick=()=>withPerm('images','Needs a user allowed to add product photos.',async()=>{
+    try{const its=await navigator.clipboard.read();const bl=[];for(const it of its){const t=it.types.find(x=>/^image\//.test(x));if(t)bl.push(await it.getType(t))}
+      if(!bl.length){toast('No photo copied. Copy a photo first.',null,true);return}await pastePhotos(k,bl)}catch(e){const z=$('pmPaste');if(z){z.focus();toast(onComputer()?'Press Ctrl+V to paste':'Long-press the box and tap Paste',null,true)}}},true);
   b.querySelectorAll('[data-add]').forEach(x=>x.onclick=()=>withPerm('images','Needs a user allowed to add product photos.',()=>pickPhotos(k,'add',0,x.dataset.add),true));
   b.querySelectorAll('[data-rep]').forEach(x=>x.onclick=()=>withPerm('imgDel','Needs a user allowed to replace or delete photos.',()=>pickPhotos(k,'set',+x.dataset.rep,'gallery'),true));
   b.querySelectorAll('[data-main]').forEach(x=>x.onclick=()=>withPerm('images','Needs a user allowed to change product photos.',async()=>{if(await imgAct(k,'main',+x.dataset.main))paintPhotoMgr(k)},true));
@@ -5579,16 +5633,20 @@ function openPhotoTools(){
   showModal('Product photos','',[{label:'Close',cls:'ghost'}]);
   const total=Object.keys(imgIdx).length,local=Object.keys(imgIdx).filter(k=>imgT[k]===imgIdx[k]).length;
   $('modalBody').innerHTML=`<div class="sh-wrap">
-    <div class="sh-sec"><h5>Upload photos in bulk</h5><p class="note">Name each photo with its label number: <b>FRG382.jpg</b>. More photos of the same item: <b>FRG382-2.jpg</b>, <b>FRG382-3.jpg</b>. They upload in lots of 10.</p>
+    <div class="sh-sec"><h5>Upload photos in bulk</h5><p class="note">Name each photo with its label number: <b>FRG382.jpg</b>. More photos of the same item: <b>FRG382-2.jpg</b>, <b>FRG382-3.jpg</b>. Add the product name after the label no. to set it too: <b>FRG382 Pink Solo Ring.jpg</b>. They upload in lots of 10.</p>
       <div class="sh-row"><select id="pbMode" aria-label="Upload mode"><option value="add">Add to the item's photos</option><option value="set">Replace the item's photos</option></select><button type="button" class="btn primary" id="pbPick">Choose photos</button></div>
       <input type="file" id="pbFiles" accept="image/*" multiple hidden><div id="pbOut" class="pb-out" aria-live="polite"></div></div>
     <div class="sh-sec"><h5>Keep photos on this ${onComputer()?'computer':'phone'}</h5><p class="note" id="plNote">${local.toLocaleString('en-IN')} of ${total.toLocaleString('en-IN')} items' photos are saved here, so they open fast and without the internet.</p>
       <div class="sh-row"><button type="button" class="btn" id="plGo"${total&&sync.key?'':' disabled'}>Save all photos here</button></div><div class="pb-bar" id="plBar" hidden><i></i></div></div></div>`;
   $('pbPick').onclick=()=>withPerm('imgBulk','Needs a user allowed to bulk upload photos.',()=>$('pbFiles').click(),true);
   $('pbFiles').onchange=async e=>{const fs=[...e.target.files];e.target.value='';if(!fs.length)return;
-    const rows=fs.map(f=>{const base=f.name.replace(/\.[a-z0-9]+$/i,'').trim(),m=base.match(/^(.*?)(?:\s*[-_ ]\s*\(?(\d{1,2})\)?)?$/),code=m?m[1]:base,k=keyOf(code),r=stockMap.get(k);return {f,k,ok:!!r,n:m&&m[2]?+m[2]:1}}).sort((a,b)=>a.k<b.k?-1:a.k>b.k?1:a.n-b.n);
+    const rows=fs.map(f=>{const base=f.name.replace(/\.[a-z0-9]+$/i,'').trim();
+      // V1.8.3 "FRG382 Pink Solo Ring.jpg" / "FRG382-2 Pink Solo Ring.jpg": label no., photo no., then the product name
+      const m2=base.match(/^([A-Za-z]+\s?\d+)(?:\s*[-_ ]\s*\(?(\d{1,2})\)?(?=$|[\s_-]))?(?:\s*[-_ ]\s*(.*))?$/);
+      if(m2&&stockMap.get(keyOf(m2[1]))){const nm=String(m2[3]||'').replace(/_+/g,' ').replace(/\s+/g,' ').trim();return {f,k:keyOf(m2[1]),ok:true,n:m2[2]?+m2[2]:1,name:/[a-z]/i.test(nm)?nm:''}}
+      const m=base.match(/^(.*?)(?:\s*[-_ ]\s*\(?(\d{1,2})\)?)?$/),code=m?m[1]:base,k=keyOf(code),r=stockMap.get(k);return {f,k,ok:!!r,n:m&&m[2]?+m[2]:1,name:''}}).sort((a,b)=>a.k<b.k?-1:a.k>b.k?1:a.n-b.n);
     const good=rows.filter(r=>r.ok),bad=rows.filter(r=>!r.ok),keys=new Set(good.map(r=>r.k));
-    $('pbOut').innerHTML=`<p><b>${good.length}</b> photo${good.length===1?'':'s'} for <b>${keys.size}</b> item${keys.size===1?'':'s'} in stock.${bad.length?` <span class="bad-t">${bad.length} not matched: ${bad.slice(0,6).map(r=>esc(r.f.name)).join(', ')}${bad.length>6?'…':''}</span>`:''}</p>${good.length?`<button type="button" class="btn primary" id="pbGo">Upload ${good.length}</button>`:''}<div class="pb-bar" id="pbBar" hidden><i></i></div>`;
+    $('pbOut').innerHTML=`<p><b>${good.length}</b> photo${good.length===1?'':'s'} for <b>${keys.size}</b> item${keys.size===1?'':'s'} in stock.${bad.length?` <span class="bad-t">${bad.length} not matched: ${bad.slice(0,6).map(r=>esc(r.f.name)).join(', ')}${bad.length>6?'…':''}</span>`:''}</p>${(()=>{const nm=good.filter(r=>r.name);return nm.length?` <span class="note">· product names from the file names for ${new Set(nm.map(r=>r.k)).size} item(s), e.g. ${esc(nm[0].k)} “${esc(nm[0].name)}”</span>`:''})()+(good.length?`<button type="button" class="btn primary" id="pbGo">Upload ${good.length}</button>`:'')}<div class="pb-bar" id="pbBar" hidden><i></i></div>`;
     if(!good.length)return;
     $('pbGo').onclick=async()=>{const mode=$('pbMode').value;if(mode==='set'&&!can('imgDel')){toast('Replacing photos needs the delete permission',null,true);return}
       $('pbGo').disabled=true;$('pbBar').hidden=false;let done=0,fail=0;const cleared=new Set();
@@ -5598,6 +5656,7 @@ function openPhotoTools(){
             else if(!(await imgAct(r.k,'add',0,u)))throw 0;done++}catch(e){fail++}
           $('pbBar').firstChild.style.width=((done+fail)/good.length*100)+'%'}
         $('pbOut').querySelector('p').innerHTML=`Uploaded <b>${done}</b> of ${good.length}${fail?` · <span class="bad-t">${fail} failed</span>`:''}…`}
+      {const nm={};good.forEach(r=>{if(r.name&&!nm[r.k])nm[r.k]=r.name});if(Object.keys(nm).length)await savePnames(nm)}
       $('pbOut').querySelector('p').innerHTML=`<b class="ok-t">✓ ${done} photo${done===1?'':'s'} uploaded</b>${fail?` · <span class="bad-t">${fail} failed (too many photos for an item, or no internet)</span>`:''}`;$('pbGo').remove()}};
   $('plGo').onclick=async()=>{const ks=Object.keys(imgIdx).filter(k=>imgT[k]!==imgIdx[k]);$('plGo').disabled=true;$('plBar').hidden=false;let d=0;
     for(let i=0;i<ks.length;i+=25){await Promise.all(ks.slice(i,i+25).map(k=>getProdImgs(k).catch(()=>{})));d=Math.min(ks.length,i+25);$('plBar').firstChild.style.width=(d/ks.length*100)+'%';
@@ -5802,7 +5861,7 @@ async function soldStock(keys,note,info){
     catch(e){const q=store.get('soldQ',[]);q.push(body);store.set('soldQ',q)}}
   return inStock.length||keys.length;
 }
-const SF=[['barcode','Label No','text',1],['item','Item Name','text',1],['category','Item Type','cat',0],['carat','Purity (K)','pur',1],
+const SF=[['barcode','Label No','text',1],['pname','Product name','pn'],['item','Item Name','text',1],['category','Item Type','cat',0],['carat','Purity (K)','pur',1],
   ['gw','Gross Wt (g)','num',1],['sw','Stone Wt (g)','num'],['nw','Net Wt (g)','num',1],['saClr','Clr-SA (₹)','num'],['saDia','Dia-SA (₹)','num'],
   ['dq','Diamond Qty','num'],['dw','Diamond Wt (ct)','num'],['mkPct','Wstg %','num'],['mkFix','Fixed Charge (₹)','num'],['mkPg','Making Rate (₹/g)','num'],
   ['fva','FVA (% or ₹)','text'],['huidNo','HUID No','text'],['stoneName','Stone Name(s)','text'],['location','Location','text'],['labelDate','Labelling Date','date'],
@@ -5827,6 +5886,7 @@ function stockForm(rec){
   $('modalTitle').textContent=isNew?'New item in stock':'Edit '+(r.barcode||r.key);$('modalTitle').classList.remove('price-pop');
   $('modalBody').innerHTML=`<p class="note">${isNew?'All label details, as on the other labels.':'Correct the making, FVA or any detail.'} Saved to the shared database for all staff.</p><div class="pr-form">`+SF.map(([k,l,t,req])=>{
     const id='sf_'+k,lab=`<label for="${id}">${esc(l)}${req?' *':''}</label>`;
+    if(t==='pn')return `<div class="full">${lab}<input id="${id}" list="pnList" autocomplete="off" maxlength="80" placeholder="e.g. Pink Solo Ring" value="${esc(isNew?'':pnameOf(r))}">${pnameDatalist()}<small class="pn-note" id="sfPnNote" aria-live="polite"></small></div>`;
     if(LST[k])return `<div${k==='item'||k==='category'?' class="sf-lst"':''}>${lab}<select id="${id}" class="sf-sel">${optsOf(k,v0[k],k==='category'&&v0.item?x=>lc(x.item)===lc(v0.item):null)}</select><input id="${id}_new" class="sf-new" hidden placeholder="Type the new ${LST[k]}" aria-label="New ${LST[k]}"></div>`;
     if(t==='pur')return `<div>${lab}<select id="${id}">${purs.map(x=>`<option${String(v0.carat||'22').toUpperCase()===x?' selected':''}>${x}</option>`).join('')}</select></div>`;
     if(t==='date')return `<div>${lab}<input id="${id}" type="date" value="${val(k)}"></div>`;
@@ -5834,6 +5894,7 @@ function stockForm(rec){
     return `<div${k==='item'||k==='stoneName'?' class="full"':''}>${lab}<input id="${id}"${t==='num'?' inputmode="decimal"':''}${k==='barcode'?' autocapitalize="characters"'+(isNew?'':' readonly'):''} value="${val(k)}"></div>`}).join('')+`</div>
     <p class="note">Making: fill one of Wstg %, Fixed Charge (₹ per piece) or Making Rate (₹ per gram of net wt). Typing in one clears the other two.</p>${(()=>{const ru=isNew?null:ruleFor(r);return ru&&ru.mode!=='fill'&&(ru.mkType||ru.fvaType)?`<p class="note sf-rule">Pricing rule “${esc(ru.name)}” sets the ${[ru.mkType?'making':'',ru.fvaType?'FVA':''].filter(Boolean).join(' and ')} for this item and overrides what is saved here. Change or switch off the rule in Pricing rules.</p>`:''})()}`;
   // lists: "+ New…" opens a box; item name narrows the item types; an item type with (9K)/(18K) in its name sets the purity; a new label's code suggests name and type
+  pnameCheck($('sf_pname'),$('sfPnNote'),isNew?'':r.key);
   let purTouched=!isNew;$('sf_carat').addEventListener('change',()=>purTouched=true);
   const wireNew=k=>{const sl=$('sf_'+k),nw=$('sf_'+k+'_new');sl.addEventListener('change',()=>{nw.hidden=sl.value!=='__new';if(!nw.hidden)nw.focus()})};Object.keys(LST).forEach(wireNew);
   const fillTypes=()=>{const it=$('sf_item').value,cur=$('sf_category').value==='__new'?'':$('sf_category').value;$('sf_category').innerHTML=optsOf('category',cur,it&&it!=='__new'?x=>lc(x.item)===lc(it):null);$('sf_category_new').hidden=true};
@@ -5863,13 +5924,14 @@ function stockForm(rec){
     stockMaking(o);if(pg!=null){o.mkType='pergram';o.mk=String(pg)}o.huid=huidN;o.huidNo=hc.join(', ');
     if((o.saClr>0)||(o.saDia>0))o.sa=(o.saClr||0)+(o.saDia||0);
     const row={};['key','barcode','item','category','carat','gw','nw','sw','dw','dq','sa','location','supplier','mk','mkType','huid','huidNo','stoneName','saDia','saClr','labelDate','size','model','nlc','fva','imp'].forEach(f=>{if(o[f]!=null&&o[f]!=='')row[f]=o[f]});if(row.fva)row.fvaMan='1';
-    ['serial','label','pcs','sq','cw'].forEach(f=>{if(r[f]!=null&&r[f]!=='')row[f]=r[f]});
+    ['serial','label','pcs','sq','cw','pname'].forEach(f=>{if(r[f]!=null&&r[f]!=='')row[f]=r[f]});
+    const pn=$('sf_pname').value.replace(/\s+/g,' ').trim(),pnChanged=pn!==(isNew?'':pnameOf(r));
     row.at=Date.now();
     sv.disabled=true;sv.textContent='Saving…';
     try{
       if(sync.key){const res=await syncApi('stockrow','POST',{row,by:curUser?(curUser.name||curUser.username):''},adminCreds);sync.v.stock=res.v;saveSyncState();Object.assign(row,res.row||{});if(res.history){stockMeta.history=res.history;store.set('stockMeta',stockMeta)}}
       try{await IDB.putMany([row],false)}catch(e){}
-      indexRec(row);paintStockSummary();closeModal();
+      indexRec(row);paintStockSummary();closeModal();if(pnChanged)savePnames({[key]:pn});
       toast(isNew?`${bc} added to stock · all staff have it`:`${bc} updated · all staff have it`);
       if(!isNew&&cur.stockKey===key){cur.stockKey='';applyStock(row)}
     }catch(e){sv.disabled=false;sv.textContent=isNew?'Add to stock':'Save to database';if(e&&e.message==='sold'){closeModal();soldPop(key)}else toast(e&&e.message==='bad_pin'?(isNew?'Not allowed: Add new items to stock is off for this role':'Not allowed: Edit stock items is off for this role')+' (Roles & permissions)':'Could not save. Check the internet.',null,true)}
@@ -5969,7 +6031,7 @@ function bulkPick(labels,q){
   const out=new Map(),miss=[];
   labels.split(/[\s,;]+/).map(x=>x.trim()).filter(Boolean).forEach(l=>{const r=findStock(l);if(r)out.set(r.key,r);else miss.push(l)});
   q=q.trim();if(q){const k=keyOf(q),ql=q.toLowerCase();for(const r of stockMap.values())
-    if((k.length>=2&&(r.key.startsWith(k)||keyOf(r.label||'')===k))||[r.item,r.category,r.supplier,r.stoneName,r.location,r.model].some(v=>String(v||'').toLowerCase().includes(ql)))out.set(r.key,r)}
+    if((k.length>=2&&(r.key.startsWith(k)||keyOf(r.label||'')===k))||[r.item,r.category,r.supplier,r.stoneName,r.location,r.model,pnameOf(r)].some(v=>String(v||'').toLowerCase().includes(ql)))out.set(r.key,r)}
   return {list:[...out.values()],miss};
 }
 function bulkForm(){
@@ -6229,7 +6291,7 @@ function runFind(){
   if(exact&&(!shareList||shareList.keys.has(exact.key)))hits.push(exact);
   if(shareList&&!q){for(const k of shareList.keys){const r=stockMap.get(k);if(r&&hits.length<300)hits.push(r)}}
   else for(const r of stockMap.values()){if(hits.length>=60)break;if(r===exact||(shareList&&!shareList.keys.has(r.key)))continue;
-    if((k.length>=2&&(r.key.includes(k)||keyOf(r.label||'').includes(k)))||[r.item,r.category,r.supplier,r.stoneName].some(v=>String(v||'').toLowerCase().includes(ql)))hits.push(r)}
+    if((k.length>=2&&(r.key.includes(k)||keyOf(r.label||'').includes(k)))||[r.item,r.category,r.supplier,r.stoneName,pnameOf(r)].some(v=>String(v||'').toLowerCase().includes(ql)))hits.push(r)}
   stLastRows=hits;
   $('findNote').innerHTML=sharedBanner()+(hits.length?(exact?`<b class="ok-t">✓ ${esc(exact.barcode||exact.key)} is in stock.</b> `:'')+`${hits.length>=60&&!shareList?'First 60':hits.length} match${hits.length===1?'':'es'}.`:q?`<b class="bad-t">✗ Not in stock.</b> No item matches “${esc(q)}”.`:'None of these items are in stock now.');
   const W=v=>v!=null&&v!==''&&!isNaN(num(v))&&num(v)>0?num(v).toFixed(3)+' g':'';
@@ -6239,7 +6301,7 @@ function runFind(){
       ['Diamond wt',num(r.dw)>0?`${fmtN(num(r.dw))} ct`:''],['Diamond count',num(r.dq)>0?`${fmtN(num(r.dq))} pcs`:''],['Colour stone wt',num(r.cw)>0?num(r.cw).toFixed(3):''],['Stones',r.stoneName],['Making',mk],['HUID',r.huid!=null&&r.huid!==''?String(r.huid):''],['HUID No.',r.huidNo||''],['Labelling date',fmtDate(r.labelDate)],['Label code',r.label&&keyOf(r.label)!==r.key?r.label:''],['Supplier',r.supplier]].filter(x=>x[1]);
     return `<div class="find-card" data-k="${esc(r.key)}">
       <div class="fc-top"><div class="fc-ic"><div class="fc-img" data-img="${esc(r.key)}">${icoFor(r.category||r.item||'')}</div>${shopA(r)}</div>
-        <div class="fc-h"><b>${esc(r.barcode||r.key)}</b><span class="in-st">In stock</span><div class="fc-name">${esc(r.category||r.item||'')}</div></div></div>
+        <div class="fc-h"><b>${esc(r.barcode||r.key)}</b><span class="in-st">In stock</span><div class="fc-name">${esc(pnameOf(r)||r.category||r.item||'')}</div></div></div>
       <dl class="specs fc-specs">${rows.map(([l,v])=>`<dt>${esc(l)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>
       <div class="fc-acts"><label class="fc-ck"><input type="checkbox" data-sel="${esc(r.key)}"${stSel.has(r.key)?' checked':''}> Select</label><button class="btn sm" type="button" data-photo="${esc(r.key)}">📷 ${imgIdx[r.key]?'Change photo':'Add photo'}</button><button class="btn sm primary" type="button" data-price="${esc(r.key)}">Price it</button></div>
     </div>`}).join('');
@@ -6262,7 +6324,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.8.2',APP_BUILD='__BUILD__';
+const APP_VERSION='1.8.3',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------
@@ -6578,7 +6640,7 @@ async function pollInboxNow(){
     // users and roles changed by an admin (e.g. "See all quotes"): pick them up now, not at the morning sync
     if((r.s||0)>(sync.v.settings||0)&&!sync.dirtySettings){try{const d=await syncApi('settings');if(d.settings)applyRemoteSettings(d.settings);sync.v.settings=d.v||r.s;saveSyncState();setTimeout(promoPopup,400)}catch(e){}}
     // stock corrected or added by a manager, or sold tags removed: refresh this phone's stock list
-    if((r.sd||0)>(sync.v.sold||0))pullSold();flushSoldQ();
+    if((r.sd||0)>(sync.v.sold||0))pullSold();flushSoldQ();if((r.pn||0)>(sync.v.pnames||0))pullPnames();
     if((r.st||0)>(sync.v.stock||0)&&!stockPulling){stockPulling=true;try{const d=await syncApi('stock');try{await IDB.putMany(d.rows,true)}catch(e){}stockMap.clear();altMap.clear();d.rows.forEach(indexRec);stockMeta.history=d.history||[];store.set('stockMeta',stockMeta);sync.v.stock=d.v;saveSyncState();paintStockSummary();
       if(cur.stockKey&&stockMap.has(cur.stockKey)){const k=cur.stockKey;cur.stockKey='';applyStock(stockMap.get(k))}}catch(e){}finally{stockPulling=false}}
     if((r.u||0)>(sync.v.users||0)){try{const d=await syncApi('users','GET',null,adminCreds);if(Array.isArray(d.roles)){roles=d.roles;store.set('roles',roles)}if(Array.isArray(d.users)&&d.users.length)mergeRemoteUsers(d.users);sync.v.users=d.v||r.u;saveSyncState()}catch(e){}}
