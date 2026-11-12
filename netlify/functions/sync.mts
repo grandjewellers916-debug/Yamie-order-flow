@@ -581,6 +581,7 @@ export default async (req: Request) => {
           pur: (Array.isArray(r?.pur) ? r.pur : []).filter((x: any) => ["24k", "22k", "18k", "14k", "9k", "platinum", "silver"].includes(x)),
           wMin: cleanNum(r?.wMin), wMax: cleanNum(r?.wMax), nlcMin: cleanNum(r?.nlcMin), nlcMax: cleanNum(r?.nlcMax),
           cats: (Array.isArray(r?.cats) ? r.cats : []).filter((x: any) => typeof x === "string" && /^[A-Z]{2,4}$/.test(x)).slice(0, 40),
+          names: (Array.isArray(r?.names) ? r.names : []).map((x: any) => cleanStr(x, 80).toLowerCase()).filter(Boolean).slice(0, 60),
           mkt: ["", "pct", "pergram", "fixed", "none"].includes(r?.mkt) ? r.mkt : "", sup: cleanStr(r?.sup, 40), pre: cleanStr(r?.pre, 12),
           dia: ["", "yes", "no"].includes(r?.dia) ? r.dia : "",
           mkType: ["", "pct", "pergram", "fixed"].includes(r?.mkType) ? r.mkType : "", mkVal: cleanNum(r?.mkVal),

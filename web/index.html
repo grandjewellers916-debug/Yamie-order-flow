@@ -727,6 +727,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .fva-box .fv-r{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:16px;font-weight:600}
 .fva-box .fv-r small{color:rgba(255,255,255,.75);font-size:12px;font-weight:500}.fva-box .fv-r b{font:800 24px var(--body);white-space:nowrap}
 .fva-box .fv-t{margin-top:6px;border:0;background:rgba(255,255,255,.16);color:#fff;border-radius:999px;padding:6px 14px;font:600 13px var(--body);cursor:pointer}
+.fva-box .fv-m{margin-top:8px;display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:15px;font-weight:600}.fva-box .fv-m small{font-weight:400;opacity:.85;font-size:12.5px}.fva-box .fv-m b{font:800 20px var(--body);white-space:nowrap}
 .fva-box .fv-s{margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.25);display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:16px;font-weight:700}
 .fva-box .fv-s b{font:900 32px var(--body);white-space:nowrap;color:#FFE08A}
 .qi-rng{grid-column:1/-1;margin:4px 0 0 18px;font-size:12.5px;color:var(--maroon);font-weight:700}
@@ -877,6 +878,17 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .qd-head h2{flex:1}.qd-head .dc-chev{transition:transform .2s}.qd-head[aria-expanded="true"] .dc-chev{transform:rotate(180deg)}
 #qDiscBody{margin-top:8px}
 .rl-sec{font:700 12px var(--body);text-transform:uppercase;letter-spacing:.06em;color:var(--maroon);margin-top:6px}
+.rl-step{display:flex;align-items:center;gap:10px;font:700 16px var(--body);color:var(--maroon);margin-top:8px;padding-top:10px;border-top:1px solid var(--line)}.rl-step small{font-weight:400;color:var(--muted);font-size:13px}
+.rl-n{width:26px;height:26px;border-radius:50%;background:var(--maroon);color:#fff;display:grid;place-items:center;font-size:14px;flex:none}
+.rl-wiz .rl-chips{display:flex!important;flex-wrap:wrap;gap:8px!important}
+.rl-wiz .rl-chips .rc-p{display:inline-flex!important;align-items:center;gap:7px;width:auto!important;max-width:100%;margin:0!important;padding:6px 12px 6px 9px!important;border:1px solid var(--line);border-radius:999px;background:var(--surface);font:500 14px var(--body)!important;line-height:1.2;cursor:pointer;grid-template-columns:none!important}
+.rl-wiz .rl-chips .rc-p input{width:17px;height:17px;margin:0;flex:none;accent-color:var(--maroon)}
+.rl-wiz .rl-chips .rc-p small{color:var(--muted);font-size:12px;background:var(--sunk,#f3ece6);border-radius:999px;padding:1px 7px}
+.rl-wiz .rl-chips .rc-p.on{background:color-mix(in srgb,var(--maroon) 9%,var(--surface));border-color:var(--maroon);color:var(--maroon);font-weight:600!important}
+.rl-wiz .rl-names .rc-p{white-space:normal;text-align:left}
+.rl-names{max-height:220px;overflow:auto;margin-top:6px}#rlNameQ{width:100%;min-height:40px;border:1px solid var(--line);border-radius:10px;padding:6px 10px;font:15px var(--body);background:var(--surface);color:var(--fg)}
+.rl-wp{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font:500 14px var(--body);cursor:pointer;color:var(--fg)}.rl-wp.on{background:var(--maroon);border-color:var(--maroon);color:#fff}
+.rl-match{margin:6px 0 0;padding:8px 12px;border-radius:10px;background:color-mix(in srgb,#1F6B45 8%,var(--surface));color:#1F6B45;font-size:14px}
 .rl-chips{display:flex;flex-wrap:wrap;gap:6px 14px}.rl-chips .rc-p{font-size:13px;display:inline-flex!important;flex-direction:row!important;align-items:center;gap:6px;width:auto!important}.rl-chips .rc-p input{margin:0}
 .rl-b{display:flex;flex-direction:column;gap:6px}
 .promo-bar{display:flex;align-items:center;gap:10px;width:100%;border:0;border-radius:14px;padding:10px 14px;margin:0 0 10px;background:linear-gradient(135deg,#3B1A5C,#6B2F9A);color:#fff;font:600 14px var(--body);text-align:left;cursor:pointer;box-shadow:0 4px 14px rgba(59,26,92,.25)}
@@ -1530,13 +1542,14 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
   .hc-h{display:flex;align-items:center;gap:10px;margin:0 0 10px;font:600 20px var(--display);color:var(--maroon);text-transform:none;letter-spacing:0}.hc-h svg{width:26px;height:26px}
   .hc-t{margin-top:0!important;font-size:14.5px!important}
   .hc-t th{padding:9px 12px!important}.hc-t td{padding:8px 12px!important}
+  .hc-t tr.mkc td{background:color-mix(in srgb,#5B2A86 7%,var(--surface))}.hc-t tr.mkc b,.hc-t tr.mkc td.r{color:#5B2A86}.hc-t tr.mkc .ps-i svg{color:#5B2A86}
   .hc-t tr.disc td{background:#FDEEEF}.hc-t tr.disc b,.hc-t tr.disc td.r{color:#B3261E}.hc-t tr.disc .ps-i svg{color:#B3261E}
   .hc-dc{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .hc-in{display:flex;align-items:center;border:1px solid #E6B9BE;border-radius:10px;background:#fff;overflow:hidden;width:150px}
   .hc-in span{padding:0 8px;color:var(--muted);border-right:1px solid #F0D3D6}.hc-in input{border:0;min-height:36px;width:100%;padding:4px 10px;font:600 15px var(--body);text-align:right;outline:none;background:none}
   .hc-in:focus-within{box-shadow:0 0 0 2px rgba(179,38,30,.25)}
   .hc-fv{border:1.5px solid #6F3BA6;color:#5B2A86;background:#fff;border-radius:999px;padding:4px 12px;font:600 13px var(--body);cursor:pointer;white-space:nowrap}.hc-fv small{font-weight:500;opacity:.8}
-  .hc-fv.on{background:#5B2A86;color:#fff}
+  .hc-fv.on{background:#5B2A86;color:#fff}.hc-fv.on small{color:#E9DAFB;opacity:1}
   .hc-fin{display:flex;align-items:center;gap:14px;margin-top:14px;padding:16px 22px;border-radius:16px;color:#fff;background:radial-gradient(120% 180% at 100% 0%,rgba(255,255,255,.1),transparent 55%),linear-gradient(100deg,#5A0A14,#8E1B24);box-shadow:0 8px 20px rgba(90,10,20,.25)}
   .hc-ic{flex:none;width:44px;height:44px;border-radius:50%;border:2px solid #E8C77A;color:#E8C77A;display:grid;place-items:center;font:700 20px var(--body)}
   .hc-l{flex:1;font:600 23px var(--display);min-width:0}.hc-l small{font:400 15px var(--body);opacity:.85}.hc-l em{display:block;font:500 13px var(--body);font-style:normal;color:#F3D3A2;margin-top:2px}
@@ -1817,7 +1830,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
     </div>
     <div class="grand" id="pdGrandRow"><span>Grand Total</span><strong id="pdGrand">—</strong></div>
     <button class="btn fva-ask" type="button" id="pdFvaAsk" hidden aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.3"/></svg>Fair Value</button>
-    <div class="fva-box" id="pdFva" hidden><div class="fv-r"><span>Fair value price <small id="pdFvaL"></small></span><b id="pdFvaV"></b></div><div class="fv-s"><span>Discount · You save</span><b id="pdFvaS"></b></div><button type="button" class="fv-t" id="pdFvaHide">Hide ▴</button></div>
+    <div class="fva-box" id="pdFva" hidden><div class="fv-r"><span>Fair value price <small id="pdFvaL"></small></span><b id="pdFvaV"></b></div><div class="fv-m"><span>Making charges collected <small id="pdFvaML"></small></span><b id="pdFvaM"></b></div><div class="fv-s"><span>Discount · You save</span><b id="pdFvaS"></b></div><button type="button" class="fv-t" id="pdFvaHide">Hide ▴</button></div>
     <div class="prod-acts"><button class="btn" type="button" id="pdDel">Clear</button><span class="pd-check" id="pdCheck" hidden>Price check only · not saved</span><button class="btn primary" type="button" id="pdClose" hidden>Close</button><button class="btn primary" type="button" id="pdSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>Save to Quote</button></div>
     <div class="pd-hid" id="pdHidW" hidden><button class="linkbtn" type="button" id="pdHidT" aria-expanded="false">Show hidden details</button><dl class="specs specs-more" id="pdHidL" hidden></dl></div>
     <div class="pd-links"><button class="linkbtn" type="button" id="pdDb" hidden>Edit in database</button><button class="linkbtn" type="button" id="pdMk" hidden>Update making</button><button class="linkbtn pd-edit" type="button" id="pdEdit">Edit details</button></div>
@@ -4313,7 +4326,8 @@ function paintProduct(){
   $('pdTotal').classList.toggle('incomplete',!ok);$('pdGrandRow').classList.toggle('incomplete',!ok);
   // Grand total and fair value price rounded to the nearest ₹50; savings stay folded until the customer asks
   if(ok)$('pdGrand').textContent=inr(r50(p.value*(1+g/100)));
-  {const fv=ok?fvaPrice(cur,p):null,G=1+g/100;$('pdFva').hidden=!fv||!cur.fvaAsk||!can('fva');if(fv){const gt=r50(p.value*G),fvp=r50(fv.value*G);$('pdFvaL').textContent='('+fv.label+')';$('pdFvaV').textContent=inr(fvp);$('pdFvaS').textContent=inr(gt-fvp)}
+  {const fv=ok?fvaPrice(cur,p):null,G=1+g/100;$('pdFva').hidden=!fv||!cur.fvaAsk||!can('fva');if(fv){const gt=r50(p.value*G),fvp=r50(fv.value*G);$('pdFvaL').textContent='('+fv.label+')';$('pdFvaV').textContent=inr(fvp);$('pdFvaS').textContent=inr(gt-fvp);
+    const mkc=Math.max(0,fv.mk+(fvp/G-fv.value));$('pdFvaM').textContent=inr(Math.round(mkc));$('pdFvaML').textContent=p.hasMk?`(label ${inr(p.making)} · excl. GST)`:'(excl. GST)'}
    // folded until the customer asks; opening it means the item is quoted at the fair value
    $('pdFvaAsk').hidden=!fv||!!cur.fvaAsk||!can('fva');$('pdFvaAsk').setAttribute('aria-expanded',String(!!cur.fvaAsk))}
   $('pdSave').lastChild.textContent=editingId?'Update Quote':'Save to Quote';
@@ -4801,10 +4815,11 @@ function paintSheet(p,ok,g,st){
     ${p.huidN?row('huid','HUID','',`${p.huidN} × ${inr(settings.huid)}`,inr(p.huid)):''}
     ${row('sum','Gross Amount','','',A(p.value),'tot')}
     ${discRow}
+    ${d>0&&ok?row('mk','Making Collected',how==='fva'?'(at fair value)':'(after discount)',`${inr(p.making)} − ${inr(d)}${Math.abs(fin/G-tax)>=0.5?' ± round-off':''}`,inr(Math.round(Math.max(0,p.making-d+(fin/G-tax)))),'mkc'):''}
     ${d>0?row('sum','Taxable Value','',`${inr(p.value)} − ${inr(d)}`,A(tax)):''}
     ${row('gst','GST',`(${fmtN(g)}%)`,ok?`${fmtN(g)}% of ${inr(tax)}`:'',A(gst))}
     </tbody></table>
-    <div class="hc-fin${d>0?' fv':''}"><span class="hc-ic">₹</span><span class="hc-l">${d>0?'Fair Value':'Grand Total'} <small>(Final Amount)</small>${d>0&&ok?`<em>Label price ${inr(lp)} · customer saves ${inr(lp-fin)}</em>`:''}</span><b>${ok?inr(fin):'—'}</b></div>`;
+    <div class="hc-fin${d>0?' fv':''}"><span class="hc-ic">₹</span><span class="hc-l">${d>0?'Fair Value':'Grand Total'} <small>(Final Amount)</small>${d>0&&ok?`<em>Label price ${inr(lp)} · customer saves ${inr(lp-fin)} · making collected ${inr(Math.round(Math.max(0,p.making-d+(fin/G-tax))))}</em>`:''}</span><b>${ok?inr(fin):'—'}</b></div>`;
   const di=$('hcDisc');if(di){const set=()=>{const v=num(di.value);const by=curUser?(curUser.name||curUser.username):'';
       if(!(v>0)){if(cur.qMk&&!cur.qMk.fva)delete cur.qMk}else{const amt=Math.max(0,p.making-Math.min(v,p.making));cur.fvaAsk=false;cur.qMk={type:cur.mkType,val:fmtN(mkValFor(cur,amt)),amt:Math.min(v,p.making),by,at:Date.now()}}
       saveDraft();renderEditor()};
@@ -5264,6 +5279,7 @@ function ruleMatch(r,rec){
   if(r.wMin!=null&&r.wMin!==''&&!(nw>=r.wMin))return false;
   if(r.wMax!=null&&r.wMax!==''&&!(nw<r.wMax))return false;
   if(r.cats&&r.cats.length){const c=codeOf(rec),cat=String(rec.category||'').toUpperCase();if(!r.cats.some(k=>k===c||(CAT[k]&&cat.includes(String(CAT[k]).toUpperCase()))))return false}
+  if(r.names&&r.names.length&&!r.names.includes(String(rec.item||'').trim().toLowerCase()))return false;
   if(r.mkt){const t=rec.mkType&&num(rec.mk)>0?rec.mkType:'none';if(t!==r.mkt)return false}
   if(r.sup&&!String(rec.supplier||'').toLowerCase().includes(r.sup.toLowerCase()))return false;
   if(r.nlcMin!=null&&r.nlcMin!==''&&!(nlc>=r.nlcMin))return false;
@@ -5284,7 +5300,7 @@ function applyRules(rec){
 function ruleText(r){
   const c=[];if(r.pur&&r.pur.length)c.push(r.pur.map(p=>p.toUpperCase().replace('PLATINUM','Pt')).join('/'));
   if(r.wMin!=null&&r.wMin!==''||r.wMax!=null&&r.wMax!=='')c.push(`${r.wMin!=null&&r.wMin!==''?fmtN(r.wMin):'0'}–${r.wMax!=null&&r.wMax!==''?fmtN(r.wMax):'∞'} g`);
-  if(r.cats&&r.cats.length)c.push(r.cats.join(', '));if(r.mkt)c.push(r.mkt==='none'?'no making in sheet':MKT_TXT[r.mkt]+' in sheet');
+  if(r.cats&&r.cats.length)c.push(r.cats.map(k=>CAT[k]?String(CAT[k]).replace(/\s*\(.*?\)/g,''):k).join(', '));if(r.names&&r.names.length)c.push(r.names.length>3?`${r.names.length} product types`:r.names.map(n=>n.replace(/\b\w/g,m=>m.toUpperCase())).join(', '));if(r.mkt)c.push(r.mkt==='none'?'no making in sheet':MKT_TXT[r.mkt]+' in sheet');
   if(r.sup)c.push('supplier '+r.sup);if(r.nlcMin!=null&&r.nlcMin!==''||r.nlcMax!=null&&r.nlcMax!=='')c.push(`NLC ${r.nlcMin?inr(r.nlcMin):'₹0'}–${r.nlcMax?inr(r.nlcMax):'∞'}`);
   if(r.dia)c.push(r.dia==='yes'?'diamond':'plain gold');if(r.pre)c.push('label '+r.pre+'…');
   const t=[];if(r.mkType)t.push(r.mkType==='pct'?`VA ${fmtN(r.mkVal)}%`:r.mkType==='pergram'?`Labour ${inr(r.mkVal)}/g`:`Labour ${inr(r.mkVal)}`);
@@ -5301,23 +5317,31 @@ function paintRulesSet(){
 }
 function ruleForm(id){
   withPerm('rules','Only an admin can change pricing rules.',()=>{
-  const r=Object.assign({id:uid(),name:'',on:true,mode:'over',pur:[],wMin:'',wMax:'',cats:[],mkt:'',sup:'',nlcMin:'',nlcMax:'',dia:'',pre:'',mkType:'',mkVal:'',fvaType:'',fvaVal:'',diaRate:''},(settings.priceRules||[]).find(x=>x.id===id)||{});
+  const r=Object.assign({id:uid(),name:'',on:true,mode:'over',pur:[],wMin:'',wMax:'',cats:[],names:[],mkt:'',sup:'',nlcMin:'',nlcMax:'',dia:'',pre:'',mkType:'',mkVal:'',fvaType:'',fvaVal:'',diaRate:''},(settings.priceRules||[]).find(x=>x.id===id)||{});
   const v=x=>x==null?'':esc(x),sel=(o,cur)=>Object.entries(o).map(([k,l])=>`<option value="${k}"${k===(cur||'')?' selected':''}>${esc(l)}</option>`).join('');
   const chips=(name,list,on)=>list.map(([k,l])=>`<label class="rc-p"><input type="checkbox" name="${name}" value="${esc(k)}"${on.includes(k)?' checked':''}> ${esc(l)}</label>`).join('');
   $('modalTitle').textContent=id?'Edit pricing rule':'New pricing rule';$('modalTitle').classList.remove('price-pop');
-  $('modalBody').innerHTML=`<div class="pr-form">
-    <div class="full"><label for="rlName">Name</label><input id="rlName" value="${v(r.name)}" placeholder="e.g. 18K diamond studs under 2 g"></div>
-    <div class="full rl-sec">When the item is…</div>
-    <div class="full"><label>Karat / purity</label><div class="rl-chips">${chips('rlPur',RULE_PUR,r.pur||[])}</div></div>
+  const W_PRE=[['','0.999','Under 1 g'],['1','2','1–2 g'],['2','5','2–5 g'],['5','10','5–10 g'],['10','20','10–20 g'],['20','','20 g +']];
+  $('modalBody').innerHTML=`<div class="pr-form rl-wiz">
+    <div class="full"><label for="rlName">Rule name</label><input id="rlName" value="${v(r.name)}" placeholder="Filled in from your choices if left blank"></div>
+    <div class="full rl-step"><span class="rl-n">1</span>Purity</div>
+    <div class="full"><div class="rl-chips" id="rlPurBox"></div></div>
+    <div class="full rl-step"><span class="rl-n">2</span>Item name <small>(Ring, Bangle, Chain…)</small></div>
+    <div class="full"><div class="rl-chips" id="rlCatBox"></div></div>
+    <div class="full rl-step"><span class="rl-n">3</span>Product type <small>(item name in the stock sheet)</small></div>
+    <div class="full"><input id="rlNameQ" type="search" placeholder="Find a product type" aria-label="Find a product type" autocomplete="off"><div class="rl-chips rl-names" id="rlNameBox"></div></div>
+    <div class="full rl-step"><span class="rl-n">4</span>Weight <small>(net weight)</small></div>
+    <div class="full"><div class="rl-chips" id="rlWPre">${W_PRE.map(([f,t,l])=>`<button type="button" class="rl-wp" data-f="${f}" data-t="${t}">${l}</button>`).join('')}</div></div>
     <div><label for="rlWMin">Net wt from (g)</label><input id="rlWMin" inputmode="decimal" value="${v(r.wMin)}"></div>
     <div><label for="rlWMax">Net wt below (g)</label><input id="rlWMax" inputmode="decimal" value="${v(r.wMax)}"></div>
-    <div class="full"><label>Product type</label><div class="rl-chips">${chips('rlCat',Object.keys(CAT).map(k=>[k,k+' '+CAT[k]]),r.cats||[])}</div></div>
+    <div class="full rl-step"><span class="rl-n">5</span>Conditions <small>(optional)</small></div>
     <div><label for="rlMkt">Making type in database</label><select id="rlMkt">${sel({'':'Any',pct:'Wastage %',pergram:'Labour per g',fixed:'Labour fixed',none:'None given'},r.mkt)}</select></div>
     <div><label for="rlDia">Diamond</label><select id="rlDia">${sel({'':'Any',yes:'Diamond items',no:'Plain gold'},r.dia)}</select></div>
     <div><label for="rlSup">Supplier contains</label><input id="rlSup" value="${v(r.sup)}"></div>
     <div><label for="rlPre">Label starts with</label><input id="rlPre" value="${v(r.pre)}" autocapitalize="characters"></div>
     <div><label for="rlNMin">NLC from ₹</label><input id="rlNMin" inputmode="decimal" value="${v(r.nlcMin)}"></div>
     <div><label for="rlNMax">NLC up to ₹</label><input id="rlNMax" inputmode="decimal" value="${v(r.nlcMax)}"></div>
+    <p class="full rl-match" id="rlMatch" aria-live="polite"></p>
     <div class="full rl-sec">…then price it with</div>
     <div><label for="rlMkType">Making</label><select id="rlMkType">${sel({'':'From database',pct:'Wastage %',pergram:'Labour ₹ per g',fixed:'Labour ₹ fixed'},r.mkType)}</select></div>
     <div><label for="rlMkVal">Value</label><input id="rlMkVal" inputmode="decimal" value="${v(r.mkVal)}"></div>
@@ -5326,11 +5350,39 @@ function ruleForm(id){
     <div class="full"><label for="rlDiaRate">Diamond price ₹ per carat (blank = from database)</label><input id="rlDiaRate" inputmode="decimal" value="${v(r.diaRate)}"></div>
     <div class="full"><label for="rlMode">Database values</label><select id="rlMode">${sel({over:'Override the database',fill:'Use only when the database is empty'},r.mode)}</select></div>
     <label class="full rc-p"><input type="checkbox" id="rlOn"${r.on!==false?' checked':''}> Rule is on</label></div>`;
-  const a=$('modalActs');a.innerHTML='';const mk=(t,c,f)=>{const b=document.createElement('button');b.type='button';b.className='btn '+c;b.textContent=t;b.onclick=f;a.appendChild(b)};
+  // cascade: purity → item name → product type, each from what is in stock; live count of matching items
+  let selPur=(r.pur||[]).slice(),selCat=(r.cats||[]).slice(),selNames=(r.names||[]).slice();
+  const all=[...stockMap.values()],puOf=x=>caratToPurity(x.carat)||(/^MMP/.test(x.key||'')?'platinum':'');
+  const chip=(name,k,l,on,n)=>`<label class="rc-p${on?' on':''}"><input type="checkbox" name="${name}" value="${esc(k)}"${on?' checked':''}> ${esc(l)}${n!=null?` <small>${n}</small>`:''}</label>`;
+  const paintPur=()=>{const cnt={};all.forEach(x=>{const p=puOf(x);cnt[p]=(cnt[p]||0)+1});
+    $('rlPurBox').innerHTML=RULE_PUR.map(([k,l])=>chip('rlPur',k,l,selPur.includes(k),cnt[k]||0)).join('')};
+  const paintCat=()=>{const cnt={};all.forEach(x=>{if(selPur.length&&!selPur.includes(puOf(x)))return;const c=codeOf(x);if(c)cnt[c]=(cnt[c]||0)+1});
+    const keys=[...new Set([...Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]),...selCat])];
+    $('rlCatBox').innerHTML=keys.map(k=>chip('rlCat',k,CAT[k]?String(CAT[k]).replace(/\s*\(.*?\)/g,''):k,selCat.includes(k),cnt[k]||0)).join('')||'<p class="note">No stock for this purity.</p>'};
+  const paintNames=()=>{const cnt=new Map(),q=($('rlNameQ').value||'').trim().toLowerCase();
+    all.forEach(x=>{if(selPur.length&&!selPur.includes(puOf(x)))return;if(selCat.length&&!selCat.includes(codeOf(x)))return;const n=String(x.item||'').trim();if(!n)return;const k=n.toLowerCase();cnt.set(k,{l:n,n:((cnt.get(k)||{}).n||0)+1})});
+    selNames.forEach(k=>{if(!cnt.has(k))cnt.set(k,{l:k.replace(/\b\w/g,m=>m.toUpperCase()),n:0})});
+    const list=[...cnt.entries()].filter(([k])=>!q||k.includes(q)).sort((a,b)=>(selNames.includes(b[0])-selNames.includes(a[0]))||b[1].n-a[1].n).slice(0,60);
+    $('rlNameBox').innerHTML=list.map(([k,o])=>chip('rlName2',k,o.l,selNames.includes(k),o.n)).join('')||'<p class="note">No product types for these choices.</p>'};
+  const tmp=()=>({pur:selPur,cats:selCat,names:selNames,wMin:n('rlWMin'),wMax:n('rlWMax'),mkt:$('rlMkt').value,sup:$('rlSup').value.trim(),pre:$('rlPre').value.trim(),nlcMin:n('rlNMin'),nlcMax:n('rlNMax'),dia:$('rlDia').value});
+  const autoName=()=>{const t=tmp(),p=[];if(t.pur.length)p.push(t.pur.map(x=>x.toUpperCase().replace('PLATINUM','Pt')).join('/'));
+    if(t.cats.length)p.push(t.cats.map(k=>CAT[k]?String(CAT[k]).replace(/\s*\(.*?\)/g,''):k).join(', '));if(t.names.length)p.push(t.names.length>2?t.names.length+' types':t.names.map(n=>n.replace(/\b\w/g,m=>m.toUpperCase())).join(', '));
+    if(t.wMin!=null||t.wMax!=null)p.push(`${t.wMin!=null?fmtN(t.wMin):'0'}–${t.wMax!=null?fmtN(t.wMax):'∞'} g`);return p.join(' · ')||'All items'};
+  const paintMatch=()=>{const t=tmp(),m=all.filter(x=>ruleMatch(t,x)).length;$('rlMatch').innerHTML=all.length?`<b>${m.toLocaleString('en-IN')}</b> item${m===1?'':'s'} in stock match`:'';$('rlName').placeholder=autoName();
+    $('rlWPre').querySelectorAll('.rl-wp').forEach(b=>b.classList.toggle('on',String(t.wMin??'')===b.dataset.f&&String(t.wMax??'')===b.dataset.t))};
   const n=id2=>{const x=$(id2).value.trim();return x===''?null:num(x)};
-  mk('Save','primary',()=>{const nm=$('rlName').value.trim();if(!nm){toast('Give the rule a name',null,true);return}
-    const y={id:r.id,name:nm,on:$('rlOn').checked,mode:$('rlMode').value,pur:[...document.querySelectorAll('[name=rlPur]:checked')].map(x=>x.value),wMin:n('rlWMin'),wMax:n('rlWMax'),
-      cats:[...document.querySelectorAll('[name=rlCat]:checked')].map(x=>x.value),mkt:$('rlMkt').value,sup:$('rlSup').value.trim(),pre:$('rlPre').value.trim().toUpperCase(),nlcMin:n('rlNMin'),nlcMax:n('rlNMax'),dia:$('rlDia').value,
+  const wire=()=>{
+    $('rlPurBox').onchange=e=>{selPur=[...document.querySelectorAll('[name=rlPur]:checked')].map(x=>x.value);paintPur();paintCat();paintNames();paintMatch()};
+    $('rlCatBox').onchange=e=>{selCat=[...document.querySelectorAll('[name=rlCat]:checked')].map(x=>x.value);paintCat();paintNames();paintMatch()};
+    $('rlNameBox').onchange=e=>{const x=e.target;if(x.name!=='rlName2')return;selNames=x.checked?[...new Set([...selNames,x.value])]:selNames.filter(k=>k!==x.value);paintNames();paintMatch()};
+    $('rlNameQ').oninput=paintNames;
+    $('rlWPre').querySelectorAll('.rl-wp').forEach(b=>b.onclick=()=>{$('rlWMin').value=b.dataset.f;$('rlWMax').value=b.dataset.t;paintMatch()});
+    ['rlWMin','rlWMax','rlSup','rlPre','rlNMin','rlNMax'].forEach(k=>$(k).addEventListener('input',paintMatch));['rlMkt','rlDia'].forEach(k=>$(k).addEventListener('change',paintMatch))};
+  paintPur();paintCat();paintNames();wire();paintMatch();
+  const a=$('modalActs');a.innerHTML='';const mk=(t,c,f)=>{const b=document.createElement('button');b.type='button';b.className='btn '+c;b.textContent=t;b.onclick=f;a.appendChild(b)};
+  mk('Save','primary',()=>{const nm=$('rlName').value.trim()||autoName();
+    const y={id:r.id,name:nm,on:$('rlOn').checked,mode:$('rlMode').value,pur:selPur,wMin:n('rlWMin'),wMax:n('rlWMax'),
+      cats:selCat,names:selNames,mkt:$('rlMkt').value,sup:$('rlSup').value.trim(),pre:$('rlPre').value.trim().toUpperCase(),nlcMin:n('rlNMin'),nlcMax:n('rlNMax'),dia:$('rlDia').value,
       mkType:$('rlMkType').value,mkVal:n('rlMkVal'),fvaType:$('rlFvaType').value,fvaVal:n('rlFvaVal'),diaRate:n('rlDiaRate')};
     if(y.mkType&&!(y.mkVal>0)){toast('Enter the making value',null,true);return}
     if(y.fvaType&&!(y.fvaVal>0)){toast('Enter the fair value',null,true);return}

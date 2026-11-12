@@ -421,3 +421,8 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 - The register starts with the labels of sales already closed (one-time fill from closed quotes, `v1783`).
 - **Settings → Remove sold tags → Sold labels register:** count, search and the latest labels. **Restore** (admin, tap twice) takes a label off the register when a sale is cancelled or the piece returned (`unsell`); add it back to stock afterwards.
 - Fix: a cancelled quote (enquiry only) no longer keeps its labels in use.
+
+## V 1.7.86 — pricing rule step by step; making collected under the fair value (12 Nov 2026)
+
+- **Pricing rule form in steps:** 1 **Purity** → 2 **Item name** (Ring, Bangle, Chain… — only those in stock for the chosen purity, with counts) → 3 **Product type** (the item names in the stock sheet for those choices, with counts and a search box; new rule field `names`) → 4 **Weight** (quick ranges Under 1 g, 1–2, 2–5, 5–10, 10–20, 20 g + or from / below) → 5 **Conditions** (making type in database, diamond, supplier, label prefix, NLC). A live line shows how many stock items match. A blank rule name is filled from the choices (e.g. *22K · Bangle · Kids Bangle · 5–10 g*).
+- **Making charges collected** under the fair value on Home: the making actually charged at the fair value price (FVA making plus the ₹50 round-off), excl. GST, with the label making for comparison. On a computer it is a row in the Value Calculation (*Making Collected*) and on the Fair Value bar.
