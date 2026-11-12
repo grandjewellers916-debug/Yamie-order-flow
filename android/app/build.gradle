@@ -12,7 +12,7 @@ android {
         minSdk 24
         targetSdk 34
         versionCode Integer.parseInt(System.getenv('GITHUB_RUN_NUMBER') ?: '1')
-        versionName "1.8.0"
+        versionName "1.8.1"
     }
 
     // Fixed key so each new APK installs over the previous one without uninstalling

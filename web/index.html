@@ -888,6 +888,7 @@ body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote
 .rl-wiz .rl-names .rc-p{white-space:normal;text-align:left}
 .rl-names{max-height:220px;overflow:auto;margin-top:6px}#rlNameQ{width:100%;min-height:40px;border:1px solid var(--line);border-radius:10px;padding:6px 10px;font:15px var(--body);background:var(--surface);color:var(--fg)}
 .rl-wp{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font:500 14px var(--body);cursor:pointer;color:var(--fg)}.rl-wp.on{background:var(--maroon);border-color:var(--maroon);color:#fff}
+.sf-sel{width:100%}.sf-new{margin-top:6px}
 .prod-tcol{display:flex;flex-direction:column;gap:6px;min-width:0}
 .shop-lk{display:inline-flex;align-items:center;justify-content:center;gap:5px;font:600 13px var(--body);color:#0B7A4B;text-decoration:none;padding:4px 8px;border-radius:999px;border:1px solid color-mix(in srgb,#0B7A4B 35%,transparent);background:color-mix(in srgb,#0B7A4B 7%,var(--surface));min-height:30px;white-space:nowrap}
 .shop-lk:hover{background:color-mix(in srgb,#0B7A4B 14%,var(--surface))}.shop-lk svg{width:15px;height:15px;flex:none}
@@ -5687,21 +5688,40 @@ function stockForm(rec){
   const isNew=!rec,r=rec||{};
   const v0={...r,mkPct:r.mkType==='pct'?r.mk:'',mkPg:r.mkType==='pergram'?r.mk:'',mkFix:r.mkType==='fixed'?r.mk:'',huidNo:r.huidNo||(r.huid&&!r.huidNo?'':''),labelDate:r.labelDate||(isNew?todayStr():'')};
   const val=k=>v0[k]==null?'':esc(String(v0[k]));
-  const cats=Object.values(CAT).filter(Boolean);
+  // V1.8.1 lists from the database: item name, item type (for that item name), purity, supplier, location
+  const all=[...stockMap.values()],lc=x=>String(x??'').trim().toLowerCase();
+  const tally=(f,filt)=>{const m=new Map();all.forEach(x=>{if(filt&&!filt(x))return;const v=String(x[f]??'').trim();if(!v)return;const k=v.toLowerCase(),o=m.get(k)||{v,n:0};o.n++;m.set(k,o)});return m};
+  const LST={item:'name',category:'type',supplier:'supplier',location:'location'};
+  const optsOf=(f,cur,filt)=>{const m=tally(f,filt);let rest=null;
+    if(f==='category'&&filt){rest=tally('category');for(const k of m.keys())rest.delete(k);Object.values(CAT).filter(Boolean).forEach(c=>{const k=c.toLowerCase();if(!m.has(k)&&!rest.has(k))rest.set(k,{v:c,n:0})})}
+    const has=k=>m.has(k)||(rest&&rest.has(k));if(cur&&!has(lc(cur)))m.set(lc(cur),{v:String(cur).trim(),n:0});
+    const srt=mm=>[...mm.values()].sort((a,b)=>a.v.localeCompare(b.v,'en',{numeric:true}));
+    const o=x=>`<option value="${esc(x.v)}"${lc(cur)===lc(x.v)?' selected':''}>${esc(x.v)}${x.n?` · ${x.n}`:''}</option>`;
+    return `<option value="">Choose ${LST[f]}…</option>`+(rest&&rest.size?`<optgroup label="Used with this item name">${srt(m).map(o).join('')}</optgroup><optgroup label="Other item types">${srt(rest).map(o).join('')}</optgroup>`:srt(m).map(o).join(''))+`<option value="__new">+ New ${LST[f]}…</option>`};
+  const purs=[...new Set(['22','18','14','9','24','PT','925',...all.map(x=>String(x.carat??'').trim().toUpperCase()).filter(x=>x&&x.length<=4)])];
   $('modalTitle').textContent=isNew?'New item in stock':'Edit '+(r.barcode||r.key);$('modalTitle').classList.remove('price-pop');
   $('modalBody').innerHTML=`<p class="note">${isNew?'All label details, as on the other labels.':'Correct the making, FVA or any detail.'} Saved to the shared database for all staff.</p><div class="pr-form">`+SF.map(([k,l,t,req])=>{
     const id='sf_'+k,lab=`<label for="${id}">${esc(l)}${req?' *':''}</label>`;
-    if(t==='cat')return `<div>${lab}<input id="${id}" list="sfCats" value="${val(k)}"><datalist id="sfCats">${cats.map(c=>`<option value="${esc(c)}">`).join('')}</datalist></div>`;
-    if(t==='pur')return `<div>${lab}<select id="${id}">${['22','18','14','9','24','PT','925'].map(x=>`<option${String(v0.carat||'22').toUpperCase()===x?' selected':''}>${x}</option>`).join('')}</select></div>`;
+    if(LST[k])return `<div${k==='item'||k==='category'?' class="sf-lst"':''}>${lab}<select id="${id}" class="sf-sel">${optsOf(k,v0[k],k==='category'&&v0.item?x=>lc(x.item)===lc(v0.item):null)}</select><input id="${id}_new" class="sf-new" hidden placeholder="Type the new ${LST[k]}" aria-label="New ${LST[k]}"></div>`;
+    if(t==='pur')return `<div>${lab}<select id="${id}">${purs.map(x=>`<option${String(v0.carat||'22').toUpperCase()===x?' selected':''}>${x}</option>`).join('')}</select></div>`;
     if(t==='date')return `<div>${lab}<input id="${id}" type="date" value="${val(k)}"></div>`;
     if(t==='yn')return `<div>${lab}<select id="${id}"><option value="">No</option><option value="Yes"${v0[k]?' selected':''}>Yes · imported</option></select></div>`;
     return `<div${k==='item'||k==='stoneName'?' class="full"':''}>${lab}<input id="${id}"${t==='num'?' inputmode="decimal"':''}${k==='barcode'?' autocapitalize="characters"'+(isNew?'':' readonly'):''} value="${val(k)}"></div>`}).join('')+`</div>
     <p class="note">Making: fill one of Wstg %, Fixed Charge (₹ per piece) or Making Rate (₹ per gram of net wt). Typing in one clears the other two.</p>${(()=>{const ru=isNew?null:ruleFor(r);return ru&&ru.mode!=='fill'&&(ru.mkType||ru.fvaType)?`<p class="note sf-rule">Pricing rule “${esc(ru.name)}” sets the ${[ru.mkType?'making':'',ru.fvaType?'FVA':''].filter(Boolean).join(' and ')} for this item and overrides what is saved here. Change or switch off the rule in Pricing rules.</p>`:''})()}`;
+  // lists: "+ New…" opens a box; item name narrows the item types; an item type with (9K)/(18K) in its name sets the purity; a new label's code suggests name and type
+  let purTouched=!isNew;$('sf_carat').addEventListener('change',()=>purTouched=true);
+  const wireNew=k=>{const sl=$('sf_'+k),nw=$('sf_'+k+'_new');sl.addEventListener('change',()=>{nw.hidden=sl.value!=='__new';if(!nw.hidden)nw.focus()})};Object.keys(LST).forEach(wireNew);
+  const fillTypes=()=>{const it=$('sf_item').value,cur=$('sf_category').value==='__new'?'':$('sf_category').value;$('sf_category').innerHTML=optsOf('category',cur,it&&it!=='__new'?x=>lc(x.item)===lc(it):null);$('sf_category_new').hidden=true};
+  const purFrom=()=>{if(purTouched)return;const c=$('sf_category').value==='__new'?$('sf_category_new').value:$('sf_category').value,m=String(c).match(/\(\s*Y?(\d{1,2})\s*K?\s*\)/i)||String(c).match(/\b(\d{1,2})\s*K\b/i);if(m&&purs.includes(m[1]))$('sf_carat').value=m[1]};
+  $('sf_item').addEventListener('change',()=>{if($('sf_item').value!=='__new')fillTypes()});$('sf_category').addEventListener('change',purFrom);$('sf_category_new').addEventListener('input',purFrom);
+  if(isNew)$('sf_barcode').addEventListener('change',()=>{const pre=bcSplit(keyOf($('sf_barcode').value)).pre;if(!pre)return;const same=x=>bcSplit(x.key).pre===pre,top=m=>[...m.values()].sort((a,b)=>b.n-a.n)[0];
+    if(!$('sf_item').value){const t=top(tally('item',same));if(t){$('sf_item').value=t.v;fillTypes()}}
+    if(!$('sf_category').value){const it=$('sf_item').value,t=top(tally('category',x=>same(x)&&(!it||lc(x.item)===lc(it))));if(t){$('sf_category').value=t.v;purFrom()}}});
   // one making field at a time: typing in one clears the other two
   const MKF=['mkPct','mkFix','mkPg'];MKF.forEach(k=>$('sf_'+k).addEventListener('input',e=>{if(e.target.value.trim())MKF.filter(x=>x!==k).forEach(x=>$('sf_'+x).value='')}));
   const a=$('modalActs');a.innerHTML='';const mk=(t,c,f)=>{const b=document.createElement('button');b.type='button';b.className='btn '+c;b.textContent=t;b.onclick=f;a.appendChild(b);return b};
   const sv=mk(isNew?'Add to stock':'Save to database','primary',async()=>{
-    const g=k=>$('sf_'+k).value.trim(),n=k=>{const x=num(g(k));return isNaN(x)||g(k)===''?null:x};
+    const g=k=>{const e=$('sf_'+k);return (e.tagName==='SELECT'&&e.value==='__new'?$('sf_'+k+'_new').value:e.value).trim()},n=k=>{const x=num(g(k));return isNaN(x)||g(k)===''?null:x};
     const bc=g('barcode'),key=keyOf(bc);
     if(!key){toast('Enter the label number',null,true);return}
     if(isNew&&stockMap.has(key)){toast(`${bc} is already in stock`,null,true);return}
@@ -6116,7 +6136,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.8.0',APP_BUILD='__BUILD__';
+const APP_VERSION='1.8.1',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------

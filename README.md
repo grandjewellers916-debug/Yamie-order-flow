@@ -445,3 +445,10 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 ## V 1.8.0
 - **Version number** – fixed name 1.8.0, shown in the web top bar (next to "Price Check & Quote"), the phone header and the menu (with the build number / web commit). Android versionName is 1.8.0.
 - **Shopify link** – the server (op `shoplinks`) reads the active products on the Shopify store in SHOPIFY_STORE_DOMAIN and matches each variant SKU to a label no. (cached 1 hour, the app re-checks every 15 min). A green "Shopify link" shows under the item image on Home, under the photo in Search (table, grid and phone cards), and can be included when sharing items. Draft products are not linked. Uses the same Netlify Shopify settings as the gold-rate sync; the Shopify app needs the read_products permission. Sites without Shopify settings (Grand) show no links.
+
+## V 1.8.1
+- **New item / Edit database form** – Label No, Item Name, Item Type, Purity first, then the other database fields.
+  - Item Name, Item Type, Supplier and Location are drop-down lists of the values already in the database (with counts), plus "+ New …" to type a new one.
+  - Item Type lists the types used with the chosen Item Name first, then all other types.
+  - Purity is set from the item type when its name carries it, e.g. "Kids Bangle (9K)" → 9 (unless changed by hand).
+  - On a new label, the label code (e.g. BGL) fills in the most common item name and item type for that code.
