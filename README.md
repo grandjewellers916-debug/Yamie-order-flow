@@ -426,3 +426,10 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 
 - **Pricing rule form in steps:** 1 **Purity** → 2 **Item name** (Ring, Bangle, Chain… — only those in stock for the chosen purity, with counts) → 3 **Product type** (the item names in the stock sheet for those choices, with counts and a search box; new rule field `names`) → 4 **Weight** (quick ranges Under 1 g, 1–2, 2–5, 5–10, 10–20, 20 g + or from / below) → 5 **Conditions** (making type in database, diamond, supplier, label prefix, NLC). A live line shows how many stock items match. A blank rule name is filled from the choices (e.g. *22K · Bangle · Kids Bangle · 5–10 g*).
 - **Making charges collected** under the fair value on Home: the making actually charged at the fair value price (FVA making plus the ₹50 round-off), excl. GST, with the label making for comparison. On a computer it is a row in the Value Calculation (*Making Collected*) and on the Fair Value bar.
+
+## V 1.7.87
+- **Imported** – new property on every stock item (Yes / blank). Read from an "Imported" column in the stock upload; set from Edit database or Bulk update (Keep / Yes / No). Shown in product details, as a Search column and filter, and usable in pricing rules.
+- **Pricing rule form** – drop-down lists, each listing only what is in stock for the choices above it (with counts): 1 Purity → 2 Item name (G-Bangle, G-Earring…) → 3 Product sub type (the sheet's "Item type" column: Kids Bangle (9K), Findings…) → 4 Making conventions: weight range, supplier, item type, imported, diamond. Making type / label prefix / NLC are under "More conditions". Rules saved with several values keep them ("Several…").
+- Corrected naming: Item name = stock "Item name" column; Product sub type = stock "Item type" column.
+- **Web Home, fair value** – Grand Total stays at the label price; a separate purple Fair Value box underneath shows the fair value price, FVA %, gold rate, making collected (vs label making) and customer savings.
+- **Search** – new filters: Item Type (sheet item type), Item Name, Imported; the label-code filter is now "Label Code".
