@@ -6,7 +6,7 @@ import type { Config } from "@netlify/functions"
 // Stored in one site-wide Blobs store: meta, stock, rates, settings, users, auth (legacy admin PIN).
 
 const APP_ORIGINS = ["https://appassets.androidplatform.net", "https://yamie-price-check.netlify.app"]
-const STOCK_FIELDS = ["key", "barcode", "item", "category", "carat", "gw", "nw", "sw", "dw", "dq", "sa", "serial", "label", "location", "pcs", "sq", "supplier", "mk", "mkType", "huid", "huidNo", "cw", "stoneName", "saDia", "saClr", "labelDate", "size", "model", "nlc", "fva", "fvaMan", "imp", "pname", "at"]
+const STOCK_FIELDS = ["key", "barcode", "item", "category", "carat", "gw", "nw", "sw", "dw", "dq", "sa", "serial", "label", "location", "pcs", "sq", "supplier", "mk", "mkType", "huid", "huidNo", "cw", "stoneName", "saDia", "saClr", "labelDate", "size", "model", "nlc", "fva", "fvaMan", "imp", "pname", "design", "scol", "at"]
 const RATE_KEYS = ["22k", "18k", "14k", "9k", "platinum", "silver"]
 
 type Meta = { stock: number; rates: number; settings: number; users: number; quotes: number; leads?: number; imgs: number; count: number; history: any[] }
@@ -257,6 +257,7 @@ export default async (req: Request) => {
       }
       if (op === "quotes") return json(req, { v: meta.quotes, quotes: (await st.get("quotes", { type: "json" })) || [] })
       if (op === "leads") return json(req, { v: meta.leads || 0, leads: (await st.get("leads", { type: "json" })) || [] })
+      if (op === "pattrs") return json(req, { v: (meta as any).pattrs || 0, map: ((await st.get("pattrs", { type: "json" })) as any) || {} })
       if (op === "pnames") return json(req, { v: (meta as any).pnames || 0, map: ((await st.get("pnames", { type: "json" })) as any) || {} })
       if (op === "soldlist") {
         // The sold register: labels of completed sales. They never come back into stock or a quote.
@@ -320,7 +321,7 @@ export default async (req: Request) => {
         const approved = qs.filter((q) => q?.appr?.state === "approved" && q.appr.at > Date.now() - 3 * 864e5).slice(0, 50)
           .map((q) => ({ id: q.id, no: q.no || "", name: cleanStr(q.cust?.name, 40), to: q.appr.reqBy || "", byName: cleanStr(q.appr.by, 40), at: q.appr.at || 0 }))
         const leads = ls.filter((l) => l.state === "new").slice(0, 50).map((l) => ({ id: l.id, to: l.to || "", name: cleanStr(l.name, 40), byName: cleanStr(l.byName, 40), at: l.at || 0, kind: l.kind || "", n: Array.isArray(l.keys) ? l.keys.length : 0 }))
-        return json(req, { q: meta.quotes, l: meta.leads || 0, u: meta.users || 0, s: meta.settings || 0, st: meta.stock || 0, sd: (meta as any).sold || 0, pn: (meta as any).pnames || 0, pending, approved, leads })
+        return json(req, { q: meta.quotes, l: meta.leads || 0, u: meta.users || 0, s: meta.settings || 0, st: meta.stock || 0, sd: (meta as any).sold || 0, pn: (meta as any).pnames || 0, pa: (meta as any).pattrs || 0, pending, approved, leads })
       }
       return json(req, { error: "bad_op" }, 400)
     }
@@ -408,10 +409,11 @@ export default async (req: Request) => {
       return json(req, { v: meta.leads, lead })
     }
 
-    const OP_PERM: Record<string, string> = { unsell: "stock", release: "approve", img: "images", quotedel: "delQuote", stock: "stock", stockdel: "stockdel", ratelog: "rates", pubrates: "rates", stockrow: "stockEdit", stocksold: "closeSale", pname: "images" }
+    const OP_PERM: Record<string, string> = { unsell: "stock", release: "approve", img: "images", quotedel: "delQuote", stock: "stock", stockdel: "stockdel", ratelog: "rates", pubrates: "rates", stockrow: "stockEdit", stocksold: "closeSale", pname: "images", pattr: "images" }
     const role = await callerRole()
     if (op === "settings") { if (!role || ![...SETTINGS_PERMS, "theme", "footer", "apprSet", "promos", "rules"].some((p) => roleHas(role, p))) return json(req, { error: "bad_pin" }, 403) }
     else if (op === "users") { if (!role || !(roleHas(role, "users") || roleHas(role, "roles"))) return json(req, { error: "bad_pin" }, 403) }
+    else if (op === "pattr") { if (!(await permOk("images")) && !(await permOk("stockEdit")) && !(await permOk("stockAdd")) && !(await permOk("stockBulk"))) return json(req, { error: "bad_pin" }, 403) }
     else if (op === "pname") { if (!(await permOk("images")) && !(await permOk("stockEdit")) && !(await permOk("stockAdd")) && !(await permOk("stockBulk"))) return json(req, { error: "bad_pin" }, 403) }
     else if (op === "stockrow") { if (!(await permOk("stockEdit")) && !(await permOk("stockAdd")) && !(await permOk("stockBulk"))) return json(req, { error: "bad_pin" }, 403) }
     else if (!(await permOk(OP_PERM[op] || "users"))) return json(req, { error: "bad_pin" }, 403)
@@ -517,6 +519,22 @@ export default async (req: Request) => {
       return json(req, { v: meta.stock, count: cur.length, updated, history: meta.history })
     }
 
+    if (op === "pattr") {
+      // V1.8.4 per-item design (jewellery type) and up to 5 stone colours, kept apart from the stock sheet
+      const map: any = ((await st.get("pattrs", { type: "json" })) as any) || {}
+      let n = 0
+      for (const [k0, v] of Object.entries(body?.map && typeof body.map === "object" ? body.map : {}).slice(0, 5000)) {
+        const k = cleanStr(k0, 40).toUpperCase().replace(/[^A-Z0-9]/g, ""); if (!k) continue
+        const o: any = v && typeof v === "object" ? v : {}
+        const jt = cleanStr(o.jt, 60).replace(/\s+/g, " ").trim()
+        const sc = Array.isArray(o.sc) ? [...new Set(o.sc.map((x: any) => cleanStr(x, 30).trim()).filter(Boolean))].slice(0, 5) : []
+        if (jt || sc.length) map[k] = { ...(jt ? { jt } : {}), ...(sc.length ? { sc } : {}) }; else delete map[k]
+        n++
+      }
+      await st.setJSON("pattrs", map)
+      ;(meta as any).pattrs = Date.now(); await saveMeta()
+      return json(req, { v: (meta as any).pattrs, n, map })
+    }
     if (op === "pname") {
       // V1.8.3 product names (e.g. "Pink Solo Ring"), kept apart from the stock sheet so a new upload never wipes them
       const map: any = ((await st.get("pnames", { type: "json" })) as any) || {}

@@ -467,3 +467,10 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 - Shown as the title on Home, in the phone list and cards, in Search (new "Product name" column and filter Named / No name yet), and in shares (WhatsApp, PDF).
 - **Name search** – Search finds items by product name; while typing a name the form shows "✓ Available" or "Already used by FRG382".
 - **Paste photos** – in the photo manager: Ctrl+V, the Paste button, or long-press the paste box on a phone. On the computer Home, Ctrl+V with an item open adds the copied photo to that item.
+
+## V 1.8.4
+- **Web: hover to see the whole photo** – resting the mouse on an item photo (Search table/grid, Home, photo manager) pops out the complete image with the product name and label no.
+- **Stone colour** – up to 5 per item (White, Pink, Red, Green, Blue, Yellow, Purple, Orange, Black, Champagne, Multicolour), shown as colour chips. New Search filter "Stone Colour" and column.
+- **Design (jewellery type)** – a list of popular designs grouped by Rings / Earrings / Necklaces / Bracelets & bangles / Others (Solitaire Ring, Bypass Ring, Tennis Bracelet, Chain and Pendant Necklace, Lariat Necklace, Cuff Bangle…), plus "+ New design…" for your own. New Search filter "Design" and column.
+- Both are set in New item / Edit database and in the photo manager ("Save details"), kept apart from the stock sheet (op `pattr` / `pattrs`, inbox `pa`) so uploads never wipe them; sheet columns "Design" and "Stone colour" also work. Shown in product details and in shares.
+- **Single item to WhatsApp** – "Share on WhatsApp" under the photo on Home, and a WhatsApp button on each Search row: one picture with the chosen details.
