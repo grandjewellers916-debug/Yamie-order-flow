@@ -549,7 +549,7 @@ body{padding-top:0}
 .login-in .brand.with-logo{text-align:center;align-self:center}
 
 /* ===== v1.4: views, compact header, price card, quote page, login ===== */
-body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote"] [data-pane]:not([data-pane="quote"]),body[data-view="settings"] [data-pane]:not([data-pane="settings"]),body[data-view="search"] [data-pane]:not([data-pane="search"]),body[data-view="reports"] [data-pane]{display:none!important}
+body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote"] [data-pane]:not([data-pane="quote"]),body[data-view="settings"] [data-pane]:not([data-pane="settings"]),body[data-view="search"] [data-pane]:not([data-pane="search"]),body[data-view="reports"] [data-pane],body[data-view="quotes"] [data-pane]:not([data-pane="quotes"]){display:none!important}
 .hero{padding:calc(10px + env(safe-area-inset-top,0px)) 12px 12px;background:linear-gradient(180deg,#7A0F1E 0%,var(--band) 100%)}
 .hero::after{display:none}
 .hero-in{display:grid!important;grid-template-columns:44px 1fr auto 44px;align-items:center;gap:6px;flex-wrap:nowrap}
@@ -969,6 +969,23 @@ body.stm .mr-img{width:52px;height:52px}body.stm .mr-t b{font-size:14.5px}body.s
 .sup-row.head{font:600 12px var(--body);color:var(--muted);position:sticky;top:0;background:var(--surface);z-index:1;padding:4px 0}.sup-row input{min-width:0;min-height:36px;border:1px solid var(--line);border-radius:8px;padding:3px 8px;font:14px var(--body);background:var(--surface);color:var(--fg)}
 .sup-row.unl input{opacity:.6;border-style:dashed}.sup-row .x{width:32px;height:32px;border:0;border-radius:8px;background:transparent;color:var(--muted);cursor:pointer}.sup-row .x:hover{background:var(--sunk);color:var(--maroon)}.sup-row .x:disabled{opacity:.3;cursor:not-allowed}.sup-n{text-align:center;font-size:13px}
 @media (max-width:760px){.sup-row{grid-template-columns:1fr 1fr 44px 30px}.sup-row input[data-k="phone"],.sup-row input[data-k="note"],.sup-row.head span:nth-child(3),.sup-row.head span:nth-child(4){display:none}}
+/* V1.8.14 quote steps */
+#bill .qs-off,#bill.qv .qs-off{display:none!important}
+@media (min-width:1280px) and (pointer:fine){#bill.qv{display:flex!important;flex-direction:column;gap:14px}#bill.qv>*{width:100%;max-width:none}#bill.qv>.q-side{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:14px;align-items:start}#bill.qv>.q-side:not(:has(> :not(.qs-off))),#bill.qv>.q-main:not(:has(> :not(.qs-off))),#bill.qv>.q-full:not(:has(> :not(.qs-off))){display:none}}
+#bill .q-step{display:none}
+.qw-bar{position:sticky;top:0;z-index:5;background:var(--bg,#FBF7F3);padding:8px 0 6px;margin-bottom:4px}
+@media (min-width:1280px) and (pointer:fine){.qw-bar{top:var(--wt,0px)}.qw-nav{bottom:14px!important;max-width:720px;margin-inline:auto}}
+.qw-top{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-bottom:8px}
+.qw-t small,.qw-q small{display:block;font-size:12px;color:var(--muted)}.qw-t b{font:700 22px var(--display);color:var(--maroon)}.qw-q{text-align:right}.qw-q b{font-size:18px;font-variant-numeric:tabular-nums}
+.qw-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.qw-chips::-webkit-scrollbar{display:none}
+.qw-c{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px 0 5px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:600 13px var(--body);cursor:pointer;white-space:nowrap}
+.qw-c span{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--sunk,#F1EAE4);font-size:12px}
+.qw-c.done span{background:#E6F4EA;color:#1E6B3A}.qw-c.on{background:var(--maroon);border-color:var(--maroon);color:#fff}.qw-c.on span{background:rgba(255,255,255,.22);color:#fff}
+.qw-nav{position:sticky;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:5;display:flex;gap:10px;margin:14px 0 6px;padding:8px;border-radius:18px;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(8px);box-shadow:0 6px 20px rgba(0,0,0,.12)}
+.qw-nav .btn{flex:1;min-height:50px;font-size:15px}.qw-nav .btn:disabled{opacity:.35}
+.qd-adds{display:flex;gap:14px;flex-wrap:wrap}.ded.bb{border-left:3px solid #2A56C6}
+.qe-amt{display:flex;gap:6px}.qe-amt input{flex:1}.qe-sign{width:46px;border:1px solid var(--line);border-radius:10px;background:var(--surface);font:700 20px var(--body);color:#B3261E;cursor:pointer}
+#qListCard{margin-top:8px}
 .sh-card{display:grid;grid-template-columns:minmax(150px,210px) 1fr;gap:14px;margin-top:12px;align-items:start}.sh-card canvas{width:100%;height:auto;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.14);background:#fff}
 .sh-opts{display:flex;flex-direction:column;gap:8px}.sh-opts>b{font:600 13px var(--body);color:var(--maroon);text-transform:uppercase;letter-spacing:.05em}.sh-opts .rc-p{justify-content:flex-start}
 @media (max-width:520px){.sh-card{grid-template-columns:110px 1fr}}
@@ -2014,15 +2031,16 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
   </section>
 
   <!-- Quote -->
+  <div class="qw-bar" id="qSteps" data-pane="quote"></div>
   <section class="qv" data-pane="quote" id="bill" aria-label="Quote">
-    <div class="q-hsum" id="qTop" hidden>
+    <div class="q-hsum" id="qTop" hidden data-qs="none">
       <div><small>Total Label Value</small><b id="qtLabel">—</b></div>
       <div class="sv"><small>Savings</small><b id="qtSave">—</b></div>
       <div class="np"><small>Net Payable</small><b id="qtNet">—</b></div>
     </div>
-    <div class="card q-lead" id="qAppr" hidden><div class="qa-lead" id="qApprLead"></div></div>
-    <h3 class="q-step">Customer details</h3>
-    <div class="q-top">
+    <div class="card q-lead" id="qAppr" hidden data-qs="cust items sum"><div class="qa-lead" id="qApprLead"></div></div>
+    <h3 class="q-step" data-qs="cust">Customer details</h3>
+    <div class="q-top" data-qs="cust">
       <div class="card q-cust">
         <div class="qc-a"><span class="qc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span>
           <div class="qc-f"><label for="qName">Customer</label><input id="qName" placeholder="Name" autocomplete="off" maxlength="60"></div></div>
@@ -2031,8 +2049,8 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
       </div>
       <button class="card q-new" type="button" id="qNew"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M12 11v6M9 14h6"/></svg><span>New Quote</span></button>
     </div>
-    <h3 class="q-step">Quotation</h3>
-    <div class="q-tools">
+    <h3 class="q-step" data-qs="items">Quotation</h3>
+    <div class="q-tools" data-qs="items">
       <button type="button" class="qt qt-appr" id="qtAppr" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.6-3 8.5-7 10-4-1.5-7-5.4-7-10V6z"/><path d="M8.8 12.2l2.2 2.2 4.4-4.6"/></svg><span id="qtApprL">Approval</span></button>
       <button type="button" class="qt" id="qtScan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M7.5 8v8M10.5 8v8M13.5 8v8M16.5 8v8"/></svg><span>Scan Product</span></button>
       <button type="button" class="qt" id="qtManual"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><span>Add Manually</span></button>
@@ -2042,7 +2060,7 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
       <button type="button" class="qt" id="qtSr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-5l-2 2M4 13a8 8 0 0 0 14 5l2-2"/><path d="M4 4v4h4M20 20v-4h-4"/></svg><span>SR</span></button>
     </div>
 
-    <div class="card q-items">
+    <div class="card q-items" data-qs="items">
       <div class="qi-head"><h2>Quoted Items <span id="billCount">(0)</span></h2><span class="q-no">Quote No: <b id="qNo">New</b><span class="qa-pill" id="qNoSt" hidden></span></span></div>
       <div class="q-status" id="qStatus" hidden></div>
       <div class="qi-table" role="table" aria-label="Quoted items">
@@ -2058,20 +2076,20 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
         <div class="qe-head"><h3><span id="qErpT">ERP</span> quotation</h3><span class="note" id="qErpNote">Make the quotation in the ERP, then enter its number and final amount here.</span></div>
         <div class="qe-grid">
           <div class="f"><label for="qErpNo">ERP quotation no.</label><input id="qErpNo" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. QTN/2526/0457"></div>
-          <div class="f"><label for="qErpAmt">Final amount in ERP quotation (₹)</label><input id="qErpAmt" class="num" inputmode="decimal" autocomplete="off" placeholder="0"></div>
+          <div class="f"><label for="qErpAmt">Final amount in ERP quotation (₹) <small>· minus for a refund</small></label><div class="qe-amt"><button type="button" class="qe-sign" id="qErpSign" aria-label="Refund (minus)">−</button><input id="qErpAmt" class="num" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>
         </div>
         <div class="qe-out" id="qErpOut"></div>
       </div>
       <div class="qo-row q-mkshow"><span class="flabel">Making charges on the quote</span><div class="seg" id="qMkShow" role="radiogroup"><button type="button" role="radio" data-v="1">Show</button><button type="button" role="radio" data-v="0">Hide</button></div></div>
     </div>
 
-    <div class="card q-ded" id="qDed">
-      <div class="qd-sec" id="qUrdSec"><div class="sec-head"><h3>URD · old gold</h3><button class="linkbtn" type="button" id="addOld">+ Add URD</button></div><div id="oldList" class="ded-list"></div></div>
-      <div class="qd-sec" id="qSrSec"><div class="sec-head"><h3>Sales return</h3><button class="linkbtn" type="button" id="addRet">+ Add return</button></div><div id="retList" class="ded-list"></div></div>
-      <div class="qd-sec" id="qAdvSec"><div class="sec-head"><h3>Advance</h3><button class="linkbtn" type="button" id="addAdv">+ Add advance</button></div><div id="advList" class="ded-list"></div></div>
+    <div class="card q-ded" id="qDed" data-qs="urd sr adv">
+      <div class="qd-sec" id="qUrdSec" data-qs="urd"><div class="sec-head"><h3>URD · old gold &amp; buy-back</h3><span class="qd-adds"><button class="linkbtn" type="button" id="addOld">+ Old gold</button><button class="linkbtn" type="button" id="addBb">+ Diamond / stone buy-back</button></span></div><div id="oldList" class="ded-list"></div></div>
+      <div class="qd-sec" id="qSrSec" data-qs="sr"><div class="sec-head"><h3>Sales return</h3><button class="linkbtn" type="button" id="addRet">+ Add return</button></div><div id="retList" class="ded-list"></div></div>
+      <div class="qd-sec" id="qAdvSec" data-qs="adv"><div class="sec-head"><h3>Advance</h3><button class="linkbtn" type="button" id="addAdv">+ Add advance</button></div><div id="advList" class="ded-list"></div></div>
     </div>
 
-    <div class="card q-opts" id="qSale">
+    <div class="card q-opts" id="qSale" data-qs="sale">
       <div class="sec-head"><h2>Sale type</h2><span class="note" id="qSaleNote"></span></div>
       <div class="seg" id="qType"><button type="button" data-c="store">Store walk-in</button><button type="button" data-c="online">Online enquiry</button></div>
       <div class="qo-row" id="qDelRow" hidden>
@@ -2082,20 +2100,20 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
       </div>
     </div>
 
-    <div class="card q-sum">
+    <div class="card q-sum" data-qs="sum">
       <div class="qs-h"><span class="qs-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M8 15h2M12 15h2M16 11v4"/></svg></span><h2>Summary</h2></div>
       <div class="qs-lines" id="totals"></div>
       <label class="rc-p q-round"><input type="checkbox" id="qRound"> Round each item and the final amount to the nearest ₹50 (round-off added to the item's discount)</label>
       <div class="qs-bal" id="qBalRow"><span id="netLabel">Balance Amount</span><strong id="net">₹0</strong></div>
     </div>
 
-    <div class="q-acts">
+    <div class="q-acts" data-qs="sum">
       <button class="btn q-soft" type="button" id="qAdv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 14h2"/></svg>Advance</button>
       <button class="btn q-apb" type="button" id="qApprBtn" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.6-3 8.5-7 10-4-1.5-7-5.4-7-10V6z"/><path d="M8.8 12.2l2.2 2.2 4.2-4.4"/></svg><span id="qApprBtnL">Send for approval</span></button>
       <button class="btn primary q-gen" type="button" id="saveBill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>Generate Quote</button>
     </div>
 
-    <div class="card q-disc" id="qDiscCard" data-mgr>
+    <div class="card q-disc" id="qDiscCard" data-mgr data-qs="items">
       <button type="button" class="sec-head qd-head" id="qDiscHead" aria-expanded="false"><h2>Special Price</h2><span class="qd-tot" id="qDiscTot"></span><span class="dc-chev" aria-hidden="true">▾</span></button>
       <div id="qDiscBody" hidden>
       <p class="note" style="margin:0" id="qDiscNote">Admin sets the special making for each item. The difference is shown as savings.</p>
@@ -2106,7 +2124,7 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
       </div>
     </div>
 
-    <div class="card q-photos">
+    <div class="card q-photos" data-qs="wa">
       <div class="sec-head"><h3>Photos for the customer</h3><span class="note" id="qPhotoN">None</span></div>
       <div class="ph-grid" id="qPhotos"></div>
       <div class="rs-acts">
@@ -2120,7 +2138,7 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
       <div class="pd-links"><button class="linkbtn" type="button" id="waText">Send as text</button><button class="linkbtn" type="button" id="copyBtn">Copy quote text</button></div>
     </div>
 
-    <div class="card q-close" id="qClose">
+    <div class="card q-close" id="qClose" data-qs="close">
       <div class="sec-head"><h3>Close sale</h3><span class="note" id="qCloseNote">After billing in {ERP}</span></div>
       <div class="f full"><label for="qInv" id="qInvL">Invoice no. (ERP)</label><input id="qInv" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Final invoice number"></div>
       <div class="f full"><span class="flabel">Sale</span><div class="seg" id="qChan"><button type="button" data-c="store">✓ In-store</button><button type="button" data-c="online">Online</button></div></div>
@@ -2128,14 +2146,15 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
       <button class="btn q-cancel" type="button" id="qCancel">Cancel quote · enquiry only</button>
     </div>
 
-    <div class="card q-list">
-      <div class="sec-head"><h2>Quotes</h2><button class="linkbtn" type="button" id="qRefresh">↻ Refresh</button></div>
+  </section>
+  <div class="qw-nav" id="qNav" data-pane="quote" hidden><button type="button" class="btn" id="qBack">‹ Back</button><button type="button" class="btn primary" id="qNext">Next ›</button></div>
+    <div class="card q-list" data-pane="quotes" id="qListCard">
+      <div class="sec-head"><h2>All quotations</h2><button class="linkbtn" type="button" id="qRefresh">↻ Refresh</button></div>
       <div class="seg q-filter" id="qFilter"><button type="button" data-f="open" aria-pressed="true">Open</button><button type="button" data-f="closed">Sold</button><button type="button" data-f="cancelled">Enquiry</button><button type="button" data-f="all">All</button></div>
       <input id="qSearch" class="q-search" type="search" placeholder="Search party name, phone or quote no." autocomplete="off">
       <div class="qf-row"><select id="qUser" aria-label="Quotes by user" hidden><option value="">All users</option></select><input id="qDate" type="date" aria-label="Quote date"><button type="button" class="btn sm ghost" id="qFClear" hidden>Clear</button></div>
       <div class="recent" id="recent"></div>
     </div>
-  </section>
 
   <div class="set-head" data-pane="settings"><h2>Settings</h2><button class="btn sm" type="button" id="setStock">Stock list</button></div>
   <details class="card datacard setcard" id="setRules" data-pane="settings" data-perm="rules">
@@ -2329,6 +2348,7 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
   <button type="button" class="tab" id="tabScan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M7.5 8v8M10.5 8v8M13.5 8v8M16.5 8v8"/></svg><span>Scan</span></button>
   <button type="button" class="tab" id="tabFind"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><span>Search</span></button>
   <button type="button" class="tab" id="tabQuote"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg><span>Quote</span><b class="tab-badge" id="tabBadge" hidden>0</b></button>
+  <button type="button" class="tab" id="tabQuotes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><span>Quotes</span></button>
   <button type="button" class="tab tab-dk" id="tabRep" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/></svg><span>Reports</span></button>
   <button type="button" class="tab" id="tabRates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18"/><path d="M5 20l1.5-5h5L13 20"/><path d="M11 20l1.5-5h5L19 20"/><path d="M8 15l1.5-5h5L16 15"/></svg><span>Gold Rates</span></button>
   <button type="button" class="tab" id="tabSet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="6.6"/><path d="M12 2.5v2.9M12 18.6v2.9M2.5 12h2.9M18.6 12h2.9M5.3 5.3l2 2M16.7 16.7l2 2M5.3 18.7l2-2M16.7 7.3l2-2"/></svg><span>Settings</span></button>
@@ -2886,8 +2906,8 @@ const RND=50;
 function quotedValue(t,p){p=p||priceTag(t);const q=quotedRaw(t,p);if(!p.ok||bill.round===false)return q;
   const G=1+gstPct()/100,f=q*G;if(!(f>=RND))return q;return Math.round(f/RND)*RND/G}
 function itemRound(t,p,q){p=p||priceTag(t);q=q==null?quotedValue(t,p):q;return p.ok?quotedRaw(t,p)-q:0}   // round-off before GST (+ = discount)
-function oldRate(o){const r=num(o.rate);return !isNaN(r)?r:rateFor(o.purity)}
-function oldValue(o){const w=num(o.wt),r=oldRate(o);return isNaN(w)||r==null?NaN:w*r}
+function oldRate(o){const r=num(o.rate);return !isNaN(r)?r:o.kind==='stone'?null:rateFor(o.purity)}
+function oldValue(o){if(o.kind==='stone'){const c=num(o.ct),r=num(o.rate);return isNaN(c)||isNaN(r)?NaN:c*r}const w=num(o.wt),r=oldRate(o);return isNaN(w)||r==null?NaN:w*r}
 function totals(){
   const s={gold:0,stone:0,making:0,huid:0,huidN:0,sub:0,bad:0};
   s.listSub=0;s.listMk=0;s.mkDisc=0;s.nw=0;s.gw=0;s.itemRo=0;
@@ -2904,9 +2924,10 @@ function totals(){
   s.taxable=s.sub-s.promoAmt+s.delivery;
   s.gst=s.taxable*gstP/100;s.total=s.taxable+s.gst;
   s.old=0;s.oldW=0;
-  bill.oldGold.forEach(o=>{const v=oldValue(o);if(!isNaN(v)){s.old+=v;s.oldW+=num(o.wt)}});
+  s.bb=0;s.bbCt=0;
+  bill.oldGold.forEach(o=>{const v=oldValue(o);if(isNaN(v))return;if(o.kind==='stone'){s.bb+=v;s.bbCt+=num(o.ct)}else{s.old+=v;s.oldW+=num(o.wt)}});
   s.ret=0;bill.returns.forEach(r=>{const v=num(r.amount);if(!isNaN(v))s.ret+=v});
-  if(bill.channel==='online'){s.old=0;s.oldW=0;s.ret=0}   // online enquiries: advance only
+  if(bill.channel==='online'){s.old=0;s.oldW=0;s.ret=0;s.bb=0;s.bbCt=0}   // online enquiries: advance only
   s.flat=Math.max(0,num(bill.discount)||0);
   // V1.7.78: final amount rounded to the nearest ₹50 (items are already rounded; this covers offers, delivery and flat discount). The round-off is adjusted in the discount before GST
   // (taxable value and GST recalculated), so Gross − Discount = Taxable and Taxable + GST = Final, as in the ERP.
@@ -2917,7 +2938,7 @@ function totals(){
   s.disc=s.flat+s.roundOff;                       // flat discount (after GST) + round-off (incl. GST); round-off may be negative when rounded up
   s.allDisc=s.mkDisc+s.disc;                      // everything the customer saves
   s.adv=0;(bill.advances||[]).forEach(a=>{const v=num(a.amount);if(!isNaN(v))s.adv+=v});
-  s.net=Math.round(s.final-s.old-s.ret-s.adv);
+  s.net=Math.round(s.final-s.old-s.bb-s.ret-s.adv);
   return s;
 }
 
@@ -3191,7 +3212,7 @@ function commitTag(){
   heldBy(k).then(h=>{if(cur.id!==id)return;if(h&&h.sold){soldPop(k,h.sold);return}if(h)heldPop(h,k,commitTagNow);else commitTagNow()});
 }
 function commitTagNow(){
-  if(goQuoteAfterAdd){goQuoteAfterAdd=false;setTimeout(()=>setView('quote'),120)}
+  if(goQuoteAfterAdd){goQuoteAfterAdd=false;try{qStep='items';store.set('qStep','items')}catch(e){}setTimeout(()=>setView('quote'),120)}
   // customer asked for the discounted price: quote the item at its fair value (unless a manager set a making discount)
   if(cur.fvaAsk&&(!cur.qMk||cur.qMk.fva)){const fv=fvaPrice(cur);if(fv)cur.qMk={type:cur.mkType,val:fmtN(mkValFor(cur,fv.mk)),fva:true,by:curUser?(curUser.name||curUser.username):'',at:Date.now()}}
   else if(!cur.fvaAsk&&cur.qMk&&cur.qMk.fva)delete cur.qMk;
@@ -3547,7 +3568,7 @@ async function pullQuotes(){
 }
 function startNewQuote(msg){
   bill=newBill();if(saleMode()!=='check')bill.channel=saleMode();cur=blankTag();editingId=null;thumbs={front:null,back:null};mgrMode=false;
-  store.set('bill',bill);saveDraft();paintRates();renderEditor();renderBill();setStatus(msg||'New quote. Scan the first tag.','ok');
+  store.set('bill',bill);saveDraft();paintRates();renderEditor();renderBill();setStatus(msg||'New quote. Scan the first tag.','ok');try{goStep('cust',true)}catch(e){}
 }
 function resetAll(msg){startNewQuote(msg)}
 function askClear(){
@@ -3570,10 +3591,11 @@ function paintQuoteHead(){
   $('goBill').textContent=n?`Quote (${n})`:'Quote';$('dkQuoteT').textContent=n?`Quote (${n})`:'Quote';
 
 }
+try{document.querySelector('#bill .q-sum').appendChild($('qErp'))}catch(e){}
 // ---- V1.7.76: Quote Summary strip (computer) and the ERP quotation check (all sizes) ----
 // The ERP (Acme) quotation is made at the full price. Staff enter its number and final amount here;
 // the app shows the discount to give in the ERP = ERP final amount − app final amount, with and without GST.
-function erpDiff(s){const a=num(bill.erp&&bill.erp.amt);if(!(a>0))return null;const g=gstPct(),d=a-s.final;return {amt:a,d,ex:d/(1+g/100),g}}
+function erpDiff(s){const raw=String(bill.erp&&bill.erp.amt||'').trim(),a=num(raw);if(!raw||raw==='-'||isNaN(a)||a===0)return null;if(a<0){const d=a-s.net;return {amt:a,d,ex:d/(1+gstPct()/100),g:gstPct(),refund:true}}const g=gstPct(),d=a-s.final;return {amt:a,d,ex:d/(1+g/100),g}}
 function paintErp(s){
   const erp=BRAND.erp||'ERP',e=bill.erp||{},closed=isClosed();
   $('qErpT').textContent=erp;$('qErp').hidden=!bill.items.length;
@@ -3582,7 +3604,7 @@ function paintErp(s){
   $('qErpNo').readOnly=$('qErpAmt').readOnly=closed;
   const x=erpDiff(s),o=$('qErpOut'),T=(l,v,c,sub)=>`<div class="qe-t${c?' '+c:''}"><small>${l}</small><b>${v}</b>${sub?`<em>${sub}</em>`:''}</div>`;
   if(!x){o.innerHTML=`<div class="qe-tiles">${T('App final amount',inr(s.final))}</div>`;return}
-  const app=T('App final amount',inr(s.final)),ev=T(`${esc(erp)} final amount`,inr(x.amt));
+  const app=x&&x.refund?T('App balance (after URD, returns, advance)',s.net<0?'−'+inr(-s.net):inr(s.net)):T('App final amount',inr(s.final)),ev=T(`${esc(erp)} final amount`,x.amt<0?'−'+inr(-x.amt):inr(x.amt),x.amt<0?'bad':'',x.amt<0?'Refund to the customer':'');
   if(Math.abs(x.d)<1){o.innerHTML=`<div class="qe-tiles">${ev}${app}${T('Discount in '+esc(erp),'₹0','ok','Matches the app ✓')}</div>`;return}
   if(x.d>0)o.innerHTML=`<div class="qe-tiles">${ev}${app}${T(`Discount (${esc(erp)} − app) incl. GST`,inr2(x.d))}${T(`Discount excl. GST`,inr2(x.ex),'hl',`Enter this as the discount in ${esc(erp)} · before ${fmtN(x.g)}% GST`)}</div>`;
   else o.innerHTML=`<div class="qe-tiles">${ev}${app}${T(`Difference (${esc(erp)} − app) incl. GST`,'−'+inr2(-x.d),'bad')}${T('Difference excl. GST','−'+inr2(-x.ex),'bad')}</div><p class="qe-warn">The ${esc(erp)} amount is lower than the app final amount. Check the ${esc(erp)} quotation.</p>`;
@@ -3600,14 +3622,16 @@ function paintSum2(s){
     +T('Final Amount',inr(s.final),'fin',s.flat>0.5?`after ${inr(s.flat)} extra discount`:'');
 }
 function paintQuoteExtras(s){
+  try{paintQSteps()}catch(e){}
   try{paintSum2(s)}catch(e){}try{paintErp(s)}catch(e){}
   let dk=false;try{dk=DESK.matches}catch(e){}
   if(dk)$('items').querySelectorAll('[data-ph]').forEach(d=>{const k=d.dataset.ph;if(!k||(!imgIdx[k]&&!imgMem.get(k)))return;getProdImg(k).then(u=>{if(u)d.innerHTML=`<img src="${u}" alt="">`}).catch(()=>{})});
 }
-function setErp(){const no=$('qErpNo').value.trim().toUpperCase(),amt=$('qErpAmt').value.replace(/[^\d.]/g,'');bill.erp={no,amt,by:curUser?(curUser.name||curUser.username):'',at:Date.now()};if(!no&&!amt)delete bill.erp}
+function setErp(){const no=$('qErpNo').value.trim().toUpperCase(),amt=$('qErpAmt').value.replace(/[^\d.\-−]/g,'').replace(/−/g,'-').replace(/(?!^)-/g,'');bill.erp={no,amt,by:curUser?(curUser.name||curUser.username):'',at:Date.now()};if(!no&&!amt)delete bill.erp}
 $('qErpNo').addEventListener('change',()=>{if(isClosed())return;setErp();saveBill();renderRecent()});
+$('qErpSign').onclick=()=>{if(isClosed())return;const v=$('qErpAmt').value.trim();$('qErpAmt').value=v.startsWith('-')||v.startsWith('−')?v.replace(/^[-−]/,''):'-'+v;setErp();saveBill();paintErp(totals())};
 $('qErpAmt').addEventListener('input',()=>{if(isClosed())return;setErp();store.set('bill',bill);paintErp(totals())});
-$('qErpAmt').addEventListener('change',()=>{if(isClosed())return;setErp();saveBill();const x=erpDiff(totals());if(x&&x.d<-0.5)toast(`${BRAND.erp||'ERP'} amount is lower than the app final amount`,null,true)});
+$('qErpAmt').addEventListener('change',()=>{if(isClosed())return;setErp();saveBill();const x=erpDiff(totals());if(x&&!x.refund&&x.d<-0.5)toast(`${BRAND.erp||'ERP'} amount is lower than the app final amount`,null,true)});
 [$('qErpNo'),$('qErpAmt')].forEach(el=>el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();el===$('qErpNo')?$('qErpAmt').focus():el.blur()}}));
 function renderBill(keepInputs){
   try{paintAppr()}catch(e){}
@@ -3687,6 +3711,9 @@ function renderBill(keepInputs){
   L.push([`GST (${fmtN(g)}%)`,inr(s.gst)]);
   if(s.flat)L.push(['Additional discount','−'+inr(s.flat),'minus','disc']);
   L.push(['Final Amount',inr(s.final),'strong final']);
+  if(s.old)L.push([`Less old gold (URD) ${fmtW(s.oldW)} g`,'−'+inr(s.old),'minus']);
+  if(s.bb)L.push([`Less diamond / stone buy-back ${fmtN(s.bbCt)} ct`,'−'+inr(s.bb),'minus']);
+  if(s.ret)L.push(['Less sales return','−'+inr(s.ret),'minus']);
   L.push(['Advance','−'+inr(s.adv),'minus','adv']);
   if(s.bad)L.push([`${s.bad} item${s.bad>1?'s':''} not priced (missing rate or weight)`,'','staff']);
   $('totals').innerHTML=L.map(l=>`<div class="line ${l[2]||''}"><span>${esc(l[0])}${l[3]&&!closed?`<button class="ed" type="button" data-go="${l[3]}" aria-label="Change ${esc(l[0])}">${IC_EDIT}</button>`:''}</span><span>${esc(l[1])}</span></div>`).join('');
@@ -3751,10 +3778,17 @@ function renderDiscount(s){
    $('qDiscFwd').textContent=sent?'Forwarded to admin · waiting':'Forward to admin for special price';$('qDiscFwd').disabled=sent;
    $('qDiscNote').textContent=can('special')?'Set the special making for each item. The difference is shown as savings.':'Special price is set by an admin. Forward the quote to ask for one.'}
 }
-function oldLine(o){const v=oldValue(o),r=oldRate(o);return isNaN(v)?'Enter net weight':`${fmtW(num(o.wt))} g × ${inr(r)} = ${inr2(v)}`}
+function oldLine(o){const v=oldValue(o),r=oldRate(o);if(o.kind==='stone')return isNaN(v)?'Enter carat and rate':`${fmtN(num(o.ct))} ct × ${inr(num(o.rate))} = ${inr2(v)}`;return isNaN(v)?'Enter net weight':`${fmtW(num(o.wt))} g × ${inr(r)} = ${inr2(v)}`}
 function renderDeductions(){
   const og=$('oldList'),closed=isClosed();
   og.innerHTML=bill.oldGold.map(o=>{const r=oldRate(o);
+    if(o.kind==='stone')return `<div class="ded bb" data-id="${o.id}">
+      <div class="f"><label for="on_${o.id}">Buy-back</label><select id="on_${o.id}" data-k="name"${closed?' disabled':''}>${['Diamond','Solitaire','Ruby','Emerald','Sapphire','Other stone'].map(x=>`<option${x===(o.name||'Diamond')?' selected':''}>${x}</option>`).join('')}</select></div>
+      <div class="f"><label for="oc_${o.id}">Carat (ct)</label><input class="num" id="oc_${o.id}" data-k="ct" inputmode="decimal" value="${esc(o.ct||'')}"${closed?' readonly':''}></div>
+      <div class="f"><label for="or_${o.id}">Rate ₹/ct</label><input class="num" id="or_${o.id}" data-k="rate" inputmode="decimal" value="${esc(o.rate||'')}"${closed?' readonly':''}></div>
+      ${closed?'':'<button class="x" type="button" data-x aria-label="Remove buy-back">×</button>'}
+      <div class="ded-val" data-val>${esc(oldLine(o))}</div>
+    </div>`;
     return `<div class="ded" data-id="${o.id}">
       <div class="f"><label for="op_${o.id}">Purity</label><select id="op_${o.id}" data-k="purity"${closed?' disabled':''}>${PURITIES.filter(p=>SHOWN().includes(p)||p.id===o.purity).map(p=>`<option value="${p.id}"${p.id===o.purity?' selected':''}>${p.label}</option>`).join('')}</select></div>
       <div class="f"><label for="ow_${o.id}">Net wt (g)</label><input class="num" id="ow_${o.id}" data-k="wt" inputmode="decimal" value="${esc(o.wt)}"${closed?' readonly':''}></div>
@@ -3784,15 +3818,16 @@ function refreshDeductionValues(){
   $('oldList').querySelectorAll('.ded').forEach(row=>{
     const o=bill.oldGold.find(x=>x.id===row.dataset.id);if(!o)return;
     row.querySelector('[data-val]').textContent=oldLine(o);
-    const r=oldRate(o);row.querySelector('[data-k="rate"]').placeholder=r==null?'':r;
+    const r=oldRate(o);if(o.kind!=='stone')row.querySelector('[data-k="rate"]').placeholder=r==null?'':r;
   });
 }
 const notClosed=fn=>()=>{if(isClosed()){toast('This sale is closed. A manager can reopen it.',null,true);return}fn()};
 $('addOld').onclick=notClosed(()=>{const o={id:uid(),purity:(SHOWN()[0]||PURITIES[0]).id,wt:'',rate:''};bill.oldGold.push(o);saveBill();renderBill();const el=$('ow_'+o.id);if(el)el.focus()});
+$('addBb').onclick=notClosed(()=>{const o={id:uid(),kind:'stone',name:'Diamond',ct:'',rate:''};bill.oldGold.push(o);saveBill();renderBill();const el=$('oc_'+o.id);if(el)el.focus()});
 $('addRet').onclick=notClosed(()=>{const r={id:uid(),note:'',amount:''};bill.returns.push(r);saveBill();renderBill();const el=$('amount_'+r.id);if(el)el.focus()});
 $('addAdv').onclick=notClosed(()=>{const a={id:uid(),amount:'',mode:'Cash',note:''};bill.advances.push(a);saveBill();renderBill();const el=$('amount_'+a.id);if(el)el.focus()});
-$('qtUrd').onclick=()=>{$('addOld').click();$('qUrdSec').scrollIntoView({behavior:'smooth',block:'center'})};
-$('qtSr').onclick=()=>{$('addRet').click();$('qSrSec').scrollIntoView({behavior:'smooth',block:'center'})};
+$('qtUrd').onclick=()=>goStep('urd');
+$('qtSr').onclick=()=>goStep('sr');
 $('qDiscMgr').onclick=()=>withManager('A manager must log in to enter the discount.',()=>renderBill());
 $('qDiscExtraBtn').onclick=()=>withPerm('special','Special price is set by an admin.',()=>$('qDisc').click());
 $('qDiscHead').onclick=()=>{const o=$('qDiscBody').hidden;$('qDiscBody').hidden=!o;$('qDiscHead').setAttribute('aria-expanded',String(o))};
@@ -4011,6 +4046,7 @@ function shareText(){
   if(s.flat>0.5)out.push(`Discount: −${inr(s.flat)}`);
   out.push(`*Final amount: ${inr(s.final)}*`);
   if(s.old)out.push(`Less old gold (URD) ${fmtW(s.oldW)} g: −${inr(s.old)}`);
+  if(s.bb)out.push(`Less diamond / stone buy-back ${fmtN(s.bbCt)} ct: −${inr(s.bb)}`);
   if(s.ret)out.push(`Less sales return: −${inr(s.ret)}`);
   if(s.adv)out.push(`Advance paid: −${inr(s.adv)}`);
   out.push(`*${s.net<0?'Refund':'Balance'}: ${inr(Math.abs(s.net))}*`);
@@ -4072,7 +4108,7 @@ function renderRecent(){
   el.innerHTML=list.slice(0,80).map(x=>{const n=(x.items||[]).length;
     let net='';try{const keep=bill;bill=fixBill(clone(x));if(x.rates){bill.overrides={};PURITIES.forEach(p=>{if(x.rates[p.id]!=null)bill.overrides[p.id]=x.rates[p.id]})}net=inr(Math.abs(totals().net));bill=keep}catch(e){}
     return `<button class="r-item${x.id===bill.id?' cur':''}" type="button" data-open="${x.id}"><span><b>${esc(quoteLabel(x))}</b>${isProv(x)?'<span class="st prov">Provisional</span>':''}${seesAll()&&!isMine(x)&&x.by?`<span class="st by">${esc(x.by)}</span>`:''}${x.status==='closed'?'<span class="st closed">Sold</span>':x.status==='cancelled'?'<span class="st cancel">Enquiry</span>':''}${x.id===bill.id?'<span class="st">Open now</span>':''}<br><span class="m">${esc((x.cust&&x.cust.name)||'No name')}${x.cust&&x.cust.phone?' · '+esc(x.cust.phone):''} · ${n} item${n===1?'':'s'} · ${new Date(x.updated||x.started).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})}${x.by?' · '+esc(x.by):''}${x.invoice?' · Inv '+esc(x.invoice):''}</span></span><span class="v">${net}</span></button>`}).join('');
-  el.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{if(b.dataset.open!==bill.id)openQuote(b.dataset.open)});
+  el.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{if(b.dataset.open!==bill.id)openQuote(b.dataset.open);setView('quote');goStep(qDone('items')?'items':'cust')});
 }
 [...$('qFilter').children].forEach(b=>b.onclick=()=>{qFilter=b.dataset.f;[...$('qFilter').children].forEach(x=>x.setAttribute('aria-pressed',String(x===b)));renderRecent()});
 $('qSearch').addEventListener('input',renderRecent);$('qUser').addEventListener('change',renderRecent);$('qDate').addEventListener('change',renderRecent);
@@ -4139,6 +4175,7 @@ async function makeQuoteImage(withPhotos){
   if(s.flat>0.5)sumRows.push(['Extra savings','−'+inr(s.flat),2]);
   sumRows.push(['Final amount',inr(s.final),1]);
   if(s.old)sumRows.push([`Old gold (URD) ${fmtW(s.oldW)} g`,'−'+inr(s.old)]);
+  if(s.bb)sumRows.push([`Diamond / stone buy-back ${fmtN(s.bbCt)} ct`,'−'+inr(s.bb)]);
   if(s.ret)sumRows.push(['Sales return','−'+inr(s.ret)]);
   if(s.adv)sumRows.push(['Advance paid','−'+inr(s.adv)]);
   const HERO=hasSave?300:0,ROW=262,H=270+150+110+HERO+items.length*(ROW+20)+40+sumRows.length*60+150+(hasSave?70:0)+110+(firmAddr()?3:1)*34-20;
@@ -4810,13 +4847,14 @@ function setMenu(on){$('menu').hidden=!on;$('menuScrim').hidden=!on;$('menuBtn')
 $('menuBtn').onclick=()=>setMenu(true);$('menuClose').onclick=$('menuScrim').onclick=()=>setMenu(false);
 $('menu').addEventListener('click',e=>{if(e.target.closest('.menu-acts button'))setMenu(false)});
 // Views: Home (price check), Quote, Settings (stock data + admin settings)
-const VIEW_TITLE={home:'Price Check',quote:'Quote',settings:'Settings',search:'Search',reports:'Reports'};
-const VIEW_SUB={home:'Scan or type a label to price it at today\u2019s gold rate.',quote:'Create a bill or price quote for jewellery items.',settings:'Configure pricing, charges, products, users and application preferences.',search:'Find items by label no., item name, item type, supplier or stone.',reports:'Sales, quotes and staff performance.'};
+const VIEW_TITLE={quotes:'All quotations',home:'Price Check',quote:'Quote',settings:'Settings',search:'Search',reports:'Reports'};
+const VIEW_SUB={quotes:'Every quote. Tap one to make it the current quote.',home:'Scan or type a label to price it at today\u2019s gold rate.',quote:'Create a bill or price quote for jewellery items.',settings:'Configure pricing, charges, products, users and application preferences.',search:'Find items by label no., item name, item type, supplier or stone.',reports:'Sales, quotes and staff performance.'};
 function setView(v){
   const was=document.body.dataset.view;document.body.dataset.view=v;
-  $('viewTitle').textContent=VIEW_TITLE[v];$('dkTitle').textContent=VIEW_TITLE[v];$('dkSub').textContent=VIEW_SUB[v]||'';try{paintWtop()}catch(e){}{const t=$({home:'tabHome',quote:'tabQuote',settings:'tabSet',search:'tabFind',reports:'tabRep'}[v]);const g=t&&t.querySelector('svg');if(g)$('dkIco').innerHTML=g.outerHTML}$('heroBack').hidden=v==='home';
-  [['tabHome','home'],['tabFind','search'],['tabQuote','quote'],['tabSet','settings'],['tabRep','reports']].forEach(([id,k])=>$(id).classList.toggle('on',k===v));
-  if(v==='quote'){renderBill();if(sync.key)pullQuotes()}
+  $('viewTitle').textContent=VIEW_TITLE[v];$('dkTitle').textContent=VIEW_TITLE[v];$('dkSub').textContent=VIEW_SUB[v]||'';try{paintWtop()}catch(e){}{const t=$({quotes:'tabQuotes',home:'tabHome',quote:'tabQuote',settings:'tabSet',search:'tabFind',reports:'tabRep'}[v]);const g=t&&t.querySelector('svg');if(g)$('dkIco').innerHTML=g.outerHTML}$('heroBack').hidden=v==='home';
+  [['tabHome','home'],['tabFind','search'],['tabQuote','quote'],['tabQuotes','quotes'],['tabSet','settings'],['tabRep','reports']].forEach(([id,k])=>$(id).classList.toggle('on',k===v));
+  if(v==='quote'){renderBill();if(sync.key)pullQuotes();try{goStep(qStep,true)}catch(e){}}
+  if(v==='quotes'){try{renderRecent()}catch(e){}if(sync.key)pullQuotes()}
   if(v==='reports'){$('setReports').open=true;buildReport();if(sync.key)pullQuotes().then(()=>{if(document.body.dataset.view==='reports')buildReport()}).catch(()=>{})}
   else if(was==='reports')$('setReports').open=false;
   if(v==='home')setTimeout(()=>scanFocus(),60);
@@ -4881,16 +4919,46 @@ function deskLayout(){
   const desk=DESK.matches;
   if(desk){ // computer: items table and summary full width; below it the side panel (summary, generate, sale type, URD) and the rest
     const full=box('q-full',[$('qAppr'),...steps,q('.q-top'),q('.q-tools'),q('.q-items')]);
-    const main=box('q-main',[$('qDiscCard'),q('.q-photos'),$('qClose'),q('.q-list')]);
+    const main=box('q-main',[$('qDiscCard'),q('.q-photos'),$('qClose')]);
     const side=box('q-side',[q('.q-sum'),q('.q-acts'),$('qSale'),$('qDed')]);
     b.prepend($('qTop'),full,main,side);return;
   }
   const main=box('q-main',[$('qTop'),$('qAppr'),...steps,q('.q-top'),q('.q-tools'),q('.q-items'),box('q-pair',[$('qDiscCard'),desk?null:q('.q-sum')]),desk?null:q('.q-acts')]);
-  const side=box('q-side',[desk?q('.q-sum'):null,desk?q('.q-acts'):null,$('qSale'),$('qDed'),q('.q-photos'),$('qClose'),q('.q-list')]);
+  const side=box('q-side',[desk?q('.q-sum'):null,desk?q('.q-acts'):null,$('qSale'),$('qDed'),q('.q-photos'),$('qClose')]);
   b.prepend(main,side);
 }
 WIDE.addEventListener?WIDE.addEventListener('change',deskLayout):WIDE.addListener(deskLayout);
 DESK.addEventListener?DESK.addEventListener('change',()=>{deskLayout();try{if(document.body.dataset.view==='search')runFind();if(document.body.dataset.view==='reports'&&!DESK.matches)setView('settings')}catch(e){}}):DESK.addListener(deskLayout);
+// ---- V1.8.14 quote page in steps: one step at a time, swipe or Back / Next; each step needs its permission ----
+const QSTEPS=[['cust','Customer','qsCust'],['sale','Sale type','qsSale'],['items','Items','qsItems'],['urd','URD · buy-back','qsUrd'],['sr','Sales return','qsSr'],['adv','Advance','qsAdv'],['sum','Summary','qsSum'],['close','Close sale','qsClose'],['wa','WhatsApp','qsWa']];
+let qStep=store.get('qStep','cust');
+function qStepsOn(){return QSTEPS.filter(([k,,p])=>can(p)&&!(bill.channel==='online'&&(k==='urd'||k==='sr')))}
+function qDone(k){const s=(()=>{try{return totals()}catch(e){return {}}})();
+  return {cust:!!(bill.cust&&(bill.cust.name||bill.cust.phone)),sale:!!bill.channel,items:bill.items.length>0,urd:bill.oldGold.length>0,sr:bill.returns.length>0,adv:(bill.advances||[]).length>0,sum:!!(bill.no||bill.pno),close:bill.status==='closed'||bill.status==='cancelled',wa:false}[k]}
+function goStep(k,quiet){const on=qStepsOn();if(!on.length)return;if(!on.some(x=>x[0]===k))k=on[0][0];qStep=k;store.set('qStep',k);paintQSteps();if(!quiet)window.scrollTo({top:0,behavior:'smooth'})}
+function paintQSteps(){
+  const bar=$('qSteps');if(!bar)return;const on=qStepsOn();
+  if(!on.length){bar.innerHTML='<p class="note">No quote steps are open for your role. Ask an admin.</p>';document.querySelectorAll('[data-qs]').forEach(e=>e.classList.add('qs-off'));$('qNav').hidden=true;return}
+  if(!on.some(x=>x[0]===qStep))qStep=on[0][0];
+  const i=on.findIndex(x=>x[0]===qStep),s=(()=>{try{return totals()}catch(e){return null}})();
+  bar.innerHTML=`<div class="qw-top"><div class="qw-t"><small>Step ${i+1} of ${on.length}</small><b>${esc(on[i][1])}</b></div><div class="qw-q"><small>${esc(quoteLabel(bill))}${bill.cust&&bill.cust.name?' · '+esc(bill.cust.name):''}</small><b>${s?inr(s.net):'—'}</b></div></div>
+    <div class="qw-chips" role="tablist" aria-label="Quote steps">${on.map(([k,l],j)=>`<button type="button" role="tab" class="qw-c${k===qStep?' on':''}${qDone(k)?' done':''}" data-st="${k}" aria-selected="${k===qStep}"><span>${qDone(k)&&k!==qStep?'✓':j+1}</span>${esc(l)}</button>`).join('')}</div>`;
+  bar.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>goStep(b.dataset.st));
+  const cur=bar.querySelector('.qw-c.on');if(cur)cur.scrollIntoView({block:'nearest',inline:'center'});
+  document.querySelectorAll('#bill [data-qs]').forEach(e=>e.classList.toggle('qs-off',!e.dataset.qs.split(' ').includes(qStep)));
+  const nav=$('qNav');nav.hidden=false;
+  $('qBack').disabled=i<=0;$('qNext').disabled=i>=on.length-1;
+  $('qBack').innerHTML=i>0?`‹ ${esc(on[i-1][1])}`:'‹ Back';$('qNext').innerHTML=i<on.length-1?`${esc(on[i+1][1])} ›`:'Done';
+}
+$('qBack').onclick=()=>{const on=qStepsOn(),i=on.findIndex(x=>x[0]===qStep);if(i>0)goStep(on[i-1][0])};
+$('qNext').onclick=()=>{const on=qStepsOn(),i=on.findIndex(x=>x[0]===qStep);if(i<on.length-1)goStep(on[i+1][0])};
+// swipe left / right on the quote to move between steps
+(()=>{let x0=0,y0=0,t0=0,ok=false;const B=$('bill');
+  B.addEventListener('touchstart',e=>{const t=e.target;ok=!(t.closest('input,select,textarea,.qi-table,.ph-grid,.seg,.courier-list,.qw-chips,[contenteditable]'));const p=e.touches[0];x0=p.clientX;y0=p.clientY;t0=Date.now()},{passive:true});
+  B.addEventListener('touchend',e=>{if(!ok||document.body.dataset.view!=='quote')return;const p=e.changedTouches[0],dx=p.clientX-x0,dy=p.clientY-y0;if(Date.now()-t0>700||Math.abs(dx)<70||Math.abs(dy)>Math.abs(dx)*.6)return;(dx<0?$('qNext'):$('qBack')).click()},{passive:true});
+})();
+// the quotations list is its own tab; picking one makes it the current quote
+$('tabQuotes').onclick=()=>withPerm('quotesList','Needs permission: All quotations.',()=>setView('quotes'));
 deskLayout();
 // side bar logo + name
 (()=>{const m=$('sbMark');$('sbNm').textContent=BRAND.name;
@@ -5668,6 +5736,7 @@ function a4Rows(){const {s,g}=quoteSums(),R=[['Value at label price',inr(s.listS
   if(s.flat>0.5)R.push(['Extra savings','−'+inr(s.flat),'sv']);
   R.push(['Final amount',inr(s.final),'fin']);
   if(s.old)R.push([`Old gold (URD) ${fmtW(s.oldW)} g`,'−'+inr(s.old)]);
+  if(s.bb)R.push([`Diamond / stone buy-back ${fmtN(s.bbCt)} ct`,'−'+inr(s.bb)]);
   if(s.ret)R.push(['Sales return','−'+inr(s.ret)]);
   if(s.adv)R.push(['Advance paid','−'+inr(s.adv)]);
   R.push([s.net<0?'Refund':'Balance amount',inr(Math.abs(s.net)),'bal']);return R}
@@ -6682,7 +6751,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.8.13',APP_BUILD='__BUILD__';
+const APP_VERSION='1.8.14',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------
@@ -6695,21 +6764,22 @@ const PERM_LIST=[
 ['stockdel','Delete sold tags from stock'],['suppliers','Edit the supplier list'],['rates',"Set day's rates"],
   ['mkEdit','Update making on the price card'],['mkDisc','Making after discount on quotes'],
   ['closeSale','Close sale (invoice no.)'],['cancelQuote','Cancel quote (enquiry)'],['reopen','Reopen sold / cancelled quotes'],
-  ['delQuote','Delete quotes'],['images','Add product photos'],['imgDel','Delete / replace product photos'],['imgBulk','Bulk upload photos'],['stockList','Stock list in Search (phone app)'],['addDisc','Additional discount (flat)'],['round','Round final amounts to the nearest ₹50'],['stockEdit','Edit stock items · making, FVA, label details'],['stockAdd','Add new items to stock'],['stockBulk','Bulk update stock items'],['reports','Reports'],['fva','Fair Value price'],['share','Share quotes on WhatsApp'],['pdHidden','See hidden details (NLC, FVA…)'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],['search','Search page · find items'],['stFilters','Search filters (item, design, colour…)'],['stRanges','Range search (weight, price, fair value…)'],['stSelect','Select items in Search'],['stExport','Export Search to Excel'],['shareItems','Share items on WhatsApp (picture cards)'],['shareAllPh','Send all photos of an item'],['sharePdf','Items as PDF'],['shareUser','Send items to another user'],['shareFv','Share fair value & savings'],['shareCost','Share making, NLC & supplier'],
+  ['delQuote','Delete quotes'],['images','Add product photos'],['imgDel','Delete / replace product photos'],['imgBulk','Bulk upload photos'],['stockList','Stock list in Search (phone app)'],['addDisc','Additional discount (flat)'],['round','Round final amounts to the nearest ₹50'],['stockEdit','Edit stock items · making, FVA, label details'],['stockAdd','Add new items to stock'],['stockBulk','Bulk update stock items'],['reports','Reports'],['fva','Fair Value price'],['share','Share quotes on WhatsApp'],['pdHidden','See hidden details (NLC, FVA…)'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],['quotesList','All quotations tab'],['qsCust','Quote step: Customer details'],['qsSale','Quote step: Sale type'],['qsItems','Quote step: Items'],['qsUrd','Quote step: URD & buy-back'],['qsSr','Quote step: Sales return'],['qsAdv','Quote step: Advance'],['qsSum','Quote step: Summary'],['qsClose','Quote step: Close sale'],['qsWa','Quote step: WhatsApp share'],['search','Search page · find items'],['stFilters','Search filters (item, design, colour…)'],['stRanges','Range search (weight, price, fair value…)'],['stSelect','Select items in Search'],['stExport','Export Search to Excel'],['shareItems','Share items on WhatsApp (picture cards)'],['shareAllPh','Send all photos of an item'],['sharePdf','Items as PDF'],['shareUser','Send items to another user'],['shareFv','Share fair value & savings'],['shareCost','Share making, NLC & supplier'],
   ['textSize','Text size'],['imgShow','Product image show / hide'],['ratesShown','Rates shown'],['charges','Charges · GST · HUID'],
   ['mkHelper','Making helpers'],['itemCodes','Item codes'],['pdRows','Product details items'],['sync','Shared database · shop key'],['roles','Roles & permissions'],['users','Users']];
 const SET_PERMS=['suppliers','theme','footer','apprSet','export','promos','rules','reports','stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users'];
 const STOCK_PERMS=['stockEdit','stockAdd','stockBulk','stockdel'];const PHOTO_PERMS=['images','imgDel','imgBulk'];
 // V1.8.6 functions grouped for the role editor
-const PERM_GROUPS=[['Prices & making',['rates','mkEdit','mkDisc','addDisc','round','fva','pdHidden']],['Quotes',['closeSale','cancelQuote','reopen','delQuote','approve','share']],
+const PERM_GROUPS=[['Quote page',['quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa']],['Prices & making',['rates','mkEdit','mkDisc','addDisc','round','fva','pdHidden']],['Quotes',['closeSale','cancelQuote','reopen','delQuote','approve','share']],
   ['Search',['search','stFilters','stRanges','stSelect','stExport','stockList']],['WhatsApp & sharing',['shareItems','shareAllPh','sharePdf','shareUser','shareFv','shareCost','leads']],
   ['Stock database',['stockEdit','stockAdd','stockBulk','stockdel','suppliers']],['Product photos & details',['images','imgDel','imgBulk']],['Reports',['reports']],
   ['Settings',['textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users']]];
 const permLabel=k=>(PERM_LIST.find(p=>p[0]===k)||[0,k])[1];
-const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','imgDel','imgBulk','stockList','approve','leads','share','pdHidden','addDisc','round','reports','fva','stockEdit','stockAdd','stockBulk','suppliers','search','stFilters','stRanges','stSelect','stExport','shareItems','shareAllPh','sharePdf','shareUser','shareFv','shareCost']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share','fva','stockList','search','stFilters','stRanges','stSelect','shareItems','shareAllPh','sharePdf','shareUser','shareFv']}];
+const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','imgDel','imgBulk','stockList','approve','leads','share','pdHidden','addDisc','round','reports','fva','stockEdit','stockAdd','stockBulk','suppliers','quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa','search','stFilters','stRanges','stSelect','stExport','shareItems','shareAllPh','sharePdf','shareUser','shareFv','shareCost']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share','fva','stockList','quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa','search','stFilters','stRanges','stSelect','shareItems','shareAllPh','sharePdf','shareUser','shareFv']}];
 let roles=store.get('roles',null)||clone(DEFAULT_ROLES);
 // WhatsApp sharing became a permission (v1.7.3): roles on this phone keep it once
 if(!store.get('permShare',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&!r.perms.includes('share'))r.perms.push('share')});store.set('roles',roles);store.set('permShare',true)}
+if(!store.get('perm1814',false)){roles.forEach(r=>{if(!Array.isArray(r.perms))return;['quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa'].forEach(p=>{if(!r.perms.includes(p))r.perms.push(p)})});store.set('roles',roles);store.set('perm1814',true)}
 if(!store.get('perm1812',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('stockEdit')&&!r.perms.includes('suppliers'))r.perms.push('suppliers')});store.set('roles',roles);store.set('perm1812',true)}
 if(!store.get('perm186',false)){roles.forEach(r=>{if(!Array.isArray(r.perms))return;const add=p=>{if(!r.perms.includes(p))r.perms.push(p)};['search','stFilters','stRanges'].forEach(add);if(r.perms.includes('share'))['stSelect','shareItems','shareAllPh','sharePdf','shareUser','shareFv'].forEach(add);if(r.perms.includes('pdHidden'))add('shareCost');if(r.perms.includes('reports'))add('stExport')});store.set('roles',roles);store.set('perm186',true)}
 if(!store.get('perm182',false)){roles.forEach(r=>{if(!Array.isArray(r.perms))return;if(r.perms.includes('images'))['imgDel','imgBulk'].forEach(k=>{if(!r.perms.includes(k))r.perms.push(k)});if(!r.perms.includes('stockList'))r.perms.push('stockList')});store.set('roles',roles);store.set('perm182',true)}
@@ -7055,7 +7125,7 @@ setInterval(()=>pollInbox(),30000);
 setInterval(()=>{try{if(needsAppr()&&apprState(bill)==='pending')pollInbox()}catch(e){}},8000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pollInbox()});
 // Footer tabs each role sees (admin chooses; admins always see all). Home is always shown.
-const FOOT_TABS=[['tabScan','Scan'],['tabFind','Search'],['tabQuote','Quote'],['tabRates','Gold Rates'],['tabSet','Settings']];
+const FOOT_TABS=[['tabScan','Scan'],['tabFind','Search'],['tabQuote','Quote'],['tabQuotes','All quotes'],['tabRates','Gold Rates'],['tabSet','Settings']];
 function applyTabs(){
   const role=curUser?curUser.role:'',hid=role&&role!=='admin'?((settings.tabHide||{})[role]||[]):[];
   FOOT_TABS.forEach(([id])=>{const b=$(id);if(b)b.hidden=hid.includes(id)});

@@ -515,3 +515,10 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 
 ## V 1.8.13
 - **Making conventions (Making helper) with more details** – each convention can now also name an **Item name**, an **Item type** (the sheet's item type, e.g. Kids Bangle (9K)) and a **Supplier**, besides label code and purity; all are drop-downs from stock and the supplier list ("Any …" = not used). For a scanned item the convention whose filled details all match, with the most details, is used (so "Bangle · VND01" beats "Bangle"). The Making guide shows these details under the purity and finds them by name, type or supplier. Up to 400 conventions.
+
+## V 1.8.14
+- **Quote page in steps** – the Quote tab shows only the current quote, one step at a time: 1 Customer · 2 Sale type · 3 Items · 4 URD & buy-back · 5 Sales return · 6 Advance · 7 Summary · 8 Close sale · 9 WhatsApp. A step bar on top (step name, quote no., customer, balance; tap a step to jump, ✓ when done) and Back / Next buttons at the bottom; swipe left / right on phones. URD and Sales return are skipped for online enquiries. Toolbar URD / SR jump to those steps.
+- **All quotations** – a new tab (bottom bar / side bar) with the list, filters and search; tapping a quote makes it the current quote and opens it.
+- **Permissions** (new group "Quote page"): All quotations tab, and each step (Customer, Sale type, Items, URD & buy-back, Sales return, Advance, Summary, Close sale, WhatsApp share). Every role gets them once (migration v1814); untick to hide a step.
+- **Refund in the ERP final amount** – the amount may be negative (− button or type a minus); it is shown as "Refund to the customer" and compared with the app balance after URD, returns and advance.
+- **Diamond / stone buy-back** – in the URD step, "+ Diamond / stone buy-back": stone (Diamond, Solitaire, Ruby, Emerald, Sapphire, other) · carat × rate ₹/ct, taken off the balance like URD; listed in the summary, quote image, text and PDF.
