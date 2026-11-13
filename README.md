@@ -502,3 +502,6 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 
 ## V 1.8.9
 - **Rate band locked** for users without "Set day's rates": tapping today's rates on Home does nothing (no hand cursor, not a button), the "Gold Rates" tab and the menu's "Day's rates" are hidden, and "Tap to change" hints are gone. If the day's rates are not set, they see "Day's rates not set yet. Ask a manager." Other prompts that would open the rate sheet (e.g. a missing rate) show that message instead. A manager's approval (15 min) unlocks it.
+
+## V 1.8.10
+- **Bulk update / Edit database now beat pricing rules** – a pricing rule set to "overrides database" used to replace the making (and FVA) on every scan, so a bulk-updated making never showed in the price. Making typed in Bulk update or Edit database is now marked as hand-set (`mkMan`, like `fvaMan` for FVA) and pricing rules leave it alone; FVA set by hand is likewise kept. The bulk form says how many picked items match a rule, and has "Pricing rules → Follow the pricing rules again" to undo hand-set values. Product details show which parts a rule set ("· sets making, fair value"). A new stock-sheet upload replaces the rows, so items follow the rules again after an upload.

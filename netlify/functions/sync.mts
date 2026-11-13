@@ -6,7 +6,7 @@ import type { Config } from "@netlify/functions"
 // Stored in one site-wide Blobs store: meta, stock, rates, settings, users, auth (legacy admin PIN).
 
 const APP_ORIGINS = ["https://appassets.androidplatform.net", "https://yamie-price-check.netlify.app"]
-const STOCK_FIELDS = ["key", "barcode", "item", "category", "carat", "gw", "nw", "sw", "dw", "dq", "sa", "serial", "label", "location", "pcs", "sq", "supplier", "mk", "mkType", "huid", "huidNo", "cw", "stoneName", "saDia", "saClr", "labelDate", "size", "model", "nlc", "fva", "fvaMan", "imp", "pname", "design", "scol", "at"]
+const STOCK_FIELDS = ["key", "barcode", "item", "category", "carat", "gw", "nw", "sw", "dw", "dq", "sa", "serial", "label", "location", "pcs", "sq", "supplier", "mk", "mkType", "huid", "huidNo", "cw", "stoneName", "saDia", "saClr", "labelDate", "size", "model", "nlc", "fva", "fvaMan", "mkMan", "imp", "pname", "design", "scol", "at"]
 const RATE_KEYS = ["22k", "18k", "14k", "9k", "platinum", "silver"]
 
 type Meta = { stock: number; rates: number; settings: number; users: number; quotes: number; leads?: number; imgs: number; count: number; history: any[] }
