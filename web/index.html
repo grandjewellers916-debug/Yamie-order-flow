@@ -5070,12 +5070,14 @@ $('qovPrint').onclick=()=>withPerm('qPrint','Needs permission: Print quote.',()=
 $('qovWa').onclick=()=>goStep('wa');
 
 // ===================== V1.8.15 status card: 1080 × 1920 picture for WhatsApp Status =====================
-function scFromStock(r){const o=stPrice(r),fv=can('fva')?o.fv:NaN;
+function scFromStock(r){stPrice.at=0;const o=stPrice(r),fv=can('fva')?o.fv:NaN;
   return {key:r.key,sku:r.barcode||r.key,title:shTitle(r),pur:PLABEL[caratToPurity(r.carat)]||String(r.carat||''),gw:num(r.gw),nw:num(r.nw),sw:num(r.dw),
     lp:o.lp,offer:!isNaN(fv)&&fv<o.lp?fv:o.lp,fl:!isNaN(fv)&&fv<o.lp?o.fl:''}}
 function scFromItem(t){const p=priceTag(t),q=quotedValue(t,p),G=1+gstPct()/100,k=keyOf(t.sku),r=stockMap.get(k),st=t.stock||r||{};
+  // offer = the lower of the quoted price and the Fair Value price (FVA)
   const lp=r50(p.value*G);let offer=r50(q*G),fl=offer<lp?'Your price':'';
-  if(offer>=lp&&can('fva')){const fv=fvaPrice(t,p);if(fv){const f=r50(fv.value*G);if(f<lp){offer=f;fl=fv.label}}}
+  if(can('fva')){let fv=null;try{fv=fvaPrice(t,p)}catch(e){}if(!fv&&r){const o=stPrice(r);if(!isNaN(o.fv))fv={value:o.fv/G,label:o.fl}}
+    if(fv){const f=r50(fv.value*G);if(f<offer){offer=f;fl=fv.label||'Fair value'}}}
   return {key:k,sku:k,title:(r&&shTitle(r))||st.category||t.item||'Item',pur:PLABEL[t.purity]||'',gw:num(t.gw),nw:num(t.nw),sw:num(st.dw),lp,offer,fl}}
 function scIcon(c,kind,x,y,sz,col){c.save();c.strokeStyle=col;c.lineWidth=3;c.lineJoin='round';c.lineCap='round';c.beginPath();const u=sz/24,P=(a,b)=>[x+a*u,y+b*u];
   const L=(pts,close)=>{pts.forEach((q,i)=>{const [a,b]=P(...q);i?c.lineTo(a,b):c.moveTo(a,b)});if(close)c.closePath()};
@@ -5434,6 +5436,7 @@ function shPicked(){return [...stSel].map(k=>stockMap.get(k)).filter(Boolean)}
 function openShareSel(only){
   const list=Array.isArray(only)?only:shPicked();if(!list.length){toast('Select items first',null,true);return}
   const ok=shFieldsOk(),saved=store.get('shFields',SH_DEF),f=new Set(Array.isArray(saved)?saved:SH_DEF);
+  if(!store.get('shFv1815',false)&&can('fva')&&can('shareFv')){['price','fv','save'].forEach(k=>f.add(k));store.set('shFields',[...f]);store.set('shFv1815',true)}
   showModal(`Share ${list.length} item${list.length===1?'':'s'}`,'',[{label:'Close',cls:'ghost'}]);
   const staff=users.filter(u=>u.active!==false&&(!curUser||u.id!==curUser.id));
   $('modalBody').innerHTML=`<div class="sh-wrap">
@@ -5510,7 +5513,7 @@ async function shCard(r,f,ph,extra){
     c.fillStyle='#F3D3A2';c.font=F(600,30);c.fillText(`${Math.round(save*100/lp)}% off the label price`,P+40,y+238);
     c.textAlign='right';
     if(f.includes('price')){c.fillStyle='rgba(255,255,255,.7)';c.font=F(500,28);c.fillText('Label price',W-P-40,y+62);c.font=F(600,40);const t=inr(lp),tw=c.measureText(t).width;c.fillText(t,W-P-40,y+110);c.strokeStyle='rgba(255,255,255,.75)';c.lineWidth=3;c.beginPath();c.moveTo(W-P-40-tw,y+96);c.lineTo(W-P-40,y+96);c.stroke()}
-    if(f.includes('fv')||true){c.fillStyle='rgba(255,255,255,.75)';c.font=F(500,28);c.fillText('You pay',W-P-40,y+172);c.fillStyle='#F3D3A2';c.font=F(700,52);c.fillText(inr(fvp),W-P-40,y+230)}
+    if(f.includes('fv')||true){c.fillStyle='rgba(255,255,255,.75)';c.font=F(500,28);c.fillText('Fair value price',W-P-40,y+172);c.fillStyle='#F3D3A2';c.font=F(700,52);c.fillText(inr(fvp),W-P-40,y+230)}
     c.textAlign='left';y+=priceH}
   else if(priceH){y+=20;const bw=(W-2*P-(PR.length-1)*20)/PR.length;PR.forEach((k,i)=>{const x=P+i*(bw+20),fv=k==='fv';
       c.fillStyle=fv?'#4A2270':'#F6EEDC';rrect(c,x,y,bw,priceH-10,22);c.fill();
@@ -5775,10 +5778,13 @@ function recItem(rec){
   if(rec.mkType&&num(rec.mk)>0){t.mkType=rec.mkType;t.mkVal=fmtN(num(rec.mk))}if(rec.huid!=null&&rec.huid!==''&&!isNaN(+rec.huid))t.huidCount=+rec.huid;return t}
 const ratesKey=()=>['24k','22k','18k','14k','9k','platinum','silver'].map(rateFor).join(',');
 const stPriceMem=new Map();let stPriceKey='';
-function stPrice(r){const k=JSON.stringify([ratesKey(),gstPct(),settings.huid]);if(k!==stPriceKey){stPriceMem.clear();stPriceKey=k}
-  let o=stPriceMem.get(r.key);if(o)return o;const t=recItem(r),p=priceTag(t),G=1+gstPct()/100;
+function stPrice(r){
+  // V1.8.15: the fair value depends on who is logged in (permission) and on the pricing rules, so they are part of the cache key;
+  // an item that changed (sync / edit) is priced again
+  const now=Date.now();if(now-(stPrice.at||0)>400){stPrice.at=now;stPrice.k=JSON.stringify([ratesKey(),gstPct(),settings.huid,curUser?curUser.id+':'+curUser.role:'',can('fva'),JSON.stringify(settings.rules||'').length,JSON.stringify(settings.fvaRules||settings.fva||'').length])}const k=stPrice.k;if(k!==stPriceKey){stPriceMem.clear();stPriceKey=k}
+  let o=stPriceMem.get(r.key);if(o&&o.r===r)return o;const t=recItem(r),p=priceTag(t),G=1+gstPct()/100;
   if(!p.ok)o={lp:NaN,fv:NaN,save:NaN,fl:'',mk:NaN};else{const fv=can('fva')?fvaPrice(t,p):null,lp=r50(p.value*G),fp=fv?r50(fv.value*G):NaN;o={lp,fv:fp,save:fv?lp-fp:NaN,fl:fv?fv.label:'',mk:p.hasMk?p.making:NaN}}
-  stPriceMem.set(r.key,o);return o}
+  o.r=r;stPriceMem.set(r.key,o);return o}
 let stSort=(()=>{const v=store.get('stSort',null);return v&&v.k&&(v.d===1||v.d===-1)?v:{k:'key',d:1}})(),stLimit=200;
 function stVal(r,k){
   const N=v=>{const n=num(v);return isNaN(n)?null:n};
@@ -6974,7 +6980,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.8.15',APP_BUILD='__BUILD__';
+const APP_VERSION='1.8.16',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------
@@ -7112,7 +7118,7 @@ $('loginForm').addEventListener('submit',async e=>{
   $('login').hidden=true;
   if(loginMode==='login'){curUser=u;store.set('session',{id:u.id,at:Date.now()});adminCreds={username:u.username,pin,role:u.role};toast(`Welcome, ${u.name||u.username}`)}
   else{adminCreds={username:u.username,pin,role:u.role};if(!(curUser&&curUser.id===u.id)){const ps=loginPerm?loginPerm.split('|'):null,same=elev.role===u.role&&Date.now()<elev.until&&elev.perms;elev={role:u.role,until:Date.now()+15*60*1000,perms:ps?[...new Set([...(same?elev.perms:[]),...ps])]:null}}if(!curUser){curUser=u;store.set('session',{id:u.id,at:Date.now()})}}
-  paintUserChip();paintAdmin();renderUsers();
+  stPrice.at=0;paintUserChip();paintAdmin();renderUsers();
   const f=loginNext;loginNext=null;f&&f();
   if(loginMode==='login')morningSync();
 });

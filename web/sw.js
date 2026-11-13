@@ -1,5 +1,5 @@
 // Price Check (Yamie / Grand) — offline shell. Rates are always fetched fresh; the app falls back to the last saved rate.
-const CACHE = 'ypc-v99';
+const CACHE = 'ypc-v100';
 const SHELL = ['./', 'index.html', 'parser.js', 'brand.js', 'brand-id.js', 'manifest.webmanifest', 'manifest-grand.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/grand-192.png', 'icons/grand-512.png', 'brand/yamie/header-w.png', 'brand/yamie/logo-red.png', 'brand/yamie/logo-cream.png', 'brand/yamie/mark-w.png', 'brand/yamie/mark-red.png', 'brand/yamie/header-red.png'];
 
 self.addEventListener('install', e => {
