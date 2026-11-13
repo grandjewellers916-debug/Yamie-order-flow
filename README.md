@@ -487,3 +487,12 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 - **Savings as the hero** – with "Savings" ticked the card shows a big "YOU SAVE ₹…" box with the % off, the struck-out label price and "You pay".
 - **All photos on the card** – the main photo plus up to 4 more as thumbnails.
 - Cards are built while the Share window is open, so the share sheet / WhatsApp opens on the first click.
+
+## V 1.8.7
+- **Phone search, compact** (phone app and phone browsers, with "Stock list in Search"):
+  - One compact list for everything — typing filters the same list (no more long detail cards); the title, buttons and help text are gone, the search box stays at the top.
+  - Toolbar: **Filters** (count badge) opens a sheet with all filters and ranges and a "Show N items" button; **Sort** opens a list (tap again to reverse); **Select** turns on tick boxes (or long-press an item); **⋯** holds New item, Bulk update, Photos and Excel export.
+  - Active filters show as chips with × under the toolbar, plus "Clear all".
+  - Tap an item: a sheet with its photos (swipe), label price / fair value / savings, the main details, and Price it · WhatsApp · Photos · Edit. Typing a full label no. + Enter opens it.
+  - "Show 30 more" instead of page numbers.
+- Computer layout unchanged.

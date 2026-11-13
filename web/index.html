@@ -926,6 +926,44 @@ body.stm .st-pager{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justif
 .st-wa{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;margin-left:6px;border-radius:50%;border:1px solid color-mix(in srgb,#128C4A 35%,transparent);background:transparent;color:#128C4A;cursor:pointer;vertical-align:middle}.st-wa svg{width:16px;height:16px}.st-wa:hover{background:color-mix(in srgb,#128C4A 10%,transparent)}
 .pm-name{margin-bottom:12px}
 .rc-grp>summary{display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none;padding:4px 0}.rc-grp>summary::-webkit-details-marker{display:none}.rc-grp>summary .note{margin-left:auto}.rc-grp>summary::before{content:'▸';color:var(--maroon)}.rc-grp[open]>summary::before{content:'▾'}
+/* V1.8.7 phone search */
+.stm-bar{display:none}
+body.stm .find-view{padding:10px 12px 14px;gap:8px}
+body.stm .find-view .sec-head,body.stm .find-view>.note:not(#findNote){display:none}
+body.stm .find-view .find-in{position:sticky;top:0;z-index:5;background:var(--surface);min-height:46px;border-radius:14px;box-shadow:0 0 0 6px var(--surface)}
+body.stm .find-view .find-in input{font-size:16px;min-height:44px}
+body.stm .stm-bar{display:block;position:sticky;top:52px;z-index:4;background:var(--surface);padding:4px 0 6px;box-shadow:0 6px 8px -8px rgba(0,0,0,.25)}
+.stm-tools{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}.stm-tools::-webkit-scrollbar{display:none}
+.stm-b{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--fg);font:600 13.5px var(--body);cursor:pointer;max-width:58vw}
+.stm-b span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.stm-b svg{width:16px;height:16px;flex:none}
+.stm-b.on,.stm-b[aria-pressed="true"]{border-color:var(--maroon);color:var(--maroon);background:color-mix(in srgb,var(--maroon) 8%,var(--surface))}
+.stm-b b{background:var(--maroon);color:#fff;border-radius:999px;min-width:20px;height:20px;display:inline-grid;place-items:center;font-size:12px;padding:0 5px}
+.stm-more{margin-left:auto;font-size:20px;line-height:1;padding:0 14px}
+.stm-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-top:6px;align-items:center}.stm-chips::-webkit-scrollbar{display:none}
+.stm-chip{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 6px 0 12px;border-radius:999px;border:0;background:color-mix(in srgb,var(--maroon) 10%,var(--surface));color:var(--maroon);font:600 12.5px var(--body);white-space:nowrap;cursor:pointer}
+.stm-chip span{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.7);font-size:14px}
+body.stm #stFilters:not(.in-sheet){display:none!important}
+body.stm .st-tools{display:none!important}body.stm #findNote{font-size:13px;gap:6px;margin:0}body.stm .st-count small{font-size:12px}
+#stFilters.in-sheet{display:flex!important;flex-direction:column;gap:10px;margin:0;overflow:visible}
+#stFilters.in-sheet .stf-row{display:grid!important;grid-template-columns:1fr 1fr;gap:8px}#stFilters.in-sheet .stf{flex:auto}#stFilters.in-sheet .stf select{width:100%;min-height:44px}
+#stFilters.in-sheet .st-rng{display:flex!important;flex-direction:column;gap:8px;flex-wrap:nowrap}#stFilters.in-sheet .st-rng .rg{display:grid;grid-template-columns:96px 1fr auto 1fr;border-radius:12px;padding:6px 8px}
+#stFilters.in-sheet .st-rng input{width:100%;min-height:38px;font-size:15px}#stFilters.in-sheet .stf-clear{display:none}
+body.stm .st-mlist{gap:6px}body.stm .mr{grid-template-columns:52px minmax(0,1fr) auto;gap:10px;padding:6px 10px 6px 6px;border-radius:12px;-webkit-user-select:none;user-select:none}
+body.stm .mr .mr-ck{display:none}body.stm.stm-sel .mr{grid-template-columns:auto 52px minmax(0,1fr) auto}body.stm.stm-sel .mr .mr-ck{display:flex}
+body.stm .mr-img{width:52px;height:52px}body.stm .mr-t b{font-size:14.5px}body.stm .mr-t small{font-size:12px}body.stm .mr-p b{font-size:14.5px}body.stm .mr-t .shop-lk{display:none}
+.stm-moreb{width:100%;margin-top:10px;min-height:46px}.stm-moreb small{color:var(--muted);font-weight:400}
+.stm-sort{display:flex;flex-direction:column;gap:4px}.stm-so{display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:left;min-height:46px;padding:0 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--fg);font:500 15px var(--body);cursor:pointer}
+.stm-so.on{border-color:var(--maroon);color:var(--maroon);font-weight:600}.stm-so span{font-size:12px;color:var(--muted);font-weight:400}
+.modal.stm-sheet .sheet{padding-bottom:0}.modal.stm-sheet #modalActs{position:sticky;bottom:0;flex-direction:row;flex-wrap:wrap;background:inherit;background:var(--surface);padding:10px 0 calc(12px + env(safe-area-inset-bottom,0px));margin-top:8px;border-top:1px solid var(--line);z-index:2}
+.modal.stm-sheet #modalActs .btn{flex:1 1 30%;width:auto;min-height:44px}.modal.stm-itm #modalActs .btn.primary{flex-basis:100%}.modal.stm-itm #modalActs .btn.ghost{flex-basis:100%;min-height:38px}
+.stm-it{display:flex;flex-direction:column;gap:12px}
+.stm-ph{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;border-radius:14px}.stm-ph img{flex:none;width:min(78vw,320px);aspect-ratio:1;object-fit:cover;border-radius:14px;scroll-snap-align:start;background:#F4EDE6}
+.stm-ph:has(img:only-child) img{width:100%;max-height:300px;object-fit:contain}
+.stm-ph .st-img{width:100%;height:120px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(160deg,#F7EFE6,#EADBC9);color:#A7742C}.stm-ph .st-img svg{height:70%}
+.stm-pr{display:flex;gap:8px}.stm-pr>div{flex:1;border-radius:12px;padding:8px 10px;background:#F6EEDC;display:flex;flex-direction:column}.stm-pr small{font-size:11.5px;color:#7A5A20}.stm-pr b{font-size:17px;color:var(--maroon);white-space:nowrap}
+.stm-pr .fv{background:#4A2270}.stm-pr .fv small{color:rgba(255,255,255,.75)}.stm-pr .fv b{color:#F3D3A2}.stm-pr .sv{background:#E6F4EA}.stm-pr .sv small{color:#1E6B3A}.stm-pr .sv b{color:#1E6B3A}
+.stm-dl{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin:0}.stm-dl div{min-width:0}.stm-dl dt{font-size:11.5px;color:var(--muted)}.stm-dl dd{margin:0;font-size:14px;font-weight:500;overflow-wrap:anywhere}
+@media (max-width:1279px){#modalActs:has(+ *){}.stm-ttl{font-size:18px}}
 .sh-card{display:grid;grid-template-columns:minmax(150px,210px) 1fr;gap:14px;margin-top:12px;align-items:start}.sh-card canvas{width:100%;height:auto;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.14);background:#fff}
 .sh-opts{display:flex;flex-direction:column;gap:8px}.sh-opts>b{font:600 13px var(--body);color:var(--maroon);text-transform:uppercase;letter-spacing:.05em}.sh-opts .rc-p{justify-content:flex-start}
 @media (max-width:520px){.sh-card{grid-template-columns:110px 1fr}}
@@ -5232,6 +5270,79 @@ async function shareItemsPdf(list,f){
   doc.setFontSize(8);doc.setTextColor(110);if(f.includes('price')||f.includes('fv'))doc.text(R(`Prices at today's gold rate, incl. ${fmtN(gstPct())}% GST. The final bill is at the rate on the day of billing.`),12,y);
   deliverFile(`${BRAND.name}-items-${todayStr()}.pdf`.replace(/[\/\\\s]+/g,'-'),'application/pdf',doc.output('arraybuffer'));
 }
+// ---- V1.8.7 phone search: one compact list, a toolbar (Filters · Sort · Select · More), filter chips, item sheet, "Show more" ----
+let stMShown=30,stMSig='',stMSelMode=false;
+function stFiltersHome(){const sf=$('stFilters');if(sf&&sf.closest('#modalBody')){$('findNote').before(sf);sf.classList.remove('in-sheet')}}
+{const _sm=showModal;showModal=function(...a){const was=!!($('stFilters')&&$('stFilters').closest('#modalBody'));stFiltersHome();$('modalTitle').classList.remove('stm-ttl');$('modal').classList.remove('stm-sheet','stm-itm');const r=_sm(...a);return r};const _cm=closeModal;closeModal=function(){const was=!!($('stFilters')&&$('stFilters').closest('#modalBody'));_cm();stFiltersHome();if(was&&document.body.classList.contains('stm')&&document.body.dataset.view==='search')try{runFindTable()}catch(e){}}}
+const STM_R=[['w','Weight','g'],['p','Label price','₹'],['f','Fair value','₹'],['m','Making','₹'],['d','Diamond','ct']];
+function stmActive(){
+  const out=[],bar=$('stFilters');
+  if(findType)out.push({k:'type',t:'Code: '+findType});
+  FILTERS.forEach(([k,l])=>{if(k==='type'||!findF[k])return;const s=bar&&bar.querySelector(`select[data-f="${k}"]`),o=s&&[...s.options].find(x=>x.value===findF[k]);out.push({k,t:`${l}: ${o?o.text.replace(/\s*\(\d[\d,]*\)$/,''):findF[k]}`})});
+  STM_R.forEach(([k,l,u])=>{const a=findF[k+'Min'],b=findF[k+'Max'];if(a===''&&b==='')return;const f=v=>u==='₹'?inr(num(v)):`${v} ${u}`;out.push({k:'r'+k,t:`${k==='w'&&findF.wBy==='nw'?'Net wt':l==='Weight'?'Gross wt':l}: ${a!==''&&b!==''?`${u==='₹'?inr(num(a)):a}–${f(b)}`:a!==''?'≥ '+f(a):'≤ '+f(b)}`})});
+  return out;
+}
+function stmBar(total){
+  let b=$('stMBar');if(!b){b=document.createElement('div');b.id='stMBar';b.className='stm-bar';document.querySelector('.find-view .find-in').after(b)}
+  const act=stmActive(),srt=ST_ALL.find(c=>c[0]===stSort.k),okF=can('stFilters')||can('stRanges');
+  const more=['findPhotos','findBulk','findNew'].filter(id=>$(id)&&!$(id).hidden).length+(can('stExport')?1:0);
+  b.innerHTML=`<div class="stm-tools">
+    ${okF?`<button type="button" class="stm-b${act.length?' on':''}" id="stmFilt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filters${act.length?`<b>${act.length}</b>`:''}</button>`:''}
+    <button type="button" class="stm-b" id="stmSort"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4"/></svg><span>${esc(srt?srt[1]:'Sort')}</span>${stSort.d>0?'↑':'↓'}</button>
+    ${can('stSelect')?`<button type="button" class="stm-b" id="stmSel" aria-pressed="${stMSelMode}">${stMSelMode?'Done':'Select'}</button>`:''}
+    ${more?`<button type="button" class="stm-b stm-more" id="stmMore" aria-label="More">⋯</button>`:''}</div>
+    ${act.length?`<div class="stm-chips">${act.map(a=>`<button type="button" class="stm-chip" data-x="${esc(a.k)}" aria-label="Remove ${esc(a.t)}">${esc(a.t)}<span aria-hidden="true">×</span></button>`).join('')}${act.length>1?'<button type="button" class="linkbtn" id="stmClr">Clear all</button>':''}</div>`:''}`;
+  if($('stmFilt'))$('stmFilt').onclick=stmFilterSheet;
+  $('stmSort').onclick=stmSortSheet;
+  if($('stmSel'))$('stmSel').onclick=()=>{stMSelMode=!stMSelMode;if(!stMSelMode){stSel.clear();paintSelBar()}runFindTable()};
+  if($('stmMore'))$('stmMore').onclick=stmMoreSheet;
+  b.querySelectorAll('[data-x]').forEach(x=>x.onclick=()=>{const k=x.dataset.x;if(k==='type')findType='';else if(k[0]==='r'&&STM_R.some(r=>'r'+r[0]===k)){const r=k.slice(1);findF[r+'Min']=findF[r+'Max']='';const g=$('stFilters')&&$('stFilters').querySelector('.st-rng');if(g)g.remove()}else findF[k]='';stPage=1;runFindTable()});
+  if($('stmClr'))$('stmClr').onclick=()=>{findType='';Object.keys(findF).forEach(k=>findF[k]='');const g=$('stFilters')&&$('stFilters').querySelector('.st-rng');if(g)g.remove();runFindTable()};
+}
+function stmFilterSheet(){
+  showModal('Filters','',[]);$('modal').classList.add('stm-sheet');
+  const sf=$('stFilters');$('modalBody').appendChild(sf);sf.classList.add('in-sheet');
+  const n=()=>stLastRows.length.toLocaleString('en-IN');
+  const a=$('modalActs');a.innerHTML=`<button type="button" class="btn ghost" id="sfClr">Clear all</button><button type="button" class="btn primary" id="sfGo">Show ${n()} items</button>`;
+  $('sfGo').onclick=()=>closeModal();
+  $('sfClr').onclick=()=>{findType='';Object.keys(findF).forEach(k=>findF[k]='');const g=sf.querySelector('.st-rng');if(g)g.remove();runFindTable();$('sfGo').textContent=`Show ${n()} items`};
+  const obs=new MutationObserver(()=>{if($('sfGo'))$('sfGo').textContent=`Show ${n()} items`});obs.observe($('findNote'),{childList:true,subtree:true,characterData:true});
+  const stop=setInterval(()=>{if($('modal').hidden){obs.disconnect();clearInterval(stop)}},500);
+}
+function stmSortSheet(){
+  const opts=ST_ALL.filter(([c])=>c!=='img'&&(!ST_ADMIN.includes(c)||can('pdHidden'))&&(!['fv','save'].includes(c)||can('fva')));
+  showModal('Sort by','',[]);$('modal').classList.add('stm-sheet');
+  $('modalBody').innerHTML=`<div class="stm-sort">${opts.map(([c,l])=>`<button type="button" class="stm-so${stSort.k===c?' on':''}" data-c="${c}">${esc(l)}${stSort.k===c?`<span>${stSort.d>0?'↑ Low to high / A–Z':'↓ High to low / Z–A'}</span>`:''}</button>`).join('')}</div>`;
+  $('modalActs').innerHTML='<button type="button" class="btn ghost" id="soDir">Reverse order</button><button type="button" class="btn primary" id="soOk">Done</button>';
+  $('modalBody').querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{const k=b.dataset.c;stSort=stSort.k===k?{k,d:-stSort.d}:{k,d:['price','fv','save','gw','nw','sa','mk','dw','dq','labelDate'].includes(k)?-1:1};store.set('stSort',stSort);closeModal();runFindTable()});
+  $('soDir').onclick=()=>{stSort={k:stSort.k,d:-stSort.d};store.set('stSort',stSort);closeModal();runFindTable()};$('soOk').onclick=()=>closeModal();
+}
+function stmMoreSheet(){
+  const it=[['findNew','+ New item'],['findBulk','Bulk update'],['findPhotos','Photos · bulk upload / save on phone']].filter(([id])=>$(id)&&!$(id).hidden);
+  showModal('More','',[{label:'Close',cls:'ghost'}]);
+  $('modalBody').innerHTML=`<div class="stm-sort">${it.map(([id,l])=>`<button type="button" class="stm-so" data-id="${id}">${esc(l)}</button>`).join('')}${can('stExport')?'<button type="button" class="stm-so" data-id="xlsx">Export these items to Excel</button>':''}</div>`;
+  $('modalBody').querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>{closeModal();const id=b.dataset.id;if(id==='xlsx')withPerm('stExport','Needs permission: Export Search to Excel.',()=>stExport(stLastRows));else $(id).click()});
+}
+// tap an item: a compact sheet with its photos, details, price and actions
+async function stmItem(r){
+  const o=stPrice(r),lp=o.lp,fv=can('fva')?o.fv:NaN,save=!isNaN(lp)&&!isNaN(fv)&&lp>fv?lp-fv:0,a=attrOf(r);
+  showModal(pnameOf(r)||r.item||r.category||'Item','',[]);$('modalTitle').classList.add('stm-ttl');$('modal').classList.add('stm-sheet','stm-itm');
+  const W=v=>num(v)>0?num(v).toFixed(3)+' g':'';
+  const rows=[['Label no.',r.barcode||r.key],['Item name',pnameOf(r)?r.item:''],['Item type',r.category],['Design',a.jt],['Purity',PLABEL[caratToPurity(r.carat)]||r.carat],['Gross wt',W(r.gw)],['Net wt',W(r.nw)],
+    ['Stone',shVal(r,'stone')],['Stone colour',a.sc.join(', ')],['Making',r.mkType&&num(r.mk)>0?valText({type:r.mkType,val:num(r.mk)}):''],['HUID no.',r.huidNo],['Size',r.size],['Location',r.location]].filter(x=>x[1]);
+  $('modalBody').innerHTML=`<div class="stm-it">
+    <div class="stm-ph" id="stmPh"><div class="st-img">${icoFor(r.category||r.item||'')}</div></div>
+    <div class="stm-pr"><div><small>Label price</small><b>${isNaN(lp)?'—':inr(lp)}</b></div>${!isNaN(fv)&&save?`<div class="fv"><small>Fair value</small><b>${inr(fv)}</b></div><div class="sv"><small>Saves</small><b>${inr(save)}</b></div>`:''}</div>
+    <dl class="stm-dl">${rows.map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
+    ${shopA(r)}</div>`;
+  const acts=[['Price it','primary',()=>{closeModal();setView('home');useScannedCode(r.barcode||r.key);paintBarcode()}]];
+  if(can('shareItems'))acts.push(['WhatsApp','',()=>{closeModal();openShareSel([r])}]);
+  if(can('images'))acts.push(['Photos','',()=>{closeModal();openPhotos(r.key)}]);
+  if(can('stockEdit'))acts.push(['Edit','',()=>{closeModal();stockForm(r)}]);
+  const ac=$('modalActs');ac.innerHTML='';acts.forEach(([t,c,f])=>{const b=document.createElement('button');b.type='button';b.className='btn '+c;b.textContent=t;b.onclick=f;ac.appendChild(b)});
+  const x=document.createElement('button');x.type='button';x.className='btn ghost';x.textContent='Close';x.onclick=()=>closeModal();ac.appendChild(x);
+  const us=await getProdImgs(r.key).catch(()=>[]);if(us.length&&$('stmPh'))$('stmPh').innerHTML=us.map(u=>`<img src="${u}" alt="">`).join('');
+}
 // ---- Search: filters, pages, photos ----
 const FILTERS=[['item','Item Name'],['cat','Item Type'],['jt','Design'],['sc','Stone Colour'],['pur','Purity'],['type','Label Code'],['stone','Stone'],['sup','Supplier'],['loc','Location'],['lab','Labelled'],['img','Photo'],['pn','Product name'],['imp','Imported']];
 function stFilterBar(rowsAll){
@@ -5424,7 +5535,9 @@ function runFindTable(){
   if(exact&&rows.includes(exact)){rows=[exact,...rows.filter(r=>r!==exact)]}
   stLastRows=rows;
   const total=rows.length,pages=Math.max(1,Math.ceil(total/stPer));stPage=Math.min(Math.max(1,stPage),pages);
-  const show=rows.slice((stPage-1)*stPer,stPage*stPer);
+  const mob0=!DESK.matches;
+  if(mob0){const sg=JSON.stringify([q,findType,findF,stSort,shareList&&shareList.keys.size]);if(sg!==stMSig){stMSig=sg;stMShown=30}}
+  const show=mob0?rows.slice(0,stMShown):rows.slice((stPage-1)*stPer,stPage*stPer);
   $('findNote').innerHTML=sharedBanner()+(exact?`<b class="ok-t">✓ ${esc(exact.barcode||exact.key)} is in stock.</b> Press Enter to price it. `:q&&!total?`<b class="bad-t">✗ Not in stock.</b> No item matches “${esc(q)}”. `:'')+
     `<span class="st-count"><b>${total.toLocaleString('en-IN')}</b> item${total===1?'':'s'} found${total<all.length?` <small>of ${all.length.toLocaleString('en-IN')}</small>`:''}</span>`+
     `<span class="st-tools"><label>Sort by <select id="stSortSel">${ST_ALL.filter(([c])=>c!=='img'&&(!ST_ADMIN.includes(c)||can('pdHidden'))&&(!['fv','save'].includes(c)||can('fva'))).map(([c,l])=>`<option value="${c}"${stSort.k===c?' selected':''}>${l}${['mk'].includes(c)?' (₹)':''}</option>`).join('')}</select></label><button type="button" class="st-dir" id="stDir" aria-label="${stSort.d>0?'Ascending, change to descending':'Descending, change to ascending'}" title="${stSort.d>0?'Low to high / A to Z':'High to low / Z to A'}">${ST_SORT_NUM.includes(stSort.k)?(stSort.d>0?'0→9':'9→0'):(stSort.d>0?'A→Z':'Z→A')}<span aria-hidden="true">${stSort.d>0?'↑':'↓'}</span></button><button type="button" class="btn sm st-colb" id="stColsB">Columns</button>${can('export')?'<button type="button" class="btn sm st-colb" id="stXlsx">Export Excel</button>':''}<button type="button" class="st-view${stGrid?'':' on'}" id="stList" aria-label="List view" aria-pressed="${!stGrid}">${'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>'}</button><button type="button" class="st-view${stGrid?' on':''}" id="stGridB" aria-label="Photo grid" aria-pressed="${stGrid}">${'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>'}</button></span>`;
@@ -5439,24 +5552,29 @@ function runFindTable(){
   const mbody=`<div class="st-mlist">${show.map(r=>`<div class="mr${stSel.has(r.key)?' sel':''}" data-k="${esc(r.key)}"><label class="stg-ck mr-ck"><input type="checkbox" data-sel="${esc(r.key)}"${stSel.has(r.key)?' checked':''} aria-label="Select ${esc(r.barcode||r.key)}"></label><div class="st-img mr-img" data-img="${esc(r.key)}">${icoFor(r.category||r.item||'')}</div>
     <div class="mr-t"><b>${esc(pnameOf(r)||r.item||r.category||'Item')}</b><small>${esc([pnameOf(r)?r.item:'',r.category&&r.category!==r.item?r.category:'',PLABEL[caratToPurity(r.carat)]||r.carat||''].filter(Boolean).join(' · '))}</small><small class="mr-k">${esc(r.barcode||r.key)} · ${W(r.gw)} g${num(r.dw)>0?` · ${fmtN(num(r.dw))} ct`:''}</small>${shopA(r,true)}</div>
     <div class="mr-p"><b>${PL(r)}</b>${FV(r)?`<small class="mr-fv">${FV(r)}</small>`:''}</div></div>`).join('')||'<p class="note">No items match these filters.</p>'}</div>`;
-  el.innerHTML=(mob?mbody:body)+stPager(total);
+  el.innerHTML=mob?mbody+(total>show.length?`<button type="button" class="btn stm-moreb" id="stmMoreB">Show ${Math.min(30,total-show.length)} more <small>· ${show.length} of ${total.toLocaleString('en-IN')}</small></button>`:''):body+stPager(total);
+  document.body.classList.toggle('stm-sel',mob&&stMSelMode);if(mob)stmBar(total);
+  if($('stmMoreB'))$('stmMoreB').onclick=()=>{stMShown+=30;runFindTable()};
   const price=key=>{const r=stockMap.get(key);if(r){setView('home');useScannedCode(r.barcode||r.key);paintBarcode()}};
   el.querySelectorAll('th[data-c]').forEach(th=>th.onclick=()=>{const c=th.dataset.c;if(c==='img'||c==='act')return;stSort=stSort.k===c?{k:c,d:-stSort.d}:{k:c,d:1};store.set('stSort',stSort);runFindTable()});
   wireSel(el,show);el.querySelectorAll('[data-wa]').forEach(b=>b.onclick=e=>{e.stopPropagation();const r=stockMap.get(b.dataset.wa);if(r)openShareSel([r])});
-  el.querySelectorAll('.mr').forEach(m=>m.onclick=e=>{if(e.target.closest('.stg-ck,a'))return;const r=stockMap.get(m.dataset.k);if(r){$('findQ').value=r.barcode||r.key;runFind();window.scrollTo(0,0)}});
+  el.querySelectorAll('.mr').forEach(m=>{let lp=0;
+    m.onclick=e=>{if(e.target.closest('.stg-ck,a'))return;if(stMSelMode){const c=m.querySelector('[data-sel]');if(c){c.checked=!c.checked;c.onchange()}return}const r=stockMap.get(m.dataset.k);if(r)stmItem(r)};
+    m.addEventListener('touchstart',()=>{if(!can('stSelect'))return;lp=setTimeout(()=>{lp=-1;if(!stMSelMode){stMSelMode=true;stSel.add(m.dataset.k);runFindTable();paintSelBar();try{navigator.vibrate&&navigator.vibrate(20)}catch(e){}}},550)},{passive:true});
+    ['touchend','touchmove','touchcancel'].forEach(ev=>m.addEventListener(ev,e=>{if(lp>0)clearTimeout(lp);if(lp===-1&&ev==='touchend'){e.preventDefault()}lp=0}))});
   el.querySelectorAll('tbody tr,.stg-c').forEach(tr=>{tr.onclick=e=>{if(e.target.closest('[data-price],[data-ed],[data-wa],.st-ck,.stg-ck'))return;price(tr.dataset.k)};tr.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();price(tr.dataset.k)}else if(e.key==='ArrowDown'&&tr.nextElementSibling){e.preventDefault();tr.nextElementSibling.focus()}else if(e.key==='ArrowUp'){e.preventDefault();(tr.previousElementSibling||$('findQ')).focus()}}});
   el.querySelectorAll('[data-price]').forEach(b=>b.onclick=()=>price(b.dataset.price));
   el.querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>{const r=stockMap.get(b.dataset.ed);if(r)stockForm(r)});
   el.querySelectorAll('[data-pg]').forEach(b=>b.onclick=()=>{stPage=+b.dataset.pg;runFindTable();$('findQ').scrollIntoView({block:'nearest'})});
-  $('stPer').onchange=()=>{stPer=+$('stPer').value;stPage=1;runFindTable()};
-  $('stSortSel').onchange=()=>{const k=$('stSortSel').value;stSort={k,d:['price','fv','save','gw','nw','sa','mk','dw','dq','labelDate'].includes(k)?-1:1};store.set('stSort',stSort);runFindTable()};
-  $('stDir').onclick=()=>{stSort={k:stSort.k,d:-stSort.d};store.set('stSort',stSort);runFindTable()};
+  if($('stPer'))$('stPer').onchange=()=>{stPer=+$('stPer').value;stPage=1;runFindTable()};
+  if($('stSortSel'))$('stSortSel').onchange=()=>{const k=$('stSortSel').value;stSort={k,d:['price','fv','save','gw','nw','sa','mk','dw','dq','labelDate'].includes(k)?-1:1};store.set('stSort',stSort);runFindTable()};
+  if($('stDir'))$('stDir').onclick=()=>{stSort={k:stSort.k,d:-stSort.d};store.set('stSort',stSort);runFindTable()};
   if($('stColsB'))$('stColsB').onclick=stColsForm;if($('stXlsx'))$('stXlsx').onclick=()=>withPerm('stExport','Needs permission: Export Search to Excel.',()=>stExport(rows));
-  $('stList').onclick=()=>{stGrid=false;runFindTable()};$('stGridB').onclick=()=>{stGrid=true;runFindTable()};
+  if($('stList'))$('stList').onclick=()=>{stGrid=false;runFindTable()};if($('stGridB'))$('stGridB').onclick=()=>{stGrid=true;runFindTable()};
   el.querySelectorAll('[data-img]').forEach(d=>{const k=d.dataset.img;if(!imgIdx[k]&&!imgMem.get(k))return;getProdImg(k).then(u=>{if(u)d.innerHTML=`<img src="${u}" alt="">`})});
 }
 $('findQ').addEventListener('keydown',e=>{
-  if(!DESK.matches)return;
+  if(!DESK.matches){if(e.key==='Enter'&&document.body.classList.contains('stm')){const r=findStock($('findQ').value.trim());if(r){e.preventDefault();$('findQ').blur();stmItem(r)}}return}
   if(e.key==='Enter'){e.preventDefault();const r=findStock($('findQ').value.trim());if(r){setView('home');useScannedCode(r.barcode||r.key);paintBarcode()}else{const f=$('findList').querySelector('tbody tr');if(f)f.focus()}}
   else if(e.key==='ArrowDown'){const f=$('findList').querySelector('tbody tr');if(f){e.preventDefault();f.focus()}}
 });
@@ -6418,7 +6536,7 @@ $('expPdf').onclick=()=>withPerm('export','Only an admin can export the database
 // Search stock: is a label available?
 function openFind(q){setView('search');if(sync.key&&!openFind.pulled){openFind.pulled=1;pullImgIdx().then(runFind)}if(q!=null)$('findQ').value=q;runFind();setTimeout(()=>$('findQ').focus(),80)}
 function runFind(){
-  if(DESK.matches||(!$('findQ').value.trim()&&stockMap.size&&can('stockList'))){document.body.classList.toggle('stm',!DESK.matches);runFindTable();return}
+  if(DESK.matches||(stockMap.size&&can('stockList'))){document.body.classList.toggle('stm',!DESK.matches);runFindTable();return}
   document.body.classList.remove('stm');
   $('findList').classList.remove('st-tbl');
   const q=$('findQ').value.trim(),k=keyOf(q),el=$('findList');
@@ -6461,7 +6579,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.8.6',APP_BUILD='__BUILD__';
+const APP_VERSION='1.8.7',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------
