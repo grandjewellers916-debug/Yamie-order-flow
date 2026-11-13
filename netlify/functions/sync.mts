@@ -61,11 +61,11 @@ function cleanRow(r: any) {
   return o.key ? o : null
 }
 // Permissions an admin can give to a role (admin always has all)
-const PERMS = ["quotesList", "qsCust", "qsSale", "qsItems", "qsUrd", "qsSr", "qsAdv", "qsSum", "qsClose", "qsWa", "suppliers", "search", "stFilters", "stRanges", "stSelect", "stExport", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv", "shareCost", "stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "imgDel", "imgBulk", "stockList", "share", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "stockBulk", "approve", "leads", "textSize", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows", "pdHidden", "sync", "roles", "users", "settings"]
+const PERMS = ["webApp", "qPrint", "shareStatus", "quotesList", "qsCust", "qsSale", "qsItems", "qsUrd", "qsSr", "qsAdv", "qsSum", "qsClose", "qsWa", "suppliers", "search", "stFilters", "stRanges", "stSelect", "stExport", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv", "shareCost", "stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "imgDel", "imgBulk", "stockList", "share", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "stockBulk", "approve", "leads", "textSize", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows", "pdHidden", "sync", "roles", "users", "settings"]
 const SETTINGS_PERMS = ["suppliers", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows"]
 const DEFAULT_ROLES = [
-  { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "images", "imgDel", "imgBulk", "stockList", "approve", "leads", "share", "pdHidden", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "stockBulk", "suppliers", "quotesList", "qsCust", "qsSale", "qsItems", "qsUrd", "qsSr", "qsAdv", "qsSum", "qsClose", "qsWa", "search", "stFilters", "stRanges", "stSelect", "stExport", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv", "shareCost"] },
-  { id: "staff", name: "Staff", perms: ["rates", "closeSale", "cancelQuote", "share", "fva", "stockList", "quotesList", "qsCust", "qsSale", "qsItems", "qsUrd", "qsSr", "qsAdv", "qsSum", "qsClose", "qsWa", "search", "stFilters", "stRanges", "stSelect", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv"] },
+  { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "images", "imgDel", "imgBulk", "stockList", "approve", "leads", "share", "pdHidden", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "stockBulk", "suppliers", "quotesList", "qsCust", "qsSale", "qsItems", "qsUrd", "qsSr", "qsAdv", "qsSum", "qsClose", "qsWa", "search", "stFilters", "stRanges", "stSelect", "stExport", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv", "shareCost", "webApp", "qPrint", "shareStatus"] },
+  { id: "staff", name: "Staff", perms: ["rates", "closeSale", "cancelQuote", "share", "fva", "stockList", "quotesList", "qsCust", "qsSale", "qsItems", "qsUrd", "qsSr", "qsAdv", "qsSum", "qsClose", "qsWa", "search", "stFilters", "stRanges", "stSelect", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv", "qPrint", "shareStatus"] },
 ]
 // A quote as the app keeps it, minus anything large (photos stay on the phone that took them)
 function cleanQuote(q: any) {
@@ -153,6 +153,16 @@ export default async (req: Request) => {
   // Reports: roles that give making discounts (managers) can see them (once)
   // v1.8.6: search and sharing functions became permissions; existing roles keep what they could do (once)
   // v1.8.14: quote page steps and the quotations tab became permissions; every role keeps them (once)
+  // v1.8.15: print, status card for every role; the web version only for roles that manage (users / stock edit / reports) (once)
+  if (!(meta as any).v1815) {
+    let ch = false
+    for (const r of roles) if (Array.isArray(r?.perms)) {
+      for (const p of ["qPrint", "shareStatus"]) if (!r.perms.includes(p)) { r.perms.push(p); ch = true }
+      if (["users", "stockEdit", "reports"].some(p => r.perms.includes(p)) && !r.perms.includes("webApp")) { r.perms.push("webApp"); ch = true }
+    }
+    if (ch && (await st.get("roles"))) { await st.setJSON("roles", roles); meta.users = Date.now() }
+    ;(meta as any).v1815 = 1; await saveMeta()
+  }
   if (!(meta as any).v1814) {
     let ch = false
     for (const r of roles) if (Array.isArray(r?.perms)) for (const p of ["quotesList", "qsCust", "qsSale", "qsItems", "qsUrd", "qsSr", "qsAdv", "qsSum", "qsClose", "qsWa"]) if (!r.perms.includes(p)) { r.perms.push(p); ch = true }

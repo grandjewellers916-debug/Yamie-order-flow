@@ -12,6 +12,8 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.print.PrintAttributes
+import android.print.PrintManager
 import android.util.Base64
 import android.webkit.JavascriptInterface
 import android.webkit.ValueCallback
@@ -42,6 +44,8 @@ import kotlin.concurrent.thread
 class MainActivity : ComponentActivity() {
 
     private lateinit var web: WebView
+    private lateinit var assetLoader: WebViewAssetLoader
+    private var printView: WebView? = null   // kept until the print job is handed over
     private var pendingPhoto: Uri? = null
     private val recognizer by lazy { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
     private val barcodes by lazy { BarcodeScanning.getClient() }
@@ -80,7 +84,7 @@ class MainActivity : ComponentActivity() {
             android.content.pm.ActivityInfo.SCREEN_ORIENTATION_FULL_USER
         else android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
-        val assetLoader = WebViewAssetLoader.Builder()
+        assetLoader = WebViewAssetLoader.Builder()
             .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
             .build()
 
@@ -360,6 +364,31 @@ class MainActivity : ComponentActivity() {
         @JavascriptInterface
         fun openUrl(url: String) {
             runOnUiThread { try { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) } catch (e: Exception) {} }
+        }
+
+        // V1.8.15 print the quote (A4) through Android printing: any network / Wi-Fi printer the phone sees (Mopria, HP, Epson… print services)
+        @JavascriptInterface
+        fun printHtml(html: String, job: String) {
+            runOnUiThread {
+                try {
+                    val v = WebView(this@MainActivity)
+                    v.settings.javaScriptEnabled = false
+                    v.webViewClient = object : WebViewClient() {
+                        override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
+                            assetLoader.shouldInterceptRequest(request.url)
+                        override fun onPageFinished(view: WebView, url: String) {
+                            val pm = getSystemService(Context.PRINT_SERVICE) as PrintManager
+                            val name = job.ifBlank { "Quotation" }
+                            pm.print(name, view.createPrintDocumentAdapter(name),
+                                PrintAttributes.Builder().setMediaSize(PrintAttributes.MediaSize.ISO_A4).build())
+                        }
+                    }
+                    printView = v
+                    v.loadDataWithBaseURL("https://$APP_HOST/assets/", html, "text/html", "utf-8", null)
+                } catch (e: Exception) {
+                    web.evaluateJavascript("window.onNativePrintError && window.onNativePrintError()", null)
+                }
+            }
         }
 
         @JavascriptInterface

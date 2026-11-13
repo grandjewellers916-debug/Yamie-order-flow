@@ -971,6 +971,44 @@ body.stm .mr-img{width:52px;height:52px}body.stm .mr-t b{font-size:14.5px}body.s
 @media (max-width:760px){.sup-row{grid-template-columns:1fr 1fr 44px 30px}.sup-row input[data-k="phone"],.sup-row input[data-k="note"],.sup-row.head span:nth-child(3),.sup-row.head span:nth-child(4){display:none}}
 /* V1.8.14 quote steps */
 #bill .qs-off,#bill.qv .qs-off{display:none!important}
+/* V1.8.15 quote overview: Create Quote */
+.qw-bar.ov{display:none}
+.q-ov{display:flex;flex-direction:column;gap:14px;background:none!important;border:0!important;box-shadow:none!important;padding:0!important}
+.qov-hd{display:flex;align-items:flex-start;gap:10px}.qov-hd>div{flex:1;min-width:0}
+.qov-hd h2{margin:0;font:700 26px/1.15 var(--display);color:var(--fg)}.qov-hd p{margin:4px 0 0;color:var(--muted);font-size:14px}
+.qov-cust{display:flex;align-items:center;gap:8px;margin-top:8px;padding:0;border:0;background:none;color:var(--maroon);font:600 14px var(--body);cursor:pointer;text-align:left}
+.qov-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.qov-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:84px;padding:12px 4px;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:500 13px var(--body);box-shadow:0 2px 8px rgba(60,20,20,.06);cursor:pointer}
+.qov-tile svg{width:28px;height:28px;color:var(--maroon)}.qov-tile:active{transform:scale(.97)}
+.qov-card{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:0 2px 10px rgba(60,20,20,.06);overflow:hidden}
+.qov-ch{display:flex;align-items:center;gap:10px;padding:14px 16px}.qov-ch svg{width:24px;height:24px;color:var(--maroon);flex:none}
+.qov-ch h3{margin:0;flex:1;font:700 18px var(--display);color:var(--maroon);text-transform:none;letter-spacing:0}
+.qov-no{padding:5px 12px;border-radius:999px;background:var(--sunk);font:600 12px var(--body);color:var(--fg);white-space:nowrap}
+.qov-th,.qov-r{display:grid;grid-template-columns:16px 42px minmax(64px,1fr) 32px 44px 44px 74px 22px;align-items:center;gap:5px;padding:0 8px 0 12px}
+.qov-th{background:var(--sunk);font:600 11px var(--body);color:var(--fg);height:34px}.qov-th span:nth-child(n+4){text-align:right}.qov-th .c2{grid-column:2/4}
+.qov-r{min-height:68px;border-top:1px solid var(--line);font-size:13px}.qov-r:first-of-type{border-top:0}
+.qov-r .n{color:var(--muted)}.qov-r .ph{width:42px;height:42px;border-radius:10px;background:var(--sunk);display:grid;place-items:center;overflow:hidden}.qov-r .ph img{width:100%;height:100%;object-fit:cover}.qov-r .ph svg{width:22px;height:22px;color:var(--muted)}
+.qov-r .sk{min-width:0}.qov-r .sk b{display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.qov-r .sk small{display:block;color:var(--muted);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qov-r .v{text-align:right;font-variant-numeric:tabular-nums}.qov-r .a{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}.qov-r .a s{display:block;font-weight:400;font-size:11px;color:var(--muted)}
+.qov-r .mo{width:26px;height:36px;border:0;background:none;color:var(--fg);font:700 20px/1 var(--body);cursor:pointer;padding:0}
+.qov-empty{padding:18px 16px;color:var(--muted);font-size:14px;border-top:1px solid var(--line)}
+.qov-adj{padding:0 16px 14px}.qov-l{display:flex;align-items:center;gap:8px;min-height:46px;border-top:1px solid var(--line);font-size:15px}
+.qov-l>span:first-child{flex:1;display:flex;align-items:center;gap:8px;min-width:0}.qov-l small{color:var(--muted);font-size:12px}
+.qov-l .ed{border:0;background:none;color:var(--maroon);padding:6px;cursor:pointer;display:grid;place-items:center}.qov-l .ed svg{width:18px;height:18px}
+.qov-l b{font-variant-numeric:tabular-nums;font-weight:600}.qov-l.minus b{color:var(--fg)}.qov-l.tot b{font-weight:700}
+.qov-bal{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;padding:14px 16px;border-radius:14px;background:#FBE4E6;color:var(--maroon)}
+.qov-bal span{font:700 17px var(--display)}.qov-bal b{font:800 24px var(--display);font-variant-numeric:tabular-nums}
+.qov-bal.refund{background:#E3F4EA;color:#17663A}
+.qov-gen{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;min-height:58px;border:0;border-radius:999px;background:linear-gradient(180deg,var(--maroon),var(--band));color:#fff;font:700 19px var(--display);box-shadow:0 6px 16px rgba(110,17,21,.28);cursor:pointer}
+.qov-gen svg{width:24px;height:24px}
+.qov-more{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:10px}.qov-more .btn{min-height:46px;display:flex;align-items:center;justify-content:center;gap:8px}.qov-more svg{width:18px;height:18px}
+:root[data-theme="dark"] .qov-bal{background:#3A1E21;color:#F2B8BB}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .qov-bal{background:#3A1E21;color:#F2B8BB}}
+@media (max-width:440px){.qov-th,.qov-r{grid-template-columns:14px 38px minmax(0,1fr) 30px 42px 72px 22px;gap:5px}.qov-th .gw,.qov-r .gw{display:none}.qov-r .ph{width:38px;height:38px}.qov-tile{font-size:12px}}
+@media (min-width:1280px) and (pointer:fine){.q-ov{max-width:980px;width:100%;margin-inline:auto}.qov-th,.qov-r{grid-template-columns:20px 52px minmax(0,1fr) 70px 80px 80px 120px 30px;gap:10px;padding:0 14px 0 18px}.qov-r .ph{width:52px;height:52px}.qov-th{font-size:12px}.qov-r{font-size:14px}}
+.sc-wrap{display:flex;flex-direction:column;gap:12px;align-items:center}.sc-wrap canvas{width:min(100%,320px);height:auto;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.18)}
+.sc-opts{display:flex;flex-wrap:wrap;gap:8px 14px;justify-content:center}
+.wa-one.wa-st{margin-left:6px}
 @media (min-width:1280px) and (pointer:fine){#bill.qv{display:flex!important;flex-direction:column;gap:14px}#bill.qv>*{width:100%;max-width:none}#bill.qv>.q-side{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:14px;align-items:start}#bill.qv>.q-side:not(:has(> :not(.qs-off))),#bill.qv>.q-main:not(:has(> :not(.qs-off))),#bill.qv>.q-full:not(:has(> :not(.qs-off))){display:none}}
 #bill .q-step{display:none}
 .qw-bar{position:sticky;top:0;z-index:5;background:var(--bg,#FBF7F3);padding:8px 0 6px;margin-bottom:4px}
@@ -1954,7 +1992,7 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
   <section class="card prod" id="prodCard" data-pane="home" hidden aria-label="Product details">
     <div class="prod-head"><button class="pd-imgtog" type="button" id="pdImgTog" aria-label="Hide product image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 17-5-5-9 8"/></svg></button><span class="ph-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 3.5 7.5v9L12 21l8.5-4.5v-9z"/><path d="M3.5 7.5 12 12l8.5-4.5M12 12v9"/></svg>Product Details</span><span class="sku-chip" id="pdSku"></span></div>
     <div class="prod-body">
-      <div class="prod-tcol"><div class="prod-tile" id="pdTile"></div><a class="shop-lk" id="pdShop" href="#" target="_blank" rel="noopener" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8Z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>Shopify link</a><button type="button" class="wa-one" id="pdWa" hidden><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm4.5 12.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2l-.4-.2Z"/></svg>Share on WhatsApp</button></div>
+      <div class="prod-tcol"><div class="prod-tile" id="pdTile"></div><a class="shop-lk" id="pdShop" href="#" target="_blank" rel="noopener" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8Z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>Shopify link</a><button type="button" class="wa-one" id="pdWa" hidden><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm4.5 12.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2l-.4-.2Z"/></svg>Share on WhatsApp</button><button type="button" class="wa-one wa-st" id="pdStatus" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke-dasharray="4 2.2"/><circle cx="12" cy="12" r="4"/></svg>Status card</button></div>
       <div class="prod-info"><div class="prod-name" id="pdName"></div><dl class="specs" id="pdSpecs"></dl></div>
     </div>
     <dl class="specs specs-more" id="pdSpecs2" hidden></dl>
@@ -2037,6 +2075,22 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
       <div><small>Total Label Value</small><b id="qtLabel">—</b></div>
       <div class="sv"><small>Savings</small><b id="qtSave">—</b></div>
       <div class="np"><small>Net Payable</small><b id="qtNet">—</b></div>
+    </div>
+    <div class="card q-ov" id="qOv" data-qs="ov">
+      <div class="qov-hd"><div><h2>Create Quote</h2><p>Choose items, add adjustments and generate quote.</p><button type="button" class="qov-cust" id="qovCust"></button></div></div>
+      <div class="qov-tiles">
+        <button type="button" class="qov-tile" id="qovScan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M7.5 8v8M10.5 8v8M13.5 8v8M16.5 8v8"/></svg><span>Scan</span></button>
+        <button type="button" class="qov-tile" id="qovFind"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><span>Search</span></button>
+        <button type="button" class="qov-tile" id="qovAdd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><span>Add Item</span></button>
+        <button type="button" class="qov-tile" id="qovEdit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></svg><span>Edit Quote</span></button>
+      </div>
+      <div class="qov-card"><div class="qov-ch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 7v10l8 4 8-4V7z"/><path d="m4 7 8 4 8-4M12 11v10"/></svg><h3 id="qovN">Quoted Items (0)</h3><span class="qov-no" id="qovNo">New</span></div>
+        <div class="qov-th" role="row"><span>#</span><span class="c2">SKU / Item</span><span>Purity</span><span class="gw">Gr. Wt</span><span>Nt. Wt</span><span>Amount</span><span></span></div>
+        <div id="qovItems"></div></div>
+      <div class="qov-card"><div class="qov-ch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M8 15h2M12 15h2M16 11v4"/></svg><h3>Charges &amp; Adjustments</h3></div>
+        <div class="qov-adj"><div id="qovAdj"></div><div class="qov-bal" id="qovBal"><span id="qovBalL">Balance Amount</span><b id="qovBalV">₹0</b></div></div></div>
+      <button type="button" class="qov-gen" id="qovGen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>Generate Quote</button>
+      <div class="qov-more"><button type="button" class="btn" id="qovPrint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9V3h10v6M7 17H4v-7h16v7h-3"/><rect x="7" y="14" width="10" height="7"/></svg>Print</button><button type="button" class="btn" id="qovWa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.3-4A8 8 0 1 1 8 19z"/></svg>WhatsApp</button></div>
     </div>
     <div class="card q-lead" id="qAppr" hidden data-qs="cust items sum"><div class="qa-lead" id="qApprLead"></div></div>
     <h3 class="q-step" data-qs="cust">Customer details</h3>
@@ -3737,7 +3791,7 @@ function renderBill(keepInputs){
   if(document.activeElement!==$('qDel'))$('qDel').value=bill.delivery||'';$('qDel').readOnly=closed;
   $('qCourierWarn').hidden=!s.courierWarn;$('qCourierWarn').textContent=s.courierWarn?'⚠ '+s.courierWarn:'';
   $('qSaleNote').textContent=online?(s.courier?`${s.courier.name} · ${s.delivery?inr(s.delivery):'no charges'}`:'Choose a delivery partner'):'In the store';
-  paintSaleMode();
+  paintSaleMode();try{if(qStep==='ov')paintQOv()}catch(e){}
   [...$('qMkShow').children].forEach(b=>{const on=(b.dataset.v==='1')===(bill.showMk!==false);b.setAttribute('aria-pressed',String(on));b.setAttribute('aria-checked',String(on))});
   $('qRound').checked=bill.round!==false;$('qRound').disabled=closed;$('qRound').closest('label').hidden=!can('round');
   // box on top: label value, savings, net payable
@@ -4464,7 +4518,7 @@ function paintProduct(){
   const st=cur.stockKey&&cur.stock?cur.stock:null,name=(st&&st.category&&String(st.category).trim())||cur.item||itemFromSku(cur.sku)||'Item';
   $('pdSku').textContent='SKU: '+k;
   const showImg=imgOn();$('pdTile').hidden=!showImg;$('prodCard').classList.toggle('no-img',!showImg);$('pdImgTog').classList.toggle('off',!showImg);$('pdImgTog').setAttribute('aria-label',showImg?'Hide product image':'Show product image');
-  paintProdImg(k,name);paintShopLink(st||{key:k});{const w=$('pdWa');w.hidden=!st||!can('shareItems');w.onclick=()=>{const r=stockMap.get(k);if(r)openShareSel([r])}}
+  paintProdImg(k,name);paintShopLink(st||{key:k});{const w=$('pdWa');w.hidden=!st||!can('shareItems');w.onclick=()=>{const r=stockMap.get(k);if(r)openShareSel([r])}}{const w=$('pdStatus');w.hidden=!st||!can('shareStatus');w.onclick=()=>{const r=stockMap.get(k);if(r)openStatus(scFromStock(r))}}
   $('pdName').textContent=pnameOf(st)||name;
   const p=priceTag(cur),g=num(settings.gst)||0,ok=p.ok&&!m.length;
   const w=v=>v!=null&&v!==''&&!isNaN(num(v))?num(v).toFixed(3):'';
@@ -4853,7 +4907,7 @@ function setView(v){
   const was=document.body.dataset.view;document.body.dataset.view=v;
   $('viewTitle').textContent=VIEW_TITLE[v];$('dkTitle').textContent=VIEW_TITLE[v];$('dkSub').textContent=VIEW_SUB[v]||'';try{paintWtop()}catch(e){}{const t=$({quotes:'tabQuotes',home:'tabHome',quote:'tabQuote',settings:'tabSet',search:'tabFind',reports:'tabRep'}[v]);const g=t&&t.querySelector('svg');if(g)$('dkIco').innerHTML=g.outerHTML}$('heroBack').hidden=v==='home';
   [['tabHome','home'],['tabFind','search'],['tabQuote','quote'],['tabQuotes','quotes'],['tabSet','settings'],['tabRep','reports']].forEach(([id,k])=>$(id).classList.toggle('on',k===v));
-  if(v==='quote'){renderBill();if(sync.key)pullQuotes();try{goStep(qStep,true)}catch(e){}}
+  if(v==='quote'){renderBill();if(sync.key)pullQuotes();try{goStep(was!=='quote'?'ov':qStep,true)}catch(e){}}
   if(v==='quotes'){try{renderRecent()}catch(e){}if(sync.key)pullQuotes()}
   if(v==='reports'){$('setReports').open=true;buildReport();if(sync.key)pullQuotes().then(()=>{if(document.body.dataset.view==='reports')buildReport()}).catch(()=>{})}
   else if(was==='reports')$('setReports').open=false;
@@ -4918,35 +4972,36 @@ function deskLayout(){
   const steps=[...b.querySelectorAll(':scope > .q-step')];
   const desk=DESK.matches;
   if(desk){ // computer: items table and summary full width; below it the side panel (summary, generate, sale type, URD) and the rest
-    const full=box('q-full',[$('qAppr'),...steps,q('.q-top'),q('.q-tools'),q('.q-items')]);
+    const full=box('q-full',[$('qOv'),$('qAppr'),...steps,q('.q-top'),q('.q-tools'),q('.q-items')]);
     const main=box('q-main',[$('qDiscCard'),q('.q-photos'),$('qClose')]);
     const side=box('q-side',[q('.q-sum'),q('.q-acts'),$('qSale'),$('qDed')]);
     b.prepend($('qTop'),full,main,side);return;
   }
-  const main=box('q-main',[$('qTop'),$('qAppr'),...steps,q('.q-top'),q('.q-tools'),q('.q-items'),box('q-pair',[$('qDiscCard'),desk?null:q('.q-sum')]),desk?null:q('.q-acts')]);
+  const main=box('q-main',[$('qOv'),$('qTop'),$('qAppr'),...steps,q('.q-top'),q('.q-tools'),q('.q-items'),box('q-pair',[$('qDiscCard'),desk?null:q('.q-sum')]),desk?null:q('.q-acts')]);
   const side=box('q-side',[desk?q('.q-sum'):null,desk?q('.q-acts'):null,$('qSale'),$('qDed'),q('.q-photos'),$('qClose')]);
   b.prepend(main,side);
 }
 WIDE.addEventListener?WIDE.addEventListener('change',deskLayout):WIDE.addListener(deskLayout);
 DESK.addEventListener?DESK.addEventListener('change',()=>{deskLayout();try{if(document.body.dataset.view==='search')runFind();if(document.body.dataset.view==='reports'&&!DESK.matches)setView('settings')}catch(e){}}):DESK.addListener(deskLayout);
 // ---- V1.8.14 quote page in steps: one step at a time, swipe or Back / Next; each step needs its permission ----
-const QSTEPS=[['cust','Customer','qsCust'],['sale','Sale type','qsSale'],['items','Items','qsItems'],['urd','URD · buy-back','qsUrd'],['sr','Sales return','qsSr'],['adv','Advance','qsAdv'],['sum','Summary','qsSum'],['close','Close sale','qsClose'],['wa','WhatsApp','qsWa']];
+const QSTEPS=[['ov','Quote',''],['cust','Customer','qsCust'],['sale','Sale type','qsSale'],['items','Items','qsItems'],['urd','URD · buy-back','qsUrd'],['sr','Sales return','qsSr'],['adv','Advance','qsAdv'],['sum','Summary','qsSum'],['close','Close sale','qsClose'],['wa','WhatsApp','qsWa']];
 let qStep=store.get('qStep','cust');
-function qStepsOn(){return QSTEPS.filter(([k,,p])=>can(p)&&!(bill.channel==='online'&&(k==='urd'||k==='sr')))}
+function qStepsOn(){return QSTEPS.filter(([k,,p])=>(!p||can(p))&&!(bill.channel==='online'&&(k==='urd'||k==='sr')))}
 function qDone(k){const s=(()=>{try{return totals()}catch(e){return {}}})();
-  return {cust:!!(bill.cust&&(bill.cust.name||bill.cust.phone)),sale:!!bill.channel,items:bill.items.length>0,urd:bill.oldGold.length>0,sr:bill.returns.length>0,adv:(bill.advances||[]).length>0,sum:!!(bill.no||bill.pno),close:bill.status==='closed'||bill.status==='cancelled',wa:false}[k]}
+  return {cust:!!(bill.cust&&(bill.cust.name||bill.cust.phone)),sale:!!bill.channel,items:bill.items.length>0,urd:bill.oldGold.length>0,sr:bill.returns.length>0,adv:(bill.advances||[]).length>0,ov:bill.items.length>0,sum:!!(bill.no||bill.pno),close:bill.status==='closed'||bill.status==='cancelled',wa:false}[k]}
 function goStep(k,quiet){const on=qStepsOn();if(!on.length)return;if(!on.some(x=>x[0]===k))k=on[0][0];qStep=k;store.set('qStep',k);paintQSteps();if(!quiet)window.scrollTo({top:0,behavior:'smooth'})}
 function paintQSteps(){
   const bar=$('qSteps');if(!bar)return;const on=qStepsOn();
-  if(!on.length){bar.innerHTML='<p class="note">No quote steps are open for your role. Ask an admin.</p>';document.querySelectorAll('[data-qs]').forEach(e=>e.classList.add('qs-off'));$('qNav').hidden=true;return}
+  if(on.length<2){bar.classList.remove('ov');bar.innerHTML='<p class="note">No quote steps are open for your role. Ask an admin.</p>';document.querySelectorAll('[data-qs]').forEach(e=>e.classList.add('qs-off'));$('qNav').hidden=true;return}
   if(!on.some(x=>x[0]===qStep))qStep=on[0][0];
   const i=on.findIndex(x=>x[0]===qStep),s=(()=>{try{return totals()}catch(e){return null}})();
+  bar.classList.toggle('ov',qStep==='ov');if(qStep==='ov')try{paintQOv()}catch(e){console.error(e)}
   bar.innerHTML=`<div class="qw-top"><div class="qw-t"><small>Step ${i+1} of ${on.length}</small><b>${esc(on[i][1])}</b></div><div class="qw-q"><small>${esc(quoteLabel(bill))}${bill.cust&&bill.cust.name?' · '+esc(bill.cust.name):''}</small><b>${s?inr(s.net):'—'}</b></div></div>
     <div class="qw-chips" role="tablist" aria-label="Quote steps">${on.map(([k,l],j)=>`<button type="button" role="tab" class="qw-c${k===qStep?' on':''}${qDone(k)?' done':''}" data-st="${k}" aria-selected="${k===qStep}"><span>${qDone(k)&&k!==qStep?'✓':j+1}</span>${esc(l)}</button>`).join('')}</div>`;
   bar.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>goStep(b.dataset.st));
   const cur=bar.querySelector('.qw-c.on');if(cur)cur.scrollIntoView({block:'nearest',inline:'center'});
   document.querySelectorAll('#bill [data-qs]').forEach(e=>e.classList.toggle('qs-off',!e.dataset.qs.split(' ').includes(qStep)));
-  const nav=$('qNav');nav.hidden=false;
+  const nav=$('qNav');nav.hidden=qStep==='ov';
   $('qBack').disabled=i<=0;$('qNext').disabled=i>=on.length-1;
   $('qBack').innerHTML=i>0?`‹ ${esc(on[i-1][1])}`:'‹ Back';$('qNext').innerHTML=i<on.length-1?`${esc(on[i+1][1])} ›`:'Done';
 }
@@ -4959,6 +5014,157 @@ $('qNext').onclick=()=>{const on=qStepsOn(),i=on.findIndex(x=>x[0]===qStep);if(i
 })();
 // the quotations list is its own tab; picking one makes it the current quote
 $('tabQuotes').onclick=()=>withPerm('quotesList','Needs permission: All quotations.',()=>setView('quotes'));
+// ===================== V1.8.15 quote overview (Create Quote) =====================
+function paintQOv(){
+  const el=$('qOv');if(!el)return;
+  const s=(()=>{try{return totals()}catch(e){return null}})(),closed=isClosed(),G=1+gstPct()/100,n=bill.items.length;
+  const stepOk=k=>qStepsOn().some(x=>x[0]===k);
+  $('qovN').textContent=`Quoted Items (${n})`;$('qovNo').textContent=quoteLabel(bill);
+  const c=bill.cust||{};$('qovCust').innerHTML=(c.name||c.phone)?`${esc(c.name||'Customer')}${c.phone?' · '+esc(c.phone):''} <span aria-hidden="true">✎</span>`:(stepOk('cust')?'+ Add customer':'');
+  $('qovCust').hidden=!(c.name||c.phone||stepOk('cust'));
+  $('qovItems').innerHTML=n?bill.items.map((t,i)=>{const p=priceTag(t),q=quotedValue(t,p),lp=r50(p.value*G),qp=r50(q*G),k=keyOf(t.sku),st=t.stock||{};
+    return `<div class="qov-r" data-id="${t.id}"><span class="n">${i+1}</span><span class="ph" data-ph="${esc(k)}">${icoFor(st.category||t.item||'')}</span>
+      <span class="sk"><b>${esc(k||'—')}</b><small>${esc((stockMap.get(k)&&pnameOf(stockMap.get(k)))||st.category||t.item||'')}</small></span>
+      <span class="v">${esc(PLABEL[t.purity]||'—')}</span><span class="v gw">${fmtW(num(t.gw))}</span><span class="v">${fmtW(num(t.nw))}</span>
+      <span class="a">${p.ok?(qp<lp?`<s>${inr(lp)}</s>`:'')+inr(qp):'—'}</span><button type="button" class="mo" data-mo="${t.id}" aria-label="More for item ${i+1}">⋮</button></div>`}).join('')
+    :`<div class="qov-empty">No items yet. Tap Scan, Search or Add Item.</div>`;
+  $('qovItems').querySelectorAll('[data-ph]').forEach(d=>{const k=d.dataset.ph;if(!k)return;getProdImg(k).then(u=>{if(u)d.innerHTML=`<img src="${u}" alt="">`}).catch(()=>{})});
+  $('qovItems').querySelectorAll('[data-mo]').forEach(b=>b.onclick=()=>qovItemMenu(b.dataset.mo));
+  const L=[];
+  if(s){
+    // total = the item amounts shown above (label price, incl. GST) + delivery; discount = everything taken off down to the final amount
+    const tot=bill.items.reduce((a,t)=>{const p=priceTag(t);return a+(p.ok?r50(p.value*G):0)},0)+(s.delivery||0)*G,disc=Math.max(0,tot-s.final);
+    L.push(['Total value (incl. GST)',inr(Math.round(tot)),'tot','items']);
+    L.push(['Discount',disc>=1?'−'+inr(Math.round(disc)):inr(0),'minus','items']);
+    if(bill.channel!=='online'){
+      if(stepOk('urd')||s.old)L.push([`URD · old gold${s.oldW?` <small>${fmtW(s.oldW)} g</small>`:''}`,s.old?'−'+inr(s.old):inr(0),'minus','urd',1]);
+      if(s.bb)L.push([`Diamond / stone buy-back <small>${fmtN(s.bbCt)} ct</small>`,'−'+inr(s.bb),'minus','urd',1]);
+      if(stepOk('sr')||s.ret)L.push(['Sales return',s.ret?'−'+inr(s.ret):inr(0),'minus','sr']);
+    }
+    L.push(['Advance',s.adv?'−'+inr(s.adv):inr(0),'minus','adv']);
+    if(stepOk('sale'))L.push([`Sale type <small>${bill.channel==='online'?'Online enquiry':'Store walk-in'}</small>`,'','','sale',1]);
+  }
+  $('qovAdj').innerHTML=L.map(([l,v,c,k,raw])=>`<div class="qov-l ${c}"><span>${raw?l:esc(l).replace(/&lt;small&gt;.*$/,'')}${!closed&&stepOk(k)?`<button type="button" class="ed" data-go="${k}" aria-label="Change">${IC_EDIT}</button>`:''}</span><b>${esc(v)}</b></div>`).join('');
+  $('qovAdj').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>goStep(b.dataset.go));
+  const net=s?s.net:0,ref=net<0;$('qovBal').classList.toggle('refund',ref);$('qovBalL').textContent=ref?'Refund to customer':'Balance Amount';$('qovBalV').textContent=inr(Math.abs(net));
+  $('qovGen').hidden=closed;$('qovPrint').hidden=!can('qPrint');$('qovWa').hidden=!stepOk('wa');
+  ['qovScan','qovAdd','qovEdit'].forEach(id=>$(id).disabled=false);$('qovFind').hidden=!can('search');$('qovEdit').hidden=!stepOk('items');
+}
+function qovItemMenu(id){
+  const t=bill.items.find(x=>x.id===id);if(!t)return;const k=keyOf(t.sku),closed=isClosed();
+  const b=[];
+  if(can('shareStatus'))b.push({label:'Status card · WhatsApp',cls:'primary',run:()=>openStatus(scFromItem(t))});
+  if(!closed){b.push({label:'Edit item',run:()=>{const x=$('items').querySelector(`[data-edit="${id}"]`);if(x)x.click()}});
+    b.push({label:'Remove',run:()=>{const x=$('items').querySelector(`[data-del="${id}"]`);if(x)x.click();paintQOv()}})}
+  if(stockMap.get(k))b.push({label:'Product details',run:()=>stmItem(stockMap.get(k))});
+  b.push({label:'Close',cls:'ghost'});
+  showModal(`${k||'Item'} · ${(t.stock&&t.stock.category)||t.item||''}`,'',b);$('modal').classList.add('stm-sheet');
+}
+$('qovScan').onclick=()=>$('qtScan').click();
+$('qovAdd').onclick=()=>$('qtManual').click();
+$('qovFind').onclick=()=>withPerm('search','Needs permission: Search.',()=>setView('search'));
+$('qovEdit').onclick=()=>goStep('items');
+$('qovCust').onclick=()=>goStep('cust');
+$('qovGen').onclick=()=>$('saveBill').click();
+$('qovPrint').onclick=()=>withPerm('qPrint','Needs permission: Print quote.',()=>openPrint());
+$('qovWa').onclick=()=>goStep('wa');
+
+// ===================== V1.8.15 status card: 1080 × 1920 picture for WhatsApp Status =====================
+function scFromStock(r){const o=stPrice(r),fv=can('fva')?o.fv:NaN;
+  return {key:r.key,sku:r.barcode||r.key,title:shTitle(r),pur:PLABEL[caratToPurity(r.carat)]||String(r.carat||''),gw:num(r.gw),nw:num(r.nw),sw:num(r.dw),
+    lp:o.lp,offer:!isNaN(fv)&&fv<o.lp?fv:o.lp,fl:!isNaN(fv)&&fv<o.lp?o.fl:''}}
+function scFromItem(t){const p=priceTag(t),q=quotedValue(t,p),G=1+gstPct()/100,k=keyOf(t.sku),r=stockMap.get(k),st=t.stock||r||{};
+  const lp=r50(p.value*G);let offer=r50(q*G),fl=offer<lp?'Your price':'';
+  if(offer>=lp&&can('fva')){const fv=fvaPrice(t,p);if(fv){const f=r50(fv.value*G);if(f<lp){offer=f;fl=fv.label}}}
+  return {key:k,sku:k,title:(r&&shTitle(r))||st.category||t.item||'Item',pur:PLABEL[t.purity]||'',gw:num(t.gw),nw:num(t.nw),sw:num(st.dw),lp,offer,fl}}
+function scIcon(c,kind,x,y,sz,col){c.save();c.strokeStyle=col;c.lineWidth=3;c.lineJoin='round';c.lineCap='round';c.beginPath();const u=sz/24,P=(a,b)=>[x+a*u,y+b*u];
+  const L=(pts,close)=>{pts.forEach((q,i)=>{const [a,b]=P(...q);i?c.lineTo(a,b):c.moveTo(a,b)});if(close)c.closePath()};
+  if(kind==='gem'){L([[6,4],[18,4],[22,9],[12,21],[2,9]],1);c.stroke();c.beginPath();L([[2,9],[22,9]]);c.moveTo(...P(9,4));c.lineTo(...P(12,21));c.lineTo(...P(15,4))}
+  else if(kind==='wt'){L([[5,21],[19,21],[17,9],[7,9]],1);c.stroke();c.beginPath();c.arc(...P(12,6),3*u,0,Math.PI*2)}
+  else{L([[3,20],[21,20],[19,14],[5,14]],1);c.stroke();c.beginPath();L([[7,14],[17,14],[15,8],[9,8]],1)}
+  c.stroke();c.restore()}
+async function statusCard(d,imgs){
+  try{await Promise.all(['500 30px Jost','600 30px Jost','700 30px Jost','800 30px Jost'].map(x=>document.fonts.load(x)))}catch(e){}
+  const F=(w,px)=>`${w} ${px}px Jost, "Segoe UI", Roboto, sans-serif`,css=getComputedStyle(document.documentElement);
+  const MAROON=(css.getPropertyValue('--maroon')||'#8F171B').trim(),GOLD='#D7AE5F',INK='#2A1416',MUTED='#7A6866',GREEN='#1E7A3A';
+  const W=1080,H=1920,cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');
+  // background: deep maroon with a soft glow and gold swooshes
+  let g=c.createLinearGradient(0,0,W,H);g.addColorStop(0,'#3E0609');g.addColorStop(.45,'#8E1520');g.addColorStop(1,'#330407');c.fillStyle=g;c.fillRect(0,0,W,H);
+  g=c.createRadialGradient(W*.6,H*.32,40,W*.6,H*.32,900);g.addColorStop(0,'rgba(220,40,60,.35)');g.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=g;c.fillRect(0,0,W,H);
+  const sw=(x0,y0,cx1,cy1,cx2,cy2,x1,y1,w,a)=>{const lg=c.createLinearGradient(x0,y0,x1,y1);lg.addColorStop(0,'rgba(215,174,95,0)');lg.addColorStop(.5,`rgba(240,200,120,${a})`);lg.addColorStop(1,'rgba(215,174,95,0)');c.strokeStyle=lg;c.lineWidth=w;c.beginPath();c.moveTo(x0,y0);c.bezierCurveTo(cx1,cy1,cx2,cy2,x1,y1);c.stroke()};
+  sw(-40,330,120,180,260,60,420,-30,5,.95);sw(-40,380,160,220,300,90,480,-20,2,.6);sw(1120,1620,900,1720,820,1850,620,1960,5,.95);sw(1120,1680,940,1760,860,1880,700,1980,2,.6);
+  // logo + date
+  const logo=await shLogoImg();let y=70;
+  if(logo){const sc=Math.min(640/logo.width,170/logo.height),lw=logo.width*sc,lh=logo.height*sc;c.drawImage(logo,(W-lw)/2,y,lw,lh);y+=lh}
+  else{c.fillStyle='#fff';c.font=F(700,84);c.textAlign='center';c.fillText(BRAND.name.toUpperCase(),W/2,y+90);c.textAlign='left';y+=110}
+  c.textAlign='center';c.fillStyle='rgba(255,255,255,.88)';c.font=F(500,34);
+  const dt=`Today's price · ${new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}`;c.fillText(dt,W/2,y+52);
+  const tw=c.measureText(dt).width;c.strokeStyle=GOLD;c.lineWidth=2;c.beginPath();c.moveTo(W/2-tw/2-90,y+40);c.lineTo(W/2-tw/2-24,y+40);c.moveTo(W/2+tw/2+24,y+40);c.lineTo(W/2+tw/2+90,y+40);c.stroke();c.textAlign='left';
+  // white card
+  const cx=70,cy=Math.max(330,y+90),cw=W-140,ch=H-cy-80,R=44;
+  c.save();c.shadowColor='rgba(0,0,0,.35)';c.shadowBlur=40;c.shadowOffsetY=12;c.fillStyle='#FFFAF6';rrect(c,cx,cy,cw,ch,R);c.fill();c.restore();
+  c.strokeStyle='rgba(215,174,95,.9)';c.lineWidth=3;rrect(c,cx,cy,cw,ch,R);c.stroke();
+  const ph=imgs[0]||null,phH=Math.round(cw*.66);
+  c.save();rrect(c,cx,cy,cw,ch,R);c.clip();
+  if(ph){c.fillStyle='#F4EDE6';c.fillRect(cx,cy,cw,phH);const s2=Math.max(cw/ph.width,phH/ph.height),dw=ph.width*s2,dh=ph.height*s2;c.drawImage(ph,cx+(cw-dw)/2,cy+(phH-dh)/2,dw,dh)}
+  else{const pg=c.createLinearGradient(0,cy,0,cy+phH);pg.addColorStop(0,'#F6EEE6');pg.addColorStop(1,'#EBDDD0');c.fillStyle=pg;c.fillRect(cx,cy,cw,phH);scIcon(c,'gem',W/2-90,cy+phH/2-110,180,'#C9A77A')}
+  c.restore();
+  // heart
+  c.save();c.fillStyle='#fff';c.shadowColor='rgba(0,0,0,.18)';c.shadowBlur=14;c.beginPath();c.arc(cx+cw-70,cy+70,44,0,Math.PI*2);c.fill();c.restore();
+  {const hx=cx+cw-70,hy=cy+78;c.strokeStyle=MAROON;c.lineWidth=4;c.beginPath();c.moveTo(hx,hy+16);c.bezierCurveTo(hx-34,hy-6,hx-20,hy-34,hx,hy-16);c.bezierCurveTo(hx+20,hy-34,hx+34,hy-6,hx,hy+16);c.stroke()}
+  let yy=cy+phH+36;const X=cx+44,IW=cw-88;
+  // SKU chip
+  c.font=F(500,32);const a1='SKU: ',a2=String(d.sku||'');c.font=F(500,32);const w1=c.measureText(a1).width;c.font=F(700,32);const w2=c.measureText(a2).width;
+  c.fillStyle='#F8E3E3';rrect(c,X,yy,w1+w2+48,58,29);c.fill();c.fillStyle=INK;c.font=F(500,32);c.fillText(a1,X+24,yy+40);c.fillStyle=MAROON;c.font=F(700,32);c.fillText(a2,X+24+w1,yy+40);
+  yy+=58+70;c.fillStyle=INK;c.font=F(700,64);c.fillText(fitText(c,d.title,IW),X,yy);yy+=40;
+  // specs row
+  const specs=[['gem','',d.pur],['wt','Gr. Wt:',d.gw>0?d.gw.toFixed(3)+' g':''],['gem','St. Wt:',d.sw>0?d.sw.toFixed(3)+' ct':''],['bar','Nt. Wt:',d.nw>0?d.nw.toFixed(3)+' g':'']].filter(x=>x[2]);
+  if(specs.length){const cw2=IW/specs.length;specs.forEach(([ic,l,v],i)=>{const sx=X+i*cw2;scIcon(c,ic,sx,yy+22,40,'#B8862B');
+      if(l){c.fillStyle=MUTED;c.font=F(500,26);c.fillText(l,sx+52,yy+38);c.fillStyle=INK;c.font=F(700,32);c.fillText(fitText(c,v,cw2-60),sx+52,yy+78)}else{c.fillStyle=INK;c.font=F(600,36);c.fillText(fitText(c,v,cw2-60),sx+52,yy+56)}
+      if(i){c.strokeStyle='#E4D6CC';c.lineWidth=2;c.beginPath();c.moveTo(sx-14,yy+14);c.lineTo(sx-14,yy+86);c.stroke()}});yy+=110}
+  // price box
+  const lp=d.lp,off=d.offer,save=!isNaN(lp)&&!isNaN(off)&&lp-off>=1?lp-off:0;
+  yy+=10;
+  if(save){c.fillStyle='#fff';rrect(c,X,yy,IW,170,24);c.fill();c.strokeStyle='#EADFD8';c.lineWidth=2;rrect(c,X,yy,IW,170,24);c.stroke();
+    c.fillStyle=MUTED;c.font=F(500,32);c.fillText('Label Price',X+32,yy+56);c.fillStyle=INK;c.font=F(600,54);const lt=inr(lp),lw=c.measureText(lt).width;c.fillText(lt,X+32,yy+126);
+    c.strokeStyle='#C0392B';c.lineWidth=4;c.beginPath();c.moveTo(X+28,yy+110);c.lineTo(X+36+lw,yy+106);c.stroke();
+    const mx=X+Math.max(lw+80,IW*.44);c.strokeStyle='#E4D6CC';c.lineWidth=2;c.beginPath();c.moveTo(mx,yy+34);c.lineTo(mx,yy+136);c.stroke();
+    c.fillStyle=GREEN;c.font=F(600,32);c.fillText('Savings',mx+36,yy+56);c.font=F(800,58);const st=inr(save);c.fillText(st,mx+36,yy+128);
+    const pct=(save*100/lp).toFixed(2).replace(/\.?0+$/,'')+'% OFF',sx2=mx+36+c.measureText(st).width+20;c.font=F(600,28);const pw=c.measureText(pct).width+36;
+    if(sx2+pw<=X+IW-16){c.fillStyle='#DDF2E2';rrect(c,sx2,yy+86,pw,50,25);c.fill();c.fillStyle=GREEN;c.fillText(pct,sx2+18,yy+121)}
+    yy+=200}
+  // offer bar
+  const og=c.createLinearGradient(X,yy,X,yy+130);og.addColorStop(0,'#B0122A');og.addColorStop(1,'#6E0A14');c.fillStyle=og;rrect(c,X,yy,IW,130,30);c.fill();
+  c.fillStyle='#fff';c.font=F(500,46);c.fillText(save?'Offer Price':'Price',X+40,yy+(d.fl&&save?66:80));
+  if(d.fl&&save){c.fillStyle='rgba(255,255,255,.7)';c.font=F(500,24);c.fillText(fitText(c,d.fl,300),X+40,yy+104)}
+  c.strokeStyle='rgba(255,255,255,.45)';c.lineWidth=2;c.beginPath();c.moveTo(X+IW*.42,yy+32);c.lineTo(X+IW*.42,yy+98);c.stroke();
+  c.fillStyle='#FFF1D6';c.font=F(800,76);c.textAlign='right';c.fillText(isNaN(off)?'—':inr(off),X+IW-36,yy+92);c.textAlign='left';yy+=130;
+  // thumbnails (other photos) or contact
+  const room=cy+ch-yy-36,ex=imgs.slice(0,3);
+  if(ex.length>1&&room>=140){const tw2=Math.min(room-20,200),gap=36,tot=ex.length*tw2+(ex.length-1)*gap;let tx=X+(IW-tot)/2,ty=yy+(room-tw2)/2+8;
+    ex.forEach((im,i)=>{c.save();rrect(c,tx,ty,tw2,tw2,22);c.clip();c.fillStyle='#F4EDE6';c.fillRect(tx,ty,tw2,tw2);const s3=Math.max(tw2/im.width,tw2/im.height);c.drawImage(im,tx+(tw2-im.width*s3)/2,ty+(tw2-im.height*s3)/2,im.width*s3,im.height*s3);c.restore();
+      if(!i){c.strokeStyle=MAROON;c.lineWidth=5;rrect(c,tx,ty,tw2,tw2,22);c.stroke()}tx+=tw2+gap})}
+  else if(room>=60){const ct=brandContact();c.textAlign='center';c.fillStyle=MAROON;c.font=F(600,34);c.fillText(fitText(c,[ct.ph?'☎ '+ct.ph:'',ct.web].filter(Boolean).join('   ·   ')||BRAND.full,IW),W/2,yy+room/2+20);c.textAlign='left'}
+  // footer
+  c.textAlign='center';c.fillStyle='rgba(255,255,255,.7)';c.font=F(400,24);c.fillText(fitText(c,`Prices incl. ${fmtN(gstPct())}% GST at today's gold rate · ${BRAND.full}`,W-120),W/2,H-34);c.textAlign='left';
+  return cv;
+}
+async function openStatus(d){
+  if(!can('shareStatus')&&!isAdmin()){withPerm('shareStatus','Needs permission: WhatsApp status card.',()=>openStatus(d));return}
+  if(!d||isNaN(d.lp)){toast('This item has no price yet. Check the rates and weights.',null,true);return}
+  showModal('Status card','',[]);$('modal').classList.add('stm-sheet');
+  $('modalBody').innerHTML=`<div class="sc-wrap"><canvas id="scCv" aria-label="Status card preview" width="1080" height="1920"></canvas><p class="note" id="scNote">Making the card…</p></div>`;
+  const urls=d.key?await getProdImgs(d.key).catch(()=>[]):[];const imgs=(await Promise.all(urls.slice(0,3).map(u=>loadImg(u)))).filter(Boolean);
+  const cv=await statusCard(d,imgs);const o=$('scCv');if(!o)return;o.getContext('2d').drawImage(cv,0,0);
+  const url=cv.toDataURL('image/jpeg',.92),base=`${BRAND.name}-${d.sku||'item'}-status`.replace(/[^\w-]+/g,'-');
+  $('scNote').textContent=NATIVE?'WhatsApp opens: choose “My status” at the top.':'Share it to WhatsApp and choose “My status”.';
+  const ac=$('modalActs');ac.innerHTML='';
+  const add=(t,cls,f)=>{const b=document.createElement('button');b.type='button';b.className='btn '+cls;b.textContent=t;b.onclick=f;ac.appendChild(b)};
+  add('WhatsApp Status','primary',async()=>{closeModal();if(NATIVE&&NATIVE.shareWhatsApp){NATIVE.shareWhatsApp('','',JSON.stringify([url]));return}await waSendImgs([url],'','',base)});
+  add('Save picture','',()=>{if(NATIVE&&NATIVE.saveFile){NATIVE.saveFile(base+'.jpg','image/jpeg',url.split(',')[1]);return}const a=document.createElement('a');a.href=url;a.download=base+'.jpg';document.body.appendChild(a);a.click();a.remove()});
+  add('Close','ghost',()=>closeModal());
+}
+
 deskLayout();
 // side bar logo + name
 (()=>{const m=$('sbMark');$('sbNm').textContent=BRAND.name;
@@ -5239,7 +5445,7 @@ function openShareSel(only){
         ${can('shareAllPh')?`<label class="rc-p"><input type="checkbox" id="shAllPh"${store.get('shAllPh',false)?' checked':''}> Also send all photos of each item</label>`:''}
         <small class="note">The card has the ${esc(BRAND.name)} logo, all the item's photos, the ticked details, the savings and your contact.</small></div></div></div>
     <div class="sh-sec"><h5>Customer · WhatsApp or PDF</h5><div class="sh-row"><input id="shPh" inputmode="tel" autocomplete="off" placeholder="Customer WhatsApp no. (optional)" aria-label="Customer WhatsApp number">
-      ${can('shareItems')?'<button type="button" class="btn primary" id="shWa">WhatsApp</button>':''}${can('sharePdf')?'<button type="button" class="btn" id="shPdf">PDF</button>':''}</div></div>
+      ${can('shareItems')?'<button type="button" class="btn primary" id="shWa">WhatsApp</button>':''}${can('sharePdf')?'<button type="button" class="btn" id="shPdf">PDF</button>':''}${can('shareStatus')&&list.length===1?'<button type="button" class="btn" id="shStatus">Status card</button>':''}</div></div>
     <div class="sh-sec"${can('shareUser')?'':' hidden'}><h5>Another app user</h5><div class="sh-row"><select id="shUser" aria-label="Send to user">${staff.length?staff.map(u=>`<option value="${esc(u.id)}">${esc(u.name||u.username)} · ${esc(roleName(u.role))}</option>`).join(''):'<option value="">No other users yet</option>'}</select>
       <input id="shNote" autocomplete="off" placeholder="Note (optional)" aria-label="Note"><button type="button" class="btn" id="shUserGo"${staff.length?'':' disabled'}>Send to user</button></div></div></div>`;
   const pick=()=>{const v=[...$('modalBody').querySelectorAll('.sh-f input:checked')].map(i=>i.value);store.set('shFields',v);return v};
@@ -5253,6 +5459,7 @@ function openShareSel(only){
   $('modalBody').querySelectorAll('[name=shMode]').forEach(i=>i.onchange=()=>{store.set('shMode',i.value);prebuild()});if($('shAllPh'))$('shAllPh').onchange=()=>{store.set('shAllPh',$('shAllPh').checked);prebuild()};
   $('modalBody').querySelectorAll('.sh-f input').forEach(i=>i.addEventListener('change',prebuild));prebuild();
   $('shWa').onclick=()=>{const v=pick();if(!v.length){toast('Pick what to share',null,true);return}const opt={textOnly:mode()==='text',cardOnly:mode()==='cardOnly',allPh:allPh()};const ready=pre.sig===sigOf()?pre.imgs:null;withPerm('shareItems','Needs permission: Share items on WhatsApp.',()=>shareItemsWa(list,v,$('shPh')?phoneDigits($('shPh').value):'',opt,ready))};
+  if($('shStatus'))$('shStatus').onclick=()=>{closeModal();openStatus(scFromStock(list[0]))};
   if($('shPdf'))$('shPdf').onclick=async()=>{const v=pick();if(!v.length){toast('Pick what to share',null,true);return}const b=$('shPdf');b.disabled=true;b.textContent='Making the PDF…';try{await shareItemsPdf(list,v)}catch(e){toast('Could not make the PDF',null,true)}b.disabled=false;b.textContent='PDF'};
   $('shUserGo').onclick=async()=>{const to=$('shUser').value,u=users.find(x=>x.id===to);if(!to)return;const v=pick();
     const l={id:uid(),kind:'items',keys:list.map(r=>r.key).slice(0,500),name:`${list.length} item${list.length===1?'':'s'}`,phone:'',note:$('shNote').value.trim(),to,toName:u?(u.name||u.username):'',by:curUser?curUser.id:'',byName:meName(),at:Date.now(),state:'new',fields:v};
@@ -5442,6 +5649,7 @@ async function stmItem(r){
     ${shopA(r)}</div>`;
   const acts=[['Price it','primary',()=>{closeModal();setView('home');useScannedCode(r.barcode||r.key);paintBarcode()}]];
   if(can('shareItems'))acts.push(['WhatsApp','',()=>{closeModal();openShareSel([r])}]);
+  if(can('shareStatus'))acts.push(['Status card','',()=>{closeModal();openStatus(scFromStock(r))}]);
   if(can('images'))acts.push(['Photos','',()=>{closeModal();openPhotos(r.key)}]);
   if(can('stockEdit'))acts.push(['Edit','',()=>{closeModal();stockForm(r)}]);
   const ac=$('modalActs');ac.innerHTML='';acts.forEach(([t,c,f])=>{const b=document.createElement('button');b.type='button';b.className='btn '+c;b.textContent=t;b.onclick=f;ac.appendChild(b)});
@@ -5772,12 +5980,27 @@ async function openPrint(){
   setTimeout(()=>$('prGo').focus(),50);
 }
 async function doPrint(){
+  if(!can('qPrint')&&!isAdmin()){withPerm('qPrint','Needs permission: Print quote.',doPrint);return}
+  if(NATIVE&&NATIVE.printHtml){try{await nativePrint()}catch(e){toast('Could not open printing',null,true)}return}
   $('printArea').innerHTML=await a4Html(prImgs);
   const imgs=[...$('printArea').querySelectorAll('img')];await Promise.all(imgs.map(i=>i.complete?0:new Promise(r=>{i.onload=i.onerror=r})));
   const t=document.title;document.title=`${BRAND.name} quotation ${quoteLabel(bill)}`.replace(/[\/\\]/g,'-');
   window.print();document.title=t;
 }
 window.addEventListener('afterprint',()=>{$('printArea').innerHTML=''});
+// Android app: a WebView cannot window.print(), so the A4 page (with the app's styles) goes to Android printing,
+// which lists every Wi-Fi / network printer the phone can see (Mopria, HP, Epson, Canon… print services) and Save as PDF
+async function nativePrint(){
+  const box=document.createElement('div');box.innerHTML=await a4Html(prImgs);
+  // photos as data: so the print view can load them
+  await Promise.all([...box.querySelectorAll('img')].map(async im=>{const u=im.getAttribute('src')||'';if(!u||u.startsWith('data:'))return;
+    try{const i=await loadImg(u);if(!i)return;const cv=document.createElement('canvas');cv.width=i.naturalWidth;cv.height=i.naturalHeight;cv.getContext('2d').drawImage(i,0,0);im.src=cv.toDataURL(/\.png/i.test(u)||u.includes('logo')?'image/png':'image/jpeg',.9)}catch(e){}}));
+  const css=[...document.querySelectorAll('style')].map(x=>x.textContent).join('\n');
+  const html=`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><style>${css}</style><style>@page{size:A4;margin:0}html,body{background:#fff!important;margin:0;padding:0}#printArea{display:block!important}body>*:not(#printArea){display:none!important}</style></head><body><div id="printArea">${box.innerHTML}</div></body></html>`;
+  NATIVE.printHtml(html,`${BRAND.name} quotation ${quoteLabel(bill)}`.replace(/[\/\\]/g,'-'));
+  toast('Choose your printer');
+}
+window.onNativePrintError=()=>toast('Could not open printing on this phone',null,true);
 async function quotePdf(){
   await loadScript('vendor/jspdf.umd.min.js',()=>!!(window.jspdf&&window.jspdf.jsPDF));await loadScript('vendor/jspdf.plugin.autotable.min.js',()=>!!(window.jspdf.jsPDF.API.autoTable));
   const R=v=>String(v).replace(/₹/g,'Rs. ').replace(/−/g,'-').replace(/→/g,'>').replace(/·/g,'-');
@@ -6751,7 +6974,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.8.14',APP_BUILD='__BUILD__';
+const APP_VERSION='1.8.15',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------
@@ -6764,21 +6987,22 @@ const PERM_LIST=[
 ['stockdel','Delete sold tags from stock'],['suppliers','Edit the supplier list'],['rates',"Set day's rates"],
   ['mkEdit','Update making on the price card'],['mkDisc','Making after discount on quotes'],
   ['closeSale','Close sale (invoice no.)'],['cancelQuote','Cancel quote (enquiry)'],['reopen','Reopen sold / cancelled quotes'],
-  ['delQuote','Delete quotes'],['images','Add product photos'],['imgDel','Delete / replace product photos'],['imgBulk','Bulk upload photos'],['stockList','Stock list in Search (phone app)'],['addDisc','Additional discount (flat)'],['round','Round final amounts to the nearest ₹50'],['stockEdit','Edit stock items · making, FVA, label details'],['stockAdd','Add new items to stock'],['stockBulk','Bulk update stock items'],['reports','Reports'],['fva','Fair Value price'],['share','Share quotes on WhatsApp'],['pdHidden','See hidden details (NLC, FVA…)'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],['quotesList','All quotations tab'],['qsCust','Quote step: Customer details'],['qsSale','Quote step: Sale type'],['qsItems','Quote step: Items'],['qsUrd','Quote step: URD & buy-back'],['qsSr','Quote step: Sales return'],['qsAdv','Quote step: Advance'],['qsSum','Quote step: Summary'],['qsClose','Quote step: Close sale'],['qsWa','Quote step: WhatsApp share'],['search','Search page · find items'],['stFilters','Search filters (item, design, colour…)'],['stRanges','Range search (weight, price, fair value…)'],['stSelect','Select items in Search'],['stExport','Export Search to Excel'],['shareItems','Share items on WhatsApp (picture cards)'],['shareAllPh','Send all photos of an item'],['sharePdf','Items as PDF'],['shareUser','Send items to another user'],['shareFv','Share fair value & savings'],['shareCost','Share making, NLC & supplier'],
+  ['delQuote','Delete quotes'],['images','Add product photos'],['imgDel','Delete / replace product photos'],['imgBulk','Bulk upload photos'],['stockList','Stock list in Search (phone app)'],['addDisc','Additional discount (flat)'],['round','Round final amounts to the nearest ₹50'],['stockEdit','Edit stock items · making, FVA, label details'],['stockAdd','Add new items to stock'],['stockBulk','Bulk update stock items'],['reports','Reports'],['fva','Fair Value price'],['share','Share quotes on WhatsApp'],['pdHidden','See hidden details (NLC, FVA…)'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],['webApp','Use the web version (browser on a computer / phone)'],['qPrint','Print quote (A4 · network printer)'],['shareStatus','WhatsApp status card'],['quotesList','All quotations tab'],['qsCust','Quote step: Customer details'],['qsSale','Quote step: Sale type'],['qsItems','Quote step: Items'],['qsUrd','Quote step: URD & buy-back'],['qsSr','Quote step: Sales return'],['qsAdv','Quote step: Advance'],['qsSum','Quote step: Summary'],['qsClose','Quote step: Close sale'],['qsWa','Quote step: WhatsApp share'],['search','Search page · find items'],['stFilters','Search filters (item, design, colour…)'],['stRanges','Range search (weight, price, fair value…)'],['stSelect','Select items in Search'],['stExport','Export Search to Excel'],['shareItems','Share items on WhatsApp (picture cards)'],['shareAllPh','Send all photos of an item'],['sharePdf','Items as PDF'],['shareUser','Send items to another user'],['shareFv','Share fair value & savings'],['shareCost','Share making, NLC & supplier'],
   ['textSize','Text size'],['imgShow','Product image show / hide'],['ratesShown','Rates shown'],['charges','Charges · GST · HUID'],
   ['mkHelper','Making helpers'],['itemCodes','Item codes'],['pdRows','Product details items'],['sync','Shared database · shop key'],['roles','Roles & permissions'],['users','Users']];
 const SET_PERMS=['suppliers','theme','footer','apprSet','export','promos','rules','reports','stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users'];
 const STOCK_PERMS=['stockEdit','stockAdd','stockBulk','stockdel'];const PHOTO_PERMS=['images','imgDel','imgBulk'];
 // V1.8.6 functions grouped for the role editor
-const PERM_GROUPS=[['Quote page',['quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa']],['Prices & making',['rates','mkEdit','mkDisc','addDisc','round','fva','pdHidden']],['Quotes',['closeSale','cancelQuote','reopen','delQuote','approve','share']],
-  ['Search',['search','stFilters','stRanges','stSelect','stExport','stockList']],['WhatsApp & sharing',['shareItems','shareAllPh','sharePdf','shareUser','shareFv','shareCost','leads']],
+const PERM_GROUPS=[['Access',['webApp']],['Quote page',['qPrint','quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa']],['Prices & making',['rates','mkEdit','mkDisc','addDisc','round','fva','pdHidden']],['Quotes',['closeSale','cancelQuote','reopen','delQuote','approve','share']],
+  ['Search',['search','stFilters','stRanges','stSelect','stExport','stockList']],['WhatsApp & sharing',['shareStatus','shareItems','shareAllPh','sharePdf','shareUser','shareFv','shareCost','leads']],
   ['Stock database',['stockEdit','stockAdd','stockBulk','stockdel','suppliers']],['Product photos & details',['images','imgDel','imgBulk']],['Reports',['reports']],
   ['Settings',['textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users']]];
 const permLabel=k=>(PERM_LIST.find(p=>p[0]===k)||[0,k])[1];
-const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','imgDel','imgBulk','stockList','approve','leads','share','pdHidden','addDisc','round','reports','fva','stockEdit','stockAdd','stockBulk','suppliers','quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa','search','stFilters','stRanges','stSelect','stExport','shareItems','shareAllPh','sharePdf','shareUser','shareFv','shareCost']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share','fva','stockList','quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa','search','stFilters','stRanges','stSelect','shareItems','shareAllPh','sharePdf','shareUser','shareFv']}];
+const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','imgDel','imgBulk','stockList','approve','leads','share','pdHidden','addDisc','round','reports','fva','stockEdit','stockAdd','stockBulk','suppliers','quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa','search','stFilters','stRanges','stSelect','stExport','shareItems','shareAllPh','sharePdf','shareUser','shareFv','shareCost','webApp','qPrint','shareStatus']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share','fva','stockList','quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa','search','stFilters','stRanges','stSelect','shareItems','shareAllPh','sharePdf','shareUser','shareFv','qPrint','shareStatus']}];
 let roles=store.get('roles',null)||clone(DEFAULT_ROLES);
 // WhatsApp sharing became a permission (v1.7.3): roles on this phone keep it once
 if(!store.get('permShare',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&!r.perms.includes('share'))r.perms.push('share')});store.set('roles',roles);store.set('permShare',true)}
+if(!store.get('perm1815',false)){roles.forEach(r=>{if(!Array.isArray(r.perms))return;const add=p=>{if(!r.perms.includes(p))r.perms.push(p)};add('qPrint');add('shareStatus');if(['users','stockEdit','reports'].some(p=>r.perms.includes(p)))add('webApp')});store.set('roles',roles);store.set('perm1815',true)}
 if(!store.get('perm1814',false)){roles.forEach(r=>{if(!Array.isArray(r.perms))return;['quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa'].forEach(p=>{if(!r.perms.includes(p))r.perms.push(p)})});store.set('roles',roles);store.set('perm1814',true)}
 if(!store.get('perm1812',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('stockEdit')&&!r.perms.includes('suppliers'))r.perms.push('suppliers')});store.set('roles',roles);store.set('perm1812',true)}
 if(!store.get('perm186',false)){roles.forEach(r=>{if(!Array.isArray(r.perms))return;const add=p=>{if(!r.perms.includes(p))r.perms.push(p)};['search','stFilters','stRanges'].forEach(add);if(r.perms.includes('share'))['stSelect','shareItems','shareAllPh','sharePdf','shareUser','shareFv'].forEach(add);if(r.perms.includes('pdHidden'))add('shareCost');if(r.perms.includes('reports'))add('stExport')});store.set('roles',roles);store.set('perm186',true)}
@@ -6823,7 +7047,7 @@ function mergeRemoteUsers(list){
   const old=new Map(users.map(u=>[u.id,u]));
   users=list.map(u=>{const o=old.get(u.id);return (!u.hash&&o&&o.hash&&o.salt)?{...u,salt:o.salt,hash:o.hash}:u});
   saveUsersLocal();
-  if(curUser){const me=users.find(u=>u.id===curUser.id);if(!me||me.active===false){logout('Your user was removed or switched off by an admin.');return}curUser=me}
+  if(curUser){const me=users.find(u=>u.id===curUser.id);if(!me||me.active===false){logout('Your user was removed or switched off by an admin.');return}curUser=me;if(webBlocked(me)){logout(WEB_NO);return}}
   paintUserChip();renderUsers();try{renderRecent()}catch(e){}
 }
 async function pushUsers(){
@@ -6883,6 +7107,7 @@ $('loginForm').addEventListener('submit',async e=>{
   $('loginErr').textContent='Checking…';
   const u=await verifyLogin(un,pin);
   if(!u){$('loginErr').textContent='Wrong user or PIN. Try again.';$('loginPin').value='';try{navigator.vibrate&&navigator.vibrate(120)}catch(_){}return}
+  if(loginMode==='login'&&webBlocked(u)){$('loginErr').textContent=WEB_NO;$('loginPin').value='';return}
   if(loginMode==='perm'&&loginPerm&&!loginPerm.split('|').some(p=>roleHas(u.role,p))){$('loginErr').textContent=`${u.name||u.username} (${roleName(u.role)}) does not have this permission.`;$('loginPin').value='';return}
   $('login').hidden=true;
   if(loginMode==='login'){curUser=u;store.set('session',{id:u.id,at:Date.now()});adminCreds={username:u.username,pin,role:u.role};toast(`Welcome, ${u.name||u.username}`)}
@@ -6893,6 +7118,9 @@ $('loginForm').addEventListener('submit',async e=>{
 });
 $('loginCancel').onclick=()=>{$('login').hidden=true;loginNext=null};
 $('loginEye').onclick=()=>{const i=$('loginPin'),show=i.type==='password';i.type=show?'text':'password';$('loginEye').setAttribute('aria-label',show?'Hide PIN':'Show PIN')};
+// V1.8.15 the web version (browser) only for roles with "Use the web version"; the phone app is open to every login
+const WEB_NO='The web version is not open for your login. Use the phone app, or ask an admin.';
+function webBlocked(u){return !NATIVE&&!!u&&!roleHas(u.role,'webApp')}
 function logout(msg){
   curUser=null;adminCreds=null;adminUntil=0;elev={role:'',until:0};store.set('session',null);
   paintUserChip();paintAdmin();openLogin('login',msg||'Logged out. Log in to continue.');
@@ -7362,7 +7590,7 @@ paintSold();
 
 // ---------- boot ----------
 paintRates();renderEditor();renderBill();
-if(!curUser)openLogin('login');
+if(!curUser)openLogin('login');else if(webBlocked(curUser))logout(WEB_NO);
 hookRates();
 loadStock().then(()=>{if(cur.sku&&!cur.stockKey)lookupTyped(true);morningSync()});
 if('serviceWorker' in navigator&&location.protocol==='https:'&&!NATIVE)navigator.serviceWorker.register('sw.js').catch(()=>{});
