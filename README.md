@@ -499,3 +499,6 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 
 ## V 1.8.8
 - **Day's rates locked to the permission** – the server now accepts new day's rates (op `rate`) only with the name and PIN of a user whose role has "Set day's rates"; before, any device with the shop key could save them (a phone with out-of-date roles, or an older app). Online, the rates are saved only after the database accepts them; a refused save shows "Not saved: no permission" and changes nothing. Rates saved offline wait on the phone until a permitted user is logged in. Users without the permission get the Approval screen listing only users who have it.
+
+## V 1.8.9
+- **Rate band locked** for users without "Set day's rates": tapping today's rates on Home does nothing (no hand cursor, not a button), the "Gold Rates" tab and the menu's "Day's rates" are hidden, and "Tap to change" hints are gone. If the day's rates are not set, they see "Day's rates not set yet. Ask a manager." Other prompts that would open the rate sheet (e.g. a missing rate) show that message instead. A manager's approval (15 min) unlocks it.

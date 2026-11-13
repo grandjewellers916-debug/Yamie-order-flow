@@ -60,7 +60,7 @@ button{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
 .band .eyebrow{opacity:.8}
 .src{font-size:11px;opacity:.85;text-align:right}
 .rates{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px}
-.band{cursor:pointer}
+.band{cursor:pointer}.band.locked{cursor:default}.band.locked:hover,.band.locked:active{transform:none;filter:none}
 .rate .v{display:block;font:700 12.5px var(--mono);letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--band-fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .band-foot .stale{color:#FFD58A;font-weight:600}
 .rate{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:4px 2px;min-width:0;text-align:center}
@@ -2666,6 +2666,7 @@ function paintRates(){
   $('rateDate').textContent=new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
   const e=dayEntry(),hint=$('rateHint');
   if(hasOv){setSrc('Saved bill rates');hint.textContent='This bill uses the rates it was saved with.';hint.className=''}
+  else if(!can('rates')){setSrc(e?`Set today · ${new Date(e.at).toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'})}`:live.at?`Kiosk · ${whenText(live.at)}`:'Not set');hint.textContent=e?'':'Day\'s rates not set yet. Ask a manager.';hint.className=e?'':'stale'}
   else if(e){setSrc(`Set today · ${new Date(e.at).toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'})}`);hint.textContent='Tap to change the day\'s rates.';hint.className=''}
   else if(live.at){setSrc(`Kiosk · ${whenText(live.at)}`);hint.textContent='Day\'s rates not set. Tap to set them.';hint.className='stale'}
   else if(rateLog.length){setSrc(`Last set ${new Date(rateLog[0].at).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}`);hint.textContent='Old rates. Tap to set today\'s rates.';hint.className='stale'}
@@ -2678,6 +2679,8 @@ function setSrc(t){$('rateSrc').textContent=t}
 function reqText(){const r=SHOWN().filter(isReq).map(p=>p.label);return r.length?`Enter today's rate per gram. ${r.length>1?r.slice(0,-1).join(', ')+' and '+r[r.length-1]+' are':r[0]+' is'} required.`:'Enter today\'s rate per gram.'}
 function buildRateSheet(){$('rsGrid').innerHTML=SHOWN().map(p=>`<div class="f"><label for="rs_${p.id}"${isReq(p)?' class="req"':''}>${p.name||p.label} ₹/g</label><input class="num" id="rs_${p.id}" inputmode="decimal" autocomplete="off"><span class="prev" id="rsp_${p.id}"></span></div>`).join('')}
 function openRates(){
+  // V1.8.9 only users allowed to set the day's rates can open this
+  if(!can('rates')){toast(rateFor('22k')==null?"Today's rates are not set yet. Ask a manager to set them.":"The day's rates are set by a manager.",null,true);return}
   const e=dayEntry(),prev=rateLog.find(x=>x.day!==dayKey())||null;
   $('rsDate').textContent=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+(e?' · already set today':'');
   SHOWN().forEach(p=>{
@@ -2694,8 +2697,9 @@ function openRates(){
 }
 function closeRates(fromPop){if($('rsheet').hidden)return;$('rsheet').hidden=true;document.body.style.overflow='';if(!fromPop){try{if(history.state&&history.state.rs)history.back()}catch(e){}}}
 window.addEventListener('popstate',()=>closeRates(true));
-$('band').addEventListener('click',openRates);
-$('band').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRates()}});
+// the rate band opens the day's rates only for users allowed to set them; for others it is just a display
+$('band').addEventListener('click',()=>{if(can('rates'))openRates()});
+$('band').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&can('rates')){e.preventDefault();openRates()}});
 $('rsClose').onclick=()=>closeRates();
 $('rsKiosk').onclick=()=>{SHOWN().forEach(p=>{if(live.rates[p.id]>0)$('rs_'+p.id).value=live.rates[p.id]});
   $('rsStatus').textContent=`Filled from the kiosk (${whenText(live.at)}). Check, then Save.`;$('rsStatus').className='status'};
@@ -6598,7 +6602,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.8.8',APP_BUILD='__BUILD__';
+const APP_VERSION='1.8.9',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------
@@ -7000,6 +7004,7 @@ const canAdminCard=()=>SET_PERMS.some(can),canDataCard=()=>can('stock');
 // Settings: one card per function; each opens only for users whose role has that permission
 const setCards=()=>[...document.querySelectorAll('details.setcard[data-perm]')];
 function paintAdmin(){
+  {const ok=can('rates'),b=$('band');b.classList.toggle('locked',!ok);if(ok){b.setAttribute('role','button');b.tabIndex=0}else{b.removeAttribute('role');b.removeAttribute('tabindex')}$('tabRates').hidden=!ok;$('menuRates').hidden=!ok;try{paintRates()}catch(e){}}
   $('adminPill').hidden=!(Date.now()<elev.until);
   $('adminPill').textContent=`${roleName(elev.role)} approval ✕`;
   setCards().forEach(c=>{const ok=can(c.dataset.perm),mini=c.querySelector('.dc-s');
