@@ -505,3 +505,6 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 
 ## V 1.8.10
 - **Bulk update / Edit database now beat pricing rules** – a pricing rule set to "overrides database" used to replace the making (and FVA) on every scan, so a bulk-updated making never showed in the price. Making typed in Bulk update or Edit database is now marked as hand-set (`mkMan`, like `fvaMan` for FVA) and pricing rules leave it alone; FVA set by hand is likewise kept. The bulk form says how many picked items match a rule, and has "Pricing rules → Follow the pricing rules again" to undo hand-set values. Product details show which parts a rule set ("· sets making, fair value"). A new stock-sheet upload replaces the rows, so items follow the rules again after an upload.
+
+## V 1.8.11
+- Items bulk-updated or edited **before** V1.8.10 now also keep their own making: an item that carries an edit time (only Bulk update / Edit database / New item set one; stock-sheet rows don't) counts as hand-set unless "Follow the pricing rules again" was chosen (`mkMan` "0"). Edit database now always records '1' (making typed / changed) or '0' (left as it was → rules apply). So Home now prices with the same making the Search table shows.

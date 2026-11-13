@@ -5966,11 +5966,13 @@ function ruleMatch(r,rec){
   if(r.pre&&!String(rec.barcode||'').toUpperCase().startsWith(r.pre.toUpperCase()))return false;
   return true;
 }
+// making set by hand: mkMan '1'; '0' = follow the rules; items edited or bulk-updated before V1.8.10 (they carry an edit time, sheet rows don't) count as hand-set
+function mkHand(rec){const m=String(rec.mkMan??'');return m==='1'||(m!=='0'&&num(rec.at)>0)}
 function ruleFor(rec){return (settings.priceRules||[]).find(r=>r.on!==false&&ruleMatch(r,rec))||null}
 function applyRules(rec){
   if(!rec)return rec;const r=ruleFor(rec);if(!r)return rec;const o=Object.assign({},rec),over=r.mode!=='fill';const ch=[];
   // V1.8.10: making / FVA set by hand on the item (Edit in database, Bulk update) beat the rules
-  if(r.mkType&&num(r.mkVal)>0&&!(rec.mkMan&&rec.mkType&&num(rec.mk)>0)&&(over||!(o.mkType&&num(o.mk)>0))){o.mkType=r.mkType;o.mk=String(r.mkVal);ch.push('making')}
+  if(r.mkType&&num(r.mkVal)>0&&!(mkHand(rec)&&rec.mkType&&num(rec.mk)>0)&&(over||!(o.mkType&&num(o.mk)>0))){o.mkType=r.mkType;o.mk=String(r.mkVal);ch.push('making')}
   if(r.fvaType&&num(r.fvaVal)>0&&!(rec.fvaMan&&String(rec.fva??'').trim())&&(over||!o.fva)){o.fva=r.fvaType==='pct'?r.fvaVal+'%':String(r.fvaVal);o.fvaMan='1';ch.push('fair value')}
   if(num(r.diaRate)>0&&num(o.dw)>0&&(over||!(num(o.saDia)>0))){o.saDia=Math.round(num(o.dw)*num(r.diaRate));o.sa=(num(o.saClr)||0)+o.saDia;ch.push('diamond')}
   if(ch.length){o.rule=r.name;o.ruleSet=ch}
@@ -6203,7 +6205,7 @@ function stockForm(rec){
     stockMaking(o);if(pg!=null){o.mkType='pergram';o.mk=String(pg)}o.huid=huidN;o.huidNo=hc.join(', ');
     if((o.saClr>0)||(o.saDia>0))o.sa=(o.saClr||0)+(o.saDia||0);
     const row={};['key','barcode','item','category','carat','gw','nw','sw','dw','dq','sa','location','supplier','mk','mkType','huid','huidNo','stoneName','saDia','saClr','labelDate','size','model','nlc','fva','imp'].forEach(f=>{if(o[f]!=null&&o[f]!=='')row[f]=o[f]});if(row.fva)row.fvaMan='1';
-    if(isNew||r.mkMan||row.mkType!==r.mkType||String(row.mk)!==String(r.mk))row.mkMan='1';
+    row.mkMan=isNew||String(r.mkMan)==='1'||row.mkType!==r.mkType||String(row.mk)!==String(r.mk)?'1':'0';
     ['serial','label','pcs','sq','cw','pname'].forEach(f=>{if(r[f]!=null&&r[f]!=='')row[f]=r[f]});
     const pn=$('sf_pname').value.replace(/\s+/g,' ').trim(),pnChanged=pn!==(isNew?'':pnameOf(r)),at=readAttr('sfA'),atChanged=!attrSame(at,isNew?{jt:'',sc:[]}:attrOf(r));
     row.at=Date.now();
@@ -6353,7 +6355,7 @@ function bulkForm(){
     const ch={},what=[];
     const mkP=n('mkPg')!=null?['pergram',n('mkPg')]:n('mkFix')!=null?['fixed',n('mkFix')]:n('mkPct')!=null?['pct',n('mkPct')]:null;
     if(mkP){let v=mkP[1];if(mkP[0]==='pct'&&v>0&&v<1)v=Math.round(v*10000)/100;ch.mkType=mkP[0];ch.mk=String(v);ch.mkMan='1';what.push('making '+valText({type:mkP[0],val:v}))}
-    if(g('rule')==='follow'){if(!mkP)ch.mkMan='';if(!g('fva'))ch.fvaMan='';what.push('follow pricing rules')}
+    if(g('rule')==='follow'){if(!mkP)ch.mkMan='0';if(!g('fva'))ch.fvaMan='';what.push('follow pricing rules')}
     if(g('fva')){ch.fva=g('fva');ch.fvaMan='1';what.push('FVA '+g('fva'))}
     [['category','type'],['carat','purity'],['location','location'],['supplier','supplier'],['stoneName','stones'],['size','size'],['model','model'],['labelDate','labelling date']].forEach(([k,w])=>{if(g(k)){ch[k]=g(k);what.push(w+' '+g(k))}});
     if(n('nlc')!=null){ch.nlc=n('nlc');what.push('NLC '+inr(n('nlc')))}
@@ -6607,7 +6609,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.8.10',APP_BUILD='__BUILD__';
+const APP_VERSION='1.8.11',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------
