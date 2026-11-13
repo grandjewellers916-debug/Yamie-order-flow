@@ -352,7 +352,8 @@ export default async (req: Request) => {
     }
 
     if (op === "rate") {
-      // Day's rates: open to all staff with the shop key
+      // Day's rates: only a user whose role has "Set day's rates" (V1.8.7; before, anyone with the shop key could)
+      if (!(await permOk("rates"))) return json(req, { error: "bad_pin" }, 403)
       const rates = cleanRates(body?.entry?.rates)
       if (!rates["22k"] || !rates["18k"] || !rates["14k"] || !rates["9k"]) return json(req, { error: "bad_rates" }, 400)
       const entry = { id: cleanStr(body.entry.id, 20) || Math.random().toString(36).slice(2, 9), at: cleanNum(body.entry.at) || Date.now(), day: cleanStr(body.entry.day, 10), by: cleanStr(body.entry.by, 40), rates }

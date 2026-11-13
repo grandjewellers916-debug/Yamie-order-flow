@@ -496,3 +496,6 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
   - Tap an item: a sheet with its photos (swipe), label price / fair value / savings, the main details, and Price it · WhatsApp · Photos · Edit. Typing a full label no. + Enter opens it.
   - "Show 30 more" instead of page numbers.
 - Computer layout unchanged.
+
+## V 1.8.8
+- **Day's rates locked to the permission** – the server now accepts new day's rates (op `rate`) only with the name and PIN of a user whose role has "Set day's rates"; before, any device with the shop key could save them (a phone with out-of-date roles, or an older app). Online, the rates are saved only after the database accepts them; a refused save shows "Not saved: no permission" and changes nothing. Rates saved offline wait on the phone until a permitted user is logged in. Users without the permission get the Approval screen listing only users who have it.

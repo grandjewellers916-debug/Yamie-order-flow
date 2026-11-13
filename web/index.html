@@ -2555,7 +2555,7 @@ async function pullAll(force){
   sync.busy=true;syncMsg('busy');
   try{
     // send anything waiting first
-    while(sync.q.length){const e=sync.q[0];const r=await syncApi('rate','POST',{entry:e});sync.v.rates=Math.max(sync.v.rates,r.v||0);sync.q.shift();saveSyncState()}
+    await flushRateQ();
     if(sync.dirtySettings&&adminCreds){await pushSettingsNow()}
     const m=await syncApi('meta');
     if(force||m.stock>sync.v.stock){
@@ -2605,10 +2605,20 @@ async function pushSettingsNow(){
   const r=await syncApi('settings','POST',{settings:{gst:settings.gst,huid:settings.huid,mkTable:settings.mkTable,cats:settings.cats||null,showRates:settings.showRates||null,mkEdit:settings.mkEdit||'admin',showImg:settings.showImg!==false,ui:settings.ui||'iosBrand',accent:settings.accent||'brand',pdHide:settings.pdHide||[],tabHide:settings.tabHide||{},apprOn:settings.apprOn!==false,priceRules:settings.priceRules||[],mkConv:settings.mkConv||[],chkOn:settings.chkOn!==false,promos:(settings.promos||[]).map(x=>Object.assign({},x,{min:num(x.min)||0,val:num(x.val)||0}))}},adminCreds);
   sync.v.settings=r.v;sync.dirtySettings=false;saveSyncState();syncMsg('ok','Settings saved to the shared database.');
 }
+// V1.8.7: day's rates need a user with "Set day's rates" on the server too (their PIN goes with the request)
+async function flushRateQ(){
+  while(sync.q.length){
+    if(!adminCreds||!credsOk('rates'))return;   // waits until someone allowed to set rates is logged in
+    const e=sync.q[0];
+    try{const r=await syncApi('rate','POST',{entry:e},adminCreds);sync.v.rates=Math.max(sync.v.rates,r.v||0)}
+    catch(x){if(x&&x.status===403){toast("Day's rates not shared: this user can't set rates",null,true)}else throw x}
+    sync.q.shift();saveSyncState();
+  }
+}
 async function pushRate(entry){
   if(!sync.key)return;
   if(!navigator.onLine){sync.q.push(entry);saveSyncState();syncMsg('off','Rates saved on this phone. They sync when back online.');return}
-  try{const r=await syncApi('rate','POST',{entry});sync.v.rates=r.v;saveSyncState();syncMsg('ok','Day\'s rates shared with all phones.');toast('Rates shared with all phones')}
+  try{const r=await syncApi('rate','POST',{entry},adminCreds);sync.v.rates=r.v;saveSyncState();syncMsg('ok','Day\'s rates shared with all phones.');toast('Rates shared with all phones')}
   catch(e){sync.q.push(entry);saveSyncState();syncMsg('err',syncErrText(e))}
 }
 async function pushStock(mode,rows,file,skipped){
@@ -2689,7 +2699,7 @@ $('band').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.prev
 $('rsClose').onclick=()=>closeRates();
 $('rsKiosk').onclick=()=>{SHOWN().forEach(p=>{if(live.rates[p.id]>0)$('rs_'+p.id).value=live.rates[p.id]});
   $('rsStatus').textContent=`Filled from the kiosk (${whenText(live.at)}). Check, then Save.`;$('rsStatus').className='status'};
-$('rsSave').onclick=()=>withPerm('rates',"Needs a user allowed to set the day's rates.",()=>saveDayRates());
+$('rsSave').onclick=()=>withPerm('rates',"Needs a user allowed to set the day's rates.",()=>saveDayRates(),true);
 function saveDayRates(){
   const rates={},miss=[];
   // keep any rate set today for a purity that is not shown, so hiding one never wipes it
@@ -2698,7 +2708,16 @@ function saveDayRates(){
   if(miss.length){$('rsStatus').textContent='Required: '+miss.join(', ')+' rate';$('rsStatus').className='status err';toast('Enter '+miss.join(', ')+' rate',null,true);return}
   // Guard against a typo: a rate more than 10% away from the last saved one needs a second tap
   const prev=rateLog[0],big=prev?SHOWN().filter(p=>rates[p.id]&&prev.rates[p.id]&&Math.abs(rates[p.id]/prev.rates[p.id]-1)>0.1):[];
-  const commit=()=>{
+  const commit=async()=>{
+    if(!can('rates')&&!credsOk('rates')){toast("Needs a user allowed to set the day's rates",null,true);return}
+    // online: the database must accept it first, so a user without the permission changes nothing anywhere
+    if(sync.key&&navigator.onLine){const entry={id:uid(),at:Date.now(),day:dayKey(),rates,by:(adminCreds&&adminCreds.username)||(curUser?curUser.name:'')};
+      try{const r=await syncApi('rate','POST',{entry},adminCreds);sync.v.rates=r.v;saveSyncState()}
+      catch(e){if(e&&e.status===403){$('rsStatus').textContent="Not saved: this user isn't allowed to set the day's rates.";$('rsStatus').className='status err';toast("Not saved: no permission to set rates",null,true);return}
+        sync.q.push(entry);saveSyncState()}
+      rateLog=rateLog.filter(e=>!(e.day===dayKey()&&e.rates&&JSON.stringify(e.rates)===JSON.stringify(rates)));rateLog.unshift(entry);rateLog=rateLog.slice(0,500);store.set('rateLog',rateLog);
+      closeRates();paintRates();renderEditor();renderBill();toast('Day\'s rates saved and shared');
+      if(can('rates'))setTimeout(()=>publishRates(rateLog[0]),500);return}
     rateLog=rateLog.filter(e=>!(e.day===dayKey()&&e.rates&&JSON.stringify(e.rates)===JSON.stringify(rates)));
     rateLog.unshift({id:uid(),at:Date.now(),day:dayKey(),rates,by:curUser?curUser.name:''});
     rateLog=rateLog.slice(0,500);store.set('rateLog',rateLog);
@@ -6579,7 +6598,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.8.7',APP_BUILD='__BUILD__';
+const APP_VERSION='1.8.8',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------
@@ -7126,7 +7145,7 @@ async function morningSync(){
 }
 async function pushQueue(){
   if(!sync.key||!navigator.onLine||!sync.q.length)return;
-  try{while(sync.q.length){const e=sync.q[0];const r=await syncApi('rate','POST',{entry:e});sync.v.rates=Math.max(sync.v.rates,r.v||0);sync.q.shift();saveSyncState()}}catch(e){}
+  try{await flushRateQ()}catch(e){}
 }
 function afterStockChange(){if(sync.key)setTimeout(()=>pullAll(),300)}  // meta check: fetches only what changed
 setInterval(morningSync,10*60*1000);   // no network unless the morning sync is due
