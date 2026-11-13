@@ -508,3 +508,7 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 
 ## V 1.8.11
 - Items bulk-updated or edited **before** V1.8.10 now also keep their own making: an item that carries an edit time (only Bulk update / Edit database / New item set one; stock-sheet rows don't) counts as hand-set unless "Follow the pricing rules again" was chosen (`mkMan` "0"). Edit database now always records '1' (making typed / changed) or '0' (left as it was → rules apply). So Home now prices with the same making the Search table shows.
+
+## V 1.8.12
+- **Supplier list** – Settings → Suppliers (permission "Edit the supplier list", in Stock database; roles that can edit stock get it once). Lists every supplier entered: the saved list (`settings.suppliers`: name, full name / company, phone, note) plus any supplier found on stock items (faded until added; "Add the N suppliers found on stock items"). Find box, + Add supplier, ✕ removes from the list (items keep their supplier), the item count opens those items in Search. Renaming a supplier offers to change it on its stock items too (Bulk update permission).
+- Used as the drop-down in New item / Edit database (with "+ New supplier…"), Bulk update (Keep / list / + New supplier…) and pricing rules; drop-downs show "code · full name · item count".

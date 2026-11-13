@@ -964,6 +964,11 @@ body.stm .mr-img{width:52px;height:52px}body.stm .mr-t b{font-size:14.5px}body.s
 .stm-pr .fv{background:#4A2270}.stm-pr .fv small{color:rgba(255,255,255,.75)}.stm-pr .fv b{color:#F3D3A2}.stm-pr .sv{background:#E6F4EA}.stm-pr .sv small{color:#1E6B3A}.stm-pr .sv b{color:#1E6B3A}
 .stm-dl{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin:0}.stm-dl div{min-width:0}.stm-dl dt{font-size:11.5px;color:var(--muted)}.stm-dl dd{margin:0;font-size:14px;font-weight:500;overflow-wrap:anywhere}
 @media (max-width:1279px){#modalActs:has(+ *){}.stm-ttl{font-size:18px}}
+.sup-tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}.sup-tools input{flex:1 1 180px;min-height:40px;border:1px solid var(--line);border-radius:10px;padding:4px 10px;font:14px var(--body);background:var(--surface);color:var(--fg)}
+.sup-tbl{display:flex;flex-direction:column;gap:4px;max-height:60vh;overflow:auto}.sup-row{display:grid;grid-template-columns:minmax(110px,1fr) minmax(130px,1.4fr) 120px minmax(120px,1.4fr) 56px 34px;gap:6px;align-items:center}
+.sup-row.head{font:600 12px var(--body);color:var(--muted);position:sticky;top:0;background:var(--surface);z-index:1;padding:4px 0}.sup-row input{min-width:0;min-height:36px;border:1px solid var(--line);border-radius:8px;padding:3px 8px;font:14px var(--body);background:var(--surface);color:var(--fg)}
+.sup-row.unl input{opacity:.6;border-style:dashed}.sup-row .x{width:32px;height:32px;border:0;border-radius:8px;background:transparent;color:var(--muted);cursor:pointer}.sup-row .x:hover{background:var(--sunk);color:var(--maroon)}.sup-row .x:disabled{opacity:.3;cursor:not-allowed}.sup-n{text-align:center;font-size:13px}
+@media (max-width:760px){.sup-row{grid-template-columns:1fr 1fr 44px 30px}.sup-row input[data-k="phone"],.sup-row input[data-k="note"],.sup-row.head span:nth-child(3),.sup-row.head span:nth-child(4){display:none}}
 .sh-card{display:grid;grid-template-columns:minmax(150px,210px) 1fr;gap:14px;margin-top:12px;align-items:start}.sh-card canvas{width:100%;height:auto;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.14);background:#fff}
 .sh-opts{display:flex;flex-direction:column;gap:8px}.sh-opts>b{font:600 13px var(--body);color:var(--maroon);text-transform:uppercase;letter-spacing:.05em}.sh-opts .rc-p{justify-content:flex-start}
 @media (max-width:520px){.sh-card{grid-template-columns:110px 1fr}}
@@ -2263,6 +2268,13 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
       <button class="linkbtn" type="button" id="convAdd">+ Add convention</button>
       <div class="status" id="convStatus"></div>
   </details>
+  <details class="card datacard setcard" id="setSup" data-pane="settings" data-perm="suppliers">
+    <summary><span class="dc-t">Suppliers</span><span class="dc-s" id="setSupMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
+      <p class="note" style="margin-block:6px 10px">Every supplier entered: the ones in this list and the ones on stock items (shown faded until added). Used as the drop-down list in New item, Edit database, Bulk update, pricing rules and Search. Renaming one offers to change it on its stock items too.</p>
+      <div class="sup-tools"><input id="supQ" type="search" placeholder="Find a supplier" aria-label="Find a supplier"><button class="btn sm" type="button" id="supAdd">+ Add supplier</button><button class="btn sm" type="button" id="supFromStock" hidden></button></div>
+      <div class="sup-tbl" id="supList"></div>
+      <div class="status" id="supStatus"></div>
+  </details>
   <details class="card datacard setcard" id="setCodes" data-pane="settings" data-perm="itemCodes">
     <summary><span class="dc-t">Item codes</span><span class="dc-s" id="setCodesMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
       <p class="note" style="margin-block:4px 0">Barcode prefix and item name, one per line, e.g. <b>BGL = Bangle</b>. Used to name items from their barcode.</p>
@@ -2595,7 +2607,7 @@ function applyRemoteSettings(rs){
   if('cats' in rs){settings.cats=rs.cats&&typeof rs.cats==='object'&&Object.keys(rs.cats).length?rs.cats:null;try{applyCats()}catch(e){}}
   if('showRates' in rs){settings.showRates=Array.isArray(rs.showRates)&&rs.showRates.length?rs.showRates:null;try{rebuildPurities()}catch(e){}}
   if(rs.gst!=null)settings.gst=rs.gst;if(rs.huid!=null)settings.huid=rs.huid;
-  if(rs.mkEdit)settings.mkEdit=rs.mkEdit;if(Array.isArray(rs.pdHide))settings.pdHide=rs.pdHide;if(rs.tabHide&&typeof rs.tabHide==='object')settings.tabHide=rs.tabHide;if(typeof rs.apprOn==='boolean')settings.apprOn=rs.apprOn;if(Array.isArray(rs.promos))settings.promos=rs.promos;if(Array.isArray(rs.priceRules))settings.priceRules=rs.priceRules;if(Array.isArray(rs.mkConv))settings.mkConv=rs.mkConv;if(typeof rs.chkOn==='boolean')settings.chkOn=rs.chkOn;try{paintConv()}catch(e){}try{paintPromoBar()}catch(e){}try{paintApprSet();renderBill(true)}catch(e){}try{applyTabs()}catch(e){}if(rs.ui)settings.ui=rs.ui;if(rs.accent)settings.accent=rs.accent;try{applyTheme()}catch(e){}if('showImg' in rs)settings.showImg=rs.showImg!==false;
+  if(rs.mkEdit)settings.mkEdit=rs.mkEdit;if(Array.isArray(rs.pdHide))settings.pdHide=rs.pdHide;if(rs.tabHide&&typeof rs.tabHide==='object')settings.tabHide=rs.tabHide;if(typeof rs.apprOn==='boolean')settings.apprOn=rs.apprOn;if(Array.isArray(rs.promos))settings.promos=rs.promos;if(Array.isArray(rs.priceRules))settings.priceRules=rs.priceRules;if(Array.isArray(rs.mkConv))settings.mkConv=rs.mkConv;if(Array.isArray(rs.suppliers)){settings.suppliers=rs.suppliers;try{paintSupMini();if($('setSup').open)paintSup()}catch(e){}}if(typeof rs.chkOn==='boolean')settings.chkOn=rs.chkOn;try{paintConv()}catch(e){}try{paintPromoBar()}catch(e){}try{paintApprSet();renderBill(true)}catch(e){}try{applyTabs()}catch(e){}if(rs.ui)settings.ui=rs.ui;if(rs.accent)settings.accent=rs.accent;try{applyTheme()}catch(e){}if('showImg' in rs)settings.showImg=rs.showImg!==false;
   store.set('settings2',settings);try{paintAdminExtras()}catch(e){}
   try{renderTable('cz');renderTable('dia');$('setGst').value=settings.gst;$('setHuid').value=settings.huid;renderEditor();renderBill(true)}catch(e){}
 }
@@ -6052,6 +6064,7 @@ function ruleForm(id){
     opts($('rlSubSel'),selSub,[...sc.entries()].sort((a,b)=>b[1].n-a[1].n).map(([k,o])=>[k,o.l,o.n]),'Any sub type',r.subs);
     const inSub=x=>!selSub?true:selSub==='__keep'?r.subs.includes(lc(x.category)):lc(x.category)===selSub;
     const su=new Map();all.forEach(x=>{if(!inPur(x)||!inItem(x)||!inSub(x))return;const k=String(x.supplier||'').trim();if(!k)return;su.set(k,(su.get(k)||0)+1)});
+    if(!selPur&&!selItem&&!selSub)(settings.suppliers||[]).forEach(x=>{const k=String(x.name||'').trim();if(k&&![...su.keys()].some(y=>y.toLowerCase()===k.toLowerCase()))su.set(k,0)});
     if(selSup&&!su.has(selSup))su.set(selSup,0);
     opts($('rlSupSel'),selSup,[...su.entries()].sort((a,b)=>b[1]-a[1]).map(([k,n2])=>[k,k,n2]),'Any supplier');
     const ca=new Map();all.forEach(x=>{if(!inPur(x)||!inItem(x)||!inSub(x))return;const c=codeOf(x);if(c)ca.set(c,(ca.get(c)||0)+1)});
@@ -6168,7 +6181,7 @@ function stockForm(rec){
     const id='sf_'+k,lab=`<label for="${id}">${esc(l)}${req?' *':''}</label>`;
     if(t==='at')return attrFields('sfA',isNew?{jt:'',sc:[]}:attrOf(r));
     if(t==='pn')return `<div class="full">${lab}<input id="${id}" list="pnList" autocomplete="off" maxlength="80" placeholder="e.g. Pink Solo Ring" value="${esc(isNew?'':pnameOf(r))}">${pnameDatalist()}<small class="pn-note" id="sfPnNote" aria-live="polite"></small></div>`;
-    if(LST[k])return `<div${k==='item'||k==='category'?' class="sf-lst"':''}>${lab}<select id="${id}" class="sf-sel">${optsOf(k,v0[k],k==='category'&&v0.item?x=>lc(x.item)===lc(v0.item):null)}</select><input id="${id}_new" class="sf-new" hidden placeholder="Type the new ${LST[k]}" aria-label="New ${LST[k]}"></div>`;
+    if(LST[k])return `<div${k==='item'||k==='category'?' class="sf-lst"':''}>${lab}<select id="${id}" class="sf-sel">${k==='supplier'?supOptions(v0.supplier,'Choose supplier…',true):optsOf(k,v0[k],k==='category'&&v0.item?x=>lc(x.item)===lc(v0.item):null)}</select><input id="${id}_new" class="sf-new" hidden placeholder="Type the new ${LST[k]}" aria-label="New ${LST[k]}"></div>`;
     if(t==='pur')return `<div>${lab}<select id="${id}">${purs.map(x=>`<option${String(v0.carat||'22').toUpperCase()===x?' selected':''}>${x}</option>`).join('')}</select></div>`;
     if(t==='date')return `<div>${lab}<input id="${id}" type="date" value="${val(k)}"></div>`;
     if(t==='yn')return `<div>${lab}<select id="${id}"><option value="">No</option><option value="Yes"${v0[k]?' selected':''}>Yes · imported</option></select></div>`;
@@ -6304,9 +6317,55 @@ function paintConvMini(){const L=settings.mkConv||[];$('setConvMini').textConten
 $('convAdd').onclick=()=>withPerm('mkHelper','Only an admin can change making conventions.',()=>{(settings.mkConv||(settings.mkConv=[])).push({code:'',pur:'',mk:'',fva:'',note:''});paintConv();const r=$('convList').querySelector('.conv-row:last-child select');r&&r.focus()});
 $('chkOn').onchange=()=>withPerm('mkHelper','Only an admin can switch the label check.',()=>{settings.chkOn=$('chkOn').checked;convSave()});
 paintConv();
+// ---- V1.8.12 supplier list: every supplier entered (in the list or on stock items), editable in Settings ----
+function supList(){
+  const m=new Map(),lc=x=>String(x||'').trim().toLowerCase();
+  (settings.suppliers||[]).forEach(s=>{const k=lc(s.name);if(k&&!m.has(k))m.set(k,{name:String(s.name).trim(),full:s.full||'',phone:s.phone||'',note:s.note||'',n:0,listed:true})});
+  for(const r of stockMap.values()){const v=String(r.supplier||'').trim();if(!v)continue;const k=v.toLowerCase();const o=m.get(k)||{name:v,full:'',phone:'',note:'',n:0,listed:false};o.n++;m.set(k,o)}
+  return [...m.values()].sort((a,b)=>a.name.localeCompare(b.name,'en',{numeric:true}));
+}
+const supLabel=s=>s.name+(s.full?` · ${s.full}`:'');
+function supOptions(cur,anyLabel,withNew){const L=supList(),c=String(cur||'').trim().toLowerCase();const has=L.some(s=>s.name.toLowerCase()===c);
+  return `<option value="">${anyLabel}</option>`+(c&&!has?`<option selected>${esc(cur)}</option>`:'')+L.map(s=>`<option value="${esc(s.name)}"${s.name.toLowerCase()===c?' selected':''}>${esc(supLabel(s))}${s.n?` · ${s.n}`:''}</option>`).join('')+(withNew?'<option value="__new">+ New supplier…</option>':'')}
+let supQ='',supT=null;
+function supSave(msg){clearTimeout(supT);supT=setTimeout(()=>{saveSettings();if($('supStatus'))$('supStatus').textContent=msg||(sync.key?'Saved · all staff get it at their next sync.':'Saved on this device.');paintSupMini()},500)}
+function paintSupMini(){const L=supList();if($('setSupMini'))$('setSupMini').textContent=`${L.length} supplier${L.length===1?'':'s'}`}
+function paintSup(){
+  const el=$('supList');if(!el)return;paintSupMini();
+  const L=supList(),q=supQ.toLowerCase(),show=L.filter(s=>!q||[s.name,s.full,s.phone,s.note].some(v=>String(v).toLowerCase().includes(q)));
+  const unl=L.filter(s=>!s.listed).length;
+  $('supFromStock').hidden=!unl;$('supFromStock').textContent=`Add the ${unl} supplier${unl===1?'':'s'} found on stock items`;
+  el.innerHTML=`<div class="sup-row head"><span>Supplier</span><span>Full name / company</span><span>Phone</span><span>Note</span><span>Items</span><span></span></div>`+
+    (show.length?show.map(s=>`<div class="sup-row${s.listed?'':' unl'}" data-n="${esc(s.name)}"><input data-k="name" value="${esc(s.name)}" aria-label="Supplier" maxlength="40"><input data-k="full" value="${esc(s.full)}" placeholder="—" aria-label="Full name" maxlength="80"><input data-k="phone" value="${esc(s.phone)}" placeholder="—" inputmode="tel" aria-label="Phone" maxlength="20"><input data-k="note" value="${esc(s.note)}" placeholder="—" aria-label="Note" maxlength="120"><span class="sup-n">${s.n?`<button type="button" class="linkbtn" data-see="${esc(s.name)}" title="Show these items in Search">${s.n}</button>`:'0'}</span><button type="button" class="x" aria-label="Remove ${esc(s.name)} from the list"${s.n&&!s.listed?' disabled title="On stock items; add it to the list first"':''}>✕</button></div>`).join(''):'<p class="note">No supplier matches.</p>');
+  el.querySelectorAll('.sup-row[data-n]').forEach(row=>{const nm=row.dataset.n;
+    const ensure=()=>{const S=settings.suppliers||(settings.suppliers=[]);let o=S.find(x=>String(x.name).trim().toLowerCase()===nm.toLowerCase());if(!o){const s=L.find(x=>x.name===nm)||{};o={name:nm,full:s.full||'',phone:s.phone||'',note:s.note||''};S.push(o)}return o};
+    row.querySelectorAll('input[data-k]').forEach(inp=>{
+      if(inp.dataset.k!=='name')inp.addEventListener('input',()=>{ensure()[inp.dataset.k]=inp.value.trim();row.classList.remove('unl');supSave()});
+      else inp.addEventListener('change',()=>{const v=inp.value.replace(/\s+/g,' ').trim();if(!v||v===nm){inp.value=nm;return}
+        if(L.some(x=>x.name.toLowerCase()===v.toLowerCase()&&x.name!==nm)){toast(`${v} is already in the list`,null,true);inp.value=nm;return}
+        const o=ensure();o.name=v;supSave();const used=[...stockMap.values()].filter(r=>String(r.supplier||'').trim().toLowerCase()===nm.toLowerCase());
+        if(used.length)supRename(nm,v,used);else paintSup()})});
+    row.querySelector('.x').onclick=()=>{settings.suppliers=(settings.suppliers||[]).filter(x=>String(x.name).trim().toLowerCase()!==nm.toLowerCase());supSave('Removed from the list'+(L.find(x=>x.name===nm)?.n?' (items keep their supplier)':'')+'.');paintSup()};
+    const see=row.querySelector('[data-see]');if(see)see.onclick=()=>{findType='';Object.keys(findF).forEach(k=>findF[k]='');findF.sup=nm.toLowerCase();const g=document.querySelector('#stFilters .st-rng');if(g)g.remove();openFind('')}});
+}
+// a renamed supplier: offer to change it on the stock items too (Bulk update permission)
+function supRename(from,to,rows){
+  showModal('Rename on stock items too?',`${rows.length} item${rows.length===1?' has':'s have'} supplier “${from}”. Change ${rows.length===1?'it':'them'} to “${to}” as well?`,[
+    {label:`Change ${rows.length} item${rows.length===1?'':'s'}`,cls:'primary',run:()=>withPerm('stockBulk','Needs permission: Bulk update stock items.',async()=>{
+      const now=Date.now(),up=rows.map(r=>Object.assign({},r,{supplier:to,at:num(r.at)>0?r.at:now,mkMan:String(r.mkMan??'')===''&&!(num(r.at)>0)?'0':r.mkMan}));
+      try{if(sync.key)for(let i=0;i<up.length;i+=300){const res=await syncApi('stockrow','POST',{rows:up.slice(i,i+300),what:`supplier ${from} → ${to}`,by:meName()},adminCreds);sync.v.stock=res.v}
+        saveSyncState();try{await IDB.putMany(up,false)}catch(e){}up.forEach(indexRec);toast(`${up.length} item${up.length===1?'':'s'} now show ${to}`)}
+      catch(e){toast('Could not change the items. Check the internet.',null,true)}paintSup()},true)},
+    {label:'Only the list',cls:'ghost',run:()=>paintSup()}]);
+}
+$('supAdd').onclick=()=>withPerm('suppliers','Needs permission: Edit the supplier list.',()=>{const S=settings.suppliers||(settings.suppliers=[]);let n='New supplier',i=1;while(supList().some(s=>s.name.toLowerCase()===n.toLowerCase()))n='New supplier '+(++i);S.push({name:n,full:'',phone:'',note:''});supQ='';$('supQ').value='';paintSup();supSave();const r=$('supList').querySelector(`.sup-row[data-n="${CSS.escape(n)}"] input`);if(r){r.focus();r.select()}});
+$('supFromStock').onclick=()=>withPerm('suppliers','Needs permission: Edit the supplier list.',()=>{const S=settings.suppliers||(settings.suppliers=[]);const add=supList().filter(s=>!s.listed);add.forEach(s=>S.push({name:s.name,full:'',phone:'',note:''}));supSave(`${add.length} added from stock.`);paintSup()});
+$('supQ').oninput=()=>{supQ=$('supQ').value.trim();paintSup()};
+$('setSup').addEventListener('toggle',()=>{if($('setSup').open)paintSup()});
+paintSupMini();
 // ---------- Bulk update: the same label details on many items at once ----------
 const BF=[['rule','Pricing rules','rule'],['imp','Imported','imp'],['mkPct','Wstg %','num'],['mkFix','Fixed Charge (₹)','num'],['mkPg','Making Rate (₹/g)','num'],['fva','FVA (% or ₹)','text'],['category','Item Type','cat'],
-  ['carat','Purity (K)','pur'],['location','Location','text'],['supplier','Supplier','text'],['stoneName','Stone Name(s)','text'],['size','Size','text'],['model','Model','text'],
+  ['carat','Purity (K)','pur'],['location','Location','text'],['supplier','Supplier','sup'],['stoneName','Stone Name(s)','text'],['size','Size','text'],['model','Model','text'],
   ['nlc','NLC (₹)','num'],['labelDate','Labelling Date','date']];
 let bulkAdd=null;
 function bulkPick(labels,q){
@@ -6329,9 +6388,11 @@ function bulkForm(){
       if(t==='pur')return `<div>${lab}<select id="${id}"><option value="">Keep</option>${['22','18','14','9','24','PT','925'].map(x=>`<option>${x}</option>`).join('')}</select></div>`;
       if(t==='date')return `<div>${lab}<input id="${id}" type="date"></div>`;
       if(t==='imp')return `<div>${lab}<select id="${id}"><option value="">Keep</option><option value="Yes">Yes · imported</option><option value="No">No</option></select></div>`;
+      if(t==='sup')return `<div>${lab}<select id="${id}">${supOptions('','Keep',true).replace('<option value="__new">','<option value="__new">')}</select><input id="${id}_new" class="sf-new" hidden placeholder="Type the new supplier" aria-label="New supplier"></div>`;
       if(t==='rule')return `<div class="full">${lab}<select id="${id}"><option value="">Keep · making / FVA typed here beat the rules</option><option value="follow">Follow the pricing rules again (undo hand-set making / FVA)</option></select></div>`;
       return `<div${k==='stoneName'?' class="full"':''}>${lab}<input id="${id}"${t==='num'?' inputmode="decimal"':''}></div>`}).join('')+`</div>
     <p class="note">Making: fill one of Wstg %, Fixed Charge (₹ per piece) or Making Rate (₹ per gram of net wt).</p>`;
+  $('bk_supplier').addEventListener('change',()=>{$('bk_supplier_new').hidden=$('bk_supplier').value!=='__new';if(!$('bk_supplier_new').hidden)$('bk_supplier_new').focus()});
   const MK=['mkPct','mkFix','mkPg'];MK.forEach(k=>$('bk_'+k).addEventListener('input',e=>{if(e.target.value.trim())MK.filter(x=>x!==k).forEach(x=>$('bk_'+x).value='')}));
   let pick={list:[],miss:[]};
   const upd=()=>{pick=bulkPick($('bkLabels').value,$('bkQ').value);const n=pick.list.length;
@@ -6350,7 +6411,7 @@ function bulkForm(){
     else{scanTarget='';$('bkLabels').focus();toast('No camera here. Use a handheld scanner into the box, or type.')}};
   const a=$('modalActs');a.innerHTML='';const mk=(t,c,f)=>{const b=document.createElement('button');b.type='button';b.className='btn '+c;b.textContent=t;b.onclick=f;a.appendChild(b);return b};
   const sv=mk('Update items','primary',async()=>{
-    const g=k=>$('bk_'+k).value.trim(),n=k=>{const x=num(g(k));return g(k)===''||isNaN(x)?null:x};
+    const g=k=>(k==='supplier'&&$('bk_supplier').value==='__new'?$('bk_supplier_new').value:$('bk_'+k).value).trim(),n=k=>{const x=num(g(k));return g(k)===''||isNaN(x)?null:x};
     if(!pick.list.length){toast('Pick the items first',null,true);return}
     const ch={},what=[];
     const mkP=n('mkPg')!=null?['pergram',n('mkPg')]:n('mkFix')!=null?['fixed',n('mkFix')]:n('mkPct')!=null?['pct',n('mkPct')]:null;
@@ -6609,7 +6670,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.8.11',APP_BUILD='__BUILD__';
+const APP_VERSION='1.8.12',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------
@@ -6619,24 +6680,25 @@ let curUser=null;{const ss=store.get('session',null);if(ss)curUser=users.find(u=
 let adminUntil=0; // admin override on a staff login (15 minutes)
 // ---------- roles & permissions ----------
 const PERM_LIST=[
-['stockdel','Delete sold tags from stock'],['rates',"Set day's rates"],
+['stockdel','Delete sold tags from stock'],['suppliers','Edit the supplier list'],['rates',"Set day's rates"],
   ['mkEdit','Update making on the price card'],['mkDisc','Making after discount on quotes'],
   ['closeSale','Close sale (invoice no.)'],['cancelQuote','Cancel quote (enquiry)'],['reopen','Reopen sold / cancelled quotes'],
   ['delQuote','Delete quotes'],['images','Add product photos'],['imgDel','Delete / replace product photos'],['imgBulk','Bulk upload photos'],['stockList','Stock list in Search (phone app)'],['addDisc','Additional discount (flat)'],['round','Round final amounts to the nearest ₹50'],['stockEdit','Edit stock items · making, FVA, label details'],['stockAdd','Add new items to stock'],['stockBulk','Bulk update stock items'],['reports','Reports'],['fva','Fair Value price'],['share','Share quotes on WhatsApp'],['pdHidden','See hidden details (NLC, FVA…)'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],['search','Search page · find items'],['stFilters','Search filters (item, design, colour…)'],['stRanges','Range search (weight, price, fair value…)'],['stSelect','Select items in Search'],['stExport','Export Search to Excel'],['shareItems','Share items on WhatsApp (picture cards)'],['shareAllPh','Send all photos of an item'],['sharePdf','Items as PDF'],['shareUser','Send items to another user'],['shareFv','Share fair value & savings'],['shareCost','Share making, NLC & supplier'],
   ['textSize','Text size'],['imgShow','Product image show / hide'],['ratesShown','Rates shown'],['charges','Charges · GST · HUID'],
   ['mkHelper','Making helpers'],['itemCodes','Item codes'],['pdRows','Product details items'],['sync','Shared database · shop key'],['roles','Roles & permissions'],['users','Users']];
-const SET_PERMS=['theme','footer','apprSet','export','promos','rules','reports','stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users'];
+const SET_PERMS=['suppliers','theme','footer','apprSet','export','promos','rules','reports','stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users'];
 const STOCK_PERMS=['stockEdit','stockAdd','stockBulk','stockdel'];const PHOTO_PERMS=['images','imgDel','imgBulk'];
 // V1.8.6 functions grouped for the role editor
 const PERM_GROUPS=[['Prices & making',['rates','mkEdit','mkDisc','addDisc','round','fva','pdHidden']],['Quotes',['closeSale','cancelQuote','reopen','delQuote','approve','share']],
   ['Search',['search','stFilters','stRanges','stSelect','stExport','stockList']],['WhatsApp & sharing',['shareItems','shareAllPh','sharePdf','shareUser','shareFv','shareCost','leads']],
-  ['Stock database',['stockEdit','stockAdd','stockBulk','stockdel']],['Product photos & details',['images','imgDel','imgBulk']],['Reports',['reports']],
+  ['Stock database',['stockEdit','stockAdd','stockBulk','stockdel','suppliers']],['Product photos & details',['images','imgDel','imgBulk']],['Reports',['reports']],
   ['Settings',['textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users']]];
 const permLabel=k=>(PERM_LIST.find(p=>p[0]===k)||[0,k])[1];
-const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','imgDel','imgBulk','stockList','approve','leads','share','pdHidden','addDisc','round','reports','fva','stockEdit','stockAdd','stockBulk','search','stFilters','stRanges','stSelect','stExport','shareItems','shareAllPh','sharePdf','shareUser','shareFv','shareCost']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share','fva','stockList','search','stFilters','stRanges','stSelect','shareItems','shareAllPh','sharePdf','shareUser','shareFv']}];
+const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','imgDel','imgBulk','stockList','approve','leads','share','pdHidden','addDisc','round','reports','fva','stockEdit','stockAdd','stockBulk','suppliers','search','stFilters','stRanges','stSelect','stExport','shareItems','shareAllPh','sharePdf','shareUser','shareFv','shareCost']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share','fva','stockList','search','stFilters','stRanges','stSelect','shareItems','shareAllPh','sharePdf','shareUser','shareFv']}];
 let roles=store.get('roles',null)||clone(DEFAULT_ROLES);
 // WhatsApp sharing became a permission (v1.7.3): roles on this phone keep it once
 if(!store.get('permShare',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&!r.perms.includes('share'))r.perms.push('share')});store.set('roles',roles);store.set('permShare',true)}
+if(!store.get('perm1812',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('stockEdit')&&!r.perms.includes('suppliers'))r.perms.push('suppliers')});store.set('roles',roles);store.set('perm1812',true)}
 if(!store.get('perm186',false)){roles.forEach(r=>{if(!Array.isArray(r.perms))return;const add=p=>{if(!r.perms.includes(p))r.perms.push(p)};['search','stFilters','stRanges'].forEach(add);if(r.perms.includes('share'))['stSelect','shareItems','shareAllPh','sharePdf','shareUser','shareFv'].forEach(add);if(r.perms.includes('pdHidden'))add('shareCost');if(r.perms.includes('reports'))add('stExport')});store.set('roles',roles);store.set('perm186',true)}
 if(!store.get('perm182',false)){roles.forEach(r=>{if(!Array.isArray(r.perms))return;if(r.perms.includes('images'))['imgDel','imgBulk'].forEach(k=>{if(!r.perms.includes(k))r.perms.push(k)});if(!r.perms.includes('stockList'))r.perms.push('stockList')});store.set('roles',roles);store.set('perm182',true)}
 if(!store.get('permHid',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('mkDisc')&&!r.perms.includes('pdHidden'))r.perms.push('pdHidden')});store.set('roles',roles);store.set('permHid',true)}
@@ -6650,7 +6712,7 @@ if(!store.get('permAddDisc',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&
 let elev={role:'',until:0};   // another user's approval, 15 minutes
 const roleName=id=>id==='admin'?'Admin':(roles.find(r=>r.id===id)||{name:id||'—'}).name;
 // 'settings' was one permission before v1.6.42; it still grants all the settings functions
-const OLD_SETTINGS=['textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows'];
+const OLD_SETTINGS=['suppliers','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows'];
 const ADMIN_ONLY=['stock','theme','footer','apprSet','export','special','promos','rules'];   // Stock data is an admin function
 function roleHas(role,perm){if(role==='admin')return true;if(ADMIN_ONLY.includes(perm))return false;const ps=((roles.find(r=>r.id===role)||{}).perms||[]);return ps.includes(perm)||(OLD_SETTINGS.includes(perm)&&ps.includes('settings'))||(perm==='roles'&&ps.includes('users'))}
 // A manager's PIN approval covers only what it was asked for (e.g. sharing), not everything the manager can do

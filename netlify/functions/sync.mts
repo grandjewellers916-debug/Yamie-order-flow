@@ -61,10 +61,10 @@ function cleanRow(r: any) {
   return o.key ? o : null
 }
 // Permissions an admin can give to a role (admin always has all)
-const PERMS = ["search", "stFilters", "stRanges", "stSelect", "stExport", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv", "shareCost", "stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "imgDel", "imgBulk", "stockList", "share", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "stockBulk", "approve", "leads", "textSize", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows", "pdHidden", "sync", "roles", "users", "settings"]
-const SETTINGS_PERMS = ["imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows"]
+const PERMS = ["suppliers", "search", "stFilters", "stRanges", "stSelect", "stExport", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv", "shareCost", "stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "imgDel", "imgBulk", "stockList", "share", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "stockBulk", "approve", "leads", "textSize", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows", "pdHidden", "sync", "roles", "users", "settings"]
+const SETTINGS_PERMS = ["suppliers", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows"]
 const DEFAULT_ROLES = [
-  { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "images", "imgDel", "imgBulk", "stockList", "approve", "leads", "share", "pdHidden", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "stockBulk", "search", "stFilters", "stRanges", "stSelect", "stExport", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv", "shareCost"] },
+  { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "images", "imgDel", "imgBulk", "stockList", "approve", "leads", "share", "pdHidden", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "stockBulk", "suppliers", "search", "stFilters", "stRanges", "stSelect", "stExport", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv", "shareCost"] },
   { id: "staff", name: "Staff", perms: ["rates", "closeSale", "cancelQuote", "share", "fva", "stockList", "search", "stFilters", "stRanges", "stSelect", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv"] },
 ]
 // A quote as the app keeps it, minus anything large (photos stay on the phone that took them)
@@ -152,6 +152,12 @@ export default async (req: Request) => {
   }
   // Reports: roles that give making discounts (managers) can see them (once)
   // v1.8.6: search and sharing functions became permissions; existing roles keep what they could do (once)
+  if (!(meta as any).v1812) {
+    let ch = false
+    for (const r of roles) if (Array.isArray(r?.perms) && r.perms.includes("stockEdit") && !r.perms.includes("suppliers")) { r.perms.push("suppliers"); ch = true }
+    if (ch && (await st.get("roles"))) { await st.setJSON("roles", roles); meta.users = Date.now() }
+    ;(meta as any).v1812 = 1; await saveMeta()
+  }
   if (!(meta as any).v186) {
     let ch = false
     const add = (r: any, p: string) => { if (!r.perms.includes(p)) { r.perms.push(p); ch = true } }
@@ -701,6 +707,8 @@ export default async (req: Request) => {
           code: /^[A-Z]{2,4}$/.test(x?.code || "") ? x.code : "", pur: ["", "24k", "22k", "18k", "14k", "9k", "platinum", "silver"].includes(x?.pur) ? x.pur : "",
           mk: cleanStr(x?.mk, 20), fva: cleanStr(x?.fva, 20), note: cleanStr(x?.note, 120),
         })).filter((x: any) => x.mk || x.fva || x.note),
+        // V1.8.12 supplier list
+        suppliers: (() => { const seen = new Set(); return (Array.isArray(s?.suppliers) ? s.suppliers : []).slice(0, 1000).map((x: any) => ({ name: cleanStr(x?.name, 40).replace(/\s+/g, " ").trim(), full: cleanStr(x?.full, 80), phone: cleanStr(x?.phone, 20), note: cleanStr(x?.note, 120) })).filter((x: any) => { const k = x.name.toLowerCase(); if (!k || seen.has(k)) return false; seen.add(k); return true }) })(),
         chkOn: s?.chkOn !== false,
         pdHide: (Array.isArray(s?.pdHide) ? s.pdHide : []).filter((x: any) => typeof x === "string" && /^[a-zA-Z]{1,16}$/.test(x)).slice(0, 30),
         showRates: Array.isArray(s?.showRates) ? s.showRates.filter((x: any) => ["22k", "18k", "14k", "9k", "platinum", "silver"].includes(x)) : null,
@@ -708,7 +716,7 @@ export default async (req: Request) => {
       // Keep the parts this user may not change
       const prev: any = (await st.get("settings", { type: "json" })) || {}
       const keep = (perm: string, keys: string[]) => { if (!roleHas(role, perm)) keys.forEach((k) => { if (k in prev) (out as any)[k] = prev[k] }) }
-      keep("charges", ["gst", "huid"]); keep("mkHelper", ["mkTable", "mkConv", "chkOn"]); keep("itemCodes", ["cats"]); keep("ratesShown", ["showRates"]); keep("imgShow", ["showImg", "mkEdit"]); keep("theme", ["ui", "accent"]); keep("pdRows", ["pdHide"]); keep("footer", ["tabHide"]); keep("apprSet", ["apprOn"]); keep("promos", ["promos"]); keep("rules", ["priceRules"])
+      keep("charges", ["gst", "huid"]); keep("mkHelper", ["mkTable", "mkConv", "chkOn"]); keep("suppliers", ["suppliers"]); keep("itemCodes", ["cats"]); keep("ratesShown", ["showRates"]); keep("imgShow", ["showImg", "mkEdit"]); keep("theme", ["ui", "accent"]); keep("pdRows", ["pdHide"]); keep("footer", ["tabHide"]); keep("apprSet", ["apprOn"]); keep("promos", ["promos"]); keep("rules", ["priceRules"])
       await st.setJSON("settings", out)
       meta.settings = Date.now(); await saveMeta()
       return json(req, { v: meta.settings })
