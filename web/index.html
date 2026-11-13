@@ -1009,6 +1009,7 @@ body.stm .mr-img{width:52px;height:52px}body.stm .mr-t b{font-size:14.5px}body.s
 .sc-wrap{display:flex;flex-direction:column;gap:12px;align-items:center}.sc-wrap canvas{width:min(100%,320px);height:auto;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.18)}
 .sc-opts{display:flex;flex-wrap:wrap;gap:8px 14px;justify-content:center}
 .wa-one.wa-st{margin-left:6px}
+.sh-fvn{color:#9A5B00;background:#FFF4E0;border-radius:10px;padding:8px 10px;margin:6px 0 0}
 @media (min-width:1280px) and (pointer:fine){#bill.qv{display:flex!important;flex-direction:column;gap:14px}#bill.qv>*{width:100%;max-width:none}#bill.qv>.q-side{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:14px;align-items:start}#bill.qv>.q-side:not(:has(> :not(.qs-off))),#bill.qv>.q-main:not(:has(> :not(.qs-off))),#bill.qv>.q-full:not(:has(> :not(.qs-off))){display:none}}
 #bill .q-step{display:none}
 .qw-bar{position:sticky;top:0;z-index:5;background:var(--bg,#FBF7F3);padding:8px 0 6px;margin-bottom:4px}
@@ -5159,7 +5160,7 @@ async function openStatus(d){
   const urls=d.key?await getProdImgs(d.key).catch(()=>[]):[];const imgs=(await Promise.all(urls.slice(0,3).map(u=>loadImg(u)))).filter(Boolean);
   const cv=await statusCard(d,imgs);const o=$('scCv');if(!o)return;o.getContext('2d').drawImage(cv,0,0);
   const url=cv.toDataURL('image/jpeg',.92),base=`${BRAND.name}-${d.sku||'item'}-status`.replace(/[^\w-]+/g,'-');
-  $('scNote').textContent=NATIVE?'WhatsApp opens: choose “My status” at the top.':'Share it to WhatsApp and choose “My status”.';
+  $('scNote').textContent=(d.offer>=d.lp&&can('fva')?`No fair value for ${d.sku}: no FVA is set for it, so the card shows the price only. `:'')+(NATIVE?'WhatsApp opens: choose “My status” at the top.':'Share it to WhatsApp and choose “My status”.');
   const ac=$('modalActs');ac.innerHTML='';
   const add=(t,cls,f)=>{const b=document.createElement('button');b.type='button';b.className='btn '+cls;b.textContent=t;b.onclick=f;ac.appendChild(b)};
   add('WhatsApp Status','primary',async()=>{closeModal();if(NATIVE&&NATIVE.shareWhatsApp){NATIVE.shareWhatsApp('','',JSON.stringify([url]));return}await waSendImgs([url],'','',base)});
@@ -5432,6 +5433,7 @@ function shVal(r,k){
   }
 }
 const shTitle=r=>String(pnameOf(r)||r.item||r.category||'Item').trim();
+const r0key=r=>String(r.barcode||r.key||'');
 function shPicked(){return [...stSel].map(k=>stockMap.get(k)).filter(Boolean)}
 function openShareSel(only){
   const list=Array.isArray(only)?only:shPicked();if(!list.length){toast('Select items first',null,true);return}
@@ -5454,7 +5456,11 @@ function openShareSel(only){
   const pick=()=>{const v=[...$('modalBody').querySelectorAll('.sh-f input:checked')].map(i=>i.value);store.set('shFields',v);return v};
   const prev=()=>{const v=pick(),r=list[0];$('shPrev').textContent=v.length?'Preview · '+[shTitle(r),...v.filter(k=>k!=='img'&&k!=='item'&&k!=='pname').map(k=>{const x=shVal(r,k);return x?`${SH_F.find(c=>c[0]===k)[1]}: ${x}`:''}).filter(Boolean)].join(' · '):'Pick at least one detail'};
   let cvT=0;const cardPrev=()=>{clearTimeout(cvT);cvT=setTimeout(async()=>{const v=pick(),r=list[0];const all=v.includes('img')?await getProdImgs(r.key).catch(()=>[]):[];const ims=(await Promise.all(all.slice(0,5).map(u=>loadImg(u)))).filter(Boolean);const cv=await shCard(r,v,ims[0]||null,ims.slice(1));const o=$('shCardCv');if(!o)return;o.width=cv.width;o.height=cv.height;o.getContext('2d').drawImage(cv,0,0)},120)};
-  $('modalBody').querySelectorAll('.sh-f input').forEach(i=>i.addEventListener('change',()=>{prev();cardPrev()}));prev();cardPrev();
+  // V1.8.17 say which items have no fair value (no FVA in the database or a pricing rule), so the card cannot show it
+  const fvMiss=()=>{const v=pick();if(!v.some(k=>k==='fv'||k==='save')||!can('fva'))return '';const m=list.filter(r=>isNaN(stPrice(r).fv));
+    return m.length?`No fair value for ${m.length===list.length&&list.length===1?esc(r0key(m[0])):m.length+' of '+list.length+' items ('+m.slice(0,5).map(r0key).map(esc).join(', ')+(m.length>5?'…':'')+')'}: no FVA is set for ${m.length===1?'it':'them'} (Edit in database, bulk update or a pricing rule), so the card shows the label price only.`:''};
+  const fvNote=()=>{let n=$('shFvNote');if(!n){n=document.createElement('p');n.id='shFvNote';n.className='note sh-fvn';$('shPrev').after(n)}const t=fvMiss();n.innerHTML=t;n.hidden=!t};
+  $('modalBody').querySelectorAll('.sh-f input').forEach(i=>i.addEventListener('change',()=>{prev();cardPrev();fvNote()}));prev();cardPrev();fvNote();
   // build the cards while the window is open, so WhatsApp opens on the first click
   const mode=()=>(($('modalBody').querySelector('[name=shMode]:checked')||{}).value)||'card',allPh=()=>!!($('shAllPh')&&$('shAllPh').checked);
   let pre={sig:'',imgs:null},pT=0;const sigOf=()=>JSON.stringify([pick(),allPh()]);
@@ -6980,7 +6986,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.8.16',APP_BUILD='__BUILD__';
+const APP_VERSION='1.8.17',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------

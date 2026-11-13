@@ -533,3 +533,6 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 - **Fair value and savings on the picture cards** – fixed: the fair value (FVA) price was remembered from before the login / before the roles arrived, so cards could miss the fair value and savings until the gold rate changed. The price is now worked out again for the logged-in user, after rule changes and when an item changes.
 - Share window: Label price, Fair value and Savings are ticked once for users who may share the fair value. The savings card says "Fair value price" (was "You pay").
 - Status card from a quote item: the Offer price is the lower of the quoted price and the Fair value price (with its FVA).
+
+## V 1.8.17
+- The fair value needs an FVA on the item (Edit in database, bulk update or a pricing rule). When Fair value / Savings are ticked in the share window but an item has no FVA, a note names the items ("No fair value for FRG0766: no FVA is set…"), so it is clear why the card shows the label price only. The status card says the same.
