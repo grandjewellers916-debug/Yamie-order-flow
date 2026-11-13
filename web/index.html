@@ -1258,11 +1258,13 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
 .mg-r .fv{color:#5B2A86}.mg-n{grid-column:1/-1;color:var(--muted)}
 .conv-on{display:flex;gap:10px;align-items:flex-start;margin-top:6px;cursor:pointer}.conv-on input{width:20px;height:20px;margin-top:2px;accent-color:var(--maroon)}.conv-on small{color:var(--muted)}
 .conv-tbl{display:flex;flex-direction:column;gap:6px;margin:6px 0}
-.conv-row{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,.8fr) minmax(0,.9fr) minmax(0,.9fr) minmax(0,1.4fr) 32px;gap:6px;align-items:center}
+.conv-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr)) minmax(0,.8fr) minmax(0,.8fr) minmax(0,1.3fr) 32px;gap:6px;align-items:center}
+@media (max-width:1400px){.conv-row{grid-template-columns:repeat(5,minmax(0,1fr)) 32px}.conv-row.head{display:none}.conv-row [data-k="mk"]{grid-column:1}.conv-row [data-k="note"]{grid-column:3/6}.conv-row .x{grid-row:1;grid-column:6}.conv-row:not(.head){padding:8px 0;border-bottom:1px solid var(--line)}}
 .conv-row.head{font-size:12px;color:var(--muted);font-weight:600}
 .conv-row select,.conv-row input{min-width:0;width:100%;min-height:40px;padding:6px 8px;font-size:14px}
+.mg-for{display:block;font-size:11px;color:var(--muted);font-weight:400}
 .conv-row .x{border:0;background:none;font-size:22px;color:var(--muted);cursor:pointer}
-@media (max-width:560px){.conv-row{grid-template-columns:1fr 1fr 32px}.conv-row.head{display:none}.conv-row [data-k="note"]{grid-column:1/3}.conv-row .x{grid-row:1;grid-column:3}.lc-row{grid-template-columns:22px minmax(0,1fr)}.lc-n{display:none}.lc-t{grid-column:2}.lc-v{grid-column:2}}
+@media (max-width:560px){.conv-row{grid-template-columns:1fr 1fr 32px}.conv-row.head{display:none}.conv-row [data-k]{grid-column:auto!important}.conv-row [data-k="note"]{grid-column:1/3!important}.conv-row .x{grid-row:1;grid-column:3}.lc-row{grid-template-columns:22px minmax(0,1fr)}.lc-n{display:none}.lc-t{grid-column:2}.lc-v{grid-column:2}}
 /* ===== v1.8 web / desktop (>= 1280px): wide Quote with summary beside the items, stock table, Reports page, print ===== */
 .qx,.tab-dk,.bc-l-d,.dk-wide,.qimg-pc,.rp-charts,.kb{display:none}
 /* V1.7.76 quote: desktop-only columns (.qd), phone/tablet-only cells (.qm), summary strip, ERP check */
@@ -6237,8 +6239,14 @@ function stockForm(rec){
 // ---------- V1.7.79 Making conventions (per item type and purity) and the label check after a scan ----------
 const CONV_PUR=[['','Any'],['22k','22K'],['18k','18K'],['14k','14K'],['9k','9K'],['24k','24K'],['platinum','PT'],['silver','Silver']];
 const GUIDE_ICO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.4"/><path d="m9.5 16.5 5-5"/><circle cx="10" cy="12" r=".8"/><circle cx="14" cy="16" r=".8"/></svg>';
-function convFor(t){const L=settings.mkConv||[],c=itemCode(t),pu=t.purity||'';
-  return L.find(x=>x.code&&x.code===c&&x.pur&&x.pur===pu)||L.find(x=>x.code&&x.code===c&&!x.pur)||L.find(x=>!x.code&&x.pur&&x.pur===pu)||L.find(x=>!x.code&&!x.pur)||null}
+// V1.8.13 a convention can also name an item name, item type (sheet) and supplier; the one with the most matching details wins
+const convLc=v=>String(v||'').trim().toLowerCase();
+function convHits(x,t){const st=t.stock||{},c=itemCode(t);
+  if(x.code&&x.code!==c)return -1;if(x.pur&&x.pur!==(t.purity||''))return -1;
+  if(x.name&&convLc(x.name)!==convLc(st.item||t.item))return -1;if(x.sub&&convLc(x.sub)!==convLc(st.category))return -1;if(x.sup&&convLc(x.sup)!==convLc(st.supplier))return -1;
+  return ['sup','sub','name','code','pur'].reduce((n,k)=>n+(x[k]?1:0),0)}
+function convFor(t){let best=null,bs=-1;(settings.mkConv||[]).forEach(x=>{const h=convHits(x,t);if(h>bs){bs=h;best=x}});return best}
+const convFor_=x=>[x.name,x.sub,x.sup?'supplier '+x.sup:''].filter(Boolean).join(' · ');
 // a convention value ("28%", "1500 PG", "800") as an amount for this item
 function convAmt(t,str){const o=parseVal(str);if(!o)return null;const a=makingFor(t,o.type,o.val);return {o,amt:a}}
 function fvaConvAmt(t,str){const raw=String(str||'').trim();if(!raw)return null;const v=num(raw.replace(/[^\d.]/g,''));if(isNaN(v))return null;
@@ -6290,9 +6298,9 @@ function openMkGuide(){
   const groups=new Map();L.forEach(x=>{const k=x.code||'';if(!groups.has(k))groups.set(k,[]);groups.get(k).push(x)});
   const keys=[...groups.keys()].sort((a,b)=>(b===curC)-(a===curC)||(!a)-(!b)||String(CAT[a]||a).localeCompare(String(CAT[b]||b)));
   $('modalTitle').textContent='Making guide';$('modalTitle').classList.remove('price-pop');
-  $('modalBody').innerHTML=L.length?`<div class="mg-search"><input id="mgQ" type="search" placeholder="Item type, e.g. Ring, Nosepin" aria-label="Find an item type"></div>
-    <div class="mg-list" id="mgList">${keys.map(k=>`<section class="mg-card${k===curC&&k?' cur':''}" data-q="${esc((k+' '+(CAT[k]||'All items')).toLowerCase())}"><h5><span class="mg-i">${GUIDE_ICO}</span>${esc(k?CAT[k]||k:'All items')}${k?` <small>${esc(k)}</small>`:''}${k===curC&&k?' <em>this item</em>':''}</h5>
-      <div class="mg-rows"><div class="mg-r h"><span>Purity</span><span>Making</span><span>Fair value</span></div>${groups.get(k).map(x=>{const m=parseVal(x.mk);return `<div class="mg-r"><span>${esc((CONV_PUR.find(p=>p[0]===x.pur)||['','Any'])[1])}</span><b>${esc(m?valText(m):x.mk||'—')}</b><b class="fv">${esc(x.fva?(/%/.test(x.fva)||num(x.fva)<100?fmtN(num(x.fva))+'%':inr(num(x.fva))):'—')}</b>${x.note?`<small class="mg-n">${esc(x.note)}</small>`:''}</div>`}).join('')}</div></section>`).join('')}</div>`
+  $('modalBody').innerHTML=L.length?`<div class="mg-search"><input id="mgQ" type="search" placeholder="Item type, name or supplier, e.g. Ring, VND01" aria-label="Find an item type"></div>
+    <div class="mg-list" id="mgList">${keys.map(k=>`<section class="mg-card${k===curC&&k?' cur':''}" data-q="${esc((k+' '+(CAT[k]||'All items')+' '+groups.get(k).map(x=>[x.name,x.sub,x.sup].join(' ')).join(' ')).toLowerCase())}"><h5><span class="mg-i">${GUIDE_ICO}</span>${esc(k?CAT[k]||k:'All items')}${k?` <small>${esc(k)}</small>`:''}${k===curC&&k?' <em>this item</em>':''}</h5>
+      <div class="mg-rows"><div class="mg-r h"><span>Purity</span><span>Making</span><span>Fair value</span></div>${groups.get(k).map(x=>{const m=parseVal(x.mk),fo=convFor_(x);return `<div class="mg-r"><span>${esc((CONV_PUR.find(p=>p[0]===x.pur)||['','Any'])[1])}${fo?`<small class="mg-for">${esc(fo)}</small>`:''}</span><b>${esc(m?valText(m):x.mk||'—')}</b><b class="fv">${esc(x.fva?(/%/.test(x.fva)||num(x.fva)<100?fmtN(num(x.fva))+'%':inr(num(x.fva))):'—')}</b>${x.note?`<small class="mg-n">${esc(x.note)}</small>`:''}</div>`}).join('')}</div></section>`).join('')}</div>`
     :`<p class="note">No making conventions yet.${adm?' Add them in Settings → Making conventions.':' Ask an admin to add them.'}</p>`;
   const a=$('modalActs');a.innerHTML='';const mkb=(tx,c,f)=>{const b=document.createElement('button');b.type='button';b.className='btn '+c;b.textContent=tx;b.onclick=f;a.appendChild(b)};
   if(adm)mkb('Edit conventions','',()=>{closeModal();setView('settings');const d=$('setConv');if(d){d.open=true;setTimeout(()=>d.scrollIntoView({behavior:'smooth',block:'start'}),120)}});
@@ -6305,16 +6313,20 @@ function paintConv(){
   const el=$('convList');if(!el)return;const L=settings.mkConv||(settings.mkConv=[]);
   $('chkOn').checked=settings.chkOn!==false;
   $('setConvMini').textContent=(L.length?L.length+' convention'+(L.length>1?'s':''):'none')+' · check '+(settings.chkOn!==false?'on':'off');
-  const codeOpts=c=>`<option value="">All items</option>`+Object.keys(CAT).map(k=>`<option value="${esc(k)}"${k===c?' selected':''}>${esc(CAT[k])} (${esc(k)})</option>`).join('');
-  el.innerHTML=`<div class="conv-row head"><span>Item type</span><span>Purity</span><span>Making</span><span>FVA</span><span>Note</span><span></span></div>`+
-    L.map((x,i)=>`<div class="conv-row" data-i="${i}"><select data-k="code" aria-label="Item type">${codeOpts(x.code)}</select><select data-k="pur" aria-label="Purity">${CONV_PUR.map(([v,l])=>`<option value="${v}"${v===x.pur?' selected':''}>${l}</option>`).join('')}</select><input data-k="mk" value="${esc(x.mk||'')}" placeholder="28%" aria-label="Making"><input data-k="fva" value="${esc(x.fva||'')}" placeholder="23%" aria-label="Fair value making"><input data-k="note" value="${esc(x.note||'')}" placeholder="Note" aria-label="Note"><button class="x" type="button" aria-label="Delete">×</button></div>`).join('');
+  const codeOpts=c=>`<option value="">Any code</option>`+Object.keys(CAT).map(k=>`<option value="${esc(k)}"${k===c?' selected':''}>${esc(CAT[k])} (${esc(k)})</option>`).join('');
+  const all=[...stockMap.values()],dist=f=>{const m=new Map();all.forEach(r=>{const v=String(r[f]||'').trim();if(v&&!m.has(v.toLowerCase()))m.set(v.toLowerCase(),v)});return [...m.values()].sort((a,b)=>a.localeCompare(b,'en',{numeric:true}))};
+  const NAMES=dist('item'),SUBS=dist('category'),SUPS=supList().map(x=>x.name);
+  const lst=(k,cur,list,any,lab)=>{const has=list.some(v=>v.toLowerCase()===String(cur||'').toLowerCase());return `<select data-k="${k}" aria-label="${lab}"><option value="">${any}</option>${cur&&!has?`<option selected>${esc(cur)}</option>`:''}${list.map(v=>`<option${v.toLowerCase()===String(cur||'').toLowerCase()?' selected':''}>${esc(v)}</option>`).join('')}</select>`};
+  el.innerHTML=`<div class="conv-row head"><span>Label code</span><span>Item name</span><span>Item type</span><span>Supplier</span><span>Purity</span><span>Making</span><span>FVA</span><span>Note</span><span></span></div>`+
+    L.map((x,i)=>`<div class="conv-row" data-i="${i}"><select data-k="code" aria-label="Label code">${codeOpts(x.code)}</select>${lst('name',x.name,NAMES,'Any name','Item name')}${lst('sub',x.sub,SUBS,'Any type','Item type')}${lst('sup',x.sup,SUPS,'Any supplier','Supplier')}<select data-k="pur" aria-label="Purity">${CONV_PUR.map(([v,l])=>`<option value="${v}"${v===x.pur?' selected':''}>${l}</option>`).join('')}</select><input data-k="mk" value="${esc(x.mk||'')}" placeholder="28%" aria-label="Making"><input data-k="fva" value="${esc(x.fva||'')}" placeholder="23%" aria-label="Fair value making"><input data-k="note" value="${esc(x.note||'')}" placeholder="Note" aria-label="Note"><button class="x" type="button" aria-label="Delete">×</button></div>`).join('');
   el.querySelectorAll('.conv-row[data-i]').forEach(row=>{const i=+row.dataset.i;
     row.querySelectorAll('[data-k]').forEach(inp=>inp.addEventListener(inp.tagName==='SELECT'?'change':'input',()=>{settings.mkConv[i][inp.dataset.k]=inp.value.trim?inp.value.trim():inp.value;convSave()}));
     row.querySelector('.x').onclick=()=>{settings.mkConv.splice(i,1);convSave();paintConv()}});
 }
 let convT=null;function convSave(){clearTimeout(convT);convT=setTimeout(()=>{saveSettings();$('convStatus').textContent=sync.key?'Saved · all staff get it at their next sync.':'Saved on this device.';paintConvMini()},500)}
 function paintConvMini(){const L=settings.mkConv||[];$('setConvMini').textContent=(L.length?L.length+' convention'+(L.length>1?'s':''):'none')+' · check '+(settings.chkOn!==false?'on':'off')}
-$('convAdd').onclick=()=>withPerm('mkHelper','Only an admin can change making conventions.',()=>{(settings.mkConv||(settings.mkConv=[])).push({code:'',pur:'',mk:'',fva:'',note:''});paintConv();const r=$('convList').querySelector('.conv-row:last-child select');r&&r.focus()});
+$('convAdd').onclick=()=>withPerm('mkHelper','Only an admin can change making conventions.',()=>{(settings.mkConv||(settings.mkConv=[])).push({code:'',name:'',sub:'',sup:'',pur:'',mk:'',fva:'',note:''});paintConv();const r=$('convList').querySelector('.conv-row:last-child select');r&&r.focus()});
+$('setConv').addEventListener('toggle',()=>{if($('setConv').open)paintConv()});
 $('chkOn').onchange=()=>withPerm('mkHelper','Only an admin can switch the label check.',()=>{settings.chkOn=$('chkOn').checked;convSave()});
 paintConv();
 // ---- V1.8.12 supplier list: every supplier entered (in the list or on stock items), editable in Settings ----
@@ -6670,7 +6682,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.8.12',APP_BUILD='__BUILD__';
+const APP_VERSION='1.8.13',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------

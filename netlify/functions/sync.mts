@@ -703,8 +703,9 @@ export default async (req: Request) => {
           sale: ["any", "store", "online"].includes(x?.sale) ? x.sale : "any",
         })).filter((x: any) => x.id && x.name),
         // Making conventions per item type and purity (making, fair value, note) and the label check after a scan
-        mkConv: (Array.isArray(s?.mkConv) ? s.mkConv : []).slice(0, 150).map((x: any) => ({
+        mkConv: (Array.isArray(s?.mkConv) ? s.mkConv : []).slice(0, 400).map((x: any) => ({
           code: /^[A-Z]{2,4}$/.test(x?.code || "") ? x.code : "", pur: ["", "24k", "22k", "18k", "14k", "9k", "platinum", "silver"].includes(x?.pur) ? x.pur : "",
+          name: cleanStr(x?.name, 80), sub: cleanStr(x?.sub, 80), sup: cleanStr(x?.sup, 40),
           mk: cleanStr(x?.mk, 20), fva: cleanStr(x?.fva, 20), note: cleanStr(x?.note, 120),
         })).filter((x: any) => x.mk || x.fva || x.note),
         // V1.8.12 supplier list
