@@ -1009,7 +1009,15 @@ body.stm .mr-img{width:52px;height:52px}body.stm .mr-t b{font-size:14.5px}body.s
 .sc-wrap{display:flex;flex-direction:column;gap:12px;align-items:center}.sc-wrap canvas{width:min(100%,320px);height:auto;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.18)}
 .sc-opts{display:flex;flex-wrap:wrap;gap:8px 14px;justify-content:center}
 .wa-one.wa-st{margin-left:6px}
-.bk-find{border:1px solid var(--line);border-radius:12px;padding:8px 12px 4px;margin:8px 0}.bk-find legend{font-weight:600;padding:0 6px}.bk-find .pr-form{margin:0}.bk-ch{font-weight:600;margin:12px 0 4px;color:var(--maroon)}
+.bk-find{border:1px solid var(--line);border-radius:14px;margin:10px 0;background:var(--surface)}
+.bk-find>summary{display:flex;align-items:center;gap:8px;padding:12px 14px;cursor:pointer;list-style:none;font-weight:600}.bk-find>summary::-webkit-details-marker{display:none}
+.bk-find>summary small{color:#fff;background:var(--maroon);border-radius:999px;padding:1px 8px;font-size:12px}.bk-find>summary small:empty{display:none}.bk-find>summary .dc-chev{margin-left:auto;transition:transform .2s}.bk-find[open]>summary .dc-chev{transform:rotate(180deg)}
+.bkf-g{padding:2px 14px 8px}.bkf-g>b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:4px 0 2px}
+.bkf-g label{display:block;font-size:12px;color:var(--muted);margin:4px 0 2px}.bkf-g select,.bkf-g input{width:100%;min-height:40px}
+.bkf-r2{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px}.bkf-r3{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:4px 8px}.bkf-r4{display:grid;grid-template-columns:1.1fr 1.2fr 1fr 1fr;gap:4px 8px}
+@media (max-width:420px){.bkf-r4{grid-template-columns:1fr 1fr}}
+.bkf-n{margin:0 14px 12px;font-size:12px}
+#bkCount{position:sticky;top:-1px;z-index:2;background:var(--sunk);border-radius:10px;padding:8px 10px;margin:8px 0}.bk-ch{font-weight:600;margin:12px 0 4px;color:var(--maroon)}
 .sh-fvn{color:#9A5B00;background:#FFF4E0;border-radius:10px;padding:8px 10px;margin:6px 0 0}
 @media (min-width:1280px) and (pointer:fine){#bill.qv{display:flex!important;flex-direction:column;gap:14px}#bill.qv>*{width:100%;max-width:none}#bill.qv>.q-side{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:14px;align-items:start}#bill.qv>.q-side:not(:has(> :not(.qs-off))),#bill.qv>.q-main:not(:has(> :not(.qs-off))),#bill.qv>.q-full:not(:has(> :not(.qs-off))){display:none}}
 #bill .q-step{display:none}
@@ -1055,7 +1063,8 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
 @media (max-width:1279px){.st-selbar{bottom:calc(84px + env(safe-area-inset-bottom));padding:6px 6px 6px 16px;gap:8px;flex-wrap:nowrap;white-space:nowrap}.st-selbar .btn{min-height:40px;padding:0 14px}}
 .st-shared{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center;background:#F6EEDC;color:#5A3A10;border:1px solid #E5D3A8;border-radius:10px;padding:6px 10px;margin:0 10px 6px 0}
 .sh-sec{margin-top:14px}.sh-sec:first-child{margin-top:0}.sh-sec h5{margin:0 0 8px;font:600 12px var(--body);color:var(--maroon);text-transform:uppercase;letter-spacing:.05em}
-.sh-f{display:flex;flex-wrap:wrap;gap:6px}.sh-prev{margin:8px 0 0;font-size:13px}
+.sh-f{display:flex;flex-wrap:wrap;gap:6px}.sh-h{display:flex;align-items:center;gap:12px}.sh-h h5{margin-right:auto}
+.sh-f.arr{flex-direction:column;flex-wrap:nowrap}.sh-f.arr .rc-p{display:flex;align-items:center;width:100%}.sh-mv{margin-left:auto;display:flex;gap:4px}.sh-mv button{width:36px;height:32px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);cursor:pointer}.sh-mv button:disabled{opacity:.3}.sh-prev{margin:8px 0 0;font-size:13px}
 .sh-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.sh-row input,.sh-row select{min-height:44px;border:1px solid var(--line);border-radius:12px;padding:6px 12px;font:15px var(--body);background:var(--surface);color:var(--fg);flex:1 1 170px;min-width:0}
 .rl-wiz select{width:100%;min-height:44px;border:1px solid var(--line);border-radius:12px;padding:6px 12px;font:15px var(--body);background:var(--surface);color:var(--fg)}
 .rl-more{border:1px dashed var(--line);border-radius:12px;padding:6px 10px}.rl-more>summary{cursor:pointer;font-weight:600;color:var(--maroon);padding:4px 0}
@@ -1071,7 +1080,7 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
 .find-acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .pr-form{display:grid;grid-template-columns:1fr 1fr;gap:8px}.pr-form .full{grid-column:1/-1}
 .pr-form label{font-size:12px;color:var(--muted);display:block;margin-bottom:3px}
-.pr-form input,.pr-form select,.pr-form textarea,.rp-f select,.rp-f input{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px 10px;font:14px var(--body);background:var(--surface);color:var(--fg)}
+.pr-form input,.pr-form select,.pr-form textarea,.rp-f select,.rp-f input,.bkf-g input,.bkf-g select{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px 10px;font:14px var(--body);background:var(--surface);color:var(--fg)}
 .offer-pop{border-radius:14px;padding:12px 14px;margin:8px 0;background:linear-gradient(135deg,#3B1A5C,#6B2F9A);color:#fff}
 .offer-pop b{display:block;font-size:17px}.offer-pop span{color:#FFE08A;font-weight:700}.offer-pop small{display:block;opacity:.85;margin-top:4px}
 .rp-f{display:flex;gap:8px;margin-top:8px}.rp-f>*{flex:1;min-width:0}
@@ -1396,6 +1405,7 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
   /* Search: whole stock as a table */
   .find-view .find-list.st-tbl{display:block}
   .st-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px;max-height:calc(100vh - 290px);background:var(--surface)}
+  .stk th[draggable=true]{cursor:grab}.stk th.st-drag{opacity:.45}.stk th.st-drop{box-shadow:inset 3px 0 0 var(--maroon)}
   .stk{width:100%;border-collapse:separate;border-spacing:0;font-size:14px;font-variant-numeric:tabular-nums}
   .stk th{position:sticky;top:0;z-index:1;background:var(--sunk);text-align:left;font-weight:600;font-size:13px;padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap;cursor:pointer;user-select:none}
   .stk th.r,.stk td.r{text-align:right}
@@ -2685,14 +2695,14 @@ function applyRemoteSettings(rs){
   if('cats' in rs){settings.cats=rs.cats&&typeof rs.cats==='object'&&Object.keys(rs.cats).length?rs.cats:null;try{applyCats()}catch(e){}}
   if('showRates' in rs){settings.showRates=Array.isArray(rs.showRates)&&rs.showRates.length?rs.showRates:null;try{rebuildPurities()}catch(e){}}
   if(rs.gst!=null)settings.gst=rs.gst;if(rs.huid!=null)settings.huid=rs.huid;
-  if(rs.mkEdit)settings.mkEdit=rs.mkEdit;if(Array.isArray(rs.pdHide))settings.pdHide=rs.pdHide;if(rs.tabHide&&typeof rs.tabHide==='object')settings.tabHide=rs.tabHide;if(typeof rs.apprOn==='boolean')settings.apprOn=rs.apprOn;if(Array.isArray(rs.promos))settings.promos=rs.promos;if(Array.isArray(rs.priceRules))settings.priceRules=rs.priceRules;if(Array.isArray(rs.mkConv))settings.mkConv=rs.mkConv;if(Array.isArray(rs.suppliers)){settings.suppliers=rs.suppliers;try{paintSupMini();if($('setSup').open)paintSup()}catch(e){}}if(typeof rs.chkOn==='boolean')settings.chkOn=rs.chkOn;try{paintConv()}catch(e){}try{paintPromoBar()}catch(e){}try{paintApprSet();renderBill(true)}catch(e){}try{applyTabs()}catch(e){}if(rs.ui)settings.ui=rs.ui;if(rs.accent)settings.accent=rs.accent;try{applyTheme()}catch(e){}if('showImg' in rs)settings.showImg=rs.showImg!==false;
+  if(rs.mkEdit)settings.mkEdit=rs.mkEdit;if(Array.isArray(rs.pdHide))settings.pdHide=rs.pdHide;if(rs.tabHide&&typeof rs.tabHide==='object')settings.tabHide=rs.tabHide;if(typeof rs.apprOn==='boolean')settings.apprOn=rs.apprOn;if(Array.isArray(rs.promos))settings.promos=rs.promos;if(Array.isArray(rs.priceRules))settings.priceRules=rs.priceRules;if(Array.isArray(rs.mkConv))settings.mkConv=rs.mkConv;if(Array.isArray(rs.suppliers)){settings.suppliers=rs.suppliers;try{paintSupMini();if($('setSup').open)paintSup()}catch(e){}}if(typeof rs.chkOn==='boolean')settings.chkOn=rs.chkOn;try{paintConv()}catch(e){}try{paintPromoBar()}catch(e){}try{paintApprSet();renderBill(true)}catch(e){}try{applyTabs()}catch(e){}if(rs.ui)settings.ui=rs.ui;if(rs.accent)settings.accent=rs.accent;if(rs.shCard&&typeof rs.shCard==='object')settings.shCard=rs.shCard;try{applyTheme()}catch(e){}if('showImg' in rs)settings.showImg=rs.showImg!==false;
   store.set('settings2',settings);try{paintAdminExtras()}catch(e){}
   try{renderTable('cz');renderTable('dia');$('setGst').value=settings.gst;$('setHuid').value=settings.huid;renderEditor();renderBill(true)}catch(e){}
 }
 let settingsTimer=null;
 function saveSettings(){store.set('settings2',settings);if(!sync.key)return;sync.dirtySettings=true;saveSyncState();clearTimeout(settingsTimer);settingsTimer=setTimeout(()=>{if(adminCreds)pushSettingsNow().catch(e=>syncMsg('err',syncErrText(e)))},1500)}
 async function pushSettingsNow(){
-  const r=await syncApi('settings','POST',{settings:{gst:settings.gst,huid:settings.huid,mkTable:settings.mkTable,cats:settings.cats||null,showRates:settings.showRates||null,mkEdit:settings.mkEdit||'admin',showImg:settings.showImg!==false,ui:settings.ui||'iosBrand',accent:settings.accent||'brand',pdHide:settings.pdHide||[],tabHide:settings.tabHide||{},apprOn:settings.apprOn!==false,priceRules:settings.priceRules||[],mkConv:settings.mkConv||[],chkOn:settings.chkOn!==false,promos:(settings.promos||[]).map(x=>Object.assign({},x,{min:num(x.min)||0,val:num(x.val)||0}))}},adminCreds);
+  const r=await syncApi('settings','POST',{settings:{gst:settings.gst,huid:settings.huid,mkTable:settings.mkTable,cats:settings.cats||null,showRates:settings.showRates||null,mkEdit:settings.mkEdit||'admin',showImg:settings.showImg!==false,ui:settings.ui||'iosBrand',accent:settings.accent||'brand',shCard:settings.shCard||null,pdHide:settings.pdHide||[],tabHide:settings.tabHide||{},apprOn:settings.apprOn!==false,priceRules:settings.priceRules||[],mkConv:settings.mkConv||[],chkOn:settings.chkOn!==false,promos:(settings.promos||[]).map(x=>Object.assign({},x,{min:num(x.min)||0,val:num(x.val)||0}))}},adminCreds);
   sync.v.settings=r.v;sync.dirtySettings=false;saveSyncState();syncMsg('ok','Settings saved to the shared database.');
 }
 // V1.8.7: day's rates need a user with "Set day's rates" on the server too (their PIN goes with the request)
@@ -4920,7 +4930,12 @@ function openSettings(card){setView('settings');if(card){const c=$(card);if(!c.o
 $('heroBack').onclick=()=>setView('home');
 // ---------- theme: style (iOS colour / true iOS / Android) and colour ----------
 const ACCENTS={brand:{n:'Brand',c:null},blue:{n:'iOS blue',c:['#0A6CFF','#0050D0','#0A6CFF']},maroon:{n:'Maroon',c:['#971B1E','#6B1014','#B58A3C']},
-  gold:{n:'Gold',c:['#9A6B1F','#6E4A12','#B58A3C']},emerald:{n:'Emerald',c:['#0F7B5F','#0A5843','#B58A3C']},navy:{n:'Navy',c:['#1F3A68','#13284A','#B58A3C']},rose:{n:'Rose',c:['#B03A5B','#7D2440','#C49A5A']}};
+  gold:{n:'Gold',c:['#9A6B1F','#6E4A12','#B58A3C']},emerald:{n:'Emerald',c:['#0F7B5F','#0A5843','#B58A3C']},navy:{n:'Navy',c:['#1F3A68','#13284A','#B58A3C']},rose:{n:'Rose',c:['#B03A5B','#7D2440','#C49A5A']},
+  // V1.8.20 more colours
+  wine:{n:'Wine',c:['#7A1F3D','#521428','#C29A5B']},ruby:{n:'Ruby',c:['#C0182F','#8A0F21','#D4A24C']},coral:{n:'Coral',c:['#C4513A','#8E3423','#D9A55B']},copper:{n:'Copper',c:['#A0522D','#6F381E','#D2A15E']},
+  bronze:{n:'Bronze',c:['#7C5A2A','#563D1B','#C9A15A']},olive:{n:'Olive',c:['#5E6B2A','#3F481B','#C2A65A']},forest:{n:'Forest',c:['#2E6B3A','#1F4A28','#C2A65A']},teal:{n:'Teal',c:['#0E7C86','#09565D','#C9A55A']},
+  ocean:{n:'Ocean',c:['#1565A6','#0D4573','#C9A55A']},sapphire:{n:'Sapphire',c:['#2342A0','#172D70','#C9A55A']},indigo:{n:'Indigo',c:['#3F3D9E','#2A296E','#C9A55A']},violet:{n:'Violet',c:['#6A3FA0','#4A2B70','#D0A85E']},
+  plum:{n:'Plum',c:['#7B2D6E','#55204C','#D0A85E']},magenta:{n:'Magenta',c:['#B0266F','#7C1A4E','#D6A65E']},slate:{n:'Slate',c:['#46566B','#2F3A49','#C2A060']},charcoal:{n:'Charcoal',c:['#3A3A3C','#1F1F21','#C9A55A']}};
 function applyTheme(){
   const ui=settings.ui||'iosBrand',ac=ACCENTS[settings.accent]||ACCENTS.brand;
   document.documentElement.dataset.ui=ui;
@@ -5397,7 +5412,8 @@ function paintSelBar(){
   for(const k of [...stSel])if(!stockMap.has(k))stSel.delete(k);
   const on=document.body.dataset.view==='search'&&stSel.size>0&&can('stSelect');b.hidden=!on;if(!on)return;
   const tot=stLastRows.length,more=stLastRows.some(r=>!stSel.has(r.key));
-  b.innerHTML=`<span class="ss-n"><b>${stSel.size.toLocaleString('en-IN')}</b> selected</span>${more&&tot>1?`<button type="button" class="linkbtn" id="ssAll">${DESK.matches?'Select all '+tot.toLocaleString('en-IN')+' found':'All '+tot.toLocaleString('en-IN')}</button>`:''}<button type="button" class="btn primary" id="ssShare">Share…</button><button type="button" class="btn ss-clr" id="ssClr">Clear</button>`;
+  b.innerHTML=`<span class="ss-n"><b>${stSel.size.toLocaleString('en-IN')}</b> selected</span>${more&&tot>1?`<button type="button" class="linkbtn" id="ssAll">${DESK.matches?'Select all '+tot.toLocaleString('en-IN')+' found':'All '+tot.toLocaleString('en-IN')}</button>`:''}<button type="button" class="btn primary" id="ssShare">Share…</button>${can('stockBulk')?'<button type="button" class="btn" id="ssUpd">Update…</button>':''}<button type="button" class="btn ss-clr" id="ssClr">Clear</button>`;
+  if($('ssUpd'))$('ssUpd').onclick=()=>bulkForm([...stSel].map(k=>stockMap.get(k)).filter(Boolean));
   if($('ssAll'))$('ssAll').onclick=()=>{stLastRows.slice(0,500).forEach(r=>stSel.add(r.key));if(tot>500)toast('First 500 items selected',null,true);runFind()};
   $('ssClr').onclick=()=>{stSel.clear();runFind();paintSelBar()};
   $('ssShare').onclick=openShareSel;
@@ -5440,10 +5456,13 @@ function openShareSel(only){
   const list=Array.isArray(only)?only:shPicked();if(!list.length){toast('Select items first',null,true);return}
   const ok=shFieldsOk(),saved=store.get('shFields',SH_DEF),f=new Set(Array.isArray(saved)?saved:SH_DEF);
   if(!store.get('shFv1815',false)&&can('fva')&&can('shareFv')){['price','fv','save'].forEach(k=>f.add(k));store.set('shFields',[...f]);store.set('shFv1815',true)}
+  // V1.8.20 the shop's card (set by an admin) reaches every phone once each time the admin changes it
+  {const sc=settings.shCard;if(sc&&Array.isArray(sc.f)&&num(sc.at)>num(store.get('shCardAt',0))){f.clear();sc.f.forEach(k=>f.add(k));store.set('shFields',sc.f);if(Array.isArray(sc.order))store.set('shOrder',sc.order);store.set('shCardAt',sc.at)}}
+  const shOrd=()=>{const o=store.get('shOrder',null),ix=k=>{const i=Array.isArray(o)?o.indexOf(k):-1;return i<0?900+SH_F.findIndex(c=>c[0]===k):i};return [...ok].sort((a,b)=>ix(a[0])-ix(b[0]))};
   showModal(`Share ${list.length} item${list.length===1?'':'s'}`,'',[{label:'Close',cls:'ghost'}]);
   const staff=users.filter(u=>u.active!==false&&(!curUser||u.id!==curUser.id));
   $('modalBody').innerHTML=`<div class="sh-wrap">
-    <div class="sh-sec"><h5>What to share</h5><div class="sh-f">${ok.map(([k,l])=>`<label class="rc-p"><input type="checkbox" value="${k}"${f.has(k)?' checked':''}> ${esc(l)}</label>`).join('')}</div>
+    <div class="sh-sec"><div class="sh-h"><h5>What to share</h5><button type="button" class="linkbtn" id="shArr" aria-pressed="false">Arrange</button>${can('theme')?'<button type="button" class="linkbtn" id="shShop">Save as shop card</button>':''}</div><div class="sh-f" id="shF"></div>
       <p class="note sh-prev" id="shPrev"></p>
       <div class="sh-card"><canvas id="shCardCv" aria-label="Picture card preview"></canvas><div class="sh-opts">
         <b>WhatsApp sends</b>
@@ -5461,13 +5480,21 @@ function openShareSel(only){
   const fvMiss=()=>{const v=pick();if(!v.some(k=>k==='fv'||k==='save')||!can('fva'))return '';const m=list.filter(r=>isNaN(stPrice(r).fv));
     return m.length?`No fair value for ${m.length===list.length&&list.length===1?esc(r0key(m[0])):m.length+' of '+list.length+' items ('+m.slice(0,5).map(r0key).map(esc).join(', ')+(m.length>5?'…':'')+')'}: no FVA is set for ${m.length===1?'it':'them'} (Edit in database, bulk update or a pricing rule), so the card shows the label price only.`:''};
   const fvNote=()=>{let n=$('shFvNote');if(!n){n=document.createElement('p');n.id='shFvNote';n.className='note sh-fvn';$('shPrev').after(n)}const t=fvMiss();n.innerHTML=t;n.hidden=!t};
-  $('modalBody').querySelectorAll('.sh-f input').forEach(i=>i.addEventListener('change',()=>{prev();cardPrev();fvNote()}));prev();cardPrev();fvNote();
+  // fields: tick to show; Arrange shows ↑ ↓ to set the order of the rows on the card
+  let arr=false;const paintF=()=>{const cur=new Set([...$('shF').querySelectorAll('input:checked')].map(i=>i.value));const has=k=>$('shF').childElementCount?cur.has(k):f.has(k);
+    $('shF').classList.toggle('arr',arr);$('shArr').textContent=arr?'Done':'Arrange';$('shArr').setAttribute('aria-pressed',String(arr));
+    $('shF').innerHTML=shOrd().map(([k,l],i,a)=>`<label class="rc-p"><input type="checkbox" value="${k}"${has(k)?' checked':''}> ${esc(l)}${arr?`<span class="sh-mv"><button type="button" data-mv="${k}" data-d="-1" aria-label="Move ${esc(l)} up"${i?'':' disabled'}>↑</button><button type="button" data-mv="${k}" data-d="1" aria-label="Move ${esc(l)} down"${i<a.length-1?'':' disabled'}>↓</button></span>`:''}</label>`).join('')};
+  paintF();
+  $('shArr').onclick=()=>{arr=!arr;paintF()};
+  $('shF').addEventListener('click',e=>{const b=e.target.closest('[data-mv]');if(!b)return;e.preventDefault();const o=shOrd().map(x=>x[0]),i=o.indexOf(b.dataset.mv),j=i+num(b.dataset.d);if(j<0||j>=o.length)return;[o[i],o[j]]=[o[j],o[i]];store.set('shOrder',o);paintF();$('shF').dispatchEvent(new Event('change'))});
+  if($('shShop'))$('shShop').onclick=()=>withPerm('theme','Only an admin can set the shop card.',()=>{settings.shCard={f:pick(),order:shOrd().map(x=>x[0]),at:Date.now()};store.set('shCardAt',settings.shCard.at);saveSettings();toast('Shop card saved · every phone gets it')});
+  $('shF').addEventListener('change',()=>{prev();cardPrev();fvNote()});prev();cardPrev();fvNote();
   // build the cards while the window is open, so WhatsApp opens on the first click
   const mode=()=>(($('modalBody').querySelector('[name=shMode]:checked')||{}).value)||'card',allPh=()=>!!($('shAllPh')&&$('shAllPh').checked);
   let pre={sig:'',imgs:null},pT=0;const sigOf=()=>JSON.stringify([pick(),allPh()]);
   const prebuild=()=>{clearTimeout(pT);if(mode()==='text'||list.length>20){pre={sig:'',imgs:null};return}pT=setTimeout(async()=>{const sg=sigOf(),v=pick();const im=await buildShareImgs(list,v,{allPh:allPh()});if(sg===sigOf())pre={sig:sg,imgs:im}},350)};
   $('modalBody').querySelectorAll('[name=shMode]').forEach(i=>i.onchange=()=>{store.set('shMode',i.value);prebuild()});if($('shAllPh'))$('shAllPh').onchange=()=>{store.set('shAllPh',$('shAllPh').checked);prebuild()};
-  $('modalBody').querySelectorAll('.sh-f input').forEach(i=>i.addEventListener('change',prebuild));prebuild();
+  $('shF').addEventListener('change',prebuild);prebuild();
   $('shWa').onclick=()=>{const v=pick();if(!v.length){toast('Pick what to share',null,true);return}const opt={textOnly:mode()==='text',cardOnly:mode()==='cardOnly',allPh:allPh()};const ready=pre.sig===sigOf()?pre.imgs:null;withPerm('shareItems','Needs permission: Share items on WhatsApp.',()=>shareItemsWa(list,v,$('shPh')?phoneDigits($('shPh').value):'',opt,ready))};
   if($('shStatus'))$('shStatus').onclick=()=>{closeModal();openStatus(scFromStock(list[0]))};
   if($('shPdf'))$('shPdf').onclick=async()=>{const v=pick();if(!v.length){toast('Pick what to share',null,true);return}const b=$('shPdf');b.disabled=true;b.textContent='Making the PDF…';try{await shareItemsPdf(list,v)}catch(e){toast('Could not make the PDF',null,true)}b.disabled=false;b.textContent='PDF'};
@@ -5883,6 +5910,13 @@ function runFindTable(){
   if($('stmMoreB'))$('stmMoreB').onclick=()=>{stMShown+=30;runFindTable()};
   const price=key=>{const r=stockMap.get(key);if(r){setView('home');useScannedCode(r.barcode||r.key);paintBarcode()}};
   el.querySelectorAll('th[data-c]').forEach(th=>th.onclick=()=>{const c=th.dataset.c;if(c==='img'||c==='act')return;stSort=stSort.k===c?{k:c,d:-stSort.d}:{k:c,d:1};store.set('stSort',stSort);runFindTable()});
+  // V1.8.20 drag a column heading onto another to move the column (saved on this device)
+  el.querySelectorAll('th[data-c]').forEach(th=>{if(!stCols.includes(th.dataset.c))return;th.draggable=true;th.title='Click to sort · drag to move the column';
+    th.ondragstart=e=>{e.dataTransfer.setData('text/plain',th.dataset.c);e.dataTransfer.effectAllowed='move';th.classList.add('st-drag')};
+    th.ondragend=()=>{th.classList.remove('st-drag');el.querySelectorAll('.st-drop').forEach(x=>x.classList.remove('st-drop'))};
+    th.ondragover=e=>{e.preventDefault();th.classList.add('st-drop')};th.ondragleave=()=>th.classList.remove('st-drop');
+    th.ondrop=e=>{e.preventDefault();const a=e.dataTransfer.getData('text/plain'),b=th.dataset.c;if(!a||a===b||!stCols.includes(a))return;
+      const o=stCols.filter(k=>k!==a),i=o.indexOf(b),fwd=stCols.indexOf(a)<stCols.indexOf(b);o.splice(fwd?i+1:i,0,a);stCols=o;store.set('stCols',o);runFindTable();toast('Column moved')}});
   wireSel(el,show);el.querySelectorAll('[data-wa]').forEach(b=>b.onclick=e=>{e.stopPropagation();const r=stockMap.get(b.dataset.wa);if(r)openShareSel([r])});
   el.querySelectorAll('.mr').forEach(m=>{let lp=0;
     m.onclick=e=>{if(e.target.closest('.stg-ck,a'))return;if(stMSelMode){const c=m.querySelector('[data-sel]');if(c){c.checked=!c.checked;c.onchange()}return}const r=stockMap.get(m.dataset.k);if(r)stmItem(r)};
@@ -6687,20 +6721,27 @@ const BF=[['rule','Pricing rules','rule'],['imp','Imported','imp'],['mkPct','Wst
 let bulkAdd=null;
 // V1.8.18 find by: purity, weight range (gross / net), supplier, imported. With no labels or words, the finders pick from all stock
 // V1.8.19 also item type, item name, wastage %, making (fixed ₹ / ₹ per g), FVA. Making and FVA are what the price uses (pricing rules included)
-function bulkFindOn(f){return !!(f&&(f.pur||f.sup||f.imp||f.cat||f.item||f.mkT||f.fv||['wMin','wMax','waMin','waMax','mkMin','mkMax','fvMin','fvMax'].some(k=>f[k]!=='')))}
+const BKF_K=['wMin','wMax','waEq','waMin','waMax','mkMin','mkMax','fvEq','fvMin','fvMax'];
+function bulkFindN(f){return f?['pur','sup','imp','cat','item','mkT','fv'].filter(k=>f[k]).length+BKF_K.filter(k=>f[k]!=='').length:0}
+function bulkFindOn(f){return bulkFindN(f)>0}
 const lcT=x=>String(x||'').trim().toLowerCase();
 function bulkFindPass(r,f){
   if(f.cat&&lcT(r.category)!==f.cat)return false;
   if(f.item&&lcT(r.item)!==f.item)return false;
   const inR=(v,a,b)=>!(isNaN(v)||(a!==''&&v<num(a))||(b!==''&&v>num(b)));
-  if(f.waMin!==''||f.waMax!==''||f.mkT||f.mkMin!==''||f.mkMax!==''||f.fv||f.fvMin!==''||f.fvMax!==''){
+  if(f.waEq!==''||f.waMin!==''||f.waMax!==''||f.mkT||f.mkMin!==''||f.mkMax!==''||f.fv||f.fvEq!==''||f.fvMin!==''||f.fvMax!==''){
     const e=applyRules(r)||r;let mv=num(e.mk);const mt=e.mkType&&mv>0?e.mkType:'';if(mt==='pct'&&mv>0&&mv<1)mv=mv*100;
     if((f.waMin!==''||f.waMax!=='')&&!(mt==='pct'&&inR(mv,f.waMin,f.waMax)))return false;
+    if(f.waEq!==''&&!(mt==='pct'&&Math.abs(mv-num(f.waEq))<0.005))return false;
     if(f.mkT==='none'&&mt)return false;
     if(f.mkT&&f.mkT!=='none'&&mt!==f.mkT)return false;
     if((f.mkMin!==''||f.mkMax!=='')&&!(mt&&mt!=='pct'&&(!f.mkT||f.mkT===mt)&&inR(mv,f.mkMin,f.mkMax)))return false;
     const raw=e.fva==null?'':String(e.fva).trim(),fx=num(raw.replace(/[^\d.]/g,'')),has=!!raw&&!isNaN(fx);
     if(f.fv==='yes'&&!has)return false;if(f.fv==='no'&&has)return false;if(f.fv==='hand'&&!(has&&r.fvaMan))return false;
+    const fpct=has?(/%/.test(raw)?fx:(typeof e.fva==='number'||/^0?\.\d+$/.test(raw))&&fx<1?fx*100:null):null;
+    if(f.fvEq!==''){if(!has)return false;const q=String(f.fvEq),qv=num(q.replace(/[^\d.]/g,''));if(isNaN(qv))return false;
+      const asPct=/%/.test(q),asAmt=/₹|rs/i.test(q),okP=fpct!=null&&Math.abs(fpct-qv)<0.005,okA=fpct==null&&Math.abs(fx-qv)<0.005;
+      if(asPct?!okP:asAmt?!okA:!(okP||okA))return false}
     if(f.fvMin!==''||f.fvMax!==''){if(!has)return false;const pct=/%/.test(raw)?fx:(typeof e.fva==='number'||/^0?\.\d+$/.test(raw))&&fx<1?fx*100:null;if(pct==null||!inR(pct,f.fvMin,f.fvMax))return false}
   }
   if(f.pur&&caratToPurity(r.carat)!==f.pur)return false;
@@ -6716,31 +6757,40 @@ function bulkPick(labels,q,f){
   if(bulkFindOn(f)){const base=out.size||labels.trim()||q?[...out.values()]:[...stockMap.values()];return {list:base.filter(r=>bulkFindPass(r,f)),miss}}
   return {list:[...out.values()],miss};
 }
-function bulkForm(){
+function bulkForm(pre){
   withPerm('stockBulk','Enter your PIN to bulk update stock items.',()=>{
   const cats=Object.values(CAT).filter(Boolean);
   $('modalTitle').textContent='Bulk update label details';$('modalTitle').classList.remove('price-pop');
   $('modalBody').innerHTML=`<p class="note">Pick the items, fill only what should change. Blank fields stay as they are. Saved to the shared database for all staff.</p>
     <div class="lead-f"><div class="bk-lh"><label for="bkLabels">Label numbers</label><button type="button" class="btn sm" id="bkScan">Scan labels</button></div><textarea id="bkLabels" rows="3" placeholder="Scan tags, or type FRG382, STD101… (one per line or with commas)"></textarea></div>
     <div class="lead-f"><label for="bkQ">And/or all items matching</label><input id="bkQ" placeholder="e.g. NSP, Nose Pin, a supplier or location"></div>
-    <fieldset class="bk-find"><legend>Find items by</legend><div class="pr-form">
-      <div><label for="bkfCat">Item type</label><select id="bkfCat"><option value="">Any</option>${(()=>{const m=new Map();for(const r of stockMap.values()){const v=String(r.category||'').trim();if(v&&!m.has(v.toLowerCase()))m.set(v.toLowerCase(),v)}return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1],'en',{numeric:true})).map(([k,v])=>`<option value="${esc(k)}">${esc(v)}</option>`).join('')})()}</select></div>
-      <div><label for="bkfItem">Item name</label><select id="bkfItem"><option value="">Any</option>${(()=>{const m=new Map();for(const r of stockMap.values()){const v=String(r.item||'').trim();if(v&&!m.has(v.toLowerCase()))m.set(v.toLowerCase(),v)}return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1],'en',{numeric:true})).map(([k,v])=>`<option value="${esc(k)}">${esc(v)}</option>`).join('')})()}</select></div>
-      <div><label for="bkfPur">Purity</label><select id="bkfPur"><option value="">Any</option>${[...new Set([...stockMap.values()].map(r=>caratToPurity(r.carat)).filter(Boolean))].sort((a,b)=>Object.keys(PLABEL).indexOf(a)-Object.keys(PLABEL).indexOf(b)).map(x=>`<option value="${esc(x)}">${esc(PLABEL[x]||x)}</option>`).join('')}</select></div>
-      <div><label for="bkfSup">Supplier</label><select id="bkfSup"><option value="">Any</option>${(()=>{const m=new Map();for(const r of stockMap.values()){const v=String(r.supplier||'').trim();if(v&&!m.has(v.toLowerCase()))m.set(v.toLowerCase(),v)}return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1],'en',{numeric:true})).map(([k,v])=>`<option value="${esc(k)}">${esc(v)}${(()=>{const x=supList().find(s=>s.name.toLowerCase()===k);return x&&x.full?' · '+esc(x.full):''})()}</option>`).join('')})()}</select></div>
-      <div><label for="bkfImp">Imported</label><select id="bkfImp"><option value="">Any</option><option value="yes">Imported only</option><option value="no">Not imported</option></select></div>
-      <div><label for="bkfWBy">Weight</label><select id="bkfWBy"><option value="gw">Gross wt</option><option value="nw">Net wt</option></select></div>
-      <div><label for="bkfWMin">From (g)</label><input id="bkfWMin" inputmode="decimal" placeholder="0"></div>
-      <div><label for="bkfWMax">To (g)</label><input id="bkfWMax" inputmode="decimal" placeholder="any"></div>
-      <div><label for="bkfWaMin">Wastage from (%)</label><input id="bkfWaMin" inputmode="decimal" placeholder="0"></div>
-      <div><label for="bkfWaMax">Wastage to (%)</label><input id="bkfWaMax" inputmode="decimal" placeholder="any"></div>
-      <div class="full"><label for="bkfMkT">Making</label><select id="bkfMkT"><option value="">Any</option><option value="pct">Wastage %</option><option value="fixed">Fixed charge (₹ per piece)</option><option value="pergram">Making rate (₹ per g)</option><option value="none">No making set</option></select></div>
-      <div><label for="bkfMkMin">Making from (₹)</label><input id="bkfMkMin" inputmode="decimal" placeholder="0"></div>
-      <div><label for="bkfMkMax">Making to (₹)</label><input id="bkfMkMax" inputmode="decimal" placeholder="any"></div>
-      <div class="full"><label for="bkfFv">FVA</label><select id="bkfFv"><option value="">Any</option><option value="yes">FVA set</option><option value="no">No FVA (no fair value)</option><option value="hand">FVA set by hand</option></select></div>
-      <div><label for="bkfFvMin">FVA from (%)</label><input id="bkfFvMin" inputmode="decimal" placeholder="0"></div>
-      <div><label for="bkfFvMax">FVA to (%)</label><input id="bkfFvMax" inputmode="decimal" placeholder="any"></div>
-    </div><p class="note">Making from–to is for fixed charge / making rate (₹); wastage is %. Making and FVA include the pricing rules. Leave the label box and words empty to pick from all stock. With labels or words, only those that also match are picked.</p></fieldset>
+    <details class="bk-find" id="bkFind" open><summary><span class="bkf-t">Find items by</span><small id="bkfOn"></small><span class="dc-chev" aria-hidden="true">▾</span></summary>
+      <div class="bkf-g"><div class="bkf-r2">
+        <div><label for="bkfItem">Item name</label><select id="bkfItem"><option value="">Any</option>${(()=>{const m=new Map();for(const r of stockMap.values()){const v=String(r.item||'').trim();if(v&&!m.has(v.toLowerCase()))m.set(v.toLowerCase(),v)}return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1],'en',{numeric:true})).map(([k,v])=>`<option value="${esc(k)}">${esc(v)}</option>`).join('')})()}</select></div>
+        <div><label for="bkfCat">Item type</label><select id="bkfCat"><option value="">Any</option>${(()=>{const m=new Map();for(const r of stockMap.values()){const v=String(r.category||'').trim();if(v&&!m.has(v.toLowerCase()))m.set(v.toLowerCase(),v)}return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1],'en',{numeric:true})).map(([k,v])=>`<option value="${esc(k)}">${esc(v)}</option>`).join('')})()}</select></div>
+        <div><label for="bkfPur">Purity</label><select id="bkfPur"><option value="">Any</option>${[...new Set([...stockMap.values()].map(r=>caratToPurity(r.carat)).filter(Boolean))].sort((a,b)=>Object.keys(PLABEL).indexOf(a)-Object.keys(PLABEL).indexOf(b)).map(x=>`<option value="${esc(x)}">${esc(PLABEL[x]||x)}</option>`).join('')}</select></div>
+        <div><label for="bkfSup">Supplier</label><select id="bkfSup"><option value="">Any</option>${(()=>{const m=new Map();for(const r of stockMap.values()){const v=String(r.supplier||'').trim();if(v&&!m.has(v.toLowerCase()))m.set(v.toLowerCase(),v)}return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1],'en',{numeric:true})).map(([k,v])=>`<option value="${esc(k)}">${esc(v)}${(()=>{const x=supList().find(s=>s.name.toLowerCase()===k);return x&&x.full?' · '+esc(x.full):''})()}</option>`).join('')})()}</select></div>
+        <div><label for="bkfImp">Imported</label><select id="bkfImp"><option value="">Any</option><option value="yes">Imported only</option><option value="no">Not imported</option></select></div>
+      </div></div>
+      <div class="bkf-g"><b>Weight</b><div class="bkf-r3">
+        <div><label for="bkfWBy">Of</label><select id="bkfWBy"><option value="gw">Gross wt</option><option value="nw">Net wt</option></select></div>
+        <div><label for="bkfWMin">From g</label><input id="bkfWMin" inputmode="decimal" placeholder="0"></div>
+        <div><label for="bkfWMax">To g</label><input id="bkfWMax" inputmode="decimal" placeholder="any"></div></div></div>
+      <div class="bkf-g"><b>Wastage %</b><div class="bkf-r3">
+        <div><label for="bkfWaEq">Exactly</label><input id="bkfWaEq" inputmode="decimal" placeholder="e.g. 22"></div>
+        <div><label for="bkfWaMin">From</label><input id="bkfWaMin" inputmode="decimal" placeholder="0"></div>
+        <div><label for="bkfWaMax">To</label><input id="bkfWaMax" inputmode="decimal" placeholder="any"></div></div></div>
+      <div class="bkf-g"><b>Making</b><div class="bkf-r3">
+        <div><label for="bkfMkT">Kind</label><select id="bkfMkT"><option value="">Any</option><option value="pct">Wastage %</option><option value="fixed">Fixed ₹ / piece</option><option value="pergram">Rate ₹ / g</option><option value="none">Not set</option></select></div>
+        <div><label for="bkfMkMin">From ₹</label><input id="bkfMkMin" inputmode="decimal" placeholder="0"></div>
+        <div><label for="bkfMkMax">To ₹</label><input id="bkfMkMax" inputmode="decimal" placeholder="any"></div></div></div>
+      <div class="bkf-g"><b>FVA</b><div class="bkf-r4">
+        <div><label for="bkfFv">Has</label><select id="bkfFv"><option value="">Any</option><option value="yes">FVA set</option><option value="no">No FVA</option><option value="hand">Set by hand</option></select></div>
+        <div><label for="bkfFvEq">Exactly</label><input id="bkfFvEq" placeholder="9% or ₹450"></div>
+        <div><label for="bkfFvMin">From %</label><input id="bkfFvMin" inputmode="decimal" placeholder="0"></div>
+        <div><label for="bkfFvMax">To %</label><input id="bkfFvMax" inputmode="decimal" placeholder="any"></div></div></div>
+      <p class="note bkf-n">Empty label box → picks from all stock. Making and FVA are what the price uses (rules included).</p>
+    </details>
     <p class="note" id="bkCount" aria-live="polite">No items picked.</p>
     <p class="bk-ch">Change for the picked items</p>
     <div class="pr-form">`+BF.map(([k,l,t])=>{const id='bk_'+k,lab=`<label for="${id}">${esc(l)}</label>`;
@@ -6756,15 +6806,18 @@ function bulkForm(){
   const MK=['mkPct','mkFix','mkPg'];MK.forEach(k=>$('bk_'+k).addEventListener('input',e=>{if(e.target.value.trim())MK.filter(x=>x!==k).forEach(x=>$('bk_'+x).value='')}));
   let pick={list:[],miss:[]};
   const V=id=>$(id).value.trim();
-  const bkF=()=>({cat:V('bkfCat'),item:V('bkfItem'),waMin:V('bkfWaMin'),waMax:V('bkfWaMax'),mkT:V('bkfMkT'),mkMin:V('bkfMkMin'),mkMax:V('bkfMkMax'),fv:V('bkfFv'),fvMin:V('bkfFvMin'),fvMax:V('bkfFvMax'),pur:$('bkfPur').value,sup:$('bkfSup').value,imp:$('bkfImp').value,wBy:$('bkfWBy').value,wMin:$('bkfWMin').value.trim(),wMax:$('bkfWMax').value.trim()});
-  const upd=()=>{pick=bulkPick($('bkLabels').value,$('bkQ').value,bkF());const n=pick.list.length;
+  const bkF=()=>({cat:V('bkfCat'),item:V('bkfItem'),waEq:V('bkfWaEq'),fvEq:V('bkfFvEq'),waMin:V('bkfWaMin'),waMax:V('bkfWaMax'),mkT:V('bkfMkT'),mkMin:V('bkfMkMin'),mkMax:V('bkfMkMax'),fv:V('bkfFv'),fvMin:V('bkfFvMin'),fvMax:V('bkfFvMax'),pur:$('bkfPur').value,sup:$('bkfSup').value,imp:$('bkfImp').value,wBy:$('bkfWBy').value,wMin:$('bkfWMin').value.trim(),wMax:$('bkfWMax').value.trim()});
+  const upd=()=>{const ff=bkF(),nf=bulkFindN(ff);$('bkfOn').textContent=nf?`${nf} on`:'';pick=bulkPick($('bkLabels').value,$('bkQ').value,ff);const n=pick.list.length;
     const nr=pick.list.filter(r=>ruleFor(r)).length;
     $('bkCount').innerHTML=(n?`<b>${n} item${n>1?'s':''} picked</b>: ${esc(pick.list.slice(0,8).map(r=>r.barcode||r.key).join(', '))}${n>8?' …':''}${nr?`<br><small>${nr} of them match a pricing rule; making or FVA typed here will be used instead of the rule.</small>`:''}`:'No items picked.')+(pick.miss.length?`<br><span class="bad-t">Not in stock: ${esc(pick.miss.slice(0,8).join(', '))}</span>`:'')};
   $('bkLabels').addEventListener('input',upd);$('bkQ').addEventListener('input',upd);
+  // opened from the search table with items selected: those items are the list, finders folded away
+  if(Array.isArray(pre)&&pre.length){$('bkLabels').value=pre.map(r=>r.barcode||r.key).join('\n');$('bkFind').open=false;$('modalTitle').textContent=`Update ${pre.length} selected item${pre.length>1?'s':''}`;upd()}
   // item names follow the item type picked
-  $('bkfCat').addEventListener('change',()=>{const c=$('bkfCat').value,was=$('bkfItem').value,m=new Map();for(const r of stockMap.values()){if(c&&lcT(r.category)!==c)continue;const v=String(r.item||'').trim();if(v&&!m.has(v.toLowerCase()))m.set(v.toLowerCase(),v)}
-    $('bkfItem').innerHTML='<option value="">Any</option>'+[...m.entries()].sort((a,b)=>a[1].localeCompare(b[1],'en',{numeric:true})).map(([k,v])=>`<option value="${esc(k)}"${k===was?' selected':''}>${esc(v)}</option>`).join('')});
-  ['bkfCat','bkfItem','bkfWaMin','bkfWaMax','bkfMkT','bkfMkMin','bkfMkMax','bkfFv','bkfFvMin','bkfFvMax','bkfPur','bkfSup','bkfImp','bkfWBy','bkfWMin','bkfWMax'].forEach(id=>{$(id).addEventListener('input',upd);$(id).addEventListener('change',upd)});
+  // item types follow the item name picked
+  $('bkfItem').addEventListener('change',()=>{const it=$('bkfItem').value,was=$('bkfCat').value,m=new Map();for(const r of stockMap.values()){if(it&&lcT(r.item)!==it)continue;const v=String(r.category||'').trim();if(v&&!m.has(v.toLowerCase()))m.set(v.toLowerCase(),v)}
+    $('bkfCat').innerHTML='<option value="">Any</option>'+[...m.entries()].sort((a,b)=>a[1].localeCompare(b[1],'en',{numeric:true})).map(([k,v])=>`<option value="${esc(k)}"${k===was?' selected':''}>${esc(v)}</option>`).join('');if(was&&!m.has(was))$('bkfCat').value=''});
+  ['bkfWaEq','bkfFvEq','bkfCat','bkfItem','bkfWaMin','bkfWaMax','bkfMkT','bkfMkMin','bkfMkMax','bkfFv','bkfFvMin','bkfFvMax','bkfPur','bkfSup','bkfImp','bkfWBy','bkfWMin','bkfWMax'].forEach(id=>{$(id).addEventListener('input',upd);$(id).addEventListener('change',upd)});
   bulkAdd=code=>{const k=keyOf(code);if(!k)return;const r=findStock(k),ta=$('bkLabels');if(!ta)return;
     const have=new Set(ta.value.split(/[\s,;]+/).map(keyOf).filter(Boolean));
     try{navigator.vibrate&&navigator.vibrate(r?50:[60,60,60])}catch(e){}
@@ -7036,7 +7089,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.8.19',APP_BUILD='__BUILD__';
+const APP_VERSION='1.8.20',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------

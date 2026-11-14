@@ -694,7 +694,9 @@ export default async (req: Request) => {
         mkEdit: s?.mkEdit === "all" ? "all" : "admin",
         showImg: s?.showImg !== false,
         ui: ["iosBrand", "iosTrue", "android"].includes(s?.ui) ? s.ui : "iosBrand",
-        accent: ["brand", "blue", "maroon", "gold", "emerald", "navy", "rose"].includes(s?.accent) ? s.accent : "brand",
+        accent: ["brand", "blue", "maroon", "gold", "emerald", "navy", "rose", "wine", "ruby", "coral", "copper", "bronze", "olive", "forest", "teal", "ocean", "sapphire", "indigo", "violet", "plum", "magenta", "slate", "charcoal"].includes(s?.accent) ? s.accent : "brand",
+        // V1.8.20 the shop's picture card: which details, in which order (admin)
+        shCard: s?.shCard && typeof s.shCard === "object" ? { f: (Array.isArray(s.shCard.f) ? s.shCard.f : []).filter((x: any) => typeof x === "string" && /^\w{1,20}$/.test(x)).slice(0, 40), order: (Array.isArray(s.shCard.order) ? s.shCard.order : []).filter((x: any) => typeof x === "string" && /^\w{1,20}$/.test(x)).slice(0, 40), at: Number(s.shCard.at) || Date.now() } : null,
         tabHide: Object.fromEntries(Object.entries(s?.tabHide && typeof s.tabHide === "object" ? s.tabHide : {}).slice(0, 20).filter(([k]) => /^[\w-]{1,40}$/.test(k)).map(([k, v]) => [k, (Array.isArray(v) ? v : []).filter((x: any) => ["tabScan", "tabFind", "tabQuote", "tabRates", "tabSet"].includes(x))])),
         apprOn: s?.apprOn !== false,
         // Special promotions (admin): applied to every quote while running
@@ -734,7 +736,7 @@ export default async (req: Request) => {
       // Keep the parts this user may not change
       const prev: any = (await st.get("settings", { type: "json" })) || {}
       const keep = (perm: string, keys: string[]) => { if (!roleHas(role, perm)) keys.forEach((k) => { if (k in prev) (out as any)[k] = prev[k] }) }
-      keep("charges", ["gst", "huid"]); keep("mkHelper", ["mkTable", "mkConv", "chkOn"]); keep("suppliers", ["suppliers"]); keep("itemCodes", ["cats"]); keep("ratesShown", ["showRates"]); keep("imgShow", ["showImg", "mkEdit"]); keep("theme", ["ui", "accent"]); keep("pdRows", ["pdHide"]); keep("footer", ["tabHide"]); keep("apprSet", ["apprOn"]); keep("promos", ["promos"]); keep("rules", ["priceRules"])
+      keep("charges", ["gst", "huid"]); keep("mkHelper", ["mkTable", "mkConv", "chkOn"]); keep("suppliers", ["suppliers"]); keep("itemCodes", ["cats"]); keep("ratesShown", ["showRates"]); keep("imgShow", ["showImg", "mkEdit"]); keep("theme", ["ui", "accent", "shCard"]); keep("pdRows", ["pdHide"]); keep("footer", ["tabHide"]); keep("apprSet", ["apprOn"]); keep("promos", ["promos"]); keep("rules", ["priceRules"])
       await st.setJSON("settings", out)
       meta.settings = Date.now(); await saveMeta()
       return json(req, { v: meta.settings })

@@ -542,3 +542,10 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 
 ## V 1.8.19
 - **Bulk update – more finders:** Item type, Item name (follows the type picked), Wastage % from–to, Making (wastage % / fixed charge / making rate / no making set) with ₹ from–to, FVA (set / no FVA / set by hand) with % from–to. Making and FVA are what the price uses, pricing rules included. "No FVA" picks every item that has no fair value, so one FVA can be set for all of them.
+
+## V 1.8.20
+- **Bulk update, redesigned:** "Find items by" folds open / closed and shows how many finders are on. Grouped: item (Item name first, then Item type – types follow the name picked; purity, supplier, imported), weight, wastage %, making, FVA. New exact-value search: Wastage % exactly, FVA exactly (9% or ₹450). The picked-items count stays at the top while scrolling.
+- **Update from the table:** select items in Search → **Update…** opens bulk update with those items (finders folded away).
+- **Search table re-arrangeable:** drag a column heading onto another to move it (saved on this device; Columns still ticks / orders).
+- **Picture card – arrange:** in the share window, Arrange shows ↑ ↓ to set the order of the details on the card. Admin: **Save as shop card** saves the details and their order for every phone (each phone takes it once each time the admin saves).
+- **Theme:** 16 more colours (Wine, Ruby, Coral, Copper, Bronze, Olive, Forest, Teal, Ocean, Sapphire, Indigo, Violet, Plum, Magenta, Slate, Charcoal).
