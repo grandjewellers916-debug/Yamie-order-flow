@@ -2103,7 +2103,7 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
       <div class="sv"><small>Savings</small><b id="qtSave">—</b></div>
       <div class="np"><small>Net Payable</small><b id="qtNet">—</b></div>
     </div>
-    <div class="card q-ov" id="qOv" data-qs="ov">
+    <div class="card q-ov" id="qOv" data-pane="quote" data-qs="ov">
       <div class="qov-hd"><div><h2>Create Quote</h2><p>Choose items, add adjustments and generate quote.</p><button type="button" class="qov-cust" id="qovCust"></button></div></div>
       <div class="qov-tiles">
         <button type="button" class="qov-tile" id="qovScan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M7.5 8v8M10.5 8v8M13.5 8v8M16.5 8v8"/></svg><span>Scan</span></button>
@@ -7215,7 +7215,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.8.21',APP_BUILD='__BUILD__';
+const APP_VERSION='1.8.22',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------

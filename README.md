@@ -554,3 +554,6 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 - **Metal colour** – a product detail like design and stone colour: Yellow Gold, White Gold, Rose Gold, Green Gold, Black Gold, Two-tone, Tri-colour, Platinum, Silver, or your own (+ Other…). Shown with the purity, e.g. "18K Rose Gold". Set it on the photos page (with product name / design / stone colour), in Edit details, or for many items in Bulk update (Metal colour finder + change; does not touch making or rules). Also a Search filter and column, a product-details row, a picture-card detail, the stock export column, and a sheet column (METAL COLOUR / GOLD COLOUR).
 - **Photos – drag and drop (web):** drop photo files on the photos window (adds to that item), on Home with an item open, or on Bulk photo upload. Paste still works.
 - **Shop tab:** website, catalogue, collection, page, product and offer links. Search, filter by type, WhatsApp (one link or several selected, to a customer number or any chat / status), Copy. "From Shopify" brings in the store's collections and pages. Permissions: "Shop tab" (see and share – every role) and "Add / change shop links" (managers and admin). Links are saved for every phone.
+
+## V 1.8.22
+- Fixed: the Create Quote overview showed on every page (All quotations, Shop, Search, Home, Settings). It now shows on the Quote page only.
