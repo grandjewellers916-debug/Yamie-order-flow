@@ -1023,6 +1023,7 @@ body.stm .mr-img{width:52px;height:52px}body.stm .mr-t b{font-size:14.5px}body.s
 @media (max-width:560px){.wl-r{grid-template-columns:24px minmax(0,1fr)}.wl-a{grid-column:2;justify-content:flex-start}}
 .wl-selbar{position:sticky;bottom:calc(var(--tabh,64px) + 8px);display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:14px;background:var(--surface);border:1px solid var(--line);box-shadow:0 6px 20px rgba(0,0,0,.12)}.wl-selbar span{flex:1;font-weight:600}
 .wl-empty{padding:16px}
+.st-chips .sc-c{padding-left:12px}.stt-t{white-space:normal}
 .mc-t{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 .bk-find{border:1px solid var(--line);border-radius:14px;margin:10px 0;background:var(--surface)}
 .bk-find>summary{display:flex;align-items:center;gap:8px;padding:12px 14px;cursor:pointer;list-style:none;font-weight:600}.bk-find>summary::-webkit-details-marker{display:none}
@@ -4612,7 +4613,7 @@ function impNorm(v){return /^(y|yes|1|true|imported|imp|import)$/i.test(String(v
 // Product details rows, in order: [label, value, key]. Admin can hide any of them (Settings → Product details).
 const PD_ROWS=[['purity','Purity'],['gw','Gr. Wt'],['sw','St. Wt'],['nw','Nt. Wt'],['size','Size'],['vaPct','VA %'],['va','VA (Making)'],['mkAmt','Making Charges'],
   ['dw','Diamond Wt'],['dq','Diamond Pcs'],['dPrice','Diamond Price'],['cw','Colour Stone Wt'],['cPrice','Colour Stone Price'],['huid','HUID Count'],
-  ['pname','Product name'],['jt','Design'],['mc','Metal colour'],['scol','Stone colour'],['pcs','Pcs'],['location','Location'],['labelDate','Labelling Date'],['imp','Imported'],['rule','Pricing rule']];
+  ['pname','Product name'],['jt','Design'],['mc','Metal colour'],['stt','Stone type'],['scol','Stone colour'],['pcs','Pcs'],['location','Location'],['labelDate','Labelling Date'],['imp','Imported'],['rule','Pricing rule']];
 // Hidden details (tap to show; needs "See hidden details")
 const PD_HIDDEN=[['nlc','NLC'],['fva','FVA'],['huidNo','HUID'],['model','Model'],['stones','Stone Names'],['supplier','Supplier']];
 function pdRows(t,st,p,w){
@@ -4630,7 +4631,7 @@ function pdRows(t,st,p,w){
     cw:clr&&st&&num(st.cw)>0?`${w(st.cw)}${num(st.sq)>0?` · ${fmtN(num(st.sq))}\u00a0pcs`:''}`:'',
     cPrice:cPrice>0?inr(cPrice):'',
     huid:p.huidN?`${p.huidN}\u00a0×\u00a0${inr(settings.huid)}`:'',huidNo:codes,
-    stones:st&&st.stoneName,pcs:st&&st.pcs>1?fmtN(st.pcs):'',location:st&&st.location,rule:st&&st.rule?st.rule+(st.ruleSet&&st.ruleSet.length?` · sets ${st.ruleSet.join(', ')}`:''):'',imp:st&&st.imp?'Yes':'',pname:st?pnameOf(st):'',jt:st?attrOf(st).jt:'',scol:st?attrOf(st).sc.join(', '):'',mc:st?mcLabel(st):'',labelDate:st&&fmtDate(st.labelDate),supplier:st&&st.supplier};
+    stones:st&&st.stoneName,pcs:st&&st.pcs>1?fmtN(st.pcs):'',location:st&&st.location,rule:st&&st.rule?st.rule+(st.ruleSet&&st.ruleSet.length?` · sets ${st.ruleSet.join(', ')}`:''):'',imp:st&&st.imp?'Yes':'',pname:st?pnameOf(st):'',jt:st?attrOf(st).jt:'',scol:st?attrOf(st).sc.join(', '):'',mc:st?mcLabel(st):'',stt:st?attrOf(st).st.join(', '):'',labelDate:st&&fmtDate(st.labelDate),supplier:st&&st.supplier};
   return PD_ROWS.concat(PD_HIDDEN).map(([k,l])=>[l,v[k],k]);
 }
 function paintPdRowsSet(){
@@ -4764,7 +4765,7 @@ function itemName(v){
   const hit=Object.values(CAT).find(n=>n.toUpperCase()===t.toUpperCase()||n.split(' /')[0].toUpperCase()===t.toUpperCase());
   return hit||t.toLowerCase().replace(/\b[a-z]/g,c=>c.toUpperCase());
 }
-const COLS={mcol:['METALCOLOUR','METALCOLOR','GOLDCOLOUR','GOLDCOLOR','METALTONE','COLOUROFMETAL'],design:['DESIGN','JEWELLERYTYPE','JEWELRYTYPE','DESIGNTYPE'],scol:['STONECOLOUR','STONECOLOR','STONECOLOURS','STONECOLORS','GEMCOLOUR','GEMCOLOR'],pname:['PRODUCTNAME','PRODNAME','PNAME','DESIGNNAME','PRODUCTTITLE'],barcode:['BARCODE','BARCODENO','BARCODENUMBER','TAGNO','BARCODES','LABELNO','LABELNUMBER','TAGNUMBER'],item:['ITEMNAME','ITEM'],category:['ITEMTYPE','CATEGORY','TYPE'],stoneName:['STONENAMES','STONENAME','STONES'],saClr:['CLRSA','COLORSA','COLOURSA','CLRSTONEAMOUNT'],saDia:['DIASA','DIAMONDSA','DIAAMOUNT','DIAMONDAMOUNT'],carat:['CARRET','CARAT','KARAT','PURITY','PURITYK','CARATAGE','CARET'],
+const COLS={stype:['STONETYPE','STONETYPES','GEMTYPE','STONECATEGORY'],mcol:['METALCOLOUR','METALCOLOR','GOLDCOLOUR','GOLDCOLOR','METALTONE','COLOUROFMETAL'],design:['DESIGN','JEWELLERYTYPE','JEWELRYTYPE','DESIGNTYPE'],scol:['STONECOLOUR','STONECOLOR','STONECOLOURS','STONECOLORS','GEMCOLOUR','GEMCOLOR'],pname:['PRODUCTNAME','PRODNAME','PNAME','DESIGNNAME','PRODUCTTITLE'],barcode:['BARCODE','BARCODENO','BARCODENUMBER','TAGNO','BARCODES','LABELNO','LABELNUMBER','TAGNUMBER'],item:['ITEMNAME','ITEM'],category:['ITEMTYPE','CATEGORY','TYPE'],stoneName:['STONENAMES','STONENAME','STONES'],saClr:['CLRSA','COLORSA','COLOURSA','CLRSTONEAMOUNT'],saDia:['DIASA','DIAMONDSA','DIAAMOUNT','DIAMONDAMOUNT'],carat:['CARRET','CARAT','KARAT','PURITY','PURITYK','CARATAGE','CARET'],
   gw:['GROSSWT','GROSSWTG','GROSSWEIGHT','GWT','GRWT'],nw:['NETWT','NETWTG','NETWEIGHT','NWT'],sw:['STONEWT','STONEWTG','STONEWEIGHT','SWT','STWT'],cw:['CLRSTNWT','COLORSTONEWT','COLOURSTONEWT','CLRSTONEWT','CLRWT','COLORSTONEWEIGHT','COLOURSTONEWEIGHT','CSWT'],dw:['DIAMONDWT','DIAMONDWEIGHT','DIAWT','DWT','DAIWT','DAIMONDWT','DIAWTCT','DIAMONDWTCT','DIAWTG','DIAMONDCT','DIACT'],dq:['DIAMONDQTY','DIAQTY','DIAMONDPCS','DAIPCS','DIAPCS','DAIQTY','DIACOUNT','DIAMONDCOUNT','DIANOS','DIAMONDNOS','NOOFDIAMONDS'],
   sa:['STONEAMOUNT','STONEAMT','SA','SPR','STONEPRICE','STONEVALUE'],serial:['SERIAL','SERIALNO','SLNO'],label:['LABELCODE','LABEL'],location:['LOCATION','LOC'],size:['SIZE','RINGSIZE','LENGTH','SIZEINCH','SIZEMM'],model:['MODEL','MODELNO','MODELNUMBER','DESIGN','DESIGNNO','STYLE','STYLENO'],nlc:['NLC','NETLANDINGCOST','LANDINGCOST'],imp:['IMPORTED','IMPORT','IMP','ISIMPORTED','IMPORTEDITEM','IMPORTEDYN'],fva:['FVA','FIXEDVA','FACTORYVA','FVAPCT'],labelDate:['LABELLINGDATE','LABELINGDATE','LABELDATE','TAGDATE','DATE'],pcs:['PCS','PIECES'],sq:['STONEQTY','STONEPCS','CLRSTNPCS','COLORSTONEPCS','COLOURSTONEPCS'],supplier:['SUPPLIER','VENDOR'],
   mk:['MAKING','MAKINGCHARGE','MAKINGCHARGES','MC','MCRATE','VA','VARATE','MAKINGMBD','MBD'],mkType:['MAKINGTYPE','MCTYPE','VATYPE','MAKINGON'],
@@ -5295,7 +5296,7 @@ $('dkShare').onclick=()=>$('waBtn').click();
 const PS_ICO={tag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.4"/></svg>',gold:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19h18l-2.5-5h-13z"/><path d="M6.5 14 8 10h8l1.5 4"/><path d="M9 10l1-3h4l1 3"/></svg>',value:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6.5 9.5v5M17.5 9.5v5"/></svg>',stone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 7 4h10l4 5.5L12 20z"/><path d="M3 9.5h18M9 4l3 16 3-16"/></svg>',mk:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.4M12 18.8v2.4M4.2 7.5l2 1.2M17.8 15.3l2 1.2M4.2 16.5l2-1.2M17.8 8.7l2-1.2"/><circle cx="12" cy="12" r="7"/></svg>',huid:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.3 7.5 9.5 4.3-1.2 7.5-4.9 7.5-9.5V6z"/><path d="m9 12 2 2 4-4"/></svg>',sum:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 5H7l6 7-6 7h10"/></svg>',gst:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 5 5 19"/><circle cx="7" cy="7" r="2.3"/><circle cx="17" cy="17" r="2.3"/></svg>',check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.7 2.7L16.5 9.5"/></svg>'};
 const SET_ICO={setRules:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg>',setPromo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.4"/></svg>',setReports:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',setExport:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5.5" rx="7.5" ry="2.8"/><path d="M4.5 5.5v13c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8v-13M4.5 12c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8"/></svg>',dataCard:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></svg>',soldCard:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12V4h8l10 10-7 7z"/><path d="m8 8 6 6M14 8l-6 6"/></svg>',setTheme:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-1 1.6-2.1-.5-1.3.4-2.4 1.7-2.4H18a3 3 0 0 0 3-3C21 7.4 17 3 12 3z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="15" cy="7.5" r="1.2"/></svg>',setAppr:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.3 7.5 9.5 4.3-1.2 7.5-4.9 7.5-9.5V6z"/><path d="m9 12 2 2 4-4"/></svg>',setFoot:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 15h18"/></svg>',setPd:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>',setDevice:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>',setText:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7V5h11v2M9.5 5v14M7 19h5M14 12v-1.5h6V12M17 10.5V19M15.5 19h3"/></svg>',setImg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="9.5" r="1.8"/><path d="m21 16-5-5-9 9"/></svg>',setRates:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>',setCharges:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 5 5 19"/><circle cx="7" cy="7" r="2.3"/><circle cx="17" cy="17" r="2.3"/></svg>',setMk:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14.5 6.5 3 3M4 20l3.5-1L19 7.5a2.1 2.1 0 0 0-3-3L4.5 16z"/><path d="M8 4 4 8l2 2M16 20l4-4-2-2"/></svg>',setConv:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.4"/><path d="m9.5 16.5 5-5"/></svg>',setCodes:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5v14M7 5v14M10.5 5v14M13 5v14M16.5 5v14M20 5v14"/></svg>',setSync:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5.5" rx="7.5" ry="2.8"/><path d="M4.5 5.5v13c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8v-13M4.5 12c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8"/></svg>',setRoles:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.2c3 .2 5.5 2.6 5.5 5.8"/></svg>',adminCard:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20.5c0-4.1 3.4-7 7.5-7s7.5 2.9 7.5 7"/></svg>'},SET_DESC={setRules:'Making, wastage, FVA and diamond rate conventions by karat, weight, type and supplier',setPromo:'Create and manage offers and customer promotions',setReports:'Sales, quotes and staff reports with charts',setExport:'Download the stock data for backup or use elsewhere',dataCard:'Upload and manage the stock sheet',soldCard:'Remove sold item tags from the stock',setTheme:'App style and colours',setAppr:'Approval flow for staff quotes',setFoot:'Footer tabs shown to staff',setPd:'Which product details are shown',setDevice:'Auto log-out and alerts on this computer',setText:'Text size on this device',setImg:'Where product images are shown',setRates:'Purities shown and their order',setCharges:'GST rate and HUID charge',setMk:'CZ and diamond making slabs (MBD / MAD)',setConv:'Usual making and fair value per item; label check after scan',setCodes:'Barcode prefixes and item names',setSync:'Connect devices with the shop key',setRoles:'Create roles and choose what each can do',adminCard:'Add, edit and manage staff users'};
 const WT_ORDER=['CHN','BGL','FRG','STD','BRC','NLC','PND','NSP','RST','DIA','LDJ','FIN','MMP','EXT'];
-let findType='',stPage=1,stPer=25,stGrid=false;const findF={jt:'',mc:'',sc:'',pn:'',cat:'',item:'',pur:'',stone:'',sup:'',loc:'',lab:'',img:'',imp:'',wBy:'',wMin:'',wMax:'',pMin:'',pMax:'',fMin:'',fMax:'',mMin:'',mMax:'',dMin:'',dMax:''};
+let findType='',stPage=1,stPer=25,stGrid=false;const findF={jt:'',mc:'',stt:'',sc:'',pn:'',cat:'',item:'',pur:'',stone:'',sup:'',loc:'',lab:'',img:'',imp:'',wBy:'',wMin:'',wMax:'',pMin:'',pMax:'',fMin:'',fMax:'',mMin:'',mMax:'',dMin:'',dMax:''};
 // V1.7.88 picked items (Search) and a list of items another user sent
 const stSel=new Set();let shareList=null,stLastRows=[];
 const catShort=c=>String(CAT[c]||c).replace(/\s*\(.*?\)\s*/g,' ').replace(/s$/,'').trim();
@@ -5418,18 +5419,23 @@ const JT_GROUPS=[['Rings',['Solitaire Ring','Three Stone Ring','Halo Ring','Clus
   ['Others',['Nosepin','Nose Ring','Anklet','Maang Tikka','Brooch','Waist Chain','Kids Jewellery']]];
 const SC_LIST=[['White','#F4F4F2'],['Pink','#F2A7C3'],['Red','#C8243B'],['Green','#1E8A4C'],['Blue','#2A56C6'],['Yellow','#F2C230'],['Purple','#7B3FA6'],['Orange','#EE7A2B'],['Black','#202020'],['Champagne','#E6C9A0'],['Multicolour','conic-gradient(#C8243B,#F2C230,#1E8A4C,#2A56C6,#7B3FA6,#C8243B)']];
 const SC_MAX=5;
+// V1.8.23 stone types (several per product): Diamond, CZ, Pearl…; read from the stone name when not set
+const STT_LIST=['Diamond','Lab-grown Diamond','CZ','Moissanite','Pearl','Ruby','Emerald','Sapphire','Polki','Kundan','Coral','Navaratna','Gemstone','Synthetic stone'];const STT_MAX=8;
+const STT_GUESS=[[/lab.?grown|\blgd\b|\bcvd\b|\bhpht\b/i,'Lab-grown Diamond'],[/\bdia(mond)?s?\b|\bvvs|\bvs\d|\bsi\d|\bdia\b/i,'Diamond'],[/\bcz\b|cubic/i,'CZ'],[/moiss/i,'Moissanite'],[/pearl/i,'Pearl'],[/ruby/i,'Ruby'],[/emerald/i,'Emerald'],[/sapph/i,'Sapphire'],[/polki/i,'Polki'],[/kundan/i,'Kundan'],[/coral/i,'Coral'],[/navaratna|navratna/i,'Navaratna']];
+function sttGuess(r){const t=[r&&r.stoneName,r&&r.stype].filter(Boolean).join(' ');if(!t)return [];const o=[];for(const [re,n] of STT_GUESS)if(re.test(t)&&!o.includes(n)&&!(n==='Diamond'&&o.includes('Lab-grown Diamond')))o.push(n);
+  if(!o.length&&r.stype)String(r.stype).split(/[,/;+|]/).map(x=>x.trim()).filter(Boolean).forEach(x=>o.includes(x)||o.push(x));return o.slice(0,STT_MAX)}
 // V1.8.21 metal colour (one per product); shown with the purity, e.g. "18K Rose Gold"
 const MC_LIST=[['Yellow Gold','#E2B13C'],['White Gold','#E4E4DF'],['Rose Gold','#E3A08A'],['Green Gold','#B3AE57'],['Black Gold','#2A2A2A'],['Two-tone','linear-gradient(90deg,#E2B13C 50%,#E4E4DF 50%)'],['Tri-colour','linear-gradient(90deg,#E2B13C 33%,#E4E4DF 33% 66%,#E3A08A 66%)'],['Platinum','#D5D8DC'],['Silver','#C4C7CB']];
 function mcSw(c){const h=MC_LIST.find(x=>x[0].toLowerCase()===String(c||'').toLowerCase());return `<i class="sc-sw" style="background:${h?h[1]:'#bbb'}" aria-hidden="true"></i>`}
 function mcLabel(r){const m=attrOf(r).mc;if(!m)return '';const pu=r?PLABEL[caratToPurity(r.carat)]:'';return /gold/i.test(m)&&pu&&/K$/i.test(pu)?`${pu} ${m}`:m}
 let pattrs=store.get('pattrs',{})||{};
 const scSplit=v=>(Array.isArray(v)?v:String(v||'').split(/[,/;|+&]+/)).map(x=>String(x).trim()).filter(Boolean).map(x=>{const h=SC_LIST.find(c=>c[0].toLowerCase()===x.toLowerCase());return h?h[0]:x.replace(/\b\w/g,m=>m.toUpperCase())}).slice(0,SC_MAX);
-function attrOf(r){if(!r)return {jt:'',sc:[],mc:''};const k=r.key||keyOf(r.barcode||''),a=(k&&pattrs[k])||{};return {jt:String(a.jt||r.design||'').trim(),sc:a.sc&&a.sc.length?a.sc.slice(0,SC_MAX):scSplit(r.scol),mc:String(a.mc||r.mcol||'').trim()}}
+function attrOf(r){if(!r)return {jt:'',sc:[],mc:'',st:[]};const k=r.key||keyOf(r.barcode||''),a=(k&&pattrs[k])||{};return {jt:String(a.jt||r.design||'').trim(),sc:a.sc&&a.sc.length?a.sc.slice(0,SC_MAX):scSplit(r.scol),mc:String(a.mc||r.mcol||'').trim(),st:a.st&&a.st.length?a.st.slice(0,STT_MAX):sttGuess(r)}}
 function scSw(c){const h=SC_LIST.find(x=>x[0]===c);return `<i class="sc-sw" style="background:${h?h[1]:'#bbb'}" aria-hidden="true"></i>`}
 function scHtml(arr){return arr.length?`<span class="sc-l">${arr.map(c=>`<span class="sc-t">${scSw(c)}${esc(c)}</span>`).join('')}</span>`:''}
 async function pullPattrs(){if(!sync.key||!navigator.onLine)return;try{const r=await syncApi('pattrs');if(r&&r.map){pattrs=r.map;store.set('pattrs',pattrs);sync.v.pattrs=r.v||0;saveSyncState();pnRefresh()}}catch(e){}}
 async function savePattrs(map){
-  Object.entries(map).forEach(([k,v])=>{const o={};if(v.jt)o.jt=v.jt;if(v.sc&&v.sc.length)o.sc=v.sc.slice(0,SC_MAX);if(v.mc)o.mc=v.mc;if(o.jt||o.sc||o.mc)pattrs[k]=o;else delete pattrs[k]});store.set('pattrs',pattrs);pnRefresh();
+  Object.entries(map).forEach(([k,v])=>{const o={};if(v.jt)o.jt=v.jt;if(v.sc&&v.sc.length)o.sc=v.sc.slice(0,SC_MAX);if(v.mc)o.mc=v.mc;if(v.st&&v.st.length)o.st=v.st.slice(0,STT_MAX);if(o.jt||o.sc||o.mc||o.st)pattrs[k]=o;else delete pattrs[k]});store.set('pattrs',pattrs);pnRefresh();
   if(!sync.key)return true;
   try{const r=await syncApi('pattr','POST',{map},adminCreds);if(r&&r.map){pattrs=r.map;store.set('pattrs',pattrs);sync.v.pattrs=r.v||sync.v.pattrs;saveSyncState()}return true}catch(e){toast(e&&e.status===403?'Needs a user allowed to add photos or edit stock':'Saved here; it goes to the database when online',null,true);return false}
 }
@@ -5442,19 +5448,25 @@ function attrFields(px,a){
   const o=v=>`<option${a.jt===v?' selected':''}>${esc(v)}</option>`;
   return `<div class="full at-f"><label for="${px}Jt">Design <small>(jewellery type)</small></label><select id="${px}Jt"><option value="">Choose design…</option>${JT_GROUPS.map(([g,l])=>`<optgroup label="${esc(g)}">${l.map(o).join('')}</optgroup>`).join('')}${extra.length?`<optgroup label="Your designs">${extra.map(o).join('')}</optgroup>`:''}<option value="__new">+ New design…</option></select><input id="${px}JtNew" class="sf-new" hidden maxlength="60" placeholder="Type the new design" aria-label="New design"></div>
   <div class="full at-f"><label>Metal colour <small id="${px}McN">${a.mc?esc(a.mc):'(choose one)'}</small></label><div class="sc-chips" id="${px}Mc" role="radiogroup" aria-label="Metal colour">${[...MC_LIST.map(x=>x[0]),...(a.mc&&!MC_LIST.some(x=>x[0]===a.mc)?[a.mc]:[])].map(c=>`<button type="button" class="sc-c" role="radio" data-c="${esc(c)}" aria-checked="${a.mc===c}" aria-pressed="${a.mc===c}">${mcSw(c)}${esc(c)}</button>`).join('')}<button type="button" class="sc-c" data-mcnew="1">+ Other…</button></div><input id="${px}McNew" class="sf-new" hidden maxlength="40" placeholder="e.g. Champagne Gold"></div>
+  <div class="full at-f"><label>Stone type <small id="${px}StN">${a.st&&a.st.length?a.st.length+' chosen':'(choose all that apply)'}</small></label><div class="sc-chips st-chips" id="${px}St" role="group" aria-label="Stone types">${[...STT_LIST,...(a.st||[]).filter(x=>!STT_LIST.includes(x))].map(c=>`<button type="button" class="sc-c" data-c="${esc(c)}" aria-pressed="${(a.st||[]).includes(c)}">${esc(c)}</button>`).join('')}<button type="button" class="sc-c" data-stnew="1">+ Other…</button></div><input id="${px}StNew" class="sf-new" hidden maxlength="30" placeholder="e.g. Tanzanite – Enter to add"></div>
   <div class="full at-f"><label>Stone colour <small id="${px}ScN">(up to ${SC_MAX})</small></label><div class="sc-chips" id="${px}Sc" role="group" aria-label="Stone colours">${SC_LIST.map(([c])=>`<button type="button" class="sc-c" data-c="${esc(c)}" aria-pressed="${a.sc.includes(c)}">${scSw(c)}${esc(c)}</button>`).join('')}</div></div>`;
 }
 function wireAttr(px){
   const sel=$(px+'Jt'),nw=$(px+'JtNew');sel.addEventListener('change',()=>{nw.hidden=sel.value!=='__new';if(!nw.hidden)nw.focus()});
   const box=$(px+'Sc'),cnt=()=>{const n=box.querySelectorAll('[aria-pressed="true"]').length;$(px+'ScN').textContent=n?`${n} of ${SC_MAX}`:`(up to ${SC_MAX})`;box.querySelectorAll('.sc-c').forEach(b=>b.disabled=n>=SC_MAX&&b.getAttribute('aria-pressed')!=='true')};
   box.querySelectorAll('.sc-c').forEach(b=>b.onclick=()=>{b.setAttribute('aria-pressed',b.getAttribute('aria-pressed')==='true'?'false':'true');cnt()});cnt();
+  const sb=$(px+'St');if(sb){const sn=()=>{const n=sb.querySelectorAll('[aria-pressed="true"]').length;$(px+'StN').textContent=n?`${n} chosen`:'(choose all that apply)'};
+    const wire=b=>b.onclick=()=>{if(b.dataset.stnew){const i=$(px+'StNew');i.hidden=!i.hidden;if(!i.hidden)i.focus();return}b.setAttribute('aria-pressed',b.getAttribute('aria-pressed')==='true'?'false':'true');sn()};
+    sb.querySelectorAll('.sc-c').forEach(wire);
+    $(px+'StNew').addEventListener('keydown',e=>{if(e.key!=='Enter')return;e.preventDefault();const v=e.target.value.replace(/\s+/g,' ').trim();if(!v)return;let b=[...sb.querySelectorAll('[data-c]')].find(x=>x.dataset.c.toLowerCase()===v.toLowerCase());
+      if(!b){b=document.createElement('button');b.type='button';b.className='sc-c';b.dataset.c=v;b.textContent=v;sb.insertBefore(b,sb.querySelector('[data-stnew]'));wire(b)}b.setAttribute('aria-pressed','true');e.target.value='';sn()})}
   const mb=$(px+'Mc');if(mb)mb.querySelectorAll('.sc-c').forEach(b=>b.onclick=()=>{
     if(b.dataset.mcnew){const i=$(px+'McNew');i.hidden=!i.hidden;if(!i.hidden){mb.querySelectorAll('[data-c]').forEach(x=>{x.setAttribute('aria-pressed','false');x.setAttribute('aria-checked','false')});i.focus()}return}
     const on=b.getAttribute('aria-pressed')!=='true';mb.querySelectorAll('[data-c]').forEach(x=>{x.setAttribute('aria-pressed','false');x.setAttribute('aria-checked','false')});if(on){b.setAttribute('aria-pressed','true');b.setAttribute('aria-checked','true')}
     $(px+'McNew').hidden=true;$(px+'McN').textContent=on?b.dataset.c:'(choose one)'});
 }
-function readAttr(px){const sel=$(px+'Jt'),mn=$(px+'McNew'),mo=$(px+'Mc')&&$(px+'Mc').querySelector('[aria-pressed="true"]');return {jt:(sel.value==='__new'?$(px+'JtNew').value:sel.value).replace(/\s+/g,' ').trim(),sc:[...$(px+'Sc').querySelectorAll('[aria-pressed="true"]')].map(b=>b.dataset.c).slice(0,SC_MAX),mc:(mn&&!mn.hidden&&mn.value.trim()?mn.value.replace(/\s+/g,' ').trim():mo?mo.dataset.c:'')}}
-const attrSame=(a,b)=>a.jt===b.jt&&a.sc.join('|')===b.sc.join('|')&&(a.mc||'')===(b.mc||'');
+function readAttr(px){const sel=$(px+'Jt'),mn=$(px+'McNew'),mo=$(px+'Mc')&&$(px+'Mc').querySelector('[aria-pressed="true"]');return {jt:(sel.value==='__new'?$(px+'JtNew').value:sel.value).replace(/\s+/g,' ').trim(),sc:[...$(px+'Sc').querySelectorAll('[aria-pressed="true"]')].map(b=>b.dataset.c).slice(0,SC_MAX),mc:(mn&&!mn.hidden&&mn.value.trim()?mn.value.replace(/\s+/g,' ').trim():mo?mo.dataset.c:''),st:$(px+'St')?(()=>{const o=[...$(px+'St').querySelectorAll('[data-c][aria-pressed="true"]')].map(b=>b.dataset.c);const nv=$(px+'StNew')&&$(px+'StNew').value.replace(/\s+/g,' ').trim();if(nv&&!o.some(x=>x.toLowerCase()===nv.toLowerCase()))o.push(nv);return o.slice(0,STT_MAX)})():[]}}
+const attrSame=(a,b)=>a.jt===b.jt&&a.sc.join('|')===b.sc.join('|')&&(a.mc||'')===(b.mc||'')&&(a.st||[]).join('|')===(b.st||[]).join('|');
 // web: hover an item photo to see the whole picture
 (()=>{let tip=null,tmr=0,on=null;
   const SEL='.st-img,#pdTile.photo,.pm-im,.mr-img';
@@ -5526,8 +5538,8 @@ function openSharedList(l){
   if(l.state==='new'){l.state='done';store.set('leads',leads);pushLead(l)}
   openFind('');
 }
-const SH_F=[['img','Photo on the card'],['pname','Product name'],['jt','Design'],['mc','Metal colour'],['key','Label no.'],['item','Item name'],['category','Item type'],['carat','Purity'],['gw','Gross wt'],['nw','Net wt'],['stone','Stone / diamond'],['scol','Stone colour'],['mk','Making'],['price','Label price'],['fv','Fair value'],['save','Savings'],['fva','FVA'],['huidNo','HUID no.'],['size','Size'],['location','Location'],['shop','Shopify link'],['supplier','Supplier'],['nlc','NLC']];
-const SH_DEF=['img','pname','jt','mc','scol','key','item','category','carat','gw','nw','stone','price','fv','save','shop'];
+const SH_F=[['img','Photo on the card'],['pname','Product name'],['jt','Design'],['mc','Metal colour'],['stt','Stone type'],['key','Label no.'],['item','Item name'],['category','Item type'],['carat','Purity'],['gw','Gross wt'],['nw','Net wt'],['stone','Stone / diamond'],['scol','Stone colour'],['mk','Making'],['price','Label price'],['fv','Fair value'],['save','Savings'],['fva','FVA'],['huidNo','HUID no.'],['size','Size'],['location','Location'],['shop','Shopify link'],['supplier','Supplier'],['nlc','NLC']];
+const SH_DEF=['img','pname','jt','mc','stt','scol','key','item','category','carat','gw','nw','stone','price','fv','save','shop'];
 function shFieldsOk(){return SH_F.filter(([k])=>(k!=='shop'||shopOn())&&(!['fv','fva','save'].includes(k)||(can('fva')&&can('shareFv')))&&(k!=='mk'||can('shareCost'))&&(!['supplier','nlc'].includes(k)||(can('pdHidden')&&can('shareCost'))))}
 function shVal(r,k){
   const W=v=>num(v)>0?num(v).toFixed(3)+' g':'';
@@ -5538,6 +5550,7 @@ function shVal(r,k){
     case 'jt':return attrOf(r).jt;
     case 'scol':return attrOf(r).sc.join(', ');
     case 'mc':return mcLabel(r);
+    case 'stt':return attrOf(r).st.join(', ');
     case 'carat':return PLABEL[caratToPurity(r.carat)]||String(r.carat||'');
     case 'gw':case 'nw':return W(r[k]);
     case 'stone':{const sa=stVal(r,'sa');return [num(r.dw)>0?fmtN(num(r.dw))+' ct':'',num(r.dq)>0?fmtN(num(r.dq))+' pcs':'',r.stoneName&&!(num(r.dw)>0)?String(r.stoneName):'',sa>0?inr(sa):''].filter(Boolean).join(' · ')}
@@ -5780,7 +5793,7 @@ async function stmItem(r){
   showModal(pnameOf(r)||r.item||r.category||'Item','',[]);$('modalTitle').classList.add('stm-ttl');$('modal').classList.add('stm-sheet','stm-itm');
   const W=v=>num(v)>0?num(v).toFixed(3)+' g':'';
   const rows=[['Label no.',r.barcode||r.key],['Item name',pnameOf(r)?r.item:''],['Item type',r.category],['Design',a.jt],['Purity',PLABEL[caratToPurity(r.carat)]||r.carat],['Gross wt',W(r.gw)],['Net wt',W(r.nw)],
-    ['Stone',shVal(r,'stone')],['Stone colour',a.sc.join(', ')],['Making',r.mkType&&num(r.mk)>0?valText({type:r.mkType,val:num(r.mk)}):''],['HUID no.',r.huidNo],['Size',r.size],['Location',r.location]].filter(x=>x[1]);
+    ['Stone',shVal(r,'stone')],['Stone type',(a.st||[]).join(', ')],['Stone colour',a.sc.join(', ')],['Making',r.mkType&&num(r.mk)>0?valText({type:r.mkType,val:num(r.mk)}):''],['HUID no.',r.huidNo],['Size',r.size],['Location',r.location]].filter(x=>x[1]);
   $('modalBody').innerHTML=`<div class="stm-it">
     <div class="stm-ph" id="stmPh"><div class="st-img">${icoFor(r.category||r.item||'')}</div></div>
     <div class="stm-pr"><div><small>Label price</small><b>${isNaN(lp)?'—':inr(lp)}</b></div>${!isNaN(fv)&&save?`<div class="fv"><small>Fair value</small><b>${inr(fv)}</b></div><div class="sv"><small>Saves</small><b>${inr(save)}</b></div>`:''}</div>
@@ -5796,13 +5809,13 @@ async function stmItem(r){
   const us=await getProdImgs(r.key).catch(()=>[]);if(us.length&&$('stmPh'))$('stmPh').innerHTML=us.map(u=>`<img src="${u}" alt="">`).join('');
 }
 // ---- Search: filters, pages, photos ----
-const FILTERS=[['item','Item Name'],['cat','Item Type'],['jt','Design'],['mc','Metal Colour'],['sc','Stone Colour'],['pur','Purity'],['type','Label Code'],['stone','Stone'],['sup','Supplier'],['loc','Location'],['lab','Labelled'],['img','Photo'],['pn','Product name'],['imp','Imported']];
+const FILTERS=[['item','Item Name'],['cat','Item Type'],['jt','Design'],['mc','Metal Colour'],['stt','Stone Type'],['sc','Stone Colour'],['pur','Purity'],['type','Label Code'],['stone','Stone'],['sup','Supplier'],['loc','Location'],['lab','Labelled'],['img','Photo'],['pn','Product name'],['imp','Imported']];
 function stFilterBar(rowsAll){
   let bar=$('stFilters');
   if(!bar){bar=document.createElement('div');bar.id='stFilters';bar.className='st-filters';$('findNote').before(bar)}
   const uniq=f=>[...new Set(rowsAll.map(f).filter(Boolean))].sort();
   const ci=(f)=>{const m=new Map();rowsAll.forEach(r=>{const v=String(r[f]||'').trim();if(v&&!m.has(v.toLowerCase()))m.set(v.toLowerCase(),v)});return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1],'en',{numeric:true}))};
-  const opts={cat:ci('category').filter(([k])=>!findF.item||rowsAll.some(r=>String(r.category||'').trim().toLowerCase()===k&&String(r.item||'').trim().toLowerCase()===findF.item)),item:ci('item'),imp:[['yes','Imported'],['no','Not imported']],pn:[['yes','Named'],['no','No name yet']],jt:(()=>{const m=new Map();rowsAll.forEach(r=>{const j=attrOf(r).jt;if(j)m.set(j.toLowerCase(),j)});return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1]))})(),mc:(()=>{const m=new Map();rowsAll.forEach(r=>{const v=attrOf(r).mc;if(v)m.set(v.toLowerCase(),v)});return [...m.entries()].sort((a,b)=>{const ia=MC_LIST.findIndex(x=>x[0]===a[1]),ib=MC_LIST.findIndex(x=>x[0]===b[1]);return (ia<0?99:ia)-(ib<0?99:ib)})})(),sc:(()=>{const m=new Set();rowsAll.forEach(r=>attrOf(r).sc.forEach(c=>m.add(c)));return [...m].sort((a,b)=>{const ia=SC_LIST.findIndex(x=>x[0]===a),ib=SC_LIST.findIndex(x=>x[0]===b);return (ia<0?99:ia)-(ib<0?99:ib)}).map(c=>[c.toLowerCase(),c])})(),type:wtCodes().map(c=>[c,CAT[c]||c]),pur:uniq(r=>caratToPurity(r.carat)).map(p=>[p,PLABEL[p]||p]),stone:[['any','With stone'],['dia','Diamond'],['clr','Colour stone'],['none','No stone']],
+  const opts={cat:ci('category').filter(([k])=>!findF.item||rowsAll.some(r=>String(r.category||'').trim().toLowerCase()===k&&String(r.item||'').trim().toLowerCase()===findF.item)),item:ci('item'),imp:[['yes','Imported'],['no','Not imported']],pn:[['yes','Named'],['no','No name yet']],jt:(()=>{const m=new Map();rowsAll.forEach(r=>{const j=attrOf(r).jt;if(j)m.set(j.toLowerCase(),j)});return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1]))})(),stt:(()=>{const m=new Map();rowsAll.forEach(r=>attrOf(r).st.forEach(v=>m.set(v.toLowerCase(),v)));const ix=v=>{const i=STT_LIST.indexOf(v);return i<0?99:i};return [...m.entries()].sort((a,b)=>ix(a[1])-ix(b[1])||a[1].localeCompare(b[1]))})(),mc:(()=>{const m=new Map();rowsAll.forEach(r=>{const v=attrOf(r).mc;if(v)m.set(v.toLowerCase(),v)});return [...m.entries()].sort((a,b)=>{const ia=MC_LIST.findIndex(x=>x[0]===a[1]),ib=MC_LIST.findIndex(x=>x[0]===b[1]);return (ia<0?99:ia)-(ib<0?99:ib)})})(),sc:(()=>{const m=new Set();rowsAll.forEach(r=>attrOf(r).sc.forEach(c=>m.add(c)));return [...m].sort((a,b)=>{const ia=SC_LIST.findIndex(x=>x[0]===a),ib=SC_LIST.findIndex(x=>x[0]===b);return (ia<0?99:ia)-(ib<0?99:ib)}).map(c=>[c.toLowerCase(),c])})(),type:wtCodes().map(c=>[c,CAT[c]||c]),pur:uniq(r=>caratToPurity(r.carat)).map(p=>[p,PLABEL[p]||p]),stone:[['any','With stone'],['dia','Diamond'],['clr','Colour stone'],['none','No stone']],
     sup:uniq(r=>r.supplier).map(x=>[x,x]),loc:uniq(r=>r.location).map(x=>[x,x]),lab:[['yes','Labelled'],['no','Not labelled']],img:[['yes','With photo'],['no','No photo']]};
   const val=k=>k==='type'?findType:findF[k];
   const RNG=[['w','Weight','g'],['p','Label price','₹'],['f','Fair value','₹'],['m','Making','₹'],['d','Diamond','ct']].filter(([k])=>k!=='f'||can('fva'));
@@ -5811,7 +5824,7 @@ function stFilterBar(rowsAll){
     bar.querySelectorAll('[data-r]').forEach(i=>{const go=()=>{const v=i.tagName==='SELECT'?i.value:i.value.replace(/[^\d.]/g,'');if(findF[i.dataset.r]===v)return;findF[i.dataset.r]=v;stPage=1;runFindTable()};
       i.addEventListener('change',go);if(i.tagName==='INPUT')i.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();go()}})})}
   {const okF=can('stFilters'),okR=can('stRanges');bar.querySelector('.stf-row').hidden=!okF;bar.querySelector('.st-rng').hidden=!okR;
-   if(!okF){findType='';['item','cat','jt','mc','sc','pur','stone','sup','loc','lab','img','imp','pn'].forEach(k=>findF[k]='')}if(!okR)['wMin','wMax','pMin','pMax','fMin','fMax','mMin','mMax','dMin','dMax'].forEach(k=>findF[k]='');bar.hidden=!okF&&!okR}
+   if(!okF){findType='';['item','cat','jt','mc','stt','sc','pur','stone','sup','loc','lab','img','imp','pn'].forEach(k=>findF[k]='')}if(!okR)['wMin','wMax','pMin','pMax','fMin','fMax','mMin','mMax','dMin','dMax'].forEach(k=>findF[k]='');bar.hidden=!okF&&!okR}
   bar.querySelectorAll('.rg').forEach(g=>{const k=g.dataset.rg;g.classList.toggle('on',findF[k+'Min']!==''||findF[k+'Max']!=='')});
   const anyR=RNG.some(([k])=>findF[k+'Min']!==''||findF[k+'Max']!=='');
   bar.querySelector('.stf-row').innerHTML=FILTERS.map(([k,l])=>`<label class="stf${val(k)?' on':''}"><span class="sr">${l}</span><select data-f="${k}"><option value="">${l}</option>${opts[k].map(([v,t])=>`<option value="${esc(v)}"${v===val(k)?' selected':''}>${esc(t)}</option>`).join('')}</select></label>`).join('')+
@@ -5831,6 +5844,7 @@ function stPass(r){
   if(findF.imp==='yes'&&!r.imp)return false;if(findF.imp==='no'&&r.imp)return false;
   if(findF.jt&&attrOf(r).jt.toLowerCase()!==findF.jt)return false;
   if(findF.mc&&attrOf(r).mc.toLowerCase()!==findF.mc)return false;
+  if(findF.stt&&!attrOf(r).st.some(c=>c.toLowerCase()===findF.stt))return false;
   if(findF.sc&&!attrOf(r).sc.some(c=>c.toLowerCase()===findF.sc))return false;
   if(findF.pn){const h=!!pnameOf(r);if(findF.pn==='yes'&&!h)return false;if(findF.pn==='no'&&h)return false}
   if(findF.pur&&caratToPurity(r.carat)!==findF.pur)return false;
@@ -5900,7 +5914,7 @@ $('repBtnM').onclick=()=>withPerm('reports','Needs permission: Reports.',()=>DES
 // ---- Search: the whole stock list as a table (sortable; click or Enter prices the item) ----
 const ST_COLS=[['img','',0],['key','Label no.',0],['category','Item type',0],['item','Item name',0],['carat','Purity',0],['gw','Gr. wt',1],['sw','St. wt',1],['nw','Net wt',1],['dw','Dia ct',1,1],['sa','Stone ₹',1],['mk','Making',1],['huid','HUID',1,1],['location','Location',0],['supplier','Supplier',0],['labelDate','Labelled',0,1],['act','',0]];
 // V1.7.81 the stock list on a computer: every column it can show, which ones are on and in what order (per computer)
-const ST_ALL=[['img','Photo',0],['pname','Product name',0],['jt','Design',0],['mc','Metal colour',0],['item','Item name',0],['category','Item type',0],['carat','Purity',0],['key','Label no.',0],['gw','Gr. wt',1],['sw','St. wt',1],['nw','Net wt',1],['dw','Dia ct',1],['dq','Dia pcs',1],['sa','Stone ₹',1],['mk','Making',1],['fva','FVA',1],['price','Label price',1],['fv','Fair value',1],['save','Savings',1],['huid','HUID',1],['huidNo','HUID no.',0],['stoneName','Stones',0],['location','Location',0],['supplier','Supplier',0],['model','Model',0],['size','Size',0],['nlc','NLC',1],['scol','Stone colour',0],['imp','Imported',0],['labelDate','Labelled',0]];
+const ST_ALL=[['img','Photo',0],['pname','Product name',0],['jt','Design',0],['mc','Metal colour',0],['stt','Stone type',0],['item','Item name',0],['category','Item type',0],['carat','Purity',0],['key','Label no.',0],['gw','Gr. wt',1],['sw','St. wt',1],['nw','Net wt',1],['dw','Dia ct',1],['dq','Dia pcs',1],['sa','Stone ₹',1],['mk','Making',1],['fva','FVA',1],['price','Label price',1],['fv','Fair value',1],['save','Savings',1],['huid','HUID',1],['huidNo','HUID no.',0],['stoneName','Stones',0],['location','Location',0],['supplier','Supplier',0],['model','Model',0],['size','Size',0],['nlc','NLC',1],['scol','Stone colour',0],['imp','Imported',0],['labelDate','Labelled',0]];
 const ST_DEF=['img','pname','item','category','carat','key','gw','nw','sa','mk','price','fv','location','labelDate'];
 const ST_ADMIN=['nlc','supplier','fva'];   // only with the Hidden product details permission
 let stCols=(()=>{const v=store.get('stCols',null);return Array.isArray(v)&&v.length?v.filter(k=>ST_ALL.some(c=>c[0]===k)):ST_DEF.slice()})();
@@ -5925,7 +5939,7 @@ function stPrice(r){
 let stSort=(()=>{const v=store.get('stSort',null);return v&&v.k&&(v.d===1||v.d===-1)?v:{k:'key',d:1}})(),stLimit=200;
 function stVal(r,k){
   const N=v=>{const n=num(v);return isNaN(n)?null:n};
-  if(k==='pname')return pnameOf(r)||null;if(k==='jt')return attrOf(r).jt||null;if(k==='scol')return attrOf(r).sc.join(', ')||null;if(k==='mc')return mcLabel(r)||null;
+  if(k==='pname')return pnameOf(r)||null;if(k==='jt')return attrOf(r).jt||null;if(k==='scol')return attrOf(r).sc.join(', ')||null;if(k==='mc')return mcLabel(r)||null;if(k==='stt')return attrOf(r).st.join(', ')||null;
   if(k==='price'||k==='fv'||k==='save'){const v=stPrice(r)[k==='price'?'lp':k];return isNaN(v)?null:v}
   if(k==='mk'){const v=stPrice(r).mk;if(!isNaN(v))return v;return N(r.mk)}          // making in ₹ at today's rate
   if(k==='sa'){const v=(num(r.saDia)||0)+(num(r.saClr)||0)||num(r.sa)||0;return v>0?v:null}
@@ -5941,6 +5955,7 @@ function stCell(r,c,img,W,mkOf){
     case 'key':return `<b>${esc(r.barcode||r.key)}</b>`;
     case 'jt':{const v=attrOf(r).jt;return v?esc(v):'<span class="lab-n">–</span>'}
     case 'scol':{const v=attrOf(r).sc;return v.length?scHtml(v):'<span class="lab-n">–</span>'}
+    case 'stt':{const v=attrOf(r).st;return v.length?`<span class="stt-t">${v.map(esc).join(', ')}</span>`:'<span class="lab-n">–</span>'}
     case 'mc':{const v=mcLabel(r);return v?`<span class="mc-t">${mcSw(attrOf(r).mc)}${esc(v)}</span>`:'<span class="lab-n">–</span>'}
     case 'pname':{const v=pnameOf(r);return v?`<b class="pn-c">${esc(v)}</b>`:'<span class="lab-n">–</span>'}
     case 'carat':return esc(PLABEL[caratToPurity(r.carat)]||r.carat||'');
@@ -5986,7 +6001,7 @@ function runFindTable(){
   const exact=q?findStock(q):null,all=[...stockMap.values()];
   stFilterBar(all);
   let rows=all.filter(stPass);
-  if(q)rows=rows.filter(r=>r===exact||(k.length>=2&&(r.key.includes(k)||keyOf(r.label||'').includes(k)))||[r.item,r.category,r.supplier,r.stoneName,r.location,r.model,pnameOf(r),attrOf(r).jt,attrOf(r).sc.join(' ')].some(v=>String(v||'').toLowerCase().includes(ql)));
+  if(q)rows=rows.filter(r=>r===exact||(k.length>=2&&(r.key.includes(k)||keyOf(r.label||'').includes(k)))||[r.item,r.category,r.supplier,r.stoneName,r.location,r.model,pnameOf(r),attrOf(r).jt,attrOf(r).sc.join(' '),attrOf(r).st.join(' '),attrOf(r).mc].some(v=>String(v||'').toLowerCase().includes(ql)));
   rows.sort((a,b)=>{const x=stVal(a,stSort.k),y=stVal(b,stSort.k);if(x==null||y==null){if(x==null&&y==null)return a.key<b.key?-1:1;return x==null?1:-1}
     const c=typeof x==='number'&&typeof y==='number'?x-y:String(x).localeCompare(String(y),'en',{numeric:true});return (c||(a.key<b.key?-1:1)*(stSort.d))*stSort.d});
   if(exact&&rows.includes(exact)){rows=[exact,...rows.filter(r=>r!==exact)]}
@@ -6314,7 +6329,7 @@ async function takePhotos(list){
 function askProdPhoto(k){openPhotos(k)}
 // a name typed in the photo manager is saved with the photos
 function pmNameAuto(k){const i=$('pmName');if(!i||i.dataset.k!==k||$('modal').hidden)return;const v=i.value.replace(/\s+/g,' ').trim();if(v&&v!==pnameOf(stockMap.get(k)||{key:k}))savePnames({[k]:v});
-  if($('pmAJt')){const a=readAttr('pmA');if((a.jt||a.sc.length||a.mc)&&!attrSame(a,attrOf(stockMap.get(k)||{key:k})))savePattrs({[k]:a})}}
+  if($('pmAJt')){const a=readAttr('pmA');if((a.jt||a.sc.length||a.mc||a.st.length)&&!attrSame(a,attrOf(stockMap.get(k)||{key:k})))savePattrs({[k]:a})}}
 // V1.8.3 paste photos: the photo manager (Ctrl+V, Paste button, long-press box), or Ctrl+V on Home with an item open
 async function pastePhotos(k,blobs){
   const room=IMG_MAX-imgCount(k);if(room<=0){toast(`An item can have ${IMG_MAX} photos`,null,true);return}
@@ -6639,7 +6654,7 @@ function stockForm(rec){
   $('modalTitle').textContent=isNew?'New item in stock':'Edit '+(r.barcode||r.key);$('modalTitle').classList.remove('price-pop');
   $('modalBody').innerHTML=`<p class="note">${isNew?'All label details, as on the other labels.':'Correct the making, FVA or any detail.'} Saved to the shared database for all staff.</p><div class="pr-form">`+SF.map(([k,l,t,req])=>{
     const id='sf_'+k,lab=`<label for="${id}">${esc(l)}${req?' *':''}</label>`;
-    if(t==='at')return attrFields('sfA',isNew?{jt:'',sc:[],mc:''}:attrOf(r));
+    if(t==='at')return attrFields('sfA',isNew?{jt:'',sc:[],mc:'',st:[]}:attrOf(r));
     if(t==='pn')return `<div class="full">${lab}<input id="${id}" list="pnList" autocomplete="off" maxlength="80" placeholder="e.g. Pink Solo Ring" value="${esc(isNew?'':pnameOf(r))}">${pnameDatalist()}<small class="pn-note" id="sfPnNote" aria-live="polite"></small></div>`;
     if(LST[k])return `<div${k==='item'||k==='category'?' class="sf-lst"':''}>${lab}<select id="${id}" class="sf-sel">${k==='supplier'?supOptions(v0.supplier,'Choose supplier…',true):optsOf(k,v0[k],k==='category'&&v0.item?x=>lc(x.item)===lc(v0.item):null)}</select><input id="${id}_new" class="sf-new" hidden placeholder="Type the new ${LST[k]}" aria-label="New ${LST[k]}"></div>`;
     if(t==='pur')return `<div>${lab}<select id="${id}">${purs.map(x=>`<option${String(v0.carat||'22').toUpperCase()===x?' selected':''}>${x}</option>`).join('')}</select></div>`;
@@ -6680,7 +6695,7 @@ function stockForm(rec){
     const row={};['key','barcode','item','category','carat','gw','nw','sw','dw','dq','sa','location','supplier','mk','mkType','huid','huidNo','stoneName','saDia','saClr','labelDate','size','model','nlc','fva','imp'].forEach(f=>{if(o[f]!=null&&o[f]!=='')row[f]=o[f]});if(row.fva)row.fvaMan='1';
     row.mkMan=isNew||String(r.mkMan)==='1'||row.mkType!==r.mkType||String(row.mk)!==String(r.mk)?'1':'0';
     ['serial','label','pcs','sq','cw','pname'].forEach(f=>{if(r[f]!=null&&r[f]!=='')row[f]=r[f]});
-    const pn=$('sf_pname').value.replace(/\s+/g,' ').trim(),pnChanged=pn!==(isNew?'':pnameOf(r)),at=readAttr('sfA'),atChanged=!attrSame(at,isNew?{jt:'',sc:[]}:attrOf(r));
+    const pn=$('sf_pname').value.replace(/\s+/g,' ').trim(),pnChanged=pn!==(isNew?'':pnameOf(r)),at=readAttr('sfA'),atChanged=!attrSame(at,isNew?{jt:'',sc:[],mc:'',st:[]}:attrOf(r));
     row.at=Date.now();
     sv.disabled=true;sv.textContent='Saving…';
     try{
@@ -6834,18 +6849,19 @@ $('supQ').oninput=()=>{supQ=$('supQ').value.trim();paintSup()};
 $('setSup').addEventListener('toggle',()=>{if($('setSup').open)paintSup()});
 paintSupMini();
 // ---------- Bulk update: the same label details on many items at once ----------
-const BF=[['mc','Metal colour','mc'],['rule','Pricing rules','rule'],['imp','Imported','imp'],['mkPct','Wstg %','num'],['mkFix','Fixed Charge (₹)','num'],['mkPg','Making Rate (₹/g)','num'],['fva','FVA (% or ₹)','text'],['category','Item Type','cat'],
+const BF=[['mc','Metal colour','mc'],['stt','Stone types (comma: Diamond, CZ)','stt'],['rule','Pricing rules','rule'],['imp','Imported','imp'],['mkPct','Wstg %','num'],['mkFix','Fixed Charge (₹)','num'],['mkPg','Making Rate (₹/g)','num'],['fva','FVA (% or ₹)','text'],['category','Item Type','cat'],
   ['carat','Purity (K)','pur'],['location','Location','text'],['supplier','Supplier','sup'],['stoneName','Stone Name(s)','text'],['size','Size','text'],['model','Model','text'],
   ['nlc','NLC (₹)','num'],['labelDate','Labelling Date','date']];
 let bulkAdd=null;
 // V1.8.18 find by: purity, weight range (gross / net), supplier, imported. With no labels or words, the finders pick from all stock
 // V1.8.19 also item type, item name, wastage %, making (fixed ₹ / ₹ per g), FVA. Making and FVA are what the price uses (pricing rules included)
 const BKF_K=['wMin','wMax','waEq','waMin','waMax','mkMin','mkMax','fvEq','fvMin','fvMax'];
-function bulkFindN(f){return f?['pur','sup','imp','cat','item','mkT','fv','mc'].filter(k=>f[k]).length+BKF_K.filter(k=>f[k]!=='').length:0}
+function bulkFindN(f){return f?['pur','sup','imp','cat','item','mkT','fv','mc','stt'].filter(k=>f[k]).length+BKF_K.filter(k=>f[k]!=='').length:0}
 function bulkFindOn(f){return bulkFindN(f)>0}
 const lcT=x=>String(x||'').trim().toLowerCase();
 function bulkFindPass(r,f){
   if(f.cat&&lcT(r.category)!==f.cat)return false;
+  if(f.stt){const a=attrOf(r).st.map(lcT);if(f.stt==='__none'?a.length>0:!a.includes(f.stt))return false}
   if(f.mc){const m=lcT(attrOf(r).mc);if(f.mc==='__none'?!!m:m!==f.mc)return false}
   if(f.item&&lcT(r.item)!==f.item)return false;
   const inR=(v,a,b)=>!(isNaN(v)||(a!==''&&v<num(a))||(b!==''&&v>num(b)));
@@ -6873,7 +6889,7 @@ function bulkPick(labels,q,f){
   const out=new Map(),miss=[];
   labels.split(/[\s,;]+/).map(x=>x.trim()).filter(Boolean).forEach(l=>{const r=findStock(l);if(r)out.set(r.key,r);else miss.push(l)});
   q=q.trim();if(q){const k=keyOf(q),ql=q.toLowerCase();for(const r of stockMap.values())
-    if((k.length>=2&&(r.key.startsWith(k)||keyOf(r.label||'')===k))||[r.item,r.category,r.supplier,r.stoneName,r.location,r.model,pnameOf(r),attrOf(r).jt,attrOf(r).sc.join(' ')].some(v=>String(v||'').toLowerCase().includes(ql)))out.set(r.key,r)}
+    if((k.length>=2&&(r.key.startsWith(k)||keyOf(r.label||'')===k))||[r.item,r.category,r.supplier,r.stoneName,r.location,r.model,pnameOf(r),attrOf(r).jt,attrOf(r).sc.join(' '),attrOf(r).st.join(' '),attrOf(r).mc].some(v=>String(v||'').toLowerCase().includes(ql)))out.set(r.key,r)}
   if(bulkFindOn(f)){const base=out.size||labels.trim()||q?[...out.values()]:[...stockMap.values()];return {list:base.filter(r=>bulkFindPass(r,f)),miss}}
   return {list:[...out.values()],miss};
 }
@@ -6891,6 +6907,7 @@ function bulkForm(pre){
         <div><label for="bkfPur">Purity</label><select id="bkfPur"><option value="">Any</option>${[...new Set([...stockMap.values()].map(r=>caratToPurity(r.carat)).filter(Boolean))].sort((a,b)=>Object.keys(PLABEL).indexOf(a)-Object.keys(PLABEL).indexOf(b)).map(x=>`<option value="${esc(x)}">${esc(PLABEL[x]||x)}</option>`).join('')}</select></div>
         <div><label for="bkfSup">Supplier</label><select id="bkfSup"><option value="">Any</option>${(()=>{const m=new Map();for(const r of stockMap.values()){const v=String(r.supplier||'').trim();if(v&&!m.has(v.toLowerCase()))m.set(v.toLowerCase(),v)}return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1],'en',{numeric:true})).map(([k,v])=>`<option value="${esc(k)}">${esc(v)}${(()=>{const x=supList().find(s=>s.name.toLowerCase()===k);return x&&x.full?' · '+esc(x.full):''})()}</option>`).join('')})()}</select></div>
         <div><label for="bkfMc">Metal colour</label><select id="bkfMc"><option value="">Any</option>${(()=>{const m=new Map();for(const r of stockMap.values()){const v=attrOf(r).mc;if(v)m.set(v.toLowerCase(),v)}return [...m.entries()].map(([k,v])=>`<option value="${esc(k)}">${esc(v)}</option>`).join('')})()}<option value="__none">Not set</option></select></div>
+        <div><label for="bkfStt">Stone type</label><select id="bkfStt"><option value="">Any</option>${(()=>{const m=new Map();for(const r of stockMap.values())attrOf(r).st.forEach(v=>m.set(v.toLowerCase(),v));return [...m.entries()].map(([k,v])=>`<option value="${esc(k)}">${esc(v)}</option>`).join('')})()}<option value="__none">Not set</option></select></div>
         <div><label for="bkfImp">Imported</label><select id="bkfImp"><option value="">Any</option><option value="yes">Imported only</option><option value="no">Not imported</option></select></div>
       </div></div>
       <div class="bkf-g"><b>Weight</b><div class="bkf-r3">
@@ -6918,6 +6935,7 @@ function bulkForm(pre){
       if(t==='cat')return `<div>${lab}<input id="${id}" list="bkCats"><datalist id="bkCats">${cats.map(c=>`<option value="${esc(c)}">`).join('')}</datalist></div>`;
       if(t==='pur')return `<div>${lab}<select id="${id}"><option value="">Keep</option>${['22','18','14','9','24','PT','925'].map(x=>`<option>${x}</option>`).join('')}</select></div>`;
       if(t==='date')return `<div>${lab}<input id="${id}" type="date"></div>`;
+      if(t==='stt')return `<div class="full">${lab}<input id="${id}" list="bkSttL" placeholder="Keep"><datalist id="bkSttL">${STT_LIST.map(x=>`<option value="${esc(x)}">`).join('')}<option value="none"></datalist></div>`;
       if(t==='mc')return `<div>${lab}<input id="${id}" list="bkMcL" placeholder="Keep"><datalist id="bkMcL">${MC_LIST.map(x=>`<option value="${esc(x[0])}">`).join('')}</datalist></div>`;
       if(t==='imp')return `<div>${lab}<select id="${id}"><option value="">Keep</option><option value="Yes">Yes · imported</option><option value="No">No</option></select></div>`;
       if(t==='sup')return `<div>${lab}<select id="${id}">${supOptions('','Keep',true).replace('<option value="__new">','<option value="__new">')}</select><input id="${id}_new" class="sf-new" hidden placeholder="Type the new supplier" aria-label="New supplier"></div>`;
@@ -6928,7 +6946,7 @@ function bulkForm(pre){
   const MK=['mkPct','mkFix','mkPg'];MK.forEach(k=>$('bk_'+k).addEventListener('input',e=>{if(e.target.value.trim())MK.filter(x=>x!==k).forEach(x=>$('bk_'+x).value='')}));
   let pick={list:[],miss:[]};
   const V=id=>$(id).value.trim();
-  const bkF=()=>({mc:V('bkfMc'),cat:V('bkfCat'),item:V('bkfItem'),waEq:V('bkfWaEq'),fvEq:V('bkfFvEq'),waMin:V('bkfWaMin'),waMax:V('bkfWaMax'),mkT:V('bkfMkT'),mkMin:V('bkfMkMin'),mkMax:V('bkfMkMax'),fv:V('bkfFv'),fvMin:V('bkfFvMin'),fvMax:V('bkfFvMax'),pur:$('bkfPur').value,sup:$('bkfSup').value,imp:$('bkfImp').value,wBy:$('bkfWBy').value,wMin:$('bkfWMin').value.trim(),wMax:$('bkfWMax').value.trim()});
+  const bkF=()=>({stt:V('bkfStt'),mc:V('bkfMc'),cat:V('bkfCat'),item:V('bkfItem'),waEq:V('bkfWaEq'),fvEq:V('bkfFvEq'),waMin:V('bkfWaMin'),waMax:V('bkfWaMax'),mkT:V('bkfMkT'),mkMin:V('bkfMkMin'),mkMax:V('bkfMkMax'),fv:V('bkfFv'),fvMin:V('bkfFvMin'),fvMax:V('bkfFvMax'),pur:$('bkfPur').value,sup:$('bkfSup').value,imp:$('bkfImp').value,wBy:$('bkfWBy').value,wMin:$('bkfWMin').value.trim(),wMax:$('bkfWMax').value.trim()});
   const upd=()=>{const ff=bkF(),nf=bulkFindN(ff);$('bkfOn').textContent=nf?`${nf} on`:'';pick=bulkPick($('bkLabels').value,$('bkQ').value,ff);const n=pick.list.length;
     const nr=pick.list.filter(r=>ruleFor(r)).length;
     $('bkCount').innerHTML=(n?`<b>${n} item${n>1?'s':''} picked</b>: ${esc(pick.list.slice(0,8).map(r=>r.barcode||r.key).join(', '))}${n>8?' …':''}${nr?`<br><small>${nr} of them match a pricing rule; making or FVA typed here will be used instead of the rule.</small>`:''}`:'No items picked.')+(pick.miss.length?`<br><span class="bad-t">Not in stock: ${esc(pick.miss.slice(0,8).join(', '))}</span>`:'')};
@@ -6939,7 +6957,7 @@ function bulkForm(pre){
   // item types follow the item name picked
   $('bkfItem').addEventListener('change',()=>{const it=$('bkfItem').value,was=$('bkfCat').value,m=new Map();for(const r of stockMap.values()){if(it&&lcT(r.item)!==it)continue;const v=String(r.category||'').trim();if(v&&!m.has(v.toLowerCase()))m.set(v.toLowerCase(),v)}
     $('bkfCat').innerHTML='<option value="">Any</option>'+[...m.entries()].sort((a,b)=>a[1].localeCompare(b[1],'en',{numeric:true})).map(([k,v])=>`<option value="${esc(k)}"${k===was?' selected':''}>${esc(v)}</option>`).join('');if(was&&!m.has(was))$('bkfCat').value=''});
-  ['bkfMc','bkfWaEq','bkfFvEq','bkfCat','bkfItem','bkfWaMin','bkfWaMax','bkfMkT','bkfMkMin','bkfMkMax','bkfFv','bkfFvMin','bkfFvMax','bkfPur','bkfSup','bkfImp','bkfWBy','bkfWMin','bkfWMax'].forEach(id=>{$(id).addEventListener('input',upd);$(id).addEventListener('change',upd)});
+  ['bkfStt','bkfMc','bkfWaEq','bkfFvEq','bkfCat','bkfItem','bkfWaMin','bkfWaMax','bkfMkT','bkfMkMin','bkfMkMax','bkfFv','bkfFvMin','bkfFvMax','bkfPur','bkfSup','bkfImp','bkfWBy','bkfWMin','bkfWMax'].forEach(id=>{$(id).addEventListener('input',upd);$(id).addEventListener('change',upd)});
   bulkAdd=code=>{const k=keyOf(code);if(!k)return;const r=findStock(k),ta=$('bkLabels');if(!ta)return;
     const have=new Set(ta.value.split(/[\s,;]+/).map(keyOf).filter(Boolean));
     try{navigator.vibrate&&navigator.vibrate(r?50:[60,60,60])}catch(e){}
@@ -6964,6 +6982,7 @@ function bulkForm(pre){
     if(g('imp')){ch.imp=g('imp')==='Yes'?'Yes':'';what.push(g('imp')==='Yes'?'imported':'not imported')}
     // metal colour lives with the product details (not the stock row), so it does not touch making / rules
     const mcNew=g('mc').replace(/\s+/g,' ');const mcCanon=mcNew&&(MC_LIST.find(x=>x[0].toLowerCase()===mcNew.toLowerCase())||[mcNew])[0];if(mcCanon)what.push('metal colour '+mcCanon);
+    const sttRaw=g('stt'),sttNew=sttRaw?(/^(none|clear|-)$/i.test(sttRaw)?[]:[...new Set(sttRaw.split(/[,;/|]+/).map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean).map(x=>STT_LIST.find(y=>y.toLowerCase()===x.toLowerCase())||x))].slice(0,STT_MAX)):null;if(sttNew)what.push(sttNew.length?'stone types '+sttNew.join(', '):'clear stone types');
     if(!what.length){toast('Fill at least one detail to change',null,true);return}
     const stockCh=Object.keys(ch).length>0;
     const rows=pick.list.map(r=>stockCh?Object.assign({},r,ch,{at:Date.now()}):r);
@@ -6972,7 +6991,7 @@ function bulkForm(pre){
       try{
         let hist=null;
         if(sync.key&&stockCh)for(let i=0;i<rows.length;i+=300){const res=await syncApi('stockrow','POST',{rows:rows.slice(i,i+300),what:what.join(', '),by:meName()},adminCreds);sync.v.stock=res.v;hist=res.history}
-        if(mcCanon){const map={};rows.forEach(r=>{const a=attrOf(r);map[r.key]={jt:(pattrs[r.key]||{}).jt||'',sc:(pattrs[r.key]||{}).sc||[],mc:mcCanon}});if(!(await savePattrs(map)))throw new Error('mc')}
+        if(mcCanon||sttNew){const map={};rows.forEach(r=>{const o=pattrs[r.key]||{};map[r.key]={jt:o.jt||'',sc:o.sc||[],mc:mcCanon||o.mc||'',st:sttNew||o.st||[]}});if(!(await savePattrs(map)))throw new Error('attr')}
         saveSyncState();if(hist){stockMeta.history=hist;store.set('stockMeta',stockMeta)}
         try{await IDB.putMany(rows,false)}catch(e){}
         rows.forEach(indexRec);paintStockSummary();closeModal();
@@ -7114,7 +7133,7 @@ $('rpXlsx').onclick=()=>withPerm('reports','Needs permission: Reports.',async()=
 });
 // ---------- Export the stock database with photos (admin) ----------
 function loadScript(src,ok){return ok()?Promise.resolve():new Promise((res,rej)=>{const sc=document.createElement('script');sc.src=src;sc.onload=res;sc.onerror=()=>rej(new Error('Could not load '+src));document.head.appendChild(sc)})}
-const EXP_COLS=[['Label No',r=>r.barcode||r.key],['Item Name',r=>r.item],['Item Type',r=>r.category],['Purity (K)',r=>r.carat],['Metal Colour',r=>attrOf(r).mc],['Gross Wt (g)',r=>numOr(r.gw)],['Stone Wt (g)',r=>numOr(r.sw)],['Net Wt (g)',r=>numOr(r.nw)],
+const EXP_COLS=[['Label No',r=>r.barcode||r.key],['Item Name',r=>r.item],['Item Type',r=>r.category],['Purity (K)',r=>r.carat],['Metal Colour',r=>attrOf(r).mc],['Stone Type',r=>attrOf(r).st.join(', ')],['Gross Wt (g)',r=>numOr(r.gw)],['Stone Wt (g)',r=>numOr(r.sw)],['Net Wt (g)',r=>numOr(r.nw)],
   ['Clr-SA',r=>numOr(r.saClr)],['Dia – SA',r=>numOr(r.saDia)],['Diamond Qty',r=>numOr(r.dq)],['Diamond Wt',r=>numOr(r.dw)],['Making',r=>r.mkType&&num(r.mk)>0?valText({type:r.mkType,val:num(r.mk)}):''],
   ['HUID No',r=>r.huidNo||(r.huid!=null&&r.huid!==''?String(r.huid):'')],['Stone Name(s)',r=>r.stoneName],['Location',r=>r.location],['Labelling Date',r=>fmtDate(r.labelDate)]];
 function numOr(v){const n=num(v);return isNaN(n)||v===''||v==null?'':n}
@@ -7182,7 +7201,7 @@ function runFind(){
   if(exact&&(!shareList||shareList.keys.has(exact.key)))hits.push(exact);
   if(shareList&&!q){for(const k of shareList.keys){const r=stockMap.get(k);if(r&&hits.length<300)hits.push(r)}}
   else for(const r of stockMap.values()){if(hits.length>=60)break;if(r===exact||(shareList&&!shareList.keys.has(r.key)))continue;
-    if((k.length>=2&&(r.key.includes(k)||keyOf(r.label||'').includes(k)))||[r.item,r.category,r.supplier,r.stoneName,pnameOf(r),attrOf(r).jt,attrOf(r).sc.join(' ')].some(v=>String(v||'').toLowerCase().includes(ql)))hits.push(r)}
+    if((k.length>=2&&(r.key.includes(k)||keyOf(r.label||'').includes(k)))||[r.item,r.category,r.supplier,r.stoneName,pnameOf(r),attrOf(r).jt,attrOf(r).sc.join(' '),attrOf(r).st.join(' '),attrOf(r).mc].some(v=>String(v||'').toLowerCase().includes(ql)))hits.push(r)}
   stLastRows=hits;
   $('findNote').innerHTML=sharedBanner()+(hits.length?(exact?`<b class="ok-t">✓ ${esc(exact.barcode||exact.key)} is in stock.</b> `:'')+`${hits.length>=60&&!shareList?'First 60':hits.length} match${hits.length===1?'':'es'}.`:q?`<b class="bad-t">✗ Not in stock.</b> No item matches “${esc(q)}”.`:'None of these items are in stock now.');
   const W=v=>v!=null&&v!==''&&!isNaN(num(v))&&num(v)>0?num(v).toFixed(3)+' g':'';
@@ -7215,7 +7234,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.8.22',APP_BUILD='__BUILD__';
+const APP_VERSION='1.8.23',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------

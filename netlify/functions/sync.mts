@@ -6,7 +6,7 @@ import type { Config } from "@netlify/functions"
 // Stored in one site-wide Blobs store: meta, stock, rates, settings, users, auth (legacy admin PIN).
 
 const APP_ORIGINS = ["https://appassets.androidplatform.net", "https://yamie-price-check.netlify.app"]
-const STOCK_FIELDS = ["key", "barcode", "item", "category", "carat", "gw", "nw", "sw", "dw", "dq", "sa", "serial", "label", "location", "pcs", "sq", "supplier", "mk", "mkType", "huid", "huidNo", "cw", "stoneName", "saDia", "saClr", "labelDate", "size", "model", "nlc", "fva", "fvaMan", "mkMan", "imp", "pname", "design", "scol", "mcol", "at"]
+const STOCK_FIELDS = ["key", "barcode", "item", "category", "carat", "gw", "nw", "sw", "dw", "dq", "sa", "serial", "label", "location", "pcs", "sq", "supplier", "mk", "mkType", "huid", "huidNo", "cw", "stoneName", "saDia", "saClr", "labelDate", "size", "model", "nlc", "fva", "fvaMan", "mkMan", "imp", "pname", "design", "scol", "mcol", "stype", "at"]
 const RATE_KEYS = ["22k", "18k", "14k", "9k", "platinum", "silver"]
 
 type Meta = { stock: number; rates: number; settings: number; users: number; quotes: number; leads?: number; imgs: number; count: number; history: any[] }
@@ -591,7 +591,8 @@ export default async (req: Request) => {
         const jt = cleanStr(o.jt, 60).replace(/\s+/g, " ").trim()
         const sc = Array.isArray(o.sc) ? [...new Set(o.sc.map((x: any) => cleanStr(x, 30).trim()).filter(Boolean))].slice(0, 5) : []
         const mc = cleanStr(o.mc, 40).replace(/\s+/g, " ").trim()
-        if (jt || sc.length || mc) map[k] = { ...(jt ? { jt } : {}), ...(sc.length ? { sc } : {}), ...(mc ? { mc } : {}) }; else delete map[k]
+        const stt = Array.isArray(o.st) ? [...new Set(o.st.map((x: any) => cleanStr(x, 30).replace(/\s+/g, " ").trim()).filter(Boolean))].slice(0, 8) : []
+        if (jt || sc.length || mc || stt.length) map[k] = { ...(jt ? { jt } : {}), ...(sc.length ? { sc } : {}), ...(mc ? { mc } : {}), ...(stt.length ? { st: stt } : {}) }; else delete map[k]
         n++
       }
       await st.setJSON("pattrs", map)

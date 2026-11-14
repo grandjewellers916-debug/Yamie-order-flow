@@ -557,3 +557,6 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 
 ## V 1.8.22
 - Fixed: the Create Quote overview showed on every page (All quotations, Shop, Search, Home, Settings). It now shows on the Quote page only.
+
+## V 1.8.23
+- **Stone type** – several per product: Diamond, Lab-grown Diamond, CZ, Moissanite, Pearl, Ruby, Emerald, Sapphire, Polki, Kundan, Coral, Navaratna, Gemstone, Synthetic stone, or your own (+ Other…, Enter to add). Until set, it is read from the stone name (e.g. "VVS dia" → Diamond, "CZ" → CZ). Set on the photos page and in Edit details; Bulk update has a Stone type finder (incl. "Not set") and a change ("Diamond, CZ" – replaces; "none" clears). Also a Search filter and column, a product-details row, a picture-card detail, the stock export, a sheet column (STONE TYPE), and the search box finds it.
