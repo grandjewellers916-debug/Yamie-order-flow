@@ -536,3 +536,6 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 
 ## V 1.8.17
 - The fair value needs an FVA on the item (Edit in database, bulk update or a pricing rule). When Fair value / Savings are ticked in the share window but an item has no FVA, a note names the items ("No fair value for FRG0766: no FVA is set…"), so it is clear why the card shows the label price only. The status card says the same.
+
+## V 1.8.18
+- **Bulk update: Find items by** purity, supplier, imported (any / imported only / not imported) and a weight range (gross or net wt, from–to g). With the label box and words empty, the finders pick from all stock; with labels or words, only those that also match are picked. The count and the first item codes show as you choose, and Update items still asks to confirm.

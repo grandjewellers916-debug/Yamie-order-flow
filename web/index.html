@@ -1009,6 +1009,7 @@ body.stm .mr-img{width:52px;height:52px}body.stm .mr-t b{font-size:14.5px}body.s
 .sc-wrap{display:flex;flex-direction:column;gap:12px;align-items:center}.sc-wrap canvas{width:min(100%,320px);height:auto;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.18)}
 .sc-opts{display:flex;flex-wrap:wrap;gap:8px 14px;justify-content:center}
 .wa-one.wa-st{margin-left:6px}
+.bk-find{border:1px solid var(--line);border-radius:12px;padding:8px 12px 4px;margin:8px 0}.bk-find legend{font-weight:600;padding:0 6px}.bk-find .pr-form{margin:0}.bk-ch{font-weight:600;margin:12px 0 4px;color:var(--maroon)}
 .sh-fvn{color:#9A5B00;background:#FFF4E0;border-radius:10px;padding:8px 10px;margin:6px 0 0}
 @media (min-width:1280px) and (pointer:fine){#bill.qv{display:flex!important;flex-direction:column;gap:14px}#bill.qv>*{width:100%;max-width:none}#bill.qv>.q-side{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:14px;align-items:start}#bill.qv>.q-side:not(:has(> :not(.qs-off))),#bill.qv>.q-main:not(:has(> :not(.qs-off))),#bill.qv>.q-full:not(:has(> :not(.qs-off))){display:none}}
 #bill .q-step{display:none}
@@ -6684,11 +6685,20 @@ const BF=[['rule','Pricing rules','rule'],['imp','Imported','imp'],['mkPct','Wst
   ['carat','Purity (K)','pur'],['location','Location','text'],['supplier','Supplier','sup'],['stoneName','Stone Name(s)','text'],['size','Size','text'],['model','Model','text'],
   ['nlc','NLC (₹)','num'],['labelDate','Labelling Date','date']];
 let bulkAdd=null;
-function bulkPick(labels,q){
+// V1.8.18 find by: purity, weight range (gross / net), supplier, imported. With no labels or words, the finders pick from all stock
+function bulkFindOn(f){return !!(f&&(f.pur||f.sup||f.imp||f.wMin!==''||f.wMax!==''))}
+function bulkFindPass(r,f){
+  if(f.pur&&caratToPurity(r.carat)!==f.pur)return false;
+  if(f.sup&&String(r.supplier||'').trim().toLowerCase()!==f.sup)return false;
+  if(f.imp==='yes'&&!r.imp)return false;if(f.imp==='no'&&r.imp)return false;
+  if(f.wMin!==''||f.wMax!==''){const w=num(r[f.wBy==='nw'?'nw':'gw']);if(isNaN(w))return false;if(f.wMin!==''&&w<num(f.wMin))return false;if(f.wMax!==''&&w>num(f.wMax))return false}
+  return true}
+function bulkPick(labels,q,f){
   const out=new Map(),miss=[];
   labels.split(/[\s,;]+/).map(x=>x.trim()).filter(Boolean).forEach(l=>{const r=findStock(l);if(r)out.set(r.key,r);else miss.push(l)});
   q=q.trim();if(q){const k=keyOf(q),ql=q.toLowerCase();for(const r of stockMap.values())
     if((k.length>=2&&(r.key.startsWith(k)||keyOf(r.label||'')===k))||[r.item,r.category,r.supplier,r.stoneName,r.location,r.model,pnameOf(r),attrOf(r).jt,attrOf(r).sc.join(' ')].some(v=>String(v||'').toLowerCase().includes(ql)))out.set(r.key,r)}
+  if(bulkFindOn(f)){const base=out.size||labels.trim()||q?[...out.values()]:[...stockMap.values()];return {list:base.filter(r=>bulkFindPass(r,f)),miss}}
   return {list:[...out.values()],miss};
 }
 function bulkForm(){
@@ -6698,7 +6708,16 @@ function bulkForm(){
   $('modalBody').innerHTML=`<p class="note">Pick the items, fill only what should change. Blank fields stay as they are. Saved to the shared database for all staff.</p>
     <div class="lead-f"><div class="bk-lh"><label for="bkLabels">Label numbers</label><button type="button" class="btn sm" id="bkScan">Scan labels</button></div><textarea id="bkLabels" rows="3" placeholder="Scan tags, or type FRG382, STD101… (one per line or with commas)"></textarea></div>
     <div class="lead-f"><label for="bkQ">And/or all items matching</label><input id="bkQ" placeholder="e.g. NSP, Nose Pin, a supplier or location"></div>
+    <fieldset class="bk-find"><legend>Find items by</legend><div class="pr-form">
+      <div><label for="bkfPur">Purity</label><select id="bkfPur"><option value="">Any</option>${[...new Set([...stockMap.values()].map(r=>caratToPurity(r.carat)).filter(Boolean))].sort((a,b)=>Object.keys(PLABEL).indexOf(a)-Object.keys(PLABEL).indexOf(b)).map(x=>`<option value="${esc(x)}">${esc(PLABEL[x]||x)}</option>`).join('')}</select></div>
+      <div><label for="bkfSup">Supplier</label><select id="bkfSup"><option value="">Any</option>${(()=>{const m=new Map();for(const r of stockMap.values()){const v=String(r.supplier||'').trim();if(v&&!m.has(v.toLowerCase()))m.set(v.toLowerCase(),v)}return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1],'en',{numeric:true})).map(([k,v])=>`<option value="${esc(k)}">${esc(v)}${(()=>{const x=supList().find(s=>s.name.toLowerCase()===k);return x&&x.full?' · '+esc(x.full):''})()}</option>`).join('')})()}</select></div>
+      <div><label for="bkfImp">Imported</label><select id="bkfImp"><option value="">Any</option><option value="yes">Imported only</option><option value="no">Not imported</option></select></div>
+      <div><label for="bkfWBy">Weight</label><select id="bkfWBy"><option value="gw">Gross wt</option><option value="nw">Net wt</option></select></div>
+      <div><label for="bkfWMin">From (g)</label><input id="bkfWMin" inputmode="decimal" placeholder="0"></div>
+      <div><label for="bkfWMax">To (g)</label><input id="bkfWMax" inputmode="decimal" placeholder="any"></div>
+    </div><p class="note">Leave the label box and words empty to pick from all stock. With labels or words, only those that also match are picked.</p></fieldset>
     <p class="note" id="bkCount" aria-live="polite">No items picked.</p>
+    <p class="bk-ch">Change for the picked items</p>
     <div class="pr-form">`+BF.map(([k,l,t])=>{const id='bk_'+k,lab=`<label for="${id}">${esc(l)}</label>`;
       if(t==='cat')return `<div>${lab}<input id="${id}" list="bkCats"><datalist id="bkCats">${cats.map(c=>`<option value="${esc(c)}">`).join('')}</datalist></div>`;
       if(t==='pur')return `<div>${lab}<select id="${id}"><option value="">Keep</option>${['22','18','14','9','24','PT','925'].map(x=>`<option>${x}</option>`).join('')}</select></div>`;
@@ -6711,10 +6730,12 @@ function bulkForm(){
   $('bk_supplier').addEventListener('change',()=>{$('bk_supplier_new').hidden=$('bk_supplier').value!=='__new';if(!$('bk_supplier_new').hidden)$('bk_supplier_new').focus()});
   const MK=['mkPct','mkFix','mkPg'];MK.forEach(k=>$('bk_'+k).addEventListener('input',e=>{if(e.target.value.trim())MK.filter(x=>x!==k).forEach(x=>$('bk_'+x).value='')}));
   let pick={list:[],miss:[]};
-  const upd=()=>{pick=bulkPick($('bkLabels').value,$('bkQ').value);const n=pick.list.length;
+  const bkF=()=>({pur:$('bkfPur').value,sup:$('bkfSup').value,imp:$('bkfImp').value,wBy:$('bkfWBy').value,wMin:$('bkfWMin').value.trim(),wMax:$('bkfWMax').value.trim()});
+  const upd=()=>{pick=bulkPick($('bkLabels').value,$('bkQ').value,bkF());const n=pick.list.length;
     const nr=pick.list.filter(r=>ruleFor(r)).length;
     $('bkCount').innerHTML=(n?`<b>${n} item${n>1?'s':''} picked</b>: ${esc(pick.list.slice(0,8).map(r=>r.barcode||r.key).join(', '))}${n>8?' …':''}${nr?`<br><small>${nr} of them match a pricing rule; making or FVA typed here will be used instead of the rule.</small>`:''}`:'No items picked.')+(pick.miss.length?`<br><span class="bad-t">Not in stock: ${esc(pick.miss.slice(0,8).join(', '))}</span>`:'')};
   $('bkLabels').addEventListener('input',upd);$('bkQ').addEventListener('input',upd);
+  ['bkfPur','bkfSup','bkfImp','bkfWBy','bkfWMin','bkfWMax'].forEach(id=>{$(id).addEventListener('input',upd);$(id).addEventListener('change',upd)});
   bulkAdd=code=>{const k=keyOf(code);if(!k)return;const r=findStock(k),ta=$('bkLabels');if(!ta)return;
     const have=new Set(ta.value.split(/[\s,;]+/).map(keyOf).filter(Boolean));
     try{navigator.vibrate&&navigator.vibrate(r?50:[60,60,60])}catch(e){}
@@ -6986,7 +7007,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.8.17',APP_BUILD='__BUILD__';
+const APP_VERSION='1.8.18',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------
