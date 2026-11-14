@@ -539,3 +539,6 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 
 ## V 1.8.18
 - **Bulk update: Find items by** purity, supplier, imported (any / imported only / not imported) and a weight range (gross or net wt, from–to g). With the label box and words empty, the finders pick from all stock; with labels or words, only those that also match are picked. The count and the first item codes show as you choose, and Update items still asks to confirm.
+
+## V 1.8.19
+- **Bulk update – more finders:** Item type, Item name (follows the type picked), Wastage % from–to, Making (wastage % / fixed charge / making rate / no making set) with ₹ from–to, FVA (set / no FVA / set by hand) with % from–to. Making and FVA are what the price uses, pricing rules included. "No FVA" picks every item that has no fair value, so one FVA can be set for all of them.

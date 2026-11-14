@@ -6686,8 +6686,23 @@ const BF=[['rule','Pricing rules','rule'],['imp','Imported','imp'],['mkPct','Wst
   ['nlc','NLC (₹)','num'],['labelDate','Labelling Date','date']];
 let bulkAdd=null;
 // V1.8.18 find by: purity, weight range (gross / net), supplier, imported. With no labels or words, the finders pick from all stock
-function bulkFindOn(f){return !!(f&&(f.pur||f.sup||f.imp||f.wMin!==''||f.wMax!==''))}
+// V1.8.19 also item type, item name, wastage %, making (fixed ₹ / ₹ per g), FVA. Making and FVA are what the price uses (pricing rules included)
+function bulkFindOn(f){return !!(f&&(f.pur||f.sup||f.imp||f.cat||f.item||f.mkT||f.fv||['wMin','wMax','waMin','waMax','mkMin','mkMax','fvMin','fvMax'].some(k=>f[k]!=='')))}
+const lcT=x=>String(x||'').trim().toLowerCase();
 function bulkFindPass(r,f){
+  if(f.cat&&lcT(r.category)!==f.cat)return false;
+  if(f.item&&lcT(r.item)!==f.item)return false;
+  const inR=(v,a,b)=>!(isNaN(v)||(a!==''&&v<num(a))||(b!==''&&v>num(b)));
+  if(f.waMin!==''||f.waMax!==''||f.mkT||f.mkMin!==''||f.mkMax!==''||f.fv||f.fvMin!==''||f.fvMax!==''){
+    const e=applyRules(r)||r;let mv=num(e.mk);const mt=e.mkType&&mv>0?e.mkType:'';if(mt==='pct'&&mv>0&&mv<1)mv=mv*100;
+    if((f.waMin!==''||f.waMax!=='')&&!(mt==='pct'&&inR(mv,f.waMin,f.waMax)))return false;
+    if(f.mkT==='none'&&mt)return false;
+    if(f.mkT&&f.mkT!=='none'&&mt!==f.mkT)return false;
+    if((f.mkMin!==''||f.mkMax!=='')&&!(mt&&mt!=='pct'&&(!f.mkT||f.mkT===mt)&&inR(mv,f.mkMin,f.mkMax)))return false;
+    const raw=e.fva==null?'':String(e.fva).trim(),fx=num(raw.replace(/[^\d.]/g,'')),has=!!raw&&!isNaN(fx);
+    if(f.fv==='yes'&&!has)return false;if(f.fv==='no'&&has)return false;if(f.fv==='hand'&&!(has&&r.fvaMan))return false;
+    if(f.fvMin!==''||f.fvMax!==''){if(!has)return false;const pct=/%/.test(raw)?fx:(typeof e.fva==='number'||/^0?\.\d+$/.test(raw))&&fx<1?fx*100:null;if(pct==null||!inR(pct,f.fvMin,f.fvMax))return false}
+  }
   if(f.pur&&caratToPurity(r.carat)!==f.pur)return false;
   if(f.sup&&String(r.supplier||'').trim().toLowerCase()!==f.sup)return false;
   if(f.imp==='yes'&&!r.imp)return false;if(f.imp==='no'&&r.imp)return false;
@@ -6709,13 +6724,23 @@ function bulkForm(){
     <div class="lead-f"><div class="bk-lh"><label for="bkLabels">Label numbers</label><button type="button" class="btn sm" id="bkScan">Scan labels</button></div><textarea id="bkLabels" rows="3" placeholder="Scan tags, or type FRG382, STD101… (one per line or with commas)"></textarea></div>
     <div class="lead-f"><label for="bkQ">And/or all items matching</label><input id="bkQ" placeholder="e.g. NSP, Nose Pin, a supplier or location"></div>
     <fieldset class="bk-find"><legend>Find items by</legend><div class="pr-form">
+      <div><label for="bkfCat">Item type</label><select id="bkfCat"><option value="">Any</option>${(()=>{const m=new Map();for(const r of stockMap.values()){const v=String(r.category||'').trim();if(v&&!m.has(v.toLowerCase()))m.set(v.toLowerCase(),v)}return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1],'en',{numeric:true})).map(([k,v])=>`<option value="${esc(k)}">${esc(v)}</option>`).join('')})()}</select></div>
+      <div><label for="bkfItem">Item name</label><select id="bkfItem"><option value="">Any</option>${(()=>{const m=new Map();for(const r of stockMap.values()){const v=String(r.item||'').trim();if(v&&!m.has(v.toLowerCase()))m.set(v.toLowerCase(),v)}return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1],'en',{numeric:true})).map(([k,v])=>`<option value="${esc(k)}">${esc(v)}</option>`).join('')})()}</select></div>
       <div><label for="bkfPur">Purity</label><select id="bkfPur"><option value="">Any</option>${[...new Set([...stockMap.values()].map(r=>caratToPurity(r.carat)).filter(Boolean))].sort((a,b)=>Object.keys(PLABEL).indexOf(a)-Object.keys(PLABEL).indexOf(b)).map(x=>`<option value="${esc(x)}">${esc(PLABEL[x]||x)}</option>`).join('')}</select></div>
       <div><label for="bkfSup">Supplier</label><select id="bkfSup"><option value="">Any</option>${(()=>{const m=new Map();for(const r of stockMap.values()){const v=String(r.supplier||'').trim();if(v&&!m.has(v.toLowerCase()))m.set(v.toLowerCase(),v)}return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1],'en',{numeric:true})).map(([k,v])=>`<option value="${esc(k)}">${esc(v)}${(()=>{const x=supList().find(s=>s.name.toLowerCase()===k);return x&&x.full?' · '+esc(x.full):''})()}</option>`).join('')})()}</select></div>
       <div><label for="bkfImp">Imported</label><select id="bkfImp"><option value="">Any</option><option value="yes">Imported only</option><option value="no">Not imported</option></select></div>
       <div><label for="bkfWBy">Weight</label><select id="bkfWBy"><option value="gw">Gross wt</option><option value="nw">Net wt</option></select></div>
       <div><label for="bkfWMin">From (g)</label><input id="bkfWMin" inputmode="decimal" placeholder="0"></div>
       <div><label for="bkfWMax">To (g)</label><input id="bkfWMax" inputmode="decimal" placeholder="any"></div>
-    </div><p class="note">Leave the label box and words empty to pick from all stock. With labels or words, only those that also match are picked.</p></fieldset>
+      <div><label for="bkfWaMin">Wastage from (%)</label><input id="bkfWaMin" inputmode="decimal" placeholder="0"></div>
+      <div><label for="bkfWaMax">Wastage to (%)</label><input id="bkfWaMax" inputmode="decimal" placeholder="any"></div>
+      <div class="full"><label for="bkfMkT">Making</label><select id="bkfMkT"><option value="">Any</option><option value="pct">Wastage %</option><option value="fixed">Fixed charge (₹ per piece)</option><option value="pergram">Making rate (₹ per g)</option><option value="none">No making set</option></select></div>
+      <div><label for="bkfMkMin">Making from (₹)</label><input id="bkfMkMin" inputmode="decimal" placeholder="0"></div>
+      <div><label for="bkfMkMax">Making to (₹)</label><input id="bkfMkMax" inputmode="decimal" placeholder="any"></div>
+      <div class="full"><label for="bkfFv">FVA</label><select id="bkfFv"><option value="">Any</option><option value="yes">FVA set</option><option value="no">No FVA (no fair value)</option><option value="hand">FVA set by hand</option></select></div>
+      <div><label for="bkfFvMin">FVA from (%)</label><input id="bkfFvMin" inputmode="decimal" placeholder="0"></div>
+      <div><label for="bkfFvMax">FVA to (%)</label><input id="bkfFvMax" inputmode="decimal" placeholder="any"></div>
+    </div><p class="note">Making from–to is for fixed charge / making rate (₹); wastage is %. Making and FVA include the pricing rules. Leave the label box and words empty to pick from all stock. With labels or words, only those that also match are picked.</p></fieldset>
     <p class="note" id="bkCount" aria-live="polite">No items picked.</p>
     <p class="bk-ch">Change for the picked items</p>
     <div class="pr-form">`+BF.map(([k,l,t])=>{const id='bk_'+k,lab=`<label for="${id}">${esc(l)}</label>`;
@@ -6730,12 +6755,16 @@ function bulkForm(){
   $('bk_supplier').addEventListener('change',()=>{$('bk_supplier_new').hidden=$('bk_supplier').value!=='__new';if(!$('bk_supplier_new').hidden)$('bk_supplier_new').focus()});
   const MK=['mkPct','mkFix','mkPg'];MK.forEach(k=>$('bk_'+k).addEventListener('input',e=>{if(e.target.value.trim())MK.filter(x=>x!==k).forEach(x=>$('bk_'+x).value='')}));
   let pick={list:[],miss:[]};
-  const bkF=()=>({pur:$('bkfPur').value,sup:$('bkfSup').value,imp:$('bkfImp').value,wBy:$('bkfWBy').value,wMin:$('bkfWMin').value.trim(),wMax:$('bkfWMax').value.trim()});
+  const V=id=>$(id).value.trim();
+  const bkF=()=>({cat:V('bkfCat'),item:V('bkfItem'),waMin:V('bkfWaMin'),waMax:V('bkfWaMax'),mkT:V('bkfMkT'),mkMin:V('bkfMkMin'),mkMax:V('bkfMkMax'),fv:V('bkfFv'),fvMin:V('bkfFvMin'),fvMax:V('bkfFvMax'),pur:$('bkfPur').value,sup:$('bkfSup').value,imp:$('bkfImp').value,wBy:$('bkfWBy').value,wMin:$('bkfWMin').value.trim(),wMax:$('bkfWMax').value.trim()});
   const upd=()=>{pick=bulkPick($('bkLabels').value,$('bkQ').value,bkF());const n=pick.list.length;
     const nr=pick.list.filter(r=>ruleFor(r)).length;
     $('bkCount').innerHTML=(n?`<b>${n} item${n>1?'s':''} picked</b>: ${esc(pick.list.slice(0,8).map(r=>r.barcode||r.key).join(', '))}${n>8?' …':''}${nr?`<br><small>${nr} of them match a pricing rule; making or FVA typed here will be used instead of the rule.</small>`:''}`:'No items picked.')+(pick.miss.length?`<br><span class="bad-t">Not in stock: ${esc(pick.miss.slice(0,8).join(', '))}</span>`:'')};
   $('bkLabels').addEventListener('input',upd);$('bkQ').addEventListener('input',upd);
-  ['bkfPur','bkfSup','bkfImp','bkfWBy','bkfWMin','bkfWMax'].forEach(id=>{$(id).addEventListener('input',upd);$(id).addEventListener('change',upd)});
+  // item names follow the item type picked
+  $('bkfCat').addEventListener('change',()=>{const c=$('bkfCat').value,was=$('bkfItem').value,m=new Map();for(const r of stockMap.values()){if(c&&lcT(r.category)!==c)continue;const v=String(r.item||'').trim();if(v&&!m.has(v.toLowerCase()))m.set(v.toLowerCase(),v)}
+    $('bkfItem').innerHTML='<option value="">Any</option>'+[...m.entries()].sort((a,b)=>a[1].localeCompare(b[1],'en',{numeric:true})).map(([k,v])=>`<option value="${esc(k)}"${k===was?' selected':''}>${esc(v)}</option>`).join('')});
+  ['bkfCat','bkfItem','bkfWaMin','bkfWaMax','bkfMkT','bkfMkMin','bkfMkMax','bkfFv','bkfFvMin','bkfFvMax','bkfPur','bkfSup','bkfImp','bkfWBy','bkfWMin','bkfWMax'].forEach(id=>{$(id).addEventListener('input',upd);$(id).addEventListener('change',upd)});
   bulkAdd=code=>{const k=keyOf(code);if(!k)return;const r=findStock(k),ta=$('bkLabels');if(!ta)return;
     const have=new Set(ta.value.split(/[\s,;]+/).map(keyOf).filter(Boolean));
     try{navigator.vibrate&&navigator.vibrate(r?50:[60,60,60])}catch(e){}
@@ -7007,7 +7036,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.8.18',APP_BUILD='__BUILD__';
+const APP_VERSION='1.8.19',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------
