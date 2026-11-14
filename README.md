@@ -560,3 +560,11 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 
 ## V 1.8.23
 - **Stone type** – several per product: Diamond, Lab-grown Diamond, CZ, Moissanite, Pearl, Ruby, Emerald, Sapphire, Polki, Kundan, Coral, Navaratna, Gemstone, Synthetic stone, or your own (+ Other…, Enter to add). Until set, it is read from the stone name (e.g. "VVS dia" → Diamond, "CZ" → CZ). Set on the photos page and in Edit details; Bulk update has a Stone type finder (incl. "Not set") and a change ("Diamond, CZ" – replaces; "none" clears). Also a Search filter and column, a product-details row, a picture-card detail, the stock export, a sheet column (STONE TYPE), and the search box finds it.
+
+## V 1.8.24
+- **Product details report** – a card report of the designs found or selected in Search, made for a phone screen and for sharing. Yamie header band, "Design Report" title, sub-heading, a "Total designs" pill, one card per design (photo, SKU chip, product name, then the details as small icon specs), and a footer with report date, category and collection. Title, sub-heading, category and collection are filled in from the items and can be edited.
+- **Which details to show is yours to pick** – Photo, SKU, product name, item name / type, design, purity, metal colour, size, shank, diamond / stone, stone type and colour, gross / net / stone weight, model, HUID, location, making, label price, fair value, savings, supplier, NLC, Shopify link. Arrange sets the order, Photo size sets large / medium / small. The choice is remembered; an admin can "Save as shop report" so every phone gets it.
+- **View, WhatsApp, PDF, print** – View opens the report full screen (one column on a phone, wider cards on a computer). WhatsApp and PDF make A4-shaped pages with page numbers; Print goes to the Android print service (any network printer or Save as PDF) or the browser's print window. Up to 120 designs in one report.
+- **Opens from** the Search selection bar (Report…), the ⋯ More sheet and the Report button on a computer (all the items found), and a single item's sheet.
+- **Shank (W × T)** – a new product detail, e.g. `1.34×1.18`, set on the photos page and in Edit details, shown on the report.
+- New permission **"Product details report"** (every role that can search gets it).

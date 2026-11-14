@@ -1775,6 +1775,77 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
   .hc-fin b{font-size:30px}.hc-l{font-size:20px}
   #prodCard>.prod-body{grid-template-columns:150px minmax(0,1fr)}
 }
+/* V1.8.24 product details report: cards on screen, A4-shaped pages for WhatsApp / PDF / print */
+.rp-sheet{max-width:min(1040px,98vw);max-height:96vh;padding:12px}
+.rp-head{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.rp-head h4{flex:1 1 100%;margin:0;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rp-head .btn{flex:1;padding:7px 8px;font-size:13px;min-width:0}
+.rp-head .menu-x{flex:none}
+.rp-scroll{overflow:auto;max-height:calc(96vh - 92px);border-radius:14px;background:#EFE6E2;padding:10px}
+.rp-wait{padding:30px 10px;text-align:center}
+.rp-doc{background:linear-gradient(170deg,#FFF9F7 0%,#FDF1EE 46%,#FBE9E6 100%);border-radius:12px;overflow:hidden;max-width:860px;margin:0 auto;color:#1E1414;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.rp-hd{background:linear-gradient(110deg,var(--band,#6B1014) 0%,var(--maroon,#971B1E) 62%,#C23A33 100%);border-bottom:5px solid var(--gold,#B58A3C);padding:16px 14px;text-align:center}
+.rp-hd img{max-height:62px;max-width:min(300px,78%);object-fit:contain}
+.rp-hd b{color:#fff;font:700 20px/1.2 var(--display,Georgia,serif);letter-spacing:.06em}
+.rp-tt{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;padding:16px 16px 10px}
+.rp-tt h2{margin:0;font:700 23px/1.15 var(--display,Georgia,serif);color:var(--maroon,#971B1E)}
+.rp-tt p{margin:4px 0 0;color:#8A7571;font-size:14px}
+.rp-tt>div:first-child{flex:1;min-width:150px}
+.rp-pill{background:#FBE7E9;border:1px solid #F2CDD2;color:var(--maroon,#971B1E);border-radius:999px;padding:8px 16px;font-weight:700;font-size:14px;white-space:nowrap;display:flex;align-items:baseline;gap:6px}
+.rp-pill small{font-weight:600;opacity:.8}
+.rp-cards{display:grid;gap:12px;padding:6px 12px 14px}
+.rp-c{background:#fff;border:1px solid #F1E2DE;border-radius:18px;box-shadow:0 2px 10px rgba(107,16,20,.06);padding:11px;display:grid;grid-template-columns:76px minmax(0,1fr);grid-template-areas:"ph top" "sp sp";gap:9px 11px;align-items:center;break-inside:avoid;page-break-inside:avoid}
+.rp-c.rp-nop{grid-template-columns:minmax(0,1fr);grid-template-areas:"top" "sp"}
+.rp-ph{grid-area:ph}.rp-top{grid-area:top}.rp-sp{grid-area:sp}
+.rp-ph{width:76px;height:76px;border-radius:14px;overflow:hidden;background:#F6EFEA;display:flex;align-items:center;justify-content:center}
+.rp-ph img{width:100%;height:100%;object-fit:cover;display:block}
+.rp-ph svg{width:44%;height:44%;color:#C9B2A8;opacity:.8}
+.rp-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;min-width:0}
+.rp-sku{background:#FBE7E9;color:var(--maroon,#971B1E);font:700 15px/1 var(--display,Georgia,serif);letter-spacing:.04em;border-radius:10px;padding:7px 12px}
+.rp-top h3{margin:0;font:600 16px/1.25 var(--body,inherit);font-family:inherit;text-transform:none;letter-spacing:0;color:#241818}
+.rp-sp{display:grid;grid-template-columns:1fr 1fr;gap:2px 0}
+.rp-s{display:flex;gap:7px;align-items:flex-start;padding:7px 9px 7px 0;min-width:0}
+.rp-s:nth-child(odd):not(:last-child){border-right:1px solid #F2E6E1}
+.rp-s:nth-child(even){padding-left:9px}
+.rp-s svg{width:19px;height:19px;flex:none;color:#C79A4A;margin-top:2px}
+.rp-s>div{min-width:0}
+.rp-s small{display:block;color:#8A7571;font-size:11px;line-height:1.3}
+.rp-s b{display:block;font-size:13.5px;font-weight:700;color:#241818;line-height:1.3;overflow-wrap:break-word}
+.rp-ft{display:flex;gap:4px;flex-wrap:wrap;border-top:1px solid #F0DCD7;padding:12px 14px 14px;background:rgba(255,255,255,.4)}
+.rp-ft>div{flex:1;min-width:104px;padding-right:10px;border-right:1px solid #F0DCD7;display:flex;gap:8px;align-items:flex-start}
+.rp-ft>div>svg{width:21px;height:21px;flex:none;color:#C79A4A;margin-top:2px}
+.rp-ft>div>div{min-width:0}
+.rp-ft>div:last-child{border-right:0}
+.rp-ft small{display:block;color:#8A7571;font-size:11.5px}
+.rp-ft b{display:block;font-size:15px;color:var(--maroon,#971B1E);margin-top:2px}
+@media (min-width:560px){
+  .rp-c{grid-template-columns:120px minmax(0,1fr);grid-template-areas:"ph top" "ph sp";gap:9px 14px;padding:13px;align-items:start}
+  .rp-ph{width:120px;height:120px}
+  .rp-sp{grid-template-columns:repeat(3,1fr)}
+  .rp-s:nth-child(odd):not(:last-child),.rp-s:nth-child(even){border-right:0;padding-left:0}
+  .rp-s:not(:nth-child(3n)):not(:last-child){border-right:1px solid #F2E6E1}
+  .rp-s:not(:nth-child(3n+1)){padding-left:10px}
+}
+@media (min-width:760px){
+  .rp-c{grid-template-columns:152px minmax(0,1fr);padding:15px;gap:10px 17px}
+  .rp-ph{width:152px;height:152px}
+  .rp-head h4{flex:1 1 auto}.rp-head .btn{flex:none;padding:7px 13px}
+  .rp-tt h2{font-size:32px}.rp-top h3{font-size:18px}.rp-sku{font-size:17px}
+  .rp-s b{font-size:15px}.rp-s small{font-size:12px}
+}
+/* the report window: picking the details */
+.rp-w .rp-mf{margin:0}.rp-w .rp-mf input{width:100%}
+.rp-tot{display:flex;align-items:center;gap:8px;margin:10px 0 0}.rp-tot input{flex:none}
+.rp-sz{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid var(--line,#EADFD8)}
+.rp-sz b{font-size:13px;color:var(--muted,#7A6A66)}.rp-sz .rc-p{margin:0}
+.rp-acts{flex-wrap:wrap}
+#rpWaNo{margin-top:8px;width:100%}
+@media print{
+  .rp-scroll,.rp-sheet{max-height:none;overflow:visible;background:none;padding:0}
+  #printArea .rp-doc{max-width:none;border-radius:0;background:#fff}
+  #printArea .rp-c{box-shadow:none}
+  .rp-cards{padding:0 4mm}
+}
 /* print preview (shown on screen) */
 .pr-sheet{max-width:min(980px,96vw);max-height:94vh}
 .pr-sheet .find-head{display:flex;align-items:center;gap:10px}.pr-sheet .find-head h4{flex:1;margin:0}
@@ -2089,7 +2160,7 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
 
   <!-- Search -->
   <section class="card find-view" data-pane="search" aria-label="Search stock">
-    <div class="sec-head"><h2>Search stock</h2><span class="find-acts"><button class="btn sm" type="button" id="findPhotos" hidden>Photos</button><button class="btn sm" type="button" id="findBulk" hidden>Bulk update</button><button class="btn sm" type="button" id="findNew" hidden>+ New item</button></span></div>
+    <div class="sec-head"><h2>Search stock</h2><span class="find-acts"><button class="btn sm" type="button" id="findRep" hidden>Report</button><button class="btn sm" type="button" id="findPhotos" hidden>Photos</button><button class="btn sm" type="button" id="findBulk" hidden>Bulk update</button><button class="btn sm" type="button" id="findNew" hidden>+ New item</button></span></div>
     <p class="note">Check if a label is available. Search by label no., product name, item name, item type or stone.</p>
     <div class="find-in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input id="findQ" type="search" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. FRG382 or ring" aria-label="Search stock"></div>
     <p class="note" id="findNote"></p>
@@ -2583,6 +2654,12 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
     <div class="find-head"><h4 id="prT">Print quotation · A4</h4><label class="rc-p pr-opt"><input type="checkbox" id="prImgs"> Product photos</label><button class="btn" type="button" id="prPdf">Save as PDF</button><button class="btn primary" type="button" id="prGo">Print</button><button class="menu-x" type="button" id="prClose" aria-label="Close">✕</button></div>
     <div class="pr-scroll"><div class="pr-paper" id="prPaper"></div></div>
     <p class="note" style="margin:0">Print opens the browser's print window (A4, portrait). To save a PDF there, choose “Save as PDF” as the printer, or use Save as PDF here.</p>
+  </div>
+</div>
+<div class="modal rp-pop" id="rpPop" hidden role="dialog" aria-modal="true" aria-labelledby="rpT">
+  <div class="sheet rp-sheet">
+    <div class="find-head rp-head"><h4 id="rpT">Product report</h4><button class="btn" type="button" id="rpEdit">Details…</button><button class="btn" type="button" id="rpWaB">WhatsApp</button><button class="btn" type="button" id="rpPdfB">PDF</button><button class="btn" type="button" id="rpPrB">Print</button><button class="menu-x" type="button" id="rpClose" aria-label="Close">✕</button></div>
+    <div class="rp-scroll" id="rpScroll"></div>
   </div>
 </div>
 <div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modalTitle">
@@ -4687,7 +4764,8 @@ function openDiscCheck(){
 }
 $('pdDel').onclick=()=>$('clearTag').click();
 $('findNew').onclick=()=>stockForm(null);$('findPhotos').onclick=openPhotoTools;
-function paintFindNew(){const b=$('findNew');if(b)b.hidden=!can('stockAdd');const c=$('findBulk');if(c)c.hidden=!can('stockBulk');const p=$('findPhotos');if(p)p.hidden=!(can('imgBulk')||can('images')||Object.keys(imgIdx).length)}
+$('findRep').onclick=()=>{if(!stLastRows.length){toast('Search for items first',null,true);return}openReport(stLastRows.slice(0,RP_MAX))};
+function paintFindNew(){const b=$('findNew');if(b)b.hidden=!can('stockAdd');{const q=$('findRep');if(q)q.hidden=!can('stReport')}const c=$('findBulk');if(c)c.hidden=!can('stockBulk');const p=$('findPhotos');if(p)p.hidden=!(can('imgBulk')||can('images')||Object.keys(imgIdx).length)}
 $('findBulk').onclick=()=>bulkForm();
 $('pdDb').onclick=()=>{const r=stockMap.get(cur.stockKey);if(r)stockForm(r)};
 $('pdClose').onclick=()=>{$('clearTag').click();window.scrollTo({top:0,behavior:'smooth'})};
@@ -5430,12 +5508,12 @@ function mcSw(c){const h=MC_LIST.find(x=>x[0].toLowerCase()===String(c||'').toLo
 function mcLabel(r){const m=attrOf(r).mc;if(!m)return '';const pu=r?PLABEL[caratToPurity(r.carat)]:'';return /gold/i.test(m)&&pu&&/K$/i.test(pu)?`${pu} ${m}`:m}
 let pattrs=store.get('pattrs',{})||{};
 const scSplit=v=>(Array.isArray(v)?v:String(v||'').split(/[,/;|+&]+/)).map(x=>String(x).trim()).filter(Boolean).map(x=>{const h=SC_LIST.find(c=>c[0].toLowerCase()===x.toLowerCase());return h?h[0]:x.replace(/\b\w/g,m=>m.toUpperCase())}).slice(0,SC_MAX);
-function attrOf(r){if(!r)return {jt:'',sc:[],mc:'',st:[]};const k=r.key||keyOf(r.barcode||''),a=(k&&pattrs[k])||{};return {jt:String(a.jt||r.design||'').trim(),sc:a.sc&&a.sc.length?a.sc.slice(0,SC_MAX):scSplit(r.scol),mc:String(a.mc||r.mcol||'').trim(),st:a.st&&a.st.length?a.st.slice(0,STT_MAX):sttGuess(r)}}
+function attrOf(r){if(!r)return {jt:'',sc:[],mc:'',st:[],sk:''};const k=r.key||keyOf(r.barcode||''),a=(k&&pattrs[k])||{};return {jt:String(a.jt||r.design||'').trim(),sc:a.sc&&a.sc.length?a.sc.slice(0,SC_MAX):scSplit(r.scol),mc:String(a.mc||r.mcol||'').trim(),st:a.st&&a.st.length?a.st.slice(0,STT_MAX):sttGuess(r),sk:String(a.sk||'').trim()}}
 function scSw(c){const h=SC_LIST.find(x=>x[0]===c);return `<i class="sc-sw" style="background:${h?h[1]:'#bbb'}" aria-hidden="true"></i>`}
 function scHtml(arr){return arr.length?`<span class="sc-l">${arr.map(c=>`<span class="sc-t">${scSw(c)}${esc(c)}</span>`).join('')}</span>`:''}
 async function pullPattrs(){if(!sync.key||!navigator.onLine)return;try{const r=await syncApi('pattrs');if(r&&r.map){pattrs=r.map;store.set('pattrs',pattrs);sync.v.pattrs=r.v||0;saveSyncState();pnRefresh()}}catch(e){}}
 async function savePattrs(map){
-  Object.entries(map).forEach(([k,v])=>{const o={};if(v.jt)o.jt=v.jt;if(v.sc&&v.sc.length)o.sc=v.sc.slice(0,SC_MAX);if(v.mc)o.mc=v.mc;if(v.st&&v.st.length)o.st=v.st.slice(0,STT_MAX);if(o.jt||o.sc||o.mc||o.st)pattrs[k]=o;else delete pattrs[k]});store.set('pattrs',pattrs);pnRefresh();
+  Object.entries(map).forEach(([k,v])=>{const o={};if(v.jt)o.jt=v.jt;if(v.sc&&v.sc.length)o.sc=v.sc.slice(0,SC_MAX);if(v.mc)o.mc=v.mc;if(v.st&&v.st.length)o.st=v.st.slice(0,STT_MAX);if(v.sk)o.sk=String(v.sk).slice(0,24);if(o.jt||o.sc||o.mc||o.st||o.sk)pattrs[k]=o;else delete pattrs[k]});store.set('pattrs',pattrs);pnRefresh();
   if(!sync.key)return true;
   try{const r=await syncApi('pattr','POST',{map},adminCreds);if(r&&r.map){pattrs=r.map;store.set('pattrs',pattrs);sync.v.pattrs=r.v||sync.v.pattrs;saveSyncState()}return true}catch(e){toast(e&&e.status===403?'Needs a user allowed to add photos or edit stock':'Saved here; it goes to the database when online',null,true);return false}
 }
@@ -5449,6 +5527,7 @@ function attrFields(px,a){
   return `<div class="full at-f"><label for="${px}Jt">Design <small>(jewellery type)</small></label><select id="${px}Jt"><option value="">Choose design…</option>${JT_GROUPS.map(([g,l])=>`<optgroup label="${esc(g)}">${l.map(o).join('')}</optgroup>`).join('')}${extra.length?`<optgroup label="Your designs">${extra.map(o).join('')}</optgroup>`:''}<option value="__new">+ New design…</option></select><input id="${px}JtNew" class="sf-new" hidden maxlength="60" placeholder="Type the new design" aria-label="New design"></div>
   <div class="full at-f"><label>Metal colour <small id="${px}McN">${a.mc?esc(a.mc):'(choose one)'}</small></label><div class="sc-chips" id="${px}Mc" role="radiogroup" aria-label="Metal colour">${[...MC_LIST.map(x=>x[0]),...(a.mc&&!MC_LIST.some(x=>x[0]===a.mc)?[a.mc]:[])].map(c=>`<button type="button" class="sc-c" role="radio" data-c="${esc(c)}" aria-checked="${a.mc===c}" aria-pressed="${a.mc===c}">${mcSw(c)}${esc(c)}</button>`).join('')}<button type="button" class="sc-c" data-mcnew="1">+ Other…</button></div><input id="${px}McNew" class="sf-new" hidden maxlength="40" placeholder="e.g. Champagne Gold"></div>
   <div class="full at-f"><label>Stone type <small id="${px}StN">${a.st&&a.st.length?a.st.length+' chosen':'(choose all that apply)'}</small></label><div class="sc-chips st-chips" id="${px}St" role="group" aria-label="Stone types">${[...STT_LIST,...(a.st||[]).filter(x=>!STT_LIST.includes(x))].map(c=>`<button type="button" class="sc-c" data-c="${esc(c)}" aria-pressed="${(a.st||[]).includes(c)}">${esc(c)}</button>`).join('')}<button type="button" class="sc-c" data-stnew="1">+ Other…</button></div><input id="${px}StNew" class="sf-new" hidden maxlength="30" placeholder="e.g. Tanzanite – Enter to add"></div>
+  <div class="full at-f"><label for="${px}Sk">Shank <small>(width × thickness, mm)</small></label><input id="${px}Sk" maxlength="24" autocomplete="off" placeholder="e.g. 1.34×1.18" value="${esc(a.sk||'')}"></div>
   <div class="full at-f"><label>Stone colour <small id="${px}ScN">(up to ${SC_MAX})</small></label><div class="sc-chips" id="${px}Sc" role="group" aria-label="Stone colours">${SC_LIST.map(([c])=>`<button type="button" class="sc-c" data-c="${esc(c)}" aria-pressed="${a.sc.includes(c)}">${scSw(c)}${esc(c)}</button>`).join('')}</div></div>`;
 }
 function wireAttr(px){
@@ -5465,8 +5544,8 @@ function wireAttr(px){
     const on=b.getAttribute('aria-pressed')!=='true';mb.querySelectorAll('[data-c]').forEach(x=>{x.setAttribute('aria-pressed','false');x.setAttribute('aria-checked','false')});if(on){b.setAttribute('aria-pressed','true');b.setAttribute('aria-checked','true')}
     $(px+'McNew').hidden=true;$(px+'McN').textContent=on?b.dataset.c:'(choose one)'});
 }
-function readAttr(px){const sel=$(px+'Jt'),mn=$(px+'McNew'),mo=$(px+'Mc')&&$(px+'Mc').querySelector('[aria-pressed="true"]');return {jt:(sel.value==='__new'?$(px+'JtNew').value:sel.value).replace(/\s+/g,' ').trim(),sc:[...$(px+'Sc').querySelectorAll('[aria-pressed="true"]')].map(b=>b.dataset.c).slice(0,SC_MAX),mc:(mn&&!mn.hidden&&mn.value.trim()?mn.value.replace(/\s+/g,' ').trim():mo?mo.dataset.c:''),st:$(px+'St')?(()=>{const o=[...$(px+'St').querySelectorAll('[data-c][aria-pressed="true"]')].map(b=>b.dataset.c);const nv=$(px+'StNew')&&$(px+'StNew').value.replace(/\s+/g,' ').trim();if(nv&&!o.some(x=>x.toLowerCase()===nv.toLowerCase()))o.push(nv);return o.slice(0,STT_MAX)})():[]}}
-const attrSame=(a,b)=>a.jt===b.jt&&a.sc.join('|')===b.sc.join('|')&&(a.mc||'')===(b.mc||'')&&(a.st||[]).join('|')===(b.st||[]).join('|');
+function readAttr(px){const sel=$(px+'Jt'),mn=$(px+'McNew'),mo=$(px+'Mc')&&$(px+'Mc').querySelector('[aria-pressed="true"]');return {jt:(sel.value==='__new'?$(px+'JtNew').value:sel.value).replace(/\s+/g,' ').trim(),sc:[...$(px+'Sc').querySelectorAll('[aria-pressed="true"]')].map(b=>b.dataset.c).slice(0,SC_MAX),mc:(mn&&!mn.hidden&&mn.value.trim()?mn.value.replace(/\s+/g,' ').trim():mo?mo.dataset.c:''),st:$(px+'St')?(()=>{const o=[...$(px+'St').querySelectorAll('[data-c][aria-pressed="true"]')].map(b=>b.dataset.c);const nv=$(px+'StNew')&&$(px+'StNew').value.replace(/\s+/g,' ').trim();if(nv&&!o.some(x=>x.toLowerCase()===nv.toLowerCase()))o.push(nv);return o.slice(0,STT_MAX)})():[],sk:$(px+'Sk')?$(px+'Sk').value.replace(/\s+/g,'').replace(/[xX*]/g,'×').trim():''}}
+const attrSame=(a,b)=>a.jt===b.jt&&a.sc.join('|')===b.sc.join('|')&&(a.mc||'')===(b.mc||'')&&(a.st||[]).join('|')===(b.st||[]).join('|')&&(a.sk||'')===(b.sk||'');
 // web: hover an item photo to see the whole picture
 (()=>{let tip=null,tmr=0,on=null;
   const SEL='.st-img,#pdTile.photo,.pm-im,.mr-img';
@@ -5525,10 +5604,11 @@ function paintSelBar(){
   for(const k of [...stSel])if(!stockMap.has(k))stSel.delete(k);
   const on=document.body.dataset.view==='search'&&stSel.size>0&&can('stSelect');b.hidden=!on;if(!on)return;
   const tot=stLastRows.length,more=stLastRows.some(r=>!stSel.has(r.key));
-  b.innerHTML=`<span class="ss-n"><b>${stSel.size.toLocaleString('en-IN')}</b> selected</span>${more&&tot>1?`<button type="button" class="linkbtn" id="ssAll">${DESK.matches?'Select all '+tot.toLocaleString('en-IN')+' found':'All '+tot.toLocaleString('en-IN')}</button>`:''}<button type="button" class="btn primary" id="ssShare">Share…</button>${can('stockBulk')?'<button type="button" class="btn" id="ssUpd">Update…</button>':''}<button type="button" class="btn ss-clr" id="ssClr">Clear</button>`;
+  b.innerHTML=`<span class="ss-n"><b>${stSel.size.toLocaleString('en-IN')}</b> selected</span>${more&&tot>1?`<button type="button" class="linkbtn" id="ssAll">${DESK.matches?'Select all '+tot.toLocaleString('en-IN')+' found':'All '+tot.toLocaleString('en-IN')}</button>`:''}<button type="button" class="btn primary" id="ssShare">Share…</button>${can('stReport')?'<button type="button" class="btn" id="ssRep">Report…</button>':''}${can('stockBulk')?'<button type="button" class="btn" id="ssUpd">Update…</button>':''}<button type="button" class="btn ss-clr" id="ssClr">Clear</button>`;
   if($('ssUpd'))$('ssUpd').onclick=()=>bulkForm([...stSel].map(k=>stockMap.get(k)).filter(Boolean));
   if($('ssAll'))$('ssAll').onclick=()=>{stLastRows.slice(0,500).forEach(r=>stSel.add(r.key));if(tot>500)toast('First 500 items selected',null,true);runFind()};
   $('ssClr').onclick=()=>{stSel.clear();runFind();paintSelBar()};
+  if($('ssRep'))$('ssRep').onclick=()=>openReport();
   $('ssShare').onclick=openShareSel;
 }
 {const sv=setView;setView=function(v){if(v==='search'&&curUser&&!can('search')){withPerm('search','Needs permission: Search page.',()=>{sv(v);try{paintSelBar()}catch(e){}});return}sv(v);try{paintSelBar()}catch(e){}}}
@@ -5734,6 +5814,264 @@ async function shareItemsPdf(list,f){
   doc.setFontSize(8);doc.setTextColor(110);if(f.includes('price')||f.includes('fv'))doc.text(R(`Prices at today's gold rate, incl. ${fmtN(gstPct())}% GST. The final bill is at the rate on the day of billing.`),12,y);
   deliverFile(`${BRAND.name}-items-${todayStr()}.pdf`.replace(/[\/\\\s]+/g,'-'),'application/pdf',doc.output('arraybuffer'));
 }
+// ---- V1.8.24 Product details report: pick items in Search, choose the details, then view / share / print a card report ----
+const RP_ICO={
+  ph:'M3 6h18v13H3z|M3 16l5-5 4 4 3-3 6 6|M16.5 10h.01',
+  tag:'M4 4h7l9 9-7 7-9-9z|M8 8h.01',
+  nm:'M4 7h16M4 12h11M4 17h7',
+  cat:'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+  dsg:'M4 20l4-1L19 8l-3-3L5 16z|M15 5l4 4',
+  pur:'M12 3l8 6-8 12-8-12z|M4 9h16',
+  mtl:'M21 12a9 9 0 11-18 0 9 9 0 0118 0|M16 12a4 4 0 11-8 0 4 4 0 018 0',
+  sz:'M19 14a7 7 0 11-14 0 7 7 0 0114 0|M9 7.5L12 3l3 4.5',
+  shk:'M3 9h18v6H3z|M8 9v6M16 9v6',
+  dia:'M3 9h18l-9 12z|M3 9l3.5-5h11L21 9|M8.5 9L12 21l3.5-12',
+  stn:'M12 3l5 5-5 13-5-13z|M7 8h10',
+  col:'M12 3s6 6.5 6 10.5a6 6 0 11-12 0C6 9.5 12 3 12 3z',
+  wt:'M12 4v3M4 7h16M7 20h10M9.5 20L12 8l2.5 12',
+  mk:'M14 6l4 4-8 8-4-4z|M16 3l5 5',
+  rs:'M6 4h11M6 9h11M15 4c0 4-4 5-9 5l8 10',
+  fv:'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z|M9 12l2.5 2.5L16 10',
+  sv:'M19 5L5 19|M7.5 7.5h.01|M16.5 16.5h.01',
+  huid:'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z',
+  loc:'M12 21s7-6 7-11a7 7 0 10-14 0c0 5 7 11 7 11z|M14 10a2 2 0 11-4 0 2 2 0 014 0',
+  sup:'M3 7h11v9H3z|M14 11h4l3 3v2h-7z',
+  lnk:'M9.5 14.5l5-5|M8 8H6.5a4 4 0 000 8H8|M16 16h1.5a4 4 0 000-8H16',
+  cal:'M4 6h16v15H4z|M4 10.5h16|M8 3v4M16 3v4',
+  lay:'M12 3l9 5-9 5-9-5z|M3 13l9 5 9-5|M3 17l9 5 9-5'
+};
+const rpSvg=i=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${(RP_ICO[i]||RP_ICO.nm).split('|').map(d=>`<path d="${d}"/>`).join('')}</svg>`;
+const RP_F=[['img','Photo','ph'],['key','SKU / label no.','tag'],['pname','Product name','nm'],['item','Item name','nm'],['category','Item type','cat'],['jt','Design','dsg'],['carat','Purity','pur'],['mc','Metal colour','mtl'],['size','Ring / bangle size','sz'],['sk','Shank (W×T)','shk'],['stoneName','Diamond / stone','dia'],['stone','Diamond ct · pcs','dia'],['stt','Stone type','stn'],['scol','Stone colour','col'],['gw','Gr. Wt','wt'],['nw','Nt. Wt','wt'],['sw','St. Wt','wt'],['model','Model','nm'],['huidNo','HUID no.','huid'],['location','Location','loc'],['mk','Making','mk'],['price','Label price','rs'],['fv','Fair value','fv'],['save','Savings','sv'],['supplier','Supplier','sup'],['nlc','NLC','rs'],['shop','Shopify link','lnk']];
+const RP_DEF=['img','key','pname','carat','size','sk','stoneName','gw','nw'];
+const RP_MAX=120;
+function rpFieldsOk(){return RP_F.filter(([k])=>(k!=='shop'||shopOn())&&(!['fv','save'].includes(k)||(can('fva')&&can('shareFv')))&&(k!=='mk'||can('shareCost'))&&(!['supplier','nlc'].includes(k)||(can('pdHidden')&&can('shareCost'))))}
+const rpLab=k=>{const c=RP_F.find(x=>x[0]===k);return c?c[1]:k};
+// shorter wording on the cards themselves, so a spec column stays on one line
+const RP_SH={carat:'Purity',size:'Size',stoneName:'Diamond',stone:'Diamond',huidNo:'HUID',pname:'Product',category:'Type',key:'SKU',scol:'Stone colour',mc:'Metal',price:'Label price',nlc:'NLC'};
+const rpCl=k=>RP_SH[k]||rpLab(k);
+const rpIco=k=>{const c=RP_F.find(x=>x[0]===k);return c?c[2]:'nm'};
+function rpVal(r,k){
+  switch(k){
+    case 'sk':{const v=attrOf(r).sk;return v?v+' mm':''}
+    case 'stoneName':return String(r.stoneName||'').replace(/\s*[\n;]\s*/g,' · ').replace(/\s+/g,' ').trim();
+    case 'sw':return num(r.sw)>0?num(r.sw).toFixed(3)+' g':'';
+    case 'stone':return [num(r.dw)>0?fmtN(num(r.dw))+' ct':'',num(r.dq)>0?fmtN(num(r.dq))+(num(r.dq)===1?' pc':' pcs'):''].filter(Boolean).join(' · ');
+    case 'model':return String(r.model||'').trim();
+    case 'size':return String(r.size||'').trim();
+    default:return shVal(r,k);
+  }
+}
+// the heading of a card: the SKU chip and the product name; the rest become the icon specs
+function rpHead(r,f){
+  const sku=f.includes('key')?rpVal(r,'key'):'';
+  const nmK=['pname','item','category'].find(k=>f.includes(k)&&rpVal(r,k))||'';
+  return {sku,nmK,nm:nmK?rpVal(r,nmK):''};
+}
+const rpRows=(r,f)=>f.filter(k=>k!=='img'&&k!=='key'&&k!==rpHead(r,f).nmK).map(k=>[k,rpVal(r,k)]).filter(x=>x[1]);
+// the heading, sub-heading, category and collection of the report, guessed from the items
+function rpMeta(list){
+  const top=g=>{const m=new Map();list.forEach(r=>{const v=String(g(r)||'').trim();if(v)m.set(v,(m.get(v)||0)+1)});let b='',n=0;m.forEach((c,k)=>{if(c>n){b=k;n=c}});return n>=Math.max(1,list.length*0.6)?b:''};
+  const cat=top(r=>r.category),col=top(r=>attrOf(r).jt);
+  return {t:'Design Report',s:[cat?cat+' Collection':'',col?col+' Designs':''].filter(Boolean).join(' – '),cat,col,tot:true,date:new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})};
+}
+// ---- the report on screen: one card per design, readable on a phone, two columns on a computer ----
+function rpCardHtml(r,f,u){
+  const h=rpHead(r,f),rows=rpRows(r,f);
+  const ph=f.includes('img');
+  return `<article class="rp-c${ph?'':' rp-nop'}">${ph?`<div class="rp-ph">${u?`<img src="${u}" alt="${esc(h.nm||h.sku||'Design')}" loading="lazy">`:icoFor(r.category||r.item||'')}</div>`:''}
+    <div class="rp-top">${h.sku?`<span class="rp-sku">${esc(h.sku)}</span>`:''}${h.nm?`<h3>${esc(h.nm)}</h3>`:''}</div>
+    ${rows.length?`<div class="rp-sp">${rows.map(([k,v])=>`<div class="rp-s">${rpSvg(rpIco(k))}<div><small>${esc(rpCl(k))}</small><b>${k==='shop'?`<a class="shop-lk" href="${esc(v)}" target="_blank" rel="noopener">Open</a>`:esc(v)}</b></div></div>`).join('')}</div>`:''}</article>`;
+}
+function rpDocHtml(list,f,m,imgs){
+  const ft=[['Report date',m.date],['Category',m.cat],['Collection',m.col]].filter(x=>x[1]);
+  return `<div class="rp-doc">
+    <div class="rp-hd">${BRAND.logoHeader?`<img src="${esc(BRAND.logoHeader)}" alt="${esc(BRAND.full)}">`:`<b>${esc(String(BRAND.full).toUpperCase())}</b>`}</div>
+    <div class="rp-tt"><div><h2>${esc(m.t||'Report')}</h2>${m.s?`<p>${esc(m.s)}</p>`:''}</div>${m.tot?`<span class="rp-pill"><small>Total designs</small><b>${list.length}</b></span>`:''}</div>
+    <div class="rp-cards">${list.map((r,i)=>rpCardHtml(r,f,imgs[i])).join('')}</div>
+    ${ft.length?`<div class="rp-ft">${ft.map(([l,v])=>`<div>${rpSvg({'Report date':'cal',Category:'tag',Collection:'lay'}[l]||'tag')}<div><small>${esc(l)}</small><b>${esc(v)}</b></div></div>`).join('')}</div>`:''}</div>`;
+}
+let rpCtx=null;
+async function rpView(list,f,m,opt){
+  $('rpT').textContent=`${m.t||'Report'} · ${list.length} design${list.length===1?'':'s'}`;
+  $('rpScroll').innerHTML='<p class="note rp-wait">Building the report…</p>';$('rpPop').hidden=false;
+  const imgs=f.includes('img')?await Promise.all(list.map(r=>getProdImg(r.key).catch(()=>null))):list.map(()=>null);
+  rpCtx={list,f,m,opt,imgs};
+  $('rpScroll').innerHTML=rpDocHtml(list,f,m,imgs);
+  $('rpScroll').scrollTop=0;
+  [['rpWaB','shareItems'],['rpPdfB','sharePdf'],['rpPrB','qPrint']].forEach(([id,pm])=>{const b=$(id);if(b){b.hidden=!can(pm);b.disabled=false}});
+}
+// ---- the same report as pictures: A4-shaped pages, for WhatsApp, a PDF or a quick look ----
+async function rpPages(list,f,m,opt){
+  try{await Promise.all(['500 30px Jost','600 30px Jost','700 30px Jost'].map(x=>document.fonts.load(x)))}catch(e){}
+  const F=(w,px)=>`${w} ${px}px Jost, "Segoe UI", Roboto, sans-serif`,css=getComputedStyle(document.documentElement);
+  const MAROON=(css.getPropertyValue('--maroon')||'#971B1E').trim(),BAND=(css.getPropertyValue('--band')||'#6B1014').trim(),GOLD=(css.getPropertyValue('--gold')||'#B58A3C').trim(),INK='#1E1414',MUTED='#857471',LINE='#EADFD8';
+  const W=1080,PGH=1528,P=50,HEAD=160,FOOT=104,PAD=26,TOP=58,RH=84,GAPC=22;
+  const photoS={lg:330,md:250,sm:190}[(opt&&opt.ph)||'md']||250;
+  const logo=await shLogoImg();
+  const imgs=f.includes('img')?await Promise.all(list.map(r=>getProdImg(r.key).then(u=>loadImg(u)).catch(()=>null))):list.map(()=>null);
+  const ico=(c,n,x,y,s,col)=>{try{c.save();c.translate(x,y);c.scale(s/24,s/24);c.strokeStyle=col;c.lineWidth=2.2;c.lineCap='round';c.lineJoin='round';(RP_ICO[n]||RP_ICO.nm).split('|').forEach(d=>c.stroke(new Path2D(d)));c.restore()}catch(e){try{c.restore()}catch(e2){}}};
+  const cover=(c,im,x,y,w,h,rad)=>{c.save();rrect(c,x,y,w,h,rad);c.clip();c.fillStyle='#F4EDE6';c.fillRect(x,y,w,h);const s=Math.max(w/im.width,h/im.height);c.drawImage(im,x+(w-im.width*s)/2,y+(h-im.height*s)/2,im.width*s,im.height*s);c.restore()};
+  const pages=[];let y=0,cnt=0;
+  const newPage=()=>{
+    const cv=document.createElement('canvas');cv.width=W;cv.height=PGH;const c=cv.getContext('2d');
+    {const bg=c.createLinearGradient(0,0,0,PGH);bg.addColorStop(0,'#FFF8F6');bg.addColorStop(1,'#FCEFEC');c.fillStyle=bg;c.fillRect(0,0,W,PGH)}
+    const g=c.createLinearGradient(0,0,W,HEAD);g.addColorStop(0,BAND);g.addColorStop(1,MAROON);c.fillStyle=g;c.fillRect(0,0,W,HEAD);
+    c.fillStyle=GOLD;c.fillRect(0,HEAD-6,W,6);
+    if(logo){const s=Math.min(520/logo.width,88/logo.height);c.drawImage(logo,(W-logo.width*s)/2,(HEAD-6-logo.height*s)/2,logo.width*s,logo.height*s)}
+    else{c.fillStyle='#fff';c.font=F(700,52);c.textAlign='center';c.fillText(String(BRAND.full).toUpperCase(),W/2,HEAD/2+16);c.textAlign='left'}
+    const p={cv,c,h:PGH};pages.push(p);
+    let yy=HEAD+40;
+    if(pages.length===1){
+      let pw=0;
+      if(m.tot){const t='Total designs: '+list.length;c.font=F(600,30);pw=c.measureText(t).width+56;
+        c.fillStyle='#FBE7E9';rrect(c,W-P-pw,yy+6,pw,62,31);c.fill();c.strokeStyle='#F2CDD1';c.lineWidth=2;rrect(c,W-P-pw,yy+6,pw,62,31);c.stroke();
+        c.fillStyle=MAROON;c.textAlign='center';c.fillText(t,W-P-pw/2,yy+48);c.textAlign='left';pw+=24}
+      c.fillStyle=MAROON;c.font=F(700,58);c.fillText(fitText(c,m.t||'Report',W-2*P-pw),P,yy+50);
+      if(m.s){c.fillStyle=MUTED;c.font=F(500,30);c.fillText(fitText(c,m.s,W-2*P-pw),P,yy+96)}
+      yy+=m.s?128:100;
+      c.strokeStyle=LINE;c.lineWidth=2;c.beginPath();c.moveTo(P,yy);c.lineTo(W-P,yy);c.stroke();yy+=26;
+    }
+    y=yy;cnt=0;return p};
+  // one shared sum: as many spec columns as the longest label / value really needs, so nothing is cut short
+  const RW=W-P-PAD-(P+PAD+(f.includes('img')?photoS+26:0)),mc=document.createElement('canvas').getContext('2d');
+  const colsOf=rows=>{let cols=Math.min(3,Math.max(1,rows.length)),wd=0;
+    rows.forEach(([k,v])=>{mc.font=F(500,22);wd=Math.max(wd,mc.measureText(rpCl(k)).width);mc.font=F(700,28);wd=Math.max(wd,mc.measureText(v).width)});
+    while(cols>1&&wd>RW/cols-48)cols--;return cols};
+  const cardH=r=>{const h=rpHead(r,f),rows=rpRows(r,f),ps=f.includes('img')?photoS:0;
+    return 2*PAD+Math.max(ps,(h.sku||h.nm?TOP:0)+Math.ceil(rows.length/colsOf(rows))*RH)};
+  const card=(c,r,im,yy)=>{
+    const h=rpHead(r,f),rows=rpRows(r,f),ps=f.includes('img')?photoS:0,ch=cardH(r);
+    c.save();c.shadowColor='rgba(120,60,50,.10)';c.shadowBlur=18;c.shadowOffsetY=4;c.fillStyle='#fff';rrect(c,P,yy,W-2*P,ch,26);c.fill();c.restore();
+    c.strokeStyle='#F2E4E0';c.lineWidth=2;rrect(c,P,yy,W-2*P,ch,26);c.stroke();
+    let bx=P+PAD;
+    if(ps){
+      if(im)cover(c,im,bx,yy+PAD,ps,ps,18);
+      else{c.fillStyle='#F4EDE6';rrect(c,bx,yy+PAD,ps,ps,18);c.fill();ico(c,'dia',bx+ps/2-ps*.18,yy+PAD+ps/2-ps*.18,ps*.36,'#CDB9AE')}
+      bx+=ps+26}
+    const rw=RW,cols=colsOf(rows),cw=rw/cols;
+    let ty=yy+PAD;
+    if(h.sku||h.nm){
+      let cx=bx;
+      if(h.sku){c.font=F(700,30);const tw=c.measureText(h.sku).width+40;c.fillStyle='#FBE7E9';rrect(c,cx,ty,tw,48,24);c.fill();
+        c.fillStyle=MAROON;c.textAlign='center';c.fillText(h.sku,cx+tw/2,ty+33);c.textAlign='left';cx+=tw+18}
+      if(h.nm){c.fillStyle=INK;c.font=F(700,36);c.fillText(fitText(c,h.nm,W-P-PAD-cx),cx,ty+34)}
+      ty+=TOP}
+    rows.forEach(([k,v],i)=>{const col=i%cols,x=bx+col*cw+(col?14:0),yr=ty+Math.floor(i/cols)*RH,iw=cw-(col?14:0);
+      if(col){c.strokeStyle='#F2E4E0';c.lineWidth=2;c.beginPath();c.moveTo(bx+col*cw,yr+6);c.lineTo(bx+col*cw,yr+RH-14);c.stroke()}
+      ico(c,rpIco(k),x,yr+6,28,GOLD);
+      c.fillStyle=MUTED;c.font=F(500,22);c.fillText(fitText(c,rpCl(k),iw-44),x+38,yr+24);
+      c.fillStyle=INK;c.font=F(700,28);c.fillText(fitText(c,v,iw-40),x+38,yr+59)});
+    return ch};
+  let p=newPage();
+  list.forEach((r,i)=>{const hh=cardH(r);
+    if(cnt&&y+hh>PGH-FOOT-20){p=newPage()}
+    card(p.c,r,imgs[i],y);y+=hh+GAPC;cnt++});
+  // a short report should not end in a long blank tail
+  {const last=pages[pages.length-1],need=Math.max(700,y-GAPC+22+FOOT);
+    if(need<PGH-80){const cv=document.createElement('canvas');cv.width=W;cv.height=need;const c=cv.getContext('2d');
+      c.fillStyle='#FFFDFB';c.fillRect(0,0,W,need);c.drawImage(last.cv,0,0);last.cv=cv;last.c=c;last.h=need}}
+  const ft=[['Report date',m.date],['Category',m.cat],['Collection',m.col]].filter(x=>x[1]);
+  const FICO={'Report date':'cal','Category':'tag','Collection':'lay'};
+  pages.forEach((p,i)=>{const c=p.c,fy=p.h-FOOT;
+    c.fillStyle='rgba(255,255,255,.5)';c.fillRect(0,fy,W,FOOT);
+    c.strokeStyle='#F2E0DB';c.lineWidth=2;c.beginPath();c.moveTo(P,fy);c.lineTo(W-P,fy);c.stroke();
+    const cw=(W-2*P-96)/Math.max(1,ft.length);
+    ft.forEach(([l,v],j)=>{const x=P+j*cw;
+      if(j){c.strokeStyle='#F2E0DB';c.lineWidth=2;c.beginPath();c.moveTo(x-20,fy+26);c.lineTo(x-20,fy+82);c.stroke()}
+      ico(c,FICO[l]||'tag',x,fy+30,34,GOLD);
+      c.fillStyle=MUTED;c.font=F(500,23);c.fillText(String(l),x+48,fy+44);
+      c.fillStyle=MAROON;c.font=F(700,30);c.fillText(fitText(c,v,cw-76),x+48,fy+80)});
+    c.fillStyle=MUTED;c.font=F(500,22);c.textAlign='right';c.fillText(`${i+1} / ${pages.length}`,W-P,fy+80);c.textAlign='left'});
+  return pages.map(p=>p.cv);
+}
+async function rpWa(list,f,m,opt,ph){
+  const pg=await rpPages(list,f,m,opt),imgs=pg.map(cv=>cv.toDataURL('image/jpeg',.9));
+  const txt=[`*${BRAND.full}*`,`${m.t||'Report'}${m.s?' · '+m.s:''}`,`${list.length} design${list.length===1?'':'s'} · ${m.date}`].join('\n');
+  await waSendImgs(imgs,txt,ph||'',`${BRAND.name}-report-${todayStr()}`.replace(/[\/\\\s]+/g,'-'));
+}
+async function rpPdf(list,f,m,opt){
+  await loadScript('vendor/jspdf.umd.min.js',()=>!!(window.jspdf&&window.jspdf.jsPDF));
+  const pg=await rpPages(list,f,m,opt),K=1080/210;   // 1080 px across = 210 mm (A4 width)
+  let doc=null;
+  pg.forEach((cv,i)=>{const w=cv.width/K,h=cv.height/K;
+    if(!i)doc=new jspdf.jsPDF({unit:'mm',format:[w,h]});else doc.addPage([w,h]);
+    doc.addImage(cv.toDataURL('image/jpeg',.92),'JPEG',0,0,w,h)});
+  deliverFile(`${BRAND.name}-report-${todayStr()}.pdf`.replace(/[\/\\\s]+/g,'-'),'application/pdf',doc.output('arraybuffer'));
+}
+async function rpPrint(list,f,m,imgs){
+  const ims=imgs||(f.includes('img')?await Promise.all(list.map(r=>getProdImg(r.key).catch(()=>null))):list.map(()=>null));
+  const html=rpDocHtml(list,f,m,ims),job=`${BRAND.name} report ${todayStr()}`.replace(/[\/\\]/g,'-');
+  if(NATIVE&&NATIVE.printHtml){
+    const box=document.createElement('div');box.innerHTML=html;
+    await Promise.all([...box.querySelectorAll('img')].map(async im=>{const u=im.getAttribute('src')||'';if(!u||u.startsWith('data:'))return;
+      try{const i=await loadImg(u);if(!i)return;const cv=document.createElement('canvas');cv.width=i.naturalWidth;cv.height=i.naturalHeight;cv.getContext('2d').drawImage(i,0,0);im.src=cv.toDataURL(/\.png/i.test(u)||u.includes('logo')?'image/png':'image/jpeg',.9)}catch(e){}}));
+    const css=[...document.querySelectorAll('style')].map(x=>x.textContent).join('\n');
+    NATIVE.printHtml(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><style>${css}</style><style>@page{size:A4;margin:8mm}html,body{background:#fff!important;margin:0;padding:0}#printArea{display:block!important}.rp-doc{max-width:none}</style></head><body data-view="search"><div id="printArea">${box.innerHTML}</div></body></html>`,job);
+    toast('Choose your printer');return}
+  $('printArea').innerHTML=html;
+  await Promise.all([...$('printArea').querySelectorAll('img')].map(i=>i.complete?0:new Promise(r=>{i.onload=i.onerror=r})));
+  const t=document.title;document.title=job;window.print();document.title=t;
+}
+// ---- pick the items, then the details: the report window ----
+function openReport(only){
+  if(!can('stReport')&&!isAdmin()){withPerm('stReport','Needs permission: Product details report.',()=>openReport(only));return}
+  let list=(Array.isArray(only)?only:shPicked()).filter(Boolean);
+  if(!list.length){toast('Select items first',null,true);return}
+  if(list.length>RP_MAX){toast(`A report holds up to ${RP_MAX} designs · the first ${RP_MAX} are used`,null,true);list=list.slice(0,RP_MAX)}
+  const ok=rpFieldsOk(),saved=store.get('rpFields',null),f=new Set(Array.isArray(saved)&&saved.length?saved:RP_DEF);
+  // the shop's report (set by an admin) reaches every phone once each time the admin changes it
+  {const sc=settings.rpCard;if(sc&&Array.isArray(sc.f)&&num(sc.at)>num(store.get('rpCardAt',0))){f.clear();sc.f.forEach(k=>f.add(k));store.set('rpFields',sc.f);if(Array.isArray(sc.order))store.set('rpOrder',sc.order);if(sc.ph)store.set('rpPh',sc.ph);store.set('rpCardAt',sc.at)}}
+  const ord=()=>{const o=store.get('rpOrder',null),ix=k=>{const i=Array.isArray(o)?o.indexOf(k):-1;return i<0?900+RP_F.findIndex(c=>c[0]===k):i};return [...ok].sort((a,b)=>ix(a[0])-ix(b[0]))};
+  const m0=rpMeta(list);
+  showModal(`Report · ${list.length} design${list.length===1?'':'s'}`,'',[{label:'Close',cls:'ghost'}]);
+  $('modalBody').innerHTML=`<div class="sh-wrap rp-w">
+    <div class="sh-sec"><h5>Report heading</h5><div class="pr-form rp-mf">
+      <div class="full"><label for="rpTt">Title</label><input id="rpTt" maxlength="48" autocomplete="off" value="${esc(m0.t)}"></div>
+      <div class="full"><label for="rpSb">Sub-heading</label><input id="rpSb" maxlength="70" autocomplete="off" value="${esc(m0.s)}" placeholder="e.g. Ring Collection – Solitaire Designs"></div>
+      <div><label for="rpCat">Category</label><input id="rpCat" maxlength="30" autocomplete="off" value="${esc(m0.cat)}"></div>
+      <div><label for="rpCol">Collection</label><input id="rpCol" maxlength="30" autocomplete="off" value="${esc(m0.col)}"></div>
+      </div><label class="rc-p rp-tot"><input type="checkbox" id="rpTot" checked> Show “Total designs: ${list.length}” on the report</label></div>
+    <div class="sh-sec"><div class="sh-h"><h5>Details on each card</h5><button type="button" class="linkbtn" id="rpArr" aria-pressed="false">Arrange</button>${can('theme')?'<button type="button" class="linkbtn" id="rpShop">Save as shop report</button>':''}</div>
+      <div class="sh-f" id="rpF"></div>
+      <div class="rp-sz"><b>Photo size</b>${[['lg','Large'],['md','Medium'],['sm','Small']].map(([v,l])=>`<label class="rc-p"><input type="radio" name="rpPhS" value="${v}"${store.get('rpPh','md')===v?' checked':''}> ${l}</label>`).join('')}</div>
+      <p class="note" id="rpPrev" aria-live="polite"></p></div>
+    <div class="sh-sec"><h5>Report</h5><div class="sh-row rp-acts">
+      <button type="button" class="btn primary" id="rpGo">View report</button>
+      ${can('shareItems')?'<button type="button" class="btn" id="rpWa2">WhatsApp</button>':''}
+      ${can('sharePdf')?'<button type="button" class="btn" id="rpPdf2">PDF</button>':''}
+      ${can('qPrint')?'<button type="button" class="btn" id="rpPr2">Print</button>':''}</div>
+      <input id="rpWaNo" inputmode="tel" autocomplete="off" placeholder="Customer WhatsApp no. (optional)" aria-label="Customer WhatsApp number">
+      <small class="note">Pictures are A4-shaped pages: send them on WhatsApp, save a PDF, or print on a network printer.</small></div></div>`;
+  const pick=()=>{const v=[...$('rpF').querySelectorAll('input:checked')].map(i=>i.value);store.set('rpFields',v);return v};
+  const phz=()=>{const r=$('modalBody').querySelector('[name=rpPhS]:checked'),v=r?r.value:'md';store.set('rpPh',v);return v};
+  const meta=()=>({t:$('rpTt').value.replace(/\s+/g,' ').trim()||'Design Report',s:$('rpSb').value.replace(/\s+/g,' ').trim(),cat:$('rpCat').value.trim(),col:$('rpCol').value.trim(),tot:$('rpTot').checked,date:m0.date});
+  let arr=false;const paintF=()=>{
+    const cur=new Set([...$('rpF').querySelectorAll('input:checked')].map(i=>i.value)),has=k=>$('rpF').childElementCount?cur.has(k):f.has(k);
+    $('rpF').classList.toggle('arr',arr);$('rpArr').textContent=arr?'Done':'Arrange';$('rpArr').setAttribute('aria-pressed',String(arr));
+    $('rpF').innerHTML=ord().map(([k,l],i,a)=>`<label class="rc-p"><input type="checkbox" value="${k}"${has(k)?' checked':''}> ${esc(l)}${arr?`<span class="sh-mv"><button type="button" data-mv="${k}" data-d="-1" aria-label="Move ${esc(l)} up"${i?'':' disabled'}>↑</button><button type="button" data-mv="${k}" data-d="1" aria-label="Move ${esc(l)} down"${i<a.length-1?'':' disabled'}>↓</button></span>`:''}</label>`).join('')};
+  paintF();
+  const prev=()=>{const v=pick(),r=list[0],h=rpHead(r,v);
+    $('rpPrev').textContent=v.length?`First card · ${[h.sku,h.nm,...rpRows(r,v).map(([k,x])=>`${rpLab(k)} ${x}`)].filter(Boolean).join(' · ')}`:'Pick at least one detail'};
+  $('rpArr').onclick=()=>{arr=!arr;paintF()};
+  $('rpF').addEventListener('click',e=>{const b=e.target.closest('[data-mv]');if(!b)return;e.preventDefault();
+    const o=ord().map(x=>x[0]),i=o.indexOf(b.dataset.mv),j=i+num(b.dataset.d);if(j<0||j>=o.length)return;[o[i],o[j]]=[o[j],o[i]];store.set('rpOrder',o);paintF();prev()});
+  $('rpF').addEventListener('change',prev);prev();
+  if($('rpShop'))$('rpShop').onclick=()=>withPerm('theme','Only an admin can set the shop report.',()=>{settings.rpCard={f:pick(),order:ord().map(x=>x[0]),ph:phz(),at:Date.now()};store.set('rpCardAt',settings.rpCard.at);saveSettings();toast('Shop report saved · every phone gets it')});
+  const need=()=>{const v=pick();if(!v.length){toast('Pick at least one detail',null,true);return null}return v};
+  const busy=async(b,t,fn)=>{const o=b.textContent;b.disabled=true;b.textContent=t;try{await fn()}catch(e){toast('Could not make the report',null,true)}b.disabled=false;b.textContent=o};
+  $('rpGo').onclick=()=>{const v=need();if(!v)return;closeModal();rpView(list,v,meta(),{ph:phz()})};
+  if($('rpWa2'))$('rpWa2').onclick=()=>{const v=need();if(!v)return;withPerm('shareItems','Needs permission: Share items on WhatsApp.',()=>busy($('rpWa2'),'Making…',()=>rpWa(list,v,meta(),{ph:phz()},phoneDigits($('rpWaNo').value))))};
+  if($('rpPdf2'))$('rpPdf2').onclick=()=>{const v=need();if(!v)return;withPerm('sharePdf','Needs permission: Items as PDF.',()=>busy($('rpPdf2'),'Making the PDF…',()=>rpPdf(list,v,meta(),{ph:phz()})))};
+  if($('rpPr2'))$('rpPr2').onclick=()=>{const v=need();if(!v)return;withPerm('qPrint','Needs permission: Print.',()=>busy($('rpPr2'),'Printing…',()=>rpPrint(list,v,meta())))};
+}
+$('rpClose').onclick=()=>{$('rpPop').hidden=true};
+$('rpPop').addEventListener('click',e=>{if(e.target===$('rpPop'))$('rpPop').hidden=true});
+$('rpEdit').onclick=()=>{if(!rpCtx)return;$('rpPop').hidden=true;openReport(rpCtx.list)};
+$('rpWaB').onclick=()=>{if(!rpCtx)return;const b=$('rpWaB');b.disabled=true;b.textContent='Making…';
+  withPerm('shareItems','Needs permission: Share items on WhatsApp.',async()=>{try{await rpWa(rpCtx.list,rpCtx.f,rpCtx.m,rpCtx.opt,'')}catch(e){toast('Could not make the pictures',null,true)}b.disabled=false;b.textContent='WhatsApp'})};
+$('rpPdfB').onclick=()=>{if(!rpCtx)return;const b=$('rpPdfB');b.disabled=true;b.textContent='Making…';
+  withPerm('sharePdf','Needs permission: Items as PDF.',async()=>{try{await rpPdf(rpCtx.list,rpCtx.f,rpCtx.m,rpCtx.opt)}catch(e){toast('Could not make the PDF',null,true)}b.disabled=false;b.textContent='PDF'})};
+$('rpPrB').onclick=()=>{if(!rpCtx)return;withPerm('qPrint','Needs permission: Print.',async()=>{try{await rpPrint(rpCtx.list,rpCtx.f,rpCtx.m,rpCtx.imgs)}catch(e){toast('Could not open printing',null,true)}})};
 // ---- V1.8.7 phone search: one compact list, a toolbar (Filters · Sort · Select · More), filter chips, item sheet, "Show more" ----
 let stMShown=30,stMSig='',stMSelMode=false;
 function stFiltersHome(){const sf=$('stFilters');if(sf&&sf.closest('#modalBody')){$('findNote').before(sf);sf.classList.remove('in-sheet')}}
@@ -5749,7 +6087,7 @@ function stmActive(){
 function stmBar(total){
   let b=$('stMBar');if(!b){b=document.createElement('div');b.id='stMBar';b.className='stm-bar';document.querySelector('.find-view .find-in').after(b)}
   const act=stmActive(),srt=ST_ALL.find(c=>c[0]===stSort.k),okF=can('stFilters')||can('stRanges');
-  const more=['findPhotos','findBulk','findNew'].filter(id=>$(id)&&!$(id).hidden).length+(can('stExport')?1:0);
+  const more=['findRep','findPhotos','findBulk','findNew'].filter(id=>$(id)&&!$(id).hidden).length+(can('stExport')?1:0);
   b.innerHTML=`<div class="stm-tools">
     ${okF?`<button type="button" class="stm-b${act.length?' on':''}" id="stmFilt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filters${act.length?`<b>${act.length}</b>`:''}</button>`:''}
     <button type="button" class="stm-b" id="stmSort"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4"/></svg><span>${esc(srt?srt[1]:'Sort')}</span>${stSort.d>0?'↑':'↓'}</button>
@@ -5782,7 +6120,7 @@ function stmSortSheet(){
   $('soDir').onclick=()=>{stSort={k:stSort.k,d:-stSort.d};store.set('stSort',stSort);closeModal();runFindTable()};$('soOk').onclick=()=>closeModal();
 }
 function stmMoreSheet(){
-  const it=[['findNew','+ New item'],['findBulk','Bulk update'],['findPhotos','Photos · bulk upload / save on phone']].filter(([id])=>$(id)&&!$(id).hidden);
+  const it=[['findRep','Product report of these items'],['findNew','+ New item'],['findBulk','Bulk update'],['findPhotos','Photos · bulk upload / save on phone']].filter(([id])=>$(id)&&!$(id).hidden);
   showModal('More','',[{label:'Close',cls:'ghost'}]);
   $('modalBody').innerHTML=`<div class="stm-sort">${it.map(([id,l])=>`<button type="button" class="stm-so" data-id="${id}">${esc(l)}</button>`).join('')}${can('stExport')?'<button type="button" class="stm-so" data-id="xlsx">Export these items to Excel</button>':''}</div>`;
   $('modalBody').querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>{closeModal();const id=b.dataset.id;if(id==='xlsx')withPerm('stExport','Needs permission: Export Search to Excel.',()=>stExport(stLastRows));else $(id).click()});
@@ -5801,6 +6139,7 @@ async function stmItem(r){
     ${shopA(r)}</div>`;
   const acts=[['Price it','primary',()=>{closeModal();setView('home');useScannedCode(r.barcode||r.key);paintBarcode()}]];
   if(can('shareItems'))acts.push(['WhatsApp','',()=>{closeModal();openShareSel([r])}]);
+  if(can('stReport'))acts.push(['Product report','',()=>{closeModal();openReport([r])}]);
   if(can('shareStatus'))acts.push(['Status card','',()=>{closeModal();openStatus(scFromStock(r))}]);
   if(can('images'))acts.push(['Photos','',()=>{closeModal();openPhotos(r.key)}]);
   if(can('stockEdit'))acts.push(['Edit','',()=>{closeModal();stockForm(r)}]);
@@ -6329,7 +6668,7 @@ async function takePhotos(list){
 function askProdPhoto(k){openPhotos(k)}
 // a name typed in the photo manager is saved with the photos
 function pmNameAuto(k){const i=$('pmName');if(!i||i.dataset.k!==k||$('modal').hidden)return;const v=i.value.replace(/\s+/g,' ').trim();if(v&&v!==pnameOf(stockMap.get(k)||{key:k}))savePnames({[k]:v});
-  if($('pmAJt')){const a=readAttr('pmA');if((a.jt||a.sc.length||a.mc||a.st.length)&&!attrSame(a,attrOf(stockMap.get(k)||{key:k})))savePattrs({[k]:a})}}
+  if($('pmAJt')){const a=readAttr('pmA');if((a.jt||a.sc.length||a.mc||a.st.length||a.sk)&&!attrSame(a,attrOf(stockMap.get(k)||{key:k})))savePattrs({[k]:a})}}
 // V1.8.3 paste photos: the photo manager (Ctrl+V, Paste button, long-press box), or Ctrl+V on Home with an item open
 async function pastePhotos(k,blobs){
   const room=IMG_MAX-imgCount(k);if(room<=0){toast(`An item can have ${IMG_MAX} photos`,null,true);return}
@@ -6654,7 +6993,7 @@ function stockForm(rec){
   $('modalTitle').textContent=isNew?'New item in stock':'Edit '+(r.barcode||r.key);$('modalTitle').classList.remove('price-pop');
   $('modalBody').innerHTML=`<p class="note">${isNew?'All label details, as on the other labels.':'Correct the making, FVA or any detail.'} Saved to the shared database for all staff.</p><div class="pr-form">`+SF.map(([k,l,t,req])=>{
     const id='sf_'+k,lab=`<label for="${id}">${esc(l)}${req?' *':''}</label>`;
-    if(t==='at')return attrFields('sfA',isNew?{jt:'',sc:[],mc:'',st:[]}:attrOf(r));
+    if(t==='at')return attrFields('sfA',isNew?{jt:'',sc:[],mc:'',st:[],sk:''}:attrOf(r));
     if(t==='pn')return `<div class="full">${lab}<input id="${id}" list="pnList" autocomplete="off" maxlength="80" placeholder="e.g. Pink Solo Ring" value="${esc(isNew?'':pnameOf(r))}">${pnameDatalist()}<small class="pn-note" id="sfPnNote" aria-live="polite"></small></div>`;
     if(LST[k])return `<div${k==='item'||k==='category'?' class="sf-lst"':''}>${lab}<select id="${id}" class="sf-sel">${k==='supplier'?supOptions(v0.supplier,'Choose supplier…',true):optsOf(k,v0[k],k==='category'&&v0.item?x=>lc(x.item)===lc(v0.item):null)}</select><input id="${id}_new" class="sf-new" hidden placeholder="Type the new ${LST[k]}" aria-label="New ${LST[k]}"></div>`;
     if(t==='pur')return `<div>${lab}<select id="${id}">${purs.map(x=>`<option${String(v0.carat||'22').toUpperCase()===x?' selected':''}>${x}</option>`).join('')}</select></div>`;
@@ -6695,7 +7034,7 @@ function stockForm(rec){
     const row={};['key','barcode','item','category','carat','gw','nw','sw','dw','dq','sa','location','supplier','mk','mkType','huid','huidNo','stoneName','saDia','saClr','labelDate','size','model','nlc','fva','imp'].forEach(f=>{if(o[f]!=null&&o[f]!=='')row[f]=o[f]});if(row.fva)row.fvaMan='1';
     row.mkMan=isNew||String(r.mkMan)==='1'||row.mkType!==r.mkType||String(row.mk)!==String(r.mk)?'1':'0';
     ['serial','label','pcs','sq','cw','pname'].forEach(f=>{if(r[f]!=null&&r[f]!=='')row[f]=r[f]});
-    const pn=$('sf_pname').value.replace(/\s+/g,' ').trim(),pnChanged=pn!==(isNew?'':pnameOf(r)),at=readAttr('sfA'),atChanged=!attrSame(at,isNew?{jt:'',sc:[],mc:'',st:[]}:attrOf(r));
+    const pn=$('sf_pname').value.replace(/\s+/g,' ').trim(),pnChanged=pn!==(isNew?'':pnameOf(r)),at=readAttr('sfA'),atChanged=!attrSame(at,isNew?{jt:'',sc:[],mc:'',st:[],sk:''}:attrOf(r));
     row.at=Date.now();
     sv.disabled=true;sv.textContent='Saving…';
     try{
@@ -6991,7 +7330,7 @@ function bulkForm(pre){
       try{
         let hist=null;
         if(sync.key&&stockCh)for(let i=0;i<rows.length;i+=300){const res=await syncApi('stockrow','POST',{rows:rows.slice(i,i+300),what:what.join(', '),by:meName()},adminCreds);sync.v.stock=res.v;hist=res.history}
-        if(mcCanon||sttNew){const map={};rows.forEach(r=>{const o=pattrs[r.key]||{};map[r.key]={jt:o.jt||'',sc:o.sc||[],mc:mcCanon||o.mc||'',st:sttNew||o.st||[]}});if(!(await savePattrs(map)))throw new Error('attr')}
+        if(mcCanon||sttNew){const map={};rows.forEach(r=>{const o=pattrs[r.key]||{};map[r.key]={jt:o.jt||'',sc:o.sc||[],mc:mcCanon||o.mc||'',st:sttNew||o.st||[],sk:o.sk||''}});if(!(await savePattrs(map)))throw new Error('attr')}
         saveSyncState();if(hist){stockMeta.history=hist;store.set('stockMeta',stockMeta)}
         try{await IDB.putMany(rows,false)}catch(e){}
         rows.forEach(indexRec);paintStockSummary();closeModal();
@@ -7234,7 +7573,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.8.23',APP_BUILD='__BUILD__';
+const APP_VERSION='1.8.24',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------
@@ -7247,21 +7586,22 @@ const PERM_LIST=[
 ['stockdel','Delete sold tags from stock'],['suppliers','Edit the supplier list'],['rates',"Set day's rates"],
   ['mkEdit','Update making on the price card'],['mkDisc','Making after discount on quotes'],
   ['closeSale','Close sale (invoice no.)'],['cancelQuote','Cancel quote (enquiry)'],['reopen','Reopen sold / cancelled quotes'],
-  ['delQuote','Delete quotes'],['images','Add product photos'],['imgDel','Delete / replace product photos'],['imgBulk','Bulk upload photos'],['stockList','Stock list in Search (phone app)'],['addDisc','Additional discount (flat)'],['round','Round final amounts to the nearest ₹50'],['stockEdit','Edit stock items · making, FVA, label details'],['stockAdd','Add new items to stock'],['stockBulk','Bulk update stock items'],['reports','Reports'],['fva','Fair Value price'],['share','Share quotes on WhatsApp'],['pdHidden','See hidden details (NLC, FVA…)'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],['webApp','Use the web version (browser on a computer / phone)'],['shopTab','Shop tab: see and share website / catalogue links'],['webLinks','Add / change shop links'],['qPrint','Print quote (A4 · network printer)'],['shareStatus','WhatsApp status card'],['quotesList','All quotations tab'],['qsCust','Quote step: Customer details'],['qsSale','Quote step: Sale type'],['qsItems','Quote step: Items'],['qsUrd','Quote step: URD & buy-back'],['qsSr','Quote step: Sales return'],['qsAdv','Quote step: Advance'],['qsSum','Quote step: Summary'],['qsClose','Quote step: Close sale'],['qsWa','Quote step: WhatsApp share'],['search','Search page · find items'],['stFilters','Search filters (item, design, colour…)'],['stRanges','Range search (weight, price, fair value…)'],['stSelect','Select items in Search'],['stExport','Export Search to Excel'],['shareItems','Share items on WhatsApp (picture cards)'],['shareAllPh','Send all photos of an item'],['sharePdf','Items as PDF'],['shareUser','Send items to another user'],['shareFv','Share fair value & savings'],['shareCost','Share making, NLC & supplier'],
+  ['delQuote','Delete quotes'],['images','Add product photos'],['imgDel','Delete / replace product photos'],['imgBulk','Bulk upload photos'],['stockList','Stock list in Search (phone app)'],['addDisc','Additional discount (flat)'],['round','Round final amounts to the nearest ₹50'],['stockEdit','Edit stock items · making, FVA, label details'],['stockAdd','Add new items to stock'],['stockBulk','Bulk update stock items'],['reports','Reports'],['fva','Fair Value price'],['share','Share quotes on WhatsApp'],['pdHidden','See hidden details (NLC, FVA…)'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],['webApp','Use the web version (browser on a computer / phone)'],['shopTab','Shop tab: see and share website / catalogue links'],['webLinks','Add / change shop links'],['qPrint','Print quote (A4 · network printer)'],['shareStatus','WhatsApp status card'],['quotesList','All quotations tab'],['qsCust','Quote step: Customer details'],['qsSale','Quote step: Sale type'],['qsItems','Quote step: Items'],['qsUrd','Quote step: URD & buy-back'],['qsSr','Quote step: Sales return'],['qsAdv','Quote step: Advance'],['qsSum','Quote step: Summary'],['qsClose','Quote step: Close sale'],['qsWa','Quote step: WhatsApp share'],['search','Search page · find items'],['stFilters','Search filters (item, design, colour…)'],['stRanges','Range search (weight, price, fair value…)'],['stSelect','Select items in Search'],['stExport','Export Search to Excel'],['stReport','Product details report (cards · share / print)'],['shareItems','Share items on WhatsApp (picture cards)'],['shareAllPh','Send all photos of an item'],['sharePdf','Items as PDF'],['shareUser','Send items to another user'],['shareFv','Share fair value & savings'],['shareCost','Share making, NLC & supplier'],
   ['textSize','Text size'],['imgShow','Product image show / hide'],['ratesShown','Rates shown'],['charges','Charges · GST · HUID'],
   ['mkHelper','Making helpers'],['itemCodes','Item codes'],['pdRows','Product details items'],['sync','Shared database · shop key'],['roles','Roles & permissions'],['users','Users']];
 const SET_PERMS=['suppliers','theme','footer','apprSet','export','promos','rules','reports','stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users'];
 const STOCK_PERMS=['stockEdit','stockAdd','stockBulk','stockdel'];const PHOTO_PERMS=['images','imgDel','imgBulk'];
 // V1.8.6 functions grouped for the role editor
 const PERM_GROUPS=[['Access',['webApp']],['Quote page',['qPrint','quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa']],['Prices & making',['rates','mkEdit','mkDisc','addDisc','round','fva','pdHidden']],['Quotes',['closeSale','cancelQuote','reopen','delQuote','approve','share']],
-  ['Search',['search','stFilters','stRanges','stSelect','stExport','stockList']],['WhatsApp & sharing',['shareStatus','shareItems','shareAllPh','sharePdf','shareUser','shareFv','shareCost','leads']],
+  ['Search',['search','stFilters','stRanges','stSelect','stExport','stReport','stockList']],['WhatsApp & sharing',['shareStatus','shareItems','shareAllPh','sharePdf','shareUser','shareFv','shareCost','leads']],
   ['Stock database',['stockEdit','stockAdd','stockBulk','stockdel','suppliers']],['Product photos & details',['images','imgDel','imgBulk']],['Shop links',['shopTab','webLinks']],['Reports',['reports']],
   ['Settings',['textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users']]];
 const permLabel=k=>(PERM_LIST.find(p=>p[0]===k)||[0,k])[1];
-const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','imgDel','imgBulk','stockList','approve','leads','share','pdHidden','addDisc','round','reports','fva','stockEdit','stockAdd','stockBulk','suppliers','quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa','search','stFilters','stRanges','stSelect','stExport','shareItems','shareAllPh','sharePdf','shareUser','shareFv','shareCost','webApp','qPrint','shareStatus','shopTab','webLinks']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share','fva','stockList','quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa','search','stFilters','stRanges','stSelect','shareItems','shareAllPh','sharePdf','shareUser','shareFv','qPrint','shareStatus','shopTab']}];
+const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','imgDel','imgBulk','stockList','approve','leads','share','pdHidden','addDisc','round','reports','fva','stockEdit','stockAdd','stockBulk','suppliers','quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa','search','stFilters','stRanges','stSelect','stExport','stReport','shareItems','shareAllPh','sharePdf','shareUser','shareFv','shareCost','webApp','qPrint','shareStatus','shopTab','webLinks']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share','fva','stockList','quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa','search','stFilters','stRanges','stSelect','stReport','shareItems','shareAllPh','sharePdf','shareUser','shareFv','qPrint','shareStatus','shopTab']}];
 let roles=store.get('roles',null)||clone(DEFAULT_ROLES);
 // WhatsApp sharing became a permission (v1.7.3): roles on this phone keep it once
 if(!store.get('permShare',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&!r.perms.includes('share'))r.perms.push('share')});store.set('roles',roles);store.set('permShare',true)}
+if(!store.get('perm1824',false)){roles.forEach(r=>{if(!Array.isArray(r.perms))return;if(r.perms.includes('search')&&!r.perms.includes('stReport'))r.perms.push('stReport')});store.set('roles',roles);store.set('perm1824',true)}
 if(!store.get('perm1821',false)){roles.forEach(r=>{if(!Array.isArray(r.perms))return;if(!r.perms.includes('shopTab'))r.perms.push('shopTab');if(['users','stockEdit'].some(p=>r.perms.includes(p))&&!r.perms.includes('webLinks'))r.perms.push('webLinks')});store.set('roles',roles);store.set('perm1821',true)}
 if(!store.get('perm1815',false)){roles.forEach(r=>{if(!Array.isArray(r.perms))return;const add=p=>{if(!r.perms.includes(p))r.perms.push(p)};add('qPrint');add('shareStatus');if(['users','stockEdit','reports'].some(p=>r.perms.includes(p)))add('webApp')});store.set('roles',roles);store.set('perm1815',true)}
 if(!store.get('perm1814',false)){roles.forEach(r=>{if(!Array.isArray(r.perms))return;['quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa'].forEach(p=>{if(!r.perms.includes(p))r.perms.push(p)})});store.set('roles',roles);store.set('perm1814',true)}
