@@ -6,7 +6,7 @@ import type { Config } from "@netlify/functions"
 // Stored in one site-wide Blobs store: meta, stock, rates, settings, users, auth (legacy admin PIN).
 
 const APP_ORIGINS = ["https://appassets.androidplatform.net", "https://yamie-price-check.netlify.app"]
-const STOCK_FIELDS = ["key", "barcode", "item", "category", "carat", "gw", "nw", "sw", "dw", "dq", "sa", "serial", "label", "location", "pcs", "sq", "supplier", "mk", "mkType", "huid", "huidNo", "cw", "stoneName", "saDia", "saClr", "labelDate", "size", "model", "nlc", "fva", "fvaMan", "mkMan", "imp", "pname", "design", "scol", "at"]
+const STOCK_FIELDS = ["key", "barcode", "item", "category", "carat", "gw", "nw", "sw", "dw", "dq", "sa", "serial", "label", "location", "pcs", "sq", "supplier", "mk", "mkType", "huid", "huidNo", "cw", "stoneName", "saDia", "saClr", "labelDate", "size", "model", "nlc", "fva", "fvaMan", "mkMan", "imp", "pname", "design", "scol", "mcol", "at"]
 const RATE_KEYS = ["22k", "18k", "14k", "9k", "platinum", "silver"]
 
 type Meta = { stock: number; rates: number; settings: number; users: number; quotes: number; leads?: number; imgs: number; count: number; history: any[] }
@@ -61,11 +61,11 @@ function cleanRow(r: any) {
   return o.key ? o : null
 }
 // Permissions an admin can give to a role (admin always has all)
-const PERMS = ["webApp", "qPrint", "shareStatus", "quotesList", "qsCust", "qsSale", "qsItems", "qsUrd", "qsSr", "qsAdv", "qsSum", "qsClose", "qsWa", "suppliers", "search", "stFilters", "stRanges", "stSelect", "stExport", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv", "shareCost", "stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "imgDel", "imgBulk", "stockList", "share", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "stockBulk", "approve", "leads", "textSize", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows", "pdHidden", "sync", "roles", "users", "settings"]
-const SETTINGS_PERMS = ["suppliers", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows"]
+const PERMS = ["shopTab", "webLinks", "webApp", "qPrint", "shareStatus", "quotesList", "qsCust", "qsSale", "qsItems", "qsUrd", "qsSr", "qsAdv", "qsSum", "qsClose", "qsWa", "suppliers", "search", "stFilters", "stRanges", "stSelect", "stExport", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv", "shareCost", "stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "imgDel", "imgBulk", "stockList", "share", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "stockBulk", "approve", "leads", "textSize", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows", "pdHidden", "sync", "roles", "users", "settings"]
+const SETTINGS_PERMS = ["webLinks", "suppliers", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows"]
 const DEFAULT_ROLES = [
-  { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "images", "imgDel", "imgBulk", "stockList", "approve", "leads", "share", "pdHidden", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "stockBulk", "suppliers", "quotesList", "qsCust", "qsSale", "qsItems", "qsUrd", "qsSr", "qsAdv", "qsSum", "qsClose", "qsWa", "search", "stFilters", "stRanges", "stSelect", "stExport", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv", "shareCost", "webApp", "qPrint", "shareStatus"] },
-  { id: "staff", name: "Staff", perms: ["rates", "closeSale", "cancelQuote", "share", "fva", "stockList", "quotesList", "qsCust", "qsSale", "qsItems", "qsUrd", "qsSr", "qsAdv", "qsSum", "qsClose", "qsWa", "search", "stFilters", "stRanges", "stSelect", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv", "qPrint", "shareStatus"] },
+  { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "images", "imgDel", "imgBulk", "stockList", "approve", "leads", "share", "pdHidden", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "stockBulk", "suppliers", "quotesList", "qsCust", "qsSale", "qsItems", "qsUrd", "qsSr", "qsAdv", "qsSum", "qsClose", "qsWa", "search", "stFilters", "stRanges", "stSelect", "stExport", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv", "shareCost", "webApp", "qPrint", "shareStatus", "shopTab", "webLinks"] },
+  { id: "staff", name: "Staff", perms: ["rates", "closeSale", "cancelQuote", "share", "fva", "stockList", "quotesList", "qsCust", "qsSale", "qsItems", "qsUrd", "qsSr", "qsAdv", "qsSum", "qsClose", "qsWa", "search", "stFilters", "stRanges", "stSelect", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv", "qPrint", "shareStatus", "shopTab"] },
 ]
 // A quote as the app keeps it, minus anything large (photos stay on the phone that took them)
 function cleanQuote(q: any) {
@@ -154,6 +154,15 @@ export default async (req: Request) => {
   // v1.8.6: search and sharing functions became permissions; existing roles keep what they could do (once)
   // v1.8.14: quote page steps and the quotations tab became permissions; every role keeps them (once)
   // v1.8.15: print, status card for every role; the web version only for roles that manage (users / stock edit / reports) (once)
+  if (!(meta as any).v1821) {
+    let ch = false
+    for (const r of roles) if (Array.isArray(r?.perms)) {
+      if (!r.perms.includes("shopTab")) { r.perms.push("shopTab"); ch = true }
+      if (["users", "stockEdit"].some(p => r.perms.includes(p)) && !r.perms.includes("webLinks")) { r.perms.push("webLinks"); ch = true }
+    }
+    if (ch && (await st.get("roles"))) { await st.setJSON("roles", roles); meta.users = Date.now() }
+    ;(meta as any).v1821 = 1; await saveMeta()
+  }
   if (!(meta as any).v1815) {
     let ch = false
     for (const r of roles) if (Array.isArray(r?.perms)) {
@@ -300,6 +309,21 @@ export default async (req: Request) => {
         // The sold register: labels of completed sales. They never come back into stock or a quote.
         const sold = ((await st.get("sold", { type: "json" })) as any) || {}
         return json(req, { v: (meta as any).sold || 0, sold })
+      }
+      if (op === "shopcols") {
+        // V1.8.21 collections and pages of the Shopify store, for the Shop tab
+        try {
+          const { gql } = await shopifyApi()
+          const links: any[] = []; let site = "", note = ""
+          const d: any = await gql("{ shop { primaryDomain { url } } collections(first:250) { nodes { title handle } } }")
+          site = String(d?.shop?.primaryDomain?.url || "").replace(/\/$/, "")
+          for (const c of d?.collections?.nodes || []) if (c?.handle && site) links.push({ t: cleanStr(c.title, 80), u: site + "/collections/" + c.handle, k: c.handle === "all" ? "catalogue" : "collection" })
+          try {
+            const p: any = await gql("{ pages(first:100) { nodes { title handle isPublished } } }")
+            for (const x of p?.pages?.nodes || []) if (x?.handle && x.isPublished !== false && site) links.push({ t: cleanStr(x.title, 80), u: site + "/pages/" + x.handle, k: "page" })
+          } catch (e) { note = "pages need the read_online_store_pages access" }
+          return json(req, { ok: true, site, links, note })
+        } catch (e: any) { return json(req, { ok: false, msg: String(e?.message || e).slice(0, 200) }) }
       }
       if (op === "shoplinks") {
         // V1.8.0 label no. (product SKU) -> the product page on the Shopify store; cached for an hour
@@ -566,7 +590,8 @@ export default async (req: Request) => {
         const o: any = v && typeof v === "object" ? v : {}
         const jt = cleanStr(o.jt, 60).replace(/\s+/g, " ").trim()
         const sc = Array.isArray(o.sc) ? [...new Set(o.sc.map((x: any) => cleanStr(x, 30).trim()).filter(Boolean))].slice(0, 5) : []
-        if (jt || sc.length) map[k] = { ...(jt ? { jt } : {}), ...(sc.length ? { sc } : {}) }; else delete map[k]
+        const mc = cleanStr(o.mc, 40).replace(/\s+/g, " ").trim()
+        if (jt || sc.length || mc) map[k] = { ...(jt ? { jt } : {}), ...(sc.length ? { sc } : {}), ...(mc ? { mc } : {}) }; else delete map[k]
         n++
       }
       await st.setJSON("pattrs", map)
@@ -695,9 +720,11 @@ export default async (req: Request) => {
         showImg: s?.showImg !== false,
         ui: ["iosBrand", "iosTrue", "android"].includes(s?.ui) ? s.ui : "iosBrand",
         accent: ["brand", "blue", "maroon", "gold", "emerald", "navy", "rose", "wine", "ruby", "coral", "copper", "bronze", "olive", "forest", "teal", "ocean", "sapphire", "indigo", "violet", "plum", "magenta", "slate", "charcoal"].includes(s?.accent) ? s.accent : "brand",
+        // V1.8.21 Shop tab links (website, catalogues, collections, pages)
+        webLinks: Array.isArray(s?.webLinks) ? s.webLinks.slice(0, 300).map((x: any) => ({ id: cleanStr(x?.id, 40) || "l" + Math.random().toString(36).slice(2, 9), t: cleanStr(x?.t, 80), u: /^https?:\/\//i.test(String(x?.u || "")) ? cleanStr(x.u, 500) : "", k: ["site", "catalogue", "collection", "page", "product", "offer", "other"].includes(x?.k) ? x.k : "other", n: cleanStr(x?.n, 120) })).filter((x: any) => x.u) : null,
         // V1.8.20 the shop's picture card: which details, in which order (admin)
         shCard: s?.shCard && typeof s.shCard === "object" ? { f: (Array.isArray(s.shCard.f) ? s.shCard.f : []).filter((x: any) => typeof x === "string" && /^\w{1,20}$/.test(x)).slice(0, 40), order: (Array.isArray(s.shCard.order) ? s.shCard.order : []).filter((x: any) => typeof x === "string" && /^\w{1,20}$/.test(x)).slice(0, 40), at: Number(s.shCard.at) || Date.now() } : null,
-        tabHide: Object.fromEntries(Object.entries(s?.tabHide && typeof s.tabHide === "object" ? s.tabHide : {}).slice(0, 20).filter(([k]) => /^[\w-]{1,40}$/.test(k)).map(([k, v]) => [k, (Array.isArray(v) ? v : []).filter((x: any) => ["tabScan", "tabFind", "tabQuote", "tabRates", "tabSet"].includes(x))])),
+        tabHide: Object.fromEntries(Object.entries(s?.tabHide && typeof s.tabHide === "object" ? s.tabHide : {}).slice(0, 20).filter(([k]) => /^[\w-]{1,40}$/.test(k)).map(([k, v]) => [k, (Array.isArray(v) ? v : []).filter((x: any) => ["tabScan", "tabFind", "tabQuote", "tabQuotes", "tabShop", "tabRates", "tabSet"].includes(x))])),
         apprOn: s?.apprOn !== false,
         // Special promotions (admin): applied to every quote while running
         // Pricing rules (admin): making / wastage / labour, fair value and diamond rate by purity, weight, type, supplier, NLC…
@@ -736,7 +763,7 @@ export default async (req: Request) => {
       // Keep the parts this user may not change
       const prev: any = (await st.get("settings", { type: "json" })) || {}
       const keep = (perm: string, keys: string[]) => { if (!roleHas(role, perm)) keys.forEach((k) => { if (k in prev) (out as any)[k] = prev[k] }) }
-      keep("charges", ["gst", "huid"]); keep("mkHelper", ["mkTable", "mkConv", "chkOn"]); keep("suppliers", ["suppliers"]); keep("itemCodes", ["cats"]); keep("ratesShown", ["showRates"]); keep("imgShow", ["showImg", "mkEdit"]); keep("theme", ["ui", "accent", "shCard"]); keep("pdRows", ["pdHide"]); keep("footer", ["tabHide"]); keep("apprSet", ["apprOn"]); keep("promos", ["promos"]); keep("rules", ["priceRules"])
+      keep("charges", ["gst", "huid"]); keep("mkHelper", ["mkTable", "mkConv", "chkOn"]); keep("suppliers", ["suppliers"]); keep("itemCodes", ["cats"]); keep("ratesShown", ["showRates"]); keep("imgShow", ["showImg", "mkEdit"]); keep("theme", ["ui", "accent", "shCard"]); keep("webLinks", ["webLinks"]); keep("pdRows", ["pdHide"]); keep("footer", ["tabHide"]); keep("apprSet", ["apprOn"]); keep("promos", ["promos"]); keep("rules", ["priceRules"])
       await st.setJSON("settings", out)
       meta.settings = Date.now(); await saveMeta()
       return json(req, { v: meta.settings })
