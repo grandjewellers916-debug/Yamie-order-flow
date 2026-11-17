@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#8F171B">
+<title>Yamie Stock Check</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--m:#8F171B;--m2:#6E1014;--m3:#F4E7E5;--iv:#FBF9F6;--cr:#F3EEE6;--ink:#1D1714;--mut:#776B63;--ln:#E6DED4;--ok:#1E7A46;--okb:#E3F3E9;--bad:#B3261E;--badb:#FBE6E4;--warn:#9A6200;--warnb:#FFF2D9;--pend:#8A8178;--pendb:#EFEBE6;--r:12px}
+*{box-sizing:border-box}html,body{margin:0;background:var(--iv);color:var(--ink);font:15px/1.4 Jost,system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+h1,h2,h3{font-family:'Cormorant Garamond',Georgia,serif;margin:0;font-weight:700;letter-spacing:.2px}
+h1{font-size:26px}h2{font-size:22px}h3{font-size:18px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+.hidden{display:none!important}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 16px;border-radius:10px;background:var(--m);color:#fff;font-weight:600;min-height:44px}
+.btn.sec{background:#fff;color:var(--m);border:1.5px solid var(--m)}
+.btn.ghost{background:var(--cr);color:var(--ink)}
+.btn.ok{background:var(--ok)}.btn.bad{background:var(--bad)}
+.btn.sm{min-height:34px;padding:6px 12px;font-size:14px}
+.btn:disabled{opacity:.5}
+.row{display:flex;gap:8px;align-items:center}.wrap{flex-wrap:wrap}.grow{flex:1}.sp{justify-content:space-between}
+.mut{color:var(--mut)}.sm{font-size:13px}.b{font-weight:600}.num{font-variant-numeric:tabular-nums}
+.card{background:#fff;border:1px solid var(--ln);border-radius:var(--r);padding:14px}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:99px;font-size:12px;background:var(--cr);color:var(--ink);white-space:nowrap}
+.chip.m{background:var(--m3);color:var(--m)}
+.st{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:99px;font-size:12px;font-weight:600;white-space:nowrap}
+.st.ok{background:var(--okb);color:var(--ok)}.st.var{background:var(--badb);color:var(--bad)}.st.stale{background:var(--warnb);color:var(--warn)}.st.pending{background:var(--pendb);color:var(--pend)}
+input[type=text],input[type=number],input[type=search],input[type=tel],input[type=password],select,textarea{width:100%;padding:10px 12px;border:1px solid var(--ln);border-radius:10px;background:#fff;min-height:44px}
+textarea{min-height:70px}
+label.f{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
+/* layout */
+#app{min-height:100vh}
+.top{position:sticky;top:0;z-index:20;background:var(--m);color:#fff;padding:10px 14px;padding-top:max(10px,env(safe-area-inset-top));display:flex;align-items:center;gap:10px}
+.top .logo{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;line-height:1}
+.top .logo small{display:block;font-family:Jost;font-size:11px;font-weight:400;opacity:.8;letter-spacing:1.5px;text-transform:uppercase}
+.top .date{background:rgba(255,255,255,.14);border-radius:8px;padding:6px 10px;font-size:13px}
+.bell{position:relative;width:40px;height:40px;border-radius:10px;color:#fff;display:grid;place-items:center}
+.bell i{position:absolute;top:3px;right:3px;background:#FFD27A;color:var(--m2);font-style:normal;font-size:11px;font-weight:700;border-radius:99px;padding:0 5px;min-width:18px;text-align:center}
+main{padding:14px;padding-bottom:96px;max-width:1300px;margin:0 auto}
+.nav{position:fixed;bottom:0;left:0;right:0;z-index:20;background:#fff;border-top:1px solid var(--ln);display:flex;padding-bottom:env(safe-area-inset-bottom)}
+.nav button{flex:1;padding:8px 2px 9px;font-size:11px;color:var(--mut);display:flex;flex-direction:column;align-items:center;gap:2px}
+.nav button svg{width:22px;height:22px}
+.nav button.on{color:var(--m);font-weight:600}
+.banner{background:var(--warnb);color:var(--warn);padding:10px 14px;border-radius:10px;margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+@media(min-width:900px){
+  .nav{top:0;bottom:0;right:auto;width:200px;flex-direction:column;border-top:0;border-right:1px solid var(--ln);padding-top:76px;gap:2px}
+  .nav button{flex:none;flex-direction:row;gap:12px;font-size:15px;padding:12px 20px;justify-content:flex-start}
+  .nav button.on{background:var(--m3)}
+  main{margin-left:200px;padding:22px 28px 110px}
+  .top{z-index:30}
+}
+/* home */
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:700px){.kpis{grid-template-columns:repeat(4,1fr)}}
+.kpi{background:#fff;border:1px solid var(--ln);border-radius:var(--r);padding:12px 14px}
+.kpi .v{font-size:24px;font-weight:600;font-variant-numeric:tabular-nums}
+.kpi .l{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.6px}
+.secs{display:grid;gap:12px;margin-top:14px}
+@media(min-width:700px){.secs{grid-template-columns:repeat(3,1fr)}}
+.seccard{cursor:pointer;text-align:left;width:100%}
+.bar{height:8px;border-radius:99px;background:var(--pendb);overflow:hidden;display:flex;margin:10px 0 8px}
+.bar span{display:block;height:100%}
+.acts{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px}
+@media(min-width:700px){.acts{grid-template-columns:repeat(4,1fr)}}
+/* list */
+.filters{display:flex;gap:6px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none}
+.filters button{padding:7px 12px;border-radius:99px;background:#fff;border:1px solid var(--ln);white-space:nowrap;font-size:14px}
+.filters button.on{background:var(--m);border-color:var(--m);color:#fff}
+.grp{margin:16px 0 8px;font-size:13px;color:var(--mut);text-transform:uppercase;letter-spacing:.8px;font-weight:600;display:flex;justify-content:space-between}
+.locs{display:grid;gap:8px}
+@media(min-width:700px){.locs{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1150px){.locs{grid-template-columns:repeat(3,1fr)}}
+.loc{display:flex;gap:12px;align-items:center;background:#fff;border:1px solid var(--ln);border-radius:var(--r);padding:10px;text-align:left;width:100%}
+.loc.var{border-color:#E9B5B0}.loc.ok{border-color:#B8DDC6}
+.th{width:56px;height:56px;border-radius:9px;background:var(--cr);flex:none;display:grid;place-items:center;overflow:hidden;color:var(--m)}
+.th img{width:100%;height:100%;object-fit:cover}
+.loc .nm{font-weight:600}.loc .meta{display:flex;gap:4px;flex-wrap:wrap;margin-top:3px}
+.loc .q{text-align:right;flex:none}
+.loc .q .v{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
+.sticky{position:fixed;left:0;right:0;bottom:62px;padding:10px 14px;background:linear-gradient(transparent,var(--iv) 30%);z-index:15}
+@media(min-width:900px){.sticky{left:200px;bottom:0}}
+/* tables */
+table{border-collapse:collapse;width:100%}
+th,td{padding:8px 10px;border-bottom:1px solid var(--ln);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;font-weight:600;background:var(--cr)}
+tr.tot td{font-weight:700;background:var(--m3)}
+.tw{overflow-x:auto;border:1px solid var(--ln);border-radius:var(--r);background:#fff}
+td.pos{color:var(--ok);font-weight:600}td.neg{color:var(--bad);font-weight:600}
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(29,23,20,.5);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.md{background:var(--iv);width:100%;max-width:640px;max-height:94vh;overflow:auto;border-radius:18px 18px 0 0;padding:0 0 calc(16px + env(safe-area-inset-bottom))}
+@media(min-width:700px){.ov{align-items:center}.md{border-radius:18px;max-height:90vh}}
+.mh{position:sticky;top:0;background:var(--iv);padding:14px 16px 10px;display:flex;gap:10px;align-items:flex-start;border-bottom:1px solid var(--ln);z-index:2}
+.mb{padding:14px 16px}
+.x{width:36px;height:36px;border-radius:10px;background:var(--cr);font-size:20px;flex:none}
+.photos{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.photos .ph{position:relative;flex:none}
+.photos img{height:120px;border-radius:10px;display:block;cursor:zoom-in}
+.photos .lbl{position:absolute;left:6px;bottom:6px;background:rgba(0,0,0,.6);color:#fff;font-size:11px;padding:1px 7px;border-radius:99px}
+.photos .del{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6);color:#fff;border-radius:99px;width:24px;height:24px}
+.addph{height:120px;width:110px;border:1.5px dashed var(--m);border-radius:10px;color:var(--m);display:grid;place-items:center;text-align:center;font-size:13px;flex:none}
+.cnt{width:100%;border:1px solid var(--ln);border-radius:var(--r);overflow:hidden;background:#fff}
+.cnt .r{display:grid;grid-template-columns:1fr 60px 132px 54px;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--ln)}
+.cnt .r:last-child{border-bottom:0}
+.cnt .r.h{background:var(--cr);font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px}
+.step{display:flex;align-items:center;border:1px solid var(--ln);border-radius:10px;overflow:hidden}
+.step button{width:40px;height:42px;font-size:20px;background:var(--cr)}
+.step input{border:0;border-radius:0;text-align:center;min-height:42px;padding:4px;width:52px;-moz-appearance:textfield}
+.step input::-webkit-inner-spin-button{-webkit-appearance:none}
+.seg{display:flex;background:var(--cr);border-radius:10px;padding:3px}
+.seg button{flex:1;padding:8px;border-radius:8px;font-weight:500}
+.seg button.on{background:#fff;color:var(--m);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.lb{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:70;display:grid;place-items:center}
+.lb img{max-width:96vw;max-height:90vh}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:90px;background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;z-index:90;max-width:90vw;text-align:center}
+.al{display:flex;gap:10px;padding:12px;border-bottom:1px solid var(--ln);background:#fff}
+.al.new{background:#FFFBF0}
+.al .ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none;font-weight:700}
+/* login */
+.login{min-height:100vh;display:grid;place-items:center;padding:20px;background:linear-gradient(160deg,var(--m) 0%,var(--m2) 100%)}
+.lbox{background:var(--iv);border-radius:20px;padding:24px;width:100%;max-width:400px;text-align:center}
+.users{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0}
+.users button{padding:12px 4px;border-radius:12px;background:#fff;border:1px solid var(--ln)}
+.users button.on{border-color:var(--m);background:var(--m3);color:var(--m);font-weight:600}
+.users .av{width:40px;height:40px;border-radius:99px;background:var(--m);color:#fff;display:grid;place-items:center;margin:0 auto 4px;font-weight:600}
+.dots{display:flex;gap:12px;justify-content:center;margin:14px 0}
+.dots i{width:14px;height:14px;border-radius:99px;border:2px solid var(--m)}
+.dots i.f{background:var(--m)}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pad button{height:56px;border-radius:12px;background:#fff;border:1px solid var(--ln);font-size:22px;font-weight:500}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--ln);margin-bottom:14px;overflow-x:auto}
+.tabs button{padding:10px 14px;border-bottom:2.5px solid transparent;white-space:nowrap}
+.tabs button.on{border-color:var(--m);color:var(--m);font-weight:600}
+.list>*{border-bottom:1px solid var(--ln)}
+.li{display:flex;gap:10px;align-items:center;padding:10px 12px;background:#fff}
+.chk{display:flex;gap:8px;align-items:center;padding:6px 0}
+.chk input{width:20px;height:20px;accent-color:var(--m)}
+@media print{.nav,.top,.sticky,.noprint{display:none!important}main{margin:0;padding:0}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script type="module">
+import { SECTIONS, PERMS, ROLE_PERMS, REASONS, summarize, sumLines, r3, locStatus, istDate } from './core.mjs';
+
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmt = (n) => (+n || 0).toLocaleString('en-IN');
+const g3 = (n) => (+n || 0).toFixed(3);
+const sgn = (n) => (n > 0 ? '+' : '') + fmt(n);
+const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
+const STLBL = { pending: 'Not checked', ok: 'OK', var: 'Variance', stale: 'Recount' };
+const ICON = {
+  home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+  counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
+  tray: '<path d="M3 8h18l-2 10H5z"/><path d="M8 8V5h8v3"/>',
+  box: '<path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/>',
+  total: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  more: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
+  bell: '<path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0"/>',
+  cam: '<path d="M4 7h3l2-3h6l2 3h3v12H4z"/><circle cx="12" cy="13" r="3.5"/>',
+};
+const svg = (k, s = 22) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICON[k]}</svg>`;
+
+const S = { token: localStorage.ysc_token || '', me: null, D: null, view: 'home', date: null, filter: 'all', q: '', tab: 'users', modal: false, sumCache: null };
+const can = (p) => S.me && (S.me.role === 'admin' || (S.me.perms || []).includes(p));
+const isToday = () => S.D && S.D.date === S.D.today;
+const editable = () => isToday() && S.D.day.status !== 'closed';
+
+async function api(path, body) {
+  const r = await fetch('/api/' + path, { method: body ? 'POST' : 'GET', headers: { 'content-type': 'application/json', ...(S.token ? { authorization: 'Bearer ' + S.token } : {}) }, body: body ? JSON.stringify(body) : undefined });
+  const j = await r.json().catch(() => ({ error: 'Network error' }));
+  if (r.status === 401 && path !== 'login') { logout(); throw new Error(j.error || 'Please log in'); }
+  if (!r.ok) throw new Error(j.error || 'Error ' + r.status);
+  return j;
+}
+function toast(msg, ms = 2600) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), ms); }
+const fail = (e) => toast('⚠ ' + e.message, 4000);
+const img = (key) => `/api/img/${key}?t=${encodeURIComponent(S.token)}`;
+
+// ---------------- login ----------------
+let LG = { users: [], sel: null, pin: '' };
+async function showLogin() {
+  S.me = null; document.title = 'Yamie Stock Check';
+  try { const j = await api('login-list'); LG.users = j.users; } catch (e) { LG.users = []; }
+  LG.sel = localStorage.ysc_last && LG.users.find((u) => u.id === localStorage.ysc_last) ? localStorage.ysc_last : null; LG.pin = '';
+  renderLogin();
+}
+function renderLogin() {
+  $('#app').innerHTML = `<div class="login"><div class="lbox">
+    <div style="color:var(--m)">${svg('box', 34)}</div>
+    <h1 style="color:var(--m)">Yamie Stock Check</h1><div class="mut sm">Counter · Buffer tray · Box stock</div>
+    <div class="users">${LG.users.map((u) => `<button data-u="${esc(u.id)}" class="${LG.sel === u.id ? 'on' : ''}"><div class="av">${esc(u.name[0] || '?')}</div><div class="sm">${esc(u.name)}</div><div class="mut" style="font-size:11px">${esc(u.role)}</div></button>`).join('') || '<div class="mut">Cannot reach server</div>'}</div>
+    <div class="${LG.sel ? '' : 'hidden'}"><div class="mut sm">Enter PIN</div><div class="dots">${Array.from({ length: Math.max(4, LG.pin.length) }, (_, i) => `<i class="${i < LG.pin.length ? 'f' : ''}"></i>`).join('')}</div>
+    <div class="pad">${[1, 2, 3, 4, 5, 6, 7, 8, 9, '⌫', 0, '→'].map((k) => `<button data-k="${k}" ${k === '→' ? 'style="background:var(--m);color:#fff"' : ''}>${k}</button>`).join('')}</div></div>
+  </div></div>`;
+  $('#app').querySelectorAll('[data-u]').forEach((b) => b.onclick = () => { LG.sel = b.dataset.u; LG.pin = ''; renderLogin(); });
+  $('#app').querySelectorAll('[data-k]').forEach((b) => b.onclick = () => padKey(b.dataset.k));
+}
+async function padKey(k) {
+  if (k === '⌫') LG.pin = LG.pin.slice(0, -1);
+  else if (k === '→') return doLogin();
+  else if (LG.pin.length < 6) LG.pin += k;
+  renderLogin();
+}
+async function doLogin() {
+  if (LG.pin.length < 4) return toast('Enter your PIN');
+  try {
+    const j = await api('login', { userId: LG.sel, pin: LG.pin });
+    S.token = j.token; localStorage.ysc_token = j.token; localStorage.ysc_last = LG.sel; S.me = j.user; S.view = 'home';
+    await load();
+  } catch (e) { LG.pin = ''; renderLogin(); fail(e); }
+}
+document.addEventListener('keydown', (e) => { if (S.me || !LG.sel) return; if (/^\d$/.test(e.key)) padKey(e.key); else if (e.key === 'Backspace') padKey('⌫'); else if (e.key === 'Enter') padKey('→'); });
+function logout() { S.token = ''; localStorage.removeItem('ysc_token'); S.me = null; showLogin(); }
+
+// ---------------- data ----------------
+async function load(quiet) {
+  try {
+    const j = await api('state' + (S.date ? '?date=' + S.date : ''));
+    const prevUnread = S.D?.alerts?.unread || 0;
+    S.D = j; S.me = j.me; S.date = j.date === j.today ? null : j.date;
+    S.sum = summarize(j.locs, j.day.opening, j.mvs, j.counts, j.settings);
+    S.locById = Object.fromEntries(j.locs.map((l) => [l.id, l]));
+    if (quiet && j.alerts.unread > prevUnread) notify(j.alerts.unread - prevUnread);
+    if (!quiet || !S.modal) render();
+    else renderTop();
+  } catch (e) { if (S.token) fail(e); }
+}
+function notify(n) {
+  if (localStorage.ysc_notify === '1' && 'Notification' in window && Notification.permission === 'granted') {
+    try { new Notification('Yamie Stock Check', { body: `${n} new stock alert${n > 1 ? 's' : ''}`, icon: 'icon.svg' }); } catch {}
+  } else toast(`🔔 ${n} new alert${n > 1 ? 's' : ''}`);
+}
+setInterval(() => { if (S.me && document.visibilityState === 'visible' && !S.modal) load(true); }, 40000);
+document.addEventListener('visibilitychange', () => { if (S.me && document.visibilityState === 'visible' && !S.modal) load(true); });
+
+const activeLocs = (sec) => S.D.locs.filter((l) => (l.active !== false || sumLines(S.sum.exp[l.id]?.lines)) && (!sec || l.sec === sec)).sort((a, b) => (a.order || 0) - (b.order || 0));
+const expOf = (id) => S.sum.exp[id] || { lines: {}, wt: 0 };
+const opOf = (id) => S.D.day.opening[id] || { lines: {}, wt: 0 };
+const hideExp = () => S.D.settings.blind && !can('setup') && !can('move');
+const secLabel = (k) => SECTIONS.find((s) => s.key === k)?.label || k;
+const uname = (id) => S.D.userNames[id] || id;
+const linesTxt = (l) => Object.entries(l || {}).filter(([, n]) => n).map(([t, n]) => `${t} ${fmt(n)}`).join(', ') || '—';
+const diffTxt = (d) => Object.entries(d || {}).map(([t, n]) => `${t} ${sgn(n)}`).join(', ');
+
+// ---------------- shell ----------------
+const NAV = [['home', 'Home', 'home'], ['counter', 'Counter', 'counter'], ['tray', 'Trays', 'tray'], ['box', 'Boxes', 'box'], ['total', 'Consolidated', 'total'], ['more', 'More', 'more']];
+function render() {
+  if (!S.me) return showLogin();
+  document.title = `Yamie Stock Check · ${S.D.date}`;
+  $('#app').innerHTML = `<header class="top" id="top"></header><nav class="nav">${NAV.map(([k, l, i]) => `<button data-nav="${k}" class="${S.view === k || (k === 'more' && ['more', 'alerts', 'log', 'admin', 'history'].includes(S.view)) ? 'on' : ''}">${svg(i)}<span>${l === 'Consolidated' && innerWidth < 900 ? 'Total' : l}</span></button>`).join('')}</nav><main id="main"></main>`;
+  $('#app').querySelectorAll('[data-nav]').forEach((b) => b.onclick = () => go(b.dataset.nav));
+  renderTop();
+  const v = { home: vHome, counter: () => vSection('counter'), tray: () => vSection('tray'), box: () => vSection('box'), total: vTotal, more: vMore, alerts: vAlerts, log: vLog, admin: vAdmin, history: vHistory }[S.view] || vHome;
+  v();
+}
+function renderTop() {
+  const t = $('#top'); if (!t) return;
+  const d = S.D;
+  t.innerHTML = `<div class="logo grow">Yamie<small>Stock Check</small></div>
+    <button class="date" id="dateBtn">${isToday() ? 'Today' : '📅'} ${new Date(d.date + 'T00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} · ${d.day.status === 'closed' ? 'Closed' : 'Open'}</button>
+    ${can('alerts') ? `<button class="bell" id="bellBtn" title="Alerts">${svg('bell')}${d.alerts.unread ? `<i>${d.alerts.unread}</i>` : ''}</button>` : ''}`;
+  $('#dateBtn').onclick = () => can('reports') ? go('history') : null;
+  $('#bellBtn') && ($('#bellBtn').onclick = () => go('alerts'));
+}
+function go(v) { S.view = v; S.filter = 'all'; S.q = ''; render(); scrollTo(0, 0); }
+function viewBanner() {
+  if (isToday()) return S.D.day.status === 'closed' ? `<div class="banner">Today is closed — stock is locked. ${S.me.role === 'admin' ? '<button class="btn sm sec" id="reopenBtn">Reopen today</button>' : ''}</div>` : '';
+  return `<div class="banner">Viewing ${dt(S.D.date)} (${S.D.day.status}) — read only <button class="btn sm sec" id="backToday">Back to today</button></div>`;
+}
+function bindBanner() {
+  $('#backToday') && ($('#backToday').onclick = () => { S.date = null; load(); });
+  $('#reopenBtn') && ($('#reopenBtn').onclick = async () => { if (!confirm('Reopen today? Stock can be changed again and the day must be closed again.')) return; try { await api('reopen', {}); toast('Day reopened'); load(); } catch (e) { fail(e); } });
+}
+
+// ---------------- home ----------------
+function vHome() {
+  const { sum: sm, D } = S; const T = sm.total;
+  const ins = T.in, outs = T.out;
+  const varLocs = activeLocs().filter((l) => ['var', 'stale'].includes(sm.status[l.id].state));
+  $('#main').innerHTML = `${viewBanner()}
+  <div class="row sp wrap" style="margin-bottom:12px"><div><h1>Good ${new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'}, ${esc(S.me.name)}</h1><div class="mut">${dt(D.date)} · ${esc(S.me.role)}</div></div></div>
+  <div class="kpis">
+    <div class="kpi"><div class="l">Opening</div><div class="v">${fmt(T.opening)}</div><div class="mut sm">pcs carried forward</div></div>
+    <div class="kpi"><div class="l">In / Out today</div><div class="v"><span style="color:var(--ok)">+${fmt(ins)}</span> <span style="color:var(--bad)">−${fmt(outs)}</span></div><div class="mut sm">${S.D.mvs.filter((m) => !m.void).length} entries</div></div>
+    <div class="kpi"><div class="l">Expected now</div><div class="v">${fmt(T.expected)}</div><div class="mut sm">closing if no change</div></div>
+    <div class="kpi"><div class="l">Checked</div><div class="v">${T.locs - T.pending}<span class="mut" style="font-size:16px">/${T.locs}</span></div><div class="sm" style="color:${T.var + T.stale ? 'var(--bad)' : 'var(--ok)'}">${T.var + T.stale ? `${T.var + T.stale} with variance` : 'No variance'}</div></div>
+  </div>
+  <div class="secs">${SECTIONS.map((s) => secCard(s)).join('')}</div>
+  ${editable() && (can('move') || can('close') || can('setup')) ? `<div class="acts">
+    ${can('move') ? `<button class="btn" data-mv="in">＋ Stock in</button><button class="btn sec" data-mv="out">− Stock out / Sale</button><button class="btn ghost" data-mv="move">⇄ Move</button>` : ''}
+    ${can('close') ? `<button class="btn ghost" id="closeBtn">Close day</button>` : ''}</div>` : ''}
+  ${varLocs.length ? `<h3 style="margin:20px 0 8px">Needs attention</h3><div class="locs">${varLocs.map(locCard).join('')}</div>` : ''}
+  `;
+  bindBanner();
+  $('#main').querySelectorAll('[data-sec]').forEach((b) => b.onclick = () => go(b.dataset.sec));
+  $('#main').querySelectorAll('[data-mv]').forEach((b) => b.onclick = () => moveForm(b.dataset.mv));
+  $('#closeBtn') && ($('#closeBtn').onclick = closeDayFlow);
+  bindLocCards();
+}
+function secCard(s) {
+  const X = S.sum.sec[s.key]; const n = X.locs || 1;
+  return `<button class="card seccard" data-sec="${s.key}"><div class="row sp"><div class="row" style="color:var(--m)">${svg(s.key, 24)}<h3 style="color:var(--ink)">${s.label}</h3></div><span class="mut">›</span></div>
+    <div class="bar"><span style="width:${X.ok / n * 100}%;background:var(--ok)"></span><span style="width:${(X.var + X.stale) / n * 100}%;background:var(--bad)"></span></div>
+    <div class="row sp sm"><span>${X.locs - X.pending}/${X.locs} checked</span><span>${X.var + X.stale ? `<span class="st var">${X.var + X.stale} variance</span>` : X.pending ? `<span class="st pending">${X.pending} pending</span>` : '<span class="st ok">All OK</span>'}</span></div>
+    <div class="row sp" style="margin-top:8px"><span class="mut sm">Expected</span><span class="b num">${fmt(X.expected)} pcs${s.key === 'box' ? ` · ${g3(X.wtExpected)} g` : ''}</span></div></button>`;
+}
+
+// ---------------- section list ----------------
+function vSection(sec) {
+  const all = activeLocs(sec); const st = S.sum.status; const X = S.sum.sec[sec];
+  const q = S.q.toLowerCase();
+  const list = all.filter((l) => (S.filter === 'all' || (S.filter === 'var' ? ['var', 'stale'].includes(st[l.id].state) : st[l.id].state === S.filter)) && (!q || `${l.name} ${l.group} ${l.purity} ${l.cat} ${l.itemType} ${l.boxNo || ''}`.toLowerCase().includes(q)));
+  const groups = {}; list.forEach((l) => (groups[l.group || '—'] ||= []).push(l));
+  $('#main').innerHTML = `${viewBanner()}
+  <div class="row sp wrap" style="margin-bottom:10px"><div><h1>${secLabel(sec)}</h1><div class="mut">${X.locs - X.pending}/${X.locs} checked · ${hideExp() ? '' : `${fmt(X.expected)} pcs expected`}${sec === 'box' && !hideExp() ? ` · ${g3(X.wtExpected)} g` : ''}</div></div>
+  ${can('setup') && editable() ? `<button class="btn sm sec" id="addLoc">＋ Add ${sec === 'box' ? 'box' : sec === 'tray' ? 'tray' : 'counter tray'}</button>` : ''}</div>
+  <input type="search" id="q" placeholder="Search name, purity, box no…" value="${esc(S.q)}">
+  <div class="filters" style="margin-top:10px">${[['all', 'All', X.locs], ['pending', 'Not checked', X.pending], ['var', 'Variance', X.var + X.stale], ['ok', 'OK', X.ok]].map(([k, l, n]) => `<button data-f="${k}" class="${S.filter === k ? 'on' : ''}">${l} · ${n}</button>`).join('')}</div>
+  ${Object.entries(groups).map(([g, ls]) => `<div class="grp"><span>${esc(g)}</span><span>${hideExp() ? '' : fmt(ls.reduce((a, l) => a + sumLines(expOf(l.id).lines), 0)) + ' pcs'}</span></div><div class="locs">${ls.map(locCard).join('')}</div>`).join('') || '<div class="card mut" style="text-align:center">Nothing here</div>'}
+  ${can('count') && editable() ? `<div class="sticky"><button class="btn" style="width:100%" id="finish">Finish ${secLabel(sec).toLowerCase()} check · report to admin</button></div>` : ''}`;
+  bindBanner();
+  const qi = $('#q'); qi.oninput = () => { S.q = qi.value; const p = qi.selectionStart; vSection(sec); const n = $('#q'); n.focus(); n.setSelectionRange(p, p); };
+  $('#main').querySelectorAll('[data-f]').forEach((b) => b.onclick = () => { S.filter = b.dataset.f; vSection(sec); });
+  $('#addLoc') && ($('#addLoc').onclick = () => locEdit({ sec, group: '', name: '', purity: '', cat: 'Gold', itemType: '', images: [], mode: 'both' }));
+  $('#finish') && ($('#finish').onclick = () => finishSection(sec));
+  bindLocCards();
+}
+function locCard(l) {
+  const e = expOf(l.id); const st = S.sum.status[l.id]; const c = S.sum.last[l.id];
+  const thumb = l.images?.[0] ? `<img loading="lazy" src="${img(l.images[0].key)}" alt="">` : svg(l.sec, 26);
+  const chips = [l.boxNo ? `<span class="chip m">Box ${esc(l.boxNo)}</span>` : '', l.purity ? `<span class="chip m">${esc(l.purity)}</span>` : '', l.cat ? `<span class="chip">${esc(l.cat)}</span>` : '', l.itemType ? `<span class="chip">${esc(l.itemType)}</span>` : ''].join('');
+  const sub = st.state === 'var' || st.state === 'stale' ? `${diffTxt(st.diff)}${st.mode !== 'count' && st.wtDiff ? ` ${st.wtDiff > 0 ? '+' : ''}${g3(st.wtDiff)} g` : ''}` : c ? `${uname(c.by)} · ${tm(c.at)}` : '';
+  return `<button class="loc ${st.state}" data-loc="${l.id}"><div class="th">${thumb}</div><div class="grow" style="min-width:0"><div class="nm">${esc(l.name)}</div><div class="meta">${chips}</div><div class="row sm" style="margin-top:4px"><span class="st ${st.state}">${STLBL[st.state]}</span><span class="mut" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(sub)}</span></div></div>
+    <div class="q">${hideExp() ? '' : `<div class="v">${fmt(sumLines(e.lines))}</div><div class="mut sm">${l.sec === 'box' ? g3(e.wt) + ' g' : 'pcs'}</div>`}</div></button>`;
+}
+function bindLocCards() { $('#main').querySelectorAll('[data-loc]').forEach((b) => b.onclick = () => locSheet(b.dataset.loc)); }
+
+// ---------------- modal helpers ----------------
+function modal(title, sub, html, onBind) {
+  closeModal(); S.modal = true;
+  const ov = document.createElement('div'); ov.className = 'ov'; ov.id = 'ov';
+  ov.innerHTML = `<div class="md"><div class="mh"><div class="grow"><h2>${title}</h2>${sub ? `<div class="mut sm">${sub}</div>` : ''}</div><button class="x" id="xBtn">×</button></div><div class="mb">${html}</div></div>`;
+  document.body.appendChild(ov);
+  ov.onclick = (e) => { if (e.target === ov) { closeModal(); render(); } };
+  $('#xBtn').onclick = () => { closeModal(); render(); };
+  onBind && onBind(ov);
+  return ov;
+}
+function closeModal() { $('#ov')?.remove(); S.modal = false; }
+function lightbox(src) { const d = document.createElement('div'); d.className = 'lb'; d.innerHTML = `<img src="${src}">`; d.onclick = () => d.remove(); document.body.appendChild(d); }
+
+// ---------------- location sheet / count ----------------
+function locSheet(id, keep) {
+  const l = S.locById[id]; const e = expOf(id); const o = opOf(id); const f = S.sum.flows[id] || { in: {}, out: {}, wtIn: 0, wtOut: 0 };
+  const st = S.sum.status[id]; const c = S.sum.last[id]; const blind = hideExp();
+  const types = S.D.settings.itemTypes;
+  const box = l.sec === 'box';
+  const mode = keep?.mode || (box ? (l.mode || 'both') : 'count');
+  // rows: types with expected, or opening, or counted, or the loc's own type
+  const rowsT = keep?.rows || [...new Set([...Object.keys(e.lines), ...Object.keys(o.lines), ...(c?.lines ? Object.keys(c.lines) : []), ...(l.itemType ? [l.itemType] : [])])].sort((a, b) => types.indexOf(a) - types.indexOf(b));
+  if (!rowsT.length) rowsT.push(types[0]);
+  const vals = keep?.vals || {};
+  const myCounts = S.D.counts.filter((x) => x.locId === id).sort((a, b) => b.at - a.at);
+  const myMvs = S.D.mvs.filter((m) => m.legs.some((g) => g.locId === id));
+  const canCount = can('count') && editable();
+  const chips = [l.boxNo ? `Box ${l.boxNo}` : '', l.purity, l.cat, l.itemType, l.insert ? `${l.insert} × ${l.qty || 1} trays` : ''].filter(Boolean).map((x) => `<span class="chip m">${esc(x)}</span>`).join(' ');
+  const html = `
+  <div class="photos" id="photos">${(l.images || []).map((p, i) => `<div class="ph"><img src="${img(p.key)}" data-big="${i}"><span class="lbl">${esc(p.label || 'Photo')}</span>${can('setup') ? `<button class="del" data-delimg="${i}">×</button>` : ''}</div>`).join('')}
+    ${can('setup') ? `<label class="addph">${svg('cam', 26)}<span>Add tray /<br>item photo</span><input type="file" accept="image/*" capture="environment" id="phIn" hidden></label>` : (l.images || []).length ? '' : '<div class="mut sm">No photos yet</div>'}</div>
+  <div class="row wrap" style="margin:12px 0">${chips}</div>
+  ${blind ? '' : `<div class="kpis" style="grid-template-columns:repeat(4,1fr)">
+    <div class="kpi"><div class="l">Opening</div><div class="v" style="font-size:20px">${fmt(sumLines(o.lines))}</div>${box ? `<div class="sm mut">${g3(o.wt)} g</div>` : ''}</div>
+    <div class="kpi"><div class="l">In</div><div class="v" style="font-size:20px;color:var(--ok)">${sumLines(f.in) ? '+' + fmt(sumLines(f.in)) : '0'}</div>${box ? `<div class="sm mut">${g3(f.wtIn)} g</div>` : ''}</div>
+    <div class="kpi"><div class="l">Out</div><div class="v" style="font-size:20px;color:var(--bad)">${sumLines(f.out) ? '−' + fmt(sumLines(f.out)) : '0'}</div>${box ? `<div class="sm mut">${g3(f.wtOut)} g</div>` : ''}</div>
+    <div class="kpi"><div class="l">Expected</div><div class="v" style="font-size:20px">${fmt(sumLines(e.lines))}</div>${box ? `<div class="sm mut">${g3(e.wt)} g</div>` : ''}</div></div>`}
+  ${c ? `<div class="card" style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="st ${st.state}">${STLBL[st.state]}</span><div class="grow sm" style="min-width:200px">Last check by <b>${esc(uname(c.by))}</b> at ${tm(c.at)}${st.state === 'var' || st.state === 'stale' ? `<br><span style="color:var(--bad)">${esc(diffTxt(st.diff))}${st.mode !== 'count' && Math.abs(st.wtDiff) > 0 ? ` weight ${st.wtDiff > 0 ? '+' : ''}${g3(st.wtDiff)} g` : ''}</span>` : ''}${st.state === 'stale' ? '<br>Stock changed after this check — count again.' : ''}${c.note ? `<br><i>${esc(c.note)}</i>` : ''}</div>
+    ${st.state === 'var' && can('accept') && editable() ? `<button class="btn sm sec" id="acceptBtn">Accept count</button>` : ''}</div>` : ''}
+  ${canCount ? `<h3 style="margin:16px 0 8px">Count now</h3>
+    ${box ? `<div class="seg" id="mode" style="margin-bottom:10px">${[['count', 'Count'], ['weight', 'Weight'], ['both', 'Weight + count']].map(([k, t]) => `<button data-mode="${k}" class="${mode === k ? 'on' : ''}">${t}</button>`).join('')}</div>` : ''}
+    ${mode !== 'weight' ? `<div class="cnt"><div class="r h"><span>Item</span><span style="text-align:right">${blind ? '' : 'Exp.'}</span><span style="text-align:center">Counted</span><span style="text-align:right">Diff</span></div>
+      ${rowsT.map((t) => `<div class="r" data-row="${esc(t)}"><span class="b">${esc(t)}</span><span class="num mut" style="text-align:right">${blind ? '' : fmt(e.lines[t] || 0)}</span>
+        <div class="step"><button data-st="-1">−</button><input type="number" inputmode="numeric" min="0" data-cnt="${esc(t)}" value="${vals[t] ?? ''}" placeholder="${blind ? '?' : ''}"><button data-st="1">+</button></div><span class="num b" data-diff="${esc(t)}" style="text-align:right"></span></div>`).join('')}
+      <div class="r" style="grid-template-columns:1fr auto"><select id="addType"><option value="">＋ Found another item type…</option>${types.filter((t) => !rowsT.includes(t)).map((t) => `<option>${esc(t)}</option>`).join('')}</select></div></div>` : ''}
+    ${mode !== 'count' ? `<label class="f">Box weight now (g) ${blind ? '' : `· expected ${g3(e.wt)} g · tolerance ±${g3(S.D.settings.wtTol)}`}</label><input type="number" inputmode="decimal" step="0.001" id="wtIn" value="${keep?.wt ?? ''}" placeholder="0.000">` : ''}
+    <label class="f">Note (optional)</label><input type="text" id="cNote" placeholder="e.g. 1 ring sent for repair" value="${esc(keep?.note || '')}">
+    <div class="row" style="margin-top:12px">${blind ? '' : `<button class="btn ok grow" id="matchBtn">✓ All match</button>`}<button class="btn grow" id="saveCnt">Submit count</button></div>` : ''}
+  ${editable() && (can('move') || can('setup')) ? `<div class="row wrap" style="margin-top:16px">
+    ${can('move') ? `<button class="btn sm ghost" data-mv="in">＋ In</button><button class="btn sm ghost" data-mv="out">− Out / Sale</button><button class="btn sm ghost" data-mv="move">⇄ Move</button>` : ''}
+    ${can('setup') ? `<button class="btn sm ghost" id="setBtn">Set count</button><button class="btn sm ghost" id="editBtn">Edit details</button>` : ''}</div>` : ''}
+  ${myMvs.length ? `<h3 style="margin:18px 0 6px">Today's movements</h3><div class="list card" style="padding:0">${myMvs.map((m) => mvLine(m, id)).join('')}</div>` : ''}
+  ${myCounts.length > 1 ? `<h3 style="margin:18px 0 6px">Earlier checks today</h3><div class="sm">${myCounts.slice(1).map((x) => `<div class="li">${esc(uname(x.by))} · ${tm(x.at)} · ${x.mode !== 'weight' ? `${fmt(sumLines(x.lines))} pcs` : ''} ${x.wt != null ? g3(x.wt) + ' g' : ''} <span class="st ${x.result}">${STLBL[x.result]}</span></div>`).join('')}</div>` : ''}`;
+  modal(esc(l.name), `${secLabel(l.sec)} · ${esc(l.group)}`, html, (ov) => {
+    const grab = () => { const v = {}; ov.querySelectorAll('[data-cnt]').forEach((i) => { if (i.value !== '') v[i.dataset.cnt] = +i.value; }); return { mode, rows: rowsT, vals: v, wt: $('#wtIn')?.value, note: $('#cNote')?.value }; };
+    const upd = () => ov.querySelectorAll('[data-cnt]').forEach((i) => { const t = i.dataset.cnt; const d = ov.querySelector(`[data-diff="${CSS.escape(t)}"]`); if (i.value === '' || blind) { d.textContent = ''; return; } const x = +i.value - (e.lines[t] || 0); d.textContent = x ? sgn(x) : '✓'; d.style.color = x ? 'var(--bad)' : 'var(--ok)'; });
+    ov.querySelectorAll('[data-cnt]').forEach((i) => i.oninput = upd); upd();
+    ov.querySelectorAll('[data-st]').forEach((b) => b.onclick = () => { const i = b.parentElement.querySelector('input'); i.value = Math.max(0, (+i.value || 0) + +b.dataset.st); upd(); });
+    ov.querySelectorAll('[data-mode]').forEach((b) => b.onclick = () => locSheet(id, { ...grab(), mode: b.dataset.mode }));
+    $('#addType') && ($('#addType').onchange = (ev) => { const k = grab(); if (ev.target.value) k.rows = [...k.rows, ev.target.value]; locSheet(id, k); });
+    ov.querySelectorAll('[data-big]').forEach((im) => im.onclick = () => lightbox(im.src));
+    ov.querySelectorAll('[data-delimg]').forEach((b) => b.onclick = async () => { if (!confirm('Remove this photo?')) return; const imgs = [...l.images]; imgs.splice(+b.dataset.delimg, 1); await saveLoc({ ...l, images: imgs }); locSheet(id); });
+    $('#phIn') && ($('#phIn').onchange = async (ev) => { const file = ev.target.files[0]; if (!file) return; const label = prompt('Label for this photo (e.g. Tray, Items, Ring close-up)', (l.images || []).length ? 'Items' : 'Tray') ?? 'Photo'; try { toast('Uploading…'); const dataUrl = await shrink(file); const { key } = await api('img', { dataUrl }); await saveLoc({ ...l, images: [...(l.images || []), { key, label }] }); locSheet(id, grab()); toast('Photo added'); } catch (er) { fail(er); } });
+    const submit = async (all) => {
+      const k = grab(); const lines = {};
+      if (mode !== 'weight') { if (all) Object.assign(lines, e.lines); else { const missing = rowsT.filter((t) => k.vals[t] == null); if (missing.length === rowsT.length) return toast('Enter the counted quantity'); if (missing.length && !confirm(`No number for ${missing.join(', ')} — treat as 0?`)) return; Object.assign(lines, k.vals); } }
+      let wt = null; if (mode !== 'count') { if (all && (k.wt === '' || k.wt == null)) wt = e.wt; else { if (k.wt === '' || k.wt == null) return toast('Enter the box weight'); wt = +k.wt; } }
+      try { const r = await api('count', { date: S.D.date, locId: id, lines, wt, mode, note: k.note }); toast(r.count.result === 'ok' ? '✓ Count matches' : '⚠ Variance recorded — admin alerted', 3200); await load(); locSheet(id); } catch (er) { fail(er); }
+    };
+    $('#matchBtn') && ($('#matchBtn').onclick = () => submit(true));
+    $('#saveCnt') && ($('#saveCnt').onclick = () => submit(false));
+    $('#acceptBtn') && ($('#acceptBtn').onclick = async () => { const note = prompt('Accepting will change book stock to the counted figure. Reason?'); if (note == null) return; try { await api('move', { kind: 'accept', date: S.D.date, locId: id, note, reason: 'Count accepted' }); toast('Stock updated to count'); await load(); locSheet(id); } catch (er) { fail(er); } });
+    ov.querySelectorAll('[data-mv]').forEach((b) => b.onclick = () => moveForm(b.dataset.mv, id));
+    $('#setBtn') && ($('#setBtn').onclick = () => setCountForm(id));
+    $('#editBtn') && ($('#editBtn').onclick = () => locEdit(l));
+    bindVoid(ov, () => locSheet(id));
+  });
+}
+function mvLine(m, focus) {
+  const K = { in: ['＋', 'var(--ok)'], out: ['−', 'var(--bad)'], move: ['⇄', 'var(--m)'], set: ['✎', 'var(--warn)'], accept: ['✓', 'var(--warn)'] }[m.kind] || ['•', 'var(--mut)'];
+  const legs = m.legs.map((g) => `${esc(S.locById[g.locId]?.name || g.locId)}: ${esc(diffTxt(g.lines) || '0')}${g.wt ? ` ${g.wt > 0 ? '+' : ''}${g.wt} g` : ''}`).join(' → ');
+  return `<div class="li" style="${m.void ? 'opacity:.5;text-decoration:line-through' : ''}"><span style="color:${K[1]};font-weight:700;width:18px">${K[0]}</span><div class="grow sm"><b>${esc(m.reason || m.kind)}</b>${m.ref ? ` · ${esc(m.ref)}` : ''}<br>${legs}${m.note ? `<br><i class="mut">${esc(m.note)}</i>` : ''}<div class="mut">${esc(uname(m.by))} · ${tm(m.at)}${m.void ? ` · voided by ${esc(uname(m.void.by))}` : ''}</div></div>${!m.void && editable() && can(['set', 'accept'].includes(m.kind) ? 'setup' : 'move') ? `<button class="btn sm ghost" data-void="${m.id}">Void</button>` : ''}</div>`;
+}
+function bindVoid(root, after) {
+  root.querySelectorAll('[data-void]').forEach((b) => b.onclick = async () => { const why = prompt('Void this entry? Reason:'); if (why == null) return; try { await api('move/void', { date: S.D.date, id: b.dataset.void, why }); toast('Entry voided'); await load(); after && after(); } catch (e) { fail(e); } });
+}
+async function shrink(file, max = 1280) {
+  const bmp = await createImageBitmap(file);
+  const k = Math.min(1, max / Math.max(bmp.width, bmp.height));
+  const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+  c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+  return c.toDataURL('image/jpeg', 0.78);
+}
+async function saveLoc(loc) { const r = await api('loc', { loc }); await load(true); return r.loc; }
+
+// ---------------- movements ----------------
+function locOptions(sel, exclude) {
+  return SECTIONS.map((s) => `<optgroup label="${s.label}">${activeLocs(s.key).filter((l) => l.id !== exclude).map((l) => `<option value="${l.id}" ${l.id === sel ? 'selected' : ''}>${esc(l.group)} · ${esc(l.name)}${l.boxNo ? ` (Box ${esc(l.boxNo)})` : ''}</option>`).join('')}</optgroup>`).join('');
+}
+function moveForm(kind, locId, keep) {
+  const k = keep || { kind, locId: locId || '', toLocId: '', lines: [{ t: S.locById[locId]?.itemType || '', n: '' }], wt: '', toWt: '', reason: REASONS[kind === 'move' ? 'out' : kind]?.[0] || 'Transfer', ref: '', note: '' };
+  const from = S.locById[k.locId]; const to = S.locById[k.toLocId];
+  const needWt = from?.sec === 'box' || to?.sec === 'box';
+  const types = S.D.settings.itemTypes;
+  const T = { in: 'Stock in', out: 'Stock out / Sale', move: 'Move between locations' }[k.kind];
+  const html = `<div class="seg" style="margin-bottom:6px">${[['in', '＋ In'], ['out', '− Out'], ['move', '⇄ Move']].map(([x, t]) => `<button data-k="${x}" class="${k.kind === x ? 'on' : ''}">${t}</button>`).join('')}</div>
+    <label class="f">${k.kind === 'move' ? 'From' : 'Location'}</label><select id="mLoc"><option value="">Choose…</option>${locOptions(k.locId)}</select>
+    ${k.kind === 'move' ? `<label class="f">To</label><select id="mTo"><option value="">Choose…</option>${locOptions(k.toLocId, k.locId)}</select>` : ''}
+    ${from && !hideExp() ? `<div class="mut sm" style="margin-top:4px">Now at ${esc(from.name)}: ${esc(linesTxt(expOf(from.id).lines))}${from.sec === 'box' ? ` · ${g3(expOf(from.id).wt)} g` : ''}</div>` : ''}
+    <label class="f">Items</label>
+    <div id="mLines">${k.lines.map((x, i) => `<div class="row" style="margin-bottom:6px"><select data-lt="${i}" style="flex:2"><option value="">Item type…</option>${types.map((t) => `<option ${x.t === t ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select><input type="number" inputmode="numeric" min="0" data-ln="${i}" value="${esc(x.n)}" placeholder="Pcs" style="flex:1"></div>`).join('')}</div>
+    <button class="btn sm ghost" id="addLn">＋ Another item type</button>
+    ${needWt ? `<div class="row"><div class="grow"><label class="f">Weight ${k.kind === 'move' && from?.sec !== 'box' ? 'into box' : k.kind === 'in' ? 'added' : 'taken out'} (g)</label><input type="number" inputmode="decimal" step="0.001" id="mWt" value="${esc(k.wt)}" placeholder="0.000"></div>${k.kind === 'move' && from?.sec === 'box' && to?.sec === 'box' ? '' : ''}</div><div class="mut sm">Box weight is tracked — enter the gross weight of these pieces.</div>` : ''}
+    <div class="row"><div class="grow"><label class="f">Reason</label><select id="mReason">${(k.kind === 'move' ? ['Counter refill', 'Back to buffer', 'Box to tray', 'Tray to box', 'Rearrange'] : REASONS[k.kind]).map((r) => `<option ${r === k.reason ? 'selected' : ''}>${r}</option>`).join('')}</select></div>
+    <div class="grow"><label class="f">Bill / ref no.</label><input type="text" id="mRef" value="${esc(k.ref)}" placeholder="Invoice, SKU…"></div></div>
+    <label class="f">Note</label><input type="text" id="mNote" value="${esc(k.note)}">
+    <button class="btn" style="width:100%;margin-top:14px" id="mSave">Save ${T.toLowerCase()}</button>`;
+  modal(T, 'Updates expected stock for today', html, (ov) => {
+    const grab = () => ({ ...k, locId: $('#mLoc').value, toLocId: $('#mTo')?.value || '', lines: [...ov.querySelectorAll('[data-lt]')].map((s, i) => ({ t: s.value, n: ov.querySelector(`[data-ln="${i}"]`).value })), wt: $('#mWt')?.value ?? '', reason: $('#mReason').value, ref: $('#mRef').value, note: $('#mNote').value });
+    ov.querySelectorAll('[data-k]').forEach((b) => b.onclick = () => { const g = grab(); g.kind = b.dataset.k; g.reason = (g.kind === 'move' ? 'Counter refill' : REASONS[g.kind][0]); moveForm(g.kind, null, g); });
+    $('#mLoc').onchange = () => { const g = grab(); if (g.lines.length === 1 && !g.lines[0].t) g.lines[0].t = S.locById[g.locId]?.itemType || ''; moveForm(g.kind, null, g); };
+    $('#mTo') && ($('#mTo').onchange = () => moveForm(k.kind, null, grab()));
+    $('#addLn').onclick = () => { const g = grab(); g.lines.push({ t: '', n: '' }); moveForm(g.kind, null, g); };
+    $('#mSave').onclick = async () => {
+      const g = grab(); const lines = {};
+      for (const x of g.lines) if (x.t && +x.n > 0) lines[x.t] = (lines[x.t] || 0) + +x.n;
+      if (!g.locId) return toast('Choose a location');
+      if (!Object.keys(lines).length && !(+g.wt)) return toast('Enter item type and pieces');
+      if (g.kind === 'move' && !g.toLocId) return toast('Choose where it goes');
+      const toBox = S.locById[g.toLocId]?.sec === 'box', fromBox = S.locById[g.locId]?.sec === 'box';
+      const wt = +g.wt || 0;
+      const body = { kind: g.kind, date: S.D.date, locId: g.locId, toLocId: g.toLocId, lines, wt: fromBox ? wt : 0, toWt: toBox ? wt : 0, reason: g.reason, ref: g.ref, note: g.note };
+      try { await api('move', body); toast('Saved'); closeModal(); await load(); if (locId) locSheet(locId); } catch (e) { fail(e); }
+    };
+  });
+}
+function setCountForm(id) {
+  const l = S.locById[id]; const e = expOf(id); const types = S.D.settings.itemTypes;
+  const rows = [...new Set([...Object.keys(e.lines), ...(l.itemType ? [l.itemType] : [])])];
+  const html = `<div class="mut sm">Sets the book stock for this location (for corrections or a fresh opening). Logged and sent to admin.</div>
+    <div class="cnt" style="margin-top:10px">${types.map((t) => `<div class="r" style="grid-template-columns:1fr 110px ${rows.includes(t) ? '' : ';opacity:.7'}"><span class="b">${esc(t)}</span><input type="number" inputmode="numeric" min="0" data-set="${esc(t)}" value="${e.lines[t] ?? ''}" placeholder="0"></div>`).join('')}</div>
+    ${l.sec === 'box' ? `<label class="f">Box weight (g)</label><input type="number" step="0.001" inputmode="decimal" id="sWt" value="${e.wt || ''}">` : ''}
+    <label class="f">Reason (required)</label><input type="text" id="sNote" placeholder="e.g. Opening count entered, tray reorganised">
+    <button class="btn" style="width:100%;margin-top:14px" id="sSave">Set stock</button>`;
+  modal('Set count · ' + esc(l.name), 'Manager / admin', html, (ov) => {
+    $('#sSave').onclick = async () => {
+      const note = $('#sNote').value.trim(); if (!note) return toast('Enter a reason');
+      const lines = {}; ov.querySelectorAll('[data-set]').forEach((i) => { if (+i.value > 0) lines[i.dataset.set] = +i.value; });
+      try { const r = await api('move', { kind: 'set', date: S.D.date, locId: id, lines, wt: $('#sWt') ? +$('#sWt').value || 0 : null, note, reason: 'Count set' }); toast(r.nochange ? 'No change' : 'Stock set'); await load(); locSheet(id); } catch (er) { fail(er); }
+    };
+  });
+}
+
+// ---------------- location edit ----------------
+function locEdit(l) {
+  const st = S.D.settings; const isNew = !l.id;
+  const groups = [...new Set(S.D.locs.filter((x) => x.sec === l.sec).map((x) => x.group))];
+  const html = `<label class="f">Section</label><select id="eSec">${SECTIONS.map((s) => `<option value="${s.key}" ${l.sec === s.key ? 'selected' : ''}>${s.label}</option>`).join('')}</select>
+    <label class="f">Group (counter / category / shelf)</label><input type="text" id="eGrp" list="grpL" value="${esc(l.group)}"><datalist id="grpL">${groups.map((g) => `<option value="${esc(g)}">`).join('')}</datalist>
+    <label class="f">Name</label><input type="text" id="eName" value="${esc(l.name)}" placeholder="e.g. Tray 2 · 9K / Brown Tray / 9KT Box-1">
+    <div class="row"><div class="grow"><label class="f">Purity</label><select id="ePur"><option value="">—</option>${st.purities.map((p) => `<option ${l.purity === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div>
+    <div class="grow"><label class="f">Category</label><select id="eCat"><option value="">—</option>${st.categories.map((p) => `<option ${l.cat === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div></div>
+    <div class="row"><div class="grow"><label class="f">Main item type</label><select id="eType"><option value="">Mixed / several</option>${st.itemTypes.map((p) => `<option ${l.itemType === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div>
+    <div class="grow" id="boxF"><label class="f">Box number</label><input type="text" id="eBox" value="${esc(l.boxNo || '')}"></div></div>
+    <div class="row" id="trayF"><div class="grow"><label class="f">Pcs per tray (insert)</label><input type="number" id="eIns" value="${esc(l.insert || '')}"></div><div class="grow"><label class="f">No. of trays</label><input type="number" id="eQty" value="${esc(l.qty || '')}"></div></div>
+    <div id="modeF"><label class="f">Default box check</label><select id="eMode">${[['both', 'Weight + count'], ['weight', 'Weight only'], ['count', 'Count only']].map(([k, t]) => `<option value="${k}" ${l.mode === k ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
+    <label class="f">Note</label><input type="text" id="eNote" value="${esc(l.note || '')}">
+    ${isNew ? `<h3 style="margin:14px 0 6px">Opening stock</h3><div class="mut sm">Pieces placed here now (you can also set later).</div><div class="row wrap" style="margin-top:6px">${st.itemTypes.map((t) => `<label style="width:calc(33% - 6px)"><span class="sm mut">${esc(t)}</span><input type="number" min="0" data-ini="${esc(t)}" placeholder="0"></label>`).join('')}</div><div id="iniWt"><label class="f">Box weight (g)</label><input type="number" step="0.001" id="eWt"></div>` : ''}
+    <div class="row" style="margin-top:16px">${!isNew ? `<button class="btn bad sm" id="eDel">Remove</button>` : ''}<button class="btn grow" id="eSave">${isNew ? 'Add location' : 'Save'}</button></div>`;
+  modal(isNew ? 'Add location' : 'Edit · ' + esc(l.name), 'Manager / admin', html, (ov) => {
+    const vis = () => { const s = $('#eSec').value; $('#boxF').classList.toggle('hidden', s !== 'box'); $('#modeF').classList.toggle('hidden', s !== 'box'); $('#trayF').classList.toggle('hidden', s !== 'tray'); $('#iniWt') && $('#iniWt').classList.toggle('hidden', s !== 'box'); };
+    $('#eSec').onchange = vis; vis();
+    $('#eSave').onclick = async () => {
+      const loc = { ...l, sec: $('#eSec').value, group: $('#eGrp').value.trim(), name: $('#eName').value.trim(), purity: $('#ePur').value, cat: $('#eCat').value, itemType: $('#eType').value, boxNo: $('#eBox').value.trim(), insert: +$('#eIns').value || 0, qty: +$('#eQty').value || 0, mode: $('#eMode').value, note: $('#eNote').value };
+      if (!loc.name || !loc.group) return toast('Group and name are required');
+      try {
+        const saved = await saveLoc(loc);
+        if (isNew) {
+          const lines = {}; ov.querySelectorAll('[data-ini]').forEach((i) => { if (+i.value > 0) lines[i.dataset.ini] = +i.value; });
+          const wt = +($('#eWt')?.value || 0);
+          if (Object.keys(lines).length || wt) await api('move', { kind: 'set', date: S.D.date, locId: saved.id, lines, wt, note: 'Opening stock for new location', reason: 'Count set' });
+        }
+        toast('Saved'); closeModal(); await load();
+      } catch (e) { fail(e); }
+    };
+    $('#eDel') && ($('#eDel').onclick = async () => { if (!confirm(`Remove ${l.name}? Its stock must be zero first.`)) return; try { await api('loc', { loc: { id: l.id, active: false } }); toast('Removed'); closeModal(); await load(); } catch (e) { fail(e); } });
+  });
+}
+
+// ---------------- finish section / close day ----------------
+async function finishSection(sec) {
+  const X = S.sum.sec[sec];
+  if (X.pending && !confirm(`${X.pending} location(s) not checked yet. Send the report anyway?`)) return;
+  try {
+    const r = await api('report', { date: S.D.date, sec });
+    await load();
+    const wa = S.D.settings.waNumber;
+    modal('Report sent to admin', secLabel(sec), `<div class="card">${esc(r.text)}</div>
+      ${wa ? `<a class="btn ok" style="width:100%;margin-top:12px;text-decoration:none" target="_blank" href="https://wa.me/${wa}?text=${encodeURIComponent('Yamie stock check ' + S.D.date + '\n' + r.text)}">Also send on WhatsApp</a>` : ''}
+      <button class="btn ghost" style="width:100%;margin-top:8px" id="okBtn">Done</button>`, () => { $('#okBtn').onclick = closeModal; });
+  } catch (e) { fail(e); }
+}
+function closeDayFlow() {
+  const T = S.sum.total;
+  modal('Close day · ' + dt(S.D.date), 'Closing stock becomes tomorrow\'s opening', `
+    <table><tr><td>Opening</td><td>${fmt(T.opening)}</td></tr><tr><td>In</td><td class="pos">+${fmt(T.in)}</td></tr><tr><td>Out</td><td class="neg">−${fmt(T.out)}</td></tr><tr class="tot"><td>Closing</td><td>${fmt(T.expected)}</td></tr>
+    <tr><td>Checked</td><td>${T.locs - T.pending}/${T.locs}</td></tr><tr><td>Variances open</td><td class="${T.var + T.stale ? 'neg' : 'pos'}">${T.var + T.stale}</td></tr></table>
+    ${T.var + T.stale ? `<div class="banner" style="margin-top:12px">Unresolved variances close as book stock (not as counted). Accept counts first if they are correct.</div>` : ''}
+    ${T.pending ? `<div class="banner" style="margin-top:12px">${T.pending} locations were not checked today.</div>` : ''}
+    <button class="btn" style="width:100%;margin-top:14px" id="doClose">Close day</button>`, () => {
+    $('#doClose').onclick = async () => { try { await api('close', { date: S.D.date }); toast('Day closed'); closeModal(); await load(); } catch (e) { fail(e); } };
+  });
+}
+
+// ---------------- consolidated ----------------
+function vTotal() {
+  if (!can('reports') && !can('count')) return $('#main').innerHTML = '<div class="card">No access</div>';
+  const sm = S.sum; const types = [...S.D.settings.itemTypes, ...Object.keys(sm.byType).filter((t) => !S.D.settings.itemTypes.includes(t))].filter((t) => sm.byType[t]);
+  const blind = hideExp();
+  const cell = (n) => `<td class="${n > 0 ? 'pos' : n < 0 ? 'neg' : ''}">${n ? sgn(n) : '—'}</td>`;
+  const tot = (t, k) => SECTIONS.reduce((a, s) => a + (sm.byType[t]?.[s.key]?.[k] || 0), 0);
+  const varLocs = activeLocs().filter((l) => ['var', 'stale'].includes(sm.status[l.id].state));
+  $('#main').innerHTML = `${viewBanner()}
+  <div class="row sp wrap" style="margin-bottom:12px"><div><h1>Consolidated stock</h1><div class="mut">${dt(S.D.date)} · ${S.D.day.status === 'closed' ? 'Closed' : 'Live'}</div></div>
+  <div class="row noprint">${can('reports') ? `<button class="btn sm ghost" id="csv">Export CSV</button><button class="btn sm ghost" id="prt">Print</button>${S.D.settings.waNumber ? `<button class="btn sm ok" id="wa">WhatsApp</button>` : ''}` : ''}</div></div>
+  ${blind ? '<div class="card mut">Expected totals are hidden while counting is in progress.</div>' : `
+  <h3 style="margin:6px 0 8px">By section</h3>
+  <div class="tw"><table><tr><th>Section</th><th>Opening</th><th>In</th><th>Out</th><th>Expected</th><th>Checked</th><th>Counted</th><th>Variance</th></tr>
+  ${SECTIONS.map((s) => { const X = sm.sec[s.key]; return `<tr><td>${s.label}${s.key === 'box' ? `<div class="mut sm">${g3(X.wtExpected)} g</div>` : ''}</td><td>${fmt(X.opening)}</td><td>${fmt(X.in)}</td><td>${fmt(X.out)}</td><td class="b">${fmt(X.expected)}</td><td>${X.locs - X.pending}/${X.locs}</td><td>${fmt(X.counted)}</td>${cell(X.counted - X.checkedExp)}</tr>`; }).join('')}
+  <tr class="tot"><td>Total</td><td>${fmt(sm.total.opening)}</td><td>${fmt(sm.total.in)}</td><td>${fmt(sm.total.out)}</td><td>${fmt(sm.total.expected)}</td><td>${sm.total.locs - sm.total.pending}/${sm.total.locs}</td><td>${fmt(sm.total.counted)}</td>${cell(sm.total.counted - sm.total.checkedExp)}</tr></table></div>
+  <h3 style="margin:20px 0 8px">By item type</h3>
+  <div class="tw"><table><tr><th>Item</th><th>Opening</th><th>In</th><th>Out</th>${SECTIONS.map((s) => `<th>${s.short}</th>`).join('')}<th>Expected</th><th>Counted</th><th>Variance</th></tr>
+  ${types.map((t) => `<tr><td class="b">${esc(t)}</td><td>${fmt(tot(t, 'op'))}</td><td>${fmt(tot(t, 'in'))}</td><td>${fmt(tot(t, 'out'))}</td>${SECTIONS.map((s) => `<td>${fmt(sm.byType[t]?.[s.key]?.exp || 0)}</td>`).join('')}<td class="b">${fmt(tot(t, 'exp'))}</td><td>${fmt(tot(t, 'cnt'))}</td>${cell(tot(t, 'cnt') - tot(t, 'chkExp'))}</tr>`).join('')}
+  <tr class="tot"><td>Total</td><td>${fmt(sm.total.opening)}</td><td>${fmt(sm.total.in)}</td><td>${fmt(sm.total.out)}</td>${SECTIONS.map((s) => `<td>${fmt(sm.sec[s.key].expected)}</td>`).join('')}<td>${fmt(sm.total.expected)}</td><td>${fmt(sm.total.counted)}</td>${cell(sm.total.counted - sm.total.checkedExp)}</tr></table></div>
+  <div class="mut sm" style="margin-top:6px">Counted and variance cover checked locations only.</div>
+  <div class="row wrap" style="gap:12px;margin-top:20px;align-items:flex-start">
+    <div class="grow" style="min-width:240px"><h3 style="margin-bottom:8px">By purity</h3><div class="tw"><table><tr><th>Purity</th><th>Pcs</th></tr>${Object.entries(sm.byPurity).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<tr><td>${esc(k === '—' ? 'Not set' : k)}</td><td>${fmt(v)}</td></tr>`).join('')}</table></div></div>
+    <div class="grow" style="min-width:240px"><h3 style="margin-bottom:8px">By category</h3><div class="tw"><table><tr><th>Category</th><th>Pcs</th></tr>${Object.entries(sm.byCat).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<tr><td>${esc(k === '—' ? 'Not set' : k)}</td><td>${fmt(v)}</td></tr>`).join('')}</table></div></div></div>`}
+  ${varLocs.length ? `<h3 style="margin:20px 0 8px">Variances (${varLocs.length})</h3><div class="locs">${varLocs.map(locCard).join('')}</div>` : ''}
+  ${editable() && can('close') ? `<button class="btn" style="width:100%;margin-top:20px" id="closeBtn">Close day</button>` : ''}`;
+  bindBanner(); bindLocCards();
+  $('#closeBtn') && ($('#closeBtn').onclick = closeDayFlow);
+  $('#csv') && ($('#csv').onclick = exportCSV);
+  $('#prt') && ($('#prt').onclick = () => print());
+  $('#wa') && ($('#wa').onclick = () => open(`https://wa.me/${S.D.settings.waNumber}?text=${encodeURIComponent(summaryText())}`, '_blank'));
+}
+function summaryText() {
+  const sm = S.sum; const t = sm.total;
+  return `Yamie stock · ${S.D.date} (${S.D.day.status})\n` + SECTIONS.map((s) => { const X = sm.sec[s.key]; return `${s.label}: ${X.expected} pcs${s.key === 'box' ? ` / ${g3(X.wtExpected)} g` : ''}, checked ${X.locs - X.pending}/${X.locs}, variance ${X.var + X.stale}`; }).join('\n') + `\nTotal: opening ${t.opening}, in ${t.in}, out ${t.out}, expected ${t.expected}\nVariance locations: ${t.var + t.stale}` +
+    activeLocs().filter((l) => ['var', 'stale'].includes(sm.status[l.id].state)).map((l) => `\n• ${l.name}: ${diffTxt(sm.status[l.id].diff) || 'weight/recount'}`).join('');
+}
+function exportCSV() {
+  const sm = S.sum; const types = S.D.settings.itemTypes;
+  const rows = [['Date', 'Section', 'Group', 'Location', 'Box no', 'Purity', 'Category', 'Item type', 'Opening', 'In', 'Out', 'Expected', 'Counted', 'Variance', 'Exp. weight g', 'Counted weight g', 'Status', 'Checked by', 'Checked at']];
+  for (const l of activeLocs()) {
+    const e = expOf(l.id), o = opOf(l.id), f = sm.flows[l.id] || { in: {}, out: {} }, c = sm.last[l.id], st = sm.status[l.id];
+    const ts = [...new Set([...Object.keys(e.lines), ...Object.keys(o.lines), ...Object.keys(f.in), ...Object.keys(f.out), ...Object.keys(c?.lines || {})])].sort((a, b) => types.indexOf(a) - types.indexOf(b));
+    if (!ts.length) ts.push('');
+    ts.forEach((t, i) => { const cn = c && c.mode !== 'weight' ? (c.lines?.[t] || 0) : ''; rows.push([S.D.date, secLabel(l.sec), l.group, l.name, l.boxNo || '', l.purity, l.cat, t, o.lines[t] || 0, f.in[t] || 0, f.out[t] || 0, e.lines[t] || 0, cn, cn === '' ? '' : cn - (e.lines[t] || 0), i ? '' : (l.sec === 'box' ? e.wt : ''), i ? '' : (c?.wt ?? ''), STLBL[st.state], c ? uname(c.by) : '', c ? tm(c.at) : '']); });
+  }
+  const csv = rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv' })); a.download = `yamie-stock-${S.D.date}.csv`; a.click();
+}
+
+// ---------------- more / alerts / log / history / admin ----------------
+function vMore() {
+  const items = [['log', 'Day log', 'Movements and checks today', true], ['alerts', 'Alerts', 'Variances and reports', can('alerts')], ['history', 'History', 'Past days and closing stock', can('reports')], ['admin', 'Admin', 'Users, locations, settings', can('users') || can('setup')]].filter((x) => x[3]);
+  $('#main').innerHTML = `<h1 style="margin-bottom:12px">More</h1><div class="list card" style="padding:0">${items.map(([k, t, d]) => `<button class="li" style="width:100%;text-align:left" data-go="${k}"><div class="grow"><div class="b">${t}</div><div class="mut sm">${d}</div></div><span class="mut">›</span></button>`).join('')}
+    <button class="li" style="width:100%;text-align:left" id="pinBtn"><div class="grow"><div class="b">Change my PIN</div><div class="mut sm">${esc(S.me.name)} · ${esc(S.me.role)}</div></div></button>
+    <button class="li" style="width:100%;text-align:left" id="notiBtn"><div class="grow"><div class="b">Notifications on this device</div><div class="mut sm">${localStorage.ysc_notify === '1' ? 'On' : 'Off'} — alerts while the app is open</div></div></button>
+    <button class="li" style="width:100%;text-align:left;color:var(--bad)" id="outBtn"><div class="grow b">Log out</div></button></div>`;
+  $('#main').querySelectorAll('[data-go]').forEach((b) => b.onclick = () => go(b.dataset.go));
+  $('#outBtn').onclick = logout;
+  $('#notiBtn').onclick = async () => { if (localStorage.ysc_notify === '1') localStorage.ysc_notify = '0'; else { if ('Notification' in window) { const p = await Notification.requestPermission(); if (p !== 'granted') toast('Notifications blocked in browser settings — in-app alerts still work'); } localStorage.ysc_notify = '1'; } vMore(); };
+  $('#pinBtn').onclick = () => modal('Change my PIN', '', `<label class="f">Current PIN</label><input type="password" inputmode="numeric" id="p0"><label class="f">New PIN (4–6 digits)</label><input type="password" inputmode="numeric" id="p1"><button class="btn" style="width:100%;margin-top:14px" id="pS">Save</button>`, () => { $('#pS').onclick = async () => { try { await api('me/pin', { old: $('#p0').value, pin: $('#p1').value }); toast('PIN changed'); closeModal(); } catch (e) { fail(e); } }; });
+}
+async function vAlerts() {
+  $('#main').innerHTML = '<h1>Alerts</h1><div class="mut" style="margin-top:8px">Loading…</div>';
+  try {
+    const j = await api('alerts'); api('alerts/seen', {}).then(() => { S.D.alerts.unread = 0; renderTop(); });
+    const I = { variance: ['!', 'var(--badb)', 'var(--bad)'], report: ['✓', 'var(--okb)', 'var(--ok)'], close: ['■', 'var(--m3)', 'var(--m)'], info: ['i', 'var(--warnb)', 'var(--warn)'] };
+    $('#main').innerHTML = `<h1 style="margin-bottom:12px">Alerts</h1><div class="card" style="padding:0;overflow:hidden">${j.alerts.map((a) => { const k = I[a.type] || I.info; const ic = a.type === 'report' && !a.ok ? ['!', 'var(--warnb)', 'var(--warn)'] : k; return `<div class="al ${a.at > j.seen && a.by !== S.me.id ? 'new' : ''}"><div class="ic" style="background:${ic[1]};color:${ic[2]}">${ic[0]}</div><div class="grow"><div class="b">${esc(a.title)}</div><div class="sm">${esc(a.body)}</div><div class="mut sm">${esc(uname(a.by))} · ${ago(a.at)}</div></div>${a.locId && a.date === S.D.today && S.locById[a.locId] && isToday() ? `<button class="btn sm ghost" data-loc="${a.locId}">Open</button>` : ''}</div>`; }).join('') || '<div class="mut" style="padding:20px;text-align:center">No alerts in the last 7 days</div>'}</div>`;
+    bindLocCards();
+  } catch (e) { fail(e); }
+}
+function vLog() {
+  const mvs = [...S.D.mvs].reverse(); const cs = [...S.D.counts].sort((a, b) => b.at - a.at);
+  $('#main').innerHTML = `${viewBanner()}<h1 style="margin-bottom:12px">Day log · ${dt(S.D.date)}</h1>
+  <div class="tabs"><button data-t="mv" class="${S.tab !== 'ct' ? 'on' : ''}">Stock movements (${mvs.length})</button><button data-t="ct" class="${S.tab === 'ct' ? 'on' : ''}">Checks (${cs.length})</button></div>
+  ${S.tab !== 'ct' ? `<div class="card list" style="padding:0">${mvs.map((m) => mvLine(m)).join('') || '<div class="mut" style="padding:20px">No movements</div>'}</div>`
+    : `<div class="tw"><table><tr><th>Location</th><th>By</th><th>Time</th><th>Counted</th><th>Weight</th><th>Result</th></tr>${cs.map((c) => `<tr><td><b>${esc(S.locById[c.locId]?.name || c.locId)}</b><div class="mut sm">${secLabel(c.sec)}</div></td><td>${esc(uname(c.by))}</td><td>${tm(c.at)}</td><td>${c.lines ? fmt(sumLines(c.lines)) : '—'}</td><td>${c.wt != null ? g3(c.wt) : '—'}</td><td style="text-align:left"><span class="st ${c.result}">${STLBL[c.result]}</span> <span class="sm">${esc(diffTxt(c.diff))}</span></td></tr>`).join('')}</table></div>`}`;
+  bindBanner();
+  $('#main').querySelectorAll('[data-t]').forEach((b) => b.onclick = () => { S.tab = b.dataset.t; vLog(); });
+  bindVoid($('#main'));
+}
+async function vHistory() {
+  $('#main').innerHTML = '<h1>History</h1><div class="mut">Loading…</div>';
+  try {
+    const j = await api('history');
+    $('#main').innerHTML = `<h1 style="margin-bottom:12px">History</h1><div class="tw"><table><tr><th>Date</th><th>Status</th><th>Opening</th><th>In</th><th>Out</th><th>Closing</th>${SECTIONS.map((s) => `<th>${s.short}</th>`).join('')}<th>Checked</th><th>Variance</th><th></th></tr>
+    ${j.days.map((d) => { const m = d.summary; return `<tr><td class="b">${dt(d.date)}</td><td style="text-align:left">${d.status === 'closed' ? `<span class="st ok">Closed</span>${d.autoClosed ? ' <span class="mut sm">auto</span>' : ''}` : '<span class="st stale">Open</span>'}</td>
+      ${m ? `<td>${fmt(m.opening)}</td><td>${fmt(m.in)}</td><td>${fmt(m.out)}</td><td class="b">${fmt(m.closing)}</td>${SECTIONS.map((s) => `<td>${fmt(m.sec?.[s.key]?.closing || 0)}</td>`).join('')}<td>${m.checked}/${m.locs}</td><td class="${m.variances ? 'neg' : 'pos'}">${m.variances}</td>` : `<td colspan="${6 + SECTIONS.length}" class="mut" style="text-align:center">In progress</td>`}
+      <td><button class="btn sm ghost" data-day="${d.date}">View</button></td></tr>`; }).join('')}</table></div>`;
+    $('#main').querySelectorAll('[data-day]').forEach((b) => b.onclick = async () => { S.date = b.dataset.day === S.D.today ? null : b.dataset.day; S.view = 'total'; await load(); });
+  } catch (e) { fail(e); }
+}
+async function vAdmin() {
+  const tabs = [['users', 'Users', can('users')], ['locs', 'Locations', can('setup')], ['settings', 'Settings', can('setup')]].filter((x) => x[2]);
+  if (!tabs.find((t) => t[0] === S.tab)) S.tab = tabs[0]?.[0];
+  $('#main').innerHTML = `<h1 style="margin-bottom:12px">Admin</h1><div class="tabs">${tabs.map(([k, t]) => `<button data-t="${k}" class="${S.tab === k ? 'on' : ''}">${t}</button>`).join('')}</div><div id="adm"></div>`;
+  $('#main').querySelectorAll('[data-t]').forEach((b) => b.onclick = () => { S.tab = b.dataset.t; vAdmin(); });
+  if (S.tab === 'users') admUsers(); else if (S.tab === 'locs') admLocs(); else admSettings();
+}
+async function admUsers() {
+  const j = await api('users');
+  $('#adm').innerHTML = `<div class="row sp" style="margin-bottom:10px"><div class="mut">Staff log in with name + PIN</div><button class="btn sm" id="uAdd">＋ Add user</button></div>
+    <div class="card list" style="padding:0">${j.users.map((u) => `<button class="li" style="width:100%;text-align:left;${u.active ? '' : 'opacity:.5'}" data-u="${u.id}"><div class="grow"><div class="b">${esc(u.name)} <span class="chip m">${esc(u.role)}</span>${u.active ? '' : ' <span class="chip">disabled</span>'}</div><div class="mut sm">${(u.role === 'admin' ? Object.keys(PERMS) : u.perms).map((p) => PERMS[p]).join(' · ')}</div></div><span class="mut">›</span></button>`).join('')}</div>`;
+  const edit = (u) => modal(u.id ? 'Edit user' : 'Add user', '', `<label class="f">Name</label><input type="text" id="uN" value="${esc(u.name || '')}">
+    <label class="f">Role</label><select id="uR">${Object.keys(ROLE_PERMS).map((r) => `<option ${u.role === r ? 'selected' : ''}>${r}</option>`).join('')}</select>
+    <label class="f">Permissions</label><div id="uP">${Object.entries(PERMS).map(([k, t]) => `<label class="chk"><input type="checkbox" value="${k}" ${(u.perms || ROLE_PERMS[u.role || 'staff']).includes(k) ? 'checked' : ''}> ${t}</label>`).join('')}</div>
+    <label class="f">${u.id ? 'New PIN (leave blank to keep)' : 'PIN (4–6 digits)'}</label><input type="password" inputmode="numeric" id="uPin">
+    ${u.id ? `<label class="chk"><input type="checkbox" id="uA" ${u.active !== false ? 'checked' : ''}> Active</label>` : ''}
+    <button class="btn" style="width:100%;margin-top:14px" id="uS">Save</button>`, (ov) => {
+    $('#uR').onchange = () => { const p = ROLE_PERMS[$('#uR').value]; ov.querySelectorAll('#uP input').forEach((c) => c.checked = p.includes(c.value)); };
+    $('#uS').onclick = async () => { try { await api('users/save', { user: { id: u.id, name: $('#uN').value.trim(), role: $('#uR').value, perms: [...ov.querySelectorAll('#uP input:checked')].map((c) => c.value), active: $('#uA') ? $('#uA').checked : true }, pin: $('#uPin').value }); toast('Saved'); closeModal(); admUsers(); load(true); } catch (e) { fail(e); } };
+  });
+  $('#uAdd').onclick = () => edit({ role: 'staff' });
+  $('#adm').querySelectorAll('[data-u]').forEach((b) => b.onclick = () => edit(j.users.find((u) => u.id === b.dataset.u)));
+}
+function admLocs() {
+  $('#adm').innerHTML = `<div class="mut sm" style="margin-bottom:10px">Tap a location to set its purity, category, item type, photos and stock. ${editable() ? '' : '<b>Day is closed — reopen to change stock.</b>'}</div>` + SECTIONS.map((s) => `<div class="grp"><span>${s.label} (${activeLocs(s.key).length})</span>${editable() ? `<button class="btn sm sec" data-add="${s.key}">＋ Add</button>` : ''}</div>
+    <div class="tw"><table><tr><th>Name</th><th>Group</th><th>Purity</th><th>Category</th><th>Item</th><th>Photos</th><th>Pcs</th>${s.key === 'box' ? '<th>Weight g</th>' : ''}</tr>${activeLocs(s.key).map((l) => `<tr data-loc="${l.id}" style="cursor:pointer"><td class="b">${esc(l.name)}${l.boxNo ? ` <span class="chip m">${esc(l.boxNo)}</span>` : ''}</td><td style="text-align:left">${esc(l.group)}</td><td style="text-align:left">${esc(l.purity || '—')}</td><td style="text-align:left">${esc(l.cat || '—')}</td><td style="text-align:left">${esc(l.itemType || 'Mixed')}</td><td>${(l.images || []).length || '—'}</td><td>${fmt(sumLines(expOf(l.id).lines))}</td>${s.key === 'box' ? `<td class="${expOf(l.id).wt ? '' : 'neg'}">${expOf(l.id).wt ? g3(expOf(l.id).wt) : 'not set'}</td>` : ''}</tr>`).join('')}</table></div>`).join('');
+  $('#adm').querySelectorAll('[data-loc]').forEach((r) => r.onclick = () => locSheet(r.dataset.loc));
+  $('#adm').querySelectorAll('[data-add]').forEach((b) => b.onclick = () => locEdit({ sec: b.dataset.add, group: '', name: '', cat: 'Gold', images: [], mode: 'both' }));
+}
+function admSettings() {
+  const st = S.D.settings;
+  $('#adm').innerHTML = `<div class="card">
+    <label class="f">Shop name</label><input type="text" id="sN" value="${esc(st.shopName)}">
+    <label class="f">Admin WhatsApp number for reports (with country code, e.g. 9187141 22750)</label><input type="tel" id="sW" value="${esc(st.waNumber)}" placeholder="91XXXXXXXXXX">
+    <label class="f">Box weight tolerance (± grams)</label><input type="number" step="0.001" id="sT" value="${st.wtTol}">
+    <label class="chk" style="margin-top:10px"><input type="checkbox" id="sB" ${st.blind ? 'checked' : ''}> Blind count — staff don't see expected numbers while counting</label>
+    <label class="f">Item types (comma separated)</label><textarea id="sI">${esc(st.itemTypes.join(', '))}</textarea>
+    <label class="f">Purities</label><input type="text" id="sP" value="${esc(st.purities.join(', '))}">
+    <label class="f">Categories</label><input type="text" id="sC" value="${esc(st.categories.join(', '))}">
+    <button class="btn" style="width:100%;margin-top:14px" id="sS">Save settings</button></div>`;
+  const list = (v) => v.split(',').map((x) => x.trim()).filter(Boolean);
+  $('#sS').onclick = async () => { try { await api('settings', { settings: { shopName: $('#sN').value, waNumber: $('#sW').value, wtTol: +$('#sT').value, blind: $('#sB').checked, itemTypes: list($('#sI').value), purities: list($('#sP').value), categories: list($('#sC').value) } }); toast('Settings saved'); load(true); } catch (e) { fail(e); } };
+}
+
+// ---------------- boot ----------------
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+if (S.token) load().then(() => { if (!S.D) showLogin(); }); else showLogin();
+</script>
+</body>
+</html>
