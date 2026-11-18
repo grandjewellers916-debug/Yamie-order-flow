@@ -210,6 +210,7 @@ export default async (req: Request) => {
       const mode = loc.sec === 'box' ? (body.mode || 'both') : 'count';
       const lines: any = {}; for (const [t, n] of Object.entries(body.lines || {})) if (+(n as any) > 0) lines[t] = Math.round(+(n as any));
       const rec: any = { id: `${now()}-${rid()}`, date: today, locId: loc.id, sec: loc.sec, mode, lines: mode === 'weight' ? null : lines, wt: mode === 'count' ? null : r3(body.wt), note: String(body.note || '').slice(0, 300), by: me.id, at: now(), expected: exp, sessionId: String(body.sessionId || '').slice(0, 40), reasons: {} as any };
+      if (Array.isArray(body.slots)) rec.slots = body.slots.slice(0, 20).map((x: any) => ({ f: Math.max(0, Math.round(+x.f || 0)), n: Math.max(0, Math.round(+x.n || 0)), per: Math.max(0, Math.round(+x.per || 0)) }));
       for (const [t, r] of Object.entries(body.reasons || {})) rec.reasons[String(t).slice(0, 30)] = String(r).slice(0, 80);
       const st = locStatus(exp, rec, [], loc.id, settings);
       rec.result = st.state; rec.diff = st.diff; rec.wtDiff = st.wtDiff;

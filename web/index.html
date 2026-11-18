@@ -181,11 +181,14 @@ td.pos{color:var(--ok);font-weight:600}td.neg{color:var(--bad);font-weight:600}
 .wc{background:#fff;border:1px solid var(--ln);border-radius:10px;padding:8px;text-align:center}
 .wc.lock{background:#FBF1E4}.wc .wv{font-size:17px;font-weight:600;margin-top:6px}
 .wc .step{justify-content:center;margin-top:4px}.wc .step button{width:32px}
+.vr.sl{grid-template-columns:44px 1fr 120px 150px 90px}.vr.tot{background:var(--m3)}
+.pill{display:inline-block;min-width:56px;padding:6px 10px;border-radius:9px;background:var(--cr);font-weight:600;font-size:18px}.pill.ok{background:var(--okb);color:var(--ok)}
+.step.sm2 button{width:34px}.step.sm2 input{width:44px}
 .startp{background:linear-gradient(135deg,var(--m),var(--m2));color:#fff;border-radius:var(--r);padding:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:10px 0}
 .startp .btn{background:#fff;color:var(--m)}
 .erp input{min-height:38px;padding:6px 8px;text-align:right;width:90px}
 @media(max-width:699px){.ctiles{flex-direction:column}.photos.mini{max-width:100%}.kpis.tiles{grid-template-columns:repeat(2,1fr)}
-  .vr{grid-template-columns:40px 1fr 44px 150px}.vr .hs{display:none}.vr .big{font-size:18px}
+  .vr{grid-template-columns:40px 1fr 44px 150px}.vr.sl{grid-template-columns:minmax(0,1fr) 88px 96px 46px;gap:4px;padding:8px 6px}.vr.sl .step.sm2 button{width:28px;height:38px}.vr.sl .step.sm2 input{width:34px;min-height:38px}.vr.sl .pill{min-width:40px;padding:5px 4px;font-size:16px}.vr.sl>.iti,.vr.sl>span:first-child:empty{display:none}.vr .hs{display:none}.vr .big{font-size:18px}
   .wgrid{grid-template-columns:repeat(2,1fr)}.hs,.hs2{display:none!important}.steps button{font-size:13px;gap:4px}.steps button i{width:22px;height:22px}
   .foot .btn{flex:1}}
 @media print{.nav,.top,.sticky,.noprint{display:none!important}main{margin:0;padding:0}}
@@ -205,7 +208,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.2';
+const VERSION = '1.3';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -564,10 +567,17 @@ function countFlow(id, ctx) {
   const l = S.locById[id]; const e = expOf(id); const o = opOf(id); const f = S.sum.flows[id] || { in: {}, out: {}, wtIn: 0, wtOut: 0 };
   const blind = hideExp(); const box = l.sec === 'box'; const types = S.D.settings.itemTypes; const tol = +S.D.settings.wtTol;
   const mode = box ? (l.mode || 'both') : 'count';
-  const steps = [...(mode !== 'weight' ? [['verify', 'Verify items']] : []), ...(mode !== 'count' ? [['weight', 'Verify box weight']] : []), ['review', 'Review'], ['submit', 'Submit']];
+  const slotMode = l.sec === 'tray' && +l.insert > 0 && Object.keys(e.lines).length <= 1;
+  const steps = slotMode ? [['slots', 'Tray count details'], ['review', 'Review'], ['submit', 'Submit']] : [...(mode !== 'weight' ? [['verify', 'Verify items']] : []), ...(mode !== 'count' ? [['weight', 'Verify box weight']] : []), ['review', 'Review'], ['submit', 'Submit']];
   const K = ctx.k || (ctx.k = { step: steps[0][0], v: {}, rows: null, wt: null, note: '' });
   if (!K.rows) { K.rows = [...new Set([...Object.keys(e.lines), ...(l.itemType && !Object.keys(e.lines).length ? [l.itemType] : [])])].sort((a, b) => types.indexOf(a) - types.indexOf(b)); if (!K.rows.length) K.rows.push(l.itemType || types[0]); }
   const rows = K.rows; const v = K.v;
+  // slot mode: Total = Σ (filled slots × number of trays)
+  const ins = +l.insert || 0; const sT = slotMode ? rows[0] : null;
+  if (slotMode && !K.slots) K.slots = [{ f: ins, n: +l.qty || 0 }];
+  const slotTot = slotMode ? K.slots.reduce((a, r) => a + (+r.f || 0) * (+r.n || 0), 0) : 0;
+  const slotTrays = slotMode ? K.slots.reduce((a, r) => a + (+r.n || 0), 0) : 0;
+  if (slotMode) v[sT] = { ok: false, n: slotTot, reason: K.reason || '' };
   if (blind) rows.forEach((t) => { if (!v[t]) v[t] = { ok: false, n: '' }; });
   const actual = (t) => v[t]?.ok === true ? (e.lines[t] || 0) : v[t]?.ok === false ? (+v[t].n || 0) : null;
   const verified = rows.filter((t) => v[t] && (v[t].ok === true || (v[t].ok === false && v[t].n !== '' && v[t].n != null && (blind || (+v[t].n === (e.lines[t] || 0)) || v[t].reason)))).length;
@@ -577,10 +587,28 @@ function countFlow(id, ctx) {
   const anyMis = rows.some((t) => actual(t) != null && actual(t) !== (e.lines[t] || 0)) || (mode !== 'count' && wtDiff != null && !wtOk);
   const sIdx = steps.findIndex((x) => x[0] === K.step);
   const tile = (lbl, val, cls = '', sub = '') => `<div class="kpi ${cls}"><div class="l">${lbl}</div><div class="v" style="font-size:22px">${val}</div>${sub}</div>`;
-  const tiles = box ? `${tile('Opening', `${fmt(sumLines(o.lines))} <small>pcs</small>`, 'op', `<div class="sm mut">${g3(o.wt)} g</div>`)}${tile('In', `${fmt(sumLines(f.in))} <small>pcs</small>`, '', `<div class="sm mut">${g3(f.wtIn)} g</div>`)}${tile('Out', `${fmt(sumLines(f.out))} <small>pcs</small>`, '', `<div class="sm mut">${g3(f.wtOut)} g</div>`)}${tile('Expected', `${fmt(sumLines(e.lines))} <small>pcs</small>`, '', `<div class="sm mut">${g3(e.wt)} g</div>`)}`
+  const tiles = slotMode ? `${tile('Slots per tray', fmt(ins))}${tile('Total trays', fmt(slotTrays))}${tile('Total ' + esc(sT.toLowerCase()) + (sT.endsWith('s') ? '' : 's'), fmt(slotTot), slotTot === (e.lines[sT] || 0) || blind ? 'okt' : 'badt')}${tile('Expected', blind ? '—' : fmt(e.lines[sT] || 0))}` : box ? `${tile('Opening', `${fmt(sumLines(o.lines))} <small>pcs</small>`, 'op', `<div class="sm mut">${g3(o.wt)} g</div>`)}${tile('In', `${fmt(sumLines(f.in))} <small>pcs</small>`, '', `<div class="sm mut">${g3(f.wtIn)} g</div>`)}${tile('Out', `${fmt(sumLines(f.out))} <small>pcs</small>`, '', `<div class="sm mut">${g3(f.wtOut)} g</div>`)}${tile('Expected', `${fmt(sumLines(e.lines))} <small>pcs</small>`, '', `<div class="sm mut">${g3(e.wt)} g</div>`)}`
     : `${tile('Expected', blind ? '—' : fmt(expT))}${tile('Counted', fmt(cntT), 'okt')}${tile('Difference', blind ? '—' : sgn(diffT) || '0', diffT ? 'badt' : '')}<div class="kpi ${verified === rows.length && !anyMis ? 'okt' : anyMis ? 'badt' : ''}"><div class="b" style="font-size:16px">${verified === rows.length ? (anyMis ? 'Mismatch' : 'All match') : 'In progress'}</div><div class="sm">${verified} / ${rows.length} verified</div></div>`;
   let body = '';
-  if (K.step === 'verify') {
+  if (K.step === 'slots') {
+    const d = slotTot - (e.lines[sT] || 0); const cap = slotTrays * ins;
+    body = `<div class="info">ⓘ Enter the number of trays for each slot configuration. Empty slots are not a shortage — only a difference from expected stock is.</div>
+    <div class="vt"><div class="vr h sl"><span></span><span>Tray type</span><span class="c">Slots filled</span><span class="c">No. of trays</span><span class="c">Total</span></div>
+    ${K.slots.map((r, i) => `<div class="vr sl">${itIcon(sT)}<span><b>${esc(l.name)}</b><br><span class="sm mut">${+r.f === ins ? 'Full tray' : +r.f < ins ? `with ${ins - r.f} empty slot${ins - r.f > 1 ? 's' : ''}` : 'over-filled'}</span>${i ? ` <button class="sm" style="color:var(--bad)" data-sdel="${i}">Remove</button>` : ''}</span>
+      <span class="c">${i ? `<div class="step sm2"><button data-sf="${i}|-1">−</button><input type="number" inputmode="numeric" min="0" data-sfi="${i}" value="${r.f}"><button data-sf="${i}|1">+</button></div>` : `<span class="pill">${ins}</span>`}</span>
+      <span class="c"><div class="step sm2"><button data-sn="${i}|-1">−</button><input type="number" inputmode="numeric" min="0" data-sni="${i}" value="${r.n}"><button data-sn="${i}|1">+</button></div></span>
+      <span class="c"><span class="pill ok">${fmt((+r.f || 0) * (+r.n || 0))}</span></span></div>`).join('')}
+    <div class="vr add"><button class="btn sm ghost" id="sAdd">＋ Add trays with a different number of filled slots</button></div>
+    <div class="vr sl tot"><span></span><span class="b">Total</span><span></span><span class="c b">${fmt(slotTrays)} trays</span><span class="c b" style="font-size:20px">${fmt(slotTot)}</span></div></div>
+    <div class="kpis" style="grid-template-columns:repeat(3,1fr);margin-top:12px">
+      <div class="kpi okt"><div class="l">Total slots</div><div class="v">${fmt(cap)}</div><div class="sm mut">${slotTrays} × ${ins}</div></div>
+      <div class="kpi"><div class="l">Empty slots</div><div class="v">${fmt(Math.max(0, cap - slotTot))}</div></div>
+      <div class="kpi okt"><div class="l">Total ${esc(sT.toLowerCase())}s</div><div class="v">${fmt(slotTot)}</div></div></div>
+    ${blind ? '' : d === 0 ? `<div class="done-b" style="margin-top:12px">✓ Count matched with expected stock (${fmt(e.lines[sT] || 0)})</div>`
+      : `<div class="banner" style="margin-top:12px;background:var(--badb);color:var(--bad)"><b>${d < 0 ? 'Shortage' : 'Excess'} ${sgn(d)}</b> — counted ${fmt(slotTot)} vs expected ${fmt(e.lines[sT] || 0)}</div>
+        <label class="f">Reason <span style="color:var(--bad)">*</span></label><select id="sReason"><option value="">Choose reason…</option>${S.D.settings.reasons.map((r) => `<option ${K.reason === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select>`}
+    <label class="f">✎ Note / reason (optional)</label><input type="text" id="cNote" value="${esc(K.note)}" placeholder="e.g. 1 empty slot — item under repair">`;
+  } else if (K.step === 'verify') {
     body = `<div class="info">ⓘ ${blind ? 'Count each item and enter the quantity.' : 'Check the physical quantity. Tap <b>Yes</b> if it matches. Tap <b>No</b> to enter the actual count and reason.'}</div>
     <div class="vt"><div class="vr h"><span></span><span>Item</span><span class="c">${blind ? '' : 'Expected'}</span><span class="c">Verify</span><span class="c hs">Status</span></div>
     ${rows.map((t) => { const x = v[t] || {}; const a = actual(t); const d = a == null ? 0 : a - (e.lines[t] || 0);
@@ -605,14 +633,15 @@ function countFlow(id, ctx) {
       <div class="row sp" style="margin-top:8px"><span class="mut sm">Tolerance ±${g3(tol)} g</span>${wtDiff == null || blind ? '' : wtOk ? '<span class="st ok">✓ Within tolerance</span>' : '<span class="st var">Outside tolerance</span>'}</div></div>`;
   } else {
     body = `<h3 style="margin-bottom:8px">Review before submitting</h3>
+      ${slotMode ? `<div class="card sm" style="margin-bottom:10px">${K.slots.filter((r) => +r.n > 0).map((r) => `${r.f} filled × ${r.n} tray${r.n > 1 ? 's' : ''} = <b>${r.f * r.n}</b>`).join('<br>')}<br>Total ${slotTrays} trays · ${slotTrays * ins} slots · ${Math.max(0, slotTrays * ins - slotTot)} empty</div>` : ''}
       ${mode !== 'weight' ? `<div class="tw"><table><tr><th>Item</th>${blind ? '' : '<th>Expected</th>'}<th>Actual</th>${blind ? '' : '<th>Diff</th><th style="text-align:left">Reason</th>'}</tr>${rows.map((t) => { const a = actual(t) ?? 0; const d = a - (e.lines[t] || 0); return `<tr><td class="b">${esc(t)}</td>${blind ? '' : `<td>${fmt(e.lines[t] || 0)}</td>`}<td class="b">${fmt(a)}</td>${blind ? '' : `<td class="${d > 0 ? 'pos' : d < 0 ? 'neg' : ''}">${d ? sgn(d) : '✓'}</td><td style="text-align:left;white-space:normal" class="sm">${esc(d ? v[t]?.reason || '' : '')}</td>`}</tr>`; }).join('')}
         <tr class="tot"><td>Total</td>${blind ? '' : `<td>${fmt(expT)}</td>`}<td>${fmt(cntT)}</td>${blind ? '' : `<td>${diffT ? sgn(diffT) : '✓'}</td><td></td>`}</tr></table></div>` : ''}
       ${mode !== 'count' ? `<div class="card" style="margin-top:10px"><b>Box weight:</b> ${g3(wtAct)} g ${blind ? '' : `· expected ${g3(wtExp)} g · <span style="color:${wtOk ? 'var(--ok)' : 'var(--bad)'}">${wtDiff > 0 ? '+' : ''}${g3(wtDiff)} g ${wtOk ? '(match)' : '(outside tolerance)'}</span>`}</div>` : ''}
-      <label class="f">✎ Note / reason ${anyMis && !blind ? '<span style="color:var(--bad)">* required — count or weight differs</span>' : '(optional)'}</label>
+      <label class="f">✎ Note / reason ${anyMis && !blind && !slotMode ? '<span style="color:var(--bad)">* required — count or weight differs</span>' : '(optional)'}</label>
       <input type="text" id="cNote" value="${esc(K.note)}" placeholder="e.g. weight difference due to polishing, 2 rings sent for repair">
       ${anyMis && !blind ? '<div class="banner" style="margin-top:10px">Discrepancy will be sent to the manager for approval. Stock is not changed until approved.</div>' : ''}`;
   }
-  const footL = K.step === 'verify' ? `<div class="grow"><div class="b">${verified} of ${rows.length} items verified</div><div class="bar" style="margin:6px 0 0"><span style="width:${verified / rows.length * 100}%;background:var(--ok)"></span></div></div>`
+  const footL = K.step === 'slots' ? `<div class="grow"><div class="b" style="color:${blind ? 'inherit' : slotTot === (e.lines[sT] || 0) ? 'var(--ok)' : 'var(--bad)'}">${fmt(slotTrays)} trays · ${fmt(slotTot)} pcs</div><div class="sm mut">${blind ? '' : slotTot === (e.lines[sT] || 0) ? 'Matches expected' : `Difference ${sgn(slotTot - (e.lines[sT] || 0))}`}</div></div>` : K.step === 'verify' ? `<div class="grow"><div class="b">${verified} of ${rows.length} items verified</div><div class="bar" style="margin:6px 0 0"><span style="width:${verified / rows.length * 100}%;background:var(--ok)"></span></div></div>`
     : K.step === 'weight' ? `<div class="grow"><div class="b" style="color:${wtDiff == null ? 'inherit' : wtOk ? 'var(--ok)' : 'var(--bad)'}">${wtDiff == null ? 'Enter actual weight' : wtOk ? '✓ Weight matches' : 'Weight differs'}</div><div class="sm mut">${mode === 'both' ? `Count: ${fmt(cntT)} / ${blind ? '?' : fmt(expT)} pcs` : ''}</div></div>`
     : `<div class="grow"><div class="b" style="color:${anyMis ? 'var(--bad)' : 'var(--ok)'}">${anyMis ? 'Discrepancy found' : '✓ All items verified'}</div><div class="sm mut">${mode !== 'weight' ? `Count ${fmt(cntT)} / ${blind ? '?' : fmt(expT)} pcs` : ''}${mode !== 'count' && wtAct != null ? ` · ${g3(wtAct)} g` : ''}</div></div>`;
   const nextLbl = K.step === 'review' ? `Verify ${box ? 'box' : 'tray'}${ctx.sess ? ' & next' : ''}` : `Next: ${steps[sIdx + 1][1]}`;
@@ -621,7 +650,7 @@ function countFlow(id, ctx) {
     <div class="row wrap" style="margin:10px 0">${[l.boxNo ? `Box ${l.boxNo}` : '', l.purity, l.cat, l.itemType, l.insert ? `${l.insert} × ${l.qty || 1}` : ''].filter(Boolean).map((x, i) => `<span class="chip ${i === 0 && l.boxNo ? 'mm' : 'm'}">${esc(x)}</span>`).join('')}</div>
     <div class="steps">${steps.map(([k, t], i) => `<button data-step="${k}" class="${k === K.step ? 'on' : ''} ${i < sIdx ? 'past' : ''}" ${k === 'submit' || i > sIdx ? 'disabled' : ''}><i>${i < sIdx ? '✓' : i + 1}</i>${t}</button>`).join('')}</div>
     ${body}
-    <div class="foot">${footL}<span class="who hs2">${svg('user', 18)} <span><span class="mut sm">Counted by</span><br><b>${esc(S.me.name)}</b></span></span><button class="btn sec" id="rst">↺ Reset</button><button class="btn" id="nx">${nextLbl} ›</button></div>`;
+    <div class="foot">${footL}<span class="who hs2">${svg('user', 18)} <span><span class="mut sm">Counted by</span><br><b>${esc(S.me.name)}</b></span></span><button class="btn sec" id="rst">↺ Reset</button>${S.sess && ctx.sess ? '<button class="btn sec hs2" id="vsum">☰ View summary</button>' : ''}<button class="btn" id="nx">${nextLbl} ›</button></div>`;
   const rerender = () => { const sc = $('#ov .md')?.scrollTop || 0; countFlow(id, ctx); const m = $('#ov .md'); if (m) m.scrollTop = sc; };
   modal(head(l, `<button class="who hs" id="who" title="Change counter">${svg('user', 18)}<span><span class="mut sm">Counted by</span><br><b>${esc(S.me.name)}</b></span> ✎</button>`), '', html, (ov) => {
     bindPhotos(ov, l, rerender);
@@ -636,19 +665,31 @@ function countFlow(id, ctx) {
     ov.querySelectorAll('[data-ws]').forEach((b) => b.onclick = () => { K.wt = r3((K.wt ?? wtExp) + +b.dataset.ws); rerender(); });
     $('#cNote') && ($('#cNote').oninput = () => { K.note = $('#cNote').value; });
     ov.querySelectorAll('[data-step]').forEach((b) => b.onclick = () => { if (b.disabled) return; K.step = b.dataset.step; rerender(); });
+    ov.querySelectorAll('[data-sf]').forEach((b) => b.onclick = () => { const [i, d] = b.dataset.sf.split('|'); K.slots[i].f = Math.max(0, Math.min(ins, (+K.slots[i].f || 0) + +d)); rerender(); });
+    ov.querySelectorAll('[data-sn]').forEach((b) => b.onclick = () => { const [i, d] = b.dataset.sn.split('|'); K.slots[i].n = Math.max(0, (+K.slots[i].n || 0) + +d); rerender(); });
+    ov.querySelectorAll('[data-sfi]').forEach((x) => x.onchange = () => { K.slots[x.dataset.sfi].f = Math.max(0, Math.round(+x.value || 0)); rerender(); });
+    ov.querySelectorAll('[data-sni]').forEach((x) => x.onchange = () => { K.slots[x.dataset.sni].n = Math.max(0, Math.round(+x.value || 0)); rerender(); });
+    ov.querySelectorAll('[data-sdel]').forEach((b) => b.onclick = () => { K.slots.splice(+b.dataset.sdel, 1); rerender(); });
+    $('#sAdd') && ($('#sAdd').onclick = () => { K.slots.push({ f: Math.max(0, ins - 1), n: 1 }); rerender(); });
+    $('#sReason') && ($('#sReason').onchange = () => { K.reason = $('#sReason').value; rerender(); });
+    $('#vsum') && ($('#vsum').onclick = sessionOverview);
     $('#rst').onclick = () => { if (!confirm('Clear this tray\'s entries?')) return; ctx.k = null; countFlow(id, ctx); };
     $('#nx').onclick = async () => {
+      if (K.step === 'slots') {
+        if (!slotTrays) return toast('Enter the number of trays');
+        if (!blind && slotTot !== (e.lines[sT] || 0) && !K.reason) return toast('Choose a reason for the difference');
+      }
       if (K.step === 'verify') {
         if (verified < rows.length) { const miss = rows.filter((t) => !v[t] || v[t].ok == null || (v[t].ok === false && (v[t].n === '' || v[t].n == null))); if (miss.length) return toast(`Verify every item — ${miss.join(', ')} pending`); return toast('Choose a reason for each difference'); }
       }
       if (K.step === 'weight' && K.wt == null) return toast('Enter the actual closing weight');
       if (K.step !== 'review') { K.step = steps[sIdx + 1][0]; return rerender(); }
-      if (anyMis && !blind && !K.note.trim()) { toast('Add a note — required when count or weight differs'); return $('#cNote').focus(); }
+      if (anyMis && !blind && !K.note.trim() && !slotMode) { toast('Add a note — required when count or weight differs'); return $('#cNote').focus(); }
       const lines = {}; const reasons = {};
       if (mode !== 'weight') rows.forEach((t) => { const a = actual(t) ?? 0; if (a > 0) lines[t] = a; if (v[t]?.ok === false && v[t].reason && a !== (e.lines[t] || 0)) reasons[t] = v[t].reason; });
       $('#nx').disabled = true;
       try {
-        const r = await api('count', { date: S.D.date, locId: id, lines, wt: mode === 'count' ? null : K.wt, mode, note: K.note, reasons, sessionId: S.sess?.id || '' });
+        const r = await api('count', { date: S.D.date, locId: id, lines, wt: mode === 'count' ? null : K.wt, mode, note: K.note, reasons, sessionId: S.sess?.id || '', slots: slotMode ? K.slots.filter((r) => +r.n > 0).map((r) => ({ f: +r.f, n: +r.n, per: ins })) : null });
         toast(r.count.result === 'ok' ? `✓ ${l.name} verified` : `⚠ ${l.name}: discrepancy sent for approval`, 2200);
         await load(true);
         if (ctx.sess && S.sess) openNext(id); else resultView(id, {});
@@ -672,6 +713,7 @@ function resultView(id, ctx) {
   ${c ? `<div class="card" style="margin-top:12px"><div class="row sp wrap"><span class="st ${st.state}">${st.state === 'var' ? 'Pending manager approval' : STLBL[st.state]}</span><span class="sm mut">Verified by <b>${esc(uname(c.by))}</b> · ${tm(c.at)}</span></div>
     ${c.mode !== 'weight' ? `<div class="tw" style="margin-top:10px"><table><tr><th>Item</th>${blind ? '' : '<th>Expected</th>'}<th>Counted</th>${blind ? '' : '<th>Diff</th>'}<th style="text-align:left">Reason</th></tr>${types.map((t) => { const a = +(c.lines?.[t] || 0); const d = st.diff[t] || 0; return `<tr><td class="b">${esc(t)}</td>${blind ? '' : `<td>${fmt(e.lines[t] || 0)}</td>`}<td>${fmt(a)}</td>${blind ? '' : `<td class="${d > 0 ? 'pos' : d < 0 ? 'neg' : ''}">${d ? sgn(d) : '✓'}</td>`}<td style="text-align:left" class="sm">${esc(c.reasons?.[t] || '')}</td></tr>`; }).join('')}</table></div>` : ''}
     ${c.wt != null ? `<div class="sm" style="margin-top:8px">Weight ${g3(c.wt)} g${blind ? '' : ` · difference <b style="color:${Math.abs(st.wtDiff) > S.D.settings.wtTol ? 'var(--bad)' : 'var(--ok)'}">${st.wtDiff > 0 ? '+' : ''}${g3(st.wtDiff)} g</b>`}</div>` : ''}
+    ${c.slots?.length ? `<div class="sm" style="margin-top:8px">Tray count: ${c.slots.map((r) => `${r.f} × ${r.n}`).join(' + ')} = <b>${fmt(sumLines(c.lines))}</b> · ${c.slots.reduce((a, r) => a + r.n, 0)} trays, ${Math.max(0, c.slots.reduce((a, r) => a + r.n * (r.per || 0), 0) - sumLines(c.lines))} empty slots</div>` : ''}
     ${c.note ? `<div class="sm" style="margin-top:6px"><i>“${esc(c.note)}”</i></div>` : ''}
     ${st.state === 'stale' ? '<div class="banner" style="margin-top:8px">Stock moved after this check — count again.</div>' : ''}
     ${c.recountAllowed ? `<div class="banner" style="margin-top:8px">Recount allowed by ${esc(uname(c.recountAllowed.by))}</div>` : ''}
