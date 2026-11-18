@@ -10,7 +10,8 @@ export const DEFAULT_SETTINGS = {
   purities: ['22K', '18K', '14K', '9K', 'PT950', 'Silver', 'Mixed'],
   categories: ['Gold', 'Diamond', 'Platinum', 'Lab-grown', 'Kids', 'Gents', 'Silver'],
   wtTol: 0.010,        // grams allowed either way on box weight checks
-  blind: false,        // hide expected counts from staff while counting
+  blind: false,
+  reqPhotos: false,    // require one photo per piece for each item before submit        // hide expected counts from staff while counting
   waNumber: '',        // admin WhatsApp number for reports
   erpBasis: 'lbl',
   erpItemMap: { Ring: 'G-Ring', Stud: 'G-Earring', Pendant: 'G-Pendant', Set: 'G- Jewellery Set', Bracelet: 'G-Bracelet', Necklace: 'G-Necklace', Bangle: 'G-Bangle', Chain: 'G-Chain', Nosepin: 'G-Nosepins', Coin: 'G-Gold Coin', Findings: 'Findings', Mixed: 'G-Diamond Jewellery' },
@@ -26,11 +27,12 @@ export const PERMS = {
   reports: 'Consolidated & history',
   alerts: 'Receive alerts & reports',
   erp: 'Enter ERP closing (Pc / Lbl)',
+  verifyAll: 'Use “Verify all” (mark every item Yes)',
   users: 'Manage users',
 };
 export const ROLE_PERMS = {
   admin: Object.keys(PERMS),
-  manager: ['count', 'move', 'setup', 'accept', 'close', 'reports', 'alerts', 'erp'],
+  manager: ['count', 'move', 'setup', 'accept', 'close', 'reports', 'alerts', 'erp', 'verifyAll'],
   staff: ['count'],
 };
 export const REASONS = {

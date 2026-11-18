@@ -160,7 +160,7 @@ td.pos{color:var(--ok);font-weight:600}td.neg{color:var(--bad);font-weight:600}
 .steps button:disabled{opacity:.7;cursor:default}
 .info{background:var(--cr);border-radius:10px;padding:8px 12px;font-size:14px;margin-bottom:10px}
 .vt{border:1px solid var(--ln);border-radius:var(--r);overflow:hidden;background:#fff}
-.vr{display:grid;grid-template-columns:44px 1fr 70px 190px 110px;gap:8px;align-items:center;padding:8px 10px;border-top:1px solid var(--ln)}
+.vr{display:grid;grid-template-columns:44px minmax(0,1fr) 70px 190px 110px;gap:8px;align-items:center;padding:8px 10px;border-top:1px solid var(--ln)}
 .vr.h{border-top:0;background:var(--cr);font-size:12px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.5px}
 .vr.add{grid-template-columns:1fr}.vr .c{text-align:center}.vr .big{font-size:20px;font-weight:600}
 .yn{display:flex;gap:6px;justify-content:center}
@@ -184,6 +184,13 @@ td.pos{color:var(--ok);font-weight:600}td.neg{color:var(--bad);font-weight:600}
 .vr.sl{grid-template-columns:44px 1fr 120px 150px 90px}.vr.tot{background:var(--m3)}
 .pill{display:inline-block;min-width:56px;padding:6px 10px;border-radius:9px;background:var(--cr);font-weight:600;font-size:18px}.pill.ok{background:var(--okb);color:var(--ok)}
 .step.sm2 button{width:34px}.step.sm2 input{width:44px}
+.ixr{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:4px}
+.ib{font-size:12px;padding:3px 9px;border-radius:99px;background:var(--cr);color:var(--ink);cursor:pointer;white-space:nowrap}
+.ib.need{background:var(--warnb);color:var(--warn);font-weight:600}.ib.done{background:var(--okb);color:var(--ok)}
+.inote{font-size:12px;color:var(--warn);background:#FFF8E8;padding:2px 8px;border-radius:8px;font-style:italic;flex-basis:100%}
+.ixn{display:flex;gap:6px;margin-top:6px}.ixn input{min-height:36px;padding:6px 10px;font-size:14px}
+.ithumbs{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.ithumbs span{position:relative}.ithumbs img{width:48px;height:48px;object-fit:cover;border-radius:8px;cursor:zoom-in;display:block}
+.ithumbs button{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:99px;background:rgba(0,0,0,.65);color:#fff;font-size:13px;line-height:1}
 .selbar{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin:10px 0 12px;padding:12px}
 .selbar>.grow{min-width:180px}.selgo{display:flex;flex-direction:column;gap:4px}
 @media(min-width:700px){.locs.wide{grid-template-columns:1fr}}@media(min-width:1500px){.locs.wide{grid-template-columns:repeat(2,1fr)}}
@@ -200,7 +207,7 @@ td.pos{color:var(--ok);font-weight:600}td.neg{color:var(--bad);font-weight:600}
 .startp .btn{background:#fff;color:var(--m)}
 .erp input{min-height:38px;padding:6px 8px;text-align:right;width:90px}
 @media(max-width:699px){.ctiles{flex-direction:column}.photos.mini{max-width:100%}.kpis.tiles{grid-template-columns:repeat(2,1fr)}
-  .vr{grid-template-columns:40px 1fr 44px 150px}.vr.sl{grid-template-columns:minmax(0,1fr) 88px 96px 46px;gap:4px;padding:8px 6px}.vr.sl .step.sm2 button{width:28px;height:38px}.vr.sl .step.sm2 input{width:34px;min-height:38px}.vr.sl .pill{min-width:40px;padding:5px 4px;font-size:16px}.vr.sl>.iti,.vr.sl>span:first-child:empty{display:none}.vr .hs{display:none}.vr .big{font-size:18px}
+  .vr{grid-template-columns:36px minmax(0,1fr) 34px 140px;gap:6px;padding:8px}.ib{font-size:11px;padding:3px 7px}.vr.sl{grid-template-columns:minmax(0,1fr) 88px 96px 46px;gap:4px;padding:8px 6px}.vr.sl .step.sm2 button{width:28px;height:38px}.vr.sl .step.sm2 input{width:34px;min-height:38px}.vr.sl .pill{min-width:40px;padding:5px 4px;font-size:16px}.vr.sl>.iti,.vr.sl>span:first-child:empty{display:none}.vr .hs{display:none}.vr .big{font-size:18px}
   .wgrid{grid-template-columns:repeat(2,1fr)}.hs,.hs2{display:none!important}.steps button{font-size:13px;gap:4px}.steps button i{width:22px;height:22px}
   .foot .btn{flex:1}}
 @media print{.nav,.top,.sticky,.noprint{display:none!important}main{margin:0;padding:0}}
@@ -220,7 +227,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.4';
+const VERSION = '1.5';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -621,6 +628,8 @@ function countFlow(id, ctx) {
   const K = ctx.k || (ctx.k = { step: steps[0][0], v: {}, rows: null, wt: null, note: '' });
   if (!K.rows) { K.rows = [...new Set([...Object.keys(e.lines), ...(l.itemType && !Object.keys(e.lines).length ? [l.itemType] : [])])].sort((a, b) => types.indexOf(a) - types.indexOf(b)); if (!K.rows.length) K.rows.push(l.itemType || types[0]); }
   const rows = K.rows; const v = K.v;
+  if (!K.notes) { K.notes = { ...(l.itemNotes || {}) }; K.ph = {}; K.open = {}; }
+  const reqPh = !!S.D.settings.reqPhotos;
   // slot mode: Total = Σ (filled slots × number of trays)
   const ins = +l.insert || 0; const sT = slotMode ? rows[0] : null;
   if (slotMode && !K.slots) K.slots = [{ f: ins, n: +l.qty || 0 }];
@@ -629,6 +638,13 @@ function countFlow(id, ctx) {
   if (slotMode) v[sT] = { ok: false, n: slotTot, reason: K.reason || '' };
   if (blind) rows.forEach((t) => { if (!v[t]) v[t] = { ok: false, n: '' }; });
   const actual = (t) => v[t]?.ok === true ? (e.lines[t] || 0) : v[t]?.ok === false ? (+v[t].n || 0) : null;
+  const phTarget = (t) => actual(t) ?? (e.lines[t] || 0);
+  const extras = (t) => { const ph = K.ph[t] || []; const tgt = phTarget(t); const nt = K.notes[t] || '';
+    return `<div class="ixr">${nt && !K.open[t] ? `<span class="inote">📝 ${esc(nt)}</span>` : ''}
+      <button class="ib" data-note="${esc(t)}">📝 ${nt ? 'Edit note' : 'Note'}</button>
+      <label class="ib ${reqPh && ph.length < tgt ? 'need' : ph.length && ph.length >= tgt ? 'done' : ''}">📷 Photos ${ph.length}/${tgt}<input type="file" accept="image/*" multiple hidden data-ph="${esc(t)}"></label></div>
+      ${K.open[t] ? `<div class="ixn"><input type="text" data-nt="${esc(t)}" value="${esc(nt)}" maxlength="200" placeholder="Special note for ${esc(t)} — e.g. chain kept as separate item"><button class="btn sm ghost" data-ntok="${esc(t)}">Done</button></div>` : ''}
+      ${ph.length ? `<div class="ithumbs">${ph.map((k, i) => `<span><img src="${img(k)}" data-big2="${esc(t)}|${i}"><button data-phdel="${esc(t)}|${i}">×</button></span>`).join('')}</div>` : ''}`; };
   const verified = rows.filter((t) => v[t] && (v[t].ok === true || (v[t].ok === false && v[t].n !== '' && v[t].n != null && (blind || (+v[t].n === (e.lines[t] || 0)) || v[t].reason)))).length;
   const expT = rows.reduce((a, t) => a + (e.lines[t] || 0), 0); const cntT = rows.reduce((a, t) => a + (actual(t) ?? 0), 0);
   const diffT = rows.reduce((a, t) => a + (actual(t) == null ? 0 : actual(t) - (e.lines[t] || 0)), 0);
@@ -656,13 +672,14 @@ function countFlow(id, ctx) {
     ${blind ? '' : d === 0 ? `<div class="done-b" style="margin-top:12px">✓ Count matched with expected stock (${fmt(e.lines[sT] || 0)})</div>`
       : `<div class="banner" style="margin-top:12px;background:var(--badb);color:var(--bad)"><b>${d < 0 ? 'Shortage' : 'Excess'} ${sgn(d)}</b> — counted ${fmt(slotTot)} vs expected ${fmt(e.lines[sT] || 0)}</div>
         <label class="f">Reason <span style="color:var(--bad)">*</span></label><select id="sReason"><option value="">Choose reason…</option>${S.D.settings.reasons.map((r) => `<option ${K.reason === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select>`}
+    <div class="card" style="margin-top:12px"><b>${esc(sT)}</b> — item note & photos${extras(sT)}</div>
     <label class="f">✎ Note / reason (optional)</label><input type="text" id="cNote" value="${esc(K.note)}" placeholder="e.g. 1 empty slot — item under repair">`;
   } else if (K.step === 'verify') {
-    body = `<div class="info">ⓘ ${blind ? 'Count each item and enter the quantity.' : 'Check the physical quantity. Tap <b>Yes</b> if it matches. Tap <b>No</b> to enter the actual count and reason.'}</div>
+    body = `<div class="info row sp wrap"><span>ⓘ ${blind ? 'Count each item and enter the quantity.' : 'Check the physical quantity. Tap <b>Yes</b> if it matches. Tap <b>No</b> to enter the actual count and reason.'}</span>${!blind && can('verifyAll') ? `<button class="btn sm ok" id="vAll">✓ Verify all</button>` : ''}</div>
     <div class="vt"><div class="vr h"><span></span><span>Item</span><span class="c">${blind ? '' : 'Expected'}</span><span class="c">Verify</span><span class="c hs">Status</span></div>
     ${rows.map((t) => { const x = v[t] || {}; const a = actual(t); const d = a == null ? 0 : a - (e.lines[t] || 0);
       const stc = x.ok === true ? '<span class="st ok">✓ Verified</span>' : x.ok === false && (blind || d === 0) && x.n !== '' ? '<span class="st ok">✓ Verified</span>' : x.ok === false ? '<span class="st var">Mismatch</span>' : '<span class="st pending">Pending</span>';
-      return `<div class="vr ${x.ok === false ? 'no' : ''}">${itIcon(t)}<span class="b">${esc(t)}</span><span class="c num big">${blind ? '' : fmt(e.lines[t] || 0)}</span>
+      return `<div class="vr ${x.ok === false ? 'no' : ''}">${itIcon(t)}<span><span class="b">${esc(t)}</span>${extras(t)}</span><span class="c num big">${blind ? '' : fmt(e.lines[t] || 0)}</span>
         <span class="c yn">${blind ? '' : `<button class="yes ${x.ok === true ? 'on' : ''}" data-yes="${esc(t)}">✓ Yes</button><button class="no ${x.ok === false ? 'on' : ''}" data-no="${esc(t)}">✕ No</button>`}</span><span class="c hs">${stc}</span></div>
         ${x.ok === false ? `<div class="vsub"><div><div class="sm b">Actual count</div><div class="step"><button data-st="-1" data-t="${esc(t)}">−</button><input type="number" inputmode="numeric" min="0" data-n="${esc(t)}" value="${esc(x.n ?? '')}"><button data-st="1" data-t="${esc(t)}">+</button></div></div>
           ${blind ? '' : `<div class="grow"><div class="sm b">Reason <span style="color:var(--bad)">*</span></div><select data-r="${esc(t)}" ${d === 0 ? 'disabled' : ''}><option value="">${d === 0 ? 'Matches — no reason needed' : 'Choose reason…'}</option>${S.D.settings.reasons.map((r) => `<option ${x.reason === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select></div>
@@ -683,7 +700,7 @@ function countFlow(id, ctx) {
   } else {
     body = `<h3 style="margin-bottom:8px">Review before submitting</h3>
       ${slotMode ? `<div class="card sm" style="margin-bottom:10px">${K.slots.filter((r) => +r.n > 0).map((r) => `${r.f} filled × ${r.n} tray${r.n > 1 ? 's' : ''} = <b>${r.f * r.n}</b>`).join('<br>')}<br>Total ${slotTrays} trays · ${slotTrays * ins} slots · ${Math.max(0, slotTrays * ins - slotTot)} empty</div>` : ''}
-      ${mode !== 'weight' ? `<div class="tw"><table><tr><th>Item</th>${blind ? '' : '<th>Expected</th>'}<th>Actual</th>${blind ? '' : '<th>Diff</th><th style="text-align:left">Reason</th>'}</tr>${rows.map((t) => { const a = actual(t) ?? 0; const d = a - (e.lines[t] || 0); return `<tr><td class="b">${esc(t)}</td>${blind ? '' : `<td>${fmt(e.lines[t] || 0)}</td>`}<td class="b">${fmt(a)}</td>${blind ? '' : `<td class="${d > 0 ? 'pos' : d < 0 ? 'neg' : ''}">${d ? sgn(d) : '✓'}</td><td style="text-align:left;white-space:normal" class="sm">${esc(d ? v[t]?.reason || '' : '')}</td>`}</tr>`; }).join('')}
+      ${mode !== 'weight' ? `<div class="tw"><table><tr><th>Item</th>${blind ? '' : '<th>Expected</th>'}<th>Actual</th>${blind ? '' : '<th>Diff</th><th style="text-align:left">Reason</th>'}</tr>${rows.map((t) => { const a = actual(t) ?? 0; const d = a - (e.lines[t] || 0); return `<tr><td class="b">${esc(t)}</td>${blind ? '' : `<td>${fmt(e.lines[t] || 0)}</td>`}<td class="b">${fmt(a)}</td>${blind ? '' : `<td class="${d > 0 ? 'pos' : d < 0 ? 'neg' : ''}">${d ? sgn(d) : '✓'}</td><td style="text-align:left;white-space:normal" class="sm">${esc(d ? v[t]?.reason || '' : '')}${K.notes[t] ? `<div class="mut">📝 ${esc(K.notes[t])}</div>` : ''}${(K.ph[t] || []).length ? `<div class="mut">📷 ${(K.ph[t] || []).length} photo(s)</div>` : ''}</td>`}</tr>`; }).join('')}
         <tr class="tot"><td>Total</td>${blind ? '' : `<td>${fmt(expT)}</td>`}<td>${fmt(cntT)}</td>${blind ? '' : `<td>${diffT ? sgn(diffT) : '✓'}</td><td></td>`}</tr></table></div>` : ''}
       ${mode !== 'count' ? `<div class="card" style="margin-top:10px"><b>Box weight:</b> ${g3(wtAct)} g ${blind ? '' : `· expected ${g3(wtExp)} g · <span style="color:${wtOk ? 'var(--ok)' : 'var(--bad)'}">${wtDiff > 0 ? '+' : ''}${g3(wtDiff)} g ${wtOk ? '(match)' : '(outside tolerance)'}</span>`}</div>` : ''}
       <label class="f">✎ Note / reason ${anyMis && !blind && !slotMode ? '<span style="color:var(--bad)">* required — count or weight differs</span>' : '(optional)'}</label>
@@ -722,12 +739,28 @@ function countFlow(id, ctx) {
     $('#sAdd') && ($('#sAdd').onclick = () => { K.slots.push({ f: Math.max(0, ins - 1), n: 1 }); rerender(); });
     $('#sReason') && ($('#sReason').onchange = () => { K.reason = $('#sReason').value; rerender(); });
     $('#vsum') && ($('#vsum').onclick = sessionOverview);
+    $('#vAll') && ($('#vAll').onclick = () => { rows.forEach((t) => { v[t] = { ok: true }; }); K.va = true; rerender(); toast(`All ${rows.length} items marked Yes`); });
+    ov.querySelectorAll('[data-note]').forEach((b) => b.onclick = () => { const t = b.dataset.note; K.open[t] = !K.open[t]; rerender(); setTimeout(() => ov.querySelector(`[data-nt="${CSS.escape(t)}"]`)?.focus(), 30); });
+    ov.querySelectorAll('[data-nt]').forEach((i) => i.oninput = () => { K.notes[i.dataset.nt] = i.value; });
+    ov.querySelectorAll('[data-ntok]').forEach((b) => b.onclick = () => { K.open[b.dataset.ntok] = false; rerender(); });
+    ov.querySelectorAll('[data-big2]').forEach((im) => im.onclick = () => lightbox(im.src));
+    ov.querySelectorAll('[data-phdel]').forEach((b) => b.onclick = () => { const [t, i] = b.dataset.phdel.split('|'); K.ph[t].splice(+i, 1); rerender(); });
+    ov.querySelectorAll('[data-ph]').forEach((inp) => inp.onchange = async () => {
+      const t = inp.dataset.ph; const files = [...inp.files]; if (!files.length) return;
+      K.ph[t] ||= [];
+      for (let i = 0; i < files.length; i++) {
+        toast(`Uploading ${t} photo ${i + 1}/${files.length}…`, 1500);
+        try { const { key } = await api('img', { dataUrl: await shrink(files[i], 1024) }); K.ph[t].push(key); } catch (er) { fail(er); break; }
+      }
+      rerender();
+    });
     $('#rst').onclick = () => { if (!confirm('Clear this tray\'s entries?')) return; ctx.k = null; countFlow(id, ctx); };
     $('#nx').onclick = async () => {
       if (K.step === 'slots') {
         if (!slotTrays) return toast('Enter the number of trays');
         if (!blind && slotTot !== (e.lines[sT] || 0) && !K.reason) return toast('Choose a reason for the difference');
       }
+      if ((K.step === 'verify' || K.step === 'slots') && reqPh) { const miss = rows.filter((t) => (K.ph[t] || []).length < phTarget(t)); if (miss.length) return toast(`Photos needed: ${miss.map((t) => `${t} ${(K.ph[t] || []).length}/${phTarget(t)}`).join(', ')}`, 3500); }
       if (K.step === 'verify') {
         if (verified < rows.length) { const miss = rows.filter((t) => !v[t] || v[t].ok == null || (v[t].ok === false && (v[t].n === '' || v[t].n == null))); if (miss.length) return toast(`Verify every item — ${miss.join(', ')} pending`); return toast('Choose a reason for each difference'); }
       }
@@ -738,7 +771,7 @@ function countFlow(id, ctx) {
       if (mode !== 'weight') rows.forEach((t) => { const a = actual(t) ?? 0; if (a > 0) lines[t] = a; if (v[t]?.ok === false && v[t].reason && a !== (e.lines[t] || 0)) reasons[t] = v[t].reason; });
       $('#nx').disabled = true;
       try {
-        const r = await api('count', { date: S.D.date, locId: id, lines, wt: mode === 'count' ? null : K.wt, mode, note: K.note, reasons, sessionId: S.sess?.id || '', slots: slotMode ? K.slots.filter((r) => +r.n > 0).map((r) => ({ f: +r.f, n: +r.n, per: ins })) : null });
+        const r = await api('count', { date: S.D.date, locId: id, lines, wt: mode === 'count' ? null : K.wt, mode, note: K.note, reasons, sessionId: S.sess?.id || '', itemNotes: K.notes, photos: K.ph, verifyAll: !!K.va, slots: slotMode ? K.slots.filter((r) => +r.n > 0).map((r) => ({ f: +r.f, n: +r.n, per: ins })) : null });
         toast(r.count.result === 'ok' ? `✓ ${l.name} verified` : `⚠ ${l.name}: discrepancy sent for approval`, 2200);
         await load(true);
         if (ctx.sess && S.sess) openNext(id); else resultView(id, {});
@@ -760,7 +793,8 @@ function resultView(id, ctx) {
     <div class="kpi"><div class="l">Out</div><div class="v" style="font-size:20px;color:var(--bad)">${fmt(sumLines(f.out))}</div>${box ? `<div class="sm mut">${g3(f.wtOut)} g</div>` : ''}</div>
     <div class="kpi"><div class="l">Expected</div><div class="v" style="font-size:20px">${fmt(sumLines(e.lines))}</div>${box ? `<div class="sm mut">${g3(e.wt)} g</div>` : ''}</div></div>`}
   ${c ? `<div class="card" style="margin-top:12px"><div class="row sp wrap"><span class="st ${st.state}">${st.state === 'var' ? 'Pending manager approval' : STLBL[st.state]}</span><span class="sm mut">Verified by <b>${esc(uname(c.by))}</b> · ${tm(c.at)}</span></div>
-    ${c.mode !== 'weight' ? `<div class="tw" style="margin-top:10px"><table><tr><th>Item</th>${blind ? '' : '<th>Expected</th>'}<th>Counted</th>${blind ? '' : '<th>Diff</th>'}<th style="text-align:left">Reason</th></tr>${types.map((t) => { const a = +(c.lines?.[t] || 0); const d = st.diff[t] || 0; return `<tr><td class="b">${esc(t)}</td>${blind ? '' : `<td>${fmt(e.lines[t] || 0)}</td>`}<td>${fmt(a)}</td>${blind ? '' : `<td class="${d > 0 ? 'pos' : d < 0 ? 'neg' : ''}">${d ? sgn(d) : '✓'}</td>`}<td style="text-align:left" class="sm">${esc(c.reasons?.[t] || '')}</td></tr>`; }).join('')}</table></div>` : ''}
+    ${c.mode !== 'weight' ? `<div class="tw" style="margin-top:10px"><table><tr><th>Item</th>${blind ? '' : '<th>Expected</th>'}<th>Counted</th>${blind ? '' : '<th>Diff</th>'}<th style="text-align:left">Reason / note / photos</th></tr>${types.map((t) => { const a = +(c.lines?.[t] || 0); const d = st.diff[t] || 0; return `<tr><td class="b">${esc(t)}</td>${blind ? '' : `<td>${fmt(e.lines[t] || 0)}</td>`}<td>${fmt(a)}</td>${blind ? '' : `<td class="${d > 0 ? 'pos' : d < 0 ? 'neg' : ''}">${d ? sgn(d) : '✓'}</td>`}<td style="text-align:left;white-space:normal" class="sm">${esc(c.reasons?.[t] || '')}${(c.itemNotes?.[t] || l.itemNotes?.[t]) ? `<div class="mut">📝 ${esc(c.itemNotes?.[t] || l.itemNotes?.[t])}</div>` : ''}${(c.photos?.[t] || []).length ? `<div class="ithumbs">${c.photos[t].map((k) => `<span><img src="${img(k)}" data-big3></span>`).join('')}</div>` : ''}</td></tr>`; }).join('')}</table></div>` : ''}
+    ${c.verifyAll ? '<div class="mut sm" style="margin-top:6px">Verified with “Verify all”</div>' : ''}
     ${c.wt != null ? `<div class="sm" style="margin-top:8px">Weight ${g3(c.wt)} g${blind ? '' : ` · difference <b style="color:${Math.abs(st.wtDiff) > S.D.settings.wtTol ? 'var(--bad)' : 'var(--ok)'}">${st.wtDiff > 0 ? '+' : ''}${g3(st.wtDiff)} g</b>`}</div>` : ''}
     ${c.slots?.length ? `<div class="sm" style="margin-top:8px">Tray count: ${c.slots.map((r) => `${r.f} × ${r.n}`).join(' + ')} = <b>${fmt(sumLines(c.lines))}</b> · ${c.slots.reduce((a, r) => a + r.n, 0)} trays, ${Math.max(0, c.slots.reduce((a, r) => a + r.n * (r.per || 0), 0) - sumLines(c.lines))} empty slots</div>` : ''}
     ${c.note ? `<div class="sm" style="margin-top:6px"><i>“${esc(c.note)}”</i></div>` : ''}
@@ -778,6 +812,7 @@ function resultView(id, ctx) {
   ${myCounts.length > 1 ? `<h3 style="margin:18px 0 6px">Earlier checks today</h3><div class="sm card list" style="padding:0">${myCounts.slice(1).map((x) => `<div class="li">${esc(uname(x.by))} · ${tm(x.at)} · ${x.mode !== 'weight' ? `${fmt(sumLines(x.lines))} pcs` : ''} ${x.wt != null ? g3(x.wt) + ' g' : ''} <span class="st ${x.result}">${STLBL[x.result]}</span></div>`).join('')}</div>` : ''}`;
   modal(head(l), '', html, (ov) => {
     bindPhotos(ov, l, () => resultView(id, ctx));
+    ov.querySelectorAll('[data-big3]').forEach((im) => im.onclick = () => lightbox(im.src));
     $('#apprBtn') && ($('#apprBtn').onclick = async () => { const note = prompt('Approve: book stock becomes the counted figure. Note?', c.note || ''); if (note == null) return; try { await api('move', { kind: 'accept', date: S.D.date, locId: id, note, reason: 'Count approved' }); toast('Approved — stock updated'); await load(true); resultView(id, ctx); } catch (er) { fail(er); } });
     $('#rcBtn') && ($('#rcBtn').onclick = async () => { try { await api('count/recount', { date: S.D.date, locId: id }); toast('Recount requested'); await load(true); resultView(id, ctx); } catch (er) { fail(er); } });
     $('#mrcBtn') && ($('#mrcBtn').onclick = () => countFlow(id, { ...ctx, recount: true }));
@@ -1125,7 +1160,8 @@ function admSettings() {
     <label class="f">Shop name</label><input type="text" id="sN" value="${esc(st.shopName)}">
     <label class="f">Admin WhatsApp number for reports (with country code, e.g. 9187141 22750)</label><input type="tel" id="sW" value="${esc(st.waNumber)}" placeholder="91XXXXXXXXXX">
     <label class="f">Box weight tolerance (± grams)</label><input type="number" step="0.001" id="sT" value="${st.wtTol}">
-    <label class="chk" style="margin-top:10px"><input type="checkbox" id="sB" ${st.blind ? 'checked' : ''}> Blind count — staff don't see expected numbers while counting</label>
+    <label class="chk" style="margin-top:10px"><input type="checkbox" id="sPh" ${st.reqPhotos ? 'checked' : ''}> Require item photos — one photo per piece before a tray can be submitted</label>
+    <label class="chk"><input type="checkbox" id="sB" ${st.blind ? 'checked' : ''}> Blind count — staff don't see expected numbers while counting</label>
     <label class="f">Match app count against ERP</label><select id="sE"><option value="lbl" ${st.erpBasis !== 'pcs' ? 'selected' : ''}>Labels (Lbl)</option><option value="pcs" ${st.erpBasis === 'pcs' ? 'selected' : ''}>Pieces (Pc)</option></select>
     <label class="f">App item type → ERP ornament (one per line, e.g. Ring = G-Ring)</label><textarea id="sM" style="min-height:150px">${esc(Object.entries(st.erpItemMap || {}).map(([a, b]) => `${a} = ${b}`).join('\n'))}</textarea>
     <label class="f">Category → ERP ornament (overrides item type; use - for "not in this ERP report")</label><textarea id="sCM">${esc(Object.entries(st.erpCatMap || {}).map(([a, b]) => `${a} = ${b}`).join('\n'))}</textarea>
@@ -1136,7 +1172,7 @@ function admSettings() {
     <button class="btn" style="width:100%;margin-top:14px" id="sS">Save settings</button></div>`;
   const list = (v) => v.split(',').map((x) => x.trim()).filter(Boolean);
   const kv = (v) => Object.fromEntries(v.split('\n').map((x) => x.split('=').map((y) => y.trim())).filter((x) => x[0] && x.length > 1));
-  $('#sS').onclick = async () => { try { await api('settings', { settings: { shopName: $('#sN').value, waNumber: $('#sW').value, wtTol: +$('#sT').value, blind: $('#sB').checked, erpBasis: $('#sE').value, erpItemMap: kv($('#sM').value), erpCatMap: kv($('#sCM').value), reasons: list($('#sR').value), itemTypes: list($('#sI').value), purities: list($('#sP').value), categories: list($('#sC').value) } }); toast('Settings saved'); load(true); } catch (e) { fail(e); } };
+  $('#sS').onclick = async () => { try { await api('settings', { settings: { shopName: $('#sN').value, waNumber: $('#sW').value, wtTol: +$('#sT').value, blind: $('#sB').checked, reqPhotos: $('#sPh').checked, erpBasis: $('#sE').value, erpItemMap: kv($('#sM').value), erpCatMap: kv($('#sCM').value), reasons: list($('#sR').value), itemTypes: list($('#sI').value), purities: list($('#sP').value), categories: list($('#sC').value) } }); toast('Settings saved'); load(true); } catch (e) { fail(e); } };
 }
 
 // ---------------- boot ----------------

@@ -212,6 +212,19 @@ export default async (req: Request) => {
       const rec: any = { id: `${now()}-${rid()}`, date: today, locId: loc.id, sec: loc.sec, mode, lines: mode === 'weight' ? null : lines, wt: mode === 'count' ? null : r3(body.wt), note: String(body.note || '').slice(0, 300), by: me.id, at: now(), expected: exp, sessionId: String(body.sessionId || '').slice(0, 40), reasons: {} as any };
       if (Array.isArray(body.slots)) rec.slots = body.slots.slice(0, 20).map((x: any) => ({ f: Math.max(0, Math.round(+x.f || 0)), n: Math.max(0, Math.round(+x.n || 0)), per: Math.max(0, Math.round(+x.per || 0)) }));
       for (const [t, r] of Object.entries(body.reasons || {})) rec.reasons[String(t).slice(0, 30)] = String(r).slice(0, 80);
+      if (body.verifyAll && !can('verifyAll')) return err('No permission to use Verify all', 403);
+      rec.verifyAll = !!body.verifyAll;
+      rec.itemNotes = {}; rec.photos = {};
+      for (const [k, n] of Object.entries(body.itemNotes || {})) { const v = String(n || '').trim().slice(0, 200); if (v) rec.itemNotes[String(k).slice(0, 30)] = v; }
+      let nPh = 0;
+      for (const [k, arr] of Object.entries(body.photos || {})) { const ks = (Array.isArray(arr) ? arr : []).map(String).filter((x) => /^[0-9a-f-]{36}$/i.test(x)).slice(0, 300 - nPh); nPh += ks.length; if (ks.length) rec.photos[String(k).slice(0, 30)] = ks; }
+      // standing item notes on the location (shown at the next count)
+      if (body.itemNotes && typeof body.itemNotes === 'object') {
+        const data = await s.get('cfg/locs', { type: 'json' }); const L = data.locs.find((x: any) => x.id === loc.id);
+        const before = JSON.stringify(L.itemNotes || {}); L.itemNotes = { ...(L.itemNotes || {}) };
+        for (const k of Object.keys(body.itemNotes)) { const v = rec.itemNotes[String(k).slice(0, 30)]; if (v) L.itemNotes[String(k).slice(0, 30)] = v; else delete L.itemNotes[String(k).slice(0, 30)]; }
+        if (JSON.stringify(L.itemNotes) !== before) await s.setJSON('cfg/locs', data);
+      }
       const st = locStatus(exp, rec, [], loc.id, settings);
       rec.result = st.state; rec.diff = st.diff; rec.wtDiff = st.wtDiff;
       await s.setJSON(`ct/${today}/${loc.id}/${rec.id}`, rec);
@@ -368,7 +381,7 @@ export default async (req: Request) => {
       need('setup');
       const data = await s.get('cfg/locs', { type: 'json' });
       const L = body.loc || {};
-      const fields = ['sec', 'group', 'name', 'purity', 'cat', 'itemType', 'boxNo', 'insert', 'qty', 'mode', 'images', 'note', 'order', 'erpName'];
+      const fields = ['sec', 'group', 'name', 'purity', 'cat', 'itemType', 'boxNo', 'insert', 'qty', 'mode', 'images', 'note', 'order', 'erpName', 'itemNotes'];
       let loc = data.locs.find((l: any) => l.id === L.id);
       if (L.active === false && loc) {
         const day = await ensureToday(s); const { mvs } = await loadDay(s, today);
@@ -388,7 +401,7 @@ export default async (req: Request) => {
     }
 
     if (path === 'img' && method === 'POST') {
-      need('setup');
+      if (!can('setup') && !can('count')) need('setup');
       const m = /^data:(image\/(?:jpeg|png|webp));base64,(.+)$/.exec(body.dataUrl || '');
       if (!m) return err('Bad image');
       const buf = Buffer.from(m[2], 'base64'); if (buf.length > 1_500_000) return err('Image too large');
@@ -452,6 +465,7 @@ export default async (req: Request) => {
       for (const k of ['itemTypes', 'purities', 'categories', 'reasons']) if (Array.isArray(b[k])) next[k] = b[k].map((x: any) => String(x).trim().slice(0, 30)).filter(Boolean);
       if (b.wtTol != null) next.wtTol = Math.max(0, r3(b.wtTol));
       if (b.blind != null) next.blind = !!b.blind;
+      if (b.reqPhotos != null) next.reqPhotos = !!b.reqPhotos;
       if (typeof b.waNumber === 'string') next.waNumber = b.waNumber.replace(/[^0-9]/g, '').slice(0, 15);
       await s.setJSON('cfg/settings', next);
       return J({ ok: true, settings: next });
