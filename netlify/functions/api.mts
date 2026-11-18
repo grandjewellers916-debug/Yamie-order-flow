@@ -237,9 +237,12 @@ export default async (req: Request) => {
     if (path === 'session/start' && method === 'POST') {
       need('count'); await openDay(body.date);
       const scope = ['all', ...SECTIONS.map((x) => x.key)].includes(body.scope) ? body.scope : 'all';
-      const existing = (await listJSON(s, `ss/${today}/`)).find((x: any) => x.by === me.id && x.scope === scope && x.status === 'active');
+      const ids = Array.isArray(body.ids) ? body.ids.slice(0, 400).map((x: any) => String(x).slice(0, 40)) : null;
+      const label = String(body.label || '').slice(0, 120);
+      const existing = (await listJSON(s, `ss/${today}/`)).find((x: any) => x.by === me.id && x.scope === scope && (x.label || '') === label && x.status === 'active');
       if (existing) return J({ session: existing, resumed: true });
-      const rec = { id: `${now()}-${rid()}`, date: today, scope, by: me.id, at: now(), status: 'active' };
+      const rec: any = { id: `${now()}-${rid()}`, date: today, scope, by: me.id, at: now(), status: 'active' };
+      if (ids) { rec.ids = ids; rec.label = label; }
       await s.setJSON(`ss/${today}/${rec.id}`, rec);
       return J({ session: rec });
     }
@@ -250,7 +253,7 @@ export default async (req: Request) => {
       const locs = await getLocs(s); const settings = await getSettings(s);
       const { day, mvs, counts } = await loadDay(s, today);
       const sm = summarize(locs, day.opening, mvs, counts, settings);
-      const inScope = locs.filter((l) => l.active !== false && (ses.scope === 'all' || l.sec === ses.scope));
+      const inScope = ses.ids ? locs.filter((l) => ses.ids.includes(l.id)) : locs.filter((l) => l.active !== false && (ses.scope === 'all' || l.sec === ses.scope));
       let exp = 0, act = 0, short = 0, excess = 0, pend = 0, done = 0, wtVar = 0;
       const lines: string[] = [];
       for (const l of inScope) {
@@ -263,7 +266,7 @@ export default async (req: Request) => {
       ses.summary = { locs: inScope.length, done, expected: exp, actual: act, short, excess, pending: pend, wtVar };
       ses.status = done >= inScope.length ? 'done' : 'active'; ses.finishedAt = now();
       await s.setJSON(key, ses);
-      const label = ses.scope === 'all' ? 'Full stock count' : SECTIONS.find((x) => x.key === ses.scope)?.label + ' count';
+      const label = ses.label || (ses.scope === 'all' ? 'Full stock count' : SECTIONS.find((x) => x.key === ses.scope)?.label + ' count');
       const text = `${label} by ${me.name}: ${done}/${inScope.length} verified. Expected ${exp}, actual ${act}, short ${short}, excess ${excess}. Pending discrepancies ${pend}.` + (lines.length ? ' ' + lines.join('; ') : '');
       await addAlert(s, { type: 'report', title: `${label} ${ses.status === 'done' ? 'completed' : 'saved (incomplete)'}`, body: text, by: me.id, ok: !pend && ses.status === 'done' });
       return J({ ok: true, session: ses, text });

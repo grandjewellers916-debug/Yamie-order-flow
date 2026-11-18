@@ -184,6 +184,18 @@ td.pos{color:var(--ok);font-weight:600}td.neg{color:var(--bad);font-weight:600}
 .vr.sl{grid-template-columns:44px 1fr 120px 150px 90px}.vr.tot{background:var(--m3)}
 .pill{display:inline-block;min-width:56px;padding:6px 10px;border-radius:9px;background:var(--cr);font-weight:600;font-size:18px}.pill.ok{background:var(--okb);color:var(--ok)}
 .step.sm2 button{width:34px}.step.sm2 input{width:44px}
+.selbar{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin:10px 0 12px;padding:12px}
+.selbar>.grow{min-width:180px}.selgo{display:flex;flex-direction:column;gap:4px}
+@media(min-width:700px){.locs.wide{grid-template-columns:1fr}}@media(min-width:1500px){.locs.wide{grid-template-columns:repeat(2,1fr)}}
+.locs.wide .loc .grow{min-width:170px}.locs.wide .loc .q .v{font-size:26px}
+@media(min-width:700px){.brk{flex:0 1 300px}}
+.locs.wide .loc{align-items:stretch}.locs.wide .loc>.th{align-self:center}.locs.wide .loc .q{align-self:center;min-width:56px}
+.brk{flex:0 1 260px;border-left:1px solid var(--ln);padding:0 0 0 10px;display:flex;flex-direction:column;gap:4px;justify-content:center}
+.brk .br{display:flex;justify-content:space-between;gap:8px;background:var(--cr);border-radius:9px;padding:5px 10px;font-size:14px}
+.brk .br b{color:var(--ok)}.brk .br.t{background:var(--okb);font-weight:600}.brk .br.t b{font-size:16px}
+.brk.bad .br.t{background:var(--badb)}.brk.bad .br.t b{color:var(--bad)}.brk.plan .br b{color:var(--mut)}
+@media(max-width:699px){.loc:has(.brk){flex-wrap:wrap}.loc .brk{order:3;flex:1 1 100%;border-left:0;padding:6px 0 0;border-top:1px dashed var(--ln)}}
+@media(min-width:700px) and (max-width:1149px){.locs:not(.wide) .loc:has(.brk){flex-wrap:wrap}.locs:not(.wide) .loc .brk{order:3;flex:1 1 100%;border-left:0;padding:6px 0 0}}
 .startp{background:linear-gradient(135deg,var(--m),var(--m2));color:#fff;border-radius:var(--r);padding:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:10px 0}
 .startp .btn{background:#fff;color:var(--m)}
 .erp input{min-height:38px;padding:6px 8px;text-align:right;width:90px}
@@ -208,7 +220,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.3';
+const VERSION = '1.4';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -370,7 +382,7 @@ function secCard(s) {
 
 function startPanel(scope) {
   if (!can('count') || !editable()) return '';
-  const P = sessProgress(orderFor(scope)); const mine = (S.D.sessions || []).find((x) => x.by === S.me.id && x.scope === scope && x.status === 'active');
+  const P = sessProgress(orderFor(scope)); const mine = (S.D.sessions || []).find((x) => x.by === S.me.id && x.scope === scope && !x.ids && x.status === 'active');
   const all = P.done === P.total;
   return `<div class="startp"><div class="grow"><div class="b" style="font-size:17px">${scopeLabel(scope)}</div><div class="sm" style="opacity:.85">${P.done}/${P.total} ${scope === 'box' ? 'boxes' : 'trays'} verified · ${P.gDone}/${P.gTotal} ${scope === 'counter' ? 'counters' : 'groups'} complete</div>
     <div class="bar" style="background:rgba(255,255,255,.25)"><span style="width:${P.done / (P.total || 1) * 100}%;background:#fff"></span></div></div>
@@ -382,19 +394,44 @@ function bindStart() { $('#main').querySelectorAll('[data-start]').forEach((b) =
 function vSection(sec) {
   const all = activeLocs(sec); const st = S.sum.status; const X = S.sum.sec[sec];
   const q = S.q.toLowerCase();
-  const list = all.filter((l) => (S.filter === 'all' || (S.filter === 'var' ? ['var', 'stale'].includes(st[l.id].state) : st[l.id].state === S.filter)) && (!q || `${l.name} ${l.group} ${l.purity} ${l.cat} ${l.itemType} ${l.boxNo || ''}`.toLowerCase().includes(q)));
+  // selectors: counter = Location → Counter, tray = Item → Tray, box = Box → Item
+  const SEL = ((S.sel ||= {})[sec] ||= { a: '', b: '' });
+  const levA = (l) => sec === 'counter' ? l.group.split(' · ')[0] : sec === 'tray' ? l.group : l.id;
+  const levB = (l) => sec === 'counter' ? (l.group.split(' · ')[1] || '') : sec === 'tray' ? l.id : null;
+  const LBL = { counter: ['Location', 'Counter'], tray: ['Item', 'Tray'], box: ['Box', 'Item'] }[sec];
+  const inA = (l) => !SEL.a || levA(l) === SEL.a;
+  const inB = (l) => !SEL.b || (sec === 'box' ? !!expOf(l.id).lines[SEL.b] || l.itemType === SEL.b : levB(l) === SEL.b);
+  const optsA = sec === 'box' ? all.map((l) => [l.id, `${l.boxNo ? `Box ${l.boxNo} · ` : ''}${l.name}`]) : [...new Set(all.map(levA))].map((v) => [v, v]);
+  const optsB = sec === 'box' ? [...new Set(all.filter(inA).flatMap((l) => [...Object.keys(expOf(l.id).lines), ...(l.itemType ? [l.itemType] : [])]))].map((v) => [v, v])
+    : sec === 'counter' ? [...new Set(all.filter(inA).map(levB).filter(Boolean))].map((v) => [v, v])
+    : all.filter(inA).map((l) => [l.id, `${l.name}${l.insert ? ` (${l.insert} × ${l.qty || 1})` : ''}`]);
+  const selIds = all.filter((l) => inA(l) && inB(l)).map((l) => l.id);
+  const selOn = !!(SEL.a || SEL.b);
+  const selName = [SEL.a && (sec === 'box' ? optsA.find((o) => o[0] === SEL.a)?.[1] : SEL.a), SEL.b && (optsB.find((o) => o[0] === SEL.b)?.[1] || SEL.b)].filter(Boolean).join(' · ');
+  const selPend = selIds.filter((i) => ['pending', 'stale'].includes(st[i].state)).length;
+  const unit = sec === 'box' ? 'box' : 'tray'; const units = sec === 'box' ? 'boxes' : 'trays';
+  const selBar = `<div class="selbar card">
+    <div class="grow"><label class="f" style="margin-top:0">${LBL[0]}</label><select id="selA"><option value="">All ${{ Box: 'boxes' }[LBL[0]] || LBL[0].toLowerCase() + 's'}</option>${optsA.map(([v, t]) => `<option value="${esc(v)}" ${SEL.a === v ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></div>
+    ${optsB.length ? `<div class="grow"><label class="f" style="margin-top:0">${LBL[1]}</label><select id="selB"><option value="">All ${LBL[1].toLowerCase()}s</option>${optsB.map(([v, t]) => `<option value="${esc(v)}" ${SEL.b === v ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></div>` : ''}
+    ${selOn ? `<div class="selgo"><div class="sm mut">${selIds.length} ${selIds.length === 1 ? unit : units} · ${selPend} to verify</div><div class="row">${can('count') && editable() && selIds.length ? `<button class="btn" id="selVerify">${selPend ? 'Verify selected ›' : 'View summary'}</button>` : ''}<button class="btn ghost" id="selClr">Clear</button></div></div>` : ''}</div>`;
+  const list = all.filter((l) => inA(l) && inB(l) && (S.filter === 'all' || (S.filter === 'var' ? ['var', 'stale'].includes(st[l.id].state) : st[l.id].state === S.filter)) && (!q || `${l.name} ${l.group} ${l.purity} ${l.cat} ${l.itemType} ${l.boxNo || ''}`.toLowerCase().includes(q)));
   const groups = {}; list.forEach((l) => (groups[l.group || '—'] ||= []).push(l));
   $('#main').innerHTML = `${viewBanner()}
   <div class="row sp wrap" style="margin-bottom:10px"><div><h1>${secLabel(sec)}</h1><div class="mut">${X.locs - X.pending}/${X.locs} checked · ${hideExp() ? '' : `${fmt(X.expected)} pcs expected`}${sec === 'box' && !hideExp() ? ` · ${g3(X.wtExpected)} g` : ''}</div></div>
   ${can('setup') && editable() ? `<button class="btn sm sec" id="addLoc">＋ Add ${sec === 'box' ? 'box' : sec === 'tray' ? 'tray' : 'counter tray'}</button>` : ''}</div>
-  ${startPanel(sec)}
+  ${selOn ? '' : startPanel(sec)}
+  ${selBar}
   <input type="search" id="q" placeholder="Search name, purity, box no…" value="${esc(S.q)}">
   <div class="filters" style="margin-top:10px">${[['all', 'All', X.locs], ['pending', 'Not checked', X.pending], ['var', 'Variance', X.var + X.stale], ['ok', 'OK', X.ok]].map(([k, l, n]) => `<button data-f="${k}" class="${S.filter === k ? 'on' : ''}">${l} · ${n}</button>`).join('')}</div>
-  ${Object.entries(groups).map(([g, ls]) => `<div class="grp"><span>${esc(g)}</span><span>${hideExp() ? '' : fmt(ls.reduce((a, l) => a + sumLines(expOf(l.id).lines), 0)) + ' pcs'}</span></div><div class="locs">${ls.map(locCard).join('')}</div>`).join('') || '<div class="card mut" style="text-align:center">Nothing here</div>'}
+  ${Object.entries(groups).map(([g, ls]) => `<div class="grp"><span>${esc(g)}</span><span>${hideExp() ? '' : fmt(ls.reduce((a, l) => a + sumLines(expOf(l.id).lines), 0)) + ' pcs'}</span></div><div class="locs ${sec === 'tray' ? 'wide' : ''}">${ls.map(locCard).join('')}</div>`).join('') || '<div class="card mut" style="text-align:center">Nothing here</div>'}
 `;
   bindBanner();
   const qi = $('#q'); qi.oninput = () => { S.q = qi.value; const p = qi.selectionStart; vSection(sec); const n = $('#q'); n.focus(); n.setSelectionRange(p, p); };
   $('#main').querySelectorAll('[data-f]').forEach((b) => b.onclick = () => { S.filter = b.dataset.f; vSection(sec); });
+  $('#selA').onchange = () => { SEL.a = $('#selA').value; SEL.b = ''; vSection(sec); };
+  $('#selB') && ($('#selB').onchange = () => { SEL.b = $('#selB').value; vSection(sec); });
+  $('#selClr') && ($('#selClr').onclick = () => { SEL.a = SEL.b = ''; vSection(sec); });
+  $('#selVerify') && ($('#selVerify').onclick = () => startCount(sec, selIds, `${secLabel(sec)} · ${selName}`));
   $('#addLoc') && ($('#addLoc').onclick = () => locEdit({ sec, group: '', name: '', purity: '', cat: 'Gold', itemType: '', images: [], mode: 'both' }));
   bindStart();
   bindLocCards();
@@ -403,9 +440,18 @@ function locCard(l) {
   const e = expOf(l.id); const st = S.sum.status[l.id]; const c = S.sum.last[l.id];
   const thumb = l.images?.[0] ? `<img loading="lazy" src="${img(l.images[0].key)}" alt="">` : svg(l.sec, 26);
   const chips = [l.boxNo ? `<span class="chip m">Box ${esc(l.boxNo)}</span>` : '', l.purity ? `<span class="chip m">${esc(l.purity)}</span>` : '', l.cat ? `<span class="chip">${esc(l.cat)}</span>` : '', l.itemType ? `<span class="chip">${esc(l.itemType)}</span>` : ''].join('');
+  const slotsHtml = l.sec === 'tray' && +l.insert > 0 ? (() => {
+    const rowsS = c?.slots?.length ? c.slots.map((r) => ({ f: r.f, n: r.n })) : hideExp() ? null : [{ f: +l.insert, n: +l.qty || 0, plan: true }];
+    if (!rowsS) return '';
+    const tot = rowsS.reduce((a, r) => a + r.f * r.n, 0); const tr = rowsS.reduce((a, r) => a + r.n, 0);
+    const okc = c?.slots?.length ? (st.state === 'ok' ? 'ok' : st.state === 'var' ? 'bad' : '') : 'plan';
+    return `<div class="brk ${okc}">${rowsS.map((r) => `<div class="br"><span>${r.f} slots × ${r.n} tray${r.n === 1 ? '' : 's'}</span><b>= ${fmt(r.f * r.n)}</b></div>`).join('')}${rowsS.length > 1 || c?.slots ? `<div class="br t"><span>Total</span><span>${tr} trays</span><b>= ${fmt(tot)}</b></div>` : ''}${okc === 'plan' ? '<div class="sm mut" style="padding:0 10px">Registered layout</div>' : ''}</div>`;
+  })() : '';
   const sub = st.state === 'var' || st.state === 'stale' ? `${diffTxt(st.diff)}${st.mode !== 'count' && st.wtDiff ? ` ${st.wtDiff > 0 ? '+' : ''}${g3(st.wtDiff)} g` : ''}` : c ? `${uname(c.by)} · ${tm(c.at)}` : '';
   return `<button class="loc ${st.state}" data-loc="${l.id}"><div class="th">${thumb}</div><div class="grow" style="min-width:0"><div class="nm">${esc(l.name)}</div><div class="meta">${chips}</div><div class="row sm" style="margin-top:4px"><span class="st ${st.state}">${STLBL[st.state]}</span><span class="mut" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(sub)}</span></div></div>
-    <div class="q">${hideExp() ? '' : `<div class="v">${fmt(sumLines(e.lines))}</div><div class="mut sm">${l.sec === 'box' ? g3(e.wt) + ' g' : 'pcs'}</div>`}</div></button>`;
+    ${slotsHtml}<div class="q">${(() => { const cn = c && c.mode !== 'weight' && !['pending', 'stale'].includes(st.state) ? sumLines(c.lines) : null; const ex = sumLines(e.lines);
+      if (cn != null) return `<div class="v" style="color:${cn === ex ? 'inherit' : 'var(--bad)'}">${fmt(cn)}</div><div class="mut sm">${hideExp() || cn === ex ? 'pcs' : `of ${fmt(ex)}`}${l.sec === 'box' && c.wt != null ? `<br>${g3(c.wt)} g` : ''}</div>`;
+      return hideExp() ? '' : `<div class="v">${fmt(ex)}</div><div class="mut sm">${l.sec === 'box' ? g3(e.wt) + ' g' : 'pcs'}</div>`; })()}</div></button>`;
 }
 function bindLocCards() { $('#main').querySelectorAll('[data-loc]').forEach((b) => b.onclick = () => locSheet(b.dataset.loc)); }
 
@@ -443,6 +489,7 @@ const itIcon = (t) => `<span class="iti"><svg width="22" height="22" viewBox="0 
 const groupKey = (l) => l.sec + '|' + l.group;
 function orderFor(scope) { return (scope === 'all' ? SECTIONS.map((s) => s.key) : [scope]).flatMap((k) => activeLocs(k)).map((l) => l.id); }
 const scopeLabel = (sc) => sc === 'all' ? 'Full stock count' : secLabel(sc) + ' count';
+const sessLabel = (x) => x?.label || scopeLabel(x?.scope);
 const needsCount = (id) => { const st = S.sum.status[id]; const c = S.sum.last[id]; return st.state === 'pending' || st.state === 'stale' || !!(c && c.recountAllowed && c.by !== undefined && !c.recountUsed); };
 function sessProgress(order) {
   const groups = []; const gi = {};
@@ -451,11 +498,13 @@ function sessProgress(order) {
   const done = order.filter((i) => !['pending', 'stale'].includes(S.sum.status[i].state)).length;
   return { groups, done, total: order.length, gDone: groups.filter((g) => g.complete).length, gTotal: groups.length };
 }
-async function startCount(scope) {
+async function startCount(scope, ids, label) {
   try {
-    const r = await api('session/start', { date: S.D.date, scope });
-    S.sess = { ...r.session, order: orderFor(scope) };
+    const r = await api('session/start', { date: S.D.date, scope, ids: ids || null, label: label || '' });
+    S.sess = { ...r.session, order: ids || orderFor(scope) };
     if (r.resumed) toast('Resuming your count');
+    const pend = S.sess.order.filter((i) => ['pending', 'stale'].includes(S.sum.status[i].state));
+    if (ids && pend.length === 1) return locSheet(pend[0], { sess: true });
     openNext(null);
   } catch (e) { fail(e); }
 }
@@ -485,7 +534,7 @@ function counterIntro(gk, prevKey) {
     <div class="card list" style="padding:0;margin:14px 0">${g.ids.map((id, n) => { const l = S.locById[id]; const st = S.sum.status[id]; return `<div class="li"><span class="mut" style="width:22px">${n + 1}</span><div class="grow"><b>${esc(l.name)}</b><div class="mut sm">${esc(linesTxtH(expOf(id).lines))}</div></div><span class="st ${st.state}">${STLBL[st.state]}</span></div>`; }).join('')}</div>
     ${progressBlock(P)}
     <div class="row" style="margin-top:14px"><button class="btn ghost" id="ovw">Overview</button><button class="btn grow" id="go">Start ${esc(g.name)} ›</button></div>`;
-  modal(prev ? 'Next counter' : scopeLabel(S.sess.scope), `Counted by ${esc(S.me.name)}`, html, () => {
+  modal(prev ? 'Next counter' : esc(sessLabel(S.sess)), `Counted by ${esc(S.me.name)}`, html, () => {
     $('#go').onclick = () => { const id = g.ids.find((i) => ['pending', 'stale'].includes(S.sum.status[i].state)) || g.ids[0]; locSheet(id, { sess: true }); };
     $('#ovw').onclick = sessionOverview;
   });
@@ -500,7 +549,7 @@ function progressBlock(P) {
 }
 function sessionOverview() {
   const P = sessProgress(S.sess.order);
-  modal(scopeLabel(S.sess.scope) + ' · progress', `Counted by ${esc(S.me.name)} · tap any tray to view`, `${progressBlock(P)}
+  modal(esc(sessLabel(S.sess)) + ' · progress', `Counted by ${esc(S.me.name)} · tap any tray to view`, `${progressBlock(P)}
     ${P.groups.map((g) => `<div class="grp"><span>${g.complete ? '✓ ' : ''}${esc(g.name)}</span><span>${g.done}/${g.ids.length}</span></div><div class="card list" style="padding:0">${g.ids.map((id) => { const l = S.locById[id]; const st = S.sum.status[id]; return `<button class="li" style="width:100%;text-align:left" data-open="${id}"><div class="grow b">${esc(l.name)}</div><span class="sm" style="color:var(--bad)">${esc(diffTxt(st.diff))}</span><span class="st ${st.state}">${STLBL[st.state]}</span></button>`; }).join('')}</div>`).join('')}
     <div class="row" style="margin-top:14px"><button class="btn ghost grow" id="sv">Save & exit</button><button class="btn grow" id="ct">${P.done === P.total ? 'Final summary ›' : 'Continue counting ›'}</button></div>`, (ov) => {
     ov.querySelectorAll('[data-open]').forEach((b) => b.onclick = () => locSheet(b.dataset.open, { sess: true }));
@@ -527,7 +576,7 @@ function sessionSummary() {
     <div class="mut sm" style="margin-bottom:6px">Waiting for manager approval — stock balances are not changed until approved.</div>
     ${disc.length ? `<div class="card list" style="padding:0">${disc.map((id) => { const l = S.locById[id]; const st = S.sum.status[id]; const c = S.sum.last[id]; return `<button class="li" style="width:100%;text-align:left" data-open="${id}"><div class="grow"><b>${esc(l.name)}</b> <span class="mut sm">${esc(l.group)}</span><div class="sm" style="color:var(--bad)">${Object.entries(st.diff).map(([t, d]) => `${esc(t)} ${sgn(d)}${c.reasons?.[t] ? ` — ${esc(c.reasons[t])}` : ''}`).join(' · ')}${st.mode !== 'count' && Math.abs(st.wtDiff) > S.D.settings.wtTol ? ` weight ${st.wtDiff > 0 ? '+' : ''}${g3(st.wtDiff)} g` : ''}</div></div><span class="mut">›</span></button>`; }).join('')}</div>` : '<div class="card mut">None 🎉</div>'}
     <div class="row wrap" style="margin-top:16px">${P.done < P.total ? `<button class="btn ghost grow" id="ct">Continue counting</button>` : ''}<button class="btn grow" id="fin">Finish & send to admin</button></div>`;
-  modal('Stock verification summary', `${scopeLabel(S.sess.scope)} · ${esc(S.me.name)} · ${dt(S.D.date)}`, html, (ov) => {
+  modal('Stock verification summary', `${esc(sessLabel(S.sess))} · ${esc(S.me.name)} · ${dt(S.D.date)}`, html, (ov) => {
     ov.querySelectorAll('[data-open]').forEach((b) => b.onclick = () => locSheet(b.dataset.open, { sess: true }));
     $('#ct') && ($('#ct').onclick = () => openNext(null));
     $('#fin').onclick = async () => {
@@ -1024,7 +1073,7 @@ function vLog() {
   const mvs = [...S.D.mvs].reverse(); const cs = [...S.D.counts].sort((a, b) => b.at - a.at);
   $('#main').innerHTML = `${viewBanner()}<h1 style="margin-bottom:12px">Day log · ${dt(S.D.date)}</h1>
   <div class="tabs"><button data-t="mv" class="${S.tab !== 'ct' ? 'on' : ''}">Stock movements (${mvs.length})</button><button data-t="ct" class="${S.tab === 'ct' ? 'on' : ''}">Checks (${cs.length})</button><button data-t="ss" class="${S.tab === 'ss' ? 'on' : ''}">Count sessions (${(S.D.sessions || []).length})</button></div>
-  ${S.tab === 'ss' ? `<div class="tw"><table><tr><th>Count</th><th>Staff</th><th>Started</th><th>Finished</th><th>Verified</th><th>Expected</th><th>Actual</th><th>Short</th><th>Excess</th><th>Pending</th></tr>${(S.D.sessions || []).sort((a, b) => b.at - a.at).map((x) => { const m = x.summary || {}; return `<tr><td class="b">${scopeLabel(x.scope)}<div class="mut sm">${x.status}</div></td><td>${esc(uname(x.by))}</td><td>${tm(x.at)}</td><td>${x.finishedAt ? tm(x.finishedAt) : '—'}</td><td>${m.locs ? `${m.done}/${m.locs}` : '—'}</td><td>${fmt(m.expected)}</td><td>${fmt(m.actual)}</td><td class="${m.short ? 'neg' : ''}">${m.short ? '−' + m.short : 0}</td><td class="${m.excess ? 'pos' : ''}">${m.excess ? '+' + m.excess : 0}</td><td>${m.pending ?? '—'}</td></tr>`; }).join('')}</table></div>` : S.tab !== 'ct' ? `<div class="card list" style="padding:0">${mvs.map((m) => mvLine(m)).join('') || '<div class="mut" style="padding:20px">No movements</div>'}</div>`
+  ${S.tab === 'ss' ? `<div class="tw"><table><tr><th>Count</th><th>Staff</th><th>Started</th><th>Finished</th><th>Verified</th><th>Expected</th><th>Actual</th><th>Short</th><th>Excess</th><th>Pending</th></tr>${(S.D.sessions || []).sort((a, b) => b.at - a.at).map((x) => { const m = x.summary || {}; return `<tr><td class="b">${esc(sessLabel(x))}<div class="mut sm">${x.status}</div></td><td>${esc(uname(x.by))}</td><td>${tm(x.at)}</td><td>${x.finishedAt ? tm(x.finishedAt) : '—'}</td><td>${m.locs ? `${m.done}/${m.locs}` : '—'}</td><td>${fmt(m.expected)}</td><td>${fmt(m.actual)}</td><td class="${m.short ? 'neg' : ''}">${m.short ? '−' + m.short : 0}</td><td class="${m.excess ? 'pos' : ''}">${m.excess ? '+' + m.excess : 0}</td><td>${m.pending ?? '—'}</td></tr>`; }).join('')}</table></div>` : S.tab !== 'ct' ? `<div class="card list" style="padding:0">${mvs.map((m) => mvLine(m)).join('') || '<div class="mut" style="padding:20px">No movements</div>'}</div>`
     : `<div class="tw"><table><tr><th>Location</th><th>By</th><th>Time</th><th>Counted</th><th>Weight</th><th>Result</th></tr>${cs.map((c) => `<tr><td><b>${esc(S.locById[c.locId]?.name || c.locId)}</b><div class="mut sm">${secLabel(c.sec)}</div></td><td>${esc(uname(c.by))}</td><td>${tm(c.at)}</td><td>${c.lines ? fmt(sumLines(c.lines)) : '—'}</td><td>${c.wt != null ? g3(c.wt) : '—'}</td><td style="text-align:left"><span class="st ${c.result}">${STLBL[c.result]}</span> <span class="sm">${esc(diffTxt(c.diff))}</span></td></tr>`).join('')}</table></div>`}`;
   bindBanner();
   $('#main').querySelectorAll('[data-t]').forEach((b) => b.onclick = () => { S.tab = b.dataset.t; vLog(); });
