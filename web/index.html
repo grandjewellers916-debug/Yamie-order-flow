@@ -929,7 +929,7 @@ body.stm .st-pager{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justif
 /* V1.8.7 phone search */
 .stm-bar{display:none}
 body.stm .find-view{padding:10px 12px 14px;gap:8px}
-body.stm .find-view .sec-head,body.stm .find-view>.note:not(#findNote){display:none}
+body.stm .find-view .sec-head,body.stm .find-view>.note:not(#findNote),body.stm .find-view .find-acts{display:none}
 body.stm .find-view .find-in{position:sticky;top:0;z-index:5;background:var(--surface);min-height:46px;border-radius:14px;box-shadow:0 0 0 6px var(--surface)}
 body.stm .find-view .find-in input{font-size:16px;min-height:44px}
 body.stm .stm-bar{display:block;position:sticky;top:52px;z-index:4;background:var(--surface);padding:4px 0 6px;box-shadow:0 6px 8px -8px rgba(0,0,0,.25)}
@@ -1568,15 +1568,21 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
   .sg-c{flex:none;color:var(--muted)}.sg-c svg{width:20px;height:20px;display:block}
   .sg-t.lock{opacity:.7}
   /* Search: filters, count, sort, list / grid, pages */
-  .find-view .sec-head h2{display:none}.find-view>.note:first-of-type{display:none}
-  .find-view .sec-head{justify-content:flex-end;margin-bottom:-52px;position:relative;z-index:1;pointer-events:none}.find-view .sec-head .find-acts{pointer-events:auto}
-  .find-view .find-acts .btn{min-height:46px;padding:8px 18px;font-size:15px}.find-view #findNew{background:var(--maroon);color:#fff;border-color:var(--maroon)}
-  .find-view .find-in{margin-right:300px}
-  .st-filters{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0 4px}
+  .find-view .sec-head,.find-view>.note:first-of-type{display:none}
+  .find-view .find-top{display:flex;align-items:center;gap:10px}
+  .find-view .find-in{flex:1 1 auto;min-width:220px;margin:0}
+  .find-view .find-acts{flex:0 0 auto;flex-wrap:nowrap}
+  .find-view .find-acts .btn{min-height:46px;padding:8px 18px;font-size:15px;white-space:nowrap}.find-view #findNew{background:var(--maroon);color:#fff;border-color:var(--maroon)}
+  .find-view .find-in{border-color:var(--line);border-radius:12px;background:var(--surface);min-height:46px}
+  .find-view .find-in:focus-within{border-color:var(--maroon);box-shadow:0 0 0 3px color-mix(in srgb,var(--maroon) 12%,transparent)}
+  .find-view .find-in input{font:600 15.5px var(--mono);padding:9px 0}
+  .st-filters{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:9px;align-items:center;margin:13px 0 4px}
   .stf{position:relative}.stf .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-  .stf select{min-height:42px;border:1px solid var(--line);border-radius:999px;padding:6px 34px 6px 16px;background:var(--surface);font:500 14.5px var(--body);color:var(--fg);cursor:pointer;max-width:200px}
+  .stf select{width:100%;min-height:42px;border:1px solid var(--line);border-radius:999px;padding:6px 32px 6px 15px;background:var(--surface);font:500 14.5px var(--body);color:var(--fg);cursor:pointer;max-width:none;text-overflow:ellipsis}
+  .st-filters>.st-rng{grid-column:1/-1;margin-top:3px}
+  .st-filters>.st-rng input{width:88px;min-height:32px;font-size:13.5px}
   .stf.on select{border-color:var(--maroon);background:color-mix(in srgb,var(--maroon) 8%,var(--surface));color:var(--maroon);font-weight:600}
-  .stf-clear{margin-left:auto;font-weight:600}
+  .stf-clear{grid-column:1/-1;justify-self:end;margin:-3px 2px 0;font-weight:600;white-space:nowrap}
   #findNote{display:flex;align-items:center;gap:14px;flex-wrap:wrap;min-height:44px}
   .st-count{font-size:15px}.st-count b{font-size:17px}
   .st-tools{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:14px;color:var(--muted)}
@@ -1609,8 +1615,8 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
   #prodCard:not([hidden]){grid-template-columns:200px minmax(0,1fr);column-gap:18px}
   .ps-fs{grid-template-columns:repeat(3,minmax(0,1fr))}
   body[data-view="settings"] .set-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .find-view .find-in{margin-right:0;margin-top:56px}
-  .stk td,.stk th{padding-left:6px;padding-right:6px}.stk .st-img{width:46px;height:38px}.st-price{padding:3px 11px!important}.stf select{max-width:170px;padding-left:12px}
+  .find-view .find-acts .btn{padding:8px 13px;font-size:14px}
+  .stk td,.stk th{padding-left:6px;padding-right:6px}.stk .st-img{width:46px;height:38px}.st-price{padding:3px 11px!important}.stf select{padding-left:12px}
 }
 /* ===== V1.7.81 computer: compact, less clutter; price on top of Home; simple side menu ===== */
 @media (min-width:1280px) and (pointer:fine){
@@ -2160,9 +2166,12 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
 
   <!-- Search -->
   <section class="card find-view" data-pane="search" aria-label="Search stock">
-    <div class="sec-head"><h2>Search stock</h2><span class="find-acts"><button class="btn sm" type="button" id="findRep" hidden>Report</button><button class="btn sm" type="button" id="findPhotos" hidden>Photos</button><button class="btn sm" type="button" id="findBulk" hidden>Bulk update</button><button class="btn sm" type="button" id="findNew" hidden>+ New item</button></span></div>
+    <div class="sec-head"><h2>Search stock</h2></div>
     <p class="note">Check if a label is available. Search by label no., product name, item name, item type or stone.</p>
-    <div class="find-in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input id="findQ" type="search" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. FRG382 or ring" aria-label="Search stock"></div>
+    <div class="find-top">
+      <div class="find-in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input id="findQ" type="search" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. FRG382 or ring" aria-label="Search stock"></div>
+      <span class="find-acts"><button class="btn sm" type="button" id="findRep" hidden>Report</button><button class="btn sm" type="button" id="findPhotos" hidden>Photos</button><button class="btn sm" type="button" id="findBulk" hidden>Bulk update</button><button class="btn sm" type="button" id="findNew" hidden>+ New item</button></span>
+    </div>
     <p class="note" id="findNote"></p>
     <div class="find-list" id="findList"></div>
   </section>
@@ -6166,7 +6175,7 @@ function stFilterBar(rowsAll){
    if(!okF){findType='';['item','cat','jt','mc','stt','sc','pur','stone','sup','loc','lab','img','imp','pn'].forEach(k=>findF[k]='')}if(!okR)['wMin','wMax','pMin','pMax','fMin','fMax','mMin','mMax','dMin','dMax'].forEach(k=>findF[k]='');bar.hidden=!okF&&!okR}
   bar.querySelectorAll('.rg').forEach(g=>{const k=g.dataset.rg;g.classList.toggle('on',findF[k+'Min']!==''||findF[k+'Max']!=='')});
   const anyR=RNG.some(([k])=>findF[k+'Min']!==''||findF[k+'Max']!=='');
-  bar.querySelector('.stf-row').innerHTML=FILTERS.map(([k,l])=>`<label class="stf${val(k)?' on':''}"><span class="sr">${l}</span><select data-f="${k}"><option value="">${l}</option>${opts[k].map(([v,t])=>`<option value="${esc(v)}"${v===val(k)?' selected':''}>${esc(t)}</option>`).join('')}</select></label>`).join('')+
+  bar.querySelector('.stf-row').innerHTML=FILTERS.map(([k,l])=>`<label class="stf${val(k)?' on':''}"><span class="sr">${l}</span><select data-f="${k}" title="${esc(val(k)||l)}"><option value="">${l}</option>${opts[k].map(([v,t])=>`<option value="${esc(v)}"${v===val(k)?' selected':''}>${esc(t)}</option>`).join('')}</select></label>`).join('')+
     `<button type="button" class="linkbtn stf-clear" id="stfClear"${FILTERS.some(([k])=>val(k))||anyR?'':' hidden'}>Clear all</button>`;
   bar.querySelectorAll('[data-f]').forEach(sel=>sel.onchange=()=>{const k=sel.dataset.f;if(k==='type')findType=sel.value;else findF[k]=sel.value;stPage=1;runFindTable();paintWtop()});
   $('stfClear').onclick=()=>{findType='';Object.keys(findF).forEach(k=>findF[k]='');const g=bar.querySelector('.st-rng');if(g)g.remove();stPage=1;runFindTable();paintWtop()};
@@ -7573,7 +7582,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.8.24',APP_BUILD='__BUILD__';
+const APP_VERSION='1.8.25',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------

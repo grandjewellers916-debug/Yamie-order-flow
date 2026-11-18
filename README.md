@@ -568,3 +568,7 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 - **Opens from** the Search selection bar (Report…), the ⋯ More sheet and the Report button on a computer (all the items found), and a single item's sheet.
 - **Shank (W × T)** – a new product detail, e.g. `1.34×1.18`, set on the photos page and in Edit details, shown on the report.
 - New permission **"Product details report"** (every role that can search gets it).
+
+## V 1.8.25
+- **Search page on a computer, tidied up.** The search box and the Report / Photos / Bulk update / + New item buttons now sit on one row — before, the buttons floated over the box and the box ran underneath them (and on a 1280–1440 screen the box dropped to a line of its own with a gap above it). The box itself is calmer: a thin outline that turns maroon only while typing.
+- **Filter chips line up.** The filter drop-downs are an even grid instead of ragged rows of different widths, the weight / price / making / diamond ranges span the full width under them, and "Clear all" sits at the right-hand end of the block instead of floating mid-row. A long value in a chip can be read by hovering it.
