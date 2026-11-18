@@ -89,7 +89,7 @@ async function closeDay(s: any, date: string, by: string, auto = false) {
   day.closing = closingVerified(locs, day.opening, mvs, counts, settings);
   day.summary = daySummaryLine(locs, day, mvs, counts, settings);
   const erp = await s.get(`erp/${date}`, { type: 'json' });
-  const ec = erpCompare(erp, summarize(locs, day.opening, mvs, counts, settings), settings);
+  const ec = erpCmp(erp, locs, day, mvs, counts, settings);
   day.summary.erp = { entered: ec.entered, matched: ec.matched, app: ec.total.app, pcs: ec.total.pcs, lbl: ec.total.lbl, diff: ec.total.diff };
   day.status = 'closed'; day.closedAt = now(); day.closedBy = by; day.autoClosed = auto;
   await s.setJSON(`day/${date}`, day);
@@ -110,6 +110,10 @@ async function ensureToday(s: any) {
   }
   await s.setJSON(`day/${today}`, { date: today, opening, status: 'open', createdAt: now() }, { onlyIfNew: true });
   return s.get(`day/${today}`, { type: 'json' });
+}
+const erpWhich = (erp: any, date: string) => (erp?.reportDate && erp.reportDate < date ? 'opening' : 'closing');
+function erpCmp(erp: any, locs: any[], day: any, mvs: any[], counts: any[], settings: any) {
+  return erpCompare(erp, locs, summarize(locs, day.opening, mvs, counts, settings), settings, erpWhich(erp, day.date), day.opening);
 }
 async function addAlert(s: any, a: any) {
   const date = istDate(); const at = now();
@@ -266,14 +270,32 @@ export default async (req: Request) => {
 
     if (path === 'erp' && method === 'POST') {
       need('erp'); await openDay(body.date);
-      const lines: any = {};
-      for (const [t, x] of Object.entries(body.lines || {}) as any) { const pcs = Math.max(0, Math.round(+x?.pcs || 0)), lbl = Math.max(0, Math.round(+x?.lbl || 0)); if (pcs || lbl) lines[String(t).slice(0, 30)] = { pcs, lbl }; }
-      const rec = { date: today, lines, total: { pcs: Math.max(0, Math.round(+body.total?.pcs || 0)), lbl: Math.max(0, Math.round(+body.total?.lbl || 0)) }, ref: String(body.ref || '').slice(0, 60), by: me.id, at: now() };
+      const n = (v: any) => (v === null || v === undefined || v === '' || !isFinite(+v) ? null : +v);
+      const rows = (Array.isArray(body.rows) ? body.rows : []).slice(0, 200).map((x: any) => ({ name: String(x.name || '').trim().slice(0, 60), pcs: n(x.pcs) == null ? null : Math.round(n(x.pcs)!), lbl: n(x.lbl) == null ? null : Math.round(n(x.lbl)!), gr: n(x.gr) == null ? null : r3(n(x.gr)), net: n(x.net) == null ? null : r3(n(x.net)) })).filter((x: any) => x.name);
+      const t = body.total || {};
+      const total = (t.pcs != null || t.lbl != null) ? { pcs: n(t.pcs) == null ? null : Math.round(n(t.pcs)!), lbl: n(t.lbl) == null ? null : Math.round(n(t.lbl)!), gr: n(t.gr), net: n(t.net) } : null;
+      const reportDate = /^\d{4}-\d{2}-\d{2}$/.test(body.reportDate || '') && body.reportDate <= today ? body.reportDate : today;
+      const rec = { date: today, reportDate, rows, total, ref: String(body.ref || '').slice(0, 80), source: body.source === 'pdf' ? 'pdf' : 'manual', fileName: String(body.fileName || '').slice(0, 80), by: me.id, at: now() };
       await s.setJSON(`erp/${today}`, rec);
+      // weight-only ERP rows (no Pc / Lbl) → weight-only boxes, created once with the ERP weight
+      const added: string[] = [];
+      const data = await s.get('cfg/locs', { type: 'json' });
+      for (const x of rows) {
+        if (x.pcs != null || x.lbl != null || !(x.gr || x.net)) continue;
+        if (data.locs.some((l: any) => l.erpName && l.erpName.toLowerCase().replace(/[^a-z0-9]/g, '') === x.name.toLowerCase().replace(/[^a-z0-9]/g, ''))) continue;
+        const pm = /\((\d{1,2})K?\)/i.exec(x.name); const purity = pm ? `${pm[1]}K` : '';
+        const nice = x.name.replace(/\((\d{1,2})K?\)/i, (_m, k) => `${k}K`).replace(/\s+/g, ' ').replace(/\b(loose)\b/i, 'Loose').trim();
+        const loc = { id: 'B' + now().toString(36) + rid().slice(0, 3), sec: 'box', group: 'Loose stock (weight only)', name: nice, erpName: x.name, purity, cat: 'Gold', itemType: /finding/i.test(x.name) ? 'Findings' : '', mode: 'weight', images: [], active: true, order: data.locs.length + 1, note: 'Added from ERP (weight only, no count)' };
+        data.locs.push(loc); added.push(loc.name);
+        const wt = r3(x.gr ?? x.net);
+        await s.setJSON(`mv/${today}/${now()}-${rid()}`, { id: `${now()}-${rid()}`, date: today, kind: 'set', reason: 'From ERP', ref: rec.fileName || 'ERP', note: `Opening weight from ERP ${reportDate} (gross)`, legs: [{ locId: loc.id, lines: {}, wt }], by: me.id, at: now() });
+      }
+      if (added.length) await s.setJSON('cfg/locs', data);
       const locs = await getLocs(s); const settings = await getSettings(s); const { day, mvs, counts } = await loadDay(s, today);
-      const ec = erpCompare(rec, summarize(locs, day.opening, mvs, counts, settings), settings);
-      await addAlert(s, { type: ec.matched ? 'report' : 'variance', title: ec.matched ? 'ERP closing matched' : 'ERP closing does not match', body: `${me.name} entered ERP: ${ec.total.pcs} Pc / ${ec.total.lbl} Lbl. App closing ${ec.total.app}. Difference ${ec.total.diff > 0 ? '+' : ''}${ec.total.diff}.`, by: me.id, ok: ec.matched });
-      return J({ ok: true, erp: rec, matched: ec.matched });
+      const ec = erpCmp(rec, locs, day, mvs, counts, settings);
+      const bl = ec.basis === 'lbl' ? 'Lbl' : 'Pc';
+      await addAlert(s, { type: ec.matched ? 'report' : 'variance', title: ec.matched ? 'ERP matched' : 'ERP does not match', body: `${me.name} loaded ERP ${reportDate}: ${ec.total.pcs ?? '—'} Pc / ${ec.total.lbl ?? '—'} Lbl. App ${ec.which} ${ec.total.app}. Difference ${ec.total.diff > 0 ? '+' : ''}${ec.total.diff} (${bl}).${added.length ? ` Added to Boxes (weight only): ${added.join(', ')}.` : ''}`, by: me.id, ok: ec.matched });
+      return J({ ok: true, erp: rec, matched: ec.matched, added });
     }
 
     if (path === 'report' && method === 'POST') {
@@ -342,7 +364,7 @@ export default async (req: Request) => {
       need('setup');
       const data = await s.get('cfg/locs', { type: 'json' });
       const L = body.loc || {};
-      const fields = ['sec', 'group', 'name', 'purity', 'cat', 'itemType', 'boxNo', 'insert', 'qty', 'mode', 'images', 'note', 'order'];
+      const fields = ['sec', 'group', 'name', 'purity', 'cat', 'itemType', 'boxNo', 'insert', 'qty', 'mode', 'images', 'note', 'order', 'erpName'];
       let loc = data.locs.find((l: any) => l.id === L.id);
       if (L.active === false && loc) {
         const day = await ensureToday(s); const { mvs } = await loadDay(s, today);
@@ -377,7 +399,7 @@ export default async (req: Request) => {
       {
         const locs = await getLocs(s); const settings = await getSettings(s); const d = await loadDay(s, today);
         const erp = await s.get(`erp/${today}`, { type: 'json' });
-        const ec = erpCompare(erp, summarize(locs, d.day.opening, d.mvs, d.counts, settings), settings);
+        const ec = erpCmp(erp, locs, d.day, d.mvs, d.counts, settings);
         if (ec.entered && !ec.matched) {
           if (me.role !== 'admin') return err(`ERP total does not match (difference ${ec.total.diff > 0 ? '+' : ''}${ec.total.diff}). Only admin can close with a mismatch.`, 409);
           if (!String(body.override || '').trim()) return err('Give a reason to close with an ERP mismatch', 409);
@@ -422,6 +444,7 @@ export default async (req: Request) => {
       const next: any = { ...cur };
       if (typeof b.shopName === 'string') next.shopName = b.shopName.slice(0, 60);
       if (b.erpBasis === 'lbl' || b.erpBasis === 'pcs') next.erpBasis = b.erpBasis;
+      for (const k of ['erpItemMap', 'erpCatMap']) if (b[k] && typeof b[k] === 'object') next[k] = Object.fromEntries(Object.entries(b[k]).slice(0, 60).map(([a, v]: any) => [String(a).trim().slice(0, 30), String(v).trim().slice(0, 60)]).filter(([a]) => a));
       for (const k of ['itemTypes', 'purities', 'categories', 'reasons']) if (Array.isArray(b[k])) next[k] = b[k].map((x: any) => String(x).trim().slice(0, 30)).filter(Boolean);
       if (b.wtTol != null) next.wtTol = Math.max(0, r3(b.wtTol));
       if (b.blind != null) next.blind = !!b.blind;

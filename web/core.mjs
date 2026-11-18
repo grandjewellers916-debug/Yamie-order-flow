@@ -6,13 +6,15 @@ export const SECTIONS = [
 ];
 export const DEFAULT_SETTINGS = {
   shopName: 'Yamie Fine Jewellery',
-  itemTypes: ['Ring', 'Stud', 'Pendant', 'Set', 'Bracelet', 'Necklace', 'Bangle', 'Chain', 'Nosepin', 'Coin', 'Mixed'],
+  itemTypes: ['Ring', 'Stud', 'Pendant', 'Set', 'Bracelet', 'Necklace', 'Bangle', 'Chain', 'Nosepin', 'Coin', 'Findings', 'Mixed'],
   purities: ['22K', '18K', '14K', '9K', 'PT950', 'Silver', 'Mixed'],
   categories: ['Gold', 'Diamond', 'Platinum', 'Lab-grown', 'Kids', 'Gents', 'Silver'],
   wtTol: 0.010,        // grams allowed either way on box weight checks
   blind: false,        // hide expected counts from staff while counting
   waNumber: '',        // admin WhatsApp number for reports
-  erpBasis: 'lbl',     // app count is matched against ERP labels ('lbl') or pieces ('pcs')
+  erpBasis: 'lbl',
+  erpItemMap: { Ring: 'G-Ring', Stud: 'G-Earring', Pendant: 'G-Pendant', Set: 'G- Jewellery Set', Bracelet: 'G-Bracelet', Necklace: 'G-Necklace', Bangle: 'G-Bangle', Chain: 'G-Chain', Nosepin: 'G-Nosepins', Coin: 'G-Gold Coin', Findings: 'Findings', Mixed: 'G-Diamond Jewellery' },
+  erpCatMap: { Diamond: 'G-Diamond Jewellery', 'Lab-grown': 'Tanih - CVD Jewellery', Platinum: '-' },     // app count is matched against ERP labels ('lbl') or pieces ('pcs')
   reasons: ['Item sold, not updated', 'Moved to another tray', 'Sent for repair / approval', 'Label missing / wrong tag', 'Found extra item', 'Other'],
 };
 export const PERMS = {
@@ -159,19 +161,43 @@ export function closingVerified(locs, opening, mvs, counts, settings) {
   return close;
 }
 
-/** ERP Pc/Lbl comparison against app closing (expected) by item type. */
-export function erpCompare(erp, sm, settings) {
+/** ERP match. ERP rows are per ornament (e.g. "G-Ring", "G-Diamond Jewellery").
+ *  App stock is mapped: category map wins (Diamond, Lab-grown, Platinum), else item-type map.
+ *  A category mapped to '-' is not in the ERP report and is kept out of the match.
+ *  ERP rows without Pc/Lbl (weight-only) are omitted — those live in Boxes as weight-only stock.
+ *  which: 'closing' (app expected) or 'opening' (when the ERP report is for the previous day). */
+export const erpKey = (n) => String(n || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+export function erpNameFor(loc, type, settings) {
+  const cm = settings?.erpCatMap || DEFAULT_SETTINGS.erpCatMap; const im = settings?.erpItemMap || DEFAULT_SETTINGS.erpItemMap;
+  if (loc.cat && cm[loc.cat] != null) return cm[loc.cat];
+  return im[type] ?? type;
+}
+export function erpCompare(erp, locs, sm, settings, which = 'closing', opening = null) {
   const basis = settings?.erpBasis || 'lbl';
-  const rows = {}; let app = 0, erpT = 0;
-  for (const [t, B] of Object.entries(sm.byType)) { const v = Object.values(B).reduce((a, x) => a + x.exp, 0); if (v) rows[t] = { app: v, cnt: Object.values(B).reduce((a, x) => a + x.cnt, 0) }; }
-  for (const [t, x] of Object.entries(erp?.lines || {})) (rows[t] ||= { app: 0, cnt: 0 }).erp = x;
-  const hasLines = Object.values(erp?.lines || {}).some((x) => x && (x.pcs || x.lbl));
-  for (const r of Object.values(rows)) { app += r.app; r.basis = r.erp ? +(r.erp[basis] || 0) : null; r.diff = r.basis == null ? null : r.app - r.basis; }
-  const total = { app, pcs: hasLines ? Object.values(rows).reduce((a, r) => a + (+r.erp?.pcs || 0), 0) : +(erp?.total?.pcs || 0), lbl: hasLines ? Object.values(rows).reduce((a, r) => a + (+r.erp?.lbl || 0), 0) : +(erp?.total?.lbl || 0) };
-  if (erp?.total && !hasLines) { total.pcs = +erp.total.pcs || 0; total.lbl = +erp.total.lbl || 0; }
-  erpT = total[basis];
-  total.diff = erp ? app - erpT : null;
-  return { rows, total, basis, entered: !!erp, matched: !!erp && total.diff === 0 };
+  const rows = new Map(); const get = (name) => { const k = erpKey(name); if (!rows.has(k)) rows.set(k, { name, app: 0, cnt: 0, pcs: null, lbl: null, gr: null, net: null, erp: false }); return rows.get(k); };
+  let excluded = 0;
+  for (const l of locs || []) {
+    const st = which === 'opening' ? (opening?.[l.id] || { lines: {} }) : (sm.exp[l.id] || { lines: {} });
+    const c = sm.last[l.id]; const counted = which === 'closing' && c && c.mode !== 'weight';
+    const types = new Set([...Object.keys(st.lines || {}), ...(counted ? Object.keys(c.lines || {}) : [])]);
+    for (const t of types) {
+      const name = erpNameFor(l, t, settings); const n = st.lines?.[t] || 0;
+      if (name === '-' || name === '') { excluded += n; continue; }
+      const r = get(name); r.app += n; if (counted) r.cnt += +(c.lines?.[t] || 0);
+    }
+  }
+  for (const x of erp?.rows || []) {
+    if (x.pcs == null && x.lbl == null) continue;            // weight-only → boxes
+    const r = get(x.name); r.name = x.name; Object.assign(r, { pcs: x.pcs, lbl: x.lbl, gr: x.gr, net: x.net, erp: true });
+  }
+  const list = [...rows.values()].filter((r) => r.erp || r.app);
+  for (const r of list) { const bv = r[basis]; r.basisVal = r.erp ? +(bv || 0) : null; r.diff = r.erp ? r.app - r.basisVal : null; }
+  list.sort((a, b) => (b.erp - a.erp) || a.name.localeCompare(b.name));
+  const app = list.reduce((a, r) => a + r.app, 0);
+  const sumOf = (k) => list.reduce((a, r) => a + (+r[k] || 0), 0);
+  const total = { app, pcs: erp?.total?.pcs ?? sumOf('pcs'), lbl: erp?.total?.lbl ?? sumOf('lbl'), gr: erp?.total?.gr ?? null, net: erp?.total?.net ?? null };
+  total.diff = erp ? app - (+total[basis] || 0) : null;
+  return { rows: list, total, basis, excluded, which, entered: !!erp, matched: !!erp && total.diff === 0 };
 }
 
 export function istDate(d = new Date()) {

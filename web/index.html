@@ -194,7 +194,7 @@ td.pos{color:var(--ok);font-weight:600}td.neg{color:var(--bad);font-weight:600}
 <body>
 <div id="app"></div>
 <script type="module">
-import { SECTIONS, PERMS, ROLE_PERMS, REASONS, summarize, sumLines, r3, locStatus, istDate, erpCompare } from './core.mjs';
+import { SECTIONS, PERMS, ROLE_PERMS, REASONS, summarize, sumLines, r3, locStatus, istDate, erpCompare, erpKey } from './core.mjs';
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -205,7 +205,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.1';
+const VERSION = '1.2';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -830,9 +830,9 @@ function closeDayFlow() {
     <tr><td>Checked</td><td>${T.locs - T.pending}/${T.locs}</td></tr><tr><td>Variances open</td><td class="${T.var + T.stale ? 'neg' : 'pos'}">${T.var + T.stale}</td></tr></table>
     ${T.var + T.stale ? `<div class="banner" style="margin-top:12px">Unresolved variances close as book stock (not as counted). Accept counts first if they are correct.</div>` : ''}
     ${T.pending ? `<div class="banner" style="margin-top:12px">${T.pending} locations were not checked today.</div>` : ''}
-    ${(() => { const E = erpCompare(S.D.erp, S.sum, S.D.settings); return !E.entered ? `<div class="banner" style="margin-top:12px">Yamie ERP closing (Pc / Lbl) not entered yet. ${can('erp') ? '<button class="btn sm sec" id="toErp">Enter ERP</button>' : ''}</div>`
-      : E.matched ? `<div class="done-b" style="margin-top:12px">✓ ERP bottom total matches: ${fmt(E.total.app)} = ${fmt(E.total[E.basis])} ${E.basis === 'lbl' ? 'Lbl' : 'Pc'}</div>`
-      : `<div class="banner" style="margin-top:12px;background:var(--badb);color:var(--bad)">ERP bottom total does not match: app ${fmt(E.total.app)} vs ERP ${fmt(E.total[E.basis])} ${E.basis === 'lbl' ? 'Lbl' : 'Pc'} (${sgn(E.total.diff)}). ${S.me.role === 'admin' ? 'Admin can close with a reason.' : 'Only admin can close.'}</div>${S.me.role === 'admin' ? '<label class="f">Reason to close with mismatch</label><input type="text" id="ovr">' : ''}`; })()}
+    ${(() => { const E = erpCmpC(S.D.erp?.rows ? S.D.erp : null); return !E.entered ? `<div class="banner" style="margin-top:12px">Yamie ERP closing (Pc / Lbl) not entered yet. ${can('erp') ? '<button class="btn sm sec" id="toErp">Enter ERP</button>' : ''}</div>`
+      : E.matched ? `<div class="done-b" style="margin-top:12px">✓ ERP bottom total matches: app ${E.which} ${fmt(E.total.app)} = ERP ${fmt(E.total[E.basis])} ${E.basis === 'lbl' ? 'Lbl' : 'Pc'}</div>`
+      : `<div class="banner" style="margin-top:12px;background:var(--badb);color:var(--bad)">ERP bottom total does not match: app ${E.which} ${fmt(E.total.app)} vs ERP ${fmt(E.total[E.basis])} ${E.basis === 'lbl' ? 'Lbl' : 'Pc'} (${sgn(E.total.diff)}). ${S.me.role === 'admin' ? 'Admin can close with a reason.' : 'Only admin can close.'}</div>${S.me.role === 'admin' ? '<label class="f">Reason to close with mismatch</label><input type="text" id="ovr">' : ''}`; })()}
     <button class="btn" style="width:100%;margin-top:14px" id="doClose">Close day</button>`, () => {
     $('#toErp') && ($('#toErp').onclick = () => { closeModal(); S.view = 'total'; S.tab = 'erp'; render(); });
     $('#doClose').onclick = async () => { try { await api('close', { date: S.D.date, override: $('#ovr')?.value || '' }); toast('Day closed'); closeModal(); await load(); } catch (e) { fail(e); } };
@@ -873,36 +873,70 @@ function vTotal() {
   $('#prt') && ($('#prt').onclick = () => print());
   $('#wa') && ($('#wa').onclick = () => open(`https://wa.me/${S.D.settings.waNumber}?text=${encodeURIComponent(summaryText())}`, '_blank'));
 }
+async function loadPdfjs() {
+  const pdfjs = await import('./vendor/pdf.min.mjs');
+  pdfjs.GlobalWorkerOptions.workerSrc = new URL('./vendor/pdf.worker.min.mjs', location.href).href;
+  return pdfjs;
+}
+const erpDate = (t) => { const m = /(\d{2})\/(\d{2})\/(\d{4})\s*$/.exec(t || '') || /And\s+(\d{2})\/(\d{2})\/(\d{4})/.exec(t || ''); return m ? `${m[3]}-${m[2]}-${m[1]}` : ''; };
+const erpCmpC = (erp) => erpCompare(erp, S.D.locs, S.sum, S.D.settings, erp?.reportDate && erp.reportDate < S.D.date ? 'opening' : 'closing', S.D.day.opening);
+async function erpUpload(file) {
+  try {
+    toast('Reading ERP report…');
+    const [pdfjs, { parseErpPdf }] = await Promise.all([loadPdfjs(), import('./erp-parse.mjs')]);
+    const r = await parseErpPdf(new Uint8Array(await file.arrayBuffer()), pdfjs);
+    if (!r.rows.length) return toast('⚠ Could not find ornament rows in this PDF', 4000);
+    const reportDate = erpDate(r.meta.title) || S.D.date;
+    const cnt = r.rows.filter((x) => x.pcs != null || x.lbl != null); const wo = r.rows.filter((x) => x.pcs == null && x.lbl == null && (x.gr || x.net));
+    const sumP = cnt.reduce((a, x) => a + (x.pcs || 0), 0), sumL = cnt.reduce((a, x) => a + (x.lbl || 0), 0);
+    const okT = !r.total || (r.total.pcs === sumP && r.total.lbl === sumL);
+    const have = new Set(S.D.locs.filter((l) => l.erpName).map((l) => l.erpName.toLowerCase().replace(/[^a-z0-9]/g, '')));
+    modal('ERP report · check before saving', `${esc(file.name)} · ${esc(r.meta.location || '')} · report date ${reportDate ? dt(reportDate) : '?'}`, `
+      <h3 style="margin-bottom:6px">Rows with count (${cnt.length})</h3>
+      <div class="tw"><table><tr><th>Ornament</th><th>Pc</th><th>Lbl</th><th>Gross g</th><th>Net g</th></tr>${cnt.map((x) => `<tr><td class="b">${esc(x.name)}</td><td class="${x.pcs < 0 ? 'neg' : ''}">${x.pcs ?? '—'}</td><td>${x.lbl ?? '—'}</td><td>${x.gr != null ? g3(x.gr) : '—'}</td><td>${x.net != null ? g3(x.net) : '—'}</td></tr>`).join('')}
+      ${r.total ? `<tr class="tot"><td>Bottom total (report)</td><td>${r.total.pcs}</td><td>${r.total.lbl}</td><td>${g3(r.total.gr)}</td><td>${g3(r.total.net)}</td></tr>` : ''}</table></div>
+      <div class="${okT ? 'done-b' : 'banner'}" style="margin-top:8px">${okT ? `✓ Rows add up to the report's bottom total (${sumP} Pc / ${sumL} Lbl)` : `Rows add up to ${sumP} Pc / ${sumL} Lbl — report total differs. Check the PDF.`}</div>
+      ${wo.length ? `<h3 style="margin:14px 0 6px">Weight only, no count (${wo.length}) — omitted from the match</h3><div class="mut sm" style="margin-bottom:6px">${wo.some((x) => !have.has(x.name.toLowerCase().replace(/[^a-z0-9]/g, ''))) ? 'New ones are added to <b>Boxes → Loose stock (weight only)</b> with the ERP gross weight as opening weight.' : 'Already in Boxes.'}</div>
+        <div class="tw"><table><tr><th>Item</th><th>Gross g</th><th>Net g</th><th style="text-align:left">In app</th></tr>${wo.map((x) => `<tr><td class="b">${esc(x.name)}</td><td>${g3(x.gr)}</td><td>${g3(x.net)}</td><td style="text-align:left">${have.has(x.name.toLowerCase().replace(/[^a-z0-9]/g, '')) ? 'Box exists' : '<span class="st stale">New box</span>'}</td></tr>`).join('')}</table></div>` : ''}
+      ${reportDate && reportDate < S.D.date ? `<div class="banner" style="margin-top:10px">This is the ERP closing for ${dt(reportDate)} — it will be matched with today's app <b>opening</b> stock.</div>` : ''}
+      <button class="btn" style="width:100%;margin-top:14px" id="erpOk">Save ERP figures</button>`, () => {
+      $('#erpOk').onclick = async () => {
+        try { const res = await api('erp', { date: S.D.date, rows: r.rows, total: r.total, reportDate, source: 'pdf', fileName: file.name, ref: r.meta.title || '' }); closeModal(); toast(res.added.length ? `Saved · ${res.added.length} weight-only box(es) added` : res.matched ? '✓ ERP matches' : '⚠ ERP does not match — admin alerted', 3500); await load(); } catch (e) { fail(e); }
+      };
+    });
+  } catch (e) { fail(e); }
+}
 function vErp() {
-  const E = erpCompare(S.D.erp, S.sum, S.D.settings); const ed = editable() && can('erp');
-  const types = [...S.D.settings.itemTypes, ...Object.keys(E.rows).filter((t) => !S.D.settings.itemTypes.includes(t))];
-  const bL = E.basis === 'lbl' ? 'Lbl' : 'Pc';
-  const inp = (t, k) => { const v = S.D.erp?.lines?.[t]?.[k]; return ed ? `<input type="number" min="0" inputmode="numeric" data-e="${esc(t)}|${k}" value="${v ?? ''}">` : fmt(v || 0); };
-  const hasLines = Object.keys(S.D.erp?.lines || {}).length > 0;
+  const erp = S.D.erp?.rows ? S.D.erp : null;
+  const E = erpCmpC(erp); const ed = editable() && can('erp');
+  const bL = E.basis === 'lbl' ? 'Lbl' : 'Pc'; const wh = E.which === 'opening' ? 'opening' : 'closing';
+  const manual = S.erpManual && ed;
+  const inp = (r, k) => `<input type="number" inputmode="numeric" data-e="${esc(r.name)}|${k}" value="${r[k] ?? ''}">`;
+  const wo = (erp?.rows || []).filter((x) => x.pcs == null && x.lbl == null);
   $('#main').innerHTML = `${viewBanner()}
-  <div class="row sp wrap" style="margin-bottom:12px"><div><h1>Match with Yamie ERP</h1><div class="mut">${dt(S.D.date)} · closing Pc / Lbl — bottom total must match</div></div><button class="btn sm ghost" id="back">← Consolidated</button></div>
-  <div class="${!E.entered ? 'banner' : E.matched ? 'done-b' : 'banner'}" style="${E.entered && !E.matched ? 'background:var(--badb);color:var(--bad)' : ''}">${!E.entered ? 'Enter the closing figures from the Yamie ERP stock report (Pc and Lbl per category, or just the bottom total).' : E.matched ? `✓ Matched — app closing ${fmt(E.total.app)} = ERP ${fmt(E.total[E.basis])} ${bL}` : `Not matching — app closing ${fmt(E.total.app)} vs ERP ${fmt(E.total[E.basis])} ${bL} · difference ${sgn(E.total.diff)}`}</div>
-  <div class="tw erp" style="margin-top:12px"><table><tr><th>Category</th><th>App closing</th><th>Counted</th><th>ERP Pc</th><th>ERP Lbl</th><th>Diff (app − ${bL})</th></tr>
-  ${types.filter((t) => E.rows[t] || ed).map((t) => { const r = E.rows[t] || { app: 0, cnt: 0, diff: null }; return `<tr><td class="b">${esc(t)}</td><td>${fmt(r.app)}</td><td class="mut">${fmt(r.cnt)}</td><td>${inp(t, 'pcs')}</td><td>${inp(t, 'lbl')}</td><td class="${r.diff > 0 ? 'pos' : r.diff < 0 ? 'neg' : ''}">${r.diff == null ? '—' : r.diff ? sgn(r.diff) : '✓'}</td></tr>`; }).join('')}
-  <tr class="tot"><td>Bottom total</td><td>${fmt(E.total.app)}</td><td>${fmt(S.sum.total.counted)}</td>
-    <td>${ed && !hasLines ? `<input type="number" id="tPcs" value="${S.D.erp?.total?.pcs ?? ''}">` : `<span id="sPcs">${fmt(E.total.pcs)}</span>`}</td>
-    <td>${ed && !hasLines ? `<input type="number" id="tLbl" value="${S.D.erp?.total?.lbl ?? ''}">` : `<span id="sLbl">${fmt(E.total.lbl)}</span>`}</td>
-    <td class="${E.total.diff ? 'neg' : 'pos'}">${E.total.diff == null ? '—' : E.total.diff ? sgn(E.total.diff) : '✓ Match'}</td></tr></table></div>
-  <div class="mut sm" style="margin-top:6px">App closing = book stock (opening + in − out). App pieces are matched against ERP <b>${bL}</b> (change in Admin → Settings). Fill either the category rows or only the bottom total.</div>
-  ${ed ? `<div class="row wrap" style="margin-top:12px"><input type="text" id="eRef" placeholder="ERP report no. / time (optional)" value="${esc(S.D.erp?.ref || '')}" style="max-width:320px"><button class="btn" id="eSave">Save & match</button></div>` : ''}
-  ${S.D.erp ? `<div class="mut sm" style="margin-top:8px">Entered by ${esc(uname(S.D.erp.by))} · ${tm(S.D.erp.at)}</div>` : ''}
+  <div class="row sp wrap" style="margin-bottom:12px"><div><h1>Match with Yamie ERP</h1><div class="mut">${erp ? `ERP ${erp.reportDate ? dt(erp.reportDate) : ''} vs app ${wh} ${dt(S.D.date)}` : dt(S.D.date)} · bottom total must match</div></div>
+    <div class="row wrap">${ed ? `<label class="btn sm"><input type="file" accept="application/pdf" id="erpPdf" hidden>⬆ Upload ERP PDF</label><button class="btn sm ghost" id="manual">${manual ? 'Cancel' : 'Enter manually'}</button>` : ''}<button class="btn sm ghost" id="back">← Consolidated</button></div></div>
+  <div class="${!E.entered ? 'banner' : E.matched ? 'done-b' : 'banner'}" style="${E.entered && !E.matched ? 'background:var(--badb);color:var(--bad)' : ''}">${!E.entered ? 'Upload the Yamie ERP "Locationwise Item Summary" PDF, or enter the closing Pc / Lbl manually.' : E.matched ? `✓ Matched — app ${wh} ${fmt(E.total.app)} = ERP ${fmt(E.total[E.basis])} ${bL}` : `Not matching — app ${wh} ${fmt(E.total.app)} vs ERP ${fmt(E.total[E.basis])} ${bL} · difference ${sgn(E.total.diff)}`}</div>
+  <div class="tw erp" style="margin-top:12px"><table><tr><th>ERP ornament</th><th>App ${wh}</th>${E.which === 'closing' ? '<th>Counted</th>' : ''}<th>ERP Pc</th><th>ERP Lbl</th><th>ERP gross g</th><th>Diff (app − ${bL})</th></tr>
+  ${(manual ? [...E.rows, ...(E.rows.length ? [] : [])] : E.rows).map((r) => `<tr><td class="b">${esc(r.name)}${!r.erp ? ' <span class="chip">not in ERP</span>' : ''}</td><td>${fmt(r.app)}</td>${E.which === 'closing' ? `<td class="mut">${fmt(r.cnt)}</td>` : ''}<td class="${r.pcs < 0 ? 'neg' : ''}">${manual ? inp(r, 'pcs') : r.pcs ?? '—'}</td><td>${manual ? inp(r, 'lbl') : r.lbl ?? '—'}</td><td>${r.gr != null ? g3(r.gr) : '—'}</td><td class="${r.diff > 0 ? 'pos' : r.diff < 0 ? 'neg' : ''}">${r.diff == null ? '—' : r.diff ? sgn(r.diff) : '✓'}</td></tr>`).join('')}
+  <tr class="tot"><td>Bottom total</td><td>${fmt(E.total.app)}</td>${E.which === 'closing' ? `<td>${fmt(S.sum.total.counted)}</td>` : ''}<td>${manual ? `<input type="number" id="tPcs" value="${erp?.total?.pcs ?? ''}">` : E.total.pcs ?? '—'}</td><td>${manual ? `<input type="number" id="tLbl" value="${erp?.total?.lbl ?? ''}">` : E.total.lbl ?? '—'}</td><td>${E.total.gr != null ? g3(E.total.gr) : '—'}</td><td class="${E.total.diff ? 'neg' : 'pos'}">${E.total.diff == null ? '—' : E.total.diff ? sgn(E.total.diff) : '✓ Match'}</td></tr></table></div>
+  <div class="mut sm" style="margin-top:6px">App pieces are matched against ERP <b>${bL}</b>. Mapping app item types / categories to ERP ornaments is in Admin → Settings.${E.excluded ? ` ${fmt(E.excluded)} pcs (e.g. Platinum) are not in this ERP report and are left out.` : ''}</div>
+  ${wo.length ? `<h3 style="margin:16px 0 6px">Weight-only ERP rows — omitted, kept in Boxes</h3><div class="tw"><table><tr><th>ERP item</th><th>ERP gross g</th><th>App box</th><th>App weight g</th></tr>${wo.map((x) => { const l = S.D.locs.find((y) => y.erpName && erpKey(y.erpName) === erpKey(x.name)); return `<tr><td class="b">${esc(x.name)}</td><td>${g3(x.gr)}</td><td>${l ? esc(l.name) : '—'}</td><td>${l ? g3(expOf(l.id).wt) : '—'}</td></tr>`; }).join('')}</table></div>` : ''}
+  ${manual ? `<div class="row wrap" style="margin-top:12px"><input type="text" id="eRef" placeholder="ERP report no. (optional)" style="max-width:320px"><button class="btn" id="eSave">Save & match</button></div>` : ''}
+  ${S.D.erp ? `<div class="mut sm" style="margin-top:8px">Loaded by ${esc(uname(S.D.erp.by))} · ${tm(S.D.erp.at)}${S.D.erp.fileName ? ' · ' + esc(S.D.erp.fileName) : ''}</div>` : ''}
   ${editable() && can('close') ? `<button class="btn sec" style="width:100%;margin-top:18px" id="closeBtn">Close day</button>` : ''}`;
   bindBanner();
-  $('#back').onclick = () => { S.tab = ''; vTotal(); };
+  $('#back').onclick = () => { S.tab = ''; S.erpManual = false; vTotal(); };
   $('#closeBtn') && ($('#closeBtn').onclick = closeDayFlow);
-  const live = () => { let p = 0, l = 0; $('#main').querySelectorAll('[data-e]').forEach((i) => { const [, k] = i.dataset.e.split('|'); if (k === 'pcs') p += +i.value || 0; else l += +i.value || 0; }); if ($('#sPcs')) { $('#sPcs').textContent = fmt(p); $('#sLbl').textContent = fmt(l); } };
-  $('#main').querySelectorAll('[data-e]').forEach((i) => i.oninput = live);
+  $('#erpPdf') && ($('#erpPdf').onchange = (ev) => ev.target.files[0] && erpUpload(ev.target.files[0]));
+  $('#manual') && ($('#manual').onclick = () => { S.erpManual = !S.erpManual; vErp(); });
   $('#eSave') && ($('#eSave').onclick = async () => {
-    const lines = {}; $('#main').querySelectorAll('[data-e]').forEach((i) => { const [t, k] = i.dataset.e.split('|'); if (i.value !== '') (lines[t] ||= {})[k] = +i.value; });
-    const anyLine = Object.values(lines).some((x) => x.pcs || x.lbl);
-    const total = anyLine ? null : { pcs: +($('#tPcs')?.value || 0), lbl: +($('#tLbl')?.value || 0) };
-    if (!anyLine && !total.pcs && !total.lbl) return toast('Enter ERP figures');
-    try { const r = await api('erp', { date: S.D.date, lines, total, ref: $('#eRef').value }); toast(r.matched ? '✓ ERP matches' : '⚠ ERP does not match — admin alerted', 3200); await load(); } catch (e) { fail(e); }
+    const rows = E.rows.map((r) => ({ name: r.name, pcs: null, lbl: null, gr: r.gr, net: r.net }));
+    $('#main').querySelectorAll('[data-e]').forEach((i) => { const [n, k] = i.dataset.e.split('|'); const r = rows.find((x) => x.name === n); if (i.value !== '') r[k] = +i.value; });
+    for (const x of wo) rows.push(x);
+    const tp = $('#tPcs').value, tl = $('#tLbl').value;
+    const total = tp !== '' || tl !== '' ? { pcs: tp === '' ? null : +tp, lbl: tl === '' ? null : +tl } : null;
+    try { const r = await api('erp', { date: S.D.date, rows, total, reportDate: S.D.erp?.reportDate || S.D.date, source: 'manual', ref: $('#eRef').value }); S.erpManual = false; toast(r.matched ? '✓ ERP matches' : '⚠ ERP does not match — admin alerted', 3200); await load(); } catch (e) { fail(e); }
   });
 }
 function summaryText() {
@@ -1002,13 +1036,16 @@ function admSettings() {
     <label class="f">Box weight tolerance (± grams)</label><input type="number" step="0.001" id="sT" value="${st.wtTol}">
     <label class="chk" style="margin-top:10px"><input type="checkbox" id="sB" ${st.blind ? 'checked' : ''}> Blind count — staff don't see expected numbers while counting</label>
     <label class="f">Match app count against ERP</label><select id="sE"><option value="lbl" ${st.erpBasis !== 'pcs' ? 'selected' : ''}>Labels (Lbl)</option><option value="pcs" ${st.erpBasis === 'pcs' ? 'selected' : ''}>Pieces (Pc)</option></select>
+    <label class="f">App item type → ERP ornament (one per line, e.g. Ring = G-Ring)</label><textarea id="sM" style="min-height:150px">${esc(Object.entries(st.erpItemMap || {}).map(([a, b]) => `${a} = ${b}`).join('\n'))}</textarea>
+    <label class="f">Category → ERP ornament (overrides item type; use - for "not in this ERP report")</label><textarea id="sCM">${esc(Object.entries(st.erpCatMap || {}).map(([a, b]) => `${a} = ${b}`).join('\n'))}</textarea>
     <label class="f">Discrepancy reasons (comma separated)</label><textarea id="sR">${esc(st.reasons.join(', '))}</textarea>
     <label class="f">Item types (comma separated)</label><textarea id="sI">${esc(st.itemTypes.join(', '))}</textarea>
     <label class="f">Purities</label><input type="text" id="sP" value="${esc(st.purities.join(', '))}">
     <label class="f">Categories</label><input type="text" id="sC" value="${esc(st.categories.join(', '))}">
     <button class="btn" style="width:100%;margin-top:14px" id="sS">Save settings</button></div>`;
   const list = (v) => v.split(',').map((x) => x.trim()).filter(Boolean);
-  $('#sS').onclick = async () => { try { await api('settings', { settings: { shopName: $('#sN').value, waNumber: $('#sW').value, wtTol: +$('#sT').value, blind: $('#sB').checked, erpBasis: $('#sE').value, reasons: list($('#sR').value), itemTypes: list($('#sI').value), purities: list($('#sP').value), categories: list($('#sC').value) } }); toast('Settings saved'); load(true); } catch (e) { fail(e); } };
+  const kv = (v) => Object.fromEntries(v.split('\n').map((x) => x.split('=').map((y) => y.trim())).filter((x) => x[0] && x.length > 1));
+  $('#sS').onclick = async () => { try { await api('settings', { settings: { shopName: $('#sN').value, waNumber: $('#sW').value, wtTol: +$('#sT').value, blind: $('#sB').checked, erpBasis: $('#sE').value, erpItemMap: kv($('#sM').value), erpCatMap: kv($('#sCM').value), reasons: list($('#sR').value), itemTypes: list($('#sI').value), purities: list($('#sP').value), categories: list($('#sC').value) } }); toast('Settings saved'); load(true); } catch (e) { fail(e); } };
 }
 
 // ---------------- boot ----------------
