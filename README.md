@@ -1,6 +1,6 @@
 # Yamie Stock Check
 
-Daily stock verification for Yamie: counter display, buffer trays, boxes (count / weight), consolidated view.
+Daily stock verification for Yamie: guided Yes/No counting (counter → tray → next counter), buffer trays, boxes (count + weight), consolidated view, Yamie ERP Pc/Lbl match at closing. v1.1
 
 - `web/index.html` — the whole app (phone + computer layouts)
 - `web/core.mjs` — shared stock logic (browser + server)

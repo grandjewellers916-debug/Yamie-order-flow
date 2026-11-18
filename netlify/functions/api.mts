@@ -2,7 +2,7 @@ import { getStore } from '@netlify/blobs';
 import crypto from 'node:crypto';
 import { buildSeed } from '../lib/seed.mjs';
 import {
-  DEFAULT_SETTINGS, ROLE_PERMS, PERMS, SECTIONS, summarize, closingOf, computeExpected,
+  DEFAULT_SETTINGS, ROLE_PERMS, PERMS, SECTIONS, summarize, closingVerified, computeExpected, erpCompare,
   latestCounts, locStatus, sumLines, istDate, r3,
 } from '../../web/core.mjs';
 
@@ -86,8 +86,11 @@ async function closeDay(s: any, date: string, by: string, auto = false) {
   const locs = await getLocs(s); const settings = await getSettings(s);
   const { day, mvs, counts } = await loadDay(s, date);
   if (!day || day.status === 'closed') return day;
-  day.closing = closingOf(day.opening, mvs);
+  day.closing = closingVerified(locs, day.opening, mvs, counts, settings);
   day.summary = daySummaryLine(locs, day, mvs, counts, settings);
+  const erp = await s.get(`erp/${date}`, { type: 'json' });
+  const ec = erpCompare(erp, summarize(locs, day.opening, mvs, counts, settings), settings);
+  day.summary.erp = { entered: ec.entered, matched: ec.matched, app: ec.total.app, pcs: ec.total.pcs, lbl: ec.total.lbl, diff: ec.total.diff };
   day.status = 'closed'; day.closedAt = now(); day.closedBy = by; day.autoClosed = auto;
   await s.setJSON(`day/${date}`, day);
   return day;
@@ -176,7 +179,8 @@ export default async (req: Request) => {
         alerts.unread = list.filter((a: any) => a.at > seen && a.by !== me.id).length;
       }
       const days = await dayKeys(s);
-      return J({ today, date, day: d.day, mvs: d.mvs, counts: d.counts, locs, settings, me: pubUser(me), alerts, days, userNames: Object.fromEntries(users.map((u) => [u.id, u.name])) });
+      const [sessions, erp] = await Promise.all([listJSON(s, `ss/${date}/`), s.get(`erp/${date}`, { type: 'json' })]);
+      return J({ today, date, day: d.day, mvs: d.mvs, counts: d.counts, sessions, erp, locs, settings, me: pubUser(me), alerts, days, userNames: Object.fromEntries(users.map((u) => [u.id, u.name])) });
     }
 
     // helpers needing an open day
@@ -192,20 +196,84 @@ export default async (req: Request) => {
       await openDay(body.date);
       const locs = await getLocs(s); const settings = await getSettings(s);
       const loc = locs.find((l) => l.id === body.locId); if (!loc) return err('Unknown location');
-      const { day, mvs } = await loadDay(s, today);
+      const { day, mvs, counts } = await loadDay(s, today);
       const exp = computeExpected(day.opening, mvs)[loc.id] || { lines: {}, wt: 0 };
+      const prev = latestCounts(counts)[loc.id];
+      if (prev && !can('accept')) {
+        const pst = locStatus(exp, prev, mvs, loc.id, settings);
+        if (pst.state !== 'stale' && !prev.recountAllowed) return err(`Already verified by ${users.find((u) => u.id === prev.by)?.name || prev.by}. Changes need a manager correction.`, 409);
+      }
       const mode = loc.sec === 'box' ? (body.mode || 'both') : 'count';
       const lines: any = {}; for (const [t, n] of Object.entries(body.lines || {})) if (+(n as any) > 0) lines[t] = Math.round(+(n as any));
-      const rec: any = { id: `${now()}-${rid()}`, date: today, locId: loc.id, sec: loc.sec, mode, lines: mode === 'weight' ? null : lines, wt: mode === 'count' ? null : r3(body.wt), note: String(body.note || '').slice(0, 300), by: me.id, at: now(), expected: exp };
+      const rec: any = { id: `${now()}-${rid()}`, date: today, locId: loc.id, sec: loc.sec, mode, lines: mode === 'weight' ? null : lines, wt: mode === 'count' ? null : r3(body.wt), note: String(body.note || '').slice(0, 300), by: me.id, at: now(), expected: exp, sessionId: String(body.sessionId || '').slice(0, 40), reasons: {} as any };
+      for (const [t, r] of Object.entries(body.reasons || {})) rec.reasons[String(t).slice(0, 30)] = String(r).slice(0, 80);
       const st = locStatus(exp, rec, [], loc.id, settings);
       rec.result = st.state; rec.diff = st.diff; rec.wtDiff = st.wtDiff;
       await s.setJSON(`ct/${today}/${loc.id}/${rec.id}`, rec);
       if (st.state === 'var') {
-        const parts = Object.entries(st.diff).map(([t, d]: any) => `${t} ${d > 0 ? '+' : ''}${d}`);
+        const parts = Object.entries(st.diff).map(([t, d]: any) => `${t} ${d > 0 ? '+' : ''}${d}${rec.reasons[t] ? ` (${rec.reasons[t]})` : ''}`);
         if (mode !== 'count' && Math.abs(st.wtDiff) > settings.wtTol) parts.push(`weight ${st.wtDiff > 0 ? '+' : ''}${st.wtDiff.toFixed(3)} g`);
         await addAlert(s, { type: 'variance', title: `Variance · ${loc.name}`, body: `${SECTIONS.find((x) => x.key === loc.sec)?.label} · ${loc.group}: ${parts.join(', ')}`, locId: loc.id, sec: loc.sec, by: me.id });
       }
       return J({ ok: true, count: rec });
+    }
+
+    if (path === 'count/recount' && method === 'POST') {
+      need('accept'); await openDay(body.date);
+      const { counts } = await loadDay(s, today);
+      const c: any = latestCounts(counts)[body.locId]; if (!c) return err('No count yet');
+      c.recountAllowed = { by: me.id, at: now() };
+      await s.setJSON(`ct/${today}/${c.locId}/${c.id}`, c);
+      const loc = (await getLocs(s)).find((l) => l.id === c.locId);
+      await addAlert(s, { type: 'info', title: `Recount requested · ${loc?.name}`, body: `${me.name} asked for ${loc?.name} to be counted again.`, locId: c.locId, by: me.id });
+      return J({ ok: true });
+    }
+
+    if (path === 'session/start' && method === 'POST') {
+      need('count'); await openDay(body.date);
+      const scope = ['all', ...SECTIONS.map((x) => x.key)].includes(body.scope) ? body.scope : 'all';
+      const existing = (await listJSON(s, `ss/${today}/`)).find((x: any) => x.by === me.id && x.scope === scope && x.status === 'active');
+      if (existing) return J({ session: existing, resumed: true });
+      const rec = { id: `${now()}-${rid()}`, date: today, scope, by: me.id, at: now(), status: 'active' };
+      await s.setJSON(`ss/${today}/${rec.id}`, rec);
+      return J({ session: rec });
+    }
+    if (path === 'session/finish' && method === 'POST') {
+      need('count');
+      const key = `ss/${today}/${String(body.id).replace(/[^a-z0-9-]/gi, '')}`;
+      const ses: any = await s.get(key, { type: 'json' }); if (!ses) return err('Session not found');
+      const locs = await getLocs(s); const settings = await getSettings(s);
+      const { day, mvs, counts } = await loadDay(s, today);
+      const sm = summarize(locs, day.opening, mvs, counts, settings);
+      const inScope = locs.filter((l) => l.active !== false && (ses.scope === 'all' || l.sec === ses.scope));
+      let exp = 0, act = 0, short = 0, excess = 0, pend = 0, done = 0, wtVar = 0;
+      const lines: string[] = [];
+      for (const l of inScope) {
+        const st = sm.status[l.id]; const c = sm.last[l.id];
+        if (st.state === 'pending') continue; done++;
+        if (c.mode !== 'weight') { exp += Object.values(sm.exp[l.id]?.lines || {}).reduce((a: number, b: any) => a + b, 0); act += Object.values(c.lines || {}).reduce((a: number, b: any) => a + b, 0); }
+        for (const d of Object.values(st.diff) as number[]) { if (d < 0) short -= d; else excess += d; }
+        if (st.state === 'var' || st.state === 'stale') { pend++; if (Math.abs(st.wtDiff) > settings.wtTol) wtVar++; lines.push(`${l.name}: ${Object.entries(st.diff).map(([t, d]: any) => `${t} ${d > 0 ? '+' : ''}${d}`).join(', ') || `weight ${st.wtDiff > 0 ? '+' : ''}${st.wtDiff} g`}`); }
+      }
+      ses.summary = { locs: inScope.length, done, expected: exp, actual: act, short, excess, pending: pend, wtVar };
+      ses.status = done >= inScope.length ? 'done' : 'active'; ses.finishedAt = now();
+      await s.setJSON(key, ses);
+      const label = ses.scope === 'all' ? 'Full stock count' : SECTIONS.find((x) => x.key === ses.scope)?.label + ' count';
+      const text = `${label} by ${me.name}: ${done}/${inScope.length} verified. Expected ${exp}, actual ${act}, short ${short}, excess ${excess}. Pending discrepancies ${pend}.` + (lines.length ? ' ' + lines.join('; ') : '');
+      await addAlert(s, { type: 'report', title: `${label} ${ses.status === 'done' ? 'completed' : 'saved (incomplete)'}`, body: text, by: me.id, ok: !pend && ses.status === 'done' });
+      return J({ ok: true, session: ses, text });
+    }
+
+    if (path === 'erp' && method === 'POST') {
+      need('erp'); await openDay(body.date);
+      const lines: any = {};
+      for (const [t, x] of Object.entries(body.lines || {}) as any) { const pcs = Math.max(0, Math.round(+x?.pcs || 0)), lbl = Math.max(0, Math.round(+x?.lbl || 0)); if (pcs || lbl) lines[String(t).slice(0, 30)] = { pcs, lbl }; }
+      const rec = { date: today, lines, total: { pcs: Math.max(0, Math.round(+body.total?.pcs || 0)), lbl: Math.max(0, Math.round(+body.total?.lbl || 0)) }, ref: String(body.ref || '').slice(0, 60), by: me.id, at: now() };
+      await s.setJSON(`erp/${today}`, rec);
+      const locs = await getLocs(s); const settings = await getSettings(s); const { day, mvs, counts } = await loadDay(s, today);
+      const ec = erpCompare(rec, summarize(locs, day.opening, mvs, counts, settings), settings);
+      await addAlert(s, { type: ec.matched ? 'report' : 'variance', title: ec.matched ? 'ERP closing matched' : 'ERP closing does not match', body: `${me.name} entered ERP: ${ec.total.pcs} Pc / ${ec.total.lbl} Lbl. App closing ${ec.total.app}. Difference ${ec.total.diff > 0 ? '+' : ''}${ec.total.diff}.`, by: me.id, ok: ec.matched });
+      return J({ ok: true, erp: rec, matched: ec.matched });
     }
 
     if (path === 'report' && method === 'POST') {
@@ -306,7 +374,17 @@ export default async (req: Request) => {
     if (path === 'close' && method === 'POST') {
       need('close');
       if (body.date !== today) return err('Only today can be closed');
+      {
+        const locs = await getLocs(s); const settings = await getSettings(s); const d = await loadDay(s, today);
+        const erp = await s.get(`erp/${today}`, { type: 'json' });
+        const ec = erpCompare(erp, summarize(locs, d.day.opening, d.mvs, d.counts, settings), settings);
+        if (ec.entered && !ec.matched) {
+          if (me.role !== 'admin') return err(`ERP total does not match (difference ${ec.total.diff > 0 ? '+' : ''}${ec.total.diff}). Only admin can close with a mismatch.`, 409);
+          if (!String(body.override || '').trim()) return err('Give a reason to close with an ERP mismatch', 409);
+        }
+      }
       const day = await closeDay(s, today, me.id);
+      if (body.override) { day.override = { by: me.id, why: String(body.override).slice(0, 200) }; await s.setJSON(`day/${today}`, day); }
       const sm = day.summary;
       await addAlert(s, { type: 'close', title: `Day closed · ${today}`, body: `Closed by ${me.name}. Closing stock ${sm.closing} pcs (opening ${sm.opening}, in ${sm.in}, out ${sm.out}). Checked ${sm.checked}/${sm.locs}, variances ${sm.variances}. Closing becomes tomorrow's opening.`, by: me.id, ok: !sm.variances });
       return J({ ok: true, day });
@@ -343,7 +421,8 @@ export default async (req: Request) => {
       const cur = await getSettings(s); const b = body.settings || {};
       const next: any = { ...cur };
       if (typeof b.shopName === 'string') next.shopName = b.shopName.slice(0, 60);
-      for (const k of ['itemTypes', 'purities', 'categories']) if (Array.isArray(b[k])) next[k] = b[k].map((x: any) => String(x).trim().slice(0, 30)).filter(Boolean);
+      if (b.erpBasis === 'lbl' || b.erpBasis === 'pcs') next.erpBasis = b.erpBasis;
+      for (const k of ['itemTypes', 'purities', 'categories', 'reasons']) if (Array.isArray(b[k])) next[k] = b[k].map((x: any) => String(x).trim().slice(0, 30)).filter(Boolean);
       if (b.wtTol != null) next.wtTol = Math.max(0, r3(b.wtTol));
       if (b.blind != null) next.blind = !!b.blind;
       if (typeof b.waNumber === 'string') next.waNumber = b.waNumber.replace(/[^0-9]/g, '').slice(0, 15);

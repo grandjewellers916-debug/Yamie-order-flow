@@ -98,6 +98,7 @@ td.pos{color:var(--ok);font-weight:600}td.neg{color:var(--bad);font-weight:600}
 @media(min-width:700px){.ov{align-items:center}.md{border-radius:18px;max-height:90vh}}
 .mh{position:sticky;top:0;background:var(--iv);padding:14px 16px 10px;display:flex;gap:10px;align-items:flex-start;border-bottom:1px solid var(--ln);z-index:2}
 .mb{padding:14px 16px}
+.md.wide{max-width:940px}
 .x{width:36px;height:36px;border-radius:10px;background:var(--cr);font-size:20px;flex:none}
 .photos{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
 .photos .ph{position:relative;flex:none}
@@ -141,13 +142,59 @@ td.pos{color:var(--ok);font-weight:600}td.neg{color:var(--bad);font-weight:600}
 .li{display:flex;gap:10px;align-items:center;padding:10px 12px;background:#fff}
 .chk{display:flex;gap:8px;align-items:center;padding:6px 0}
 .chk input{width:20px;height:20px;accent-color:var(--m)}
+/* v1.1 count flow */
+.iti{width:40px;height:40px;border-radius:10px;background:#FBF1E4;display:grid;place-items:center;flex:none}
+.hico{width:46px;height:46px;border-radius:12px;background:var(--m3);color:var(--m);display:grid;place-items:center;flex:none}
+.who{display:flex;gap:8px;align-items:center;background:#fff;border:1px solid var(--ln);border-radius:12px;padding:6px 10px;text-align:left;line-height:1.15;flex:none}
+.ctiles{display:flex;gap:10px;align-items:stretch;margin-top:4px}
+.photos.mini{flex:none;max-width:40%}.photos.mini img{height:96px}.photos.mini .addph{height:96px;width:96px;font-size:12px}
+.kpis.tiles{flex:1;grid-template-columns:repeat(4,1fr);gap:8px}
+.kpis.tiles .kpi{padding:10px}.kpi small{font-size:13px;font-weight:500}
+.kpi.okt{background:var(--okb);border-color:#BFE0CB}.kpi.badt{background:var(--badb);border-color:#EFC4BF}.kpi.op{border-color:#E4B9B3}
+.chip.mm{background:var(--m);color:#fff}
+.steps{display:flex;border-bottom:1px solid var(--ln);margin:6px 0 12px;overflow-x:auto}
+.steps button{flex:1;display:flex;gap:8px;align-items:center;justify-content:center;padding:10px 6px;border-bottom:3px solid transparent;white-space:nowrap;font-weight:500;color:var(--ink)}
+.steps button i{font-style:normal;width:26px;height:26px;border-radius:99px;border:1.5px solid var(--mut);display:grid;place-items:center;font-size:13px}
+.steps button.on{color:var(--m);border-color:var(--m);font-weight:600}.steps button.on i{background:var(--m);border-color:var(--m);color:#fff}
+.steps button.past i{background:var(--ok);border-color:var(--ok);color:#fff}
+.steps button:disabled{opacity:.7;cursor:default}
+.info{background:var(--cr);border-radius:10px;padding:8px 12px;font-size:14px;margin-bottom:10px}
+.vt{border:1px solid var(--ln);border-radius:var(--r);overflow:hidden;background:#fff}
+.vr{display:grid;grid-template-columns:44px 1fr 70px 190px 110px;gap:8px;align-items:center;padding:8px 10px;border-top:1px solid var(--ln)}
+.vr.h{border-top:0;background:var(--cr);font-size:12px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.5px}
+.vr.add{grid-template-columns:1fr}.vr .c{text-align:center}.vr .big{font-size:20px;font-weight:600}
+.yn{display:flex;gap:6px;justify-content:center}
+.yn button{flex:1;padding:8px 6px;border-radius:99px;border:1.5px solid;font-weight:600;min-height:40px}
+.yn .yes{border-color:#7DBB95;color:var(--ok)}.yn .yes.on{background:var(--ok);color:#fff;border-color:var(--ok)}
+.yn .no{border-color:#E4AAA4;color:var(--bad)}.yn .no.on{background:var(--bad);color:#fff;border-color:var(--bad)}
+.vsub{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;background:#FDF0EE;margin:0 10px 10px;padding:10px 12px;border-radius:10px}
+.vsub select{min-width:180px}
+.dbadge{display:inline-block;padding:6px 12px;border-radius:10px;font-weight:700;font-size:16px;margin-top:4px}
+.dbadge.neg{background:var(--badb);color:var(--bad)}.dbadge.pos{background:var(--warnb);color:var(--warn)}.dbadge.zero,.dbadge.okb{background:var(--okb);color:var(--ok)}
+.foot{position:sticky;bottom:-16px;background:var(--iv);border-top:1px solid var(--ln);margin:14px -16px -16px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.foot .btn{min-height:48px}
+.sstrip{display:flex;justify-content:space-between;font-size:13px;color:var(--mut);gap:8px}
+.done-b{background:var(--okb);color:var(--ok);font-weight:600;padding:10px 14px;border-radius:10px;margin-bottom:12px}
+.wbox{background:#FDF6F4;border:1px solid #F0D9D5;border-radius:var(--r);padding:12px}
+.formula{background:#fff;border:1px solid var(--ln);border-radius:99px;padding:6px 14px;text-align:center;margin:10px auto;font-weight:500;color:var(--m);max-width:420px}
+.wgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.wc{background:#fff;border:1px solid var(--ln);border-radius:10px;padding:8px;text-align:center}
+.wc.lock{background:#FBF1E4}.wc .wv{font-size:17px;font-weight:600;margin-top:6px}
+.wc .step{justify-content:center;margin-top:4px}.wc .step button{width:32px}
+.startp{background:linear-gradient(135deg,var(--m),var(--m2));color:#fff;border-radius:var(--r);padding:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:10px 0}
+.startp .btn{background:#fff;color:var(--m)}
+.erp input{min-height:38px;padding:6px 8px;text-align:right;width:90px}
+@media(max-width:699px){.ctiles{flex-direction:column}.photos.mini{max-width:100%}.kpis.tiles{grid-template-columns:repeat(2,1fr)}
+  .vr{grid-template-columns:40px 1fr 44px 150px}.vr .hs{display:none}.vr .big{font-size:18px}
+  .wgrid{grid-template-columns:repeat(2,1fr)}.hs,.hs2{display:none!important}.steps button{font-size:13px;gap:4px}.steps button i{width:22px;height:22px}
+  .foot .btn{flex:1}}
 @media print{.nav,.top,.sticky,.noprint{display:none!important}main{margin:0;padding:0}}
 </style>
 </head>
 <body>
 <div id="app"></div>
 <script type="module">
-import { SECTIONS, PERMS, ROLE_PERMS, REASONS, summarize, sumLines, r3, locStatus, istDate } from './core.mjs';
+import { SECTIONS, PERMS, ROLE_PERMS, REASONS, summarize, sumLines, r3, locStatus, istDate, erpCompare } from './core.mjs';
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -157,7 +204,8 @@ const sgn = (n) => (n > 0 ? '+' : '') + fmt(n);
 const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
-const STLBL = { pending: 'Not checked', ok: 'OK', var: 'Variance', stale: 'Recount' };
+const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
+const VERSION = '1.1';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -166,6 +214,7 @@ const ICON = {
   total: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
   more: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
   bell: '<path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.5 4.5-6.5 8-6.5s7 2 8 6.5"/>',
   cam: '<path d="M4 7h3l2-3h6l2 3h3v12H4z"/><circle cx="12" cy="13" r="3.5"/>',
 };
 const svg = (k, s = 22) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICON[k]}</svg>`;
@@ -272,7 +321,7 @@ function renderTop() {
   $('#dateBtn').onclick = () => can('reports') ? go('history') : null;
   $('#bellBtn') && ($('#bellBtn').onclick = () => go('alerts'));
 }
-function go(v) { S.view = v; S.filter = 'all'; S.q = ''; render(); scrollTo(0, 0); }
+function go(v) { S.view = v; S.filter = 'all'; S.q = ''; if (v === 'total') S.tab = ''; render(); scrollTo(0, 0); }
 function viewBanner() {
   if (isToday()) return S.D.day.status === 'closed' ? `<div class="banner">Today is closed — stock is locked. ${S.me.role === 'admin' ? '<button class="btn sm sec" id="reopenBtn">Reopen today</button>' : ''}</div>` : '';
   return `<div class="banner">Viewing ${dt(S.D.date)} (${S.D.day.status}) — read only <button class="btn sm sec" id="backToday">Back to today</button></div>`;
@@ -295,6 +344,7 @@ function vHome() {
     <div class="kpi"><div class="l">Expected now</div><div class="v">${fmt(T.expected)}</div><div class="mut sm">closing if no change</div></div>
     <div class="kpi"><div class="l">Checked</div><div class="v">${T.locs - T.pending}<span class="mut" style="font-size:16px">/${T.locs}</span></div><div class="sm" style="color:${T.var + T.stale ? 'var(--bad)' : 'var(--ok)'}">${T.var + T.stale ? `${T.var + T.stale} with variance` : 'No variance'}</div></div>
   </div>
+  ${startPanel('all')}
   <div class="secs">${SECTIONS.map((s) => secCard(s)).join('')}</div>
   ${editable() && (can('move') || can('close') || can('setup')) ? `<div class="acts">
     ${can('move') ? `<button class="btn" data-mv="in">＋ Stock in</button><button class="btn sec" data-mv="out">− Stock out / Sale</button><button class="btn ghost" data-mv="move">⇄ Move</button>` : ''}
@@ -305,7 +355,7 @@ function vHome() {
   $('#main').querySelectorAll('[data-sec]').forEach((b) => b.onclick = () => go(b.dataset.sec));
   $('#main').querySelectorAll('[data-mv]').forEach((b) => b.onclick = () => moveForm(b.dataset.mv));
   $('#closeBtn') && ($('#closeBtn').onclick = closeDayFlow);
-  bindLocCards();
+  bindLocCards(); bindStart();
 }
 function secCard(s) {
   const X = S.sum.sec[s.key]; const n = X.locs || 1;
@@ -314,6 +364,16 @@ function secCard(s) {
     <div class="row sp sm"><span>${X.locs - X.pending}/${X.locs} checked</span><span>${X.var + X.stale ? `<span class="st var">${X.var + X.stale} variance</span>` : X.pending ? `<span class="st pending">${X.pending} pending</span>` : '<span class="st ok">All OK</span>'}</span></div>
     <div class="row sp" style="margin-top:8px"><span class="mut sm">Expected</span><span class="b num">${fmt(X.expected)} pcs${s.key === 'box' ? ` · ${g3(X.wtExpected)} g` : ''}</span></div></button>`;
 }
+
+function startPanel(scope) {
+  if (!can('count') || !editable()) return '';
+  const P = sessProgress(orderFor(scope)); const mine = (S.D.sessions || []).find((x) => x.by === S.me.id && x.scope === scope && x.status === 'active');
+  const all = P.done === P.total;
+  return `<div class="startp"><div class="grow"><div class="b" style="font-size:17px">${scopeLabel(scope)}</div><div class="sm" style="opacity:.85">${P.done}/${P.total} ${scope === 'box' ? 'boxes' : 'trays'} verified · ${P.gDone}/${P.gTotal} ${scope === 'counter' ? 'counters' : 'groups'} complete</div>
+    <div class="bar" style="background:rgba(255,255,255,.25)"><span style="width:${P.done / (P.total || 1) * 100}%;background:#fff"></span></div></div>
+    <button class="btn" data-start="${scope}">${all ? 'View summary' : mine || P.done ? 'Resume count ›' : 'Start count ›'}</button></div>`;
+}
+function bindStart() { $('#main').querySelectorAll('[data-start]').forEach((b) => b.onclick = () => startCount(b.dataset.start)); }
 
 // ---------------- section list ----------------
 function vSection(sec) {
@@ -324,15 +384,16 @@ function vSection(sec) {
   $('#main').innerHTML = `${viewBanner()}
   <div class="row sp wrap" style="margin-bottom:10px"><div><h1>${secLabel(sec)}</h1><div class="mut">${X.locs - X.pending}/${X.locs} checked · ${hideExp() ? '' : `${fmt(X.expected)} pcs expected`}${sec === 'box' && !hideExp() ? ` · ${g3(X.wtExpected)} g` : ''}</div></div>
   ${can('setup') && editable() ? `<button class="btn sm sec" id="addLoc">＋ Add ${sec === 'box' ? 'box' : sec === 'tray' ? 'tray' : 'counter tray'}</button>` : ''}</div>
+  ${startPanel(sec)}
   <input type="search" id="q" placeholder="Search name, purity, box no…" value="${esc(S.q)}">
   <div class="filters" style="margin-top:10px">${[['all', 'All', X.locs], ['pending', 'Not checked', X.pending], ['var', 'Variance', X.var + X.stale], ['ok', 'OK', X.ok]].map(([k, l, n]) => `<button data-f="${k}" class="${S.filter === k ? 'on' : ''}">${l} · ${n}</button>`).join('')}</div>
   ${Object.entries(groups).map(([g, ls]) => `<div class="grp"><span>${esc(g)}</span><span>${hideExp() ? '' : fmt(ls.reduce((a, l) => a + sumLines(expOf(l.id).lines), 0)) + ' pcs'}</span></div><div class="locs">${ls.map(locCard).join('')}</div>`).join('') || '<div class="card mut" style="text-align:center">Nothing here</div>'}
-  ${can('count') && editable() ? `<div class="sticky"><button class="btn" style="width:100%" id="finish">Finish ${secLabel(sec).toLowerCase()} check · report to admin</button></div>` : ''}`;
+`;
   bindBanner();
   const qi = $('#q'); qi.oninput = () => { S.q = qi.value; const p = qi.selectionStart; vSection(sec); const n = $('#q'); n.focus(); n.setSelectionRange(p, p); };
   $('#main').querySelectorAll('[data-f]').forEach((b) => b.onclick = () => { S.filter = b.dataset.f; vSection(sec); });
   $('#addLoc') && ($('#addLoc').onclick = () => locEdit({ sec, group: '', name: '', purity: '', cat: 'Gold', itemType: '', images: [], mode: 'both' }));
-  $('#finish') && ($('#finish').onclick = () => finishSection(sec));
+  bindStart();
   bindLocCards();
 }
 function locCard(l) {
@@ -349,7 +410,7 @@ function bindLocCards() { $('#main').querySelectorAll('[data-loc]').forEach((b) 
 function modal(title, sub, html, onBind) {
   closeModal(); S.modal = true;
   const ov = document.createElement('div'); ov.className = 'ov'; ov.id = 'ov';
-  ov.innerHTML = `<div class="md"><div class="mh"><div class="grow"><h2>${title}</h2>${sub ? `<div class="mut sm">${sub}</div>` : ''}</div><button class="x" id="xBtn">×</button></div><div class="mb">${html}</div></div>`;
+  ov.innerHTML = `<div class="md ${title.startsWith('<') ? 'wide' : ''}"><div class="mh"><div class="grow" style="min-width:0">${title.startsWith('<') ? title : `<h2>${title}</h2>`}${sub ? `<div class="mut sm">${sub}</div>` : ''}</div><button class="x" id="xBtn">×</button></div><div class="mb">${html}</div></div>`;
   document.body.appendChild(ov);
   ov.onclick = (e) => { if (e.target === ov) { closeModal(); render(); } };
   $('#xBtn').onclick = () => { closeModal(); render(); };
@@ -359,71 +420,285 @@ function modal(title, sub, html, onBind) {
 function closeModal() { $('#ov')?.remove(); S.modal = false; }
 function lightbox(src) { const d = document.createElement('div'); d.className = 'lb'; d.innerHTML = `<img src="${src}">`; d.onclick = () => d.remove(); document.body.appendChild(d); }
 
-// ---------------- location sheet / count ----------------
-function locSheet(id, keep) {
+// ---------------- item icons ----------------
+const IT = {
+  Ring: '<circle cx="12" cy="14" r="6"/><path d="M9.5 6.5L12 4l2.5 2.5L12 8z"/>',
+  Stud: '<circle cx="7" cy="12" r="3.2"/><circle cx="17" cy="12" r="3.2"/><path d="M10.2 12h3.6"/>',
+  Pendant: '<path d="M12 3v3"/><path d="M12 7c3 4 4.5 6.5 4.5 8.5a4.5 4.5 0 0 1-9 0C7.5 13.5 9 11 12 7z"/>',
+  Set: '<path d="M4 5c2 7 14 7 16 0"/><path d="M12 12v2"/><path d="M12 14l2 3-2 3-2-3z"/>',
+  Bracelet: '<ellipse cx="12" cy="12" rx="9" ry="5"/><circle cx="7" cy="9" r="1"/><circle cx="12" cy="7" r="1"/><circle cx="17" cy="9" r="1"/>',
+  Necklace: '<path d="M4 4c1.5 8 14.5 8 16 0"/><path d="M12 11.5v2"/><circle cx="12" cy="16" r="2.5"/>',
+  Bangle: '<ellipse cx="12" cy="12" rx="9" ry="4.5"/><ellipse cx="12" cy="12" rx="6.5" ry="2.5"/>',
+  Chain: '<rect x="2.5" y="9" width="7" height="6" rx="3" transform="rotate(-30 6 12)"/><rect x="8.5" y="9" width="7" height="6" rx="3" transform="rotate(-30 12 12)"/><rect x="14.5" y="9" width="7" height="6" rx="3" transform="rotate(-30 18 12)"/>',
+  Nosepin: '<circle cx="12" cy="9" r="3.5"/><path d="M12 12.5V21"/><circle cx="12" cy="9" r="1"/>',
+  Coin: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="5.5"/>',
+  Mixed: '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+};
+const itIcon = (t) => `<span class="iti"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A9772B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${IT[t] || IT.Mixed}</svg></span>`;
+
+// ---------------- counting session ----------------
+const groupKey = (l) => l.sec + '|' + l.group;
+function orderFor(scope) { return (scope === 'all' ? SECTIONS.map((s) => s.key) : [scope]).flatMap((k) => activeLocs(k)).map((l) => l.id); }
+const scopeLabel = (sc) => sc === 'all' ? 'Full stock count' : secLabel(sc) + ' count';
+const needsCount = (id) => { const st = S.sum.status[id]; const c = S.sum.last[id]; return st.state === 'pending' || st.state === 'stale' || !!(c && c.recountAllowed && c.by !== undefined && !c.recountUsed); };
+function sessProgress(order) {
+  const groups = []; const gi = {};
+  for (const id of order) { const l = S.locById[id]; const k = groupKey(l); if (!(k in gi)) { gi[k] = groups.length; groups.push({ key: k, sec: l.sec, name: l.group, ids: [] }); } groups[gi[k]].ids.push(id); }
+  for (const g of groups) { g.done = g.ids.filter((i) => S.sum.status[i].state !== 'pending' && S.sum.status[i].state !== 'stale').length; g.complete = g.done === g.ids.length; g.exp = g.ids.reduce((a, i) => a + sumLines(expOf(i).lines), 0); }
+  const done = order.filter((i) => !['pending', 'stale'].includes(S.sum.status[i].state)).length;
+  return { groups, done, total: order.length, gDone: groups.filter((g) => g.complete).length, gTotal: groups.length };
+}
+async function startCount(scope) {
+  try {
+    const r = await api('session/start', { date: S.D.date, scope });
+    S.sess = { ...r.session, order: orderFor(scope) };
+    if (r.resumed) toast('Resuming your count');
+    openNext(null);
+  } catch (e) { fail(e); }
+}
+function openNext(fromId) {
+  const o = S.sess.order; const i = fromId ? o.indexOf(fromId) : -1;
+  const pend = (id) => ['pending', 'stale'].includes(S.sum.status[id].state);
+  let next = o.slice(i + 1).find(pend) || o.slice(0, Math.max(0, i)).find(pend);
+  if (!next) return sessionSummary();
+  const nl = S.locById[next]; const fl = fromId && S.locById[fromId];
+  if (!fl || groupKey(fl) !== groupKey(nl)) return counterIntro(groupKey(nl), fl && groupKey(fl));
+  locSheet(next, { sess: true });
+}
+function sessStrip(id) {
+  if (!S.sess || !S.sess.order.includes(id)) return '';
+  const P = sessProgress(S.sess.order); const l = S.locById[id];
+  const g = P.groups.find((x) => x.key === groupKey(l)); const gIdx = P.groups.indexOf(g);
+  return `<div class="sstrip"><span><b>${secLabel(l.sec) === 'Counter display' ? 'Counter' : 'Group'} ${gIdx + 1}/${P.gTotal}</b> · ${esc(l.group)} · item ${g.ids.indexOf(id) + 1}/${g.ids.length}</span><span>${P.done}/${P.total} done</span></div>
+    <div class="bar" style="margin:6px 0 0"><span style="width:${P.done / P.total * 100}%;background:var(--ok)"></span></div>`;
+}
+function counterIntro(gk, prevKey) {
+  const P = sessProgress(S.sess.order); const g = P.groups.find((x) => x.key === gk); const gIdx = P.groups.indexOf(g);
+  const prev = prevKey && P.groups.find((x) => x.key === prevKey);
+  const html = `${prev ? `<div class="done-b">✓ ${esc(prev.name)} complete — ${prev.ids.length} ${prev.sec === 'box' ? 'boxes' : 'trays'} verified</div>` : ''}
+    <div class="mut sm" style="text-transform:uppercase;letter-spacing:.8px">${secLabel(g.sec)} · ${g.sec === 'counter' ? 'Counter' : 'Group'} ${gIdx + 1} of ${P.gTotal}</div>
+    <h1 style="margin:2px 0 4px">${esc(g.name)}</h1>
+    <div class="mut">${g.ids.length} ${g.sec === 'box' ? 'boxes' : 'trays'}${hideExp() ? '' : ` · ${fmt(g.exp)} pcs expected`}</div>
+    <div class="card list" style="padding:0;margin:14px 0">${g.ids.map((id, n) => { const l = S.locById[id]; const st = S.sum.status[id]; return `<div class="li"><span class="mut" style="width:22px">${n + 1}</span><div class="grow"><b>${esc(l.name)}</b><div class="mut sm">${esc(linesTxtH(expOf(id).lines))}</div></div><span class="st ${st.state}">${STLBL[st.state]}</span></div>`; }).join('')}</div>
+    ${progressBlock(P)}
+    <div class="row" style="margin-top:14px"><button class="btn ghost" id="ovw">Overview</button><button class="btn grow" id="go">Start ${esc(g.name)} ›</button></div>`;
+  modal(prev ? 'Next counter' : scopeLabel(S.sess.scope), `Counted by ${esc(S.me.name)}`, html, () => {
+    $('#go').onclick = () => { const id = g.ids.find((i) => ['pending', 'stale'].includes(S.sum.status[i].state)) || g.ids[0]; locSheet(id, { sess: true }); };
+    $('#ovw').onclick = sessionOverview;
+  });
+}
+const linesTxtH = (l) => hideExp() ? 'Expected hidden' : Object.entries(l || {}).map(([t, n]) => `${t} ${n}`).join(' · ') || 'Empty';
+function progressBlock(P) {
+  return `<div class="kpis" style="grid-template-columns:repeat(4,1fr)">
+    <div class="kpi"><div class="l">Trays done</div><div class="v" style="font-size:20px;color:var(--ok)">${P.done}</div></div>
+    <div class="kpi"><div class="l">Pending</div><div class="v" style="font-size:20px">${P.total - P.done}</div></div>
+    <div class="kpi"><div class="l">Counters done</div><div class="v" style="font-size:20px;color:var(--ok)">${P.gDone}</div></div>
+    <div class="kpi"><div class="l">Pending</div><div class="v" style="font-size:20px">${P.gTotal - P.gDone}</div></div></div>`;
+}
+function sessionOverview() {
+  const P = sessProgress(S.sess.order);
+  modal(scopeLabel(S.sess.scope) + ' · progress', `Counted by ${esc(S.me.name)} · tap any tray to view`, `${progressBlock(P)}
+    ${P.groups.map((g) => `<div class="grp"><span>${g.complete ? '✓ ' : ''}${esc(g.name)}</span><span>${g.done}/${g.ids.length}</span></div><div class="card list" style="padding:0">${g.ids.map((id) => { const l = S.locById[id]; const st = S.sum.status[id]; return `<button class="li" style="width:100%;text-align:left" data-open="${id}"><div class="grow b">${esc(l.name)}</div><span class="sm" style="color:var(--bad)">${esc(diffTxt(st.diff))}</span><span class="st ${st.state}">${STLBL[st.state]}</span></button>`; }).join('')}</div>`).join('')}
+    <div class="row" style="margin-top:14px"><button class="btn ghost grow" id="sv">Save & exit</button><button class="btn grow" id="ct">${P.done === P.total ? 'Final summary ›' : 'Continue counting ›'}</button></div>`, (ov) => {
+    ov.querySelectorAll('[data-open]').forEach((b) => b.onclick = () => locSheet(b.dataset.open, { sess: true }));
+    $('#sv').onclick = () => { closeModal(); S.sess = null; render(); toast('Progress saved — tap Resume to continue'); };
+    $('#ct').onclick = () => P.done === P.total ? sessionSummary() : openNext(null);
+  });
+}
+function sessionSummary() {
+  const order = S.sess.order; let exp = 0, act = 0, short = 0, excess = 0; const disc = [];
+  for (const id of order) {
+    const st = S.sum.status[id]; const c = S.sum.last[id]; if (!c || st.state === 'pending') continue;
+    if (c.mode !== 'weight') { exp += sumLines(expOf(id).lines); act += sumLines(c.lines); }
+    for (const d of Object.values(st.diff)) d < 0 ? (short -= d) : (excess += d);
+    if (st.state === 'var' || st.state === 'stale') disc.push(id);
+  }
+  const P = sessProgress(order);
+  const html = `<div class="done-b" style="${P.done < P.total ? 'background:var(--warnb);color:var(--warn)' : ''}">${P.done === P.total ? '✓ All counters verified' : `${P.total - P.done} trays still pending`}</div>
+    <div class="kpis" style="grid-template-columns:repeat(2,1fr)">
+      <div class="kpi"><div class="l">Total expected</div><div class="v">${fmt(exp)}</div></div>
+      <div class="kpi"><div class="l">Actual stock</div><div class="v">${fmt(act)}</div></div>
+      <div class="kpi"><div class="l">Shortages</div><div class="v" style="color:${short ? 'var(--bad)' : 'var(--ok)'}">${short ? '−' + fmt(short) : 0}</div></div>
+      <div class="kpi"><div class="l">Excess items</div><div class="v" style="color:${excess ? 'var(--warn)' : 'var(--ok)'}">${excess ? '+' + fmt(excess) : 0}</div></div></div>
+    <h3 style="margin:16px 0 6px">Pending discrepancies (${disc.length})</h3>
+    <div class="mut sm" style="margin-bottom:6px">Waiting for manager approval — stock balances are not changed until approved.</div>
+    ${disc.length ? `<div class="card list" style="padding:0">${disc.map((id) => { const l = S.locById[id]; const st = S.sum.status[id]; const c = S.sum.last[id]; return `<button class="li" style="width:100%;text-align:left" data-open="${id}"><div class="grow"><b>${esc(l.name)}</b> <span class="mut sm">${esc(l.group)}</span><div class="sm" style="color:var(--bad)">${Object.entries(st.diff).map(([t, d]) => `${esc(t)} ${sgn(d)}${c.reasons?.[t] ? ` — ${esc(c.reasons[t])}` : ''}`).join(' · ')}${st.mode !== 'count' && Math.abs(st.wtDiff) > S.D.settings.wtTol ? ` weight ${st.wtDiff > 0 ? '+' : ''}${g3(st.wtDiff)} g` : ''}</div></div><span class="mut">›</span></button>`; }).join('')}</div>` : '<div class="card mut">None 🎉</div>'}
+    <div class="row wrap" style="margin-top:16px">${P.done < P.total ? `<button class="btn ghost grow" id="ct">Continue counting</button>` : ''}<button class="btn grow" id="fin">Finish & send to admin</button></div>`;
+  modal('Stock verification summary', `${scopeLabel(S.sess.scope)} · ${esc(S.me.name)} · ${dt(S.D.date)}`, html, (ov) => {
+    ov.querySelectorAll('[data-open]').forEach((b) => b.onclick = () => locSheet(b.dataset.open, { sess: true }));
+    $('#ct') && ($('#ct').onclick = () => openNext(null));
+    $('#fin').onclick = async () => {
+      try {
+        const r = await api('session/finish', { id: S.sess.id }); S.sess = null; await load(true);
+        const wa = S.D.settings.waNumber;
+        modal('Count saved', 'Sent to admin', `<div class="card">${esc(r.text)}</div>
+          ${wa ? `<a class="btn ok" style="width:100%;margin-top:12px;text-decoration:none" target="_blank" href="https://wa.me/${wa}?text=${encodeURIComponent('Yamie stock count ' + S.D.date + '\n' + r.text)}">Also send on WhatsApp</a>` : ''}
+          <div class="row" style="margin-top:8px">${can('erp') && editable() ? '<button class="btn grow" id="erpGo">Next: match with Yamie ERP ›</button>' : ''}<button class="btn ghost grow" id="okB">Done</button></div>`, () => {
+          $('#okB').onclick = () => { closeModal(); render(); };
+          $('#erpGo') && ($('#erpGo').onclick = () => { closeModal(); S.view = 'total'; S.tab = 'erp'; render(); });
+        });
+      } catch (e) { fail(e); }
+    };
+  });
+}
+
+// ---------------- location sheet: guided verify ----------------
+function locSheet(id, ctx = {}) {
+  const l = S.locById[id]; const st = S.sum.status[id]; const c = S.sum.last[id];
+  const counting = can('count') && editable() && (st.state === 'pending' || st.state === 'stale' || (c && c.recountAllowed) || ctx.recount);
+  if (counting) return countFlow(id, ctx); return resultView(id, ctx);
+}
+function head(l, extra) {
+  return `<div class="row" style="gap:12px;align-items:flex-start"><div class="hico">${svg(l.sec, 26)}</div><div class="grow" style="min-width:0"><h2>${esc(l.name)}</h2><div class="mut sm">${secLabel(l.sec)} · ${esc(l.group)}${l.sec === 'box' ? ` · ${{ both: 'Count + weight', weight: 'Weight', count: 'Count' }[l.mode || 'both']}` : ''}</div></div>${extra || ''}</div>`;
+}
+function photosRow(l) {
+  return `<div class="photos">${(l.images || []).map((p, i) => `<div class="ph"><img src="${img(p.key)}" data-big="${i}"><span class="lbl">${esc(p.label || 'Photo')}</span>${can('setup') ? `<button class="del" data-delimg="${i}">×</button>` : ''}</div>`).join('')}
+    ${can('setup') ? `<label class="addph">${svg('cam', 26)}<span>Add ${l.sec === 'box' ? 'box' : 'tray'} /<br>item photo</span><input type="file" accept="image/*" capture="environment" class="phIn" hidden></label>` : ''}</div>`;
+}
+function bindPhotos(ov, l, reopen) {
+  ov.querySelectorAll('[data-big]').forEach((im) => im.onclick = () => lightbox(im.src));
+  ov.querySelectorAll('[data-delimg]').forEach((b) => b.onclick = async () => { if (!confirm('Remove this photo?')) return; const imgs = [...l.images]; imgs.splice(+b.dataset.delimg, 1); await saveLoc({ ...l, images: imgs }); reopen(); });
+  ov.querySelectorAll('.phIn').forEach((inp) => inp.onchange = async (ev) => { const file = ev.target.files[0]; if (!file) return; const label = prompt('Label for this photo (e.g. Tray, Items, Ring close-up)', (l.images || []).length ? 'Items' : (l.sec === 'box' ? 'Box' : 'Tray')) ?? 'Photo'; try { toast('Uploading…'); const dataUrl = await shrink(file); const { key } = await api('img', { dataUrl }); await saveLoc({ ...S.locById[l.id], images: [...(l.images || []), { key, label }] }); reopen(); toast('Photo added'); } catch (er) { fail(er); } });
+}
+function countFlow(id, ctx) {
   const l = S.locById[id]; const e = expOf(id); const o = opOf(id); const f = S.sum.flows[id] || { in: {}, out: {}, wtIn: 0, wtOut: 0 };
-  const st = S.sum.status[id]; const c = S.sum.last[id]; const blind = hideExp();
-  const types = S.D.settings.itemTypes;
-  const box = l.sec === 'box';
-  const mode = keep?.mode || (box ? (l.mode || 'both') : 'count');
-  // rows: types with expected, or opening, or counted, or the loc's own type
-  const rowsT = keep?.rows || [...new Set([...Object.keys(e.lines), ...Object.keys(o.lines), ...(c?.lines ? Object.keys(c.lines) : []), ...(l.itemType ? [l.itemType] : [])])].sort((a, b) => types.indexOf(a) - types.indexOf(b));
-  if (!rowsT.length) rowsT.push(types[0]);
-  const vals = keep?.vals || {};
-  const myCounts = S.D.counts.filter((x) => x.locId === id).sort((a, b) => b.at - a.at);
+  const blind = hideExp(); const box = l.sec === 'box'; const types = S.D.settings.itemTypes; const tol = +S.D.settings.wtTol;
+  const mode = box ? (l.mode || 'both') : 'count';
+  const steps = [...(mode !== 'weight' ? [['verify', 'Verify items']] : []), ...(mode !== 'count' ? [['weight', 'Verify box weight']] : []), ['review', 'Review'], ['submit', 'Submit']];
+  const K = ctx.k || (ctx.k = { step: steps[0][0], v: {}, rows: null, wt: null, note: '' });
+  if (!K.rows) { K.rows = [...new Set([...Object.keys(e.lines), ...(l.itemType && !Object.keys(e.lines).length ? [l.itemType] : [])])].sort((a, b) => types.indexOf(a) - types.indexOf(b)); if (!K.rows.length) K.rows.push(l.itemType || types[0]); }
+  const rows = K.rows; const v = K.v;
+  if (blind) rows.forEach((t) => { if (!v[t]) v[t] = { ok: false, n: '' }; });
+  const actual = (t) => v[t]?.ok === true ? (e.lines[t] || 0) : v[t]?.ok === false ? (+v[t].n || 0) : null;
+  const verified = rows.filter((t) => v[t] && (v[t].ok === true || (v[t].ok === false && v[t].n !== '' && v[t].n != null && (blind || (+v[t].n === (e.lines[t] || 0)) || v[t].reason)))).length;
+  const expT = rows.reduce((a, t) => a + (e.lines[t] || 0), 0); const cntT = rows.reduce((a, t) => a + (actual(t) ?? 0), 0);
+  const diffT = rows.reduce((a, t) => a + (actual(t) == null ? 0 : actual(t) - (e.lines[t] || 0)), 0);
+  const wtExp = e.wt; const wtAct = K.wt == null ? null : +K.wt; const wtDiff = wtAct == null ? null : r3(wtAct - wtExp); const wtOk = wtDiff != null && (!(wtExp > 0) || Math.abs(wtDiff) <= tol + 1e-9);
+  const anyMis = rows.some((t) => actual(t) != null && actual(t) !== (e.lines[t] || 0)) || (mode !== 'count' && wtDiff != null && !wtOk);
+  const sIdx = steps.findIndex((x) => x[0] === K.step);
+  const tile = (lbl, val, cls = '', sub = '') => `<div class="kpi ${cls}"><div class="l">${lbl}</div><div class="v" style="font-size:22px">${val}</div>${sub}</div>`;
+  const tiles = box ? `${tile('Opening', `${fmt(sumLines(o.lines))} <small>pcs</small>`, 'op', `<div class="sm mut">${g3(o.wt)} g</div>`)}${tile('In', `${fmt(sumLines(f.in))} <small>pcs</small>`, '', `<div class="sm mut">${g3(f.wtIn)} g</div>`)}${tile('Out', `${fmt(sumLines(f.out))} <small>pcs</small>`, '', `<div class="sm mut">${g3(f.wtOut)} g</div>`)}${tile('Expected', `${fmt(sumLines(e.lines))} <small>pcs</small>`, '', `<div class="sm mut">${g3(e.wt)} g</div>`)}`
+    : `${tile('Expected', blind ? '—' : fmt(expT))}${tile('Counted', fmt(cntT), 'okt')}${tile('Difference', blind ? '—' : sgn(diffT) || '0', diffT ? 'badt' : '')}<div class="kpi ${verified === rows.length && !anyMis ? 'okt' : anyMis ? 'badt' : ''}"><div class="b" style="font-size:16px">${verified === rows.length ? (anyMis ? 'Mismatch' : 'All match') : 'In progress'}</div><div class="sm">${verified} / ${rows.length} verified</div></div>`;
+  let body = '';
+  if (K.step === 'verify') {
+    body = `<div class="info">ⓘ ${blind ? 'Count each item and enter the quantity.' : 'Check the physical quantity. Tap <b>Yes</b> if it matches. Tap <b>No</b> to enter the actual count and reason.'}</div>
+    <div class="vt"><div class="vr h"><span></span><span>Item</span><span class="c">${blind ? '' : 'Expected'}</span><span class="c">Verify</span><span class="c hs">Status</span></div>
+    ${rows.map((t) => { const x = v[t] || {}; const a = actual(t); const d = a == null ? 0 : a - (e.lines[t] || 0);
+      const stc = x.ok === true ? '<span class="st ok">✓ Verified</span>' : x.ok === false && (blind || d === 0) && x.n !== '' ? '<span class="st ok">✓ Verified</span>' : x.ok === false ? '<span class="st var">Mismatch</span>' : '<span class="st pending">Pending</span>';
+      return `<div class="vr ${x.ok === false ? 'no' : ''}">${itIcon(t)}<span class="b">${esc(t)}</span><span class="c num big">${blind ? '' : fmt(e.lines[t] || 0)}</span>
+        <span class="c yn">${blind ? '' : `<button class="yes ${x.ok === true ? 'on' : ''}" data-yes="${esc(t)}">✓ Yes</button><button class="no ${x.ok === false ? 'on' : ''}" data-no="${esc(t)}">✕ No</button>`}</span><span class="c hs">${stc}</span></div>
+        ${x.ok === false ? `<div class="vsub"><div><div class="sm b">Actual count</div><div class="step"><button data-st="-1" data-t="${esc(t)}">−</button><input type="number" inputmode="numeric" min="0" data-n="${esc(t)}" value="${esc(x.n ?? '')}"><button data-st="1" data-t="${esc(t)}">+</button></div></div>
+          ${blind ? '' : `<div class="grow"><div class="sm b">Reason <span style="color:var(--bad)">*</span></div><select data-r="${esc(t)}" ${d === 0 ? 'disabled' : ''}><option value="">${d === 0 ? 'Matches — no reason needed' : 'Choose reason…'}</option>${S.D.settings.reasons.map((r) => `<option ${x.reason === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select></div>
+          <div class="c"><div class="sm b">Difference</div><span class="dbadge ${d < 0 ? 'neg' : d > 0 ? 'pos' : 'zero'}">${d ? sgn(d) : '0'}</span></div>`}</div>` : ''}`; }).join('')}
+      <div class="vr add"><select id="addType"><option value="">＋ Found another item type…</option>${types.filter((t) => !rows.includes(t)).map((t) => `<option>${esc(t)}</option>`).join('')}</select></div></div>`;
+  } else if (K.step === 'weight') {
+    body = `<div class="wbox"><div class="row sp wrap"><h3 style="color:var(--m)">⚖ Box weight verification</h3><span class="chip" style="background:var(--warnb);color:var(--warn)">Opening weight carried from last verified check</span></div>
+      <div class="formula">Expected closing weight = Opening + In − Out</div>
+      <div class="wgrid">
+        <div class="wc lock"><div class="sm b">🔒 Opening</div><div class="wv">${blind ? '—' : g3(o.wt) + ' g'}</div><div class="sm mut">Carried forward</div></div>
+        <div class="wc"><div class="sm b">In</div><div class="wv">${g3(f.wtIn)} g</div></div>
+        <div class="wc"><div class="sm b">Out</div><div class="wv">${g3(f.wtOut)} g</div></div>
+        <div class="wc"><div class="sm b">Expected closing</div><div class="wv">${blind ? '—' : g3(wtExp) + ' g'}</div></div>
+        <div class="wc"><div class="sm b">Actual closing <span style="color:var(--bad)">*</span></div><div class="step"><button data-ws="-0.01">−</button><input type="number" inputmode="decimal" step="0.001" id="wtIn" value="${K.wt ?? ''}" placeholder="0.000" style="width:86px"><button data-ws="0.01">+</button></div></div>
+        <div class="wc"><div class="sm b">Difference</div>${wtDiff == null || blind ? '<div class="wv mut">—</div>' : `<span class="dbadge ${wtOk ? 'okb' : 'neg'}">${wtDiff > 0 ? '+' : ''}${g3(wtDiff)} g</span>`}</div></div>
+      ${!(wtExp > 0) ? '<div class="banner" style="margin:10px 0 0">No weight on record for this box yet — the weight you enter becomes its baseline and carries forward as tomorrow\'s opening weight.</div>' : ''}
+      <div class="row sp" style="margin-top:8px"><span class="mut sm">Tolerance ±${g3(tol)} g</span>${wtDiff == null || blind ? '' : wtOk ? '<span class="st ok">✓ Within tolerance</span>' : '<span class="st var">Outside tolerance</span>'}</div></div>`;
+  } else {
+    body = `<h3 style="margin-bottom:8px">Review before submitting</h3>
+      ${mode !== 'weight' ? `<div class="tw"><table><tr><th>Item</th>${blind ? '' : '<th>Expected</th>'}<th>Actual</th>${blind ? '' : '<th>Diff</th><th style="text-align:left">Reason</th>'}</tr>${rows.map((t) => { const a = actual(t) ?? 0; const d = a - (e.lines[t] || 0); return `<tr><td class="b">${esc(t)}</td>${blind ? '' : `<td>${fmt(e.lines[t] || 0)}</td>`}<td class="b">${fmt(a)}</td>${blind ? '' : `<td class="${d > 0 ? 'pos' : d < 0 ? 'neg' : ''}">${d ? sgn(d) : '✓'}</td><td style="text-align:left;white-space:normal" class="sm">${esc(d ? v[t]?.reason || '' : '')}</td>`}</tr>`; }).join('')}
+        <tr class="tot"><td>Total</td>${blind ? '' : `<td>${fmt(expT)}</td>`}<td>${fmt(cntT)}</td>${blind ? '' : `<td>${diffT ? sgn(diffT) : '✓'}</td><td></td>`}</tr></table></div>` : ''}
+      ${mode !== 'count' ? `<div class="card" style="margin-top:10px"><b>Box weight:</b> ${g3(wtAct)} g ${blind ? '' : `· expected ${g3(wtExp)} g · <span style="color:${wtOk ? 'var(--ok)' : 'var(--bad)'}">${wtDiff > 0 ? '+' : ''}${g3(wtDiff)} g ${wtOk ? '(match)' : '(outside tolerance)'}</span>`}</div>` : ''}
+      <label class="f">✎ Note / reason ${anyMis && !blind ? '<span style="color:var(--bad)">* required — count or weight differs</span>' : '(optional)'}</label>
+      <input type="text" id="cNote" value="${esc(K.note)}" placeholder="e.g. weight difference due to polishing, 2 rings sent for repair">
+      ${anyMis && !blind ? '<div class="banner" style="margin-top:10px">Discrepancy will be sent to the manager for approval. Stock is not changed until approved.</div>' : ''}`;
+  }
+  const footL = K.step === 'verify' ? `<div class="grow"><div class="b">${verified} of ${rows.length} items verified</div><div class="bar" style="margin:6px 0 0"><span style="width:${verified / rows.length * 100}%;background:var(--ok)"></span></div></div>`
+    : K.step === 'weight' ? `<div class="grow"><div class="b" style="color:${wtDiff == null ? 'inherit' : wtOk ? 'var(--ok)' : 'var(--bad)'}">${wtDiff == null ? 'Enter actual weight' : wtOk ? '✓ Weight matches' : 'Weight differs'}</div><div class="sm mut">${mode === 'both' ? `Count: ${fmt(cntT)} / ${blind ? '?' : fmt(expT)} pcs` : ''}</div></div>`
+    : `<div class="grow"><div class="b" style="color:${anyMis ? 'var(--bad)' : 'var(--ok)'}">${anyMis ? 'Discrepancy found' : '✓ All items verified'}</div><div class="sm mut">${mode !== 'weight' ? `Count ${fmt(cntT)} / ${blind ? '?' : fmt(expT)} pcs` : ''}${mode !== 'count' && wtAct != null ? ` · ${g3(wtAct)} g` : ''}</div></div>`;
+  const nextLbl = K.step === 'review' ? `Verify ${box ? 'box' : 'tray'}${ctx.sess ? ' & next' : ''}` : `Next: ${steps[sIdx + 1][1]}`;
+  const html = `${sessStrip(id)}
+    <div class="ctiles">${photosRow(l).replace('<div class="photos">', '<div class="photos mini">')}<div class="kpis tiles">${tiles}</div></div>
+    <div class="row wrap" style="margin:10px 0">${[l.boxNo ? `Box ${l.boxNo}` : '', l.purity, l.cat, l.itemType, l.insert ? `${l.insert} × ${l.qty || 1}` : ''].filter(Boolean).map((x, i) => `<span class="chip ${i === 0 && l.boxNo ? 'mm' : 'm'}">${esc(x)}</span>`).join('')}</div>
+    <div class="steps">${steps.map(([k, t], i) => `<button data-step="${k}" class="${k === K.step ? 'on' : ''} ${i < sIdx ? 'past' : ''}" ${k === 'submit' || i > sIdx ? 'disabled' : ''}><i>${i < sIdx ? '✓' : i + 1}</i>${t}</button>`).join('')}</div>
+    ${body}
+    <div class="foot">${footL}<span class="who hs2">${svg('user', 18)} <span><span class="mut sm">Counted by</span><br><b>${esc(S.me.name)}</b></span></span><button class="btn sec" id="rst">↺ Reset</button><button class="btn" id="nx">${nextLbl} ›</button></div>`;
+  const rerender = () => { const sc = $('#ov .md')?.scrollTop || 0; countFlow(id, ctx); const m = $('#ov .md'); if (m) m.scrollTop = sc; };
+  modal(head(l, `<button class="who hs" id="who" title="Change counter">${svg('user', 18)}<span><span class="mut sm">Counted by</span><br><b>${esc(S.me.name)}</b></span> ✎</button>`), '', html, (ov) => {
+    bindPhotos(ov, l, rerender);
+    $('#who').onclick = () => { if (confirm('Switch staff? Your verified trays are saved. The next person logs in with their name.')) { closeModal(); logout(); } };
+    ov.querySelectorAll('[data-yes]').forEach((b) => b.onclick = () => { v[b.dataset.yes] = { ok: true }; rerender(); });
+    ov.querySelectorAll('[data-no]').forEach((b) => b.onclick = () => { const t = b.dataset.no; v[t] = { ok: false, n: v[t]?.n ?? (e.lines[t] || 0), reason: v[t]?.reason || '' }; rerender(); });
+    ov.querySelectorAll('[data-st]').forEach((b) => b.onclick = () => { const t = b.dataset.t; v[t].n = Math.max(0, (+v[t].n || 0) + +b.dataset.st); rerender(); });
+    ov.querySelectorAll('[data-n]').forEach((i) => i.onchange = () => { v[i.dataset.n].n = i.value === '' ? '' : Math.max(0, Math.round(+i.value)); rerender(); });
+    ov.querySelectorAll('[data-r]').forEach((s) => s.onchange = () => { v[s.dataset.r].reason = s.value; rerender(); });
+    $('#addType') && ($('#addType').onchange = (ev) => { const t = ev.target.value; if (!t) return; rows.push(t); v[t] = { ok: false, n: 1, reason: 'Found extra item' }; rerender(); });
+    const wi = $('#wtIn'); if (wi) { wi.onchange = () => { K.wt = wi.value === '' ? null : r3(wi.value); rerender(); }; }
+    ov.querySelectorAll('[data-ws]').forEach((b) => b.onclick = () => { K.wt = r3((K.wt ?? wtExp) + +b.dataset.ws); rerender(); });
+    $('#cNote') && ($('#cNote').oninput = () => { K.note = $('#cNote').value; });
+    ov.querySelectorAll('[data-step]').forEach((b) => b.onclick = () => { if (b.disabled) return; K.step = b.dataset.step; rerender(); });
+    $('#rst').onclick = () => { if (!confirm('Clear this tray\'s entries?')) return; ctx.k = null; countFlow(id, ctx); };
+    $('#nx').onclick = async () => {
+      if (K.step === 'verify') {
+        if (verified < rows.length) { const miss = rows.filter((t) => !v[t] || v[t].ok == null || (v[t].ok === false && (v[t].n === '' || v[t].n == null))); if (miss.length) return toast(`Verify every item — ${miss.join(', ')} pending`); return toast('Choose a reason for each difference'); }
+      }
+      if (K.step === 'weight' && K.wt == null) return toast('Enter the actual closing weight');
+      if (K.step !== 'review') { K.step = steps[sIdx + 1][0]; return rerender(); }
+      if (anyMis && !blind && !K.note.trim()) { toast('Add a note — required when count or weight differs'); return $('#cNote').focus(); }
+      const lines = {}; const reasons = {};
+      if (mode !== 'weight') rows.forEach((t) => { const a = actual(t) ?? 0; if (a > 0) lines[t] = a; if (v[t]?.ok === false && v[t].reason && a !== (e.lines[t] || 0)) reasons[t] = v[t].reason; });
+      $('#nx').disabled = true;
+      try {
+        const r = await api('count', { date: S.D.date, locId: id, lines, wt: mode === 'count' ? null : K.wt, mode, note: K.note, reasons, sessionId: S.sess?.id || '' });
+        toast(r.count.result === 'ok' ? `✓ ${l.name} verified` : `⚠ ${l.name}: discrepancy sent for approval`, 2200);
+        await load(true);
+        if (ctx.sess && S.sess) openNext(id); else resultView(id, {});
+      } catch (er) { $('#nx').disabled = false; fail(er); }
+    };
+  });
+}
+function resultView(id, ctx) {
+  const l = S.locById[id]; const e = expOf(id); const o = opOf(id); const f = S.sum.flows[id] || { in: {}, out: {}, wtIn: 0, wtOut: 0 };
+  const st = S.sum.status[id]; const c = S.sum.last[id]; const blind = hideExp(); const box = l.sec === 'box';
   const myMvs = S.D.mvs.filter((m) => m.legs.some((g) => g.locId === id));
-  const canCount = can('count') && editable();
-  const chips = [l.boxNo ? `Box ${l.boxNo}` : '', l.purity, l.cat, l.itemType, l.insert ? `${l.insert} × ${l.qty || 1} trays` : ''].filter(Boolean).map((x) => `<span class="chip m">${esc(x)}</span>`).join(' ');
-  const html = `
-  <div class="photos" id="photos">${(l.images || []).map((p, i) => `<div class="ph"><img src="${img(p.key)}" data-big="${i}"><span class="lbl">${esc(p.label || 'Photo')}</span>${can('setup') ? `<button class="del" data-delimg="${i}">×</button>` : ''}</div>`).join('')}
-    ${can('setup') ? `<label class="addph">${svg('cam', 26)}<span>Add tray /<br>item photo</span><input type="file" accept="image/*" capture="environment" id="phIn" hidden></label>` : (l.images || []).length ? '' : '<div class="mut sm">No photos yet</div>'}</div>
-  <div class="row wrap" style="margin:12px 0">${chips}</div>
+  const myCounts = S.D.counts.filter((x) => x.locId === id).sort((a, b) => b.at - a.at);
+  const types = [...new Set([...Object.keys(e.lines), ...Object.keys(c?.lines || {})])];
+  const html = `${sessStrip(id)}${photosRow(l)}
+  <div class="row wrap" style="margin:10px 0">${[l.boxNo ? `Box ${l.boxNo}` : '', l.purity, l.cat, l.itemType, l.insert ? `${l.insert} × ${l.qty || 1}` : ''].filter(Boolean).map((x) => `<span class="chip m">${esc(x)}</span>`).join('')}</div>
   ${blind ? '' : `<div class="kpis" style="grid-template-columns:repeat(4,1fr)">
     <div class="kpi"><div class="l">Opening</div><div class="v" style="font-size:20px">${fmt(sumLines(o.lines))}</div>${box ? `<div class="sm mut">${g3(o.wt)} g</div>` : ''}</div>
-    <div class="kpi"><div class="l">In</div><div class="v" style="font-size:20px;color:var(--ok)">${sumLines(f.in) ? '+' + fmt(sumLines(f.in)) : '0'}</div>${box ? `<div class="sm mut">${g3(f.wtIn)} g</div>` : ''}</div>
-    <div class="kpi"><div class="l">Out</div><div class="v" style="font-size:20px;color:var(--bad)">${sumLines(f.out) ? '−' + fmt(sumLines(f.out)) : '0'}</div>${box ? `<div class="sm mut">${g3(f.wtOut)} g</div>` : ''}</div>
+    <div class="kpi"><div class="l">In</div><div class="v" style="font-size:20px;color:var(--ok)">${fmt(sumLines(f.in))}</div>${box ? `<div class="sm mut">${g3(f.wtIn)} g</div>` : ''}</div>
+    <div class="kpi"><div class="l">Out</div><div class="v" style="font-size:20px;color:var(--bad)">${fmt(sumLines(f.out))}</div>${box ? `<div class="sm mut">${g3(f.wtOut)} g</div>` : ''}</div>
     <div class="kpi"><div class="l">Expected</div><div class="v" style="font-size:20px">${fmt(sumLines(e.lines))}</div>${box ? `<div class="sm mut">${g3(e.wt)} g</div>` : ''}</div></div>`}
-  ${c ? `<div class="card" style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="st ${st.state}">${STLBL[st.state]}</span><div class="grow sm" style="min-width:200px">Last check by <b>${esc(uname(c.by))}</b> at ${tm(c.at)}${st.state === 'var' || st.state === 'stale' ? `<br><span style="color:var(--bad)">${esc(diffTxt(st.diff))}${st.mode !== 'count' && Math.abs(st.wtDiff) > 0 ? ` weight ${st.wtDiff > 0 ? '+' : ''}${g3(st.wtDiff)} g` : ''}</span>` : ''}${st.state === 'stale' ? '<br>Stock changed after this check — count again.' : ''}${c.note ? `<br><i>${esc(c.note)}</i>` : ''}</div>
-    ${st.state === 'var' && can('accept') && editable() ? `<button class="btn sm sec" id="acceptBtn">Accept count</button>` : ''}</div>` : ''}
-  ${canCount ? `<h3 style="margin:16px 0 8px">Count now</h3>
-    ${box ? `<div class="seg" id="mode" style="margin-bottom:10px">${[['count', 'Count'], ['weight', 'Weight'], ['both', 'Weight + count']].map(([k, t]) => `<button data-mode="${k}" class="${mode === k ? 'on' : ''}">${t}</button>`).join('')}</div>` : ''}
-    ${mode !== 'weight' ? `<div class="cnt"><div class="r h"><span>Item</span><span style="text-align:right">${blind ? '' : 'Exp.'}</span><span style="text-align:center">Counted</span><span style="text-align:right">Diff</span></div>
-      ${rowsT.map((t) => `<div class="r" data-row="${esc(t)}"><span class="b">${esc(t)}</span><span class="num mut" style="text-align:right">${blind ? '' : fmt(e.lines[t] || 0)}</span>
-        <div class="step"><button data-st="-1">−</button><input type="number" inputmode="numeric" min="0" data-cnt="${esc(t)}" value="${vals[t] ?? ''}" placeholder="${blind ? '?' : ''}"><button data-st="1">+</button></div><span class="num b" data-diff="${esc(t)}" style="text-align:right"></span></div>`).join('')}
-      <div class="r" style="grid-template-columns:1fr auto"><select id="addType"><option value="">＋ Found another item type…</option>${types.filter((t) => !rowsT.includes(t)).map((t) => `<option>${esc(t)}</option>`).join('')}</select></div></div>` : ''}
-    ${mode !== 'count' ? `<label class="f">Box weight now (g) ${blind ? '' : `· expected ${g3(e.wt)} g · tolerance ±${g3(S.D.settings.wtTol)}`}</label><input type="number" inputmode="decimal" step="0.001" id="wtIn" value="${keep?.wt ?? ''}" placeholder="0.000">` : ''}
-    <label class="f">Note (optional)</label><input type="text" id="cNote" placeholder="e.g. 1 ring sent for repair" value="${esc(keep?.note || '')}">
-    <div class="row" style="margin-top:12px">${blind ? '' : `<button class="btn ok grow" id="matchBtn">✓ All match</button>`}<button class="btn grow" id="saveCnt">Submit count</button></div>` : ''}
-  ${editable() && (can('move') || can('setup')) ? `<div class="row wrap" style="margin-top:16px">
+  ${c ? `<div class="card" style="margin-top:12px"><div class="row sp wrap"><span class="st ${st.state}">${st.state === 'var' ? 'Pending manager approval' : STLBL[st.state]}</span><span class="sm mut">Verified by <b>${esc(uname(c.by))}</b> · ${tm(c.at)}</span></div>
+    ${c.mode !== 'weight' ? `<div class="tw" style="margin-top:10px"><table><tr><th>Item</th>${blind ? '' : '<th>Expected</th>'}<th>Counted</th>${blind ? '' : '<th>Diff</th>'}<th style="text-align:left">Reason</th></tr>${types.map((t) => { const a = +(c.lines?.[t] || 0); const d = st.diff[t] || 0; return `<tr><td class="b">${esc(t)}</td>${blind ? '' : `<td>${fmt(e.lines[t] || 0)}</td>`}<td>${fmt(a)}</td>${blind ? '' : `<td class="${d > 0 ? 'pos' : d < 0 ? 'neg' : ''}">${d ? sgn(d) : '✓'}</td>`}<td style="text-align:left" class="sm">${esc(c.reasons?.[t] || '')}</td></tr>`; }).join('')}</table></div>` : ''}
+    ${c.wt != null ? `<div class="sm" style="margin-top:8px">Weight ${g3(c.wt)} g${blind ? '' : ` · difference <b style="color:${Math.abs(st.wtDiff) > S.D.settings.wtTol ? 'var(--bad)' : 'var(--ok)'}">${st.wtDiff > 0 ? '+' : ''}${g3(st.wtDiff)} g</b>`}</div>` : ''}
+    ${c.note ? `<div class="sm" style="margin-top:6px"><i>“${esc(c.note)}”</i></div>` : ''}
+    ${st.state === 'stale' ? '<div class="banner" style="margin-top:8px">Stock moved after this check — count again.</div>' : ''}
+    ${c.recountAllowed ? `<div class="banner" style="margin-top:8px">Recount allowed by ${esc(uname(c.recountAllowed.by))}</div>` : ''}
+    ${editable() && st.state === 'var' && can('accept') ? `<div class="row wrap" style="margin-top:10px"><button class="btn sm ok" id="apprBtn">Approve — set stock to count</button><button class="btn sm sec" id="rcBtn">Ask for recount</button><button class="btn sm ghost" id="mrcBtn">Recount myself</button></div>` : ''}
+    ${editable() && st.state === 'ok' && can('accept') ? `<div class="row" style="margin-top:10px"><button class="btn sm ghost" id="mrcBtn">Correct this count</button></div>` : ''}
+    ${editable() && can('count') && !can('accept') && !['pending', 'stale'].includes(st.state) && !c.recountAllowed ? '<div class="mut sm" style="margin-top:8px">Submitted counts can only be changed by a manager correction.</div>' : ''}
+  </div>` : `<div class="card mut" style="margin-top:12px">Not checked yet${S.D.day.status === 'closed' || !isToday() ? '' : ''}.</div>`}
+  ${ctx.sess && S.sess ? `<div class="row" style="margin-top:12px"><button class="btn ghost grow" id="ovw">Overview</button><button class="btn grow" id="nxt">Continue ›</button></div>` : ''}
+  ${editable() && (can('move') || can('setup')) && !ctx.sess ? `<h3 style="margin:16px 0 6px">Manager tools</h3><div class="row wrap">
     ${can('move') ? `<button class="btn sm ghost" data-mv="in">＋ In</button><button class="btn sm ghost" data-mv="out">− Out / Sale</button><button class="btn sm ghost" data-mv="move">⇄ Move</button>` : ''}
     ${can('setup') ? `<button class="btn sm ghost" id="setBtn">Set count</button><button class="btn sm ghost" id="editBtn">Edit details</button>` : ''}</div>` : ''}
   ${myMvs.length ? `<h3 style="margin:18px 0 6px">Today's movements</h3><div class="list card" style="padding:0">${myMvs.map((m) => mvLine(m, id)).join('')}</div>` : ''}
-  ${myCounts.length > 1 ? `<h3 style="margin:18px 0 6px">Earlier checks today</h3><div class="sm">${myCounts.slice(1).map((x) => `<div class="li">${esc(uname(x.by))} · ${tm(x.at)} · ${x.mode !== 'weight' ? `${fmt(sumLines(x.lines))} pcs` : ''} ${x.wt != null ? g3(x.wt) + ' g' : ''} <span class="st ${x.result}">${STLBL[x.result]}</span></div>`).join('')}</div>` : ''}`;
-  modal(esc(l.name), `${secLabel(l.sec)} · ${esc(l.group)}`, html, (ov) => {
-    const grab = () => { const v = {}; ov.querySelectorAll('[data-cnt]').forEach((i) => { if (i.value !== '') v[i.dataset.cnt] = +i.value; }); return { mode, rows: rowsT, vals: v, wt: $('#wtIn')?.value, note: $('#cNote')?.value }; };
-    const upd = () => ov.querySelectorAll('[data-cnt]').forEach((i) => { const t = i.dataset.cnt; const d = ov.querySelector(`[data-diff="${CSS.escape(t)}"]`); if (i.value === '' || blind) { d.textContent = ''; return; } const x = +i.value - (e.lines[t] || 0); d.textContent = x ? sgn(x) : '✓'; d.style.color = x ? 'var(--bad)' : 'var(--ok)'; });
-    ov.querySelectorAll('[data-cnt]').forEach((i) => i.oninput = upd); upd();
-    ov.querySelectorAll('[data-st]').forEach((b) => b.onclick = () => { const i = b.parentElement.querySelector('input'); i.value = Math.max(0, (+i.value || 0) + +b.dataset.st); upd(); });
-    ov.querySelectorAll('[data-mode]').forEach((b) => b.onclick = () => locSheet(id, { ...grab(), mode: b.dataset.mode }));
-    $('#addType') && ($('#addType').onchange = (ev) => { const k = grab(); if (ev.target.value) k.rows = [...k.rows, ev.target.value]; locSheet(id, k); });
-    ov.querySelectorAll('[data-big]').forEach((im) => im.onclick = () => lightbox(im.src));
-    ov.querySelectorAll('[data-delimg]').forEach((b) => b.onclick = async () => { if (!confirm('Remove this photo?')) return; const imgs = [...l.images]; imgs.splice(+b.dataset.delimg, 1); await saveLoc({ ...l, images: imgs }); locSheet(id); });
-    $('#phIn') && ($('#phIn').onchange = async (ev) => { const file = ev.target.files[0]; if (!file) return; const label = prompt('Label for this photo (e.g. Tray, Items, Ring close-up)', (l.images || []).length ? 'Items' : 'Tray') ?? 'Photo'; try { toast('Uploading…'); const dataUrl = await shrink(file); const { key } = await api('img', { dataUrl }); await saveLoc({ ...l, images: [...(l.images || []), { key, label }] }); locSheet(id, grab()); toast('Photo added'); } catch (er) { fail(er); } });
-    const submit = async (all) => {
-      const k = grab(); const lines = {};
-      if (mode !== 'weight') { if (all) Object.assign(lines, e.lines); else { const missing = rowsT.filter((t) => k.vals[t] == null); if (missing.length === rowsT.length) return toast('Enter the counted quantity'); if (missing.length && !confirm(`No number for ${missing.join(', ')} — treat as 0?`)) return; Object.assign(lines, k.vals); } }
-      let wt = null; if (mode !== 'count') { if (all && (k.wt === '' || k.wt == null)) wt = e.wt; else { if (k.wt === '' || k.wt == null) return toast('Enter the box weight'); wt = +k.wt; } }
-      try { const r = await api('count', { date: S.D.date, locId: id, lines, wt, mode, note: k.note }); toast(r.count.result === 'ok' ? '✓ Count matches' : '⚠ Variance recorded — admin alerted', 3200); await load(); locSheet(id); } catch (er) { fail(er); }
-    };
-    $('#matchBtn') && ($('#matchBtn').onclick = () => submit(true));
-    $('#saveCnt') && ($('#saveCnt').onclick = () => submit(false));
-    $('#acceptBtn') && ($('#acceptBtn').onclick = async () => { const note = prompt('Accepting will change book stock to the counted figure. Reason?'); if (note == null) return; try { await api('move', { kind: 'accept', date: S.D.date, locId: id, note, reason: 'Count accepted' }); toast('Stock updated to count'); await load(); locSheet(id); } catch (er) { fail(er); } });
+  ${myCounts.length > 1 ? `<h3 style="margin:18px 0 6px">Earlier checks today</h3><div class="sm card list" style="padding:0">${myCounts.slice(1).map((x) => `<div class="li">${esc(uname(x.by))} · ${tm(x.at)} · ${x.mode !== 'weight' ? `${fmt(sumLines(x.lines))} pcs` : ''} ${x.wt != null ? g3(x.wt) + ' g' : ''} <span class="st ${x.result}">${STLBL[x.result]}</span></div>`).join('')}</div>` : ''}`;
+  modal(head(l), '', html, (ov) => {
+    bindPhotos(ov, l, () => resultView(id, ctx));
+    $('#apprBtn') && ($('#apprBtn').onclick = async () => { const note = prompt('Approve: book stock becomes the counted figure. Note?', c.note || ''); if (note == null) return; try { await api('move', { kind: 'accept', date: S.D.date, locId: id, note, reason: 'Count approved' }); toast('Approved — stock updated'); await load(true); resultView(id, ctx); } catch (er) { fail(er); } });
+    $('#rcBtn') && ($('#rcBtn').onclick = async () => { try { await api('count/recount', { date: S.D.date, locId: id }); toast('Recount requested'); await load(true); resultView(id, ctx); } catch (er) { fail(er); } });
+    $('#mrcBtn') && ($('#mrcBtn').onclick = () => countFlow(id, { ...ctx, recount: true }));
+    $('#ovw') && ($('#ovw').onclick = sessionOverview);
+    $('#nxt') && ($('#nxt').onclick = () => openNext(id));
     ov.querySelectorAll('[data-mv]').forEach((b) => b.onclick = () => moveForm(b.dataset.mv, id));
     $('#setBtn') && ($('#setBtn').onclick = () => setCountForm(id));
     $('#editBtn') && ($('#editBtn').onclick = () => locEdit(l));
-    bindVoid(ov, () => locSheet(id));
+    bindVoid(ov, () => resultView(id, ctx));
   });
 }
+
 function mvLine(m, focus) {
   const K = { in: ['＋', 'var(--ok)'], out: ['−', 'var(--bad)'], move: ['⇄', 'var(--m)'], set: ['✎', 'var(--warn)'], accept: ['✓', 'var(--warn)'] }[m.kind] || ['•', 'var(--mut)'];
   const legs = m.legs.map((g) => `${esc(S.locById[g.locId]?.name || g.locId)}: ${esc(diffTxt(g.lines) || '0')}${g.wt ? ` ${g.wt > 0 ? '+' : ''}${g.wt} g` : ''}`).join(' → ');
@@ -555,14 +830,19 @@ function closeDayFlow() {
     <tr><td>Checked</td><td>${T.locs - T.pending}/${T.locs}</td></tr><tr><td>Variances open</td><td class="${T.var + T.stale ? 'neg' : 'pos'}">${T.var + T.stale}</td></tr></table>
     ${T.var + T.stale ? `<div class="banner" style="margin-top:12px">Unresolved variances close as book stock (not as counted). Accept counts first if they are correct.</div>` : ''}
     ${T.pending ? `<div class="banner" style="margin-top:12px">${T.pending} locations were not checked today.</div>` : ''}
+    ${(() => { const E = erpCompare(S.D.erp, S.sum, S.D.settings); return !E.entered ? `<div class="banner" style="margin-top:12px">Yamie ERP closing (Pc / Lbl) not entered yet. ${can('erp') ? '<button class="btn sm sec" id="toErp">Enter ERP</button>' : ''}</div>`
+      : E.matched ? `<div class="done-b" style="margin-top:12px">✓ ERP bottom total matches: ${fmt(E.total.app)} = ${fmt(E.total[E.basis])} ${E.basis === 'lbl' ? 'Lbl' : 'Pc'}</div>`
+      : `<div class="banner" style="margin-top:12px;background:var(--badb);color:var(--bad)">ERP bottom total does not match: app ${fmt(E.total.app)} vs ERP ${fmt(E.total[E.basis])} ${E.basis === 'lbl' ? 'Lbl' : 'Pc'} (${sgn(E.total.diff)}). ${S.me.role === 'admin' ? 'Admin can close with a reason.' : 'Only admin can close.'}</div>${S.me.role === 'admin' ? '<label class="f">Reason to close with mismatch</label><input type="text" id="ovr">' : ''}`; })()}
     <button class="btn" style="width:100%;margin-top:14px" id="doClose">Close day</button>`, () => {
-    $('#doClose').onclick = async () => { try { await api('close', { date: S.D.date }); toast('Day closed'); closeModal(); await load(); } catch (e) { fail(e); } };
+    $('#toErp') && ($('#toErp').onclick = () => { closeModal(); S.view = 'total'; S.tab = 'erp'; render(); });
+    $('#doClose').onclick = async () => { try { await api('close', { date: S.D.date, override: $('#ovr')?.value || '' }); toast('Day closed'); closeModal(); await load(); } catch (e) { fail(e); } };
   });
 }
 
 // ---------------- consolidated ----------------
 function vTotal() {
   if (!can('reports') && !can('count')) return $('#main').innerHTML = '<div class="card">No access</div>';
+  if (S.tab === 'erp') return vErp();
   const sm = S.sum; const types = [...S.D.settings.itemTypes, ...Object.keys(sm.byType).filter((t) => !S.D.settings.itemTypes.includes(t))].filter((t) => sm.byType[t]);
   const blind = hideExp();
   const cell = (n) => `<td class="${n > 0 ? 'pos' : n < 0 ? 'neg' : ''}">${n ? sgn(n) : '—'}</td>`;
@@ -570,7 +850,7 @@ function vTotal() {
   const varLocs = activeLocs().filter((l) => ['var', 'stale'].includes(sm.status[l.id].state));
   $('#main').innerHTML = `${viewBanner()}
   <div class="row sp wrap" style="margin-bottom:12px"><div><h1>Consolidated stock</h1><div class="mut">${dt(S.D.date)} · ${S.D.day.status === 'closed' ? 'Closed' : 'Live'}</div></div>
-  <div class="row noprint">${can('reports') ? `<button class="btn sm ghost" id="csv">Export CSV</button><button class="btn sm ghost" id="prt">Print</button>${S.D.settings.waNumber ? `<button class="btn sm ok" id="wa">WhatsApp</button>` : ''}` : ''}</div></div>
+  <div class="row noprint">${can('reports') ? `<button class="btn sm sec" id="erpTab">ERP match</button><button class="btn sm ghost" id="csv">Export CSV</button><button class="btn sm ghost" id="prt">Print</button>${S.D.settings.waNumber ? `<button class="btn sm ok" id="wa">WhatsApp</button>` : ''}` : ''}</div></div>
   ${blind ? '<div class="card mut">Expected totals are hidden while counting is in progress.</div>' : `
   <h3 style="margin:6px 0 8px">By section</h3>
   <div class="tw"><table><tr><th>Section</th><th>Opening</th><th>In</th><th>Out</th><th>Expected</th><th>Checked</th><th>Counted</th><th>Variance</th></tr>
@@ -589,8 +869,41 @@ function vTotal() {
   bindBanner(); bindLocCards();
   $('#closeBtn') && ($('#closeBtn').onclick = closeDayFlow);
   $('#csv') && ($('#csv').onclick = exportCSV);
+  $('#erpTab') && ($('#erpTab').onclick = () => { S.tab = 'erp'; vTotal(); });
   $('#prt') && ($('#prt').onclick = () => print());
   $('#wa') && ($('#wa').onclick = () => open(`https://wa.me/${S.D.settings.waNumber}?text=${encodeURIComponent(summaryText())}`, '_blank'));
+}
+function vErp() {
+  const E = erpCompare(S.D.erp, S.sum, S.D.settings); const ed = editable() && can('erp');
+  const types = [...S.D.settings.itemTypes, ...Object.keys(E.rows).filter((t) => !S.D.settings.itemTypes.includes(t))];
+  const bL = E.basis === 'lbl' ? 'Lbl' : 'Pc';
+  const inp = (t, k) => { const v = S.D.erp?.lines?.[t]?.[k]; return ed ? `<input type="number" min="0" inputmode="numeric" data-e="${esc(t)}|${k}" value="${v ?? ''}">` : fmt(v || 0); };
+  const hasLines = Object.keys(S.D.erp?.lines || {}).length > 0;
+  $('#main').innerHTML = `${viewBanner()}
+  <div class="row sp wrap" style="margin-bottom:12px"><div><h1>Match with Yamie ERP</h1><div class="mut">${dt(S.D.date)} · closing Pc / Lbl — bottom total must match</div></div><button class="btn sm ghost" id="back">← Consolidated</button></div>
+  <div class="${!E.entered ? 'banner' : E.matched ? 'done-b' : 'banner'}" style="${E.entered && !E.matched ? 'background:var(--badb);color:var(--bad)' : ''}">${!E.entered ? 'Enter the closing figures from the Yamie ERP stock report (Pc and Lbl per category, or just the bottom total).' : E.matched ? `✓ Matched — app closing ${fmt(E.total.app)} = ERP ${fmt(E.total[E.basis])} ${bL}` : `Not matching — app closing ${fmt(E.total.app)} vs ERP ${fmt(E.total[E.basis])} ${bL} · difference ${sgn(E.total.diff)}`}</div>
+  <div class="tw erp" style="margin-top:12px"><table><tr><th>Category</th><th>App closing</th><th>Counted</th><th>ERP Pc</th><th>ERP Lbl</th><th>Diff (app − ${bL})</th></tr>
+  ${types.filter((t) => E.rows[t] || ed).map((t) => { const r = E.rows[t] || { app: 0, cnt: 0, diff: null }; return `<tr><td class="b">${esc(t)}</td><td>${fmt(r.app)}</td><td class="mut">${fmt(r.cnt)}</td><td>${inp(t, 'pcs')}</td><td>${inp(t, 'lbl')}</td><td class="${r.diff > 0 ? 'pos' : r.diff < 0 ? 'neg' : ''}">${r.diff == null ? '—' : r.diff ? sgn(r.diff) : '✓'}</td></tr>`; }).join('')}
+  <tr class="tot"><td>Bottom total</td><td>${fmt(E.total.app)}</td><td>${fmt(S.sum.total.counted)}</td>
+    <td>${ed && !hasLines ? `<input type="number" id="tPcs" value="${S.D.erp?.total?.pcs ?? ''}">` : `<span id="sPcs">${fmt(E.total.pcs)}</span>`}</td>
+    <td>${ed && !hasLines ? `<input type="number" id="tLbl" value="${S.D.erp?.total?.lbl ?? ''}">` : `<span id="sLbl">${fmt(E.total.lbl)}</span>`}</td>
+    <td class="${E.total.diff ? 'neg' : 'pos'}">${E.total.diff == null ? '—' : E.total.diff ? sgn(E.total.diff) : '✓ Match'}</td></tr></table></div>
+  <div class="mut sm" style="margin-top:6px">App closing = book stock (opening + in − out). App pieces are matched against ERP <b>${bL}</b> (change in Admin → Settings). Fill either the category rows or only the bottom total.</div>
+  ${ed ? `<div class="row wrap" style="margin-top:12px"><input type="text" id="eRef" placeholder="ERP report no. / time (optional)" value="${esc(S.D.erp?.ref || '')}" style="max-width:320px"><button class="btn" id="eSave">Save & match</button></div>` : ''}
+  ${S.D.erp ? `<div class="mut sm" style="margin-top:8px">Entered by ${esc(uname(S.D.erp.by))} · ${tm(S.D.erp.at)}</div>` : ''}
+  ${editable() && can('close') ? `<button class="btn sec" style="width:100%;margin-top:18px" id="closeBtn">Close day</button>` : ''}`;
+  bindBanner();
+  $('#back').onclick = () => { S.tab = ''; vTotal(); };
+  $('#closeBtn') && ($('#closeBtn').onclick = closeDayFlow);
+  const live = () => { let p = 0, l = 0; $('#main').querySelectorAll('[data-e]').forEach((i) => { const [, k] = i.dataset.e.split('|'); if (k === 'pcs') p += +i.value || 0; else l += +i.value || 0; }); if ($('#sPcs')) { $('#sPcs').textContent = fmt(p); $('#sLbl').textContent = fmt(l); } };
+  $('#main').querySelectorAll('[data-e]').forEach((i) => i.oninput = live);
+  $('#eSave') && ($('#eSave').onclick = async () => {
+    const lines = {}; $('#main').querySelectorAll('[data-e]').forEach((i) => { const [t, k] = i.dataset.e.split('|'); if (i.value !== '') (lines[t] ||= {})[k] = +i.value; });
+    const anyLine = Object.values(lines).some((x) => x.pcs || x.lbl);
+    const total = anyLine ? null : { pcs: +($('#tPcs')?.value || 0), lbl: +($('#tLbl')?.value || 0) };
+    if (!anyLine && !total.pcs && !total.lbl) return toast('Enter ERP figures');
+    try { const r = await api('erp', { date: S.D.date, lines, total, ref: $('#eRef').value }); toast(r.matched ? '✓ ERP matches' : '⚠ ERP does not match — admin alerted', 3200); await load(); } catch (e) { fail(e); }
+  });
 }
 function summaryText() {
   const sm = S.sum; const t = sm.total;
@@ -614,7 +927,7 @@ function exportCSV() {
 function vMore() {
   const items = [['log', 'Day log', 'Movements and checks today', true], ['alerts', 'Alerts', 'Variances and reports', can('alerts')], ['history', 'History', 'Past days and closing stock', can('reports')], ['admin', 'Admin', 'Users, locations, settings', can('users') || can('setup')]].filter((x) => x[3]);
   $('#main').innerHTML = `<h1 style="margin-bottom:12px">More</h1><div class="list card" style="padding:0">${items.map(([k, t, d]) => `<button class="li" style="width:100%;text-align:left" data-go="${k}"><div class="grow"><div class="b">${t}</div><div class="mut sm">${d}</div></div><span class="mut">›</span></button>`).join('')}
-    <button class="li" style="width:100%;text-align:left" id="pinBtn"><div class="grow"><div class="b">Change my PIN</div><div class="mut sm">${esc(S.me.name)} · ${esc(S.me.role)}</div></div></button>
+    <button class="li" style="width:100%;text-align:left" id="pinBtn"><div class="grow"><div class="b">Change my PIN</div><div class="mut sm">${esc(S.me.name)} · ${esc(S.me.role)} · app v${VERSION}</div></div></button>
     <button class="li" style="width:100%;text-align:left" id="notiBtn"><div class="grow"><div class="b">Notifications on this device</div><div class="mut sm">${localStorage.ysc_notify === '1' ? 'On' : 'Off'} — alerts while the app is open</div></div></button>
     <button class="li" style="width:100%;text-align:left;color:var(--bad)" id="outBtn"><div class="grow b">Log out</div></button></div>`;
   $('#main').querySelectorAll('[data-go]').forEach((b) => b.onclick = () => go(b.dataset.go));
@@ -634,8 +947,8 @@ async function vAlerts() {
 function vLog() {
   const mvs = [...S.D.mvs].reverse(); const cs = [...S.D.counts].sort((a, b) => b.at - a.at);
   $('#main').innerHTML = `${viewBanner()}<h1 style="margin-bottom:12px">Day log · ${dt(S.D.date)}</h1>
-  <div class="tabs"><button data-t="mv" class="${S.tab !== 'ct' ? 'on' : ''}">Stock movements (${mvs.length})</button><button data-t="ct" class="${S.tab === 'ct' ? 'on' : ''}">Checks (${cs.length})</button></div>
-  ${S.tab !== 'ct' ? `<div class="card list" style="padding:0">${mvs.map((m) => mvLine(m)).join('') || '<div class="mut" style="padding:20px">No movements</div>'}</div>`
+  <div class="tabs"><button data-t="mv" class="${S.tab !== 'ct' ? 'on' : ''}">Stock movements (${mvs.length})</button><button data-t="ct" class="${S.tab === 'ct' ? 'on' : ''}">Checks (${cs.length})</button><button data-t="ss" class="${S.tab === 'ss' ? 'on' : ''}">Count sessions (${(S.D.sessions || []).length})</button></div>
+  ${S.tab === 'ss' ? `<div class="tw"><table><tr><th>Count</th><th>Staff</th><th>Started</th><th>Finished</th><th>Verified</th><th>Expected</th><th>Actual</th><th>Short</th><th>Excess</th><th>Pending</th></tr>${(S.D.sessions || []).sort((a, b) => b.at - a.at).map((x) => { const m = x.summary || {}; return `<tr><td class="b">${scopeLabel(x.scope)}<div class="mut sm">${x.status}</div></td><td>${esc(uname(x.by))}</td><td>${tm(x.at)}</td><td>${x.finishedAt ? tm(x.finishedAt) : '—'}</td><td>${m.locs ? `${m.done}/${m.locs}` : '—'}</td><td>${fmt(m.expected)}</td><td>${fmt(m.actual)}</td><td class="${m.short ? 'neg' : ''}">${m.short ? '−' + m.short : 0}</td><td class="${m.excess ? 'pos' : ''}">${m.excess ? '+' + m.excess : 0}</td><td>${m.pending ?? '—'}</td></tr>`; }).join('')}</table></div>` : S.tab !== 'ct' ? `<div class="card list" style="padding:0">${mvs.map((m) => mvLine(m)).join('') || '<div class="mut" style="padding:20px">No movements</div>'}</div>`
     : `<div class="tw"><table><tr><th>Location</th><th>By</th><th>Time</th><th>Counted</th><th>Weight</th><th>Result</th></tr>${cs.map((c) => `<tr><td><b>${esc(S.locById[c.locId]?.name || c.locId)}</b><div class="mut sm">${secLabel(c.sec)}</div></td><td>${esc(uname(c.by))}</td><td>${tm(c.at)}</td><td>${c.lines ? fmt(sumLines(c.lines)) : '—'}</td><td>${c.wt != null ? g3(c.wt) : '—'}</td><td style="text-align:left"><span class="st ${c.result}">${STLBL[c.result]}</span> <span class="sm">${esc(diffTxt(c.diff))}</span></td></tr>`).join('')}</table></div>`}`;
   bindBanner();
   $('#main').querySelectorAll('[data-t]').forEach((b) => b.onclick = () => { S.tab = b.dataset.t; vLog(); });
@@ -688,12 +1001,14 @@ function admSettings() {
     <label class="f">Admin WhatsApp number for reports (with country code, e.g. 9187141 22750)</label><input type="tel" id="sW" value="${esc(st.waNumber)}" placeholder="91XXXXXXXXXX">
     <label class="f">Box weight tolerance (± grams)</label><input type="number" step="0.001" id="sT" value="${st.wtTol}">
     <label class="chk" style="margin-top:10px"><input type="checkbox" id="sB" ${st.blind ? 'checked' : ''}> Blind count — staff don't see expected numbers while counting</label>
+    <label class="f">Match app count against ERP</label><select id="sE"><option value="lbl" ${st.erpBasis !== 'pcs' ? 'selected' : ''}>Labels (Lbl)</option><option value="pcs" ${st.erpBasis === 'pcs' ? 'selected' : ''}>Pieces (Pc)</option></select>
+    <label class="f">Discrepancy reasons (comma separated)</label><textarea id="sR">${esc(st.reasons.join(', '))}</textarea>
     <label class="f">Item types (comma separated)</label><textarea id="sI">${esc(st.itemTypes.join(', '))}</textarea>
     <label class="f">Purities</label><input type="text" id="sP" value="${esc(st.purities.join(', '))}">
     <label class="f">Categories</label><input type="text" id="sC" value="${esc(st.categories.join(', '))}">
     <button class="btn" style="width:100%;margin-top:14px" id="sS">Save settings</button></div>`;
   const list = (v) => v.split(',').map((x) => x.trim()).filter(Boolean);
-  $('#sS').onclick = async () => { try { await api('settings', { settings: { shopName: $('#sN').value, waNumber: $('#sW').value, wtTol: +$('#sT').value, blind: $('#sB').checked, itemTypes: list($('#sI').value), purities: list($('#sP').value), categories: list($('#sC').value) } }); toast('Settings saved'); load(true); } catch (e) { fail(e); } };
+  $('#sS').onclick = async () => { try { await api('settings', { settings: { shopName: $('#sN').value, waNumber: $('#sW').value, wtTol: +$('#sT').value, blind: $('#sB').checked, erpBasis: $('#sE').value, reasons: list($('#sR').value), itemTypes: list($('#sI').value), purities: list($('#sP').value), categories: list($('#sC').value) } }); toast('Settings saved'); load(true); } catch (e) { fail(e); } };
 }
 
 // ---------------- boot ----------------

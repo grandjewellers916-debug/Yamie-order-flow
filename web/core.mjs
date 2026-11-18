@@ -12,6 +12,8 @@ export const DEFAULT_SETTINGS = {
   wtTol: 0.010,        // grams allowed either way on box weight checks
   blind: false,        // hide expected counts from staff while counting
   waNumber: '',        // admin WhatsApp number for reports
+  erpBasis: 'lbl',     // app count is matched against ERP labels ('lbl') or pieces ('pcs')
+  reasons: ['Item sold, not updated', 'Moved to another tray', 'Sent for repair / approval', 'Label missing / wrong tag', 'Found extra item', 'Other'],
 };
 export const PERMS = {
   count: 'Count / verify stock',
@@ -21,11 +23,12 @@ export const PERMS = {
   close: 'Close day',
   reports: 'Consolidated & history',
   alerts: 'Receive alerts & reports',
+  erp: 'Enter ERP closing (Pc / Lbl)',
   users: 'Manage users',
 };
 export const ROLE_PERMS = {
   admin: Object.keys(PERMS),
-  manager: ['count', 'move', 'setup', 'accept', 'close', 'reports', 'alerts'],
+  manager: ['count', 'move', 'setup', 'accept', 'close', 'reports', 'alerts', 'erp'],
   staff: ['count'],
 };
 export const REASONS = {
@@ -93,7 +96,7 @@ export function locStatus(exp, count, mvs, locId, settings) {
       if (d) { diff[t] = d; diffTotal += d; absTotal += Math.abs(d); bad = true; }
     }
   }
-  if (mode !== 'count') {
+  if (mode !== 'count' && (e.wt || 0) > 0) {   // no weight baseline yet → first verified weight becomes the baseline
     wtDiff = r3((+count.wt || 0) - (e.wt || 0));
     if (Math.abs(wtDiff) > tol + 1e-9) bad = true;
   }
@@ -140,6 +143,35 @@ export function closingOf(opening, mvs) {
   const exp = computeExpected(opening, mvs);
   for (const k of Object.keys(exp)) if (!sumLines(exp[k].lines) && !exp[k].wt) delete exp[k];
   return exp;
+}
+
+/** Closing for the day: book stock, but a box whose weight was verified within tolerance
+ *  carries the verified weight forward (absorbs polishing / scale drift). */
+export function closingVerified(locs, opening, mvs, counts, settings) {
+  const close = closingOf(opening, mvs);
+  const last = latestCounts(counts);
+  for (const l of locs || []) {
+    if (l.sec !== 'box') continue;
+    const c = last[l.id]; if (!c || c.mode === 'count' || c.wt == null) continue;
+    const st = locStatus(close[l.id] || blank(), c, mvs, l.id, settings);
+    if (st.state === 'ok') (close[l.id] ||= blank()).wt = r3(c.wt);
+  }
+  return close;
+}
+
+/** ERP Pc/Lbl comparison against app closing (expected) by item type. */
+export function erpCompare(erp, sm, settings) {
+  const basis = settings?.erpBasis || 'lbl';
+  const rows = {}; let app = 0, erpT = 0;
+  for (const [t, B] of Object.entries(sm.byType)) { const v = Object.values(B).reduce((a, x) => a + x.exp, 0); if (v) rows[t] = { app: v, cnt: Object.values(B).reduce((a, x) => a + x.cnt, 0) }; }
+  for (const [t, x] of Object.entries(erp?.lines || {})) (rows[t] ||= { app: 0, cnt: 0 }).erp = x;
+  const hasLines = Object.values(erp?.lines || {}).some((x) => x && (x.pcs || x.lbl));
+  for (const r of Object.values(rows)) { app += r.app; r.basis = r.erp ? +(r.erp[basis] || 0) : null; r.diff = r.basis == null ? null : r.app - r.basis; }
+  const total = { app, pcs: hasLines ? Object.values(rows).reduce((a, r) => a + (+r.erp?.pcs || 0), 0) : +(erp?.total?.pcs || 0), lbl: hasLines ? Object.values(rows).reduce((a, r) => a + (+r.erp?.lbl || 0), 0) : +(erp?.total?.lbl || 0) };
+  if (erp?.total && !hasLines) { total.pcs = +erp.total.pcs || 0; total.lbl = +erp.total.lbl || 0; }
+  erpT = total[basis];
+  total.diff = erp ? app - erpT : null;
+  return { rows, total, basis, entered: !!erp, matched: !!erp && total.diff === 0 };
 }
 
 export function istDate(d = new Date()) {
