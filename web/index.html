@@ -191,11 +191,15 @@ td.pos{color:var(--ok);font-weight:600}td.neg{color:var(--bad);font-weight:600}
 .fs.done{border-color:#B8DDC6;background:var(--okb)}.fs.done i{background:#fff}
 .fs.cur{border-color:var(--m);box-shadow:0 0 0 2px var(--m3)}.fs.cur i{background:var(--m);color:#fff}
 @media(max-width:699px){.flow{grid-template-columns:1fr 1fr}}
-.eg{display:grid;grid-template-columns:190px minmax(180px,1.4fr) 120px 80px 100px minmax(110px,1fr) 36px;gap:8px;align-items:start;padding:6px 0;border-bottom:1px solid var(--ln)}
+.eg{display:grid;grid-template-columns:150px 92px minmax(150px,1.4fr) 112px 78px 64px 84px 84px minmax(90px,1fr) 32px;gap:8px;align-items:start;padding:6px 0;border-bottom:1px solid var(--ln)}
 .eg.h{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;font-weight:600;padding-top:0}
-.eg select,.eg input{min-height:40px;padding:6px 8px;font-size:14px}.eg .x{width:36px;height:40px}
+.eg select,.eg input{min-height:40px;padding:6px 8px;font-size:14px}.eg .x{width:32px;height:40px}
+.eg .c{text-align:center}.oc{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:40px;border-radius:9px;background:var(--cr);font-size:12px;line-height:1.25;padding:3px}
+.oc b{font-size:16px}.oc.cl{background:var(--okb);color:var(--ok)}.oc.cl.neg{background:var(--badb);color:var(--bad)}
+.oc.cl .mut:empty{display:none}
 select.tin{border-color:#9FD0B2;background:#F3FBF6}select.tout{border-color:#E8B4AE;background:#FDF5F4}
-@media(max-width:899px){.eg.h{display:none}.eg{grid-template-columns:1fr 1fr;padding:10px 0}.eg>select[data-f=type],.eg>div{grid-column:1/-1}.eg .x{grid-column:2;justify-self:end}}
+@media(max-width:1099px){.eg.h{display:none}.eg{grid-template-columns:1fr 1fr;padding:10px 0}.eg>select[data-f=type],.eg>select[data-f=locId]{grid-column:1/-1}.eg .x{grid-column:2;justify-self:end}
+  .oc::before{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px}.oc[data-op]::before{content:'Opening'}.oc.cl::before{content:'Closing'}}
 .ixr{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:4px}
 .ib{font-size:12px;padding:3px 9px;border-radius:99px;background:var(--cr);color:var(--ink);cursor:pointer;white-space:nowrap}
 .ib.need{background:var(--warnb);color:var(--warn);font-weight:600}.ib.done{background:var(--okb);color:var(--ok)}
@@ -239,7 +243,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.6';
+const VERSION = '1.7';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -382,6 +386,18 @@ function dayFlow() {
 }
 
 // ---------------- end-of-day entries ----------------
+// Opening = today's opening at that location for the item; Closing = stock now ± this row (and earlier unsaved rows for the same location + item)
+function eodCalc(rows, i) {
+  const r = rows[i]; const l = S.locById[r.locId]; if (!l || !r.item) return null;
+  const sign = (TXN_TYPES.find((t) => t.k === r.type)?.dir) || -1; const box = l.sec === 'box';
+  const op = opOf(l.id).lines[r.item] || 0, opWt = box ? +(opOf(l.id).wt || 0) : 0;
+  const now = expOf(l.id).lines[r.item] || 0, nowWt = box ? +(expOf(l.id).wt || 0) : 0;
+  let before = now, beforeWt = nowWt;
+  for (let j = 0; j < i; j++) { const x = rows[j]; if (x.locId !== r.locId) continue; const sg = (TXN_TYPES.find((t) => t.k === x.type)?.dir) || -1; if (x.item === r.item) before += sg * (+x.qty || 0); if (box && (nowWt > 0 || sg > 0)) beforeWt += sg * (+x.wt || 0); }
+  const cl = before + sign * (+r.qty || 0); const clWt = r3(beforeWt + (box && (nowWt > 0 || sign > 0) ? sign * (+r.wt || 0) : 0));
+  return { op, opWt, now, nowWt, cl, clWt, sign, chg: sign * (+r.qty || 0) };
+}
+const eodClHtml = (oc, box) => oc ? `<b>${fmt(oc.cl)}</b>${box ? `<span>${g3(oc.clWt)} g</span>` : ''}<span class="mut">${oc.chg ? sgn(oc.chg) : ''}</span>` : '<span class="mut">—</span>';
 function vEod() {
   if (!can('move')) return $('#main').innerHTML = '<div class="card">No access</div>';
   const ed = editable(); const isAdmin = S.me.role === 'admin';
@@ -395,14 +411,17 @@ function vEod() {
   <div class="row sp wrap" style="margin-bottom:10px"><div><h1>End-of-day entries</h1><div class="mut">${dt(S.D.date)} · enter today's transactions, then start the evening count</div></div></div>
   ${dayFlow()}
   ${ed ? `<div class="card" style="margin-top:12px">
-    <div class="eg h"><span>Type</span><span>Location</span><span>Item</span><span>Qty</span><span>Weight g</span><span>Bill / ref</span><span></span></div>
-    ${rows.map((r, i) => { const l = S.locById[r.locId]; const T = TXN_TYPES.find((t) => t.k === r.type); const e = l ? expOf(l.id) : null;
+    <div class="eg h"><span>Type</span><span>Main location</span><span>Location</span><span>Item</span><span class="c">Opening</span><span>Qty</span><span>Weight g</span><span class="c">Closing</span><span>Bill / ref</span><span></span></div>
+    ${rows.map((r, i) => { const l = S.locById[r.locId]; const T = TXN_TYPES.find((t) => t.k === r.type); const box = l?.sec === 'box'; const oc = eodCalc(rows, i);
       return `<div class="eg">
       <select data-f="type" data-i="${i}" class="${T?.dir > 0 ? 'tin' : 'tout'}">${types.map((t) => `<option value="${t.k}" ${r.type === t.k ? 'selected' : ''}>${t.dir > 0 ? '＋' : '−'} ${esc(t.label)}</option>`).join('')}</select>
-      <div><select data-f="locId" data-i="${i}"><option value="">Location…</option>${locOptions(r.locId)}</select>${l && !hideExp() ? `<div class="sm mut" style="margin-top:2px">Now: ${esc(linesTxt(e.lines))}${l.sec === 'box' ? ` · ${g3(e.wt)} g` : ''}</div>` : ''}</div>
-      <select data-f="item" data-i="${i}"><option value="">Item…</option>${items.map((t) => `<option ${r.item === t ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select>
+      <select data-f="sec" data-i="${i}"><option value="">Main…</option>${SECTIONS.map((x) => `<option value="${x.key}" ${r.sec === x.key ? 'selected' : ''}>${x.key === 'counter' ? 'Counter' : x.key === 'tray' ? 'Trays' : 'Boxes'}</option>`).join('')}</select>
+      <select data-f="locId" data-i="${i}" ${r.sec ? '' : 'disabled'}><option value="">${r.sec ? 'Location…' : 'Choose main first'}</option>${r.sec ? activeLocs(r.sec).map((x) => `<option value="${x.id}" ${x.id === r.locId ? 'selected' : ''}>${esc(x.name)}${x.boxNo && !x.name.includes(x.boxNo) ? ` (Box ${esc(x.boxNo)})` : ''} — ${esc(x.group)}</option>`).join('') : ''}</select>
+      <select data-f="item" data-i="${i}"><option value="">Item…</option>${(l ? [...new Set([...Object.keys(expOf(l.id).lines), ...items])] : items).map((t) => `<option value="${esc(t)}" ${r.item === t ? 'selected' : ''}>${esc(t)}${l && expOf(l.id).lines[t] ? ` (${expOf(l.id).lines[t]})` : ''}</option>`).join('')}</select>
+      <div class="oc" data-op="${i}">${oc ? `<b>${fmt(oc.op)}</b>${box ? `<span>${g3(oc.opWt)} g</span>` : ''}${oc.now !== oc.op || (box && oc.nowWt !== oc.opWt) ? `<span class="mut">now ${fmt(oc.now)}${box ? ` · ${g3(oc.nowWt)} g` : ''}</span>` : ''}` : '<span class="mut">—</span>'}</div>
       <input type="number" inputmode="numeric" min="0" data-f="qty" data-i="${i}" value="${esc(r.qty)}" placeholder="Qty">
       <input type="number" inputmode="decimal" step="0.001" min="0" data-f="wt" data-i="${i}" value="${esc(r.wt)}" placeholder="Weight g">
+      <div class="oc cl ${oc && oc.cl < 0 ? 'neg' : ''}" data-cl="${i}">${eodClHtml(oc, box)}</div>
       <input type="text" data-f="ref" data-i="${i}" value="${esc(r.ref)}" placeholder="Invoice / voucher">
       <button class="x" data-del="${i}" title="Remove">×</button></div>`; }).join('')}
     <div class="row wrap sp" style="margin-top:10px"><button class="btn sm ghost" id="addRow">＋ Add row</button>
@@ -417,15 +436,21 @@ function vEod() {
     : `<div class="card" style="margin-top:18px"><div class="b">Entries finished?</div><div class="mut sm">Morning count: ${R.morning.done}/${R.morning.locs} verified${R.morning.done < R.morning.locs ? ' — not complete' : ' ✓'}. Starting the evening count checks every tray against stock after these entries.</div><button class="btn" style="margin-top:10px;width:100%" id="startEve">🌙 Done — start evening count</button></div>`) : ''}`;
   bindBanner(); bindVoid($('#main'), () => vEod());
   const tot = () => { let q = 0, w = 0; rows.forEach((r) => { q += +r.qty || 0; w += +r.wt || 0; }); const t = $('#eTot'); if (t) t.textContent = `${rows.length} row${rows.length > 1 ? 's' : ''} · ${fmt(q)} pcs · ${g3(w)} g`; }; tot();
+  const updCl = () => rows.forEach((r, i) => { const c = $(`[data-cl="${i}"]`); if (!c) return; const oc = eodCalc(rows, i); c.innerHTML = eodClHtml(oc, S.locById[r.locId]?.sec === 'box'); c.classList.toggle('neg', !!oc && oc.cl < 0); });
   $('#main').querySelectorAll('[data-f]').forEach((el) => { const h = () => { const r = rows[el.dataset.i]; r[el.dataset.f] = el.value;
+      if (el.dataset.f === 'sec') { r.locId = ''; r.item = ''; return vEod(); }
+      if (el.dataset.f === 'item') return vEod();
+      if (el.dataset.f === 'qty' || el.dataset.f === 'wt') updCl();
       if (el.dataset.f === 'locId') { const l = S.locById[el.value]; if (l && !r.item) { const k = Object.keys(expOf(l.id).lines); r.item = l.itemType || (k.length === 1 ? k[0] : ''); } return vEod(); }
       if (el.dataset.f === 'type') return vEod(); tot(); };
     el.onchange = h; if (el.tagName === 'INPUT') el.oninput = h; });
   $('#main').querySelectorAll('[data-del]').forEach((b) => b.onclick = () => { rows.splice(+b.dataset.del, 1); if (!rows.length) rows.push({ type: 'sale', locId: '', item: '', qty: '', wt: '', ref: '' }); vEod(); });
-  $('#addRow') && ($('#addRow').onclick = () => { const last = rows[rows.length - 1] || {}; rows.push({ type: last.type || 'sale', locId: '', item: '', qty: '', wt: '', ref: '' }); vEod(); });
+  $('#addRow') && ($('#addRow').onclick = () => { const last = rows[rows.length - 1] || {}; rows.push({ type: last.type || 'sale', sec: last.sec || '', locId: '', item: '', qty: '', wt: '', ref: '' }); vEod(); });
   $('#saveRows') && ($('#saveRows').onclick = async () => {
     const send = rows.filter((r) => r.locId || r.qty || r.wt);
     if (!send.length) return toast('Enter at least one row');
+    const neg = rows.map((r, i) => [r, eodCalc(rows, i)]).filter(([r, oc]) => oc && oc.cl < 0);
+    if (neg.length && !confirm(`Closing goes below zero for ${neg.map(([r]) => `${S.locById[r.locId].name} · ${r.item}`).join(', ')}. Save anyway?`)) return;
     try { const r = await api('txns', { date: S.D.date, rows: send }); toast(`✓ ${r.saved} entr${r.saved === 1 ? 'y' : 'ies'} saved`); S.eodRows = null; await load(true); vEod(); } catch (e) { fail(e); }
   });
   $('#startEve') && ($('#startEve').onclick = async () => {
