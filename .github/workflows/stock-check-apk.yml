@@ -9,6 +9,9 @@ on:
 permissions:
   contents: write
 
+env:
+  APP_VERSION: '1.7'   # keep in step with VERSION in web/index.html
+
 jobs:
   apk:
     runs-on: ubuntu-latest
@@ -32,18 +35,18 @@ jobs:
         run: gradle -p android assembleRelease --no-daemon
 
       - name: Name the APK
-        run: cp android/app/build/outputs/apk/release/app-release.apk yamie-stock-check.apk
+        run: cp android/app/build/outputs/apk/release/app-release.apk yamie-stock-check-v${{ env.APP_VERSION }}.${{ github.run_number }}.apk
 
       - uses: actions/upload-artifact@v4
         with:
           name: yamie-stock-check-apk
-          path: yamie-stock-check.apk
+          path: yamie-stock-check-v*.apk
 
       - name: Publish download
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: stock-check-apk-v${{ github.run_number }}
-          name: Yamie Stock Check APK v1.5.${{ github.run_number }}
+          tag_name: stock-check-apk-v${{ env.APP_VERSION }}.${{ github.run_number }}
+          name: Yamie Stock Check APK v${{ env.APP_VERSION }}.${{ github.run_number }}
           target_commitish: ${{ github.sha }}
-          files: yamie-stock-check.apk
+          files: yamie-stock-check-v${{ env.APP_VERSION }}.${{ github.run_number }}.apk
           body: "Install on shop phones (allow install from this source). Opens https://yamie-stock-check.netlify.app — web updates arrive without a new APK. Each new APK installs over the previous one."

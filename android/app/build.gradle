@@ -12,7 +12,7 @@ android {
         minSdk 24
         targetSdk 34
         versionCode Integer.parseInt(System.getenv('GITHUB_RUN_NUMBER') ?: '1')
-        versionName "1.5." + (System.getenv('GITHUB_RUN_NUMBER') ?: '0')
+        versionName (System.getenv('APP_VERSION') ?: '1.7') + "." + (System.getenv('GITHUB_RUN_NUMBER') ?: '0')
         resValue 'string', 'app_name', 'Stock Check'
         // The app opens the live web app, so web updates need no new APK
         buildConfigField 'String', 'APP_URL', '"https://yamie-stock-check.netlify.app/"'
