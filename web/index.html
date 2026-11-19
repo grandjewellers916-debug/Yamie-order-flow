@@ -1080,6 +1080,7 @@ function exportCSV() {
     ts.forEach((t, i) => { const cn = c && c.mode !== 'weight' ? (c.lines?.[t] || 0) : ''; rows.push([S.D.date, secLabel(l.sec), l.group, l.name, l.boxNo || '', l.purity, l.cat, t, o.lines[t] || 0, f.in[t] || 0, f.out[t] || 0, e.lines[t] || 0, cn, cn === '' ? '' : cn - (e.lines[t] || 0), i ? '' : (l.sec === 'box' ? e.wt : ''), i ? '' : (c?.wt ?? ''), STLBL[st.state], c ? uname(c.by) : '', c ? tm(c.at) : '']); });
   }
   const csv = rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+  if (window.YamieStock?.shareFile) return window.YamieStock.shareFile(`yamie-stock-${S.D.date}.csv`, 'text/csv', '\ufeff' + csv);
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv' })); a.download = `yamie-stock-${S.D.date}.csv`; a.click();
 }
 
