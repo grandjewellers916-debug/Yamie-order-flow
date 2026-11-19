@@ -548,6 +548,28 @@ export default async (req: Request) => {
       return J({ ok: true, settings: next });
     }
 
+    // ----- database backup (admin only): list keys, then fetch values in batches -----
+    if (path === 'backup/keys') {
+      if (me.role !== 'admin') return err('Only admin can back up the database', 403);
+      const { blobs } = await s.list();
+      const keys = blobs.map((b: any) => b.key).filter((k: string) => k !== 'meta/secret').sort();
+      const last = await s.get('meta/lastBackup', { type: 'json' });
+      return J({ data: keys.filter((k: string) => !k.startsWith('img/')), images: keys.filter((k: string) => k.startsWith('img/')).map((k: string) => k.slice(4)), last });
+    }
+    if (path === 'backup/get' && method === 'POST') {
+      if (me.role !== 'admin') return err('Only admin can back up the database', 403);
+      const keys: string[] = (body.keys || []).filter((k: any) => typeof k === 'string' && k !== 'meta/secret' && !k.startsWith('img/')).slice(0, 400);
+      const vals = await Promise.all(keys.map((k) => s.get(k)));
+      const out: any = {};
+      keys.forEach((k, i) => { const v = vals[i]; if (v == null) return; try { out[k] = { j: JSON.parse(v) }; } catch { out[k] = { t: v }; } });
+      return J({ items: out });
+    }
+    if (path === 'backup/done' && method === 'POST') {
+      if (me.role !== 'admin') return err('Only admin can back up the database', 403);
+      const rec = { at: now(), by: me.id, byName: me.name, keys: +body.keys || 0, images: +body.images || 0, bytes: +body.bytes || 0, photos: !!body.photos };
+      await s.setJSON('meta/lastBackup', rec);
+      return J({ ok: true, last: rec });
+    }
     if (path === 'users') { need('users'); return J({ users: users.map(pubUser), perms: PERMS, roles: ROLE_PERMS }); }
     if (path === 'users/save' && method === 'POST') {
       need('users');

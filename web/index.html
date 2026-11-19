@@ -276,7 +276,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.10.3';
+const VERSION = '1.11';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -1348,12 +1348,12 @@ function exportCSV() {
 
 // ---------------- more / alerts / log / history / admin ----------------
 function vMore() {
-  const items = [['eod', 'End-of-day entries', 'Sales, returns, smith, samples… then evening count', can('move')], ['log', 'Day log', 'Movements and checks today', true], ['alerts', 'Alerts', 'Variances and reports', can('alerts')], ['history', 'History', 'Past days and closing stock', can('reports')], ['admin', 'Admin', 'Users, locations, settings', can('users') || can('setup')]].filter((x) => x[3]);
+  const items = [['eod', 'End-of-day entries', 'Sales, returns, smith, samples… then evening count', can('move')], ['log', 'Day log', 'Movements and checks today', true], ['alerts', 'Alerts', 'Variances and reports', can('alerts')], ['history', 'History', 'Past days and closing stock', can('reports')], ['admin', 'Admin', 'Users, locations, settings', can('users') || can('setup')], ['backup', 'Backup database', 'Download all data as a backup file', S.me.role === 'admin']].filter((x) => x[3]);
   $('#main').innerHTML = `<h1 style="margin-bottom:12px">More</h1><div class="list card" style="padding:0">${items.map(([k, t, d]) => `<button class="li" style="width:100%;text-align:left" data-go="${k}"><div class="grow"><div class="b">${t}</div><div class="mut sm">${d}</div></div><span class="mut">›</span></button>`).join('')}
     <button class="li" style="width:100%;text-align:left" id="pinBtn"><div class="grow"><div class="b">Change my PIN</div><div class="mut sm">${esc(S.me.name)} · ${esc(S.me.role)} · app v${VERSION}${window.YamieStock?.version ? ` · APK ${esc(window.YamieStock.version())}` : ''}</div></div></button>
     <button class="li" style="width:100%;text-align:left" id="notiBtn"><div class="grow"><div class="b">Notifications on this device</div><div class="mut sm">${localStorage.ysc_notify === '1' ? 'On' : 'Off'} — alerts while the app is open</div></div></button>
     <button class="li" style="width:100%;text-align:left;color:var(--bad)" id="outBtn"><div class="grow b">Log out</div></button></div>`;
-  $('#main').querySelectorAll('[data-go]').forEach((b) => b.onclick = () => go(b.dataset.go));
+  $('#main').querySelectorAll('[data-go]').forEach((b) => b.onclick = () => { if (b.dataset.go === 'backup') { S.tab = 'backup'; go('admin'); } else go(b.dataset.go); });
   $('#outBtn').onclick = logout;
   $('#notiBtn').onclick = async () => { if (localStorage.ysc_notify === '1') localStorage.ysc_notify = '0'; else { if ('Notification' in window) { const p = await Notification.requestPermission(); if (p !== 'granted') toast('Notifications blocked in browser settings — in-app alerts still work'); } localStorage.ysc_notify = '1'; } vMore(); };
   $('#pinBtn').onclick = () => modal('Change my PIN', '', `<label class="f">Current PIN</label><input type="password" inputmode="numeric" id="p0"><label class="f">New PIN (4–6 digits)</label><input type="password" inputmode="numeric" id="p1"><button class="btn" style="width:100%;margin-top:14px" id="pS">Save</button>`, () => { $('#pS').onclick = async () => { try { await api('me/pin', { old: $('#p0').value, pin: $('#p1').value }); toast('PIN changed'); closeModal(); } catch (e) { fail(e); } }; });
@@ -1389,11 +1389,54 @@ async function vHistory() {
   } catch (e) { fail(e); }
 }
 async function vAdmin() {
-  const tabs = [['users', 'Users', can('users')], ['locs', 'Locations', can('setup')], ['settings', 'Settings', can('setup')]].filter((x) => x[2]);
+  const tabs = [['users', 'Users', can('users')], ['locs', 'Locations', can('setup')], ['settings', 'Settings', can('setup')], ['backup', 'Backup', S.me.role === 'admin']].filter((x) => x[2]);
   if (!tabs.find((t) => t[0] === S.tab)) S.tab = tabs[0]?.[0];
   $('#main').innerHTML = `<h1 style="margin-bottom:12px">Admin</h1><div class="tabs">${tabs.map(([k, t]) => `<button data-t="${k}" class="${S.tab === k ? 'on' : ''}">${t}</button>`).join('')}</div><div id="adm"></div>`;
   $('#main').querySelectorAll('[data-t]').forEach((b) => b.onclick = () => { S.tab = b.dataset.t; vAdmin(); });
-  if (S.tab === 'users') admUsers(); else if (S.tab === 'locs') admLocs(); else admSettings();
+  if (S.tab === 'users') admUsers(); else if (S.tab === 'locs') admLocs(); else if (S.tab === 'backup') admBackup(); else admSettings();
+}
+// ---------- database backup (admin) ----------
+const kb = (n) => n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
+async function admBackup() {
+  $('#adm').innerHTML = '<div class="mut" style="padding:20px">Loading…</div>';
+  let j; try { j = await api('backup/keys'); } catch (e) { $('#adm').innerHTML = `<div class="card">${esc(e.message)}</div>`; return; }
+  const days = j.data.filter((k) => k.startsWith('day/')).length; const L = j.last;
+  $('#adm').innerHTML = `<div class="card">
+    <h3>Database backup</h3>
+    <div class="mut" style="margin:4px 0 12px">Downloads the whole shared database as one file: locations, items, users and roles, settings, every day's opening, entries, counts, count sessions, ERP data, alerts and history. Keep it on a computer or Google Drive.</div>
+    <div class="kpis" style="margin-bottom:12px">
+      <div class="kpi"><div class="l">Records</div><div class="v">${fmt(j.data.length)}</div></div>
+      <div class="kpi"><div class="l">Days</div><div class="v">${fmt(days)}</div></div>
+      <div class="kpi"><div class="l">Photos</div><div class="v">${fmt(j.images.length)}</div></div>
+      <div class="kpi"><div class="l">Last backup</div><div class="v" style="font-size:15px">${L ? `${new Date(L.at).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}` : 'Never'}</div><div class="mut sm">${L ? `${esc(L.byName || '')} · ${kb(L.bytes)}${L.photos ? ' · with photos' : ''}` : ''}</div></div></div>
+    <div class="row wrap"><button class="btn" id="bkData">⬇ Download backup</button><button class="btn sec" id="bkAll" ${j.images.length ? '' : 'disabled'}>⬇ Backup with photos (${fmt(j.images.length)})</button></div>
+    <div id="bkProg" class="mut sm" style="margin-top:10px"></div>
+    <div class="mut sm" style="margin-top:10px">File: <b>yamie-stock-backup-&lt;date&gt;.json</b>. PINs are stored as secure hashes, not readable PINs. Only admins can download a backup.</div></div>`;
+  $('#bkData').onclick = () => runBackup(j, false);
+  $('#bkAll').onclick = () => runBackup(j, true);
+}
+async function runBackup(j, photos) {
+  const P = $('#bkProg'); const btns = [$('#bkData'), $('#bkAll')]; btns.forEach((b) => b && (b.disabled = true));
+  try {
+    const data = {}; const keys = j.data;
+    for (let i = 0; i < keys.length; i += 300) { P.textContent = `Reading records ${Math.min(i + 300, keys.length)} / ${keys.length}…`; Object.assign(data, (await api('backup/get', { keys: keys.slice(i, i + 300) })).items); }
+    const images = {};
+    if (photos) {
+      let n = 0;
+      for (let i = 0; i < j.images.length; i += 6) {
+        await Promise.all(j.images.slice(i, i + 6).map(async (k) => { try { const r = await fetch(img(k)); if (!r.ok) return; const b = await r.blob(); images[k] = await new Promise((ok) => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.readAsDataURL(b); }); } catch {} }));
+        n = Math.min(i + 6, j.images.length); P.textContent = `Reading photos ${n} / ${j.images.length}…`;
+      }
+    }
+    const file = { app: 'Yamie Stock Check', format: 'yamie-stock-backup', formatVersion: 1, appVersion: VERSION, exportedAt: new Date().toISOString(), exportedBy: S.me.name, today: S.D?.date, counts: { records: Object.keys(data).length, photos: Object.keys(images).length }, data, images };
+    const txt = JSON.stringify(file);
+    const name = `yamie-stock-backup-${S.D?.date || new Date().toISOString().slice(0, 10)}${photos ? '-photos' : ''}.json`;
+    if (window.YamieStock?.shareFile) window.YamieStock.shareFile(name, 'application/json', txt);
+    else { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'application/json' })); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
+    await api('backup/done', { keys: Object.keys(data).length, images: Object.keys(images).length, bytes: txt.length, photos });
+    toast(`✓ Backup ready — ${name} (${kb(txt.length)})`, 4000);
+    admBackup();
+  } catch (e) { fail(e); P.textContent = ''; btns.forEach((b) => b && (b.disabled = false)); }
 }
 async function admUsers() {
   const j = await api('users');
