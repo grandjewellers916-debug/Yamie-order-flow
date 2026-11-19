@@ -31,12 +31,14 @@ jobs:
         run: gradle -p android assembleRelease --no-daemon
 
       - name: Name the APK
-        run: cp android/app/build/outputs/apk/release/app-release.apk yamie-repair-desk.apk
+        run: |
+          V=$(grep -o 'versionName "[0-9.]*"' android/app/build.gradle | grep -o '[0-9][0-9.]*')
+          cp android/app/build/outputs/apk/release/app-release.apk "Yamie-Repair-Desk-v${V}${{ github.run_number }}.apk"
 
       - uses: actions/upload-artifact@v4
         with:
           name: yamie-repair-desk-apk
-          path: yamie-repair-desk.apk
+          path: Yamie-Repair-Desk-v*.apk
 
       - name: Publish download
         uses: softprops/action-gh-release@v2
@@ -44,5 +46,5 @@ jobs:
           tag_name: repair-track-v${{ github.run_number }}
           name: Yamie Repair Desk v1.7.${{ github.run_number }}
           target_commitish: ${{ github.sha }}
-          files: yamie-repair-desk.apk
+          files: Yamie-Repair-Desk-v*.apk
           body: "Yamie Repair Desk V1.7: admin job reset and clear all repairs; V1.6: assigned smith per service, suggested at issue, issue to next smith; V1.5: admin can add services and set minimum charges; V1.4: computer layout for the web version; V1.3: one shared database for all phones and users (yamie-repair-desk.netlify.app); V1.2: call smith from the app with call outcome log, direct calling; V1.1: new app logo, auto message after QC, picture card or plain text WhatsApp, 7-day delay warning, check with smith, inform customer of delay (permission). Install yamie-repair-desk.apk on the shop phone. New versions install over the old one and keep all repair jobs, users and settings."
