@@ -276,7 +276,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.11';
+const VERSION = '1.12';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -1411,32 +1411,108 @@ async function admBackup() {
       <div class="kpi"><div class="l">Last backup</div><div class="v" style="font-size:15px">${L ? `${new Date(L.at).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}` : 'Never'}</div><div class="mut sm">${L ? `${esc(L.byName || '')} · ${kb(L.bytes)}${L.photos ? ' · with photos' : ''}` : ''}</div></div></div>
     <div class="row wrap"><button class="btn" id="bkData">⬇ Download backup</button><button class="btn sec" id="bkAll" ${j.images.length ? '' : 'disabled'}>⬇ Backup with photos (${fmt(j.images.length)})</button></div>
     <div id="bkProg" class="mut sm" style="margin-top:10px"></div>
-    <div class="mut sm" style="margin-top:10px">File: <b>yamie-stock-backup-&lt;date&gt;.json</b>. PINs are stored as secure hashes, not readable PINs. Only admins can download a backup.</div></div>`;
+    <div class="mut sm" style="margin-top:10px">File: <b>yamie-stock-backup-&lt;date&gt;.json</b>. PINs are stored as secure hashes, not readable PINs. Only admins can download a backup.</div></div>
+  <div class="card" style="margin-top:14px">${restoreCard(j)}</div>`;
+  bindRestore(j);
   $('#bkData').onclick = () => runBackup(j, false);
   $('#bkAll').onclick = () => runBackup(j, true);
 }
+const RESTORABLE = /^(cfg\/(locs|users|settings)|day\/\d{4}-\d{2}-\d{2}|(mv|ct|ss|al)\/\d{4}-\d{2}-\d{2}\/[\w@#.\/-]+|erp\/\d{4}-\d{2}-\d{2}|seen\/[\w-]+)$/;
+async function buildBackup(j, photos, P) {
+  const data = {}; const keys = j.data;
+  for (let i = 0; i < keys.length; i += 300) { P.textContent = `Reading records ${Math.min(i + 300, keys.length)} / ${keys.length}…`; Object.assign(data, (await api('backup/get', { keys: keys.slice(i, i + 300) })).items); }
+  const images = {};
+  if (photos) {
+    for (let i = 0; i < j.images.length; i += 6) {
+      await Promise.all(j.images.slice(i, i + 6).map(async (k) => { try { const r = await fetch(img(k)); if (!r.ok) return; const b = await r.blob(); images[k] = await new Promise((ok) => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.readAsDataURL(b); }); } catch {} }));
+      P.textContent = `Reading photos ${Math.min(i + 6, j.images.length)} / ${j.images.length}…`;
+    }
+  }
+  const file = { app: 'Yamie Stock Check', format: 'yamie-stock-backup', formatVersion: 1, appVersion: VERSION, exportedAt: new Date().toISOString(), exportedBy: S.me.name, today: S.D?.date, counts: { records: Object.keys(data).length, photos: Object.keys(images).length }, data, images };
+  const txt = JSON.stringify(file);
+  const name = `yamie-stock-backup-${S.D?.date || new Date().toISOString().slice(0, 10)}-${new Date().toTimeString().slice(0, 5).replace(':', '')}${photos ? '-photos' : ''}.json`;
+  saveFile(name, 'application/json', txt);
+  await api('backup/done', { keys: Object.keys(data).length, images: Object.keys(images).length, bytes: txt.length, photos });
+  return { name, bytes: txt.length };
+}
+function saveFile(name, mime, txt) {
+  if (window.YamieStock?.shareFile) return window.YamieStock.shareFile(name, mime, txt);
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: mime })); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
 async function runBackup(j, photos) {
   const P = $('#bkProg'); const btns = [$('#bkData'), $('#bkAll')]; btns.forEach((b) => b && (b.disabled = true));
+  try { const r = await buildBackup(j, photos, P); toast(`✓ Backup ready — ${r.name} (${kb(r.bytes)})`, 4000); admBackup(); }
+  catch (e) { fail(e); P.textContent = ''; btns.forEach((b) => b && (b.disabled = false)); }
+}
+// ---------- restore ----------
+const RS = { file: null, name: '', mode: 'replace', safety: true, busy: false };
+function restoreCard(j) {
+  const f = RS.file; const L = j.lastRestore;
+  const head = `<h3>Restore from backup</h3><div class="mut" style="margin:4px 0 12px">Load a backup file made here. <b>Replace</b> makes the database exactly as it was in the backup. <b>Merge</b> adds and overwrites records from the backup and keeps everything else.${L ? `<br>Last restore: ${new Date(L.at).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} · ${esc(L.byName || '')} · ${L.mode} · ${esc(L.file || '')}` : ''}</div>`;
+  if (!f) return `${head}<label class="btn sec" style="width:max-content">📂 Choose backup file<input type="file" accept=".json,application/json" id="rsFile" hidden></label>`;
+  const keys = Object.keys(f.data).filter((k) => RESTORABLE.test(k)); const days = [...new Set(keys.filter((k) => k.startsWith('day/')).map((k) => k.slice(4)))].sort();
+  const cnt = (p) => keys.filter((k) => k.startsWith(p)).length;
+  const users = f.data['cfg/users']?.j?.users || []; const locs = f.data['cfg/locs']?.j?.locs || [];
+  const photos = Object.keys(f.images || {}).length;
+  const cur = new Set(j.data.filter((k) => RESTORABLE.test(k))); const bset = new Set(keys);
+  const del = [...cur].filter((k) => !bset.has(k)).length; const newer = j.data.filter((k) => k.startsWith('day/') && !bset.has(k)).map((k) => k.slice(4)).sort();
+  const hasAdmin = users.some((u) => u.role === 'admin' && u.active !== false);
+  return `${head}
+    <div class="card" style="background:var(--iv);margin-bottom:10px"><div class="row sp wrap"><div><div class="b">📄 ${esc(RS.name)}</div><div class="mut sm">Taken ${esc(f.exportedAt ? new Date(f.exportedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '?')} by ${esc(f.exportedBy || '?')} · app v${esc(f.appVersion || '?')}</div></div><button class="btn sm ghost" id="rsClr">Choose another</button></div>
+    <div class="kpis" style="margin-top:10px">
+      <div class="kpi"><div class="l">Days</div><div class="v">${days.length}</div><div class="mut sm">${days.length ? `${days[0]} → ${days[days.length - 1]}` : ''}</div></div>
+      <div class="kpi"><div class="l">Locations</div><div class="v">${locs.length}</div><div class="mut sm">${users.length} user${users.length === 1 ? '' : 's'}</div></div>
+      <div class="kpi"><div class="l">Counts · entries</div><div class="v">${fmt(cnt('ct/'))} · ${fmt(cnt('mv/'))}</div><div class="mut sm">${fmt(cnt('al/'))} alerts · ${fmt(cnt('erp/'))} ERP</div></div>
+      <div class="kpi"><div class="l">Photos</div><div class="v">${photos}</div><div class="mut sm">${photos ? 'in file' : 'not in file — current photos kept'}</div></div></div></div>
+    <label class="f">How to restore</label>
+    <div class="seg" id="rsMode"><button data-m="replace" class="${RS.mode === 'replace' ? 'on' : ''}">Replace all</button><button data-m="merge" class="${RS.mode === 'merge' ? 'on' : ''}">Merge</button></div>
+    <div class="banner" style="margin-top:10px"><span>${RS.mode === 'replace' ? `⚠ ${fmt(keys.length)} records will be written and <b>${fmt(del)} current records not in the backup will be removed</b>${newer.length ? ` (incl. days ${esc(newer.slice(0, 4).join(', '))}${newer.length > 4 ? '…' : ''})` : ''}. Users, PINs, locations and settings go back to the backup.` : `${fmt(keys.length)} records from the backup will be written over the current ones with the same key. Nothing is removed.`}</span></div>
+    ${!hasAdmin ? '<div class="banner" style="background:var(--badb);color:var(--bad)">This backup has no active admin user — restore is blocked.</div>' : ''}
+    <label class="row" style="margin:6px 0 12px;gap:8px"><input type="checkbox" id="rsSafe" ${RS.safety ? 'checked' : ''} style="width:20px;height:20px"> Download a backup of the current data first (recommended)</label>
+    <button class="btn bad" id="rsGo" ${!hasAdmin || RS.busy ? 'disabled' : ''}>⟲ Restore ${RS.mode === 'replace' ? '— replace all data' : '— merge'}</button>
+    <div id="rsProg" class="mut sm" style="margin-top:10px"></div>`;
+}
+function bindRestore(j) {
+  const fi = $('#rsFile');
+  if (fi) fi.onchange = async () => {
+    const file = fi.files[0]; if (!file) return;
+    try {
+      const f = JSON.parse(await file.text());
+      if (f?.format !== 'yamie-stock-backup' || !f.data || typeof f.data !== 'object') throw new Error('This is not a Yamie Stock Check backup file');
+      RS.file = f; RS.name = file.name; admBackup();
+    } catch (e) { fail(e.message.includes('JSON') ? new Error('Could not read the file — not a backup file') : e); }
+  };
+  $('#rsClr') && ($('#rsClr').onclick = () => { RS.file = null; admBackup(); });
+  $('#adm').querySelectorAll('#rsMode [data-m]').forEach((b) => b.onclick = () => { RS.mode = b.dataset.m; admBackup(); });
+  $('#rsSafe') && ($('#rsSafe').onchange = (e) => { RS.safety = e.target.checked; });
+  $('#rsGo') && ($('#rsGo').onclick = () => runRestore(j));
+}
+async function runRestore(j) {
+  const f = RS.file; const P = $('#rsProg');
+  const keys = Object.keys(f.data).filter((k) => RESTORABLE.test(k)); const bset = new Set(keys);
+  const del = RS.mode === 'replace' ? j.data.filter((k) => RESTORABLE.test(k) && !bset.has(k)) : [];
+  const msg = RS.mode === 'replace' ? `Replace ALL stock data with the backup taken ${f.exportedAt ? new Date(f.exportedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}?\n\n${keys.length} records written, ${del.length} current records removed. This cannot be undone${RS.safety ? ' (a backup of the current data is downloaded first)' : ''}.` : `Merge ${keys.length} records from the backup into the current data?`;
+  if (!confirm(msg)) return;
+  RS.busy = true; $('#rsGo').disabled = true; $('#bkData') && ($('#bkData').disabled = true);
   try {
-    const data = {}; const keys = j.data;
-    for (let i = 0; i < keys.length; i += 300) { P.textContent = `Reading records ${Math.min(i + 300, keys.length)} / ${keys.length}…`; Object.assign(data, (await api('backup/get', { keys: keys.slice(i, i + 300) })).items); }
-    const images = {};
-    if (photos) {
-      let n = 0;
-      for (let i = 0; i < j.images.length; i += 6) {
-        await Promise.all(j.images.slice(i, i + 6).map(async (k) => { try { const r = await fetch(img(k)); if (!r.ok) return; const b = await r.blob(); images[k] = await new Promise((ok) => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.readAsDataURL(b); }); } catch {} }));
-        n = Math.min(i + 6, j.images.length); P.textContent = `Reading photos ${n} / ${j.images.length}…`;
-      }
+    if (RS.safety) { P.textContent = 'Saving a backup of the current data…'; await buildBackup(j, false, P); }
+    let written = 0; let batch = {}; let size = 0;
+    const flush = async () => { if (!Object.keys(batch).length) return; const r = await api('restore/put', { items: batch }); written += r.written; batch = {}; size = 0; P.textContent = `Writing records ${written} / ${keys.length}…`; };
+    for (const k of keys) { const v = f.data[k]; const n = JSON.stringify(v).length; if (size + n > 1_500_000 || Object.keys(batch).length >= 200) await flush(); batch[k] = v; size += n; }
+    await flush();
+    let deleted = 0;
+    for (let i = 0; i < del.length; i += 300) { deleted += (await api('restore/delete', { keys: del.slice(i, i + 300) })).deleted; P.textContent = `Removing records not in the backup ${deleted} / ${del.length}…`; }
+    const ph = Object.entries(f.images || {}); let pn = 0;
+    for (let i = 0; i < ph.length; i += 4) {
+      await Promise.all(ph.slice(i, i + 4).map(async ([k, d]) => { try { await api('restore/img', { key: k, dataUrl: d, onlyIfNew: RS.mode === 'merge' }); pn++; } catch {} }));
+      P.textContent = `Restoring photos ${Math.min(i + 4, ph.length)} / ${ph.length}…`;
     }
-    const file = { app: 'Yamie Stock Check', format: 'yamie-stock-backup', formatVersion: 1, appVersion: VERSION, exportedAt: new Date().toISOString(), exportedBy: S.me.name, today: S.D?.date, counts: { records: Object.keys(data).length, photos: Object.keys(images).length }, data, images };
-    const txt = JSON.stringify(file);
-    const name = `yamie-stock-backup-${S.D?.date || new Date().toISOString().slice(0, 10)}${photos ? '-photos' : ''}.json`;
-    if (window.YamieStock?.shareFile) window.YamieStock.shareFile(name, 'application/json', txt);
-    else { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'application/json' })); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
-    await api('backup/done', { keys: Object.keys(data).length, images: Object.keys(images).length, bytes: txt.length, photos });
-    toast(`✓ Backup ready — ${name} (${kb(txt.length)})`, 4000);
-    admBackup();
-  } catch (e) { fail(e); P.textContent = ''; btns.forEach((b) => b && (b.disabled = false)); }
+    await api('restore/done', { mode: RS.mode, file: RS.name, exportedAt: f.exportedAt, written, deleted, photos: pn });
+    toast(`✓ Restored — ${written} records${deleted ? `, ${deleted} removed` : ''}${pn ? `, ${pn} photos` : ''}`, 5000);
+    RS.file = null; RS.busy = false;
+    try { await load(true); } catch {}
+    if (S.me) { S.tab = 'backup'; go('admin'); }
+  } catch (e) { RS.busy = false; fail(e); P.textContent = 'Restore stopped: ' + e.message + ' — run it again to finish.'; $('#rsGo') && ($('#rsGo').disabled = false); }
 }
 async function admUsers() {
   const j = await api('users');

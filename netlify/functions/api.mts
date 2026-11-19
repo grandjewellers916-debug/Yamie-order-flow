@@ -553,8 +553,8 @@ export default async (req: Request) => {
       if (me.role !== 'admin') return err('Only admin can back up the database', 403);
       const { blobs } = await s.list();
       const keys = blobs.map((b: any) => b.key).filter((k: string) => k !== 'meta/secret').sort();
-      const last = await s.get('meta/lastBackup', { type: 'json' });
-      return J({ data: keys.filter((k: string) => !k.startsWith('img/')), images: keys.filter((k: string) => k.startsWith('img/')).map((k: string) => k.slice(4)), last });
+      const last = await s.get('meta/lastBackup', { type: 'json' }); const lastRestore = await s.get('meta/lastRestore', { type: 'json' });
+      return J({ lastRestore, data: keys.filter((k: string) => !k.startsWith('img/')), images: keys.filter((k: string) => k.startsWith('img/')).map((k: string) => k.slice(4)), last });
     }
     if (path === 'backup/get' && method === 'POST') {
       if (me.role !== 'admin') return err('Only admin can back up the database', 403);
@@ -568,6 +568,39 @@ export default async (req: Request) => {
       if (me.role !== 'admin') return err('Only admin can back up the database', 403);
       const rec = { at: now(), by: me.id, byName: me.name, keys: +body.keys || 0, images: +body.images || 0, bytes: +body.bytes || 0, photos: !!body.photos };
       await s.setJSON('meta/lastBackup', rec);
+      return J({ ok: true, last: rec });
+    }
+    // ----- restore from backup (admin only) -----
+    // Only these record types can be written by a restore; meta/secret and meta/* are never touched.
+    const RESTORABLE = /^(cfg\/(locs|users|settings)|day\/\d{4}-\d{2}-\d{2}|(mv|ct|ss|al)\/\d{4}-\d{2}-\d{2}\/[\w@#.\/-]+|erp\/\d{4}-\d{2}-\d{2}|seen\/[\w-]+)$/;
+    if (path.startsWith('restore/') && me.role !== 'admin') return err('Only admin can restore the database', 403);
+    if (path === 'restore/put' && method === 'POST') {
+      const items = body.items || {}; let n = 0; const skipped: string[] = [];
+      for (const [k, v] of Object.entries(items) as any) {
+        if (!RESTORABLE.test(k) || !v || (v.j === undefined && typeof v.t !== 'string')) { skipped.push(k); continue; }
+        if (v.j !== undefined) await s.setJSON(k, v.j); else await s.set(k, v.t);
+        n++;
+      }
+      return J({ ok: true, written: n, skipped });
+    }
+    if (path === 'restore/img' && method === 'POST') {
+      const key = String(body.key || '').replace(/[^a-z0-9-]/gi, '');
+      const m = /^data:(image\/(?:jpeg|png|webp));base64,(.+)$/.exec(body.dataUrl || '');
+      if (!key || !m) return err('Bad photo');
+      if (body.onlyIfNew && (await s.getWithMetadata(`img/${key}`, { type: 'arrayBuffer' }))) return J({ ok: true, kept: true });
+      await s.set(`img/${key}`, Buffer.from(m[2], 'base64'), { metadata: { type: m[1], by: me.id, at: now(), restored: true } });
+      return J({ ok: true });
+    }
+    if (path === 'restore/delete' && method === 'POST') {
+      // Replace mode: remove data records that are not in the backup (photos are kept).
+      const keys: string[] = (body.keys || []).filter((k: any) => typeof k === 'string' && RESTORABLE.test(k)).slice(0, 400);
+      await Promise.all(keys.map((k) => s.delete(k)));
+      return J({ ok: true, deleted: keys.length });
+    }
+    if (path === 'restore/done' && method === 'POST') {
+      const rec = { at: now(), by: me.id, byName: me.name, mode: body.mode === 'merge' ? 'merge' : 'replace', file: String(body.file || '').slice(0, 120), exportedAt: String(body.exportedAt || '').slice(0, 40), written: +body.written || 0, deleted: +body.deleted || 0, photos: +body.photos || 0 };
+      await s.setJSON('meta/lastRestore', rec);
+      await addAlert(s, { type: 'restore', title: `Database restored from backup (${rec.mode})`, body: `${me.name} restored ${rec.written} records${rec.deleted ? `, removed ${rec.deleted}` : ''}${rec.photos ? `, ${rec.photos} photos` : ''} from ${rec.file || 'a backup file'}${rec.exportedAt ? ` taken ${rec.exportedAt.slice(0, 16).replace('T', ' ')}` : ''}.`, by: me.id });
       return J({ ok: true, last: rec });
     }
     if (path === 'users') { need('users'); return J({ users: users.map(pubUser), perms: PERMS, roles: ROLE_PERMS }); }
