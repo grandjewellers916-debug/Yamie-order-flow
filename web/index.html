@@ -207,6 +207,11 @@ select.tin{border-color:#9FD0B2;background:#F3FBF6}select.tout{border-color:#E8B
 .ixn{display:flex;gap:6px;margin-top:6px}.ixn input{min-height:36px;padding:6px 10px;font-size:14px}
 .ithumbs{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.ithumbs span{position:relative}.ithumbs img{width:48px;height:48px;object-fit:cover;border-radius:8px;cursor:zoom-in;display:block}
 .ithumbs button{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:99px;background:rgba(0,0,0,.65);color:#fff;font-size:13px;line-height:1}
+.chip.au{background:#FBF1DC;color:#8A6216}.chip.dia{background:#E8F0FB;color:#2B5C9B}.chip.pt{background:#ECEEF1;color:#4A5563}
+tr.mhead td{text-align:left;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.6px}tr.mhead.au td{background:#FBF1DC;color:#8A6216}tr.mhead.pt td{background:#ECEEF1;color:#4A5563}
+tr.msub td{font-weight:600;background:#FAF7F2}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:599px){.mgrid{grid-template-columns:1fr}}
+.mcard{text-align:left;width:100%;border-width:1.5px}.mcard .v{font-size:26px;font-weight:600}.mcard.au{border-color:#E9D3A3;background:#FFFBF2}.mcard.pt{border-color:#CDD3DA;background:#F7F8FA}.mcard.on{box-shadow:0 0 0 3px var(--m3);border-color:var(--m)}
 .selbar{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin:10px 0 12px;padding:12px}
 .selbar>.grow{min-width:180px}.selgo{display:flex;flex-direction:column;gap:4px}
 @media(min-width:700px){.locs.wide{grid-template-columns:1fr}}@media(min-width:1500px){.locs.wide{grid-template-columns:repeat(2,1fr)}}
@@ -232,7 +237,7 @@ select.tin{border-color:#9FD0B2;background:#F3FBF6}select.tout{border-color:#E8B
 <body>
 <div id="app"></div>
 <script type="module">
-import { SECTIONS, PERMS, ROLE_PERMS, REASONS, TXN_TYPES, roundOf, roundCounts, summarize, sumLines, r3, locStatus, istDate, erpCompare, erpKey } from './core.mjs';
+import { SECTIONS, PERMS, ROLE_PERMS, REASONS, TXN_TYPES, metalOf, erpMetal, roundOf, roundCounts, summarize, sumLines, r3, locStatus, istDate, erpCompare, erpKey } from './core.mjs';
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -243,7 +248,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.7';
+const VERSION = '1.8';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -411,7 +416,7 @@ function vEod() {
   <div class="row sp wrap" style="margin-bottom:10px"><div><h1>End-of-day entries</h1><div class="mut">${dt(S.D.date)} · enter today's transactions, then start the evening count</div></div></div>
   ${dayFlow()}
   ${ed ? `<div class="card" style="margin-top:12px">
-    <div class="eg h"><span>Type</span><span>Main location</span><span>Location</span><span>Item</span><span class="c">Opening</span><span>Qty</span><span>Weight g</span><span class="c">Closing</span><span>Bill / ref</span><span></span></div>
+    <div class="eg h"><span>Type</span><span>Stock</span><span>Location</span><span>Item</span><span class="c">Opening</span><span>Qty</span><span>Weight g</span><span class="c">Closing</span><span>Bill / ref</span><span></span></div>
     ${rows.map((r, i) => { const l = S.locById[r.locId]; const T = TXN_TYPES.find((t) => t.k === r.type); const box = l?.sec === 'box'; const oc = eodCalc(rows, i);
       return `<div class="eg">
       <select data-f="type" data-i="${i}" class="${T?.dir > 0 ? 'tin' : 'tout'}">${types.map((t) => `<option value="${t.k}" ${r.type === t.k ? 'selected' : ''}>${t.dir > 0 ? '＋' : '−'} ${esc(t.label)}</option>`).join('')}</select>
@@ -513,27 +518,28 @@ function bindStart() { $('#main').querySelectorAll('[data-start]').forEach((b) =
 function vSection(sec) {
   const all = activeLocs(sec); const st = S.sum.status; const X = S.sum.sec[sec];
   const q = S.q.toLowerCase();
-  // selectors: counter = Location → Counter, tray = Item → Tray, box = Box → Item
-  const SEL = ((S.sel ||= {})[sec] ||= { a: '', b: '' });
-  const levA = (l) => sec === 'counter' ? l.group.split(' · ')[0] : sec === 'tray' ? l.group : l.id;
-  const levB = (l) => sec === 'counter' ? (l.group.split(' · ')[1] || '') : sec === 'tray' ? l.id : null;
-  const LBL = { counter: ['Location', 'Counter'], tray: ['Item', 'Tray'], box: ['Box', 'Item'] }[sec];
-  const inA = (l) => !SEL.a || levA(l) === SEL.a;
-  const inB = (l) => !SEL.b || (sec === 'box' ? !!expOf(l.id).lines[SEL.b] || l.itemType === SEL.b : levB(l) === SEL.b);
-  const optsA = sec === 'box' ? all.map((l) => [l.id, `${l.boxNo ? `Box ${l.boxNo} · ` : ''}${l.name}`]) : [...new Set(all.map(levA))].map((v) => [v, v]);
-  const optsB = sec === 'box' ? [...new Set(all.filter(inA).flatMap((l) => [...Object.keys(expOf(l.id).lines), ...(l.itemType ? [l.itemType] : [])]))].map((v) => [v, v])
-    : sec === 'counter' ? [...new Set(all.filter(inA).map(levB).filter(Boolean))].map((v) => [v, v])
-    : all.filter(inA).map((l) => [l.id, `${l.name}${l.insert ? ` (${l.insert} × ${l.qty || 1})` : ''}`]);
-  const selIds = all.filter((l) => inA(l) && inB(l)).map((l) => l.id);
-  const selOn = !!(SEL.a || SEL.b);
-  const selName = [SEL.a && (sec === 'box' ? optsA.find((o) => o[0] === SEL.a)?.[1] : SEL.a), SEL.b && (optsB.find((o) => o[0] === SEL.b)?.[1] || SEL.b)].filter(Boolean).join(' · ');
+  // selectors (v1.8): counter = Main location → Sub display → Counter; tray = Item → Tray; box = Box → Item; all + Jewellery type
+  const SEL = ((S.sel ||= {})[sec] ||= {});
+  const boxLbl = (l) => `${l.boxNo && !l.name.includes(l.boxNo) ? `Box ${l.boxNo} · ` : ''}${l.name}`;
+  const LV = sec === 'counter' ? [['a', 'Main location', (l) => l.area || '—'], ['b', 'Sub display', (l) => l.sub || '—'], ['c', 'Counter', (l) => l.group]]
+    : sec === 'tray' ? [['a', 'Item', (l) => l.group], ['b', 'Tray', (l) => l.id, (l) => `${l.name}${l.insert ? ` (${l.insert} × ${l.qty || 1})` : ''}`]]
+    : [['a', 'Box', (l) => l.id, boxLbl], ['b', 'Item', null]];
+  LV.push(['j', 'Jewellery type', (l) => l.jtype || '—']);
+  const passLv = (l, lv) => { const v = SEL[lv[0]]; if (!v) return true; if (!lv[2]) return !!expOf(l.id).lines[v] || l.itemType === v; return lv[2](l) === v; };
+  const inSel = (l) => LV.every((lv) => passLv(l, lv));
+  const lvOpts = LV.map((lv, i) => { const pool = all.filter((l) => LV.slice(0, i).every((p) => passLv(l, p)));
+    if (!lv[2]) return [...new Set(pool.flatMap((l) => [...Object.keys(expOf(l.id).lines), ...(l.itemType ? [l.itemType] : [])]))].map((v) => [v, v]);
+    const m = new Map(); pool.forEach((l) => { const v = lv[2](l); if (!m.has(v)) m.set(v, lv[3] ? lv[3](l) : v); }); return [...m.entries()]; });
+  const selIds = all.filter(inSel).map((l) => l.id);
+  const selOn = LV.some((lv) => SEL[lv[0]]);
+  const selName = LV.filter((lv) => SEL[lv[0]]).map((lv, i) => (lvOpts[LV.indexOf(lv)].find((o) => o[0] === SEL[lv[0]])?.[1]) || SEL[lv[0]]).join(' · ');
   const selPend = selIds.filter((i) => ['pending', 'stale'].includes(st[i].state)).length;
   const unit = sec === 'box' ? 'box' : 'tray'; const units = sec === 'box' ? 'boxes' : 'trays';
+  const plural = (t) => ({ Box: 'boxes', 'Sub display': 'sub displays', 'Jewellery type': 'jewellery types', 'Main location': 'main locations' }[t] || t.toLowerCase() + 's');
   const selBar = `<div class="selbar card">
-    <div class="grow"><label class="f" style="margin-top:0">${LBL[0]}</label><select id="selA"><option value="">All ${{ Box: 'boxes' }[LBL[0]] || LBL[0].toLowerCase() + 's'}</option>${optsA.map(([v, t]) => `<option value="${esc(v)}" ${SEL.a === v ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></div>
-    ${optsB.length ? `<div class="grow"><label class="f" style="margin-top:0">${LBL[1]}</label><select id="selB"><option value="">All ${LBL[1].toLowerCase()}s</option>${optsB.map(([v, t]) => `<option value="${esc(v)}" ${SEL.b === v ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></div>` : ''}
+    ${LV.map((lv, i) => lvOpts[i].length ? `<div class="grow"><label class="f" style="margin-top:0">${lv[1]}</label><select data-lv="${lv[0]}"><option value="">All ${plural(lv[1])}</option>${lvOpts[i].map(([v, t]) => `<option value="${esc(v)}" ${SEL[lv[0]] === v ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></div>` : '').join('')}
     ${selOn ? `<div class="selgo"><div class="sm mut">${selIds.length} ${selIds.length === 1 ? unit : units} · ${selPend} to verify</div><div class="row">${can('count') && editable() && selIds.length ? `<button class="btn" id="selVerify">${selPend ? 'Verify selected ›' : 'View summary'}</button>` : ''}<button class="btn ghost" id="selClr">Clear</button></div></div>` : ''}</div>`;
-  const list = all.filter((l) => inA(l) && inB(l) && (S.filter === 'all' || (S.filter === 'var' ? ['var', 'stale'].includes(st[l.id].state) : st[l.id].state === S.filter)) && (!q || `${l.name} ${l.group} ${l.purity} ${l.cat} ${l.itemType} ${l.boxNo || ''}`.toLowerCase().includes(q)));
+  const list = all.filter((l) => inSel(l) && (S.filter === 'all' || (S.filter === 'var' ? ['var', 'stale'].includes(st[l.id].state) : st[l.id].state === S.filter)) && (!q || `${l.name} ${l.group} ${l.purity} ${l.cat} ${l.itemType} ${l.boxNo || ''}`.toLowerCase().includes(q)));
   const groups = {}; list.forEach((l) => (groups[l.group || '—'] ||= []).push(l));
   $('#main').innerHTML = `${viewBanner()}
   <div class="row sp wrap" style="margin-bottom:10px"><div><h1>${secLabel(sec)}</h1><div class="mut">${X.locs - X.pending}/${X.locs} checked · ${hideExp() ? '' : `${fmt(X.expected)} pcs expected`}${sec === 'box' && !hideExp() ? ` · ${g3(X.wtExpected)} g` : ''}</div></div>
@@ -547,18 +553,17 @@ function vSection(sec) {
   bindBanner();
   const qi = $('#q'); qi.oninput = () => { S.q = qi.value; const p = qi.selectionStart; vSection(sec); const n = $('#q'); n.focus(); n.setSelectionRange(p, p); };
   $('#main').querySelectorAll('[data-f]').forEach((b) => b.onclick = () => { S.filter = b.dataset.f; vSection(sec); });
-  $('#selA').onchange = () => { SEL.a = $('#selA').value; SEL.b = ''; vSection(sec); };
-  $('#selB') && ($('#selB').onchange = () => { SEL.b = $('#selB').value; vSection(sec); });
-  $('#selClr') && ($('#selClr').onclick = () => { SEL.a = SEL.b = ''; vSection(sec); });
+  $('#main').querySelectorAll('[data-lv]').forEach((el) => el.onchange = () => { const k = el.dataset.lv; SEL[k] = el.value; LV.slice(LV.findIndex((lv) => lv[0] === k) + 1).forEach((lv) => { if (lv[0] !== 'j') SEL[lv[0]] = ''; }); vSection(sec); });
+  $('#selClr') && ($('#selClr').onclick = () => { for (const k of Object.keys(SEL)) SEL[k] = ''; vSection(sec); });
   $('#selVerify') && ($('#selVerify').onclick = () => startCount(sec, selIds, `${secLabel(sec)} · ${selName}`));
-  $('#addLoc') && ($('#addLoc').onclick = () => locEdit({ sec, group: '', name: '', purity: '', cat: 'Gold', itemType: '', images: [], mode: 'both' }));
+  $('#addLoc') && ($('#addLoc').onclick = () => locEdit({ sec, group: SEL.c || (sec === 'tray' ? SEL.a : '') || '', name: '', purity: '', cat: '', itemType: '', area: SEL.a && sec === 'counter' ? SEL.a : sec === 'counter' ? S.D.settings.areas[0] : 'Locker Area', sub: sec === 'counter' ? (SEL.b || S.D.settings.subDisplays[0]) : '', jtype: SEL.j || S.D.settings.jtypes[0], images: [], mode: 'both' }));
   bindStart();
   bindLocCards();
 }
 function locCard(l) {
   const e = expOf(l.id); const st = S.sum.status[l.id]; const c = S.sum.last[l.id];
   const thumb = l.images?.[0] ? `<img loading="lazy" src="${img(l.images[0].key)}" alt="">` : svg(l.sec, 26);
-  const chips = [l.boxNo ? `<span class="chip m">Box ${esc(l.boxNo)}</span>` : '', l.purity ? `<span class="chip m">${esc(l.purity)}</span>` : '', l.cat ? `<span class="chip">${esc(l.cat)}</span>` : '', l.itemType ? `<span class="chip">${esc(l.itemType)}</span>` : ''].join('');
+  const chips = [l.boxNo ? `<span class="chip m">Box ${esc(l.boxNo)}</span>` : '', l.purity ? `<span class="chip m">${esc(l.purity)}</span>` : '', l.jtype ? `<span class="chip ${metalOf(l) === 'Platinum' ? 'pt' : l.jtype === 'Diamond Jewellery' ? 'dia' : 'au'}">${esc(l.jtype === 'Plain Gold Jewellery' ? 'Gold' : l.jtype === 'Diamond Jewellery' ? 'Diamond' : l.jtype)}</span>` : '', l.cat && !['Gold', 'Diamond', 'Platinum'].includes(l.cat) ? `<span class="chip">${esc(l.cat)}</span>` : '', l.itemType ? `<span class="chip">${esc(l.itemType)}</span>` : ''].join('');
   const slotsHtml = l.sec === 'tray' && +l.insert > 0 ? (() => {
     const rowsS = c?.slots?.length ? c.slots.map((r) => ({ f: r.f, n: r.n })) : hideExp() ? null : [{ f: +l.insert, n: +l.qty || 0, plan: true }];
     if (!rowsS) return '';
@@ -1012,27 +1017,44 @@ function setCountForm(id) {
   });
 }
 
+// ---------------- location delete ----------------
+async function delLoc(l) {
+  const e = expOf(l.id); const has = sumLines(e.lines) || e.wt;
+  let reason = '';
+  if (has) {
+    if (S.me.role !== 'admin') return toast(`${l.name} still holds ${fmt(sumLines(e.lines))} pcs — move it or set it to zero first (or ask admin)`, 4500);
+    reason = prompt(`${l.name} still holds ${fmt(sumLines(e.lines))} pcs${e.wt ? ` / ${g3(e.wt)} g` : ''}. Deleting writes this stock off to zero (logged and sent to alerts).\n\nReason:`);
+    if (!reason || !reason.trim()) return;
+  } else if (!confirm(`Delete ${l.name}?`)) return;
+  try { await api('loc', { loc: { id: l.id, active: false }, reason }); toast(`${l.name} deleted`); closeModal(); await load(); } catch (er) { fail(er); }
+}
+
 // ---------------- location edit ----------------
 function locEdit(l) {
   const st = S.D.settings; const isNew = !l.id;
   const groups = [...new Set(S.D.locs.filter((x) => x.sec === l.sec).map((x) => x.group))];
   const html = `<label class="f">Section</label><select id="eSec">${SECTIONS.map((s) => `<option value="${s.key}" ${l.sec === s.key ? 'selected' : ''}>${s.label}</option>`).join('')}</select>
-    <label class="f">Group (counter / category / shelf)</label><input type="text" id="eGrp" list="grpL" value="${esc(l.group)}"><datalist id="grpL">${groups.map((g) => `<option value="${esc(g)}">`).join('')}</datalist>
+    <div id="areaF" class="row"><div class="grow"><label class="f">Main location</label><select id="eArea"><option value="">—</option>${st.areas.map((p) => `<option ${l.area === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div>
+      <div class="grow" id="subF"><label class="f">Sub display</label><select id="eSub"><option value="">—</option>${st.subDisplays.map((p) => `<option ${l.sub === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div></div>
+    <label class="f">Jewellery type</label><div class="seg" id="eJt">${st.jtypes.map((p) => `<button type="button" data-jt="${esc(p)}" class="${(l.jtype || st.jtypes[0]) === p ? 'on' : ''}">${esc(p)}</button>`).join('')}</div>
+    <label class="f">Group (counter / item / shelf)</label><input type="text" id="eGrp" list="grpL" value="${esc(l.group)}"><datalist id="grpL">${groups.map((g) => `<option value="${esc(g)}">`).join('')}</datalist>
     <label class="f">Name</label><input type="text" id="eName" value="${esc(l.name)}" placeholder="e.g. Tray 2 · 9K / Brown Tray / 9KT Box-1">
     <div class="row"><div class="grow"><label class="f">Purity</label><select id="ePur"><option value="">—</option>${st.purities.map((p) => `<option ${l.purity === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div>
-    <div class="grow"><label class="f">Category</label><select id="eCat"><option value="">—</option>${st.categories.map((p) => `<option ${l.cat === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div></div>
+    <div class="grow"><label class="f">Tag (optional — Lab-grown, Kids, Gents…)</label><select id="eCat"><option value="">—</option>${st.categories.map((p) => `<option ${l.cat === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div></div>
     <div class="row"><div class="grow"><label class="f">Main item type</label><select id="eType"><option value="">Mixed / several</option>${st.itemTypes.map((p) => `<option ${l.itemType === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div>
     <div class="grow" id="boxF"><label class="f">Box number</label><input type="text" id="eBox" value="${esc(l.boxNo || '')}"></div></div>
     <div class="row" id="trayF"><div class="grow"><label class="f">Pcs per tray (insert)</label><input type="number" id="eIns" value="${esc(l.insert || '')}"></div><div class="grow"><label class="f">No. of trays</label><input type="number" id="eQty" value="${esc(l.qty || '')}"></div></div>
     <div id="modeF"><label class="f">Default box check</label><select id="eMode">${[['both', 'Weight + count'], ['weight', 'Weight only'], ['count', 'Count only']].map(([k, t]) => `<option value="${k}" ${l.mode === k ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
     <label class="f">Note</label><input type="text" id="eNote" value="${esc(l.note || '')}">
     ${isNew ? `<h3 style="margin:14px 0 6px">Opening stock</h3><div class="mut sm">Pieces placed here now (you can also set later).</div><div class="row wrap" style="margin-top:6px">${st.itemTypes.map((t) => `<label style="width:calc(33% - 6px)"><span class="sm mut">${esc(t)}</span><input type="number" min="0" data-ini="${esc(t)}" placeholder="0"></label>`).join('')}</div><div id="iniWt"><label class="f">Box weight (g)</label><input type="number" step="0.001" id="eWt"></div>` : ''}
-    <div class="row" style="margin-top:16px">${!isNew ? `<button class="btn bad sm" id="eDel">Remove</button>` : ''}<button class="btn grow" id="eSave">${isNew ? 'Add location' : 'Save'}</button></div>`;
+    <div class="row" style="margin-top:16px">${!isNew ? `<button class="btn bad sm" id="eDel">🗑 Delete</button>` : ''}<button class="btn grow" id="eSave">${isNew ? 'Add location' : 'Save'}</button></div>`;
   modal(isNew ? 'Add location' : 'Edit · ' + esc(l.name), 'Manager / admin', html, (ov) => {
-    const vis = () => { const s = $('#eSec').value; $('#boxF').classList.toggle('hidden', s !== 'box'); $('#modeF').classList.toggle('hidden', s !== 'box'); $('#trayF').classList.toggle('hidden', s !== 'tray'); $('#iniWt') && $('#iniWt').classList.toggle('hidden', s !== 'box'); };
+    let jt = l.jtype || st.jtypes[0];
+    ov.querySelectorAll('[data-jt]').forEach((b) => b.onclick = () => { jt = b.dataset.jt; ov.querySelectorAll('[data-jt]').forEach((x) => x.classList.toggle('on', x === b)); });
+    const vis = () => { const s = $('#eSec').value; $('#subF').classList.toggle('hidden', s !== 'counter'); $('#boxF').classList.toggle('hidden', s !== 'box'); $('#modeF').classList.toggle('hidden', s !== 'box'); $('#trayF').classList.toggle('hidden', s !== 'tray'); $('#iniWt') && $('#iniWt').classList.toggle('hidden', s !== 'box'); };
     $('#eSec').onchange = vis; vis();
     $('#eSave').onclick = async () => {
-      const loc = { ...l, sec: $('#eSec').value, group: $('#eGrp').value.trim(), name: $('#eName').value.trim(), purity: $('#ePur').value, cat: $('#eCat').value, itemType: $('#eType').value, boxNo: $('#eBox').value.trim(), insert: +$('#eIns').value || 0, qty: +$('#eQty').value || 0, mode: $('#eMode').value, note: $('#eNote').value };
+      const loc = { ...l, area: $('#eArea').value, sub: $('#eSec').value === 'counter' ? $('#eSub').value : '', jtype: jt, sec: $('#eSec').value, group: $('#eGrp').value.trim(), name: $('#eName').value.trim(), purity: $('#ePur').value, cat: $('#eCat').value, itemType: $('#eType').value, boxNo: $('#eBox').value.trim(), insert: +$('#eIns').value || 0, qty: +$('#eQty').value || 0, mode: $('#eMode').value, note: $('#eNote').value };
       if (!loc.name || !loc.group) return toast('Group and name are required');
       try {
         const saved = await saveLoc(loc);
@@ -1044,7 +1066,7 @@ function locEdit(l) {
         toast('Saved'); closeModal(); await load();
       } catch (e) { fail(e); }
     };
-    $('#eDel') && ($('#eDel').onclick = async () => { if (!confirm(`Remove ${l.name}? Its stock must be zero first.`)) return; try { await api('loc', { loc: { id: l.id, active: false } }); toast('Removed'); closeModal(); await load(); } catch (e) { fail(e); } });
+    $('#eDel') && ($('#eDel').onclick = () => delLoc(l));
   });
 }
 
@@ -1083,33 +1105,49 @@ function closeDayFlow() {
 function vTotal() {
   if (!can('reports') && !can('count')) return $('#main').innerHTML = '<div class="card">No access</div>';
   if (S.tab === 'erp') return vErp();
-  const sm = S.sum; const types = [...S.D.settings.itemTypes, ...Object.keys(sm.byType).filter((t) => !S.D.settings.itemTypes.includes(t))].filter((t) => sm.byType[t]);
+  // Gold (plain gold + diamond) vs Platinum
+  S.metal ||= 'all';
+  const rc = roundCounts(S.D.counts, S.round);
+  const subSum = (f) => summarize(S.D.locs.filter(f), S.D.day.opening, S.D.mvs, rc, S.D.settings);
+  const MS = { Gold: subSum((l) => metalOf(l) === 'Gold'), Platinum: subSum((l) => metalOf(l) === 'Platinum') };
+  const sm = S.metal === 'all' ? S.sum : MS[S.metal];
+  const JT = S.D.settings.jtypes.map((j) => [j, subSum((l) => (l.jtype || 'Plain Gold Jewellery') === j && (S.metal === 'all' || metalOf(l) === S.metal)).total]).filter(([, t]) => t.locs);
+  const mCard = (m, X, cls) => `<button class="card mcard ${cls} ${S.metal === m ? 'on' : ''}" data-metal="${m}"><div class="row sp"><h3>${m}</h3><span class="mut sm">${m === 'Gold' ? 'Plain gold + diamond' : 'Platinum jewellery'}</span></div>
+    <div class="row sp" style="margin-top:8px"><div><div class="v">${fmt(X.total.expected)}</div><div class="mut sm">pcs expected</div></div><div style="text-align:right"><div class="b">${X.total.locs - X.total.pending}/${X.total.locs} checked</div><div class="sm" style="color:${X.total.var + X.total.stale ? 'var(--bad)' : 'var(--ok)'}">${X.total.var + X.total.stale ? `${X.total.var + X.total.stale} variance` : 'no variance'} · ${X.total.counted - X.total.checkedExp ? sgn(X.total.counted - X.total.checkedExp) : '±0'} pcs</div></div></div></button>`;
+  const types = [...S.D.settings.itemTypes, ...Object.keys(sm.byType).filter((t) => !S.D.settings.itemTypes.includes(t))].filter((t) => sm.byType[t]);
   const blind = hideExp();
   const cell = (n) => `<td class="${n > 0 ? 'pos' : n < 0 ? 'neg' : ''}">${n ? sgn(n) : '—'}</td>`;
   const tot = (t, k) => SECTIONS.reduce((a, s) => a + (sm.byType[t]?.[s.key]?.[k] || 0), 0);
-  const varLocs = activeLocs().filter((l) => ['var', 'stale'].includes(sm.status[l.id].state));
+  const varLocs = activeLocs().filter((l) => sm.status[l.id] && ['var', 'stale'].includes(sm.status[l.id].state));
   $('#main').innerHTML = `${viewBanner()}
   <div class="row sp wrap" style="margin-bottom:12px"><div><h1>Consolidated stock</h1><div class="mut">${dt(S.D.date)} · ${S.D.day.status === 'closed' ? 'Closed' : 'Live'}</div></div>
   <div class="row noprint">${can('reports') ? `<button class="btn sm sec" id="erpTab">ERP match</button><button class="btn sm ghost" id="csv">Export CSV</button><button class="btn sm ghost" id="prt">Print</button>${S.D.settings.waNumber ? `<button class="btn sm ok" id="wa">WhatsApp</button>` : ''}` : ''}</div></div>
   ${blind ? '<div class="card mut">Expected totals are hidden while counting is in progress.</div>' : `
-  <h3 style="margin:6px 0 8px">By section</h3>
+  <div class="mgrid">${mCard('Gold', MS.Gold, 'au')}${mCard('Platinum', MS.Platinum, 'pt')}</div>
+  <div class="seg noprint" style="margin:12px 0;max-width:420px">${[['all', 'All stock'], ['Gold', 'Gold only'], ['Platinum', 'Platinum only']].map(([k, t]) => `<button data-metal="${k}" class="${S.metal === k ? 'on' : ''}">${t}</button>`).join('')}</div>
+  <h3 style="margin:6px 0 8px">By section${S.metal !== 'all' ? ` · ${S.metal}` : ''}</h3>
   <div class="tw"><table><tr><th>Section</th><th>Opening</th><th>In</th><th>Out</th><th>Expected</th><th>Checked</th><th>Counted</th><th>Variance</th></tr>
   ${SECTIONS.map((s) => { const X = sm.sec[s.key]; return `<tr><td>${s.label}${s.key === 'box' ? `<div class="mut sm">${g3(X.wtExpected)} g</div>` : ''}</td><td>${fmt(X.opening)}</td><td>${fmt(X.in)}</td><td>${fmt(X.out)}</td><td class="b">${fmt(X.expected)}</td><td>${X.locs - X.pending}/${X.locs}</td><td>${fmt(X.counted)}</td>${cell(X.counted - X.checkedExp)}</tr>`; }).join('')}
   <tr class="tot"><td>Total</td><td>${fmt(sm.total.opening)}</td><td>${fmt(sm.total.in)}</td><td>${fmt(sm.total.out)}</td><td>${fmt(sm.total.expected)}</td><td>${sm.total.locs - sm.total.pending}/${sm.total.locs}</td><td>${fmt(sm.total.counted)}</td>${cell(sm.total.counted - sm.total.checkedExp)}</tr></table></div>
-  <h3 style="margin:20px 0 8px">By item type</h3>
+  <h3 style="margin:20px 0 8px">By jewellery type</h3>
+  <div class="tw"><table><tr><th>Jewellery type</th><th>Metal</th><th>Opening</th><th>In</th><th>Out</th><th>Expected</th><th>Checked</th><th>Counted</th><th>Variance</th></tr>
+  ${JT.map(([j, X]) => `<tr><td class="b">${esc(j)}</td><td style="text-align:left">${j === 'Platinum' ? 'Platinum' : 'Gold'}</td><td>${fmt(X.opening)}</td><td>${fmt(X.in)}</td><td>${fmt(X.out)}</td><td class="b">${fmt(X.expected)}</td><td>${X.locs - X.pending}/${X.locs}</td><td>${fmt(X.counted)}</td>${cell(X.counted - X.checkedExp)}</tr>`).join('')}
+  ${S.metal === 'all' ? ['Gold', 'Platinum'].map((m) => { const X = MS[m].total; return `<tr class="tot"><td>${m} total</td><td></td><td>${fmt(X.opening)}</td><td>${fmt(X.in)}</td><td>${fmt(X.out)}</td><td>${fmt(X.expected)}</td><td>${X.locs - X.pending}/${X.locs}</td><td>${fmt(X.counted)}</td>${cell(X.counted - X.checkedExp)}</tr>`; }).join('') : ''}</table></div>
+  <h3 style="margin:20px 0 8px">By item type${S.metal !== 'all' ? ` · ${S.metal}` : ''}</h3>
   <div class="tw"><table><tr><th>Item</th><th>Opening</th><th>In</th><th>Out</th>${SECTIONS.map((s) => `<th>${s.short}</th>`).join('')}<th>Expected</th><th>Counted</th><th>Variance</th></tr>
   ${types.map((t) => `<tr><td class="b">${esc(t)}</td><td>${fmt(tot(t, 'op'))}</td><td>${fmt(tot(t, 'in'))}</td><td>${fmt(tot(t, 'out'))}</td>${SECTIONS.map((s) => `<td>${fmt(sm.byType[t]?.[s.key]?.exp || 0)}</td>`).join('')}<td class="b">${fmt(tot(t, 'exp'))}</td><td>${fmt(tot(t, 'cnt'))}</td>${cell(tot(t, 'cnt') - tot(t, 'chkExp'))}</tr>`).join('')}
   <tr class="tot"><td>Total</td><td>${fmt(sm.total.opening)}</td><td>${fmt(sm.total.in)}</td><td>${fmt(sm.total.out)}</td>${SECTIONS.map((s) => `<td>${fmt(sm.sec[s.key].expected)}</td>`).join('')}<td>${fmt(sm.total.expected)}</td><td>${fmt(sm.total.counted)}</td>${cell(sm.total.counted - sm.total.checkedExp)}</tr></table></div>
   <div class="mut sm" style="margin-top:6px">Counted and variance cover checked locations only.</div>
   <div class="row wrap" style="gap:12px;margin-top:20px;align-items:flex-start">
     <div class="grow" style="min-width:240px"><h3 style="margin-bottom:8px">By purity</h3><div class="tw"><table><tr><th>Purity</th><th>Pcs</th></tr>${Object.entries(sm.byPurity).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<tr><td>${esc(k === '—' ? 'Not set' : k)}</td><td>${fmt(v)}</td></tr>`).join('')}</table></div></div>
-    <div class="grow" style="min-width:240px"><h3 style="margin-bottom:8px">By category</h3><div class="tw"><table><tr><th>Category</th><th>Pcs</th></tr>${Object.entries(sm.byCat).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<tr><td>${esc(k === '—' ? 'Not set' : k)}</td><td>${fmt(v)}</td></tr>`).join('')}</table></div></div></div>`}
+    <div class="grow" style="min-width:240px"><h3 style="margin-bottom:8px">By main location</h3><div class="tw"><table><tr><th>Main location</th><th>Pcs</th></tr>${Object.entries(activeLocs().filter((l) => S.metal === 'all' || metalOf(l) === S.metal).reduce((a, l) => { const k = l.area || 'Not set'; a[k] = (a[k] || 0) + sumLines(expOf(l.id).lines); return a; }, {})).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${fmt(v)}</td></tr>`).join('')}</table></div></div></div>`}
   ${varLocs.length ? `<h3 style="margin:20px 0 8px">Variances (${varLocs.length})</h3><div class="locs">${varLocs.map(locCard).join('')}</div>` : ''}
   ${editable() && can('close') ? `<button class="btn" style="width:100%;margin-top:20px" id="closeBtn">Close day</button>` : ''}`;
   bindBanner(); bindLocCards();
   $('#closeBtn') && ($('#closeBtn').onclick = closeDayFlow);
   $('#csv') && ($('#csv').onclick = exportCSV);
   $('#erpTab') && ($('#erpTab').onclick = () => { S.tab = 'erp'; vTotal(); });
+  $('#main').querySelectorAll('[data-metal]').forEach((b) => b.onclick = () => { S.metal = S.metal === b.dataset.metal && b.classList.contains('mcard') ? 'all' : b.dataset.metal; vTotal(); });
   $('#prt') && ($('#prt').onclick = () => print());
   $('#wa') && ($('#wa').onclick = () => open(`https://wa.me/${S.D.settings.waNumber}?text=${encodeURIComponent(summaryText())}`, '_blank'));
 }
@@ -1141,7 +1179,19 @@ async function erpUpload(file) {
       ${reportDate && reportDate < S.D.date ? `<div class="banner" style="margin-top:10px">This is the ERP closing for ${dt(reportDate)} — it will be matched with today's app <b>opening</b> stock.</div>` : ''}
       <button class="btn" style="width:100%;margin-top:14px" id="erpOk">Save ERP figures</button>`, () => {
       $('#erpOk').onclick = async () => {
-        try { const res = await api('erp', { date: S.D.date, rows: r.rows, total: r.total, reportDate, source: 'pdf', fileName: file.name, ref: r.meta.title || '' }); closeModal(); toast(res.added.length ? `Saved · ${res.added.length} weight-only box(es) added` : res.matched ? '✓ ERP matches' : '⚠ ERP does not match — admin alerted', 3500); await load(); } catch (e) { fail(e); }
+        let rows = r.rows, total = r.total, fileName = file.name;
+        const prev = S.D.erp?.rows && S.D.erp.reportDate === reportDate ? S.D.erp : null;
+        if (prev) {
+          const key = (n) => n.toLowerCase().replace(/[^a-z0-9]/g, ''); const newKeys = new Set(rows.map((x) => key(x.name)));
+          const overlap = prev.rows.some((x) => newKeys.has(key(x.name)));
+          if (!overlap || confirm(`ERP figures for ${dt(reportDate)} are already loaded (${prev.fileName || 'earlier upload'}).\n\nOK = ADD this report to them (e.g. gold + platinum reports)\nCancel = REPLACE them with this report`)) {
+            rows = [...prev.rows.filter((x) => !newKeys.has(key(x.name))), ...rows];
+            const sumT = (k) => rows.filter((x) => x.pcs != null || x.lbl != null).reduce((a, x) => a + (+x[k] || 0), 0);
+            total = { pcs: sumT('pcs'), lbl: sumT('lbl'), gr: r3(sumT('gr')), net: r3(sumT('net')) };
+            fileName = `${prev.fileName || 'ERP'} + ${file.name}`;
+          }
+        }
+        try { const res = await api('erp', { date: S.D.date, rows, total, reportDate, source: 'pdf', fileName, ref: r.meta.title || '' }); closeModal(); toast(res.added.length ? `Saved · ${res.added.length} weight-only box(es) added` : res.matched ? '✓ ERP matches' : '⚠ ERP does not match — admin alerted', 3500); await load(); } catch (e) { fail(e); }
       };
     });
   } catch (e) { fail(e); }
@@ -1158,9 +1208,10 @@ function vErp() {
     <div class="row wrap">${ed ? `<label class="btn sm"><input type="file" accept="application/pdf" id="erpPdf" hidden>⬆ Upload ERP PDF</label><button class="btn sm ghost" id="manual">${manual ? 'Cancel' : 'Enter manually'}</button>` : ''}<button class="btn sm ghost" id="back">← Consolidated</button></div></div>
   <div class="${!E.entered ? 'banner' : E.matched ? 'done-b' : 'banner'}" style="${E.entered && !E.matched ? 'background:var(--badb);color:var(--bad)' : ''}">${!E.entered ? 'Upload the Yamie ERP "Locationwise Item Summary" PDF, or enter the closing Pc / Lbl manually.' : E.matched ? `✓ Matched — app ${wh} ${fmt(E.total.app)} = ERP ${fmt(E.total[E.basis])} ${bL}` : `Not matching — app ${wh} ${fmt(E.total.app)} vs ERP ${fmt(E.total[E.basis])} ${bL} · difference ${sgn(E.total.diff)}`}</div>
   <div class="tw erp" style="margin-top:12px"><table><tr><th>ERP ornament</th><th>App ${wh}</th>${E.which === 'closing' ? '<th>Counted</th>' : ''}<th>ERP Pc</th><th>ERP Lbl</th><th>ERP gross g</th><th>Diff (app − ${bL})</th></tr>
-  ${(manual ? [...E.rows, ...(E.rows.length ? [] : [])] : E.rows).map((r) => `<tr><td class="b">${esc(r.name)}${!r.erp ? ' <span class="chip">not in ERP</span>' : ''}</td><td>${fmt(r.app)}</td>${E.which === 'closing' ? `<td class="mut">${fmt(r.cnt)}</td>` : ''}<td class="${r.pcs < 0 ? 'neg' : ''}">${manual ? inp(r, 'pcs') : r.pcs ?? '—'}</td><td>${manual ? inp(r, 'lbl') : r.lbl ?? '—'}</td><td>${r.gr != null ? g3(r.gr) : '—'}</td><td class="${r.diff > 0 ? 'pos' : r.diff < 0 ? 'neg' : ''}">${r.diff == null ? '—' : r.diff ? sgn(r.diff) : '✓'}</td></tr>`).join('')}
+  ${['Gold', 'Platinum'].map((m) => { const rs = E.rows.filter((r) => erpMetal(r.name) === m); if (!rs.length) return ''; const sum = (k) => rs.reduce((a, r) => a + (+r[k] || 0), 0); const d = rs.reduce((a, r) => a + (r.diff || 0), 0);
+    return `<tr class="mhead ${m === 'Platinum' ? 'pt' : 'au'}"><td colspan="${E.which === 'closing' ? 7 : 6}">${m}</td></tr>` + rs.map((r) => `<tr><td class="b">${esc(r.name)}${!r.erp ? ' <span class="chip">not in ERP</span>' : ''}</td><td>${fmt(r.app)}</td>${E.which === 'closing' ? `<td class="mut">${fmt(r.cnt)}</td>` : ''}<td class="${r.pcs < 0 ? 'neg' : ''}">${manual ? inp(r, 'pcs') : r.pcs ?? '—'}</td><td>${manual ? inp(r, 'lbl') : r.lbl ?? '—'}</td><td>${r.gr != null ? g3(r.gr) : '—'}</td><td class="${r.diff > 0 ? 'pos' : r.diff < 0 ? 'neg' : ''}">${r.diff == null ? '—' : r.diff ? sgn(r.diff) : '✓'}</td></tr>`).join('') + `<tr class="msub"><td>${m} subtotal</td><td>${fmt(sum('app'))}</td>${E.which === 'closing' ? `<td>${fmt(sum('cnt'))}</td>` : ''}<td>${fmt(sum('pcs'))}</td><td>${fmt(sum('lbl'))}</td><td>${g3(sum('gr'))}</td><td class="${d > 0 ? 'pos' : d < 0 ? 'neg' : ''}">${d ? sgn(d) : '✓'}</td></tr>`; }).join('')}
   <tr class="tot"><td>Bottom total</td><td>${fmt(E.total.app)}</td>${E.which === 'closing' ? `<td>${fmt(S.sum.total.counted)}</td>` : ''}<td>${manual ? `<input type="number" id="tPcs" value="${erp?.total?.pcs ?? ''}">` : E.total.pcs ?? '—'}</td><td>${manual ? `<input type="number" id="tLbl" value="${erp?.total?.lbl ?? ''}">` : E.total.lbl ?? '—'}</td><td>${E.total.gr != null ? g3(E.total.gr) : '—'}</td><td class="${E.total.diff ? 'neg' : 'pos'}">${E.total.diff == null ? '—' : E.total.diff ? sgn(E.total.diff) : '✓ Match'}</td></tr></table></div>
-  <div class="mut sm" style="margin-top:6px">App pieces are matched against ERP <b>${bL}</b>. Mapping app item types / categories to ERP ornaments is in Admin → Settings.${E.excluded ? ` ${fmt(E.excluded)} pcs (e.g. Platinum) are not in this ERP report and are left out.` : ''}</div>
+  <div class="mut sm" style="margin-top:6px">App pieces are matched against ERP <b>${bL}</b>. Mapping app item types / categories to ERP ornaments is in Admin → Settings.${E.excluded ? ` ${fmt(E.excluded)} pcs are mapped to "-" (not in the ERP report) and left out.` : ''} Platinum jewellery is matched to <b>${esc(S.D.settings.erpPlatinum || 'YFJ - PLATINUM MM')}</b>. A second PDF for the same date (e.g. the platinum report) can be added to the first.</div>
   ${wo.length ? `<h3 style="margin:16px 0 6px">Weight-only ERP rows — omitted, kept in Boxes</h3><div class="tw"><table><tr><th>ERP item</th><th>ERP gross g</th><th>App box</th><th>App weight g</th></tr>${wo.map((x) => { const l = S.D.locs.find((y) => y.erpName && erpKey(y.erpName) === erpKey(x.name)); return `<tr><td class="b">${esc(x.name)}</td><td>${g3(x.gr)}</td><td>${l ? esc(l.name) : '—'}</td><td>${l ? g3(expOf(l.id).wt) : '—'}</td></tr>`; }).join('')}</table></div>` : ''}
   ${manual ? `<div class="row wrap" style="margin-top:12px"><input type="text" id="eRef" placeholder="ERP report no. (optional)" style="max-width:320px"><button class="btn" id="eSave">Save & match</button></div>` : ''}
   ${S.D.erp ? `<div class="mut sm" style="margin-top:8px">Loaded by ${esc(uname(S.D.erp.by))} · ${tm(S.D.erp.at)}${S.D.erp.fileName ? ' · ' + esc(S.D.erp.fileName) : ''}</div>` : ''}
@@ -1181,17 +1232,20 @@ function vErp() {
 }
 function summaryText() {
   const sm = S.sum; const t = sm.total;
-  return `Yamie stock · ${S.D.date} (${S.D.day.status})\n` + SECTIONS.map((s) => { const X = sm.sec[s.key]; return `${s.label}: ${X.expected} pcs${s.key === 'box' ? ` / ${g3(X.wtExpected)} g` : ''}, checked ${X.locs - X.pending}/${X.locs}, variance ${X.var + X.stale}`; }).join('\n') + `\nTotal: opening ${t.opening}, in ${t.in}, out ${t.out}, expected ${t.expected}\nVariance locations: ${t.var + t.stale}` +
+  const rc = roundCounts(S.D.counts, S.round);
+  const mt = (m) => summarize(S.D.locs.filter((l) => metalOf(l) === m), S.D.day.opening, S.D.mvs, rc, S.D.settings).total;
+  const metalLines = ['Gold', 'Platinum'].map((m) => { const X = mt(m); return `${m}: ${X.expected} pcs, checked ${X.locs - X.pending}/${X.locs}, variance ${X.var + X.stale}`; }).join('\n');
+  return `Yamie stock · ${S.D.date} (${S.D.day.status})\n` + SECTIONS.map((s) => { const X = sm.sec[s.key]; return `${s.label}: ${X.expected} pcs${s.key === 'box' ? ` / ${g3(X.wtExpected)} g` : ''}, checked ${X.locs - X.pending}/${X.locs}, variance ${X.var + X.stale}`; }).join('\n') + `\n${metalLines}\nTotal: opening ${t.opening}, in ${t.in}, out ${t.out}, expected ${t.expected}\nVariance locations: ${t.var + t.stale}` +
     activeLocs().filter((l) => ['var', 'stale'].includes(sm.status[l.id].state)).map((l) => `\n• ${l.name}: ${diffTxt(sm.status[l.id].diff) || 'weight/recount'}`).join('');
 }
 function exportCSV() {
   const sm = S.sum; const types = S.D.settings.itemTypes;
-  const rows = [['Date', 'Section', 'Group', 'Location', 'Box no', 'Purity', 'Category', 'Item type', 'Opening', 'In', 'Out', 'Expected', 'Counted', 'Variance', 'Exp. weight g', 'Counted weight g', 'Status', 'Checked by', 'Checked at']];
+  const rows = [['Date', 'Metal', 'Jewellery type', 'Main location', 'Sub display', 'Section', 'Group', 'Location', 'Box no', 'Purity', 'Category', 'Item type', 'Opening', 'In', 'Out', 'Expected', 'Counted', 'Variance', 'Exp. weight g', 'Counted weight g', 'Status', 'Checked by', 'Checked at']];
   for (const l of activeLocs()) {
     const e = expOf(l.id), o = opOf(l.id), f = sm.flows[l.id] || { in: {}, out: {} }, c = sm.last[l.id], st = sm.status[l.id];
     const ts = [...new Set([...Object.keys(e.lines), ...Object.keys(o.lines), ...Object.keys(f.in), ...Object.keys(f.out), ...Object.keys(c?.lines || {})])].sort((a, b) => types.indexOf(a) - types.indexOf(b));
     if (!ts.length) ts.push('');
-    ts.forEach((t, i) => { const cn = c && c.mode !== 'weight' ? (c.lines?.[t] || 0) : ''; rows.push([S.D.date, secLabel(l.sec), l.group, l.name, l.boxNo || '', l.purity, l.cat, t, o.lines[t] || 0, f.in[t] || 0, f.out[t] || 0, e.lines[t] || 0, cn, cn === '' ? '' : cn - (e.lines[t] || 0), i ? '' : (l.sec === 'box' ? e.wt : ''), i ? '' : (c?.wt ?? ''), STLBL[st.state], c ? uname(c.by) : '', c ? tm(c.at) : '']); });
+    ts.forEach((t, i) => { const cn = c && c.mode !== 'weight' ? (c.lines?.[t] || 0) : ''; rows.push([S.D.date, metalOf(l), l.jtype || '', l.area || '', l.sub || '', secLabel(l.sec), l.group, l.name, l.boxNo || '', l.purity, l.cat, t, o.lines[t] || 0, f.in[t] || 0, f.out[t] || 0, e.lines[t] || 0, cn, cn === '' ? '' : cn - (e.lines[t] || 0), i ? '' : (l.sec === 'box' ? e.wt : ''), i ? '' : (c?.wt ?? ''), STLBL[st.state], c ? uname(c.by) : '', c ? tm(c.at) : '']); });
   }
   const csv = rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
   if (window.YamieStock?.shareFile) return window.YamieStock.shareFile(`yamie-stock-${S.D.date}.csv`, 'text/csv', '\ufeff' + csv);
@@ -1264,10 +1318,14 @@ async function admUsers() {
   $('#adm').querySelectorAll('[data-u]').forEach((b) => b.onclick = () => edit(j.users.find((u) => u.id === b.dataset.u)));
 }
 function admLocs() {
-  $('#adm').innerHTML = `<div class="mut sm" style="margin-bottom:10px">Tap a location to set its purity, category, item type, photos and stock. ${editable() ? '' : '<b>Day is closed — reopen to change stock.</b>'}</div>` + SECTIONS.map((s) => `<div class="grp"><span>${s.label} (${activeLocs(s.key).length})</span>${editable() ? `<button class="btn sm sec" data-add="${s.key}">＋ Add</button>` : ''}</div>
-    <div class="tw"><table><tr><th>Name</th><th>Group</th><th>Purity</th><th>Category</th><th>Item</th><th>Photos</th><th>Pcs</th>${s.key === 'box' ? '<th>Weight g</th>' : ''}</tr>${activeLocs(s.key).map((l) => `<tr data-loc="${l.id}" style="cursor:pointer"><td class="b">${esc(l.name)}${l.boxNo ? ` <span class="chip m">${esc(l.boxNo)}</span>` : ''}</td><td style="text-align:left">${esc(l.group)}</td><td style="text-align:left">${esc(l.purity || '—')}</td><td style="text-align:left">${esc(l.cat || '—')}</td><td style="text-align:left">${esc(l.itemType || 'Mixed')}</td><td>${(l.images || []).length || '—'}</td><td>${fmt(sumLines(expOf(l.id).lines))}</td>${s.key === 'box' ? `<td class="${expOf(l.id).wt ? '' : 'neg'}">${expOf(l.id).wt ? g3(expOf(l.id).wt) : 'not set'}</td>` : ''}</tr>`).join('')}</table></div>`).join('');
+  const st = S.D.settings;
+  $('#adm').innerHTML = `<div class="mut sm" style="margin-bottom:10px">Add, edit or delete counters, trays and boxes. Tap a name to open it (photos, stock). ${editable() ? '' : '<b>Day is closed — reopen to change stock.</b>'}</div>` + SECTIONS.map((s) => `<div class="grp"><span>${s.label} (${activeLocs(s.key).length})</span>${editable() ? `<button class="btn sm sec" data-add="${s.key}">＋ Add ${s.key === 'counter' ? 'counter tray' : s.key === 'tray' ? 'tray' : 'box'}</button>` : ''}</div>
+    <div class="tw"><table><tr><th>Name</th>${s.key === 'counter' ? '<th>Main location</th><th>Sub display</th>' : '<th>Main location</th>'}<th>Group</th><th>Jewellery type</th><th>Purity</th><th>Item</th><th>Pcs</th>${s.key === 'box' ? '<th>Weight g</th>' : ''}<th></th></tr>${activeLocs(s.key).map((l) => `<tr><td class="b" data-loc="${l.id}" style="cursor:pointer;text-decoration:underline dotted">${esc(l.name)}${l.boxNo ? ` <span class="chip m">${esc(l.boxNo)}</span>` : ''}</td><td style="text-align:left">${esc(l.area || '—')}</td>${s.key === 'counter' ? `<td style="text-align:left">${esc(l.sub || '—')}</td>` : ''}<td style="text-align:left">${esc(l.group)}</td><td style="text-align:left"><span class="chip ${metalOf(l) === 'Platinum' ? 'pt' : l.jtype === 'Diamond Jewellery' ? 'dia' : 'au'}">${esc(l.jtype || '—')}</span></td><td style="text-align:left">${esc(l.purity || '—')}</td><td style="text-align:left">${esc(l.itemType || 'Mixed')}</td><td>${fmt(sumLines(expOf(l.id).lines))}</td>${s.key === 'box' ? `<td class="${expOf(l.id).wt ? '' : 'neg'}">${expOf(l.id).wt ? g3(expOf(l.id).wt) : 'not set'}</td>` : ''}
+      <td style="white-space:nowrap">${can('setup') && editable() ? `<button class="btn sm ghost" data-edit="${l.id}">✎ Edit</button> <button class="btn sm ghost" data-delloc="${l.id}" style="color:var(--bad)">🗑</button>` : ''}</td></tr>`).join('')}</table></div>`).join('');
   $('#adm').querySelectorAll('[data-loc]').forEach((r) => r.onclick = () => locSheet(r.dataset.loc));
-  $('#adm').querySelectorAll('[data-add]').forEach((b) => b.onclick = () => locEdit({ sec: b.dataset.add, group: '', name: '', cat: 'Gold', images: [], mode: 'both' }));
+  $('#adm').querySelectorAll('[data-edit]').forEach((b) => b.onclick = () => locEdit(S.locById[b.dataset.edit]));
+  $('#adm').querySelectorAll('[data-delloc]').forEach((b) => b.onclick = () => delLoc(S.locById[b.dataset.delloc]));
+  $('#adm').querySelectorAll('[data-add]').forEach((b) => b.onclick = () => locEdit({ sec: b.dataset.add, group: '', name: '', cat: '', area: b.dataset.add === 'counter' ? st.areas[0] : 'Locker Area', sub: b.dataset.add === 'counter' ? st.subDisplays[0] : '', jtype: st.jtypes[0], images: [], mode: 'both' }));
 }
 function admSettings() {
   const st = S.D.settings;
@@ -1280,6 +1338,10 @@ function admSettings() {
     <label class="f">Match app count against ERP</label><select id="sE"><option value="lbl" ${st.erpBasis !== 'pcs' ? 'selected' : ''}>Labels (Lbl)</option><option value="pcs" ${st.erpBasis === 'pcs' ? 'selected' : ''}>Pieces (Pc)</option></select>
     <label class="f">App item type → ERP ornament (one per line, e.g. Ring = G-Ring)</label><textarea id="sM" style="min-height:150px">${esc(Object.entries(st.erpItemMap || {}).map(([a, b]) => `${a} = ${b}`).join('\n'))}</textarea>
     <label class="f">Category → ERP ornament (overrides item type; use - for "not in this ERP report")</label><textarea id="sCM">${esc(Object.entries(st.erpCatMap || {}).map(([a, b]) => `${a} = ${b}`).join('\n'))}</textarea>
+    <label class="f">Main locations (comma separated)</label><input type="text" id="sAr" value="${esc(st.areas.join(', '))}">
+    <label class="f">Sub displays</label><input type="text" id="sSd" value="${esc(st.subDisplays.join(', '))}">
+    <label class="f">Jewellery types</label><input type="text" id="sJt" value="${esc(st.jtypes.join(', '))}">
+    <label class="f">ERP ornament for Platinum</label><input type="text" id="sPt" value="${esc(st.erpPlatinum || 'YFJ - PLATINUM MM')}">
     <label class="f">Discrepancy reasons (comma separated)</label><textarea id="sR">${esc(st.reasons.join(', '))}</textarea>
     <label class="f">Item types (comma separated)</label><textarea id="sI">${esc(st.itemTypes.join(', '))}</textarea>
     <label class="f">Purities</label><input type="text" id="sP" value="${esc(st.purities.join(', '))}">
@@ -1287,7 +1349,7 @@ function admSettings() {
     <button class="btn" style="width:100%;margin-top:14px" id="sS">Save settings</button></div>`;
   const list = (v) => v.split(',').map((x) => x.trim()).filter(Boolean);
   const kv = (v) => Object.fromEntries(v.split('\n').map((x) => x.split('=').map((y) => y.trim())).filter((x) => x[0] && x.length > 1));
-  $('#sS').onclick = async () => { try { await api('settings', { settings: { shopName: $('#sN').value, waNumber: $('#sW').value, wtTol: +$('#sT').value, blind: $('#sB').checked, reqPhotos: $('#sPh').checked, erpBasis: $('#sE').value, erpItemMap: kv($('#sM').value), erpCatMap: kv($('#sCM').value), reasons: list($('#sR').value), itemTypes: list($('#sI').value), purities: list($('#sP').value), categories: list($('#sC').value) } }); toast('Settings saved'); load(true); } catch (e) { fail(e); } };
+  $('#sS').onclick = async () => { try { await api('settings', { settings: { shopName: $('#sN').value, waNumber: $('#sW').value, wtTol: +$('#sT').value, blind: $('#sB').checked, reqPhotos: $('#sPh').checked, erpBasis: $('#sE').value, areas: list($('#sAr').value), subDisplays: list($('#sSd').value), jtypes: list($('#sJt').value), erpPlatinum: $('#sPt').value, erpItemMap: kv($('#sM').value), erpCatMap: kv($('#sCM').value), reasons: list($('#sR').value), itemTypes: list($('#sI').value), purities: list($('#sP').value), categories: list($('#sC').value) } }); toast('Settings saved'); load(true); } catch (e) { fail(e); } };
 }
 
 // ---------------- boot ----------------

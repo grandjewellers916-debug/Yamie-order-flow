@@ -11,11 +11,16 @@ export const DEFAULT_SETTINGS = {
   categories: ['Gold', 'Diamond', 'Platinum', 'Lab-grown', 'Kids', 'Gents', 'Silver'],
   wtTol: 0.010,        // grams allowed either way on box weight checks
   blind: false,
-  reqPhotos: false,    // require one photo per piece for each item before submit        // hide expected counts from staff while counting
+  reqPhotos: false,    // require one photo per piece for each item before submit
   waNumber: '',        // admin WhatsApp number for reports
   erpBasis: 'lbl',
   erpItemMap: { Ring: 'G-Ring', Stud: 'G-Earring', Pendant: 'G-Pendant', Set: 'G- Jewellery Set', Bracelet: 'G-Bracelet', Necklace: 'G-Necklace', Bangle: 'G-Bangle', Chain: 'G-Chain', Nosepin: 'G-Nosepins', Coin: 'G-Gold Coin', Findings: 'Findings', Mixed: 'G-Diamond Jewellery' },
-  erpCatMap: { Diamond: 'G-Diamond Jewellery', 'Lab-grown': 'Tanih - CVD Jewellery', Platinum: '-' },     // app count is matched against ERP labels ('lbl') or pieces ('pcs')
+  erpCatMap: { Diamond: 'G-Diamond Jewellery', 'Lab-grown': 'Tanih - CVD Jewellery' },
+  erpPlatinum: 'YFJ - PLATINUM MM',   // ERP ornament for all Platinum jewellery
+  // Location model (v1.8)
+  areas: ['Cash Counter Area', 'Locker Area', 'Platinum Area', 'Free standing counter'],
+  subDisplays: ['Floor display counters', 'Wall Shelves'],
+  jtypes: ['Plain Gold Jewellery', 'Diamond Jewellery', 'Platinum'],     // app count is matched against ERP labels ('lbl') or pieces ('pcs')
   reasons: ['Item sold, not updated', 'Moved to another tray', 'Sent for repair / approval', 'Label missing / wrong tag', 'Found extra item', 'Other'],
 };
 export const PERMS = {
@@ -183,8 +188,22 @@ export function closingVerified(locs, opening, mvs, counts, settings) {
  *  A category mapped to '-' is not in the ERP report and is kept out of the match.
  *  ERP rows without Pc/Lbl (weight-only) are omitted — those live in Boxes as weight-only stock.
  *  which: 'closing' (app expected) or 'opening' (when the ERP report is for the previous day). */
+export const metalOf = (loc) => (loc?.jtype === 'Platinum' || (!loc?.jtype && loc?.cat === 'Platinum') ? 'Platinum' : 'Gold');
+export const erpMetal = (name) => (/platinum/i.test(name || '') ? 'Platinum' : 'Gold');
+/** Best guess of Main location / Sub display / Jewellery type for locations created before v1.8 */
+export function deriveLocMeta(l) {
+  const g = `${l.group || ''} ${l.name || ''}`.toLowerCase();
+  const jtype = l.cat === 'Platinum' || /platinum/.test(g) ? 'Platinum' : (l.cat === 'Diamond' || l.cat === 'Lab-grown' || /diamond|\bdia\b/.test(g)) ? 'Diamond Jewellery' : 'Plain Gold Jewellery';
+  let area = '', sub = '';
+  if (l.sec === 'counter') {
+    area = /platinum/.test(g) ? 'Platinum Area' : /locker/.test(g) ? 'Locker Area' : /cvd|green shelf|free/.test(g) ? 'Free standing counter' : 'Cash Counter Area';
+    sub = /wall|shelf/.test(g) ? 'Wall Shelves' : 'Floor display counters';
+  } else area = 'Locker Area';
+  return { area, sub, jtype };
+}
 export const erpKey = (n) => String(n || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 export function erpNameFor(loc, type, settings) {
+  if (metalOf(loc) === 'Platinum') return settings?.erpPlatinum || DEFAULT_SETTINGS.erpPlatinum;
   const cm = settings?.erpCatMap || DEFAULT_SETTINGS.erpCatMap; const im = settings?.erpItemMap || DEFAULT_SETTINGS.erpItemMap;
   if (loc.cat && cm[loc.cat] != null) return cm[loc.cat];
   return im[type] ?? type;

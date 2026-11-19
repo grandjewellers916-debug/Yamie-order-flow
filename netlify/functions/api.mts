@@ -2,7 +2,7 @@ import { getStore } from '@netlify/blobs';
 import crypto from 'node:crypto';
 import { buildSeed } from '../lib/seed.mjs';
 import {
-  DEFAULT_SETTINGS, ROLE_PERMS, PERMS, SECTIONS, TXN_TYPES, summarize, closingVerified, computeExpected, erpCompare,
+  DEFAULT_SETTINGS, ROLE_PERMS, PERMS, SECTIONS, TXN_TYPES, deriveLocMeta, summarize, closingVerified, computeExpected, erpCompare,
   latestCounts, locStatus, sumLines, istDate, r3,
 } from '../../web/core.mjs';
 
@@ -59,6 +59,11 @@ async function getLocs(s: any) {
     await s.setJSON(`day/${today}`, { date: today, opening: seed.opening, status: 'open', createdAt: now(), seeded: true }, { onlyIfNew: true });
     await s.setJSON('cfg/locs', { locs: seed.locs }, { onlyIfNew: true });
     l = await s.get('cfg/locs', { type: 'json' });
+  }
+  // v1.8: Main location / Sub display / Jewellery type — fill in once for older locations
+  if (l.locs.some((x: any) => x.jtype === undefined)) {
+    for (const x of l.locs) if (x.jtype === undefined) Object.assign(x, deriveLocMeta(x));
+    await s.setJSON('cfg/locs', l);
   }
   return l.locs as any[];
 }
@@ -432,13 +437,21 @@ export default async (req: Request) => {
       need('setup');
       const data = await s.get('cfg/locs', { type: 'json' });
       const L = body.loc || {};
-      const fields = ['sec', 'group', 'name', 'purity', 'cat', 'itemType', 'boxNo', 'insert', 'qty', 'mode', 'images', 'note', 'order', 'erpName', 'itemNotes'];
+      const fields = ['sec', 'group', 'name', 'purity', 'cat', 'itemType', 'boxNo', 'insert', 'qty', 'mode', 'images', 'note', 'order', 'erpName', 'itemNotes', 'area', 'sub', 'jtype'];
       let loc = data.locs.find((l: any) => l.id === L.id);
       if (L.active === false && loc) {
         const day = await ensureToday(s); const { mvs } = await loadDay(s, today);
         const e = computeExpected(day.opening, mvs)[loc.id];
-        if (e && (sumLines(e.lines) || e.wt)) return err('Move or set this location to zero before removing it');
-        loc.active = false;
+        if (e && (sumLines(e.lines) || e.wt)) {
+          // Deleting a location that still holds stock: admin only, with a reason; stock is written off to zero (logged)
+          if (me.role !== 'admin') return err('This location still has stock. Move it or set it to zero first — or ask admin to delete it.', 409);
+          if (!String(body.reason || '').trim()) return err('Give a reason to delete a location that still has stock', 409);
+          const neg: any = {}; for (const [t, n] of Object.entries(e.lines)) if (n) neg[t] = -(n as number);
+          const mv = { id: `${now()}-${rid()}`, date: today, kind: 'set', reason: 'Location deleted', note: String(body.reason).slice(0, 200), legs: [{ locId: loc.id, lines: neg, wt: -(e.wt || 0) }], by: me.id, at: now() };
+          await s.setJSON(`mv/${today}/${mv.id}`, mv);
+          await addAlert(s, { type: 'info', title: `Location deleted · ${loc.name}`, body: `${me.name} deleted ${loc.name} with ${sumLines(e.lines)} pcs${e.wt ? ` / ${e.wt} g` : ''} written off. Reason: ${body.reason}`, by: me.id });
+        }
+        loc.active = false; loc.deletedAt = now(); loc.deletedBy = me.id;
       } else if (loc) { for (const f of fields) if (f in L) loc[f] = L[f]; loc.active = true; }
       else {
         if (!SECTIONS.find((x) => x.key === L.sec) || !L.name) return err('Section and name are required');
@@ -526,6 +539,8 @@ export default async (req: Request) => {
       if (b.wtTol != null) next.wtTol = Math.max(0, r3(b.wtTol));
       if (b.blind != null) next.blind = !!b.blind;
       if (b.reqPhotos != null) next.reqPhotos = !!b.reqPhotos;
+      for (const k of ['areas', 'subDisplays', 'jtypes']) if (Array.isArray(b[k])) next[k] = b[k].map((x: any) => String(x).trim().slice(0, 40)).filter(Boolean);
+      if (typeof b.erpPlatinum === 'string' && b.erpPlatinum.trim()) next.erpPlatinum = b.erpPlatinum.trim().slice(0, 60);
       if (typeof b.waNumber === 'string') next.waNumber = b.waNumber.replace(/[^0-9]/g, '').slice(0, 15);
       await s.setJSON('cfg/settings', next);
       return J({ ok: true, settings: next });
