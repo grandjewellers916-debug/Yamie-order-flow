@@ -64,7 +64,7 @@ main{padding:14px;padding-bottom:96px;max-width:1300px;margin:0 auto}
   .nav{top:0;bottom:0;right:auto;width:200px;flex-direction:column;border-top:0;border-right:1px solid var(--ln);padding-top:76px;gap:2px}
   .nav button{flex:none;flex-direction:row;gap:12px;font-size:15px;padding:12px 20px;justify-content:flex-start}
   .nav button.on{background:var(--m3)}
-  main{margin-left:200px;padding:22px 28px 110px}
+  main{margin-left:200px;padding:22px 28px 110px;max-width:none}
   .top{z-index:30}
 }
 /* home */
@@ -85,9 +85,10 @@ main{padding:14px;padding-bottom:96px;max-width:1300px;margin:0 auto}
 .filters button{padding:7px 12px;border-radius:99px;background:#fff;border:1px solid var(--ln);white-space:nowrap;font-size:14px}
 .filters button.on{background:var(--m);border-color:var(--m);color:#fff}
 .grp{margin:16px 0 8px;font-size:13px;color:var(--mut);text-transform:uppercase;letter-spacing:.8px;font-weight:600;display:flex;justify-content:space-between}
-.locs{display:grid;gap:8px}
-@media(min-width:700px){.locs{grid-template-columns:repeat(2,1fr)}}
-@media(min-width:1150px){.locs{grid-template-columns:repeat(3,1fr)}}
+.locs{display:grid;gap:8px;grid-template-columns:minmax(0,1fr)}.locs>.loc{min-width:0}
+.vtx{overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-word;min-width:0;flex:1}
+@media(min-width:700px){.locs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(min-width:1150px){.locs{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(min-width:1800px){.locs{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .loc{display:flex;gap:12px;align-items:center;background:#fff;border:1px solid var(--ln);border-radius:var(--r);padding:10px;text-align:left;width:100%}
 .loc.var{border-color:#E9B5B0}.loc.ok{border-color:#B8DDC6}
 .th{width:56px;height:56px;border-radius:9px;background:var(--cr);flex:none;display:grid;place-items:center;overflow:hidden;color:var(--m)}
@@ -211,7 +212,10 @@ td.pos{color:var(--ok);font-weight:600}td.neg{color:var(--bad);font-weight:600}
 .oc b{font-size:16px}.oc.cl{background:var(--okb);color:var(--ok)}.oc.cl.neg{background:var(--badb);color:var(--bad)}
 .oc.cl .mut:empty{display:none}
 select.tin{border-color:#9FD0B2;background:#F3FBF6}select.tout{border-color:#E8B4AE;background:#FDF5F4}
-@media(max-width:1099px){.eg.h{display:none}.eg{grid-template-columns:1fr 1fr;padding:10px 0}.eg>select[data-f=type],.eg>select[data-f=locId]{grid-column:1/-1}.eg .x{grid-column:2;justify-self:end}
+.egn{display:none}
+@media(max-width:1099px){.eg.h{display:none}.eg{grid-template-columns:1fr 1fr;grid-template-areas:"n x" "ty se" "lo lo" "it it" "qt wt" "op cl" "rf rf";padding:12px 0}
+  .egn{display:block;grid-area:n;align-self:center;font-weight:600;font-size:13px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px}
+  .eg>[data-f=type]{grid-area:ty}.eg>[data-f=sec]{grid-area:se}.eg>[data-f=locId]{grid-area:lo}.eg>[data-f=item]{grid-area:it}.eg>[data-f=qty]{grid-area:qt}.eg>[data-f=wt]{grid-area:wt}.eg>[data-op]{grid-area:op}.eg>[data-cl]{grid-area:cl}.eg>[data-f=ref]{grid-area:rf}.eg .x{grid-area:x;justify-self:end}
   .oc::before{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px}.oc[data-op]::before{content:'Opening'}.oc.cl::before{content:'Closing'}}
 .ixr{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:4px}
 .ib{font-size:12px;padding:3px 9px;border-radius:99px;background:var(--cr);color:var(--ink);cursor:pointer;white-space:nowrap}
@@ -235,7 +239,7 @@ tr.msub td{font-weight:600;background:#FAF7F2}
 .mcard{text-align:left;width:100%;border-width:1.5px}.mcard .v{font-size:26px;font-weight:600}.mcard.au{border-color:#E9D3A3;background:#FFFBF2}.mcard.pt{border-color:#CDD3DA;background:#F7F8FA}.mcard.on{box-shadow:0 0 0 3px var(--m3);border-color:var(--m)}
 .selbar{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin:10px 0 12px;padding:12px}
 .selbar>.grow{min-width:180px}.selgo{display:flex;flex-direction:column;gap:4px}
-@media(min-width:700px){.locs.wide{grid-template-columns:1fr}}@media(min-width:1500px){.locs.wide{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:700px){.locs.wide{grid-template-columns:minmax(0,1fr)}}@media(min-width:1500px){.locs.wide{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .locs.wide .loc .grow{min-width:170px}.locs.wide .loc .q .v{font-size:26px}
 @media(min-width:700px){.brk{flex:0 1 300px}}
 .locs.wide .loc{align-items:stretch}.locs.wide .loc>.th{align-self:center}.locs.wide .loc .q{align-self:center;min-width:56px}
@@ -248,7 +252,10 @@ tr.msub td{font-weight:600;background:#FAF7F2}
 .startp{background:linear-gradient(135deg,var(--m),var(--m2));color:#fff;border-radius:var(--r);padding:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:10px 0}
 .startp .btn{background:#fff;color:var(--m)}
 .erp input{min-height:38px;padding:6px 8px;text-align:right;width:90px}
-@media(max-width:699px){.ctiles{flex-direction:column}.photos.mini{max-width:100%}.kpis.tiles{grid-template-columns:repeat(2,1fr)}
+@media(max-width:699px){.ctiles{flex-direction:row;gap:6px}.photos.mini{max-width:64px;overflow:hidden}.photos.mini img,.photos.mini .addph{height:64px;width:64px;font-size:10px;line-height:1.15}
+  .kpis.tiles{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}.kpis.tiles .kpi{padding:6px 5px;min-width:0}.kpis.tiles .l{font-size:9px;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kpis.tiles .v{font-size:18px!important}.kpis.tiles .kpi .b{font-size:12px!important}.kpis.tiles .sm{font-size:10px}.kpis.tiles small{font-size:10px}
+  .md .info{font-size:12px;padding:6px 10px}
+  .selbar{display:grid;grid-template-columns:1fr 1fr;gap:6px 8px;padding:10px}.selbar>.grow{min-width:0}.selbar label.f{font-size:11px;margin-bottom:2px}.selbar select{min-height:38px;padding:6px 8px;font-size:14px}.selbar .selgo{grid-column:1/-1}
   .vr{grid-template-columns:36px minmax(0,1fr) 34px 140px;gap:6px;padding:8px}.ib{font-size:11px;padding:3px 7px}.vr.sl{grid-template-columns:minmax(0,1fr) 88px 96px 46px;gap:4px;padding:8px 6px}.vr.sl .step.sm2 button{width:28px;height:38px}.vr.sl .step.sm2 input{width:34px;min-height:38px}.vr.sl .pill{min-width:40px;padding:5px 4px;font-size:16px}.vr.sl>.iti,.vr.sl>span:first-child:empty{display:none}.vr .hs{display:none}.vr .big{font-size:18px}
   .wgrid{grid-template-columns:repeat(2,1fr)}.hs,.hs2{display:none!important}.steps button{font-size:13px;gap:4px}.steps button i{width:22px;height:22px}
   .foot .btn{flex:1}}
@@ -269,7 +276,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.10.2';
+const VERSION = '1.10.3';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -446,11 +453,11 @@ function vEod() {
   ${ed ? `<div class="card" style="margin-top:12px">
     <div class="eg h"><span>Type</span><span>Stock</span><span>Location</span><span>Item</span><span class="c">Opening</span><span>Qty</span><span>Weight g</span><span class="c">Closing</span><span>Bill / ref</span><span></span></div>
     ${rows.map((r, i) => { const l = S.locById[r.locId]; const T = TXN_TYPES.find((t) => t.k === r.type); const box = l?.sec === 'box'; const oc = eodCalc(rows, i);
-      return `<div class="eg">
+      return `<div class="eg"><div class="egn">Entry ${i + 1}</div>
       <select data-f="type" data-i="${i}" class="${T?.dir > 0 ? 'tin' : 'tout'}">${types.map((t) => `<option value="${t.k}" ${r.type === t.k ? 'selected' : ''}>${t.dir > 0 ? '＋' : '−'} ${esc(t.label)}</option>`).join('')}</select>
-      <select data-f="sec" data-i="${i}"><option value="">Main…</option>${SECTIONS.map((x) => `<option value="${x.key}" ${r.sec === x.key ? 'selected' : ''}>${x.key === 'counter' ? 'Counter' : x.key === 'tray' ? 'Trays' : 'Boxes'}</option>`).join('')}</select>
-      <select data-f="locId" data-i="${i}" ${r.sec ? '' : 'disabled'}><option value="">${r.sec ? 'Location…' : 'Choose main first'}</option>${r.sec ? activeLocs(r.sec).map((x) => `<option value="${x.id}" ${x.id === r.locId ? 'selected' : ''}>${esc(x.name)}${x.boxNo && !x.name.includes(x.boxNo) ? ` (Box ${esc(x.boxNo)})` : ''} — ${esc(x.group)}</option>`).join('') : ''}</select>
-      <select data-f="item" data-i="${i}" ${l ? '' : 'disabled'}><option value="">${l ? 'Item…' : 'Choose location'}</option>${l ? keyOptions(l, r.item) : ''}</select>
+      <select data-f="sec" data-i="${i}"><option value="">Main location…</option>${SECTIONS.map((x) => `<option value="${x.key}" ${r.sec === x.key ? 'selected' : ''}>${x.key === 'counter' ? 'Counter' : x.key === 'tray' ? 'Trays' : 'Boxes'}</option>`).join('')}</select>
+      <select data-f="locId" data-i="${i}" ${r.sec ? '' : 'disabled'}><option value="">${r.sec ? 'Location…' : 'Location (pick main location first)'}</option>${r.sec ? activeLocs(r.sec).map((x) => `<option value="${x.id}" ${x.id === r.locId ? 'selected' : ''}>${esc(x.name)}${x.boxNo && !x.name.includes(x.boxNo) ? ` (Box ${esc(x.boxNo)})` : ''} — ${esc(x.group)}</option>`).join('') : ''}</select>
+      <select data-f="item" data-i="${i}" ${l ? '' : 'disabled'}><option value="">${l ? 'Item…' : 'Item (pick location first)'}</option>${l ? keyOptions(l, r.item) : ''}</select>
       <div class="oc" data-op="${i}">${oc ? `<b>${fmt(oc.op)}</b>${box ? `<span>${g3(oc.opWt)} g</span>` : ''}${oc.now !== oc.op || (box && oc.nowWt !== oc.opWt) ? `<span class="mut">now ${fmt(oc.now)}${box ? ` · ${g3(oc.nowWt)} g` : ''}</span>` : ''}` : '<span class="mut">—</span>'}</div>
       <input type="number" inputmode="numeric" min="0" data-f="qty" data-i="${i}" value="${esc(r.qty)}" placeholder="Qty">
       <input type="number" inputmode="decimal" step="0.001" min="0" data-f="wt" data-i="${i}" value="${esc(r.wt)}" placeholder="Weight g">
@@ -591,7 +598,7 @@ function vSection(sec) {
 function locCard(l) {
   const e = expOf(l.id); const st = S.sum.status[l.id]; const c = S.sum.last[l.id];
   const thumb = l.images?.[0] ? `<img loading="lazy" src="${img(l.images[0].key)}" alt="">` : svg(l.sec, 26);
-  const chips = [l.boxNo ? `<span class="chip m">Box ${esc(l.boxNo)}</span>` : '', l.purity ? `<span class="chip m">${esc(l.purity)}</span>` : '', l.jtype ? `<span class="chip ${metalOf(l) === 'Platinum' ? 'pt' : l.jtype === 'Diamond Jewellery' ? 'dia' : 'au'}">${esc(l.jtype === 'Plain Gold Jewellery' ? 'Gold' : l.jtype === 'Diamond Jewellery' ? 'Diamond' : l.jtype)}</span>` : '', l.cat && !['Gold', 'Diamond', 'Platinum'].includes(l.cat) ? `<span class="chip">${esc(l.cat)}</span>` : '', l.itemType ? `<span class="chip">${esc(l.itemType)}</span>` : ''].join('');
+  const chips = [l.boxNo ? `<span class="chip m">Box ${esc(l.boxNo)}</span>` : '', l.purity ? `<span class="chip m">${esc(l.purity)}</span>` : '', l.jtype ? `<span class="chip ${metalOf(l) === 'Platinum' ? 'pt' : l.jtype === 'Diamond Jewellery' ? 'dia' : 'au'}">${esc(l.jtype === 'Plain Gold Jewellery' ? 'Gold' : l.jtype === 'Diamond Jewellery' ? 'Diamond' : l.jtype)}</span>` : '', l.cat && !['Gold', 'Diamond', 'Platinum', 'Mixed', l.jtype].includes(l.cat) ? `<span class="chip">${esc(l.cat)}</span>` : '', l.itemType ? `<span class="chip">${esc(l.itemType)}</span>` : ''].join('');
   const slotsHtml = l.sec === 'tray' && +l.insert > 0 ? (() => {
     const rowsS = c?.slots?.length ? c.slots.map((r) => ({ f: r.f, n: r.n })) : hideExp() ? null : [{ f: +l.insert, n: +l.qty || 0, plan: true }];
     if (!rowsS) return '';
@@ -600,7 +607,7 @@ function locCard(l) {
     return `<div class="brk ${okc}">${rowsS.map((r) => `<div class="br"><span>${r.f} slots × ${r.n} tray${r.n === 1 ? '' : 's'}</span><b>= ${fmt(r.f * r.n)}</b></div>`).join('')}${rowsS.length > 1 || c?.slots ? `<div class="br t"><span>Total</span><span>${tr} trays</span><b>= ${fmt(tot)}</b></div>` : ''}${okc === 'plan' ? '<div class="sm mut" style="padding:0 10px">Registered layout</div>' : ''}</div>`;
   })() : '';
   const sub = st.state === 'var' || st.state === 'stale' ? `${diffTxt(st.diff, l)}${st.mode !== 'count' && st.wtDiff ? ` ${st.wtDiff > 0 ? '+' : ''}${g3(st.wtDiff)} g` : ''}` : c ? `${uname(c.by)} · ${tm(c.at)}` : '';
-  return `<button class="loc ${st.state}" data-loc="${l.id}"><div class="th">${thumb}</div><div class="grow" style="min-width:0"><div class="nm">${esc(l.name)}</div><div class="meta">${chips}</div><div class="row sm" style="margin-top:4px"><span class="st ${st.state}">${STLBL[st.state]}</span><span class="mut" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(sub)}</span></div></div>
+  return `<button class="loc ${st.state}" data-loc="${l.id}"><div class="th">${thumb}</div><div class="grow" style="min-width:0"><div class="nm">${esc(l.name)}</div><div class="meta">${chips}</div><div class="row sm" style="margin-top:4px;align-items:flex-start"><span class="st ${st.state}" style="flex:none">${STLBL[st.state]}</span><span class="mut vtx" title="${esc(sub)}">${esc(sub)}</span></div></div>
     ${slotsHtml}<div class="q">${(() => { const cn = c && c.mode !== 'weight' && !['pending', 'stale'].includes(st.state) ? sumLines(c.lines) : null; const ex = sumLines(e.lines);
       if (cn != null) return `<div class="v" style="color:${cn === ex ? 'inherit' : 'var(--bad)'}">${fmt(cn)}</div><div class="mut sm">${hideExp() || cn === ex ? 'pcs' : `of ${fmt(ex)}`}${l.sec === 'box' && c.wt != null ? `<br>${g3(c.wt)} g` : ''}</div>`;
       return hideExp() ? '' : `<div class="v">${fmt(ex)}</div><div class="mut sm">${l.sec === 'box' ? g3(e.wt) + ' g' : 'pcs'}</div>`; })()}</div></button>`;
