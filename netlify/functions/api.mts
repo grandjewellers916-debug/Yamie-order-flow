@@ -245,7 +245,7 @@ export default async (req: Request) => {
     if (path === 'settings' && method === 'POST') {
       need('settings');
       const st = { ...DEF_SETTINGS, ...(body.settings || {}) };
-      if (Array.isArray(st.services)) st.services = st.services.slice(0, 80).map((x: any) => ({ name: String(x.name || '').trim().slice(0, 60), min: Math.max(0, Math.round(+x.min || 0)), note: String(x.note || '').trim().slice(0, 80), unit: x.unit === 'piece' ? 'piece' : 'job', active: x.active !== false })).filter((x: any) => x.name);
+      if (Array.isArray(st.services)) st.services = st.services.slice(0, 80).map((x: any) => ({ name: String(x.name || '').trim().slice(0, 60), min: Math.max(0, Math.round(+x.min || 0)), note: String(x.note || '').trim().slice(0, 80), unit: x.unit === 'piece' ? 'piece' : 'job', active: x.active !== false, smith: String(x.smith || '').trim().slice(0, 60) })).filter((x: any) => x.name);
       else delete st.services;
       await s.setJSON('cfg/settings', st);
       await bumpCfg(s);
