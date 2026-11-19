@@ -52,6 +52,32 @@ class MainActivity : ComponentActivity() {
 
     private val askNotify = registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
+    // Direct calling: asks once for phone permission; without it the dialer opens with the number filled in
+    private var pendingCall: String? = null
+    private val askCall = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        val n = pendingCall
+        pendingCall = null
+        if (n != null) startCall(n, granted)
+    }
+
+    private fun placeCall(raw: String) {
+        val n = raw.filter { it.isDigit() || it == '+' }
+        if (n.isEmpty()) return
+        if (checkSelfPermission(Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) startCall(n, true)
+        else {
+            pendingCall = n
+            try { askCall.launch(Manifest.permission.CALL_PHONE) } catch (e: Exception) { pendingCall = null; startCall(n, false) }
+        }
+    }
+
+    private fun startCall(n: String, direct: Boolean) {
+        try {
+            startActivity(Intent(if (direct) Intent.ACTION_CALL else Intent.ACTION_DIAL, Uri.parse("tel:$n")))
+        } catch (e: Exception) {
+            try { startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$n"))) } catch (e2: Exception) { }
+        }
+    }
+
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -156,6 +182,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun openExternal(url: Uri) {
+        if (url.scheme == "tel") { placeCall(url.schemeSpecificPart ?: ""); return }
         try {
             val action = if (url.scheme == "tel") Intent.ACTION_DIAL else Intent.ACTION_VIEW
             startActivity(Intent(action, url))
@@ -198,6 +225,11 @@ class MainActivity : ComponentActivity() {
                     if (!sent) startActivity(Intent.createChooser(intent, "Send picture card"))
                 } catch (e: Exception) { }
             }
+        }
+
+        @JavascriptInterface
+        fun callNumber(number: String) {
+            runOnUiThread { placeCall(number) }
         }
 
         @JavascriptInterface
