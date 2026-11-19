@@ -2,7 +2,7 @@ import { getStore } from '@netlify/blobs';
 import crypto from 'node:crypto';
 import { buildSeed } from '../lib/seed.mjs';
 import {
-  DEFAULT_SETTINGS, ROLE_PERMS, PERMS, SECTIONS, TXN_TYPES, deriveLocMeta, summarize, closingVerified, computeExpected, erpCompare,
+  DEFAULT_SETTINGS, ROLE_PERMS, PERMS, SECTIONS, TXN_TYPES, deriveLocMeta, JTYPES, keyText, lineKey, itemOf, jtOfLine, summarize, closingVerified, computeExpected, erpCompare,
   latestCounts, locStatus, sumLines, istDate, r3,
 } from '../../web/core.mjs';
 
@@ -50,7 +50,7 @@ async function getUsers(s: any) {
   return u.users as any[];
 }
 const pubUser = (u: any) => ({ id: u.id, name: u.name, role: u.role, perms: u.perms, active: u.active !== false, phone: u.phone || '' });
-async function getSettings(s: any) { return { ...DEFAULT_SETTINGS, ...((await s.get('cfg/settings', { type: 'json' })) || {}) }; }
+async function getSettings(s: any) { return { ...DEFAULT_SETTINGS, ...((await s.get('cfg/settings', { type: 'json' })) || {}), jtypes: JTYPES }; }
 async function getLocs(s: any) {
   let l = await s.get('cfg/locs', { type: 'json' });
   if (!l) {
@@ -244,7 +244,7 @@ export default async (req: Request) => {
       rec.result = st.state; rec.diff = st.diff; rec.wtDiff = st.wtDiff;
       await s.setJSON(`ct/${today}/${loc.id}/${rec.id}`, rec);
       if (st.state === 'var') {
-        const parts = Object.entries(st.diff).map(([t, d]: any) => `${t} ${d > 0 ? '+' : ''}${d}${rec.reasons[t] ? ` (${rec.reasons[t]})` : ''}`);
+        const parts = Object.entries(st.diff).map(([t, d]: any) => `${keyText(loc, t)} ${d > 0 ? '+' : ''}${d}${rec.reasons[t] ? ` (${rec.reasons[t]})` : ''}`);
         if (mode !== 'count' && Math.abs(st.wtDiff) > settings.wtTol) parts.push(`weight ${st.wtDiff > 0 ? '+' : ''}${st.wtDiff.toFixed(3)} g`);
         await addAlert(s, { type: 'variance', title: `Variance · ${loc.name}`, body: `${SECTIONS.find((x) => x.key === loc.sec)?.label} · ${loc.group}: ${parts.join(', ')}`, locId: loc.id, sec: loc.sec, by: me.id });
       }
@@ -290,7 +290,7 @@ export default async (req: Request) => {
         if (st.state === 'pending') continue; done++;
         if (c.mode !== 'weight') { exp += Object.values(sm.exp[l.id]?.lines || {}).reduce((a: number, b: any) => a + b, 0); act += Object.values(c.lines || {}).reduce((a: number, b: any) => a + b, 0); }
         for (const d of Object.values(st.diff) as number[]) { if (d < 0) short -= d; else excess += d; }
-        if (st.state === 'var' || st.state === 'stale') { pend++; if (Math.abs(st.wtDiff) > settings.wtTol) wtVar++; lines.push(`${l.name}: ${Object.entries(st.diff).map(([t, d]: any) => `${t} ${d > 0 ? '+' : ''}${d}`).join(', ') || `weight ${st.wtDiff > 0 ? '+' : ''}${st.wtDiff} g`}`); }
+        if (st.state === 'var' || st.state === 'stale') { pend++; if (Math.abs(st.wtDiff) > settings.wtTol) wtVar++; lines.push(`${l.name}: ${Object.entries(st.diff).map(([t, d]: any) => `${keyText(l, t)} ${d > 0 ? '+' : ''}${d}`).join(', ') || `weight ${st.wtDiff > 0 ? '+' : ''}${st.wtDiff} g`}`); }
       }
       ses.summary = { locs: inScope.length, done, expected: exp, actual: act, short, excess, pending: pend, wtVar };
       ses.status = done >= inScope.length ? 'done' : 'active'; ses.finishedAt = now();
@@ -369,7 +369,7 @@ export default async (req: Request) => {
         const qty = Math.max(0, Math.round(+x.qty || 0)); const wt = Math.max(0, r3(x.wt));
         if (!qty && !wt) return err(`Row ${i + 1}: enter quantity or weight`);
         if (qty && !x.item) return err(`Row ${i + 1}: choose the item`);
-        out.push({ T, loc, qty, wt, item: String(x.item || '').slice(0, 30), ref: String(x.ref || '').slice(0, 60), note: String(x.note || '').slice(0, 200) });
+        out.push({ T, loc, qty, wt, item: String(x.item || '').slice(0, 40), ref: String(x.ref || '').slice(0, 60), note: String(x.note || '').slice(0, 200) });
       }
       const saved = [];
       const dd = await loadDay(s, today); const expAll = computeExpected(dd.day.opening, dd.mvs);
@@ -397,7 +397,9 @@ export default async (req: Request) => {
       else if (body.kind === 'out') { if (!byId[body.locId]) return err('Pick a location'); legs = [{ locId: body.locId, lines: neg(lines), wt: -wt }]; }
       else if (body.kind === 'move') {
         if (!byId[body.locId] || !byId[body.toLocId] || body.locId === body.toLocId) return err('Pick two different locations');
-        legs = [{ locId: body.locId, lines: neg(lines), wt: -wt }, { locId: body.toLocId, lines, wt: r3(body.toWt ?? wt) }];
+        // keep each piece's jewellery type when it moves to a location of another type
+        const toLines: any = {}; for (const [k, n] of Object.entries(lines)) { const k2 = lineKey(byId[body.toLocId], itemOf(k), jtOfLine(byId[body.locId], k)); toLines[k2] = (toLines[k2] || 0) + (n as number); }
+        legs = [{ locId: body.locId, lines: neg(lines), wt: -wt }, { locId: body.toLocId, lines: toLines, wt: r3(body.toWt ?? wt) }];
       } else if (body.kind === 'set' || body.kind === 'accept') {
         if (body.kind === 'accept') need('accept');
         const loc = byId[body.locId]; if (!loc) return err('Pick a location');
@@ -539,7 +541,7 @@ export default async (req: Request) => {
       if (b.wtTol != null) next.wtTol = Math.max(0, r3(b.wtTol));
       if (b.blind != null) next.blind = !!b.blind;
       if (b.reqPhotos != null) next.reqPhotos = !!b.reqPhotos;
-      for (const k of ['areas', 'subDisplays', 'jtypes']) if (Array.isArray(b[k])) next[k] = b[k].map((x: any) => String(x).trim().slice(0, 40)).filter(Boolean);
+      for (const k of ['areas', 'subDisplays']) if (Array.isArray(b[k])) next[k] = b[k].map((x: any) => String(x).trim().slice(0, 40)).filter(Boolean);
       if (typeof b.erpPlatinum === 'string' && b.erpPlatinum.trim()) next.erpPlatinum = b.erpPlatinum.trim().slice(0, 60);
       if (typeof b.waNumber === 'string') next.waNumber = b.waNumber.replace(/[^0-9]/g, '').slice(0, 15);
       await s.setJSON('cfg/settings', next);

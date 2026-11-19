@@ -20,7 +20,7 @@ export const DEFAULT_SETTINGS = {
   // Location model (v1.8)
   areas: ['Cash Counter Area', 'Locker Area', 'Platinum Area', 'Free standing counter'],
   subDisplays: ['Floor display counters', 'Wall Shelves'],
-  jtypes: ['Plain Gold Jewellery', 'Diamond Jewellery', 'Platinum'],     // app count is matched against ERP labels ('lbl') or pieces ('pcs')
+  jtypes: ['Plain Gold Jewellery', 'Diamond Jewellery', 'Platinum', 'Mixed'],     // app count is matched against ERP labels ('lbl') or pieces ('pcs')
   reasons: ['Item sold, not updated', 'Moved to another tray', 'Sent for repair / approval', 'Label missing / wrong tag', 'Found extra item', 'Other'],
 };
 export const PERMS = {
@@ -135,7 +135,9 @@ export function summarize(locs, opening, mvs, counts, settings) {
   const last = latestCounts(counts);
   const status = {};
   const sec = {};
-  const byType = {};   // type -> {counter:{op,in,out,exp,cnt,chkExp}, ...}
+  const byType = {};   // item type -> {counter:{op,in,out,exp,cnt,chkExp}, ...}
+  const byJt = {};     // jewellery type -> same
+  const lines = [];    // one record per location × item line (with jewellery type and metal)
   const byPurity = {}; const byCat = {};
   const all = locs.filter((l) => l.active !== false || sumLines(exp[l.id]?.lines));
   for (const s of SECTIONS) sec[s.key] = { locs: 0, ok: 0, var: 0, stale: 0, pending: 0, opening: 0, in: 0, out: 0, expected: 0, counted: 0, checkedExp: 0, wtOpening: 0, wtExpected: 0 };
@@ -150,9 +152,13 @@ export function summarize(locs, opening, mvs, counts, settings) {
     if (counted) { S.counted += sumLines(c.lines); S.checkedExp += sumLines(e.lines); }
     const types = new Set([...Object.keys(e.lines), ...Object.keys(o.lines), ...Object.keys(f.in), ...Object.keys(f.out), ...Object.keys(counted ? c.lines || {} : {})]);
     for (const t of types) {
-      const B = ((byType[t] ||= {})[l.sec] ||= { op: 0, in: 0, out: 0, exp: 0, cnt: 0, chkExp: 0 });
-      B.op += o.lines[t] || 0; B.in += f.in[t] || 0; B.out += f.out[t] || 0; B.exp += e.lines[t] || 0;
-      if (counted) { B.cnt += +(c.lines || {})[t] || 0; B.chkExp += e.lines[t] || 0; }
+      const it = itemOf(t), jt = jtOfLine(l, t);
+      const rec = { locId: l.id, sec: l.sec, key: t, item: it, jt, metal: jt === 'Platinum' ? 'Platinum' : 'Gold', op: o.lines[t] || 0, in: f.in[t] || 0, out: f.out[t] || 0, exp: e.lines[t] || 0, cnt: counted ? +(c.lines || {})[t] || 0 : 0, chkExp: counted ? e.lines[t] || 0 : 0, counted: !!counted };
+      lines.push(rec);
+      for (const [map, k] of [[byType, it], [byJt, jt]]) {
+        const B = ((map[k] ||= {})[l.sec] ||= { op: 0, in: 0, out: 0, exp: 0, cnt: 0, chkExp: 0 });
+        B.op += rec.op; B.in += rec.in; B.out += rec.out; B.exp += rec.exp; B.cnt += rec.cnt; B.chkExp += rec.chkExp;
+      }
     }
     const pk = l.purity || '—'; const ck = l.cat || '—';
     byPurity[pk] = (byPurity[pk] || 0) + sumLines(e.lines);
@@ -160,7 +166,7 @@ export function summarize(locs, opening, mvs, counts, settings) {
   }
   const total = { locs: 0, ok: 0, var: 0, stale: 0, pending: 0, opening: 0, in: 0, out: 0, expected: 0, counted: 0, checkedExp: 0 };
   for (const S of Object.values(sec)) for (const k of Object.keys(total)) total[k] += S[k];
-  return { exp, flows: fl, last, status, sec, total, byType, byPurity, byCat };
+  return { exp, flows: fl, last, status, sec, total, byType, byJt, lines, byPurity, byCat };
 }
 
 export function closingOf(opening, mvs) {
@@ -188,6 +194,24 @@ export function closingVerified(locs, opening, mvs, counts, settings) {
  *  A category mapped to '-' is not in the ERP report and is kept out of the match.
  *  ERP rows without Pc/Lbl (weight-only) are omitted — those live in Boxes as weight-only stock.
  *  which: 'closing' (app expected) or 'opening' (when the ERP report is for the previous day). */
+// ---- Jewellery type per item line (v1.9) ----
+// A location (tray / box / counter tray) has a jewellery type: Plain Gold, Diamond, Platinum or Mixed.
+// Each stock line key is an item type, optionally with a jewellery type code: "Ring" or "Ring@D".
+// A plain key means the location's own type (Plain Gold when the location is Mixed).
+export const JTYPES = ['Plain Gold Jewellery', 'Diamond Jewellery', 'Platinum', 'Mixed'];
+export const LINE_JTYPES = ['Plain Gold Jewellery', 'Diamond Jewellery', 'Platinum'];
+export const JT_CODE = { 'Plain Gold Jewellery': 'G', 'Diamond Jewellery': 'D', Platinum: 'P' };
+export const JT_SHORT = { 'Plain Gold Jewellery': 'Gold', 'Diamond Jewellery': 'Diamond', Platinum: 'Platinum' };
+export const itemOf = (k) => String(k).split('@')[0];
+export const defaultJt = (loc) => (loc?.jtype && loc.jtype !== 'Mixed' && JT_CODE[loc.jtype] ? loc.jtype : 'Plain Gold Jewellery');
+export function jtOfLine(loc, k) {
+  const code = String(k).split('@')[1];
+  if (code) return Object.keys(JT_CODE).find((n) => JT_CODE[n] === code) || 'Plain Gold Jewellery';
+  return defaultJt(loc);
+}
+export const lineKey = (loc, item, jt) => (jt === defaultJt(loc) ? item : `${item}@${JT_CODE[jt] || 'G'}`);
+export const keyText = (loc, k) => `${JT_SHORT[jtOfLine(loc, k)]} ${itemOf(k)}`;
+export const lineMetal = (loc, k) => (jtOfLine(loc, k) === 'Platinum' ? 'Platinum' : 'Gold');
 export const metalOf = (loc) => (loc?.jtype === 'Platinum' || (!loc?.jtype && loc?.cat === 'Platinum') ? 'Platinum' : 'Gold');
 export const erpMetal = (name) => (/platinum/i.test(name || '') ? 'Platinum' : 'Gold');
 /** Best guess of Main location / Sub display / Jewellery type for locations created before v1.8 */
@@ -202,10 +226,12 @@ export function deriveLocMeta(l) {
   return { area, sub, jtype };
 }
 export const erpKey = (n) => String(n || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-export function erpNameFor(loc, type, settings) {
-  if (metalOf(loc) === 'Platinum') return settings?.erpPlatinum || DEFAULT_SETTINGS.erpPlatinum;
+export function erpNameFor(loc, key, settings) {
+  const jt = jtOfLine(loc, key); const type = itemOf(key);
+  if (jt === 'Platinum') return settings?.erpPlatinum || DEFAULT_SETTINGS.erpPlatinum;
   const cm = settings?.erpCatMap || DEFAULT_SETTINGS.erpCatMap; const im = settings?.erpItemMap || DEFAULT_SETTINGS.erpItemMap;
-  if (loc.cat && cm[loc.cat] != null) return cm[loc.cat];
+  if (loc.cat && loc.cat !== 'Diamond' && cm[loc.cat] != null) return cm[loc.cat];   // e.g. Lab-grown → Tanih
+  if (jt === 'Diamond Jewellery') return cm.Diamond || 'G-Diamond Jewellery';
   return im[type] ?? type;
 }
 export function erpCompare(erp, locs, sm, settings, which = 'closing', opening = null) {
