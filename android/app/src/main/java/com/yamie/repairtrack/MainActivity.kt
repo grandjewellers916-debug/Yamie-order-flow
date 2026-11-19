@@ -164,6 +164,42 @@ class MainActivity : ComponentActivity() {
 
     inner class Bridge {
 
+
+        @JavascriptInterface
+        fun version(): String = try { packageManager.getPackageInfo(packageName, 0).versionName ?: "" } catch (e: Exception) { "" }
+
+        // Picture card to WhatsApp: image + caption, straight into the customer's chat when possible
+        @JavascriptInterface
+        fun shareWhatsApp(phone: String, text: String, imagesJson: String) {
+            runOnUiThread {
+                try {
+                    val imgs = try { org.json.JSONArray(imagesJson) } catch (e: Exception) { org.json.JSONArray() }
+                    val digits = phone.filter { it.isDigit() }
+                    if (imgs.length() == 0) {
+                        openExternal(Uri.parse("https://wa.me/" + digits + "?text=" + Uri.encode(text)))
+                        return@runOnUiThread
+                    }
+                    val dir = File(cacheDir, "share").apply { mkdirs() }
+                    dir.listFiles()?.forEach { if (it.name.startsWith("card_")) it.delete() }
+                    val data = imgs.getString(0).substringAfter("base64,")
+                    val f = File(dir, "card_${System.currentTimeMillis()}.jpg")
+                    f.writeBytes(Base64.decode(data, Base64.DEFAULT))
+                    val uri = FileProvider.getUriForFile(this@MainActivity, "$packageName.files", f)
+                    val intent = Intent(Intent.ACTION_SEND).apply {
+                        type = "image/jpeg"
+                        putExtra(Intent.EXTRA_STREAM, uri)
+                        putExtra(Intent.EXTRA_TEXT, text)
+                        if (digits.isNotEmpty()) putExtra("jid", "$digits@s.whatsapp.net")
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    val sent = listOf("com.whatsapp", "com.whatsapp.w4b").any { pkg ->
+                        try { startActivity(Intent(intent).setPackage(pkg)); true } catch (e: android.content.ActivityNotFoundException) { false }
+                    }
+                    if (!sent) startActivity(Intent.createChooser(intent, "Send picture card"))
+                } catch (e: Exception) { }
+            }
+        }
+
         @JavascriptInterface
         fun openUrl(url: String) {
             runOnUiThread { openExternal(Uri.parse(url)) }

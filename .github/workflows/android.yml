@@ -1,4 +1,4 @@
-name: Build Repair Track APK
+name: Build Repair Desk APK
 
 on:
   push:
@@ -31,18 +31,18 @@ jobs:
         run: gradle -p android assembleRelease --no-daemon
 
       - name: Name the APK
-        run: cp android/app/build/outputs/apk/release/app-release.apk yamie-repair-track.apk
+        run: cp android/app/build/outputs/apk/release/app-release.apk yamie-repair-desk.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: yamie-repair-track-apk
-          path: yamie-repair-track.apk
+          name: yamie-repair-desk-apk
+          path: yamie-repair-desk.apk
 
       - name: Publish download
         uses: softprops/action-gh-release@v2
         with:
           tag_name: repair-track-v${{ github.run_number }}
-          name: Yamie Repair Track v1.0.${{ github.run_number }}
+          name: Yamie Repair Desk v1.1.${{ github.run_number }}
           target_commitish: ${{ github.sha }}
-          files: yamie-repair-track.apk
-          body: "Yamie customer repair app. Install yamie-repair-track.apk on the shop phone. New versions install over the old one and keep all repair jobs, users and settings."
+          files: yamie-repair-desk.apk
+          body: "Yamie Repair Desk V1.1: new app logo, auto message after QC, picture card or plain text WhatsApp, 7-day delay warning, check with smith, inform customer of delay (permission). Install yamie-repair-desk.apk on the shop phone. New versions install over the old one and keep all repair jobs, users and settings."

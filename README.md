@@ -1,4 +1,4 @@
-# Yamie Repair Track (Android)
+# Yamie Repair Desk (Android)
 
 Customer repair desk for Yamie Fine Jewellery: intake with photos and signature, issue to smith, receive back, QC, inform customer (call / WhatsApp), close; users with PIN and permissions; dashboard; reminders; reports.
 
