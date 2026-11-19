@@ -74,10 +74,15 @@ class MainActivity : ComponentActivity() {
             mediaPlaybackRequiresUserGesture = true
             useWideViewPort = true
             loadWithOverviewMode = false
-            textZoom = 100
+            textZoom = 100                 // ignore phone font-size setting so the layout never overflows
+            setSupportZoom(false)
+            builtInZoomControls = false
+            displayZoomControls = false
             userAgentString = "$userAgentString YamieStockCheckApp/${BuildConfig.VERSION_NAME}"
         }
         web.addJavascriptInterface(Bridge(), "YamieStock")
+        web.overScrollMode = android.view.View.OVER_SCROLL_NEVER
+        web.isHorizontalScrollBarEnabled = false
 
         web.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {

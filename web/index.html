@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#8F171B">
 <title>Yamie Stock Check</title>
 <link rel="manifest" href="manifest.webmanifest">
@@ -43,10 +43,19 @@ label.f{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
 .bell i{position:absolute;top:3px;right:3px;background:#FFD27A;color:var(--m2);font-style:normal;font-size:11px;font-weight:700;border-radius:99px;padding:0 5px;min-width:18px;text-align:center}
 main{padding:14px;padding-bottom:96px;max-width:1300px;margin:0 auto}
 .nav{position:fixed;bottom:0;left:0;right:0;z-index:20;background:#fff;border-top:1px solid var(--ln);display:flex;padding-bottom:env(safe-area-inset-bottom)}
-/* Android app: bottom bar always shown on phones (and above everything except open windows) */
-html.apk .nav{display:flex!important;z-index:40;box-shadow:0 -2px 10px rgba(0,0,0,.06)}
-html.apk main{padding-bottom:110px}
-@media(max-width:899px){html.apk .nav{top:auto!important;bottom:0!important;width:auto!important;flex-direction:row!important;padding-top:0!important}}
+/* Phone app shell (< 900 px, browser and Android app): top bar · scrolling content · bottom bar.
+   The bottom bar is part of the layout (not floating), so it is always on screen; nothing can be swiped sideways. */
+@media(max-width:899px){
+  html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:pan-y;max-width:100vw}
+  #app{height:var(--vh,100dvh);min-height:0;display:flex;flex-direction:column;overflow:hidden}
+  #app>.top{position:relative;flex:none}
+  #app>main{flex:1 1 auto;min-height:0;width:100%;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;padding-bottom:24px}
+  #app>.nav{position:relative;flex:none;order:3;z-index:20}
+  #app>.login{height:100%;overflow-y:auto}
+  .tw{max-width:100%;touch-action:pan-x pan-y}
+  .filters,.steps,.tabs{touch-action:pan-x pan-y}
+  img,svg,table{max-width:100%}
+}
 .nav button{flex:1;padding:8px 2px 9px;font-size:11px;color:var(--mut);display:flex;flex-direction:column;align-items:center;gap:2px}
 .nav button svg{width:22px;height:22px}
 .nav button.on{color:var(--m);font-weight:600}
@@ -260,7 +269,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.10.1';
+const VERSION = '1.10.2';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -275,6 +284,9 @@ const ICON = {
 const svg = (k, s = 22) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICON[k]}</svg>`;
 
 if (/YamieStockCheckApp/.test(navigator.userAgent) || window.YamieStock) document.documentElement.classList.add('apk');
+// real visible height (older Android WebViews get 100vh wrong)
+const setVh = () => document.documentElement.style.setProperty('--vh', window.innerHeight + 'px');
+setVh(); addEventListener('resize', setVh); addEventListener('orientationchange', () => setTimeout(setVh, 300));
 const S = { token: localStorage.ysc_token || '', me: null, D: null, view: 'home', date: null, filter: 'all', q: '', tab: 'users', modal: false, sumCache: null };
 const can = (p) => S.me && (S.me.role === 'admin' || (S.me.perms || []).includes(p));
 const isToday = () => S.D && S.D.date === S.D.today;
@@ -369,7 +381,7 @@ const NAV = [['home', 'Home', 'home'], ['counter', 'Counter', 'counter'], ['tray
 function render() {
   if (!S.me) return showLogin();
   document.title = `Yamie Stock Check · ${S.D.date}`;
-  $('#app').innerHTML = `<header class="top" id="top"></header><nav class="nav">${NAV.map(([k, l, i]) => `<button data-nav="${k}" class="${S.view === k || (k === 'more' && ['more', 'alerts', 'log', 'admin', 'history', 'eod'].includes(S.view)) ? 'on' : ''}">${svg(i)}<span>${l === 'Consolidated' && innerWidth < 900 ? 'Total' : l}</span></button>`).join('')}</nav><main id="main"></main>`;
+  $('#app').innerHTML = `<header class="top" id="top"></header><main id="main"></main><nav class="nav">${NAV.map(([k, l, i]) => `<button data-nav="${k}" class="${S.view === k || (k === 'more' && ['more', 'alerts', 'log', 'admin', 'history', 'eod'].includes(S.view)) ? 'on' : ''}">${svg(i)}<span>${l === 'Consolidated' && innerWidth < 900 ? 'Total' : l}</span></button>`).join('')}</nav>`;
   $('#app').querySelectorAll('[data-nav]').forEach((b) => b.onclick = () => go(b.dataset.nav));
   renderTop();
   const v = { home: vHome, counter: () => vSection('counter'), tray: () => vSection('tray'), box: () => vSection('box'), total: vTotal, more: vMore, alerts: vAlerts, log: vLog, eod: vEod, admin: vAdmin, history: vHistory }[S.view] || vHome;
@@ -384,7 +396,7 @@ function renderTop() {
   $('#dateBtn').onclick = () => can('reports') ? go('history') : null;
   $('#bellBtn') && ($('#bellBtn').onclick = () => go('alerts'));
 }
-function go(v) { S.view = v; S.filter = 'all'; S.q = ''; if (v === 'total') S.tab = ''; render(); scrollTo(0, 0); }
+function go(v) { S.view = v; S.filter = 'all'; S.q = ''; if (v === 'total') S.tab = ''; render(); scrollTo(0, 0); $('#main')?.scrollTo(0, 0); }
 function viewBanner() {
   if (isToday()) return S.D.day.status === 'closed' ? `<div class="banner">Today is closed — stock is locked. ${S.me.role === 'admin' ? '<button class="btn sm sec" id="reopenBtn">Reopen today</button>' : ''}</div>` : '';
   return `<div class="banner">Viewing ${dt(S.D.date)} (${S.D.day.status}) — read only <button class="btn sm sec" id="backToday">Back to today</button></div>`;
