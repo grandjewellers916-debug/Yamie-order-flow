@@ -153,7 +153,7 @@ export function summarize(locs, opening, mvs, counts, settings) {
     const types = new Set([...Object.keys(e.lines), ...Object.keys(o.lines), ...Object.keys(f.in), ...Object.keys(f.out), ...Object.keys(counted ? c.lines || {} : {})]);
     for (const t of types) {
       const it = itemOf(t), jt = jtOfLine(l, t);
-      const rec = { locId: l.id, sec: l.sec, key: t, item: it, jt, metal: jt === 'Platinum' ? 'Platinum' : 'Gold', op: o.lines[t] || 0, in: f.in[t] || 0, out: f.out[t] || 0, exp: e.lines[t] || 0, cnt: counted ? +(c.lines || {})[t] || 0 : 0, chkExp: counted ? e.lines[t] || 0 : 0, counted: !!counted };
+      const rec = { locId: l.id, sec: l.sec, key: t, item: it, jt, purity: purOfLine(l, t), metal: jt === 'Platinum' ? 'Platinum' : 'Gold', op: o.lines[t] || 0, in: f.in[t] || 0, out: f.out[t] || 0, exp: e.lines[t] || 0, cnt: counted ? +(c.lines || {})[t] || 0 : 0, chkExp: counted ? e.lines[t] || 0 : 0, counted: !!counted };
       lines.push(rec);
       for (const [map, k] of [[byType, it], [byJt, jt]]) {
         const B = ((map[k] ||= {})[l.sec] ||= { op: 0, in: 0, out: 0, exp: 0, cnt: 0, chkExp: 0 });
@@ -202,15 +202,22 @@ export const JTYPES = ['Plain Gold Jewellery', 'Diamond Jewellery', 'Platinum', 
 export const LINE_JTYPES = ['Plain Gold Jewellery', 'Diamond Jewellery', 'Platinum'];
 export const JT_CODE = { 'Plain Gold Jewellery': 'G', 'Diamond Jewellery': 'D', Platinum: 'P' };
 export const JT_SHORT = { 'Plain Gold Jewellery': 'Gold', 'Diamond Jewellery': 'Diamond', Platinum: 'Platinum' };
-export const itemOf = (k) => String(k).split('@')[0];
+// v1.10: key may also carry purity: "Ring@D#18K" (jewellery type D, purity 18K). "#-" = no purity.
+export const itemOf = (k) => String(k).split(/[@#]/)[0];
+export const defaultPur = (loc) => loc?.purity || '';
+export function purOfLine(loc, k) { const m = /#(.*)$/.exec(String(k)); if (!m) return defaultPur(loc); return m[1] === '-' ? '' : m[1]; }
 export const defaultJt = (loc) => (loc?.jtype && loc.jtype !== 'Mixed' && JT_CODE[loc.jtype] ? loc.jtype : 'Plain Gold Jewellery');
 export function jtOfLine(loc, k) {
-  const code = String(k).split('@')[1];
+  const code = (/@([A-Z])/.exec(String(k)) || [])[1];
   if (code) return Object.keys(JT_CODE).find((n) => JT_CODE[n] === code) || 'Plain Gold Jewellery';
   return defaultJt(loc);
 }
-export const lineKey = (loc, item, jt) => (jt === defaultJt(loc) ? item : `${item}@${JT_CODE[jt] || 'G'}`);
-export const keyText = (loc, k) => `${JT_SHORT[jtOfLine(loc, k)]} ${itemOf(k)}`;
+export const lineKey = (loc, item, jt, pur) => {
+  let k = jt === defaultJt(loc) || !jt ? item : `${item}@${JT_CODE[jt] || 'G'}`;
+  if (pur !== undefined && (pur || '') !== defaultPur(loc)) k += `#${pur || '-'}`;
+  return k;
+};
+export const keyText = (loc, k) => { const p = purOfLine(loc, k); return `${JT_SHORT[jtOfLine(loc, k)]}${p ? ' ' + p : ''} ${itemOf(k)}`; };
 export const lineMetal = (loc, k) => (jtOfLine(loc, k) === 'Platinum' ? 'Platinum' : 'Gold');
 export const metalOf = (loc) => (loc?.jtype === 'Platinum' || (!loc?.jtype && loc?.cat === 'Platinum') ? 'Platinum' : 'Gold');
 export const erpMetal = (name) => (/platinum/i.test(name || '') ? 'Platinum' : 'Gold');

@@ -2,7 +2,7 @@ import { getStore } from '@netlify/blobs';
 import crypto from 'node:crypto';
 import { buildSeed } from '../lib/seed.mjs';
 import {
-  DEFAULT_SETTINGS, ROLE_PERMS, PERMS, SECTIONS, TXN_TYPES, deriveLocMeta, JTYPES, keyText, lineKey, itemOf, jtOfLine, summarize, closingVerified, computeExpected, erpCompare,
+  DEFAULT_SETTINGS, ROLE_PERMS, PERMS, SECTIONS, TXN_TYPES, deriveLocMeta, JTYPES, keyText, lineKey, itemOf, jtOfLine, purOfLine, summarize, closingVerified, computeExpected, erpCompare,
   latestCounts, locStatus, sumLines, istDate, r3,
 } from '../../web/core.mjs';
 
@@ -398,7 +398,7 @@ export default async (req: Request) => {
       else if (body.kind === 'move') {
         if (!byId[body.locId] || !byId[body.toLocId] || body.locId === body.toLocId) return err('Pick two different locations');
         // keep each piece's jewellery type when it moves to a location of another type
-        const toLines: any = {}; for (const [k, n] of Object.entries(lines)) { const k2 = lineKey(byId[body.toLocId], itemOf(k), jtOfLine(byId[body.locId], k)); toLines[k2] = (toLines[k2] || 0) + (n as number); }
+        const toLines: any = {}; for (const [k, n] of Object.entries(lines)) { const k2 = lineKey(byId[body.toLocId], itemOf(k), jtOfLine(byId[body.locId], k), purOfLine(byId[body.locId], k)); toLines[k2] = (toLines[k2] || 0) + (n as number); }
         legs = [{ locId: body.locId, lines: neg(lines), wt: -wt }, { locId: body.toLocId, lines: toLines, wt: r3(body.toWt ?? wt) }];
       } else if (body.kind === 'set' || body.kind === 'accept') {
         if (body.kind === 'accept') need('accept');

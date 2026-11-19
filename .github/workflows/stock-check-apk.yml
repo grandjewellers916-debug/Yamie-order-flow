@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 env:
-  APP_VERSION: '1.9'   # keep in step with VERSION in web/index.html
+  APP_VERSION: '1.10'   # keep in step with VERSION in web/index.html
 
 jobs:
   apk:
