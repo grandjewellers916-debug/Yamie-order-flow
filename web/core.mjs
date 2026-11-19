@@ -35,10 +35,25 @@ export const ROLE_PERMS = {
   manager: ['count', 'move', 'setup', 'accept', 'close', 'reports', 'alerts', 'erp', 'verifyAll'],
   staff: ['count'],
 };
+// End-of-day transaction types. dir +1 = stock in, −1 = stock out. admin: only admin may enter.
+export const TXN_TYPES = [
+  { k: 'sale', label: 'Sales', dir: -1 },
+  { k: 'salesReturn', label: 'Sales returns', dir: 1 },
+  { k: 'newStock', label: 'New stock in', dir: 1 },
+  { k: 'withdrawal', label: 'Stock withdrawal', dir: -1, admin: true },
+  { k: 'smithReceipt', label: 'Smith receipts', dir: 1 },
+  { k: 'smithIssue', label: 'Smith issues', dir: -1 },
+  { k: 'repairIssue', label: 'Repair issues', dir: -1 },
+  { k: 'partnerDrawing', label: 'Partner drawings', dir: -1 },
+  { k: 'sample', label: 'Samples', dir: -1 },
+  { k: 'grandApproval', label: 'Grand approval sales', dir: -1 },
+];
 export const REASONS = {
-  in: ['New stock', 'Sales return', 'Transfer in', 'Repair back', 'Other in'],
-  out: ['Sale', 'Transfer out', 'Repair / Melt', 'Approval out', 'Other out'],
+  in: TXN_TYPES.filter((t) => t.dir > 0).map((t) => t.label),
+  out: TXN_TYPES.filter((t) => t.dir < 0).map((t) => t.label),
 };
+export const roundOf = (day) => day?.round || 'morning';
+export const roundCounts = (counts, round) => (counts || []).filter((c) => (c.round || 'morning') === round);
 
 export const sumLines = (l) => Object.values(l || {}).reduce((a, b) => a + (+b || 0), 0);
 export const r3 = (n) => Math.round((+n || 0) * 1000) / 1000;

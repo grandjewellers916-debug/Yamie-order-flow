@@ -2,7 +2,7 @@ import { getStore } from '@netlify/blobs';
 import crypto from 'node:crypto';
 import { buildSeed } from '../lib/seed.mjs';
 import {
-  DEFAULT_SETTINGS, ROLE_PERMS, PERMS, SECTIONS, summarize, closingVerified, computeExpected, erpCompare,
+  DEFAULT_SETTINGS, ROLE_PERMS, PERMS, SECTIONS, TXN_TYPES, summarize, closingVerified, computeExpected, erpCompare,
   latestCounts, locStatus, sumLines, istDate, r3,
 } from '../../web/core.mjs';
 
@@ -71,12 +71,20 @@ async function dayKeys(s: any) {
   const { blobs } = await s.list({ prefix: 'day/' });
   return blobs.map((b: any) => b.key.slice(4)).sort();
 }
-async function loadDay(s: any, date: string) {
+async function loadDay(s: any, date: string, round?: string) {
   const [day, mvs, counts] = await Promise.all([
     s.get(`day/${date}`, { type: 'json' }), listJSON(s, `mv/${date}/`), listJSON(s, `ct/${date}/`),
   ]);
   mvs.sort((a: any, b: any) => a.at - b.at);
-  return { day, mvs, counts };
+  // Two compulsory counts a day: 'morning' then 'evening'. Checks always use the current round.
+  const r = round || day?.round || 'morning';
+  return { day, mvs, counts: counts.filter((c: any) => (c.round || 'morning') === r), allCounts: counts, round: r };
+}
+function roundsDone(locs: any[], day: any, mvs: any[], morning: any[], evening: any[], settings: any) {
+  const f = (cs: any[]) => { const sm = summarize(locs, day.opening, mvs, cs, settings); return { done: sm.total.locs - sm.total.pending - sm.total.stale, locs: sm.total.locs, var: sm.total.var }; };
+  // morning: stale is fine (stock moved later in the day) — it was counted
+  const m = summarize(locs, day.opening, mvs, morning, settings);
+  return { morning: { done: m.total.locs - m.total.pending, locs: m.total.locs, var: m.total.var + m.total.stale }, evening: f(evening) };
 }
 function daySummaryLine(locs: any[], day: any, mvs: any[], counts: any[], settings: any) {
   const sm = summarize(locs, day.opening, mvs, counts, settings);
@@ -84,10 +92,12 @@ function daySummaryLine(locs: any[], day: any, mvs: any[], counts: any[], settin
 }
 async function closeDay(s: any, date: string, by: string, auto = false) {
   const locs = await getLocs(s); const settings = await getSettings(s);
-  const { day, mvs, counts } = await loadDay(s, date);
+  const { day, mvs, counts, allCounts } = await loadDay(s, date, 'evening');
   if (!day || day.status === 'closed') return day;
+  const mc = allCounts.filter((c: any) => (c.round || 'morning') === 'morning');
   day.closing = closingVerified(locs, day.opening, mvs, counts, settings);
   day.summary = daySummaryLine(locs, day, mvs, counts, settings);
+  day.summary.rounds = roundsDone(locs, day, mvs, mc, counts, settings);
   const erp = await s.get(`erp/${date}`, { type: 'json' });
   const ec = erpCmp(erp, locs, day, mvs, counts, settings);
   day.summary.erp = { entered: ec.entered, matched: ec.matched, app: ec.total.app, pcs: ec.total.pcs, lbl: ec.total.lbl, diff: ec.total.diff };
@@ -184,7 +194,7 @@ export default async (req: Request) => {
       }
       const days = await dayKeys(s);
       const [sessions, erp] = await Promise.all([listJSON(s, `ss/${date}/`), s.get(`erp/${date}`, { type: 'json' })]);
-      return J({ today, date, day: d.day, mvs: d.mvs, counts: d.counts, sessions, erp, locs, settings, me: pubUser(me), alerts, days, userNames: Object.fromEntries(users.map((u) => [u.id, u.name])) });
+      return J({ today, date, day: d.day, mvs: d.mvs, counts: d.allCounts, sessions, erp, locs, settings, me: pubUser(me), alerts, days, userNames: Object.fromEntries(users.map((u) => [u.id, u.name])) });
     }
 
     // helpers needing an open day
@@ -209,7 +219,7 @@ export default async (req: Request) => {
       }
       const mode = loc.sec === 'box' ? (body.mode || 'both') : 'count';
       const lines: any = {}; for (const [t, n] of Object.entries(body.lines || {})) if (+(n as any) > 0) lines[t] = Math.round(+(n as any));
-      const rec: any = { id: `${now()}-${rid()}`, date: today, locId: loc.id, sec: loc.sec, mode, lines: mode === 'weight' ? null : lines, wt: mode === 'count' ? null : r3(body.wt), note: String(body.note || '').slice(0, 300), by: me.id, at: now(), expected: exp, sessionId: String(body.sessionId || '').slice(0, 40), reasons: {} as any };
+      const rec: any = { id: `${now()}-${rid()}`, date: today, locId: loc.id, sec: loc.sec, mode, lines: mode === 'weight' ? null : lines, wt: mode === 'count' ? null : r3(body.wt), note: String(body.note || '').slice(0, 300), by: me.id, at: now(), round: day.round || 'morning', expected: exp, sessionId: String(body.sessionId || '').slice(0, 40), reasons: {} as any };
       if (Array.isArray(body.slots)) rec.slots = body.slots.slice(0, 20).map((x: any) => ({ f: Math.max(0, Math.round(+x.f || 0)), n: Math.max(0, Math.round(+x.n || 0)), per: Math.max(0, Math.round(+x.per || 0)) }));
       for (const [t, r] of Object.entries(body.reasons || {})) rec.reasons[String(t).slice(0, 30)] = String(r).slice(0, 80);
       if (body.verifyAll && !can('verifyAll')) return err('No permission to use Verify all', 403);
@@ -252,9 +262,10 @@ export default async (req: Request) => {
       const scope = ['all', ...SECTIONS.map((x) => x.key)].includes(body.scope) ? body.scope : 'all';
       const ids = Array.isArray(body.ids) ? body.ids.slice(0, 400).map((x: any) => String(x).slice(0, 40)) : null;
       const label = String(body.label || '').slice(0, 120);
-      const existing = (await listJSON(s, `ss/${today}/`)).find((x: any) => x.by === me.id && x.scope === scope && (x.label || '') === label && x.status === 'active');
+      const curDay = await ensureToday(s); const round = curDay.round || 'morning';
+      const existing = (await listJSON(s, `ss/${today}/`)).find((x: any) => x.by === me.id && x.scope === scope && (x.label || '') === label && (x.round || 'morning') === round && x.status === 'active');
       if (existing) return J({ session: existing, resumed: true });
-      const rec: any = { id: `${now()}-${rid()}`, date: today, scope, by: me.id, at: now(), status: 'active' };
+      const rec: any = { id: `${now()}-${rid()}`, date: today, scope, round, by: me.id, at: now(), status: 'active' };
       if (ids) { rec.ids = ids; rec.label = label; }
       await s.setJSON(`ss/${today}/${rec.id}`, rec);
       return J({ session: rec });
@@ -264,7 +275,7 @@ export default async (req: Request) => {
       const key = `ss/${today}/${String(body.id).replace(/[^a-z0-9-]/gi, '')}`;
       const ses: any = await s.get(key, { type: 'json' }); if (!ses) return err('Session not found');
       const locs = await getLocs(s); const settings = await getSettings(s);
-      const { day, mvs, counts } = await loadDay(s, today);
+      const { day, mvs, counts } = await loadDay(s, today, ses.round || 'morning');
       const sm = summarize(locs, day.opening, mvs, counts, settings);
       const inScope = ses.ids ? locs.filter((l) => ses.ids.includes(l.id)) : locs.filter((l) => l.active !== false && (ses.scope === 'all' || l.sec === ses.scope));
       let exp = 0, act = 0, short = 0, excess = 0, pend = 0, done = 0, wtVar = 0;
@@ -279,7 +290,7 @@ export default async (req: Request) => {
       ses.summary = { locs: inScope.length, done, expected: exp, actual: act, short, excess, pending: pend, wtVar };
       ses.status = done >= inScope.length ? 'done' : 'active'; ses.finishedAt = now();
       await s.setJSON(key, ses);
-      const label = ses.label || (ses.scope === 'all' ? 'Full stock count' : SECTIONS.find((x) => x.key === ses.scope)?.label + ' count');
+      const label = (ses.round === 'evening' ? 'Evening · ' : 'Morning · ') + (ses.label || (ses.scope === 'all' ? 'Full stock count' : SECTIONS.find((x) => x.key === ses.scope)?.label + ' count'));
       const text = `${label} by ${me.name}: ${done}/${inScope.length} verified. Expected ${exp}, actual ${act}, short ${short}, excess ${excess}. Pending discrepancies ${pend}.` + (lines.length ? ' ' + lines.join('; ') : '');
       await addAlert(s, { type: 'report', title: `${label} ${ses.status === 'done' ? 'completed' : 'saved (incomplete)'}`, body: text, by: me.id, ok: !pend && ses.status === 'done' });
       return J({ ok: true, session: ses, text });
@@ -328,8 +339,48 @@ export default async (req: Request) => {
       return J({ ok: true, text });
     }
 
+    if (path === 'round' && method === 'POST') {
+      need('move'); const day = await openDay(body.date);
+      const to = body.round === 'evening' ? 'evening' : 'morning';
+      if (to === 'morning' && me.role !== 'admin') return err('Only admin can go back to the morning count', 403);
+      day.round = to; if (to === 'evening') { day.eveningAt = now(); day.eveningBy = me.id; }
+      await s.setJSON(`day/${today}`, day);
+      const locs = await getLocs(s); const settings = await getSettings(s); const d = await loadDay(s, today, 'morning');
+      const r = roundsDone(locs, day, d.mvs, d.counts, [], settings).morning;
+      await addAlert(s, { type: 'info', title: to === 'evening' ? 'Evening count started' : 'Back to morning count', body: `${me.name} ${to === 'evening' ? 'finished end-of-day entries and started the evening count' : 'reopened the morning count'}. Morning count: ${r.done}/${r.locs} verified.`, by: me.id });
+      return J({ ok: true, round: to });
+    }
+
+    if (path === 'txns' && method === 'POST') {
+      need('move'); await openDay(body.date);
+      const locs = await getLocs(s); const byId = Object.fromEntries(locs.map((l) => [l.id, l]));
+      const rows = (Array.isArray(body.rows) ? body.rows : []).slice(0, 100);
+      if (!rows.length) return err('No entries');
+      const out: any[] = [];
+      for (const [i, x] of rows.entries()) {
+        const T = TXN_TYPES.find((t: any) => t.k === x.type); if (!T) return err(`Row ${i + 1}: choose a type`);
+        if (T.admin && me.role !== 'admin') return err(`Row ${i + 1}: ${T.label} is admin only`, 403);
+        const loc = byId[x.locId]; if (!loc) return err(`Row ${i + 1}: choose a location`);
+        const qty = Math.max(0, Math.round(+x.qty || 0)); const wt = Math.max(0, r3(x.wt));
+        if (!qty && !wt) return err(`Row ${i + 1}: enter quantity or weight`);
+        if (qty && !x.item) return err(`Row ${i + 1}: choose the item`);
+        out.push({ T, loc, qty, wt, item: String(x.item || '').slice(0, 30), ref: String(x.ref || '').slice(0, 60), note: String(x.note || '').slice(0, 200) });
+      }
+      const saved = [];
+      const dd = await loadDay(s, today); const expAll = computeExpected(dd.day.opening, dd.mvs);
+      for (const r of out) {
+        const sign = r.T.dir;
+        const mv = { id: `${now()}-${rid()}`, date: today, kind: sign > 0 ? 'in' : 'out', txn: r.T.k, reason: r.T.label, ref: r.ref, note: r.note, qty: r.qty, wtTotal: r.wt,
+          legs: [{ locId: r.loc.id, lines: r.qty ? { [r.item]: sign * r.qty } : {}, wt: r.loc.sec === 'box' && ((expAll[r.loc.id]?.wt || 0) > 0 || sign > 0) ? sign * r.wt : 0 }], by: me.id, at: now(), eod: true };
+        const L0 = (expAll[r.loc.id] ||= { lines: {}, wt: 0 }); L0.wt = r3(L0.wt + mv.legs[0].wt);
+        await s.setJSON(`mv/${today}/${mv.id}`, mv); saved.push(mv);
+      }
+      return J({ ok: true, saved: saved.length });
+    }
+
     if (path === 'move' && method === 'POST') {
       need(body.kind === 'set' ? 'setup' : 'move');
+      if (body.reason === 'Stock withdrawal' && me.role !== 'admin') return err('Stock withdrawal is admin only', 403);
       await openDay(body.date);
       const locs = await getLocs(s);
       const byId = Object.fromEntries(locs.map((l) => [l.id, l]));
@@ -358,7 +409,7 @@ export default async (req: Request) => {
         if (!sumLines(d) && !Object.keys(d).length && !legs[0].wt) return J({ ok: true, nochange: true });
       } else return err('Unknown movement');
       if (!legs.some((l) => Object.keys(l.lines).length || l.wt)) return err('Enter a quantity or weight');
-      const mv = { id: `${now()}-${rid()}`, date: today, kind: body.kind, reason: String(body.reason || '').slice(0, 60), ref: String(body.ref || '').slice(0, 60), note: String(body.note || '').slice(0, 300), legs, by: me.id, at: now(), ...(body.kind === 'accept' ? { countId: body.countId } : {}) };
+      const mv = { id: `${now()}-${rid()}`, date: today, kind: body.kind, txn: TXN_TYPES.find((t: any) => t.label === body.reason)?.k, wtTotal: r3(body.wtTotal ?? body.wt), reason: String(body.reason || '').slice(0, 60), ref: String(body.ref || '').slice(0, 60), note: String(body.note || '').slice(0, 300), legs, by: me.id, at: now(), ...(body.kind === 'accept' ? { countId: body.countId } : {}) };
       await s.setJSON(`mv/${today}/${mv.id}`, mv);
       if (body.kind === 'set' || body.kind === 'accept') {
         const loc = byId[body.locId];
@@ -417,6 +468,15 @@ export default async (req: Request) => {
         const locs = await getLocs(s); const settings = await getSettings(s); const d = await loadDay(s, today);
         const erp = await s.get(`erp/${today}`, { type: 'json' });
         const ec = erpCmp(erp, locs, d.day, d.mvs, d.counts, settings);
+        const rd = roundsDone(locs, d.day, d.mvs, d.allCounts.filter((c: any) => (c.round || 'morning') === 'morning'), d.allCounts.filter((c: any) => c.round === 'evening'), settings);
+        const miss = [];
+        if (rd.morning.done < rd.morning.locs) miss.push(`morning count ${rd.morning.done}/${rd.morning.locs}`);
+        if ((d.day.round || 'morning') !== 'evening') miss.push('evening count not started');
+        else if (rd.evening.done < rd.evening.locs) miss.push(`evening count ${rd.evening.done}/${rd.evening.locs}`);
+        if (miss.length) {
+          if (me.role !== 'admin') return err(`Both counts are compulsory — ${miss.join(', ')}. Only admin can close now.`, 409);
+          if (!String(body.override || '').trim()) return err(`Counts incomplete (${miss.join(', ')}). Give a reason to close.`, 409);
+        }
         if (ec.entered && !ec.matched) {
           if (me.role !== 'admin') return err(`ERP total does not match (difference ${ec.total.diff > 0 ? '+' : ''}${ec.total.diff}). Only admin can close with a mismatch.`, 409);
           if (!String(body.override || '').trim()) return err('Give a reason to close with an ERP mismatch', 409);

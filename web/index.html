@@ -184,6 +184,18 @@ td.pos{color:var(--ok);font-weight:600}td.neg{color:var(--bad);font-weight:600}
 .vr.sl{grid-template-columns:44px 1fr 120px 150px 90px}.vr.tot{background:var(--m3)}
 .pill{display:inline-block;min-width:56px;padding:6px 10px;border-radius:9px;background:var(--cr);font-weight:600;font-size:18px}.pill.ok{background:var(--okb);color:var(--ok)}
 .step.sm2 button{width:34px}.step.sm2 input{width:44px}
+.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+.fs{display:flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--ln);border-radius:12px;padding:10px;font-size:13px;cursor:default}
+.fs[data-flow]{cursor:pointer}.fs i{font-style:normal;font-size:20px;width:36px;height:36px;border-radius:10px;background:var(--cr);display:grid;place-items:center;flex:none}
+.fs b{display:block;font-size:14px}.fs span{color:var(--mut)}
+.fs.done{border-color:#B8DDC6;background:var(--okb)}.fs.done i{background:#fff}
+.fs.cur{border-color:var(--m);box-shadow:0 0 0 2px var(--m3)}.fs.cur i{background:var(--m);color:#fff}
+@media(max-width:699px){.flow{grid-template-columns:1fr 1fr}}
+.eg{display:grid;grid-template-columns:190px minmax(180px,1.4fr) 120px 80px 100px minmax(110px,1fr) 36px;gap:8px;align-items:start;padding:6px 0;border-bottom:1px solid var(--ln)}
+.eg.h{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;font-weight:600;padding-top:0}
+.eg select,.eg input{min-height:40px;padding:6px 8px;font-size:14px}.eg .x{width:36px;height:40px}
+select.tin{border-color:#9FD0B2;background:#F3FBF6}select.tout{border-color:#E8B4AE;background:#FDF5F4}
+@media(max-width:899px){.eg.h{display:none}.eg{grid-template-columns:1fr 1fr;padding:10px 0}.eg>select[data-f=type],.eg>div{grid-column:1/-1}.eg .x{grid-column:2;justify-self:end}}
 .ixr{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:4px}
 .ib{font-size:12px;padding:3px 9px;border-radius:99px;background:var(--cr);color:var(--ink);cursor:pointer;white-space:nowrap}
 .ib.need{background:var(--warnb);color:var(--warn);font-weight:600}.ib.done{background:var(--okb);color:var(--ok)}
@@ -216,7 +228,7 @@ td.pos{color:var(--ok);font-weight:600}td.neg{color:var(--bad);font-weight:600}
 <body>
 <div id="app"></div>
 <script type="module">
-import { SECTIONS, PERMS, ROLE_PERMS, REASONS, summarize, sumLines, r3, locStatus, istDate, erpCompare, erpKey } from './core.mjs';
+import { SECTIONS, PERMS, ROLE_PERMS, REASONS, TXN_TYPES, roundOf, roundCounts, summarize, sumLines, r3, locStatus, istDate, erpCompare, erpKey } from './core.mjs';
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -227,7 +239,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.5';
+const VERSION = '1.6';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -299,7 +311,11 @@ async function load(quiet) {
     const j = await api('state' + (S.date ? '?date=' + S.date : ''));
     const prevUnread = S.D?.alerts?.unread || 0;
     S.D = j; S.me = j.me; S.date = j.date === j.today ? null : j.date;
-    S.sum = summarize(j.locs, j.day.opening, j.mvs, j.counts, j.settings);
+    S.round = roundOf(j.day);
+    S.sum = summarize(j.locs, j.day.opening, j.mvs, roundCounts(j.counts, S.round), j.settings);
+    const mT = S.round === 'morning' ? S.sum.total : summarize(j.locs, j.day.opening, j.mvs, roundCounts(j.counts, 'morning'), j.settings).total;
+    S.rounds = { morning: { done: mT.locs - mT.pending, locs: mT.locs }, evening: S.round === 'evening' ? { done: S.sum.total.locs - S.sum.total.pending - S.sum.total.stale, locs: S.sum.total.locs } : { done: 0, locs: mT.locs } };
+    S.eodCount = j.mvs.filter((m) => m.eod && !m.void).length;
     S.locById = Object.fromEntries(j.locs.map((l) => [l.id, l]));
     if (quiet && j.alerts.unread > prevUnread) notify(j.alerts.unread - prevUnread);
     if (!quiet || !S.modal) render();
@@ -328,10 +344,10 @@ const NAV = [['home', 'Home', 'home'], ['counter', 'Counter', 'counter'], ['tray
 function render() {
   if (!S.me) return showLogin();
   document.title = `Yamie Stock Check · ${S.D.date}`;
-  $('#app').innerHTML = `<header class="top" id="top"></header><nav class="nav">${NAV.map(([k, l, i]) => `<button data-nav="${k}" class="${S.view === k || (k === 'more' && ['more', 'alerts', 'log', 'admin', 'history'].includes(S.view)) ? 'on' : ''}">${svg(i)}<span>${l === 'Consolidated' && innerWidth < 900 ? 'Total' : l}</span></button>`).join('')}</nav><main id="main"></main>`;
+  $('#app').innerHTML = `<header class="top" id="top"></header><nav class="nav">${NAV.map(([k, l, i]) => `<button data-nav="${k}" class="${S.view === k || (k === 'more' && ['more', 'alerts', 'log', 'admin', 'history', 'eod'].includes(S.view)) ? 'on' : ''}">${svg(i)}<span>${l === 'Consolidated' && innerWidth < 900 ? 'Total' : l}</span></button>`).join('')}</nav><main id="main"></main>`;
   $('#app').querySelectorAll('[data-nav]').forEach((b) => b.onclick = () => go(b.dataset.nav));
   renderTop();
-  const v = { home: vHome, counter: () => vSection('counter'), tray: () => vSection('tray'), box: () => vSection('box'), total: vTotal, more: vMore, alerts: vAlerts, log: vLog, admin: vAdmin, history: vHistory }[S.view] || vHome;
+  const v = { home: vHome, counter: () => vSection('counter'), tray: () => vSection('tray'), box: () => vSection('box'), total: vTotal, more: vMore, alerts: vAlerts, log: vLog, eod: vEod, admin: vAdmin, history: vHistory }[S.view] || vHome;
   v();
 }
 function renderTop() {
@@ -353,6 +369,74 @@ function bindBanner() {
   $('#reopenBtn') && ($('#reopenBtn').onclick = async () => { if (!confirm('Reopen today? Stock can be changed again and the day must be closed again.')) return; try { await api('reopen', {}); toast('Day reopened'); load(); } catch (e) { fail(e); } });
 }
 
+// ---------------- day flow: morning count → entries → evening count → close ----------------
+function dayFlow() {
+  const R = S.rounds; const ev = S.round === 'evening'; const closed = S.D.day.status === 'closed';
+  const st = (done, cur) => done ? 'done' : cur ? 'cur' : '';
+  const mDone = R.morning.done >= R.morning.locs, eDone = ev && R.evening.done >= R.evening.locs;
+  return `<div class="flow">
+    <div class="fs ${st(mDone, !ev)}"><i>☀</i><div><b>Morning count</b><span>${R.morning.done}/${R.morning.locs} verified</span></div></div>
+    <div class="fs ${st(ev, mDone && !ev)}" data-flow="eod"><i>🧾</i><div><b>End-of-day entries</b><span>${S.eodCount} entr${S.eodCount === 1 ? 'y' : 'ies'}${ev ? ' · done' : ''}</span></div></div>
+    <div class="fs ${st(eDone, ev && !eDone)}"><i>🌙</i><div><b>Evening count</b><span>${ev ? `${R.evening.done}/${R.evening.locs} verified` : 'after entries'}</span></div></div>
+    <div class="fs ${st(closed, eDone && !closed)}" data-flow="close"><i>🔒</i><div><b>Close day</b><span>${closed ? 'closed' : 'both counts compulsory'}</span></div></div></div>`;
+}
+
+// ---------------- end-of-day entries ----------------
+function vEod() {
+  if (!can('move')) return $('#main').innerHTML = '<div class="card">No access</div>';
+  const ed = editable(); const isAdmin = S.me.role === 'admin';
+  const types = TXN_TYPES.filter((t) => !t.admin || isAdmin);
+  S.eodRows ||= [{ type: 'sale', locId: '', item: '', qty: '', wt: '', ref: '' }];
+  const rows = S.eodRows; const items = S.D.settings.itemTypes;
+  const mvs = S.D.mvs.filter((m) => !m.void && (m.eod || m.txn));
+  const byT = {}; for (const m of mvs) { const k = m.reason || m.txn; const x = (byT[k] ||= { n: 0, qin: 0, qout: 0, wt: 0, dir: m.kind === 'in' ? 1 : -1 }); x.n++; const q = Math.abs(m.legs.reduce((a, g) => a + sumLines(g.lines), 0)); m.kind === 'in' ? (x.qin += q) : (x.qout += q); x.wt = r3(x.wt + (+m.wtTotal || Math.abs(m.legs.reduce((a, g) => a + (g.wt || 0), 0)))); }
+  const R = S.rounds; const ev = S.round === 'evening';
+  $('#main').innerHTML = `${viewBanner()}
+  <div class="row sp wrap" style="margin-bottom:10px"><div><h1>End-of-day entries</h1><div class="mut">${dt(S.D.date)} · enter today's transactions, then start the evening count</div></div></div>
+  ${dayFlow()}
+  ${ed ? `<div class="card" style="margin-top:12px">
+    <div class="eg h"><span>Type</span><span>Location</span><span>Item</span><span>Qty</span><span>Weight g</span><span>Bill / ref</span><span></span></div>
+    ${rows.map((r, i) => { const l = S.locById[r.locId]; const T = TXN_TYPES.find((t) => t.k === r.type); const e = l ? expOf(l.id) : null;
+      return `<div class="eg">
+      <select data-f="type" data-i="${i}" class="${T?.dir > 0 ? 'tin' : 'tout'}">${types.map((t) => `<option value="${t.k}" ${r.type === t.k ? 'selected' : ''}>${t.dir > 0 ? '＋' : '−'} ${esc(t.label)}</option>`).join('')}</select>
+      <div><select data-f="locId" data-i="${i}"><option value="">Location…</option>${locOptions(r.locId)}</select>${l && !hideExp() ? `<div class="sm mut" style="margin-top:2px">Now: ${esc(linesTxt(e.lines))}${l.sec === 'box' ? ` · ${g3(e.wt)} g` : ''}</div>` : ''}</div>
+      <select data-f="item" data-i="${i}"><option value="">Item…</option>${items.map((t) => `<option ${r.item === t ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select>
+      <input type="number" inputmode="numeric" min="0" data-f="qty" data-i="${i}" value="${esc(r.qty)}" placeholder="Qty">
+      <input type="number" inputmode="decimal" step="0.001" min="0" data-f="wt" data-i="${i}" value="${esc(r.wt)}" placeholder="Weight g">
+      <input type="text" data-f="ref" data-i="${i}" value="${esc(r.ref)}" placeholder="Invoice / voucher">
+      <button class="x" data-del="${i}" title="Remove">×</button></div>`; }).join('')}
+    <div class="row wrap sp" style="margin-top:10px"><button class="btn sm ghost" id="addRow">＋ Add row</button>
+      <div class="row"><span class="mut sm" id="eTot"></span><button class="btn" id="saveRows">Save entries</button></div></div>
+    <div class="mut sm" style="margin-top:6px">Stock out: Sales, Stock withdrawal (admin only), Smith issues, Repair issues, Partner drawings, Samples, Grand approval sales. Stock in: Sales returns, New stock in, Smith receipts. Weight changes box weight; for trays and counters it is recorded with the entry.</div></div>` : ''}
+  <h3 style="margin:18px 0 8px">Today by type</h3>
+  <div class="tw"><table><tr><th>Type</th><th>Entries</th><th>Qty in</th><th>Qty out</th><th>Weight g</th></tr>
+  ${Object.entries(byT).map(([k, x]) => `<tr><td class="b">${esc(k)}</td><td>${x.n}</td><td class="${x.qin ? 'pos' : ''}">${x.qin ? '+' + fmt(x.qin) : '—'}</td><td class="${x.qout ? 'neg' : ''}">${x.qout ? '−' + fmt(x.qout) : '—'}</td><td>${g3(x.wt)}</td></tr>`).join('') || `<tr><td colspan="5" class="mut" style="text-align:center">No entries yet</td></tr>`}
+  ${mvs.length ? `<tr class="tot"><td>Total</td><td>${mvs.length}</td><td>+${fmt(Object.values(byT).reduce((a, x) => a + x.qin, 0))}</td><td>−${fmt(Object.values(byT).reduce((a, x) => a + x.qout, 0))}</td><td>${g3(Object.values(byT).reduce((a, x) => a + x.wt, 0))}</td></tr>` : ''}</table></div>
+  ${mvs.length ? `<h3 style="margin:18px 0 8px">Entries</h3><div class="card list" style="padding:0">${[...mvs].reverse().map((m) => mvLine(m)).join('')}</div>` : ''}
+  ${ed ? (ev ? `<div class="done-b" style="margin-top:18px">🌙 Evening count is on — ${R.evening.done}/${R.evening.locs} verified. <button class="btn sm" id="goCount">Go to evening count ›</button></div>${isAdmin ? '<button class="btn sm ghost" id="backMorning" style="margin-top:8px">Back to morning count (admin)</button>' : ''}`
+    : `<div class="card" style="margin-top:18px"><div class="b">Entries finished?</div><div class="mut sm">Morning count: ${R.morning.done}/${R.morning.locs} verified${R.morning.done < R.morning.locs ? ' — not complete' : ' ✓'}. Starting the evening count checks every tray against stock after these entries.</div><button class="btn" style="margin-top:10px;width:100%" id="startEve">🌙 Done — start evening count</button></div>`) : ''}`;
+  bindBanner(); bindVoid($('#main'), () => vEod());
+  const tot = () => { let q = 0, w = 0; rows.forEach((r) => { q += +r.qty || 0; w += +r.wt || 0; }); const t = $('#eTot'); if (t) t.textContent = `${rows.length} row${rows.length > 1 ? 's' : ''} · ${fmt(q)} pcs · ${g3(w)} g`; }; tot();
+  $('#main').querySelectorAll('[data-f]').forEach((el) => { const h = () => { const r = rows[el.dataset.i]; r[el.dataset.f] = el.value;
+      if (el.dataset.f === 'locId') { const l = S.locById[el.value]; if (l && !r.item) { const k = Object.keys(expOf(l.id).lines); r.item = l.itemType || (k.length === 1 ? k[0] : ''); } return vEod(); }
+      if (el.dataset.f === 'type') return vEod(); tot(); };
+    el.onchange = h; if (el.tagName === 'INPUT') el.oninput = h; });
+  $('#main').querySelectorAll('[data-del]').forEach((b) => b.onclick = () => { rows.splice(+b.dataset.del, 1); if (!rows.length) rows.push({ type: 'sale', locId: '', item: '', qty: '', wt: '', ref: '' }); vEod(); });
+  $('#addRow') && ($('#addRow').onclick = () => { const last = rows[rows.length - 1] || {}; rows.push({ type: last.type || 'sale', locId: '', item: '', qty: '', wt: '', ref: '' }); vEod(); });
+  $('#saveRows') && ($('#saveRows').onclick = async () => {
+    const send = rows.filter((r) => r.locId || r.qty || r.wt);
+    if (!send.length) return toast('Enter at least one row');
+    try { const r = await api('txns', { date: S.D.date, rows: send }); toast(`✓ ${r.saved} entr${r.saved === 1 ? 'y' : 'ies'} saved`); S.eodRows = null; await load(true); vEod(); } catch (e) { fail(e); }
+  });
+  $('#startEve') && ($('#startEve').onclick = async () => {
+    if (rows.some((r) => r.locId || r.qty || r.wt) && !confirm('There are unsaved rows above. Start the evening count without them?')) return;
+    if (R.morning.done < R.morning.locs && !confirm(`Morning count is not complete (${R.morning.done}/${R.morning.locs}). Both counts are compulsory — start evening anyway?`)) return;
+    try { await api('round', { date: S.D.date, round: 'evening' }); toast('🌙 Evening count started'); await load(true); S.view = 'home'; render(); } catch (e) { fail(e); }
+  });
+  $('#goCount') && ($('#goCount').onclick = () => go('home'));
+  $('#backMorning') && ($('#backMorning').onclick = async () => { if (!confirm('Go back to the morning count? Evening counts stay saved but are not used until evening starts again.')) return; try { await api('round', { date: S.D.date, round: 'morning' }); await load(true); vEod(); } catch (e) { fail(e); } });
+}
+
 // ---------------- home ----------------
 function vHome() {
   const { sum: sm, D } = S; const T = sm.total;
@@ -366,10 +450,11 @@ function vHome() {
     <div class="kpi"><div class="l">Expected now</div><div class="v">${fmt(T.expected)}</div><div class="mut sm">closing if no change</div></div>
     <div class="kpi"><div class="l">Checked</div><div class="v">${T.locs - T.pending}<span class="mut" style="font-size:16px">/${T.locs}</span></div><div class="sm" style="color:${T.var + T.stale ? 'var(--bad)' : 'var(--ok)'}">${T.var + T.stale ? `${T.var + T.stale} with variance` : 'No variance'}</div></div>
   </div>
+  ${dayFlow()}
   ${startPanel('all')}
   <div class="secs">${SECTIONS.map((s) => secCard(s)).join('')}</div>
   ${editable() && (can('move') || can('close') || can('setup')) ? `<div class="acts">
-    ${can('move') ? `<button class="btn" data-mv="in">＋ Stock in</button><button class="btn sec" data-mv="out">− Stock out / Sale</button><button class="btn ghost" data-mv="move">⇄ Move</button>` : ''}
+    ${can('move') ? `<button class="btn" id="eodBtn">🧾 End-of-day entries</button><button class="btn sec" data-mv="in">＋ Stock in</button><button class="btn sec" data-mv="out">− Stock out</button><button class="btn ghost" data-mv="move">⇄ Move</button>` : ''}
     ${can('close') ? `<button class="btn ghost" id="closeBtn">Close day</button>` : ''}</div>` : ''}
   ${varLocs.length ? `<h3 style="margin:20px 0 8px">Needs attention</h3><div class="locs">${varLocs.map(locCard).join('')}</div>` : ''}
   `;
@@ -377,6 +462,8 @@ function vHome() {
   $('#main').querySelectorAll('[data-sec]').forEach((b) => b.onclick = () => go(b.dataset.sec));
   $('#main').querySelectorAll('[data-mv]').forEach((b) => b.onclick = () => moveForm(b.dataset.mv));
   $('#closeBtn') && ($('#closeBtn').onclick = closeDayFlow);
+  $('#eodBtn') && ($('#eodBtn').onclick = () => go('eod'));
+  $('#main').querySelectorAll('[data-flow]').forEach((b) => b.onclick = () => { const f = b.dataset.flow; if (f === 'eod') go('eod'); else if (f === 'close') can('close') && editable() && closeDayFlow(); });
   bindLocCards(); bindStart();
 }
 function secCard(s) {
@@ -389,9 +476,9 @@ function secCard(s) {
 
 function startPanel(scope) {
   if (!can('count') || !editable()) return '';
-  const P = sessProgress(orderFor(scope)); const mine = (S.D.sessions || []).find((x) => x.by === S.me.id && x.scope === scope && !x.ids && x.status === 'active');
+  const P = sessProgress(orderFor(scope)); const mine = (S.D.sessions || []).find((x) => x.by === S.me.id && x.scope === scope && !x.ids && (x.round || 'morning') === S.round && x.status === 'active');
   const all = P.done === P.total;
-  return `<div class="startp"><div class="grow"><div class="b" style="font-size:17px">${scopeLabel(scope)}</div><div class="sm" style="opacity:.85">${P.done}/${P.total} ${scope === 'box' ? 'boxes' : 'trays'} verified · ${P.gDone}/${P.gTotal} ${scope === 'counter' ? 'counters' : 'groups'} complete</div>
+  return `<div class="startp"><div class="grow"><div class="b" style="font-size:17px">${S.round === 'evening' ? '🌙 Evening' : '☀ Morning'} · ${scopeLabel(scope)}</div><div class="sm" style="opacity:.85">${P.done}/${P.total} ${scope === 'box' ? 'boxes' : 'trays'} verified · ${P.gDone}/${P.gTotal} ${scope === 'counter' ? 'counters' : 'groups'} complete</div>
     <div class="bar" style="background:rgba(255,255,255,.25)"><span style="width:${P.done / (P.total || 1) * 100}%;background:#fff"></span></div></div>
     <button class="btn" data-start="${scope}">${all ? 'View summary' : mine || P.done ? 'Resume count ›' : 'Start count ›'}</button></div>`;
 }
@@ -496,7 +583,7 @@ const itIcon = (t) => `<span class="iti"><svg width="22" height="22" viewBox="0 
 const groupKey = (l) => l.sec + '|' + l.group;
 function orderFor(scope) { return (scope === 'all' ? SECTIONS.map((s) => s.key) : [scope]).flatMap((k) => activeLocs(k)).map((l) => l.id); }
 const scopeLabel = (sc) => sc === 'all' ? 'Full stock count' : secLabel(sc) + ' count';
-const sessLabel = (x) => x?.label || scopeLabel(x?.scope);
+const sessLabel = (x) => ((x?.round || S.round) === 'evening' ? 'Evening · ' : 'Morning · ') + (x?.label || scopeLabel(x?.scope));
 const needsCount = (id) => { const st = S.sum.status[id]; const c = S.sum.last[id]; return st.state === 'pending' || st.state === 'stale' || !!(c && c.recountAllowed && c.by !== undefined && !c.recountUsed); };
 function sessProgress(order) {
   const groups = []; const gi = {};
@@ -849,7 +936,7 @@ function locOptions(sel, exclude) {
 function moveForm(kind, locId, keep) {
   const k = keep || { kind, locId: locId || '', toLocId: '', lines: [{ t: S.locById[locId]?.itemType || '', n: '' }], wt: '', toWt: '', reason: REASONS[kind === 'move' ? 'out' : kind]?.[0] || 'Transfer', ref: '', note: '' };
   const from = S.locById[k.locId]; const to = S.locById[k.toLocId];
-  const needWt = from?.sec === 'box' || to?.sec === 'box';
+  const boxWt = from?.sec === 'box' || to?.sec === 'box'; const needWt = true;
   const types = S.D.settings.itemTypes;
   const T = { in: 'Stock in', out: 'Stock out / Sale', move: 'Move between locations' }[k.kind];
   const html = `<div class="seg" style="margin-bottom:6px">${[['in', '＋ In'], ['out', '− Out'], ['move', '⇄ Move']].map(([x, t]) => `<button data-k="${x}" class="${k.kind === x ? 'on' : ''}">${t}</button>`).join('')}</div>
@@ -859,8 +946,8 @@ function moveForm(kind, locId, keep) {
     <label class="f">Items</label>
     <div id="mLines">${k.lines.map((x, i) => `<div class="row" style="margin-bottom:6px"><select data-lt="${i}" style="flex:2"><option value="">Item type…</option>${types.map((t) => `<option ${x.t === t ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select><input type="number" inputmode="numeric" min="0" data-ln="${i}" value="${esc(x.n)}" placeholder="Pcs" style="flex:1"></div>`).join('')}</div>
     <button class="btn sm ghost" id="addLn">＋ Another item type</button>
-    ${needWt ? `<div class="row"><div class="grow"><label class="f">Weight ${k.kind === 'move' && from?.sec !== 'box' ? 'into box' : k.kind === 'in' ? 'added' : 'taken out'} (g)</label><input type="number" inputmode="decimal" step="0.001" id="mWt" value="${esc(k.wt)}" placeholder="0.000"></div>${k.kind === 'move' && from?.sec === 'box' && to?.sec === 'box' ? '' : ''}</div><div class="mut sm">Box weight is tracked — enter the gross weight of these pieces.</div>` : ''}
-    <div class="row"><div class="grow"><label class="f">Reason</label><select id="mReason">${(k.kind === 'move' ? ['Counter refill', 'Back to buffer', 'Box to tray', 'Tray to box', 'Rearrange'] : REASONS[k.kind]).map((r) => `<option ${r === k.reason ? 'selected' : ''}>${r}</option>`).join('')}</select></div>
+    ${needWt ? `<div class="row"><div class="grow"><label class="f">Weight ${k.kind === 'move' && from?.sec !== 'box' ? 'into box' : k.kind === 'in' ? 'added' : 'taken out'} (g)</label><input type="number" inputmode="decimal" step="0.001" id="mWt" value="${esc(k.wt)}" placeholder="0.000"></div>${k.kind === 'move' && from?.sec === 'box' && to?.sec === 'box' ? '' : ''}</div><div class="mut sm">${boxWt ? 'Box weight is tracked — enter the gross weight of these pieces.' : 'Gross weight of these pieces (recorded with the entry).'}</div>` : ''}
+    <div class="row"><div class="grow"><label class="f">Reason</label><select id="mReason">${(k.kind === 'move' ? ['Counter refill', 'Back to buffer', 'Box to tray', 'Tray to box', 'Rearrange'] : REASONS[k.kind].filter((r) => r !== 'Stock withdrawal' || S.me.role === 'admin')).map((r) => `<option ${r === k.reason ? 'selected' : ''}>${r}</option>`).join('')}</select></div>
     <div class="grow"><label class="f">Bill / ref no.</label><input type="text" id="mRef" value="${esc(k.ref)}" placeholder="Invoice, SKU…"></div></div>
     <label class="f">Note</label><input type="text" id="mNote" value="${esc(k.note)}">
     <button class="btn" style="width:100%;margin-top:14px" id="mSave">Save ${T.toLowerCase()}</button>`;
@@ -878,7 +965,7 @@ function moveForm(kind, locId, keep) {
       if (g.kind === 'move' && !g.toLocId) return toast('Choose where it goes');
       const toBox = S.locById[g.toLocId]?.sec === 'box', fromBox = S.locById[g.locId]?.sec === 'box';
       const wt = +g.wt || 0;
-      const body = { kind: g.kind, date: S.D.date, locId: g.locId, toLocId: g.toLocId, lines, wt: fromBox ? wt : 0, toWt: toBox ? wt : 0, reason: g.reason, ref: g.ref, note: g.note };
+      const body = { kind: g.kind, date: S.D.date, locId: g.locId, toLocId: g.toLocId, lines, wt: fromBox ? wt : 0, toWt: toBox ? wt : 0, wtTotal: wt, reason: g.reason, ref: g.ref, note: g.note };
       try { await api('move', body); toast('Saved'); closeModal(); await load(); if (locId) locSheet(locId); } catch (e) { fail(e); }
     };
   });
@@ -953,12 +1040,14 @@ function closeDayFlow() {
   const T = S.sum.total;
   modal('Close day · ' + dt(S.D.date), 'Closing stock becomes tomorrow\'s opening', `
     <table><tr><td>Opening</td><td>${fmt(T.opening)}</td></tr><tr><td>In</td><td class="pos">+${fmt(T.in)}</td></tr><tr><td>Out</td><td class="neg">−${fmt(T.out)}</td></tr><tr class="tot"><td>Closing</td><td>${fmt(T.expected)}</td></tr>
-    <tr><td>Checked</td><td>${T.locs - T.pending}/${T.locs}</td></tr><tr><td>Variances open</td><td class="${T.var + T.stale ? 'neg' : 'pos'}">${T.var + T.stale}</td></tr></table>
+    <tr><td>☀ Morning count</td><td class="${S.rounds.morning.done < S.rounds.morning.locs ? 'neg' : 'pos'}">${S.rounds.morning.done}/${S.rounds.morning.locs}</td></tr>
+    <tr><td>🌙 Evening count</td><td class="${S.round !== 'evening' || S.rounds.evening.done < S.rounds.evening.locs ? 'neg' : 'pos'}">${S.round === 'evening' ? `${S.rounds.evening.done}/${S.rounds.evening.locs}` : 'not started'}</td></tr><tr><td>Variances open</td><td class="${T.var + T.stale ? 'neg' : 'pos'}">${T.var + T.stale}</td></tr></table>
     ${T.var + T.stale ? `<div class="banner" style="margin-top:12px">Unresolved variances close as book stock (not as counted). Accept counts first if they are correct.</div>` : ''}
-    ${T.pending ? `<div class="banner" style="margin-top:12px">${T.pending} locations were not checked today.</div>` : ''}
+    ${(() => { const inc = S.rounds.morning.done < S.rounds.morning.locs || S.round !== 'evening' || S.rounds.evening.done < S.rounds.evening.locs; return inc ? `<div class="banner" style="margin-top:12px;background:var(--badb);color:var(--bad)">Both counts are compulsory and are not complete. ${S.me.role === 'admin' ? 'Admin can close with a reason (below).' : 'Only admin can close now.'}</div>` : ''; })()}
     ${(() => { const E = erpCmpC(S.D.erp?.rows ? S.D.erp : null); return !E.entered ? `<div class="banner" style="margin-top:12px">Yamie ERP closing (Pc / Lbl) not entered yet. ${can('erp') ? '<button class="btn sm sec" id="toErp">Enter ERP</button>' : ''}</div>`
       : E.matched ? `<div class="done-b" style="margin-top:12px">✓ ERP bottom total matches: app ${E.which} ${fmt(E.total.app)} = ERP ${fmt(E.total[E.basis])} ${E.basis === 'lbl' ? 'Lbl' : 'Pc'}</div>`
-      : `<div class="banner" style="margin-top:12px;background:var(--badb);color:var(--bad)">ERP bottom total does not match: app ${E.which} ${fmt(E.total.app)} vs ERP ${fmt(E.total[E.basis])} ${E.basis === 'lbl' ? 'Lbl' : 'Pc'} (${sgn(E.total.diff)}). ${S.me.role === 'admin' ? 'Admin can close with a reason.' : 'Only admin can close.'}</div>${S.me.role === 'admin' ? '<label class="f">Reason to close with mismatch</label><input type="text" id="ovr">' : ''}`; })()}
+      : `<div class="banner" style="margin-top:12px;background:var(--badb);color:var(--bad)">ERP bottom total does not match: app ${E.which} ${fmt(E.total.app)} vs ERP ${fmt(E.total[E.basis])} ${E.basis === 'lbl' ? 'Lbl' : 'Pc'} (${sgn(E.total.diff)}). ${S.me.role === 'admin' ? 'Admin can close with a reason.' : 'Only admin can close.'}</div>`; })()}
+    ${S.me.role === 'admin' && (S.rounds.morning.done < S.rounds.morning.locs || S.round !== 'evening' || S.rounds.evening.done < S.rounds.evening.locs || (erpCmpC(S.D.erp?.rows ? S.D.erp : null).entered && !erpCmpC(S.D.erp?.rows ? S.D.erp : null).matched)) ? '<label class="f">Admin reason to close anyway</label><input type="text" id="ovr">' : ''}
     <button class="btn" style="width:100%;margin-top:14px" id="doClose">Close day</button>`, () => {
     $('#toErp') && ($('#toErp').onclick = () => { closeModal(); S.view = 'total'; S.tab = 'erp'; render(); });
     $('#doClose').onclick = async () => { try { await api('close', { date: S.D.date, override: $('#ovr')?.value || '' }); toast('Day closed'); closeModal(); await load(); } catch (e) { fail(e); } };
@@ -1086,7 +1175,7 @@ function exportCSV() {
 
 // ---------------- more / alerts / log / history / admin ----------------
 function vMore() {
-  const items = [['log', 'Day log', 'Movements and checks today', true], ['alerts', 'Alerts', 'Variances and reports', can('alerts')], ['history', 'History', 'Past days and closing stock', can('reports')], ['admin', 'Admin', 'Users, locations, settings', can('users') || can('setup')]].filter((x) => x[3]);
+  const items = [['eod', 'End-of-day entries', 'Sales, returns, smith, samples… then evening count', can('move')], ['log', 'Day log', 'Movements and checks today', true], ['alerts', 'Alerts', 'Variances and reports', can('alerts')], ['history', 'History', 'Past days and closing stock', can('reports')], ['admin', 'Admin', 'Users, locations, settings', can('users') || can('setup')]].filter((x) => x[3]);
   $('#main').innerHTML = `<h1 style="margin-bottom:12px">More</h1><div class="list card" style="padding:0">${items.map(([k, t, d]) => `<button class="li" style="width:100%;text-align:left" data-go="${k}"><div class="grow"><div class="b">${t}</div><div class="mut sm">${d}</div></div><span class="mut">›</span></button>`).join('')}
     <button class="li" style="width:100%;text-align:left" id="pinBtn"><div class="grow"><div class="b">Change my PIN</div><div class="mut sm">${esc(S.me.name)} · ${esc(S.me.role)} · app v${VERSION}</div></div></button>
     <button class="li" style="width:100%;text-align:left" id="notiBtn"><div class="grow"><div class="b">Notifications on this device</div><div class="mut sm">${localStorage.ysc_notify === '1' ? 'On' : 'Off'} — alerts while the app is open</div></div></button>
@@ -1110,7 +1199,7 @@ function vLog() {
   $('#main').innerHTML = `${viewBanner()}<h1 style="margin-bottom:12px">Day log · ${dt(S.D.date)}</h1>
   <div class="tabs"><button data-t="mv" class="${S.tab !== 'ct' ? 'on' : ''}">Stock movements (${mvs.length})</button><button data-t="ct" class="${S.tab === 'ct' ? 'on' : ''}">Checks (${cs.length})</button><button data-t="ss" class="${S.tab === 'ss' ? 'on' : ''}">Count sessions (${(S.D.sessions || []).length})</button></div>
   ${S.tab === 'ss' ? `<div class="tw"><table><tr><th>Count</th><th>Staff</th><th>Started</th><th>Finished</th><th>Verified</th><th>Expected</th><th>Actual</th><th>Short</th><th>Excess</th><th>Pending</th></tr>${(S.D.sessions || []).sort((a, b) => b.at - a.at).map((x) => { const m = x.summary || {}; return `<tr><td class="b">${esc(sessLabel(x))}<div class="mut sm">${x.status}</div></td><td>${esc(uname(x.by))}</td><td>${tm(x.at)}</td><td>${x.finishedAt ? tm(x.finishedAt) : '—'}</td><td>${m.locs ? `${m.done}/${m.locs}` : '—'}</td><td>${fmt(m.expected)}</td><td>${fmt(m.actual)}</td><td class="${m.short ? 'neg' : ''}">${m.short ? '−' + m.short : 0}</td><td class="${m.excess ? 'pos' : ''}">${m.excess ? '+' + m.excess : 0}</td><td>${m.pending ?? '—'}</td></tr>`; }).join('')}</table></div>` : S.tab !== 'ct' ? `<div class="card list" style="padding:0">${mvs.map((m) => mvLine(m)).join('') || '<div class="mut" style="padding:20px">No movements</div>'}</div>`
-    : `<div class="tw"><table><tr><th>Location</th><th>By</th><th>Time</th><th>Counted</th><th>Weight</th><th>Result</th></tr>${cs.map((c) => `<tr><td><b>${esc(S.locById[c.locId]?.name || c.locId)}</b><div class="mut sm">${secLabel(c.sec)}</div></td><td>${esc(uname(c.by))}</td><td>${tm(c.at)}</td><td>${c.lines ? fmt(sumLines(c.lines)) : '—'}</td><td>${c.wt != null ? g3(c.wt) : '—'}</td><td style="text-align:left"><span class="st ${c.result}">${STLBL[c.result]}</span> <span class="sm">${esc(diffTxt(c.diff))}</span></td></tr>`).join('')}</table></div>`}`;
+    : `<div class="tw"><table><tr><th>Location</th><th>Round</th><th>By</th><th>Time</th><th>Counted</th><th>Weight</th><th>Result</th></tr>${cs.map((c) => `<tr><td><b>${esc(S.locById[c.locId]?.name || c.locId)}</b><div class="mut sm">${secLabel(c.sec)}</div></td><td>${(c.round || 'morning') === 'evening' ? '🌙 Evening' : '☀ Morning'}</td><td>${esc(uname(c.by))}</td><td>${tm(c.at)}</td><td>${c.lines ? fmt(sumLines(c.lines)) : '—'}</td><td>${c.wt != null ? g3(c.wt) : '—'}</td><td style="text-align:left"><span class="st ${c.result}">${STLBL[c.result]}</span> <span class="sm">${esc(diffTxt(c.diff))}</span></td></tr>`).join('')}</table></div>`}`;
   bindBanner();
   $('#main').querySelectorAll('[data-t]').forEach((b) => b.onclick = () => { S.tab = b.dataset.t; vLog(); });
   bindVoid($('#main'));
