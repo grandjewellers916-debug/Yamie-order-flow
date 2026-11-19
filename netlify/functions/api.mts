@@ -185,15 +185,15 @@ export default async (req: Request) => {
     }
 
     if (path === 'state') {
-      const [jobs, cfg] = await Promise.all([allJobs(s), getCfg(s)]);
-      return J({ now: now(), jobs, ...cfg, me: pubUser(me) });
+      const [jobs, cfg, resetAt] = await Promise.all([allJobs(s), getCfg(s), s.get('meta/resetAt')]);
+      return J({ now: now(), jobs, ...cfg, resetAt: resetAt || '', me: pubUser(me) });
     }
     if (path === 'changes') {
       const since = +(url.searchParams.get('since') || 0);
       const t = now();
       const ch = await changesSince(s, since);
       const cfgv = (await s.get('meta/cfgv')) || '0';
-      const out: any = { now: t, ...ch, cfgv, me: pubUser(me) };
+      const out: any = { now: t, ...ch, cfgv, resetAt: (await s.get('meta/resetAt')) || '', me: pubUser(me) };
       if (cfgv !== url.searchParams.get('cfgv')) Object.assign(out, await getCfg(s));
       return J(out);
     }
@@ -221,6 +221,8 @@ export default async (req: Request) => {
         return J({ job });
       }
       const old: any = cur.data;
+      const RANK: any = { received: 0, workshop: 1, back: 2, ready: 3, closed: 4 };
+      if (RANK[job.status] < RANK[old.status] && !(old.status === 'back' && job.status === 'workshop')) admin();
       if ((old.rev || 0) !== (body.baseRev || 0)) return err('This repair was changed on another phone', 409, { job: old });
       if (job.issue && !job.issue.no) job.issue.no = await nextNo(s, 'YS');
       job.rev = (old.rev || 0) + 1; job.updatedAt = now(); job.updatedBy = me.name;
@@ -236,6 +238,20 @@ export default async (req: Request) => {
       return J({ ok: true });
     }
 
+    if (path === 'reset-all' && method === 'POST') {
+      admin();
+      if (body.confirm !== 'CLEAR') return err('Type CLEAR to confirm');
+      let n = 0;
+      for (const prefix of ['jobs/', 'chg/', 'seq/', 'seqhint/', 'img/']) {
+        const { blobs } = await s.list({ prefix });
+        for (let i = 0; i < blobs.length; i += 25) { await Promise.all(blobs.slice(i, i + 25).map((b: any) => s.delete(b.key))); }
+        if (prefix === 'jobs/') n = blobs.length;
+      }
+      const at = String(now());
+      await s.set('meta/resetAt', at);
+      await bumpCfg(s);
+      return J({ ok: true, cleared: n, resetAt: at });
+    }
     if (path === 'smiths' && method === 'POST') {
       if (!can('smiths') && !can('issue')) throw new HttpError('Your role does not have permission for this', 403);
       await s.setJSON('cfg/smiths', (body.smiths || []).map((x: any) => ({ name: String(x.name || '').trim(), phone: String(x.phone || '').trim(), spec: String(x.spec || '').trim() })).filter((x: any) => x.name));

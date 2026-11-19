@@ -42,7 +42,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: repair-track-v${{ github.run_number }}
-          name: Yamie Repair Desk v1.6.${{ github.run_number }}
+          name: Yamie Repair Desk v1.7.${{ github.run_number }}
           target_commitish: ${{ github.sha }}
           files: yamie-repair-desk.apk
-          body: "Yamie Repair Desk V1.6: assigned smith per service, suggested at issue, issue to next smith; V1.5: admin can add services and set minimum charges; V1.4: computer layout for the web version; V1.3: one shared database for all phones and users (yamie-repair-desk.netlify.app); V1.2: call smith from the app with call outcome log, direct calling; V1.1: new app logo, auto message after QC, picture card or plain text WhatsApp, 7-day delay warning, check with smith, inform customer of delay (permission). Install yamie-repair-desk.apk on the shop phone. New versions install over the old one and keep all repair jobs, users and settings."
+          body: "Yamie Repair Desk V1.7: admin job reset and clear all repairs; V1.6: assigned smith per service, suggested at issue, issue to next smith; V1.5: admin can add services and set minimum charges; V1.4: computer layout for the web version; V1.3: one shared database for all phones and users (yamie-repair-desk.netlify.app); V1.2: call smith from the app with call outcome log, direct calling; V1.1: new app logo, auto message after QC, picture card or plain text WhatsApp, 7-day delay warning, check with smith, inform customer of delay (permission). Install yamie-repair-desk.apk on the shop phone. New versions install over the old one and keep all repair jobs, users and settings."
