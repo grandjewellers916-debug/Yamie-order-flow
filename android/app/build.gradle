@@ -1,0 +1,46 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'com.yamie.stockcheck'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.yamie.stockcheck'
+        minSdk 24
+        targetSdk 34
+        versionCode Integer.parseInt(System.getenv('GITHUB_RUN_NUMBER') ?: '1')
+        versionName "1.5." + (System.getenv('GITHUB_RUN_NUMBER') ?: '0')
+        resValue 'string', 'app_name', 'Stock Check'
+        // The app opens the live web app, so web updates need no new APK
+        buildConfigField 'String', 'APP_URL', '"https://yamie-stock-check.netlify.app/"'
+    }
+    buildFeatures { buildConfig true }
+
+    // Fixed key so each new APK installs over the previous one without uninstalling
+    signingConfigs {
+        sideload {
+            storeFile file('yamie-stock-sideload.keystore')
+            storePassword 'yamiestock'
+            keyAlias 'yamiestock'
+            keyPassword 'yamiestock'
+        }
+    }
+    buildTypes {
+        release { minifyEnabled false; signingConfig signingConfigs.sideload }
+        debug { signingConfig signingConfigs.sideload }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions { jvmTarget = '17' }
+    lint { checkReleaseBuilds false; abortOnError false }
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.activity:activity-ktx:1.9.1'
+}
