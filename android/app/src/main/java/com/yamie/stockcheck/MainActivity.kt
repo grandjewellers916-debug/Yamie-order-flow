@@ -16,6 +16,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import android.widget.FrameLayout
 import java.io.File
 
 /**
@@ -49,7 +53,18 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         web = WebView(this)
-        setContentView(web)
+        // Keep the app inside the screen: never under the status bar, the phone's navigation bar or the keyboard,
+        // so the app's bottom bar (Home · Counter · Trays · Boxes · Total · More) is always visible.
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        val root = FrameLayout(this)
+        root.addView(web, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
+        root.setBackgroundColor(0xFF8F171B.toInt())
+        ViewCompat.setOnApplyWindowInsetsListener(root) { v, insets ->
+            val b = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout() or WindowInsetsCompat.Type.ime())
+            v.setPadding(b.left, b.top, b.right, b.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
+        setContentView(root)
         web.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
@@ -57,6 +72,9 @@ class MainActivity : ComponentActivity() {
             allowFileAccess = false
             allowContentAccess = true
             mediaPlaybackRequiresUserGesture = true
+            useWideViewPort = true
+            loadWithOverviewMode = false
+            textZoom = 100
             userAgentString = "$userAgentString YamieStockCheckApp/${BuildConfig.VERSION_NAME}"
         }
         web.addJavascriptInterface(Bridge(), "YamieStock")
