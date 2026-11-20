@@ -1,6 +1,7 @@
 import { getStore } from '@netlify/blobs';
 import crypto from 'node:crypto';
 import { buildSeed } from '../lib/seed.mjs';
+import { runDocReminders } from '../lib/reminders.mjs';
 import {
   DEFAULT_SETTINGS, ROLE_PERMS, PERMS, SECTIONS, TXN_TYPES, deriveLocMeta, JTYPES, normJts, keyText, lineKey, itemOf, jtOfLine, purOfLine, summarize, closingVerified, computeExpected, erpCompare,
   latestCounts, locStatus, sumLines, istDate, r3, CASH_DENOMS, cashCalc, isMorning,
@@ -212,6 +213,7 @@ export default async (req: Request) => {
     }
 
     if (path === 'state') {
+      try { await runDocReminders(s); } catch {}   // v1.20 fallback if the scheduled run did not happen today
       const date = url.searchParams.get('date') || today;
       if (date > today) return err('That date has not started yet');
       if (date === today) await ensureToday(s);
@@ -700,15 +702,16 @@ export default async (req: Request) => {
       const D = body.doc || {}; const id = D.id && /^[\w-]{6,40}$/.test(D.id) ? D.id : 'd' + now().toString(36) + rid();
       const old = await s.get(`doc/${id}`, { type: 'json' });
       const str = (v: any, n = 120) => String(v ?? '').trim().slice(0, n);
-      const doc: any = { id, type: str(D.type, 40) || 'Other', title: str(D.title, 80), number: str(D.number, 60), issuedBy: str(D.issuedBy, 80), issueDate: str(D.issueDate, 10), expiry: str(D.expiry, 10), notes: str(D.notes, 1000),
+      const doc: any = { id, type: str(D.type, 40) || 'Other', title: str(D.title, 80), number: str(D.number, 60), vehicle: str(D.vehicle, 20).toUpperCase().replace(/\s+/g, ' '), vehicleName: str(D.vehicleName, 60), remind: Math.max(1, Math.min(365, +D.remind || 30)), remindOff: !!D.remindOff, issuedBy: str(D.issuedBy, 80), issueDate: str(D.issueDate, 10), expiry: str(D.expiry, 10), notes: str(D.notes, 1000),
         bank: D.bank ? { holder: str(D.bank.holder, 80), bank: str(D.bank.bank, 60), account: str(D.bank.account, 30), ifsc: str(D.bank.ifsc, 15).toUpperCase(), branch: str(D.bank.branch, 80), kind: str(D.bank.kind, 30) } : null,
         upi: D.upi ? { id: str(D.upi.id, 80), name: str(D.upi.name, 80), gen: !!D.upi.gen } : null,
         files: (Array.isArray(D.files) ? D.files : []).slice(0, 12).map((f: any) => ({ key: String(f.key || '').replace(/[^a-z0-9-]/gi, ''), mime: str(f.mime, 40), label: str(f.label, 60) })).filter((f: any) => f.key),
         order: D.order ?? old?.order, createdAt: old?.createdAt || now(), createdBy: old?.createdBy || me.id, updatedAt: now(), updatedBy: me.id, updatedByName: me.name };
-      if (!doc.title) doc.title = doc.type;
+      if (!doc.title) doc.title = doc.vehicle ? `${doc.type.replace('Vehicle ', '')} · ${doc.vehicle}` : doc.type;
       await s.setJSON(`doc/${id}`, doc);
       return J({ ok: true, doc });
     }
+    if (path === 'docs/remind-now' && method === 'POST') { if (me.role !== 'admin') return err('Admin only', 403); return J(await runDocReminders(s, { force: true })); }
     if (path === 'docs/delete' && method === 'POST') {
       need('docsEdit');
       const id = String(body.id || ''); const d = await s.get(`doc/${id}`, { type: 'json' }); if (!d) return err('Not found', 404);

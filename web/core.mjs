@@ -63,7 +63,21 @@ export function cashCalc(r) {
 /** Notes per denomination (bundles × 100 + loose) — to compare a morning count with the carried-forward closing. */
 export const cashNotes = (r, d) => { const x = (r?.denoms || []).find((y) => +y.note === d) || {}; return Math.floor(+x.bundles || 0) * 100 + Math.floor(+x.loose || 0); };
 // v1.19 Business documents (credentials vault)
-export const DOC_TYPES = ['GST Certificate', 'Trade Licence', 'Shop & Establishment', 'BIS Hallmarking', 'PAN Card', 'Udyam / MSME', 'Insurance', 'Bank Account', 'UPI QR Code', 'Other'];
+// v1.20 motor vehicle documents (grouped by vehicle number)
+export const VEHICLE_DOC_TYPES = ['Vehicle RC', 'Vehicle Insurance', 'Vehicle PUC', 'Vehicle Road Tax', 'Vehicle Permit / Fitness', 'Driving Licence'];
+export const DOC_TYPES = ['GST Certificate', 'Trade Licence', 'Shop & Establishment', 'BIS Hallmarking', 'PAN Card', 'Udyam / MSME', 'Insurance', 'Bank Account', 'UPI QR Code', ...VEHICLE_DOC_TYPES, 'Other'];
+export const isVehicleDoc = (d) => VEHICLE_DOC_TYPES.includes(d?.type);
+/** Expiry reminders (v1.20). remind = days before expiry for the first reminder (default 30).
+ *  Reminder days: remind, 15, 7, 3, 1, 0 (expiry day), then every 7 days while expired. */
+export const DOC_REMIND_DEFAULT = 30;
+export function docDaysLeft(d, today) { if (!d?.expiry) return null; return Math.round((Date.parse(d.expiry + 'T00:00:00Z') - Date.parse(today + 'T00:00:00Z')) / 864e5); }
+export function docReminderDue(d, today) {
+  const n = docDaysLeft(d, today); if (n == null || d.remindOff) return false;
+  const first = +d.remind || DOC_REMIND_DEFAULT;
+  if (n < 0) return (-n) % 7 === 0;
+  return [first, 15, 7, 3, 1, 0].filter((x) => x <= first).includes(n);
+}
+export const docWatch = (d, today) => { const n = docDaysLeft(d, today); return n != null && !d.remindOff && n <= (+d.remind || DOC_REMIND_DEFAULT); };
 export const ROLE_PERMS = {
   admin: Object.keys(PERMS),
   manager: ['count', 'move', 'setup', 'accept', 'close', 'reports', 'alerts', 'erp', 'verifyAll', 'cash', 'cashVerify', 'docs'],

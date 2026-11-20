@@ -39,6 +39,7 @@ label.f{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
 .top .logo{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;line-height:1}
 .top .logo small{display:block;font-family:Jost;font-size:11px;font-weight:400;opacity:.8;letter-spacing:1.5px;text-transform:uppercase}
 .vtag{display:inline-block;margin-left:6px;padding:0 6px;border-radius:99px;background:rgba(255,255,255,.18);letter-spacing:.3px;text-transform:none;font-weight:500;opacity:1}
+.hrem{margin-top:12px;border-color:#F1D9A8;background:#FFFBF2}.hrow{display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:8px 0;border-top:1px solid var(--ln);background:none}.hrow:first-of-type{border-top:0}
 .dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin-top:12px}
 .dcard{display:flex;gap:12px;text-align:left;background:#fff;border:1px solid var(--ln);border-radius:14px;padding:10px;align-items:center;width:100%;min-width:0}.dcard .dbody{min-width:0}.dcard .b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dth{width:64px;height:64px;flex:none;border-radius:10px;background:var(--iv);display:grid;place-items:center;overflow:hidden;border:1px solid var(--ln)}.dth img{width:100%;height:100%;object-fit:cover}
@@ -326,7 +327,7 @@ table.rep tr.rgrp td{background:var(--iv);font-weight:600;border-top:1px solid v
 <body>
 <div id="app"></div>
 <script type="module">
-import { DOC_TYPES, CASH_DENOMS, CASH_COUNTERS, CASH_SHIFTS, cashCalc, cashNotes, isMorning, SECTIONS, PERMS, ROLE_PERMS, REASONS, TXN_TYPES, metalOf, erpMetal, JTYPES, LINE_JTYPES, JT_SHORT, JT_CLS, METALS, jtMetal, locJts, normJts, itemOf, jtOfLine, purOfLine, defaultPur, lineKey, keyText, defaultJt, roundOf, roundCounts, summarize, sumLines, r3, locStatus, istDate, erpCompare, erpKey } from './core.mjs';
+import { DOC_TYPES, VEHICLE_DOC_TYPES, isVehicleDoc, docDaysLeft, docWatch, DOC_REMIND_DEFAULT, CASH_DENOMS, CASH_COUNTERS, CASH_SHIFTS, cashCalc, cashNotes, isMorning, SECTIONS, PERMS, ROLE_PERMS, REASONS, TXN_TYPES, metalOf, erpMetal, JTYPES, LINE_JTYPES, JT_SHORT, JT_CLS, METALS, jtMetal, locJts, normJts, itemOf, jtOfLine, purOfLine, defaultPur, lineKey, keyText, defaultJt, roundOf, roundCounts, summarize, sumLines, r3, locStatus, istDate, erpCompare, erpKey } from './core.mjs';
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -337,7 +338,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.19';
+const VERSION = '1.20';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -443,7 +444,7 @@ const expOf = (id) => S.sum.exp[id] || { lines: {}, wt: 0 };
 const opOf = (id) => S.D.day.opening[id] || { lines: {}, wt: 0 };
 const hideExp = () => S.D.settings.blind && !can('setup') && !can('move');
 const secLabel = (k) => SECTIONS.find((s) => s.key === k)?.label || k;
-const uname = (id) => S.D.userNames[id] || id;
+const uname = (id) => (id === 'system' ? 'Yamie Core reminder' : S.D.userNames[id] || id);
 const kT = (k, loc) => (loc || String(k).includes('@') ? keyText(loc, k) : k);
 const JT_CHIP = { 'Platinum': 'pt', 'Diamond Jewellery': 'dia', 'Tanih - CVD Jewellery': 'cvd', Silver: 'ag' };
 const jtNames = (l) => { const a = locJts(l); return a.length ? a.map((j) => JT_SHORT[j]).join(' + ') : (l.jtype === 'Mixed' ? 'Mixed' : ''); };
@@ -1532,10 +1533,15 @@ function vHub() {
       <div class="stats" id="hubCash"><div><b>…</b><span>today</span></div></div>
       <div class="go">Open cash ›</div></button>
   </div>
+  <div id="hubRem"></div>
   <div class="qk">
     ${[['eod', 'total', 'End-of-day entries', can('move')], ['total', 'total', 'Consolidated', can('reports')], ['docs', 'doc', 'Documents', can('docs') || can('docsEdit')], ['alerts', 'bell', 'Alerts', can('alerts')], ['more', 'more', 'More & settings', true]].filter((x) => x[3]).map(([k, i, t]) => `<button data-go="${k}">${svg(i)}<span>${t}</span></button>`).join('')}
   </div>`;
   $('#main').querySelectorAll('[data-go]').forEach((b) => b.onclick = () => go(b.dataset.go));
+  if (can('docs') || can('docsEdit')) api('docs').then((j) => { S.docs = j; const due = j.docs.filter((d) => docWatch(d, S.D.today)).sort((a, b) => docDaysLeft(a, S.D.today) - docDaysLeft(b, S.D.today)); const el = $('#hubRem'); if (!el || !due.length) return;
+    el.innerHTML = `<div class="card hrem"><div class="row sp"><div class="b">⏰ Renewals due</div><button class="lnk" data-go2="docs">All documents ›</button></div>${due.slice(0, 6).map((d) => { const n = docDaysLeft(d, S.D.today); return `<button class="hrow" data-doc="${esc(d.id)}"><span>${DOC_IC[d.type] || '📄'}</span><span class="grow"><b>${esc(d.title)}</b>${d.vehicle && !d.title.includes(d.vehicle) ? ` <span class="mut sm">${esc(d.vehicle)}</span>` : ''}<br><span class="mut sm">${esc(d.type)} · valid till ${dt(d.expiry)}</span></span><span class="cst ${n <= 7 ? 'bad' : 'warn'}">${n < 0 ? 'Expired' : n === 0 ? 'Today' : n + ' days'}</span></button>`; }).join('')}${due.length > 6 ? `<div class="mut sm">+${due.length - 6} more</div>` : ''}</div>`;
+    el.querySelectorAll('[data-doc]').forEach((b) => b.onclick = () => docView(b.dataset.doc)); el.querySelector('[data-go2]').onclick = () => { S.dt = 'soon'; go('docs'); };
+  }).catch(() => {});
   if (can('cash') || can('cashVerify') || can('reports')) api(`cash?from=${S.D.today}&to=${S.D.today}`).then((j) => {
     const el = $('#hubCash'); if (!el) return; const rs = j.records; const closed = rs.filter((r) => r.state === 'closed');
     const v = closed.filter((r) => r.variance); const tot = rs.reduce((a, r) => a + r.gt, 0);
@@ -1696,11 +1702,11 @@ function printChit(c) {
   document.body.classList.add('printing'); setTimeout(() => { print(); setTimeout(() => document.body.classList.remove('printing'), 500); }, 50);
 }
 // ---------------- v1.19 Business documents (credentials vault) ----------------
-const DOC_IC = { 'GST Certificate': '🧾', 'Trade Licence': '📜', 'Shop & Establishment': '🏪', 'BIS Hallmarking': '🔖', 'PAN Card': '🪪', 'Udyam / MSME': '🏭', Insurance: '🛡️', 'Bank Account': '🏦', 'UPI QR Code': '📱', Other: '📄' };
+const DOC_IC = { 'Vehicle RC': '🚗', 'Vehicle Insurance': '🛡️', 'Vehicle PUC': '🌫️', 'Vehicle Road Tax': '🧾', 'Vehicle Permit / Fitness': '📋', 'Driving Licence': '🪪', 'GST Certificate': '🧾', 'Trade Licence': '📜', 'Shop & Establishment': '🏪', 'BIS Hallmarking': '🔖', 'PAN Card': '🪪', 'Udyam / MSME': '🏭', Insurance: '🛡️', 'Bank Account': '🏦', 'UPI QR Code': '📱', Other: '📄' };
 const docFile = (k) => `/api/img/${k}?t=${encodeURIComponent(S.token)}`;
 const maskAc = (a) => (a && a.length > 4 ? '•••• ' + a.slice(-4) : a || '');
-function docExpiry(d) { if (!d.expiry) return ''; const days = Math.round((new Date(d.expiry + 'T00:00') - new Date(S.D.today + 'T00:00')) / 864e5);
-  return days < 0 ? `<span class="cst bad">Expired ${dt(d.expiry)}</span>` : days <= 60 ? `<span class="cst warn">Expires in ${days} day${days === 1 ? '' : 's'}</span>` : `<span class="cst ok">Valid till ${dt(d.expiry)}</span>`; }
+function docExpiry(d) { if (!d.expiry) return ''; const days = docDaysLeft(d, S.D.today);
+  return days < 0 ? `<span class="cst bad">Expired ${dt(d.expiry)}</span>` : days === 0 ? '<span class="cst bad">Expires today</span>' : days <= (+d.remind || DOC_REMIND_DEFAULT) ? `<span class="cst warn">Expires in ${days} day${days === 1 ? '' : 's'}</span>` : `<span class="cst ok">Valid till ${dt(d.expiry)}</span>`; }
 let qrLib = null;
 function loadQr() { return qrLib ||= new Promise((ok, no) => { if (window.qrcode) return ok(window.qrcode); const sc = document.createElement('script'); sc.src = 'vendor/qrcode.js'; sc.onload = () => ok(window.qrcode); sc.onerror = no; document.head.appendChild(sc); }); }
 const upiUri = (u) => `upi://pay?pa=${encodeURIComponent(u.id)}${u.name ? `&pn=${encodeURIComponent(u.name)}` : ''}&cu=INR`;
@@ -1715,25 +1721,47 @@ async function vDocs() {
 }
 function drawDocs() {
   const { docs, canEdit } = S.docs; S.dq ??= ''; S.dt ||= 'all';
-  const q = S.dq.toLowerCase(); const types = DOC_TYPES.filter((t) => docs.some((d) => d.type === t));
-  const list = docs.filter((d) => (S.dt === 'all' || d.type === S.dt) && (!q || `${d.title} ${d.type} ${d.number} ${d.issuedBy} ${d.bank?.bank || ''} ${d.bank?.holder || ''} ${d.upi?.id || ''}`.toLowerCase().includes(q)));
-  const soon = docs.filter((d) => d.expiry && (new Date(d.expiry + 'T00:00') - new Date(S.D.today + 'T00:00')) / 864e5 <= 60);
+  const q = S.dq.toLowerCase(); const types = DOC_TYPES.filter((t) => !VEHICLE_DOC_TYPES.includes(t) && docs.some((d) => d.type === t));
+  const soon = docs.filter((d) => docWatch(d, S.D.today)).sort((a, b) => docDaysLeft(a, S.D.today) - docDaysLeft(b, S.D.today));
+  const veh = docs.filter(isVehicleDoc);
+  const list = (S.dt === 'soon' ? soon : docs.filter((d) => S.dt === 'all' || (S.dt === 'veh' ? isVehicleDoc(d) : d.type === S.dt)))
+    .filter((d) => !q || `${d.title} ${d.type} ${d.number} ${d.issuedBy} ${d.vehicle || ''} ${d.vehicleName || ''} ${d.bank?.bank || ''} ${d.bank?.holder || ''} ${d.upi?.id || ''}`.toLowerCase().includes(q))
+    .sort((a, b) => S.dt === 'veh' ? (a.vehicle || '').localeCompare(b.vehicle || '') || VEHICLE_DOC_TYPES.indexOf(a.type) - VEHICLE_DOC_TYPES.indexOf(b.type) : 0);
   $('#main').innerHTML = `<div class="row sp wrap" style="margin-bottom:10px"><div><h1>Business documents</h1><div class="mut">Licences · GST · bank accounts · UPI QR — shared, admin-managed</div></div>${canEdit ? '<button class="btn sm" id="dAdd">＋ Add document</button>' : ''}</div>
-  ${soon.length ? `<div class="banner">⚠ ${soon.length} document${soon.length > 1 ? 's' : ''} expired or expiring within 60 days: ${soon.map((d) => esc(d.title)).join(', ')}</div>` : ''}
+  ${soon.length ? `<div class="banner">⏰ ${soon.length} document${soon.length > 1 ? 's' : ''} to renew: ${soon.map((d) => { const n = docDaysLeft(d, S.D.today); return `${esc(d.title)}${d.vehicle && !d.title.includes(d.vehicle) ? ' (' + esc(d.vehicle) + ')' : ''} — ${n < 0 ? 'expired' : n === 0 ? 'today' : n + ' d'}`; }).join(' · ')}</div>` : ''}
+  <div class="row wrap noprint" style="gap:8px;margin-bottom:10px"><button class="btn sm ghost" id="dCalAll">📅 All expiry reminders → phone calendar</button></div>
   <input type="search" id="dq" placeholder="Search name, number, bank, UPI…" value="${esc(S.dq)}">
-  <div class="filters" style="margin-top:10px">${[['all', 'All', docs.length], ...types.map((t) => [t, t, docs.filter((d) => d.type === t).length])].map(([k, t, n]) => `<button data-dt="${esc(k)}" class="${S.dt === k ? 'on' : ''}">${esc(t)} · ${n}</button>`).join('')}</div>
+  <div class="filters" style="margin-top:10px">${[['all', 'All', docs.length], ['soon', '⏰ To renew', soon.length], ['veh', '🚗 Vehicles', veh.length], ...types.map((t) => [t, t, docs.filter((d) => d.type === t).length])].map(([k, t, n]) => `<button data-dt="${esc(k)}" class="${S.dt === k ? 'on' : ''}">${esc(t)} · ${n}</button>`).join('')}</div>
   <div class="dgrid">${list.map((d) => { const f = (d.files || []).find((x) => x.mime?.startsWith('image/'));
-    const sub = d.type === 'Bank Account' && d.bank ? `${esc(d.bank.bank)} · ${esc(maskAc(d.bank.account))}${d.bank.ifsc ? ' · ' + esc(d.bank.ifsc) : ''}` : d.type === 'UPI QR Code' && d.upi ? esc(d.upi.id) : esc(d.number || d.issuedBy || '');
+    const sub = isVehicleDoc(d) ? `${esc(d.vehicle || '')}${d.vehicleName ? ' · ' + esc(d.vehicleName) : ''}${d.number ? ' · ' + esc(d.number) : ''}` : d.type === 'Bank Account' && d.bank ? `${esc(d.bank.bank)} · ${esc(maskAc(d.bank.account))}${d.bank.ifsc ? ' · ' + esc(d.bank.ifsc) : ''}` : d.type === 'UPI QR Code' && d.upi ? esc(d.upi.id) : esc(d.number || d.issuedBy || '');
     return `<button class="dcard" data-doc="${esc(d.id)}"><div class="dth">${f ? `<img src="${docFile(f.key)}" loading="lazy" alt="">` : (d.files || []).length ? '<span class="pdf">PDF</span>' : d.upi?.gen && d.upi?.id ? `<span class="pdf">${svg('qr', 30)}</span>` : `<span style="font-size:30px">${DOC_IC[d.type] || '📄'}</span>`}</div>
       <div class="dbody"><div class="mut sm">${DOC_IC[d.type] || '📄'} ${esc(d.type)}</div><div class="b">${esc(d.title)}</div><div class="sm mut">${sub}</div>${docExpiry(d) ? `<div style="margin-top:4px">${docExpiry(d)}</div>` : ''}</div></button>`; }).join('') || `<div class="card mut" style="text-align:center;grid-column:1/-1">${docs.length ? 'Nothing matches' : canEdit ? 'No documents yet — tap “＋ Add document” to add your GST certificate, licences, bank accounts and UPI QR.' : 'No documents yet.'}</div>`}</div>`;
   $('#dq').oninput = () => { S.dq = $('#dq').value; const pos = $('#dq').selectionStart; drawDocs(); const el = $('#dq'); el.focus(); el.setSelectionRange(pos, pos); };
   $('#main').querySelectorAll('[data-dt]').forEach((b) => b.onclick = () => { S.dt = b.dataset.dt; drawDocs(); });
   $('#main').querySelectorAll('[data-doc]').forEach((b) => b.onclick = () => docView(b.dataset.doc));
-  $('#dAdd') && ($('#dAdd').onclick = () => docEdit({ type: S.dt !== 'all' ? S.dt : 'GST Certificate', files: [] }));
+  $('#dAdd') && ($('#dAdd').onclick = () => docEdit({ type: S.dt === 'veh' ? 'Vehicle Insurance' : S.dt !== 'all' && S.dt !== 'soon' ? S.dt : 'GST Certificate', files: [] }));
+  $('#dCalAll').onclick = () => docCalendar(docs.filter((d) => d.expiry && !d.remindOff), 'yamie-document-reminders.ics');
+}
+const numLabel = (t) => ({ 'GST Certificate': 'GSTIN', 'Vehicle Insurance': 'Policy no.', 'Vehicle PUC': 'PUC certificate no.', 'Vehicle Road Tax': 'Tax receipt no.', 'Vehicle RC': 'RC / chassis no.', 'Driving Licence': 'DL no.', 'Vehicle Permit / Fitness': 'Permit / certificate no.', 'UPI QR Code': 'Reference' }[t] || 'Number');
+// v1.20 calendar reminders (.ics): all-day event on the expiry date with alarms at the reminder days, 7 days and 1 day before
+function docICS(list) {
+  const esc2 = (x) => String(x || '').replace(/[\\;,]/g, (m) => '\\' + m).replace(/\n/g, '\\n');
+  const ymd = (d) => d.replace(/-/g, ''); const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+  const ev = list.filter((d) => d.expiry).map((d) => { const next = new Date(Date.parse(d.expiry + 'T00:00:00Z') + 864e5).toISOString().slice(0, 10); const r = +d.remind || DOC_REMIND_DEFAULT;
+    return ['BEGIN:VEVENT', `UID:${d.id}-${ymd(d.expiry)}@yamie-core`, `DTSTAMP:${stamp}`, `DTSTART;VALUE=DATE:${ymd(d.expiry)}`, `DTEND;VALUE=DATE:${ymd(next)}`,
+      `SUMMARY:${esc2(`Renew: ${d.title}${d.vehicle && !d.title.includes(d.vehicle) ? ' (' + d.vehicle + ')' : ''}`)}`, `DESCRIPTION:${esc2(`${d.type}${d.number ? ' ' + d.number : ''} expires today. Update it in Yamie Core → Business documents.`)}`,
+      ...[...new Set([r, 7, 1])].flatMap((x) => ['BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${esc2(`${d.title} expires in ${x} day${x === 1 ? '' : 's'}`)}`, `TRIGGER:-P${x}D`, 'END:VALARM']), 'END:VEVENT'].join('\r\n'); });
+  return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Yamie Core//Documents//EN', 'CALSCALE:GREGORIAN', ...ev, 'END:VCALENDAR'].join('\r\n');
+}
+function docCalendar(list, name) {
+  const ics = docICS(list); if (!list.some((d) => d.expiry)) return toast('Add a “Valid till” date first');
+  if (window.YamieStock?.shareData) return window.YamieStock.shareData(name, 'text/calendar', btoa(unescape(encodeURIComponent(ics))), true);
+  saveFile(name, 'text/calendar', ics); toast('Open the downloaded file to add the reminder to your calendar');
 }
 function docText(d) {
   const L = [`*${d.title}*`, d.type];
-  if (d.number) L.push(`${d.type === 'GST Certificate' ? 'GSTIN' : 'No.'}: ${d.number}`);
+  if (d.vehicle) L.push(`Vehicle: ${d.vehicle}${d.vehicleName ? ' · ' + d.vehicleName : ''}`);
+  if (d.number) L.push(`${numLabel(d.type)}: ${d.number}`);
   if (d.bank) { const b = d.bank; if (b.holder) L.push(`Account name: ${b.holder}`); if (b.bank) L.push(`Bank: ${b.bank}${b.branch ? ', ' + b.branch : ''}`); if (b.account) L.push(`A/c no: ${b.account}`); if (b.ifsc) L.push(`IFSC: ${b.ifsc}`); if (b.kind) L.push(`Type: ${b.kind}`); }
   if (d.upi?.id) L.push(`UPI: ${d.upi.id}${d.upi.name ? ` (${d.upi.name})` : ''}`);
   if (d.issuedBy) L.push(`Issued by: ${d.issuedBy}`); if (d.issueDate) L.push(`Issued: ${dt(d.issueDate)}`); if (d.expiry) L.push(`Valid till: ${dt(d.expiry)}`);
@@ -1747,13 +1775,16 @@ async function docView(id) {
     ${qr ? `<div class="dqr"><img src="${qr}" alt="UPI QR"><div class="b">${esc(d.upi.name || d.title)}</div><div class="mut sm">${esc(d.upi.id)}</div></div>` : ''}
     ${(d.files || []).map((f, i) => f.mime === 'application/pdf' ? `<div class="dpdf"><span class="pdf">PDF</span><div class="grow"><div class="b">${esc(f.label || d.title + '.pdf')}</div><div class="mut sm">PDF document</div></div><button class="btn sm ghost" data-open="${i}">Open</button></div>` : `<img class="dimg" src="${docFile(f.key)}" data-big="${i}" alt="">`).join('')}
     <div class="card" style="margin-top:10px;padding:6px 12px">
-      ${row(d.type === 'GST Certificate' ? 'GSTIN' : 'Number', d.number, true)}
+      ${row('Vehicle', d.vehicle ? d.vehicle + (d.vehicleName ? ' · ' + d.vehicleName : '') : '', !!d.vehicle)}
+      ${row(numLabel(d.type), d.number, true)}
       ${d.bank ? row('Account name', d.bank.holder, true) + row('Bank', d.bank.bank) + row('Branch', d.bank.branch) + row('Account no.', d.bank.account, true, true) + row('IFSC', d.bank.ifsc, true) + row('Account type', d.bank.kind) : ''}
       ${d.upi ? row('UPI ID', d.upi.id, true) + row('Payee name', d.upi.name) : ''}
       ${row('Issued by', d.issuedBy)}${row('Issue date', d.issueDate && dt(d.issueDate))}${row('Valid till', d.expiry && dt(d.expiry))}
+      ${d.expiry ? row('Reminders', d.remindOff ? 'Off' : `${+d.remind || DOC_REMIND_DEFAULT}, 15, 7, 3, 1 days before and on the day`) : ''}
       ${d.notes ? `<div class="dfrow"><span class="mut">Notes</span><span style="white-space:pre-wrap">${esc(d.notes)}</span><span></span></div>` : ''}
     </div><div class="mut sm" style="margin-top:6px">Updated ${new Date(d.updatedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} by ${esc(d.updatedByName || '')}</div>
     <div class="cact" style="margin-top:12px"><button class="btn" id="dShare">${svg('share', 18)} Share</button><button class="btn ghost" id="dPrint">${svg('print', 18)} Print</button></div>
+    ${d.expiry ? '<button class="btn ghost" id="dCal" style="width:100%;margin-top:8px">📅 Add expiry reminder to phone calendar</button>' : ''}
     <div class="cact" style="margin-top:8px"><button class="btn ghost" id="dText">Share details (text)</button>${canEdit ? '<button class="btn sec" id="dEdit">Edit</button>' : '<span></span>'}</div>`;
   modal(`${DOC_IC[d.type] || '📄'} ${esc(d.title)}`, esc(d.type), html, (ov) => {
     ov.querySelectorAll('[data-copy]').forEach((b) => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.copy); toast('Copied'); } catch { prompt('Copy:', b.dataset.copy); } });
@@ -1763,6 +1794,7 @@ async function docView(id) {
     $('#dShare').onclick = () => docShare(d, qr);
     $('#dText').onclick = () => shareText(docText(d), d.title);
     $('#dPrint').onclick = () => docPrint(d, qr);
+    $('#dCal') && ($('#dCal').onclick = () => docCalendar([d], `renew-${(d.title || 'document').replace(/[^\w-]+/g, '_')}.ics`));
     $('#dEdit') && ($('#dEdit').onclick = () => docEdit(JSON.parse(JSON.stringify(d))));
   });
 }
@@ -1808,14 +1840,16 @@ function docEdit(d) {
     if (bank && !d.bank) d.bank = { holder: S.D.settings.shopName || '', bank: '', account: '', ifsc: '', branch: '', kind: 'Current' };
     if (d.type === 'UPI QR Code' && !d.upi) d.upi = { id: '', name: S.D.settings.shopName || '', gen: true };
     const html = `<label class="f">Document type</label><select id="xType">${DOC_TYPES.map((t) => `<option ${d.type === t ? 'selected' : ''}>${t}</option>`).join('')}</select>
-      <label class="f">Name / title *</label><input id="xTitle" value="${esc(d.title || '')}" placeholder="${bank ? 'e.g. HDFC Current Account' : d.type === 'UPI QR Code' ? 'e.g. Shop UPI' : 'e.g. GST Certificate – Yamie'}">
+      <label class="f">Name / title *</label><input id="xTitle" value="${esc(d.title || '')}" placeholder="${isVehicleDoc(d) ? 'auto: e.g. Insurance · KL 07 AB 1234' : bank ? 'e.g. HDFC Current Account' : d.type === 'UPI QR Code' ? 'e.g. Shop UPI' : 'e.g. GST Certificate – Yamie'}">
       ${bank ? `<div class="g2"><div><label class="f">Account holder name</label><input id="xHold" value="${esc(d.bank.holder)}"></div><div><label class="f">Bank</label><input id="xBank" value="${esc(d.bank.bank)}" placeholder="e.g. HDFC Bank"></div>
         <div><label class="f">Account number</label><input id="xAc" inputmode="numeric" value="${esc(d.bank.account)}"></div><div><label class="f">IFSC</label><input id="xIfsc" value="${esc(d.bank.ifsc)}" style="text-transform:uppercase"></div>
         <div><label class="f">Branch</label><input id="xBr" value="${esc(d.bank.branch)}"></div><div><label class="f">Account type</label><select id="xKind">${['Current', 'Savings', 'OD / CC', 'Other'].map((k) => `<option ${d.bank.kind === k ? 'selected' : ''}>${k}</option>`).join('')}</select></div></div>`
-      : `<div class="g2"><div><label class="f">${d.type === 'GST Certificate' ? 'GSTIN' : d.type === 'UPI QR Code' ? 'Reference (optional)' : 'Number'}</label><input id="xNum" value="${esc(d.number || '')}"></div><div><label class="f">Issued by</label><input id="xBy" value="${esc(d.issuedBy || '')}"></div></div>`}
+      : `${isVehicleDoc(d) ? `<div class="g2"><div><label class="f">Vehicle number *</label><input id="xVeh" list="vehL" value="${esc(d.vehicle || '')}" placeholder="KL 07 AB 1234" style="text-transform:uppercase"><datalist id="vehL">${[...new Set(S.docs.docs.map((x) => x.vehicle).filter(Boolean))].map((v) => `<option value="${esc(v)}">`).join('')}</datalist></div><div><label class="f">Vehicle (make / model)</label><input id="xVehN" value="${esc(d.vehicleName || '')}" placeholder="e.g. Maruti Ciaz"></div></div>` : ''}
+        <div class="g2"><div><label class="f">${d.type === 'UPI QR Code' ? 'Reference (optional)' : numLabel(d.type)}</label><input id="xNum" value="${esc(d.number || '')}"></div><div><label class="f">${d.type === 'Vehicle Insurance' ? 'Insurer' : 'Issued by'}</label><input id="xBy" value="${esc(d.issuedBy || '')}"></div></div>`}
       ${upi ? `<div class="card" style="margin-top:10px;background:var(--iv)"><div class="b" style="margin-bottom:4px">${svg('qr', 18)} UPI QR</div><div class="g2"><div><label class="f">UPI ID</label><input id="xUpi" value="${esc(d.upi?.id || '')}" placeholder="name@bank"></div><div><label class="f">Payee name</label><input id="xUpn" value="${esc(d.upi?.name || '')}"></div></div>
         <label class="chk" style="margin-top:8px"><input type="checkbox" id="xGen" ${d.upi?.gen ?? true ? 'checked' : ''}> Make a QR code from this UPI ID (or upload the bank's QR image below)</label><div id="xQr" style="text-align:center"></div></div>` : ''}
       <div class="g2"><div><label class="f">Issue date</label><input type="date" id="xIss" value="${esc(d.issueDate || '')}"></div><div><label class="f">Valid till / expiry</label><input type="date" id="xExp" value="${esc(d.expiry || '')}"></div></div>
+      <div class="g2"><div><label class="f">Remind before expiry</label><select id="xRem">${[7, 15, 30, 45, 60, 90].map((n) => `<option value="${n}" ${(+d.remind || DOC_REMIND_DEFAULT) === n ? 'selected' : ''}>${n} days before</option>`).join('')}</select></div><div><label class="chk" style="margin-top:26px"><input type="checkbox" id="xRemOff" ${d.remindOff ? 'checked' : ''}> No reminders</label></div></div>
       <label class="f">Notes</label><textarea id="xNotes" rows="2">${esc(d.notes || '')}</textarea>
       <label class="f">Photos / PDF of the document${d.type === 'UPI QR Code' ? ' (or QR image)' : ''}</label>
       <div class="dfiles">${d.files.map((f, i) => `<div class="df">${f.mime === 'application/pdf' ? '<span class="pdf">PDF</span>' : `<img src="${docFile(f.key)}">`}<button type="button" class="x" data-rm="${i}">×</button></div>`).join('')}
@@ -1825,6 +1859,8 @@ function docEdit(d) {
       <div class="row" style="margin-top:14px">${!isNew ? '<button class="btn bad sm" id="xDel">🗑 Delete</button>' : ''}<button class="btn grow" id="xSave">${isNew ? 'Save document' : 'Save'}</button></div>`;
     modal(isNew ? 'Add document' : 'Edit · ' + esc(d.title), 'Admin · stored on the shop server', html, (ov) => {
       const read = () => { d.type = $('#xType').value; d.title = $('#xTitle').value.trim(); if ($('#xNum')) d.number = $('#xNum').value.trim(); if ($('#xBy')) d.issuedBy = $('#xBy').value.trim();
+        if ($('#xVeh')) { d.vehicle = $('#xVeh').value.trim().toUpperCase(); d.vehicleName = $('#xVehN').value.trim(); } else if (!isVehicleDoc(d)) { d.vehicle = ''; d.vehicleName = ''; }
+        d.remind = +$('#xRem').value; d.remindOff = $('#xRemOff').checked;
         if ($('#xHold')) d.bank = { holder: $('#xHold').value.trim(), bank: $('#xBank').value.trim(), account: $('#xAc').value.replace(/\s/g, ''), ifsc: $('#xIfsc').value.trim().toUpperCase(), branch: $('#xBr').value.trim(), kind: $('#xKind').value };
         if ($('#xUpi')) d.upi = { id: $('#xUpi').value.trim(), name: $('#xUpn').value.trim(), gen: $('#xGen').checked }; else if (d.type !== 'UPI QR Code' && d.type !== 'Bank Account') d.upi = null;
         if (d.type !== 'Bank Account') d.bank = null; d.issueDate = $('#xIss').value; d.expiry = $('#xExp').value; d.notes = $('#xNotes').value; };
@@ -1840,7 +1876,8 @@ function docEdit(d) {
         draw(); };
       $('#xImg').onchange = (e) => up(e.target.files, false);
       $('#xPdf').onchange = (e) => up(e.target.files, true);
-      $('#xSave').onclick = async () => { read(); if (!d.title) return toast('Give the document a name');
+      $('#xSave').onclick = async () => { read(); if (!d.title && isVehicleDoc(d)) d.title = d.type.replace('Vehicle ', '') + (d.vehicle ? ' · ' + d.vehicle : ''); if (!d.title) return toast('Give the document a name');
+        if (isVehicleDoc(d) && d.type !== 'Driving Licence' && !d.vehicle) return toast('Enter the vehicle number');
         if (d.type === 'Bank Account' && !d.bank?.account) return toast('Enter the account number');
         if (d.type === 'UPI QR Code' && !d.upi?.id && !d.files.length) return toast('Enter the UPI ID or upload the QR image');
         try { const r = await api('docs/save', { doc: d }); const i = S.docs.docs.findIndex((x) => x.id === r.doc.id); if (i >= 0) S.docs.docs[i] = r.doc; else S.docs.docs.push(r.doc); closeModal(); toast('Saved'); if (S.view === 'docs') drawDocs(); docView(r.doc.id); } catch (e) { fail(e); } };
@@ -1864,9 +1901,10 @@ async function vAlerts() {
   $('#main').innerHTML = '<h1>Alerts</h1><div class="mut" style="margin-top:8px">Loading…</div>';
   try {
     const j = await api('alerts'); api('alerts/seen', {}).then(() => { S.D.alerts.unread = 0; renderTop(); });
-    const I = { variance: ['!', 'var(--badb)', 'var(--bad)'], report: ['✓', 'var(--okb)', 'var(--ok)'], close: ['■', 'var(--m3)', 'var(--m)'], info: ['i', 'var(--warnb)', 'var(--warn)'] };
-    $('#main').innerHTML = `<h1 style="margin-bottom:12px">Alerts</h1><div class="card" style="padding:0;overflow:hidden">${j.alerts.map((a) => { const k = I[a.type] || I.info; const ic = a.type === 'report' && !a.ok ? ['!', 'var(--warnb)', 'var(--warn)'] : k; return `<div class="al ${a.at > j.seen && a.by !== S.me.id ? 'new' : ''}"><div class="ic" style="background:${ic[1]};color:${ic[2]}">${ic[0]}</div><div class="grow"><div class="b">${esc(a.title)}</div><div class="sm">${esc(a.body)}</div><div class="mut sm">${esc(uname(a.by))} · ${ago(a.at)}</div></div>${a.locId && a.date === S.D.today && S.locById[a.locId] && isToday() ? `<button class="btn sm ghost" data-loc="${a.locId}">Open</button>` : ''}</div>`; }).join('') || '<div class="mut" style="padding:20px;text-align:center">No alerts in the last 7 days</div>'}</div>`;
+    const I = { doc: ['⏰', 'var(--warnb)', 'var(--warn)'], variance: ['!', 'var(--badb)', 'var(--bad)'], report: ['✓', 'var(--okb)', 'var(--ok)'], close: ['■', 'var(--m3)', 'var(--m)'], info: ['i', 'var(--warnb)', 'var(--warn)'] };
+    $('#main').innerHTML = `<h1 style="margin-bottom:12px">Alerts</h1><div class="card" style="padding:0;overflow:hidden">${j.alerts.map((a) => { const k = I[a.type] || I.info; const ic = a.type === 'report' && !a.ok ? ['!', 'var(--warnb)', 'var(--warn)'] : k; return `<div class="al ${a.at > j.seen && a.by !== S.me.id ? 'new' : ''}"><div class="ic" style="background:${ic[1]};color:${ic[2]}">${ic[0]}</div><div class="grow"><div class="b">${esc(a.title)}</div><div class="sm">${esc(a.body)}</div><div class="mut sm">${esc(uname(a.by))} · ${ago(a.at)}</div></div>${a.locId && a.date === S.D.today && S.locById[a.locId] && isToday() ? `<button class="btn sm ghost" data-loc="${a.locId}">Open</button>` : ''}${a.docId && (can('docs') || can('docsEdit')) ? `<button class="btn sm ghost" data-adoc="${esc(a.docId)}">Open</button>` : ''}</div>`; }).join('') || '<div class="mut" style="padding:20px;text-align:center">No alerts in the last 7 days</div>'}</div>`;
     bindLocCards();
+    $('#main').querySelectorAll('[data-adoc]').forEach((b) => b.onclick = async () => { try { if (!S.docs) S.docs = await api('docs'); docView(b.dataset.adoc); } catch (e) { fail(e); } });
   } catch (e) { fail(e); }
 }
 function vLog() {
