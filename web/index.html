@@ -49,6 +49,8 @@ label.f{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
 .dvn{position:absolute;top:50%;transform:translateY(-50%);z-index:2;width:44px;height:64px;border:0;border-radius:12px;background:rgba(255,255,255,.14);color:#fff;font-size:30px}.dvn.l{left:8px}.dvn.r{right:8px}.dvn:disabled{opacity:.2}
 .dvfoot{display:flex;align-items:center;justify-content:center;gap:10px;padding:8px 8px calc(10px + env(safe-area-inset-bottom));background:rgba(0,0,0,.6);z-index:2}#dvZ{min-width:48px;text-align:center;font-size:13px;opacity:.8}
 .dvdots{display:flex;gap:5px;margin-left:10px}.dvdots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.35)}.dvdots i.on{background:#fff}
+.ltab th.sortable,table th{cursor:pointer;user-select:none}.sarr{margin-left:4px;font-size:10px;opacity:.45}th.on .sarr,th[data-sdir] .sarr{opacity:1;color:var(--m)}
+.colist{display:flex;flex-direction:column;gap:6px}.colrow{display:grid;grid-template-columns:28px 1fr auto auto;gap:6px;align-items:center}.colrow input[type=text]{min-height:38px;padding:6px 10px}
 .isum{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:6px;font-size:12px;color:var(--mut)}.isum b{color:var(--ink);font-weight:600}.isum .on{color:var(--m)}.isum .on b{color:var(--m)}.isum .off{opacity:.55}
 .wtl{margin-top:4px;font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap}.wtl.none{font-weight:400;color:var(--warn);font-size:11px}
 details.msel{position:relative}details.msel>summary{list-style:none;cursor:pointer;border:1px solid var(--ln);border-radius:10px;background:#fff;min-height:44px;padding:10px 30px 10px 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative}
@@ -357,7 +359,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.26';
+const VERSION = '1.27';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -704,7 +706,7 @@ function vSection(sec) {
   ${selBar}
   <input type="search" id="q" placeholder="Search name, purity, box no…" value="${esc(S.q)}">
   <div class="filters" style="margin-top:10px">${[['all', 'All', X.locs], ['pending', 'Not checked', X.pending], ['var', 'Variance', X.var + X.stale], ['ok', 'OK', X.ok]].map(([k, l, n]) => `<button data-f="${k}" class="${S.filter === k ? 'on' : ''}">${l} · ${n}</button>`).join('')}</div>
-  ${Object.entries(groups).map(([g, ls]) => `<div class="grp"><span>${esc(g)}</span><span>${hideExp() ? '' : `${fmt(ls.reduce((a, l) => a + cardPcs(l).exp, 0))} pcs${S.cardF ? ` <span style="opacity:.6">of ${fmt(ls.reduce((a, l) => a + sumLines(expOf(l.id).lines), 0))}</span>` : ''}${(() => { const w = ls.reduce((a, l) => a + (+expOf(l.id).wt || 0), 0); return w ? ` · ⚖ ${g3(w)} g` : sec === 'box' ? ' · weight not set' : ''; })()}`}</span></div><div class="locs ${sec === 'tray' ? 'wide' : ''}">${ls.map(locCard).join('')}</div>`).join('') || '<div class="card mut" style="text-align:center">Nothing here</div>'}
+  ${Object.entries(groups).map(([g, ls]) => `<div class="grp"><span>${esc(g)}</span><span>${hideExp() ? '' : `${fmt(ls.reduce((a, l) => a + cardPcs(l).exp, 0))} pcs${S.cardF ? ` <span style="opacity:.6">of ${fmt(ls.reduce((a, l) => a + sumLines(expOf(l.id).lines), 0))}</span>` : ''}${sec === 'tray' && ls.some((l) => +l.qty) ? ` · ${fmt(ls.reduce((a, l) => a + (+l.qty || 0), 0))} trays` : ''}${(() => { const w = ls.reduce((a, l) => a + (+expOf(l.id).wt || 0), 0); return w ? ` · ⚖ ${g3(w)} g` : sec === 'box' ? ' · weight not set' : ''; })()}`}</span></div><div class="locs ${sec === 'tray' ? 'wide' : ''}">${ls.map(locCard).join('')}</div>`).join('') || '<div class="card mut" style="text-align:center">Nothing here</div>'}
 `;
   bindBanner();
   const qi = $('#q'); qi.oninput = () => { S.q = qi.value; const p = qi.selectionStart; vSection(sec); const n = $('#q'); n.focus(); n.setSelectionRange(p, p); };
@@ -2037,6 +2039,20 @@ function docEdit(d) {
   };
   draw();
 }
+// v1.27 click a heading to sort any simple table (no group / total rows); 3rd click restores the original order
+document.addEventListener('click', (e) => {
+  const th = e.target.closest('th'); if (!th || th.closest('.ltab') || th.dataset.sort) return;
+  const tr0 = th.parentElement; const tb = tr0.parentElement; const tbl = th.closest('table'); if (!tbl || tr0 !== tbl.querySelector('tr')) return;
+  const rows = [...tb.children].filter((r) => r !== tr0 && r.tagName === 'TR');
+  const fixed = rows.filter((r) => /\b(tot|rgrp|mhead|grp|sub)\b/.test(r.className)); if (fixed.length) return;
+  if (!tbl.dataset.orig) { rows.forEach((r, i) => { r.dataset.oi = i; }); tbl.dataset.orig = 1; }
+  const idx = [...tr0.children].indexOf(th); const dir = th.dataset.sdir === '1' ? -1 : th.dataset.sdir === '-1' ? 0 : 1;
+  tr0.querySelectorAll('th').forEach((x) => { delete x.dataset.sdir; x.querySelector('.sarr')?.remove(); });
+  const val = (r) => { const t = (r.children[idx]?.innerText || '').trim(); const n = parseFloat(t.replace(/[₹,+\s]/g, '').replace(/^—$/, '')); return isNaN(n) || !/^[−\-+₹\d.,\s]/.test(t) ? t.toLowerCase() : n * (t.startsWith('−') ? -1 : 1); };
+  const sorted = dir ? [...rows].sort((a, b) => { const x = val(a), y = val(b); return (typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), undefined, { numeric: true })) * dir; }) : [...rows].sort((a, b) => a.dataset.oi - b.dataset.oi);
+  sorted.forEach((r) => tb.appendChild(r));
+  if (dir) { th.dataset.sdir = String(dir); th.insertAdjacentHTML('beforeend', `<span class="sarr">${dir > 0 ? '▲' : '▼'}</span>`); }
+});
 function vMore() {
   const items = [['docs', 'Business documents', 'Licences, GST certificate, bank accounts, UPI QR', can('docs') || can('docsEdit')], ['eod', 'End-of-day entries', 'Sales, returns, smith, samples… then evening count', can('move')], ['log', 'Day log', 'Movements and checks today', true], ['alerts', 'Alerts', 'Variances and reports', can('alerts')], ['history', 'History', 'Past days and closing stock', can('reports')], ['admin', 'Admin', 'Users, locations, settings', can('users') || can('setup')], ['backup', 'Backup database', 'Download all data as a backup file', S.me.role === 'admin']].filter((x) => x[3]);
   $('#main').innerHTML = `<h1 style="margin-bottom:12px">More</h1><div class="list card" style="padding:0">${items.map(([k, t, d]) => `<button class="li" style="width:100%;text-align:left" data-go="${k}"><div class="grow"><div class="b">${t}</div><div class="mut sm">${d}</div></div><span class="mut">›</span></button>`).join('')}
@@ -2222,6 +2238,65 @@ async function admUsers() {
   $('#uAdd').onclick = () => edit({ role: 'staff' });
   $('#adm').querySelectorAll('[data-u]').forEach((b) => b.onclick = () => edit(j.users.find((u) => u.id === b.dataset.u)));
 }
+// ---------- v1.27 Admin → Locations table: sortable, customisable columns (per device) ----------
+const LCOLS = [
+  { k: 'name', t: 'Name', v: (l) => l.name, lock: true },
+  { k: 'area', t: 'Main location', v: (l) => l.area || '' },
+  { k: 'sub', t: 'Sub display', v: (l) => l.sub || '', secs: ['counter'] },
+  { k: 'group', t: 'Group', v: (l) => l.group || '' },
+  { k: 'boxNo', t: 'Box no.', v: (l) => l.boxNo || '', secs: ['box'] },
+  { k: 'jt', t: 'Jewellery type', v: (l) => jtNames(l) },
+  { k: 'pur', t: 'Purity', v: (l) => locPurs(l).join(', ') },
+  { k: 'items', t: 'Items', v: (l) => locItems(l).join(', ') || l.itemType || '' },
+  { k: 'pcs', t: 'Pcs', num: true, v: (l) => sumLines(expOf(l.id).lines) },
+  { k: 'trays', t: 'No. of trays', num: true, v: (l) => +l.qty || 0, secs: ['tray'] },
+  { k: 'slots', t: 'Slots / tray', num: true, v: (l) => +l.insert || 0, secs: ['tray'] },
+  { k: 'wt', t: 'Weight g', num: true, v: (l) => +expOf(l.id).wt || 0 },
+  { k: 'status', t: 'Status', v: (l) => STLBL[S.sum.status[l.id]?.state] || '' },
+  { k: 'tag', t: 'Tag', v: (l) => l.cat || '', off: true },
+  { k: 'mode', t: 'Box check', v: (l) => ({ both: 'Weight + count', weight: 'Weight only', count: 'Count only' })[l.mode] || '', secs: ['box'], off: true },
+];
+function colCfg() { let c; try { c = JSON.parse(localStorage.ysc_cols || 'null'); } catch {} c ||= {}; c.order = [...(c.order || []).filter((k) => LCOLS.some((x) => x.k === k)), ...LCOLS.map((x) => x.k).filter((k) => !(c.order || []).includes(k))];
+  c.hidden ||= LCOLS.filter((x) => x.off).map((x) => x.k); c.names ||= {}; return c; }
+const saveCols = (c) => { try { localStorage.ysc_cols = JSON.stringify(c); } catch {} };
+function locTable(sec, ls, lineF, matchPcs) {
+  const cfg = colCfg(); const cols = cfg.order.map((k) => LCOLS.find((x) => x.k === k)).filter((c) => !cfg.hidden.includes(c.k) && (!c.secs || c.secs.includes(sec)));
+  const so = (S.lsort ||= {})[sec]; const col = so && LCOLS.find((x) => x.k === so.k);
+  const rows = col ? [...ls].sort((a, b) => { const x = col.k === 'pcs' && lineF ? matchPcs(a) : col.v(a), y = col.k === 'pcs' && lineF ? matchPcs(b) : col.v(b);
+    return (col.num ? x - y : String(x).localeCompare(String(y), undefined, { numeric: true, sensitivity: 'base' })) * (so.dir || 1); }) : ls;
+  const cell = (c, l) => { const e = expOf(l.id);
+    switch (c.k) {
+      case 'name': return `<td class="b" data-loc="${l.id}" style="cursor:pointer;text-decoration:underline dotted;text-align:left">${esc(l.name)}${l.boxNo && !cols.some((x) => x.k === 'boxNo') ? ` <span class="chip m">${esc(l.boxNo)}</span>` : ''}</td>`;
+      case 'jt': return `<td style="text-align:left">${jtChips(l) || '—'}</td>`;
+      case 'items': return `<td style="text-align:left" class="sm">${esc(c.v(l) || '—')}</td>`;
+      case 'pcs': return `<td>${lineF ? `<b>${fmt(matchPcs(l))}</b> <span class="mut sm">/ ${fmt(sumLines(e.lines))}</span>` : fmt(sumLines(e.lines))}</td>`;
+      case 'trays': return `<td>${+l.qty ? `<b>${fmt(+l.qty)}</b>` : '—'}</td>`;
+      case 'slots': return `<td>${+l.insert ? fmt(+l.insert) + (+l.qty ? ` <span class="mut sm">= ${fmt(l.insert * l.qty)}</span>` : '') : '—'}</td>`;
+      case 'wt': return `<td class="${e.wt || sec !== 'box' ? '' : 'neg'}">${e.wt ? g3(e.wt) : sec === 'box' ? 'not set' : '—'}${can('setup') && editable() ? ` <button class="lnk" data-wtl="${l.id}">${e.wt ? 'edit' : 'add'}</button>` : ''}</td>`;
+      case 'status': { const st = S.sum.status[l.id]?.state; return `<td style="text-align:left"><span class="st ${st}">${STLBL[st] || ''}</span></td>`; }
+      default: return `<td style="text-align:left">${esc(c.v(l) || '—')}</td>`; } };
+  const th = (c) => `<th class="sortable ${so?.k === c.k ? 'on' : ''}" data-sort="${sec}:${c.k}" style="${c.num ? '' : 'text-align:left'}">${esc(cfg.names[c.k] || c.t)}<span class="sarr">${so?.k === c.k ? (so.dir > 0 ? '▲' : '▼') : '↕'}</span></th>`;
+  const tot = (k) => rows.reduce((a, l) => a + (k === 'pcs' && lineF ? matchPcs(l) : LCOLS.find((x) => x.k === k).v(l)), 0);
+  return `<div class="tw"><table class="ltab"><tr>${cols.map(th).join('')}<th></th></tr>${rows.map((l) => `<tr>${cols.map((c) => cell(c, l)).join('')}
+      <td style="white-space:nowrap">${can('setup') && editable() ? `<button class="btn sm ghost" data-edit="${l.id}">✎ Edit</button> <button class="btn sm ghost" data-delloc="${l.id}" style="color:var(--bad)">🗑</button>` : ''}</td></tr>`).join('')}
+    ${rows.length > 1 ? `<tr class="tot">${cols.map((c, i) => i === 0 ? `<td style="text-align:left">Total · ${rows.length}</td>` : c.num ? `<td>${c.k === 'wt' ? (tot('wt') ? g3(tot('wt')) : '—') : c.k === 'slots' ? '' : fmt(tot(c.k))}</td>` : '<td></td>').join('')}<td></td></tr>` : ''}</table></div>`;
+}
+function colPicker() {
+  const cfg = colCfg();
+  const draw = () => modal('Table columns', 'Admin → Locations · saved on this device', `<div class="mut sm" style="margin-bottom:8px">Tick to show, ↑ ↓ to reorder, type to rename a heading. Some columns only appear in their own section (Sub display: counters; No. of trays, Slots / tray: buffer trays; Box no., Box check: boxes).</div>
+    <div class="colist">${cfg.order.map((k, i) => { const c = LCOLS.find((x) => x.k === k); return `<div class="colrow"><label class="chk" style="margin:0"><input type="checkbox" data-cshow="${k}" ${cfg.hidden.includes(k) ? '' : 'checked'} ${c.lock ? 'disabled' : ''}></label>
+      <input type="text" data-cname="${k}" value="${esc(cfg.names[k] || '')}" placeholder="${esc(c.t)}"><button class="btn sm ghost" data-cup="${i}" ${i ? '' : 'disabled'}>↑</button><button class="btn sm ghost" data-cdn="${i}" ${i < cfg.order.length - 1 ? '' : 'disabled'}>↓</button></div>`; }).join('')}</div>
+    <div class="row" style="margin-top:12px"><button class="btn ghost" id="cReset">Reset</button><button class="btn grow" id="cDone">Done</button></div>`, (ov) => {
+    const read = () => { ov.querySelectorAll('[data-cshow]').forEach((x) => { const k = x.dataset.cshow; cfg.hidden = cfg.hidden.filter((h) => h !== k); if (!x.checked) cfg.hidden.push(k); });
+      ov.querySelectorAll('[data-cname]').forEach((x) => { const v = x.value.trim(); if (v) cfg.names[x.dataset.cname] = v; else delete cfg.names[x.dataset.cname]; }); };
+    const mv = (i, d) => { read(); const o = cfg.order; [o[i], o[i + d]] = [o[i + d], o[i]]; saveCols(cfg); draw(); };
+    ov.querySelectorAll('[data-cup]').forEach((b) => b.onclick = () => mv(+b.dataset.cup, -1));
+    ov.querySelectorAll('[data-cdn]').forEach((b) => b.onclick = () => mv(+b.dataset.cdn, 1));
+    $('#cReset').onclick = () => { localStorage.removeItem('ysc_cols'); closeModal(); admLocs(); };
+    $('#cDone').onclick = () => { read(); saveCols(cfg); closeModal(); admLocs(); };
+  });
+  draw();
+}
 // v1.22 Admin → Locations filters: section, main location, sub display, group, jewellery type, item, purity, search
 const heldOf = (l) => Object.entries(expOf(l.id).lines).filter(([, n]) => n);
 const locItems = (l) => [...new Set([...heldOf(l).map(([k]) => itemOf(k)), ...(l.itemType ? [l.itemType] : [])])];
@@ -2274,12 +2349,13 @@ function admLocs() {
       ${sel('area', 'Main location', O.area)}${F.sec === 'all' || F.sec === 'counter' ? sel('sub', 'Sub display', O.sub) : ''}${sel('group', F.sec === 'tray' ? 'Item group' : F.sec === 'counter' ? 'Counter' : 'Group', O.group)}
       ${sel('jt', 'Jewellery type', O.jt, (j) => JF_LBL[j] || j)}${sel('item', 'Item', O.item)}${sel('pur', 'Purity', O.pur)}
       <div class="grow"><label class="f">Search</label><input type="search" id="afQ" value="${esc(F.q)}" placeholder="Name, box no., tag…"></div></div>
-    <div class="row sp" style="margin-top:8px"><span class="mut sm">Showing <b>${shown.length}</b> of ${activeLocs().length} · ${lineF ? `<b>${fmt(shown.reduce((a, l) => a + matchPcs(l), 0))}</b> matching pcs (${fmt(shown.reduce((a, l) => a + sumLines(expOf(l.id).lines), 0))} in these locations)` : `${fmt(shown.reduce((a, l) => a + sumLines(expOf(l.id).lines), 0))} pcs`}</span>${active ? '<button class="btn sm ghost" id="afClr">✕ Clear filters</button>' : ''}</div></div>`;
+    <div class="row sp" style="margin-top:8px;gap:8px;flex-wrap:wrap"><span class="mut sm">Showing <b>${shown.length}</b> of ${activeLocs().length} · ${lineF ? `<b>${fmt(shown.reduce((a, l) => a + matchPcs(l), 0))}</b> matching pcs (${fmt(shown.reduce((a, l) => a + sumLines(expOf(l.id).lines), 0))} in these locations)` : `${fmt(shown.reduce((a, l) => a + sumLines(expOf(l.id).lines), 0))} pcs`}</span><span class="row" style="gap:6px">${active ? '<button class="btn sm ghost" id="afClr">✕ Clear filters</button>' : ''}<button class="btn sm ghost" id="colBtn">⚙ Columns</button></span></div></div>`;
   const filtered = active > 0;
   const addBar = can('setup') && editable() ? `<div class="addbar"><button class="btn" data-addn="counter">＋ Counter tray</button><button class="btn" data-addn="tray">＋ Buffer tray</button><button class="btn" data-addn="box">＋ Box</button></div>` : '';
   $('#adm').innerHTML = `<div class="mut sm" style="margin-bottom:10px">Add, edit or delete counters, trays and boxes. Tap a name to open it (photos, stock). ${editable() ? '' : '<b>Day is closed — reopen today’s day to add or change locations.</b>'}</div>` + addBar + bar + SECTIONS.filter((s) => F.sec === 'all' || F.sec === s.key).filter((s) => !filtered || shown.some((l) => l.sec === s.key) || F.sec === s.key).map((s) => `<div class="grp"><span>${s.label} (${filtered ? `${shown.filter((l) => l.sec === s.key).length} of ` : ''}${activeLocs(s.key).length})</span>${editable() ? `<button class="btn sm sec" data-add="${s.key}">＋ Add ${s.key === 'counter' ? 'counter tray' : s.key === 'tray' ? 'tray' : 'box'}</button>` : ''}</div>
-    <div class="tw"><table><tr><th>Name</th>${s.key === 'counter' ? '<th>Main location</th><th>Sub display</th>' : '<th>Main location</th>'}<th>Group</th><th>Jewellery type</th><th>Purity</th><th>Item</th><th>Pcs</th><th>Weight g</th><th></th></tr>${shown.filter((l) => l.sec === s.key).map((l) => `<tr><td class="b" data-loc="${l.id}" style="cursor:pointer;text-decoration:underline dotted">${esc(l.name)}${l.boxNo ? ` <span class="chip m">${esc(l.boxNo)}</span>` : ''}</td><td style="text-align:left">${esc(l.area || '—')}</td>${s.key === 'counter' ? `<td style="text-align:left">${esc(l.sub || '—')}</td>` : ''}<td style="text-align:left">${esc(l.group)}</td><td style="text-align:left">${jtChips(l) || '—'}</td><td style="text-align:left">${esc(locPurs(l).join(', '))}</td><td style="text-align:left" class="sm">${esc(locItems(l).join(', ') || l.itemType || '—')}</td><td>${lineF ? `<b>${fmt(matchPcs(l))}</b> <span class="mut sm">/ ${fmt(sumLines(expOf(l.id).lines))}</span>` : fmt(sumLines(expOf(l.id).lines))}</td><td class="${expOf(l.id).wt || s.key !== 'box' ? '' : 'neg'}">${expOf(l.id).wt ? g3(expOf(l.id).wt) : s.key === 'box' ? 'not set' : '—'}${can('setup') && editable() ? ` <button class="lnk" data-wtl="${l.id}">${expOf(l.id).wt ? 'edit' : 'add'}</button>` : ''}</td>
-      <td style="white-space:nowrap">${can('setup') && editable() ? `<button class="btn sm ghost" data-edit="${l.id}">✎ Edit</button> <button class="btn sm ghost" data-delloc="${l.id}" style="color:var(--bad)">🗑</button>` : ''}</td></tr>`).join('')}</table></div>`).join('');
+    ${locTable(s.key, shown.filter((l) => l.sec === s.key), lineF, matchPcs)}`).join('');
+  $('#colBtn').onclick = colPicker;
+  $('#adm').querySelectorAll('[data-sort]').forEach((h) => h.onclick = () => { const [sec, k] = h.dataset.sort.split(':'); const cur = (S.lsort ||= {})[sec]; S.lsort[sec] = cur?.k === k ? (cur.dir > 0 ? { k, dir: -1 } : null) : { k, dir: 1 }; admLocs(); });
   $('#adm').querySelectorAll('[data-afs]').forEach((b) => b.onclick = () => { F.sec = b.dataset.afs; if (F.sec !== 'all' && F.sec !== 'counter') F.sub = ''; admLocs(); });
   $('#adm').querySelectorAll('[data-af]').forEach((el) => el.onchange = () => { F[el.dataset.af] = el.value; admLocs(); });
   $('#afQ').oninput = () => { F.q = $('#afQ').value; const pos = $('#afQ').selectionStart; admLocs(); const q = $('#afQ'); q.focus(); q.setSelectionRange(pos, pos); };
