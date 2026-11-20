@@ -3,7 +3,7 @@ import crypto from 'node:crypto';
 import { buildSeed } from '../lib/seed.mjs';
 import {
   DEFAULT_SETTINGS, ROLE_PERMS, PERMS, SECTIONS, TXN_TYPES, deriveLocMeta, JTYPES, normJts, keyText, lineKey, itemOf, jtOfLine, purOfLine, summarize, closingVerified, computeExpected, erpCompare,
-  latestCounts, locStatus, sumLines, istDate, r3, CASH_DENOMS, cashCalc,
+  latestCounts, locStatus, sumLines, istDate, r3, CASH_DENOMS, cashCalc, isMorning,
 } from '../../web/core.mjs';
 
 export const config = { path: '/api/*' };
@@ -39,6 +39,14 @@ async function verify(s: any, tok: string | null) {
 }
 
 // ---------- data ----------
+// v1.18 cash: the opening for a morning count = the latest closed Evening chit of that counter before the date (carried forward)
+async function cashOpening(s: any, date: string, counter: string) {
+  const slug = counter.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const { blobs } = await s.list({ prefix: 'cash/' });
+  const keys = blobs.map((b: any) => b.key).filter((k: string) => { const [, d, rest] = k.split('/'); return d < date && rest.startsWith(slug + '_') && !rest.endsWith('_morning'); }).sort().reverse();
+  for (const k of keys.slice(0, 20)) { const r = await s.get(k, { type: 'json' }); if (r?.state === 'closed') return { id: r.id, date: r.date, gt: r.gt, denoms: r.denoms, coins: r.coins || 0, closedBy: r.verifiedByName, countedBy: r.countedByName }; }
+  return null;
+}
 async function getUsers(s: any) {
   let u = await s.get('cfg/users', { type: 'json' });
   if (!u) {
@@ -629,14 +637,16 @@ export default async (req: Request) => {
       const { blobs } = await s.list({ prefix: 'cash/' });
       const keys = blobs.map((b: any) => b.key).filter((k: string) => { const d = k.split('/')[1]; return d >= from && d <= to; });
       const recs = (await Promise.all(keys.map((k: string) => s.get(k, { type: 'json' })))).filter(Boolean).sort((a: any, b: any) => (b.date + b.updatedAt).localeCompare(a.date + a.updatedAt));
-      return J({ records: recs, from, to, today, users: users.filter((u) => u.active !== false).map((u) => ({ id: u.id, name: u.name, role: u.role, verify: u.role === 'admin' || (u.perms || []).includes('cashVerify') })) });
+      const oc = url.searchParams.get('openFor'); const od = url.searchParams.get('openDate') || today;
+      const opening = oc ? await cashOpening(s, od, oc) : undefined;
+      return J({ opening, records: recs, from, to, today, users: users.filter((u) => u.active !== false).map((u) => ({ id: u.id, name: u.name, role: u.role, verify: u.role === 'admin' || (u.perms || []).includes('cashVerify') })) });
     }
     if (path === 'cash/save' && method === 'POST') {
       if (!can('cash') && !can('cashVerify')) need('cash');
       const R = body.rec || {}; const final = !!body.final;
       const date = String(R.date || today).slice(0, 10);
       if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date > today) return err('Choose a valid date (not in the future)');
-      const counter = String(R.counter || '').trim().slice(0, 40), shift = String(R.shift || 'End of day').trim().slice(0, 30);
+      const counter = String(R.counter || '').trim().slice(0, 40); const shift = R.shift === 'Morning' ? 'Morning' : 'Evening';
       if (!counter) return err('Select the counter');
       const slug = (x: string) => x.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
       const id = `${date}_${slug(counter)}_${slug(shift)}`; const key = `cash/${date}/${slug(counter)}_${slug(shift)}`;
@@ -647,15 +657,16 @@ export default async (req: Request) => {
         countedBy: old?.countedBy || me.id, countedByName: old?.countedByName || me.name, createdAt: old?.createdAt || now(), updatedAt: now(), updatedBy: me.id, state: 'draft', log: [...(old?.log || []), { at: now(), by: me.id, name: me.name, act: final ? 'close' : 'save' }].slice(-30) };
       // the counter is whoever entered it first; a different staff member can be named as counter
       if (R.countedBy && users.find((u) => u.id === R.countedBy)) { rec.countedBy = R.countedBy; rec.countedByName = users.find((u) => u.id === R.countedBy).name; }
+      if (shift === 'Morning') { rec.acme = ''; rec.opening = await cashOpening(s, date, counter); }   // carried forward from the previous evening closing
       Object.assign(rec, cashCalc(rec));
       if (final) {
         if (!can('cashVerify')) return err('Only a manager or admin can verify and close cash', 403);
-        if (rec.acme === '') return err('Enter the ACME closing balance');
+        if (shift === 'Evening' && rec.acme === '') return err('Enter the ACME closing balance');
         if (rec.countedBy === me.id) return err('The verifier must be a different person from the one who counted the cash', 409);
-        if (rec.variance !== 0 && !rec.remarks) return err('Explain the cash variance in remarks');
+        if (rec.variance && !rec.remarks) return err('Explain the cash variance in remarks');
         Object.assign(rec, { state: 'closed', verifiedBy: me.id, verifiedByName: me.name, closedAt: now() });
-        if (rec.variance !== 0) await addAlert(s, { type: 'variance', title: `Cash ${rec.result} · ${counter}`, body: `${date} ${shift}: counted ₹${rec.gt.toLocaleString('en-IN')} vs ACME ₹${(+rec.acme).toLocaleString('en-IN')} → ${rec.variance > 0 ? '+' : ''}₹${rec.variance.toLocaleString('en-IN')}. ${rec.remarks}`, by: me.id });
-        else await addAlert(s, { type: 'report', ok: true, title: `Cash tallied · ${counter}`, body: `${date} ${shift}: ₹${rec.gt.toLocaleString('en-IN')} counted by ${rec.countedByName}, verified by ${me.name}.`, by: me.id });
+        if (rec.variance) await addAlert(s, { type: 'variance', title: `Cash ${rec.result} · ${counter} · ${shift}`, body: `${date} ${shift}: counted ₹${rec.gt.toLocaleString('en-IN')} vs ${shift === 'Morning' ? `carried-forward opening ₹${(+rec.expected).toLocaleString('en-IN')} (closing of ${rec.opening?.date})` : `ACME ₹${(+rec.acme).toLocaleString('en-IN')}`} → ${rec.variance > 0 ? '+' : ''}₹${rec.variance.toLocaleString('en-IN')}. ${rec.remarks}`, by: me.id });
+        else await addAlert(s, { type: 'report', ok: true, title: `Cash ${rec.result === 'nobase' ? 'opening recorded' : 'tallied'} · ${counter} · ${shift}`, body: `${date} ${shift}: ₹${rec.gt.toLocaleString('en-IN')} counted by ${rec.countedByName}, verified by ${me.name}.`, by: me.id });
       }
       await s.setJSON(key, rec);
       return J({ ok: true, rec });

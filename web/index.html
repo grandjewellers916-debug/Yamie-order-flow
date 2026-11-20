@@ -39,6 +39,9 @@ label.f{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
 .top .logo{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;line-height:1}
 .top .logo small{display:block;font-family:Jost;font-size:11px;font-weight:400;opacity:.8;letter-spacing:1.5px;text-transform:uppercase}
 .vtag{display:inline-block;margin-left:6px;padding:0 6px;border-radius:99px;background:rgba(255,255,255,.18);letter-spacing:.3px;text-transform:none;font-weight:500;opacity:1}
+.cday{display:grid;grid-template-columns:1fr 1fr;gap:10px}.cday button{text-align:left;background:#fff;border:1.5px solid var(--ln);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:4px;align-items:flex-start}.cday button.on{border-color:var(--m);background:var(--m3)}
+.copen .amt2{font-size:26px;font-weight:700;color:var(--m)}.cfnotes{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.cfnotes span{background:var(--iv);border:1px solid var(--ln);border-radius:99px;padding:3px 10px;font-size:12px}
+.dcf{grid-column:2/4;font-size:11px;margin-top:-4px;text-align:center}.dcf.ok{color:var(--ok)}.dcf.bad{color:var(--bad);font-weight:600}
 .cgrid{display:grid;gap:12px;margin-top:4px;max-width:760px}.ctitle{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:15px;margin-bottom:12px}
 .tagc{font-size:11px;color:var(--m);background:var(--m3);border-radius:99px;padding:3px 9px;font-weight:500}.g2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}.g2 .f{margin-top:0}.g2>div{min-width:0}.g2 select,.g2 input{width:100%}
 .dhead,.drow{display:grid;grid-template-columns:62px 1fr 1fr;gap:9px;align-items:center}.dhead{font-size:11px;color:var(--mut);font-weight:600;padding-bottom:6px}.dhead span:not(:first-child){text-align:center}
@@ -312,7 +315,7 @@ table.rep tr.rgrp td{background:var(--iv);font-weight:600;border-top:1px solid v
 <body>
 <div id="app"></div>
 <script type="module">
-import { CASH_DENOMS, CASH_COUNTERS, CASH_SHIFTS, cashCalc, SECTIONS, PERMS, ROLE_PERMS, REASONS, TXN_TYPES, metalOf, erpMetal, JTYPES, LINE_JTYPES, JT_SHORT, JT_CLS, METALS, jtMetal, locJts, normJts, itemOf, jtOfLine, purOfLine, defaultPur, lineKey, keyText, defaultJt, roundOf, roundCounts, summarize, sumLines, r3, locStatus, istDate, erpCompare, erpKey } from './core.mjs';
+import { CASH_DENOMS, CASH_COUNTERS, CASH_SHIFTS, cashCalc, cashNotes, isMorning, SECTIONS, PERMS, ROLE_PERMS, REASONS, TXN_TYPES, metalOf, erpMetal, JTYPES, LINE_JTYPES, JT_SHORT, JT_CLS, METALS, jtMetal, locJts, normJts, itemOf, jtOfLine, purOfLine, defaultPur, lineKey, keyText, defaultJt, roundOf, roundCounts, summarize, sumLines, r3, locStatus, istDate, erpCompare, erpKey } from './core.mjs';
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -323,7 +326,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.17';
+const VERSION = '1.18';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -1500,7 +1503,8 @@ function exportCSV() {
 // ---------------- more / alerts / log / history / admin ----------------
 // ---------------- v1.17 Yamie Core hero home ----------------
 const inr = (n) => '₹' + (+n || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
-const CASH_RES = { tallied: ['TALLIED', 'ok'], excess: ['EXCESS', 'warn'], short: ['SHORT', 'bad'], pending: ['AWAITING ACME', 'pend'] };
+const CASH_RES = { tallied: ['TALLIED', 'ok'], excess: ['EXCESS', 'warn'], short: ['SHORT', 'bad'], pending: ['AWAITING ACME', 'pend'], nobase: ['FIRST OPENING', 'pend'] };
+const sessOf = (r) => (r.shift === 'Morning' ? 'Morning' : 'Evening');
 function vHub() {
   const T = S.sum.total; const h = new Date().getHours();
   const varN = T.var + T.stale;
@@ -1509,7 +1513,7 @@ function vHub() {
     <button class="mod" data-go="stock"><div class="ic">${svg('stock', 24)}</div><div class="num">01</div><h2>Stock</h2><div class="mut sm">Counter · Trays · Boxes · ERP match</div>
       <div class="stats"><div><b>${fmt(T.expected)}</b><span>pcs expected</span></div><div><b>${T.locs - T.pending}/${T.locs}</b><span>checked</span></div><div><b style="color:${varN ? 'var(--bad)' : 'var(--ok)'}">${varN}</b><span>variance</span></div></div>
       <div class="go">Open stock ›</div></button>
-    <button class="mod" data-go="cash"><div class="ic">${svg('cash', 24)}</div><div class="num">02</div><h2>Cash</h2><div class="mut sm">Daily cash closing · ACME reconciliation</div>
+    <button class="mod" data-go="cash"><div class="ic">${svg('cash', 24)}</div><div class="num">02</div><h2>Cash</h2><div class="mut sm">Morning count · Evening closing · ACME</div>
       <div class="stats" id="hubCash"><div><b>…</b><span>today</span></div></div>
       <div class="go">Open cash ›</div></button>
   </div>
@@ -1520,24 +1524,28 @@ function vHub() {
   if (can('cash') || can('cashVerify') || can('reports')) api(`cash?from=${S.D.today}&to=${S.D.today}`).then((j) => {
     const el = $('#hubCash'); if (!el) return; const rs = j.records; const closed = rs.filter((r) => r.state === 'closed');
     const v = closed.filter((r) => r.variance); const tot = rs.reduce((a, r) => a + r.gt, 0);
-    el.innerHTML = rs.length ? `<div><b>${inr(tot)}</b><span>counted today</span></div><div><b>${closed.length}/${rs.length}</b><span>chits closed</span></div>${closed.length ? `<div><b style="color:${v.length ? 'var(--bad)' : 'var(--ok)'}">${v.length ? v.length : '✓'}</b><span>${v.length ? 'with variance' : 'all tallied'}</span></div>` : '<div><b style="color:var(--warn)">Open</b><span>to verify</span></div>'}` : '<div><b>Not started</b><span>today’s closing</span></div>';
+    const st = (sh) => { const x = rs.filter((r) => sessOf(r) === sh); const c2 = x.filter((r) => r.state === 'closed'); return !x.length ? '<b style="color:var(--warn)">To do</b>' : c2.length === x.length ? `<b style="color:${c2.some((r) => r.variance) ? 'var(--bad)' : 'var(--ok)'}">${c2.some((r) => r.variance) ? '⚠ Variance' : '✓ Done'}</b>` : '<b style="color:var(--warn)">Draft</b>'; };
+    el.innerHTML = `<div>${st('Morning')}<span>☀ morning count</span></div><div>${st('Evening')}<span>🌙 evening closing</span></div>`;
   }).catch(() => { const el = $('#hubCash'); if (el) el.innerHTML = '<div><b>—</b><span>no access</span></div>'; });
   else $('#hubCash').innerHTML = '<div><b>—</b><span>no access</span></div>';
 }
 
 // ---------------- v1.17 Cash closing (ported from Yamie Cash Closing UI, on the shared database) ----------------
-const blankCash = (date) => ({ date: date || S.D.today, counter: localStorage.ycc_counter || '', shift: 'End of day', chit: '', denoms: CASH_DENOMS.map((d) => ({ note: d, bundles: '', loose: '' })), coins: '', acme: '', remarks: '', countedBy: S.me.id, state: 'new' });
+const blankCash = (date, shift) => ({ date: date || S.D.today, counter: localStorage.ycc_counter || CASH_COUNTERS[0], shift: shift || (new Date().getHours() < 14 ? 'Morning' : 'Evening'), chit: '', denoms: CASH_DENOMS.map((d) => ({ note: d, bundles: '', loose: '' })), coins: '', acme: '', remarks: '', countedBy: S.me.id, state: 'new' });
 async function vCash() {
   if (!can('cash') && !can('cashVerify') && !can('reports')) return $('#main').innerHTML = '<div class="card">No access to cash closing</div>';
   S.ctab ||= 'closing';
   $('#main').innerHTML = `<div class="mut sm" style="letter-spacing:2px">02 · CASH</div><h1>Cash Closing</h1><div class="mut">Daily denomination verification</div><div class="mut" style="margin-top:20px">Loading…</div>`;
   try { S.cashData = await api('cash'); } catch (e) { $('#main').innerHTML = `<div class="card">${esc(e.message)}</div>`; return; }
-  if (!S.cash) { const ex = S.cashData.records.find((r) => r.date === S.D.today && r.counter === localStorage.ycc_counter && r.shift === 'End of day'); S.cash = ex ? JSON.parse(JSON.stringify(ex)) : blankCash(); }
-  drawCash();
+  if (!S.cash) { const b = blankCash(); const ex = S.cashData.records.find((r) => r.date === b.date && r.counter === b.counter && sessOf(r) === b.shift); S.cash = ex ? JSON.parse(JSON.stringify(ex)) : b; }
+  await cashLoadOpening(); drawCash();
 }
+// morning count: fetch the carried-forward opening (previous evening closing) for an unsaved chit
+async function cashLoadOpening() { const c = S.cash; if (!isMorning(c) || c.state === 'closed' || !c.counter) return;
+  try { const j = await api(`cash?openFor=${encodeURIComponent(c.counter)}&openDate=${c.date}&from=${c.date}&to=${c.date}`); c.opening = j.opening || null; } catch {} }
 function drawCash() {
   const tabs = [['closing', 'Closing'], ['history', 'History'], ['reports', 'Reports']];
-  $('#main').innerHTML = `<div class="row sp wrap"><div><div class="mut sm" style="letter-spacing:2px">02 · CASH</div><h1>${S.ctab === 'closing' ? 'Cash Closing' : S.ctab === 'history' ? 'Closing History' : 'Reports & Audit'}</h1><div class="mut">${S.ctab === 'closing' ? 'Daily denomination verification' : S.ctab === 'history' ? 'Cash closing register' : 'Reconciliation summary'}</div></div>
+  $('#main').innerHTML = `<div class="row sp wrap"><div><div class="mut sm" style="letter-spacing:2px">02 · CASH</div><h1>${S.ctab === 'closing' ? 'Cash Closing' : S.ctab === 'history' ? 'Closing History' : 'Reports & Audit'}</h1><div class="mut">${S.ctab === 'closing' ? 'Two counts a day — morning vs previous closing, evening vs ACME' : S.ctab === 'history' ? 'Cash closing register' : 'Reconciliation summary'}</div></div>
     ${S.ctab === 'closing' ? `<div style="text-align:right"><b class="sm">${esc(S.cash.chit ? 'Chit · ' + S.cash.chit : 'Chit')}</b><div><span class="cst ${S.cash.state === 'closed' ? 'ok' : 'pend'}">${S.cash.state === 'closed' ? 'Closed' : S.cash.state === 'draft' ? 'Draft saved' : 'Draft'}</span></div></div>` : ''}</div>
   <div class="tabs noprint" style="margin-top:12px">${tabs.map(([k, t]) => `<button data-ct="${k}" class="${S.ctab === k ? 'on' : ''}">${t}</button>`).join('')}</div>
   <div id="cashBody"></div>`;
@@ -1547,38 +1555,46 @@ function drawCash() {
 function cashForm() {
   const c = S.cash; const ro = c.state === 'closed'; const dis = ro ? 'disabled' : '';
   const users = S.cashData.users; const counters = [...new Set([...CASH_COUNTERS, ...(c.counter ? [c.counter] : [])])];
+  const mor = isMorning(c);
+  const dayRec = (sh) => S.cashData.records.find((r) => r.date === c.date && r.counter === c.counter && sessOf(r) === sh);
+  const stp = (sh) => { const r = dayRec(sh); return r ? (r.state === 'closed' ? `<span class="cst ${CASH_RES[r.result][1]}">${r.variance ? CASH_RES[r.result][0] : '✓ ' + (sh === 'Morning' ? 'Verified' : 'Closed')}</span>` : '<span class="cst pend">DRAFT</span>') : '<span class="cst pend">NOT STARTED</span>'; };
   $('#cashBody').innerHTML = `<div class="cgrid">
-  <div class="card"><div class="ctitle">Closing details ${ro ? '<span class="tagc">Locked</span>' : ''}</div>
+  ${c.counter ? `<div class="cday noprint">${['Morning', 'Evening'].map((sh) => `<button data-sess="${sh}" class="${sessOf(c) === sh ? 'on' : ''}"><div class="b">${sh === 'Morning' ? '☀ Morning count' : '🌙 Evening closing'}</div><div class="mut sm">${sh === 'Morning' ? 'vs previous closing' : 'vs ACME · carried forward'}</div>${stp(sh)}</button>`).join('')}</div>` : ''}
+  <div class="card"><div class="ctitle">${mor ? 'Morning count' : 'Evening closing'} details ${ro ? '<span class="tagc">Locked</span>' : ''}</div>
     <div class="g2"><div><label class="f">Date *</label><input type="date" id="cDate" value="${esc(c.date)}" max="${S.D.today}" ${dis}></div>
     <div><label class="f">Counter *</label><select id="cCounter" ${dis}><option value="">Select counter</option>${counters.map((x) => `<option ${c.counter === x ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></div>
     <div><label class="f">Chit No.</label><input id="cChit" value="${esc(c.chit)}" placeholder="e.g. CC-001" ${dis}></div>
-    <div><label class="f">Closing session</label><select id="cShift" ${dis}>${CASH_SHIFTS.map((x) => `<option ${c.shift === x ? 'selected' : ''}>${x}</option>`).join('')}</select></div></div></div>
+    <div><label class="f">Count</label><select id="cShift" ${dis}>${CASH_SHIFTS.map((x) => `<option value="${x}" ${sessOf(c) === x ? 'selected' : ''}>${x === 'Morning' ? 'Morning count' : 'Evening closing'}</option>`).join('')}</select></div></div></div>
+  ${mor ? `<div class="card copen"><div class="ctitle">Opening · carried forward <span class="tagc">Previous closing</span></div>${c.opening ? `<div class="row sp wrap"><div><div class="mut sm">Evening closing of ${dt(c.opening.date)}</div><div class="amt2">${inr(c.opening.gt)}</div><div class="mut sm">Counted by ${esc(c.opening.countedBy || '—')} · closed by ${esc(c.opening.closedBy || '—')}</div></div>${ro ? '' : '<button class="btn sm ghost" id="cFill">Fill carried-forward notes</button>'}</div>
+    <div class="cfnotes">${CASH_DENOMS.map((d) => `<span>₹${d} × <b>${fmt(cashNotes(c.opening, d))}</b></span>`).join('')}${+c.opening.coins ? `<span>Coins <b>${inr(c.opening.coins)}</b></span>` : ''}</div>
+    <div class="mut sm" style="margin-top:6px">Count the cash and enter what you find — each note row shows the carried-forward number to check against.</div>` : `<div class="banner">No closed evening count for ${esc(c.counter || 'this counter')} before ${dt(c.date)}. This morning count sets the opening.</div>`}</div>` : ''}
   <div class="card"><div class="ctitle">Cash denomination count <span class="tagc">₹ INR</span></div>
     <div class="dhead"><span>NOTE</span><span>BUNDLES × 100</span><span>LOOSE NOTES</span></div>
     ${CASH_DENOMS.map((d) => { const x = c.denoms.find((y) => +y.note === d) || {}; return `<div class="drow"><div class="dnote">₹${d}</div>
       <div class="dent"><input type="number" inputmode="numeric" min="0" step="1" data-b="${d}" value="${esc(x.bundles || '')}" placeholder="0" ${dis}><small data-ba="${d}"></small></div>
-      <div class="dent"><input type="number" inputmode="numeric" min="0" step="1" data-l="${d}" value="${esc(x.loose || '')}" placeholder="0" ${dis}><small data-la="${d}"></small></div></div>`; }).join('')}
+      <div class="dent"><input type="number" inputmode="numeric" min="0" step="1" data-l="${d}" value="${esc(x.loose || '')}" placeholder="0" ${dis}><small data-la="${d}"></small></div>${mor && c.opening ? `<div class="dcf" data-cf="${d}"></div>` : ''}</div>`; }).join('')}
     <div class="drow"><div class="dnote" style="font-size:12px">Coins</div><div class="dent" style="grid-column:2/4"><input type="number" inputmode="decimal" min="0" step="1" id="cCoins" value="${esc(c.coins || '')}" placeholder="₹ total of coins / ₹5 ₹2 ₹1" ${dis} style="font-size:15px"></div></div>
     <div class="g2" style="margin-top:12px"><div class="mini"><span>Bundles · Total (A)</span><strong id="cA">₹0</strong></div><div class="mini"><span>Loose + coins · Total (B)</span><strong id="cB">₹0</strong></div></div>
     <div class="mut sm" style="margin-top:8px">Enter the number of full 100-note bundles and the number of loose notes. Amounts calculate automatically.</div></div>
   <div class="ctotal"><div class="sm" style="opacity:.8">GRAND TOTAL · CASH COUNTED (A + B)</div><div class="amt" id="cGT">₹0</div><div class="splits"><span id="cSA">Bundles: ₹0</span><span id="cSB">Loose: ₹0</span></div></div>
-  <div class="card"><div class="ctitle">ACME Reconciliation <span class="tagc">Verification</span></div>
-    <label class="f">ACME closing balance (₹) *</label><input type="number" inputmode="decimal" min="0" step="0.01" id="cAcme" value="${esc(c.acme)}" placeholder="Enter balance from ACME / ERP" ${dis}>
-    <div class="cdiff"><div><div class="mut sm">Variance · Counted − ACME</div><strong id="cVar">—</strong></div><span class="cst pend" id="cRes">AWAITING ACME</span></div>
-    <div class="mut sm" style="margin-top:8px">Tallied: no variance · Excess: physical cash higher · Short: physical cash lower.</div></div>
+  <div class="card"><div class="ctitle">${mor ? 'Check against previous closing' : 'ACME Reconciliation'} <span class="tagc">Verification</span></div>
+    ${mor ? '' : `<label class="f">ACME closing balance (₹) *</label><input type="number" inputmode="decimal" min="0" step="0.01" id="cAcme" value="${esc(c.acme)}" placeholder="Enter balance from ACME / ERP" ${dis}>
+    ${(() => { const m = dayRec('Morning'); return m ? `<div class="mut sm" style="margin-top:6px">This morning's count: <b>${inr(m.gt)}</b>${m.state === 'closed' ? '' : ' (draft)'}</div>` : ''; })()}`}
+    <div class="cdiff"><div><div class="mut sm">Variance · Counted − ${mor ? 'carried-forward opening' : 'ACME'}</div><strong id="cVar">—</strong></div><span class="cst pend" id="cRes">${mor ? 'FIRST OPENING' : 'AWAITING ACME'}</span></div>
+    <div class="mut sm" style="margin-top:8px">Tallied: no variance · Excess: physical cash higher · Short: physical cash lower.${mor ? '' : ' After closing, this count and its notes become tomorrow’s opening.'}</div></div>
   <div class="card"><div class="ctitle">Verification & sign-off</div>
     <div class="g2"><div><label class="f">Counted by *</label><select id="cBy" ${dis}>${users.map((u) => `<option value="${esc(u.id)}" ${(c.countedBy || S.me.id) === u.id ? 'selected' : ''}>${esc(u.name)}</option>`).join('')}</select></div>
     <div><label class="f">Verified by</label><input value="${esc(ro ? c.verifiedByName : can('cashVerify') ? S.me.name + ' (you, on Verify & Close)' : 'Manager / admin')}" disabled></div></div>
     <label class="f">Closing remarks / discrepancy reason</label><textarea id="cRem" rows="3" placeholder="Explain any shortage, excess or other observation…" ${dis}>${esc(c.remarks)}</textarea>
     <div class="mut sm" style="margin-top:8px">The verifier must be a different person and should independently check the physical cash before closing.</div>
     ${ro ? `<div class="banner ok" style="margin-top:10px">✓ Closed by ${esc(c.verifiedByName)} · ${new Date(c.closedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</div>` : ''}</div>
-  <div class="cact noprint">${ro ? `<button class="btn sec" id="cNew">＋ New closing</button>${S.me.role === 'admin' ? '<button class="btn ghost" id="cReopen">Reopen (admin)</button>' : ''}` : `<button class="btn sec" id="cSave">Save draft</button>${can('cashVerify') ? '<button class="btn" id="cClose">Verify & close</button>' : '<button class="btn" disabled title="Manager or admin">Verify & close (manager)</button>'}`}</div>
+  <div class="cact noprint">${ro ? `<button class="btn sec" id="cNew">＋ New closing</button>${S.me.role === 'admin' ? '<button class="btn ghost" id="cReopen">Reopen (admin)</button>' : ''}` : `<button class="btn sec" id="cSave">Save draft</button>${can('cashVerify') ? `<button class="btn" id="cClose">${mor ? 'Verify morning count' : 'Verify & close'}</button>` : '<button class="btn" disabled title="Manager or admin">Verify & close (manager)</button>'}`}</div>
   <div class="cact noprint"><button class="btn ghost" id="cPrint">${svg('print', 18)} Print chit</button><button class="btn ghost" id="cCsv">⬇ Export CSV</button></div>
   </div>`;
   const read = () => {
     if (ro) return; c.date = $('#cDate').value; c.counter = $('#cCounter').value; c.chit = $('#cChit').value.trim(); c.shift = $('#cShift').value;
     c.denoms = CASH_DENOMS.map((d) => ({ note: d, bundles: $(`[data-b="${d}"]`).value, loose: $(`[data-l="${d}"]`).value }));
-    c.coins = $('#cCoins').value; c.acme = $('#cAcme').value; c.countedBy = $('#cBy').value; c.remarks = $('#cRem').value;
+    c.coins = $('#cCoins').value; c.acme = $('#cAcme') ? $('#cAcme').value : ''; c.countedBy = $('#cBy').value; c.remarks = $('#cRem').value;
   };
   const calc = () => {
     read(); const k = cashCalc(c);
@@ -1586,21 +1602,26 @@ function cashForm() {
     $('#cA').textContent = inr(k.a); $('#cB').textContent = inr(k.b); $('#cGT').textContent = inr(k.gt); $('#cSA').textContent = 'Bundles: ' + inr(k.a); $('#cSB').textContent = 'Loose: ' + inr(k.b);
     $('#cVar').textContent = k.variance == null ? '—' : (k.variance > 0 ? '+' : '') + inr(k.variance); $('#cVar').style.color = k.variance ? (k.variance > 0 ? 'var(--warn)' : 'var(--bad)') : k.variance === 0 ? 'var(--ok)' : '';
     const [t, cl] = CASH_RES[k.result]; $('#cRes').textContent = t; $('#cRes').className = 'cst ' + cl;
+    if (mor && c.opening) for (const d of CASH_DENOMS) { const el = $(`[data-cf="${d}"]`); if (!el) continue; const want = cashNotes(c.opening, d), got = cashNotes(c, d); el.className = 'dcf ' + (got === want ? 'ok' : 'bad'); el.textContent = `carried ${fmt(want)} notes${got === want ? ' ✓' : ` · counted ${fmt(got)} (${got - want > 0 ? '+' : ''}${fmt(got - want)})`}`; }
     return k;
   };
   $('#cashBody').querySelectorAll('input,select,textarea').forEach((el) => el.addEventListener('input', calc));
   calc();
   // switching date / counter / session loads that chit if it exists
-  const swap = () => { read(); const ex = S.cashData.records.find((r) => r.date === c.date && r.counter === c.counter && r.shift === c.shift);
-    if (ex && ex.id !== c.id) { if (!confirm(`A ${ex.state === 'closed' ? 'closed' : 'saved'} chit exists for ${c.counter} · ${c.shift} on ${c.date}. Open it?`)) return; S.cash = JSON.parse(JSON.stringify(ex)); drawCash(); } };
+  const swap = () => { read(); const ex = S.cashData.records.find((r) => r.date === c.date && r.counter === c.counter && sessOf(r) === sessOf(c));
+    if (ex && ex.id !== c.id) { S.cash = JSON.parse(JSON.stringify(ex)); toast(`Opened the ${ex.state === 'closed' ? 'closed' : 'saved'} ${sessOf(ex).toLowerCase()} chit`); return drawCash(); }
+    if (!ex && c.id) { S.cash = { ...blankCash(c.date, c.shift), counter: c.counter }; }
+    cashLoadOpening().then(drawCash); };
+  $('#cashBody').querySelectorAll('[data-sess]').forEach((b) => b.onclick = () => { const ex = dayRec(b.dataset.sess); S.cash = ex ? JSON.parse(JSON.stringify(ex)) : { ...blankCash(c.date, b.dataset.sess), counter: c.counter }; cashLoadOpening().then(drawCash); });
+  $('#cFill') && ($('#cFill').onclick = () => { for (const d of CASH_DENOMS) { const x = (c.opening.denoms || []).find((y) => +y.note === d) || {}; $(`[data-b="${d}"]`).value = x.bundles || ''; $(`[data-l="${d}"]`).value = x.loose || ''; } $('#cCoins').value = c.opening.coins || ''; calc(); toast('Filled with the carried-forward notes — check them against the cash'); });
   ['#cDate', '#cCounter', '#cShift'].forEach((sel) => $(sel) && $(sel).addEventListener('change', swap));
   const save = async (final) => {
     read(); if (!c.date || !c.counter) return toast('Select the date and counter');
     const k = cashCalc(c);
-    if (final) { if (c.acme === '') return toast('Enter the ACME closing balance'); if (k.variance && !c.remarks.trim()) return toast('Explain the cash variance in remarks'); if (c.countedBy === S.me.id) return toast('Choose who counted the cash — the verifier must be a different person');
-      if (!confirm(`Confirm the physical cash ${inr(k.gt)} was independently verified, and close this chit?${k.variance ? `\n\nVariance ${k.variance > 0 ? '+' : ''}${inr(k.variance)} (${k.result.toUpperCase()})` : ''}`)) return; }
+    if (final) { if (!mor && c.acme === '') return toast('Enter the ACME closing balance'); if (k.variance && !c.remarks.trim()) return toast('Explain the cash variance in remarks'); if (c.countedBy === S.me.id) return toast('Choose who counted the cash — the verifier must be a different person');
+      if (!confirm(`${mor ? 'Morning count' : 'Evening closing'}: confirm the physical cash ${inr(k.gt)} was independently verified, and close this chit?${mor ? '' : '\n\nIt becomes tomorrow’s opening.'}${k.variance ? `\n\nVariance ${k.variance > 0 ? '+' : ''}${inr(k.variance)} (${k.result.toUpperCase()})` : ''}`)) return; }
     try { const r = await api('cash/save', { rec: c, final }); localStorage.ycc_counter = c.counter; S.cash = r.rec; const i = S.cashData.records.findIndex((x) => x.id === r.rec.id); if (i >= 0) S.cashData.records[i] = r.rec; else S.cashData.records.unshift(r.rec);
-      toast(final ? (r.rec.variance ? `⚠ Closed with ${r.rec.result} ${inr(Math.abs(r.rec.variance))}` : '✓ Cash tallied and closed') : '✓ Draft saved — visible on every device'); drawCash(); } catch (e) { fail(e); }
+      toast(final ? (r.rec.variance ? `⚠ Closed with ${r.rec.result} ${inr(Math.abs(r.rec.variance))}` : mor ? '✓ Morning count verified' : '✓ Cash tallied and closed — carried forward to tomorrow') : '✓ Draft saved — visible on every device'); drawCash(); } catch (e) { fail(e); }
   };
   $('#cSave') && ($('#cSave').onclick = () => save(false));
   $('#cClose') && ($('#cClose').onclick = () => save(true));
@@ -1610,7 +1631,7 @@ function cashForm() {
   $('#cCsv').onclick = () => { read(); cashCSV([c]); };
 }
 function cashRow(r) { const k = r.state ? r : { ...r, ...cashCalc(r) }; const [t, cl] = CASH_RES[k.result || 'pending'];
-  return `<button class="li chist" data-cid="${esc(r.id)}"><div class="grow"><div class="b">${dt(r.date)} · ${esc(r.counter)}</div><div class="mut sm">${esc(r.shift)}${r.chit ? ' · ' + esc(r.chit) : ''} · counted by ${esc(r.countedByName || '—')}${r.state === 'closed' ? ` · verified by ${esc(r.verifiedByName)}` : ''}</div></div>
+  return `<button class="li chist" data-cid="${esc(r.id)}"><div class="grow"><div class="b">${dt(r.date)} · ${esc(r.counter)}</div><div class="mut sm">${sessOf(r) === 'Morning' ? '☀ Morning count' : '🌙 Evening closing'}${r.chit ? ' · ' + esc(r.chit) : ''} · counted by ${esc(r.countedByName || '—')}${r.state === 'closed' ? ` · verified by ${esc(r.verifiedByName)}` : ''}</div></div>
   <div style="text-align:right"><div class="b">${inr(k.gt)}</div><div><span class="cst ${r.state === 'closed' ? cl : 'pend'}">${r.state === 'closed' ? t + (k.variance ? ' ' + (k.variance > 0 ? '+' : '') + inr(k.variance) : '') : 'DRAFT'}</span></div></div></button>`; }
 function cashHistory() {
   const rs = S.cashData.records; S.cf ||= 'all';
@@ -1626,14 +1647,14 @@ function cashReports() {
   const rs = S.cashData.records.filter((r) => r.date.startsWith(S.cmon)); const closed = rs.filter((r) => r.state === 'closed');
   const sum = (a, k) => a.reduce((x, r) => x + (+r[k] || 0), 0); const vs = closed.filter((r) => r.variance);
   const months = [...new Set([S.D.today.slice(0, 7), ...S.cashData.records.map((r) => r.date.slice(0, 7))])].sort().reverse();
-  const byDay = {}; closed.forEach((r) => { const d = (byDay[r.date] ||= { gt: 0, acme: 0, v: 0, n: 0 }); d.gt += r.gt; d.acme += +r.acme || 0; d.v += r.variance || 0; d.n++; });
+  const byDay = {}; closed.forEach((r) => { const d = (byDay[r.date] ||= { mo: 0, ev: 0, acme: 0, mv: 0, ev_v: 0, n: 0 }); d.n++; if (sessOf(r) === 'Morning') { d.mo += r.gt; d.mv += r.variance || 0; } else { d.ev += r.gt; d.acme += +r.acme || 0; d.ev_v += r.variance || 0; } });
   $('#cashBody').innerHTML = `<div class="row wrap" style="gap:8px;margin-bottom:10px"><select id="cMon" style="max-width:200px">${months.map((m) => `<option value="${m}" ${m === S.cmon ? 'selected' : ''}>${new Date(m + '-01T00:00').toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}</option>`).join('')}</select><button class="btn sm ghost" id="cRepCsv">⬇ CSV</button></div>
-  <div class="kpis"><div class="kpi"><div class="l">Closed chits</div><div class="v">${closed.length}</div><div class="mut sm">${rs.length - closed.length} draft</div></div>
-    <div class="kpi"><div class="l">Cash counted</div><div class="v" style="font-size:22px">${inr(sum(closed, 'gt'))}</div><div class="mut sm">ACME ${inr(sum(closed, 'acme'))}</div></div>
-    <div class="kpi"><div class="l">Net variance</div><div class="v" style="font-size:22px;color:${sum(closed, 'variance') ? 'var(--bad)' : 'var(--ok)'}">${sum(closed, 'variance') > 0 ? '+' : ''}${inr(sum(closed, 'variance'))}</div><div class="mut sm">counted − ACME</div></div>
+  <div class="kpis"><div class="kpi"><div class="l">Verified counts</div><div class="v">${closed.length}</div><div class="mut sm">${rs.length - closed.length} draft</div></div>
+    <div class="kpi"><div class="l">Evening closings</div><div class="v" style="font-size:22px">${inr(sum(closed.filter((r) => sessOf(r) === 'Evening'), 'gt'))}</div><div class="mut sm">ACME ${inr(sum(closed, 'acme'))}</div></div>
+    <div class="kpi"><div class="l">Net variance</div><div class="v" style="font-size:22px;color:${sum(closed, 'variance') ? 'var(--bad)' : 'var(--ok)'}">${sum(closed, 'variance') > 0 ? '+' : ''}${inr(sum(closed, 'variance'))}</div><div class="mut sm">counted − opening / ACME</div></div>
     <div class="kpi"><div class="l">With variance</div><div class="v">${vs.length}</div><div class="mut sm">${vs.filter((r) => r.variance > 0).length} excess · ${vs.filter((r) => r.variance < 0).length} short</div></div></div>
-  <h3 style="margin:16px 0 8px">Day-wise</h3><div class="tw"><table><tr><th style="text-align:left">Date</th><th>Chits</th><th>Counted</th><th>ACME</th><th>Variance</th></tr>
-  ${Object.entries(byDay).sort((a, b) => b[0].localeCompare(a[0])).map(([d, x]) => `<tr><td style="text-align:left">${dt(d)}</td><td>${x.n}</td><td>${inr(x.gt)}</td><td>${inr(x.acme)}</td><td class="${x.v > 0 ? 'pos' : x.v < 0 ? 'neg' : ''}">${x.v ? (x.v > 0 ? '+' : '') + inr(x.v) : '—'}</td></tr>`).join('') || '<tr><td colspan="5" class="mut">No closed chits this month</td></tr>'}</table></div>
+  <h3 style="margin:16px 0 8px">Day-wise</h3><div class="tw"><table><tr><th style="text-align:left">Date</th><th>Morning count</th><th>Morning vs opening</th><th>Evening closing</th><th>ACME</th><th>Evening vs ACME</th></tr>
+  ${Object.entries(byDay).sort((a, b) => b[0].localeCompare(a[0])).map(([d, x]) => { const v = (n) => `<td class="${n > 0 ? 'pos' : n < 0 ? 'neg' : ''}">${n ? (n > 0 ? '+' : '') + inr(n) : '—'}</td>`; return `<tr><td style="text-align:left">${dt(d)}</td><td>${x.mo ? inr(x.mo) : '—'}</td>${v(x.mv)}<td>${x.ev ? inr(x.ev) : '—'}</td><td>${x.acme ? inr(x.acme) : '—'}</td>${v(x.ev_v)}</tr>`; }).join('') || '<tr><td colspan="6" class="mut">No closed counts this month</td></tr>'}</table></div>
   ${vs.length ? `<h3 style="margin:16px 0 8px">Variances</h3><div class="card list" style="padding:0">${vs.map(cashRow).join('')}</div>` : ''}
   <div class="mut sm" style="margin-top:10px">From the shared cash register. Every save, close and reopen is logged with the user and time.</div>`;
   $('#cMon').onchange = () => { S.cmon = $('#cMon').value; cashReports(); };
@@ -1641,19 +1662,19 @@ function cashReports() {
   $('#cashBody').querySelectorAll('[data-cid]').forEach((b) => b.onclick = () => { S.cash = JSON.parse(JSON.stringify(S.cashData.records.find((r) => r.id === b.dataset.cid))); S.ctab = 'closing'; drawCash(); });
 }
 function cashCSV(list) {
-  const q = (v) => '"' + String(v ?? '').replace(/"/g, '""') + '"'; const rows = [['Date', 'Counter', 'Session', 'Chit', 'State', ...CASH_DENOMS.flatMap((d) => [`₹${d} bundles`, `₹${d} loose`]), 'Coins', 'Bundles total (A)', 'Loose total (B)', 'Grand total', 'ACME', 'Variance', 'Result', 'Counted by', 'Verified by', 'Remarks']];
-  for (const r of list) { const k = cashCalc(r); rows.push([r.date, r.counter, r.shift, r.chit, r.state === 'closed' ? 'Closed' : 'Draft', ...CASH_DENOMS.flatMap((d) => { const x = (r.denoms || []).find((y) => +y.note === d) || {}; return [+x.bundles || 0, +x.loose || 0]; }), +r.coins || 0, k.a, k.b, k.gt, r.acme, k.variance ?? '', k.result, r.countedByName || (S.cashData.users.find((u) => u.id === r.countedBy)?.name) || '', r.verifiedByName || '', r.remarks]); }
+  const q = (v) => '"' + String(v ?? '').replace(/"/g, '""') + '"'; const rows = [['Date', 'Counter', 'Session', 'Chit', 'State', ...CASH_DENOMS.flatMap((d) => [`₹${d} bundles`, `₹${d} loose`]), 'Coins', 'Bundles total (A)', 'Loose total (B)', 'Grand total', 'Expected (opening / ACME)', 'ACME', 'Variance', 'Result', 'Counted by', 'Verified by', 'Remarks']];
+  for (const r of list) { const k = cashCalc(r); rows.push([r.date, r.counter, sessOf(r) === 'Morning' ? 'Morning count' : 'Evening closing', r.chit, r.state === 'closed' ? 'Closed' : 'Draft', ...CASH_DENOMS.flatMap((d) => { const x = (r.denoms || []).find((y) => +y.note === d) || {}; return [+x.bundles || 0, +x.loose || 0]; }), +r.coins || 0, k.a, k.b, k.gt, k.expected ?? '', r.acme, k.variance ?? '', k.result, r.countedByName || (S.cashData.users.find((u) => u.id === r.countedBy)?.name) || '', r.verifiedByName || '', r.remarks]); }
   saveFile(`YAMIE_CASH_CLOSING_${list.length === 1 ? list[0].date + '_' + (list[0].counter || '').replace(/\W+/g, '-') : S.cmon || S.D.today}.csv`, 'text/csv', '﻿' + rows.map((r) => r.map(q).join(',')).join('\r\n'));
 }
 function printChit(c) {
   const k = cashCalc(c); const by = c.countedByName || S.cashData.users.find((u) => u.id === c.countedBy)?.name || '';
   let pa = $('#printArea'); if (!pa) { pa = document.createElement('div'); pa.id = 'printArea'; document.body.appendChild(pa); }
-  pa.innerHTML = `<div class="pchit"><div class="ph"><div><div class="pl">YAMIE</div><div class="ps">FINE JEWELLERY · CASH CLOSING CHIT</div></div><div style="text-align:right"><b>${esc(c.chit || '—')}</b><div>${dt(c.date)}</div></div></div>
-  <table><tr><td>Counter</td><td>${esc(c.counter)}</td><td>Session</td><td>${esc(c.shift)}</td></tr></table>
+  pa.innerHTML = `<div class="pchit"><div class="ph"><div><div class="pl">YAMIE</div><div class="ps">FINE JEWELLERY · ${isMorning(c) ? 'MORNING CASH COUNT' : 'EVENING CASH CLOSING'}</div></div><div style="text-align:right"><b>${esc(c.chit || '—')}</b><div>${dt(c.date)}</div></div></div>
+  <table><tr><td>Counter</td><td>${esc(c.counter)}</td><td>Count</td><td>${isMorning(c) ? 'Morning count' : 'Evening closing'}</td></tr></table>
   <table class="pd"><tr><th>Note</th><th>Bundles ×100</th><th>Amount</th><th>Loose</th><th>Amount</th></tr>${CASH_DENOMS.map((d) => { const x = c.denoms.find((y) => +y.note === d) || {}; const b = Math.floor(+x.bundles || 0), l = Math.floor(+x.loose || 0); return `<tr><td>₹${d}</td><td>${b || ''}</td><td>${b ? inr(b * 100 * d) : ''}</td><td>${l || ''}</td><td>${l ? inr(l * d) : ''}</td></tr>`; }).join('')}
   <tr><td>Coins</td><td></td><td></td><td></td><td>${+c.coins ? inr(c.coins) : ''}</td></tr>
   <tr class="pt"><td colspan="2">Total A (bundles)</td><td>${inr(k.a)}</td><td>Total B</td><td>${inr(k.b)}</td></tr></table>
-  <table><tr class="pt"><td>Grand total counted</td><td>${inr(k.gt)}</td></tr><tr><td>ACME closing balance</td><td>${c.acme === '' ? '—' : inr(c.acme)}</td></tr><tr class="pt"><td>Variance (${CASH_RES[k.result][0]})</td><td>${k.variance == null ? '—' : (k.variance > 0 ? '+' : '') + inr(k.variance)}</td></tr></table>
+  <table><tr class="pt"><td>Grand total counted</td><td>${inr(k.gt)}</td></tr>${isMorning(c) ? `<tr><td>Opening carried forward${c.opening ? ` (closing of ${dt(c.opening.date)})` : ''}</td><td>${c.opening ? inr(c.opening.gt) : '—'}</td></tr>` : `<tr><td>ACME closing balance</td><td>${c.acme === '' ? '—' : inr(c.acme)}</td></tr>`}<tr class="pt"><td>Variance (${CASH_RES[k.result][0]})</td><td>${k.variance == null ? '—' : (k.variance > 0 ? '+' : '') + inr(k.variance)}</td></tr></table>
   ${c.remarks ? `<p><b>Remarks:</b> ${esc(c.remarks)}</p>` : ''}
   <div class="psig"><div>Counted by<br><b>${esc(by)}</b></div><div>Verified by<br><b>${esc(c.verifiedByName || '')}</b></div></div>
   <div class="pf">${c.state === 'closed' ? `Closed ${new Date(c.closedAt).toLocaleString('en-IN')}` : 'DRAFT — not closed'} · Yamie Core v${VERSION}</div></div>`;

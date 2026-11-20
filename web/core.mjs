@@ -40,17 +40,26 @@ export const PERMS = {
 // v1.17 Cash closing
 export const CASH_DENOMS = [500, 200, 100, 50, 20, 10];
 export const CASH_COUNTERS = ['Cash / Billing', 'Counter 1', 'Counter 2', 'Counter 3', 'Other'];
-export const CASH_SHIFTS = ['End of day', 'Shift 1', 'Shift 2'];
-/** Totals of a cash closing: A = bundles of 100 notes, B = loose notes + coins, variance = counted − ACME (null without ACME). */
+// v1.18: two cash counts a day — Morning (checked against the previous evening closing, carried forward) and Evening (closing, checked against ACME)
+export const CASH_SHIFTS = ['Morning', 'Evening'];
+export const isMorning = (r) => r?.shift === 'Morning';
+/** Totals of a cash count: A = bundles of 100 notes, B = loose notes + coins.
+ *  Morning: expected = carried-forward opening (previous evening closing). Evening: expected = ACME closing balance.
+ *  variance = counted − expected (null when there is nothing to compare). */
 export function cashCalc(r) {
   let a = 0, b = 0;
   for (const d of CASH_DENOMS) { const x = (r.denoms || []).find((y) => +y.note === d) || {}; a += Math.max(0, Math.floor(+x.bundles || 0)) * 100 * d; b += Math.max(0, Math.floor(+x.loose || 0)) * d; }
   b += Math.max(0, Math.round((+r.coins || 0) * 100) / 100);
   const gt = Math.round((a + b) * 100) / 100;
-  const hasAcme = r.acme !== '' && r.acme != null && !isNaN(+r.acme);
-  const variance = hasAcme ? Math.round((gt - +r.acme) * 100) / 100 : null;
-  return { a, b, gt, variance, result: variance == null ? 'pending' : variance === 0 ? 'tallied' : variance > 0 ? 'excess' : 'short' };
+  let expected = null;
+  if (isMorning(r)) expected = r.opening ? +r.opening.gt : null;
+  else if (r.acme !== '' && r.acme != null && !isNaN(+r.acme)) expected = +r.acme;
+  const variance = expected == null ? null : Math.round((gt - expected) * 100) / 100;
+  const result = variance == null ? (isMorning(r) ? 'nobase' : 'pending') : variance === 0 ? 'tallied' : variance > 0 ? 'excess' : 'short';
+  return { a, b, gt, expected, variance, result };
 }
+/** Notes per denomination (bundles × 100 + loose) — to compare a morning count with the carried-forward closing. */
+export const cashNotes = (r, d) => { const x = (r?.denoms || []).find((y) => +y.note === d) || {}; return Math.floor(+x.bundles || 0) * 100 + Math.floor(+x.loose || 0); };
 export const ROLE_PERMS = {
   admin: Object.keys(PERMS),
   manager: ['count', 'move', 'setup', 'accept', 'close', 'reports', 'alerts', 'erp', 'verifyAll', 'cash', 'cashVerify'],
