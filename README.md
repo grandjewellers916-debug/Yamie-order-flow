@@ -572,3 +572,7 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 ## V 1.8.25
 - **Search page on a computer, tidied up.** The search box and the Report / Photos / Bulk update / + New item buttons now sit on one row — before, the buttons floated over the box and the box ran underneath them (and on a 1280–1440 screen the box dropped to a line of its own with a gap above it). The box itself is calmer: a thin outline that turns maroon only while typing.
 - **Filter chips line up.** The filter drop-downs are an even grid instead of ragged rows of different widths, the weight / price / making / diamond ranges span the full width under them, and "Clear all" sits at the right-hand end of the block instead of floating mid-row. A long value in a chip can be read by hovering it.
+
+## V 1.8.26
+- **Swipe between items in Search.** Tap an item to open its sheet, then swipe left for the next item and right for the one before — across every item the search found, not just the ones loaded on screen. A "3 of 66" strip with ‹ › arrows sits under the name, the arrows grey out at the two ends, and the left/right arrow keys do the same on a computer.
+- The photo strip keeps its own swipe (when an item has more than one photo), and dragging up or down still scrolls the sheet.

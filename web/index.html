@@ -956,7 +956,19 @@ body.stm .mr-img{width:52px;height:52px}body.stm .mr-t b{font-size:14.5px}body.s
 .stm-so.on{border-color:var(--maroon);color:var(--maroon);font-weight:600}.stm-so span{font-size:12px;color:var(--muted);font-weight:400}
 .modal.stm-sheet .sheet{padding-bottom:0}.modal.stm-sheet #modalActs{position:sticky;bottom:0;flex-direction:row;flex-wrap:wrap;background:inherit;background:var(--surface);padding:10px 0 calc(12px + env(safe-area-inset-bottom,0px));margin-top:8px;border-top:1px solid var(--line);z-index:2}
 .modal.stm-sheet #modalActs .btn{flex:1 1 30%;width:auto;min-height:44px}.modal.stm-itm #modalActs .btn.primary{flex-basis:100%}.modal.stm-itm #modalActs .btn.ghost{flex-basis:100%;min-height:38px}
-.stm-it{display:flex;flex-direction:column;gap:12px}
+.stm-it{display:flex;flex-direction:column;gap:12px;touch-action:pan-y}
+.stm-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:-2px 0 2px}
+.stm-nav button{width:40px;height:40px;flex:none;border:1px solid var(--line);background:var(--surface);color:var(--maroon);border-radius:50%;font:400 24px/1 var(--body);display:grid;place-items:center;cursor:pointer;padding:0 0 3px}
+.stm-nav button:disabled{opacity:.3;cursor:default}
+.stm-nav button:active:not(:disabled){background:#FBE7E9}
+.stm-nav span{font:600 13px var(--body);color:var(--muted);letter-spacing:.02em}
+.stm-nav small{font-weight:500;opacity:.75}
+@keyframes stmInR{from{transform:translateX(30px);opacity:.2}to{transform:none;opacity:1}}
+@keyframes stmInL{from{transform:translateX(-30px);opacity:.2}to{transform:none;opacity:1}}
+@keyframes stmBump{30%{transform:translateX(-7px)}60%{transform:translateX(5px)}}
+.stm-it.in-r{animation:stmInR .19s ease-out}.stm-it.in-l{animation:stmInL .19s ease-out}
+.stm-it.bump{animation:stmBump .22s ease-out}
+@media (prefers-reduced-motion:reduce){.stm-it.in-r,.stm-it.in-l,.stm-it.bump{animation:none}}
 .stm-ph{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;border-radius:14px}.stm-ph img{flex:none;width:min(78vw,320px);aspect-ratio:1;object-fit:cover;border-radius:14px;scroll-snap-align:start;background:#F4EDE6}
 .stm-ph:has(img:only-child) img{width:100%;max-height:300px;object-fit:contain}
 .stm-ph .st-img{width:100%;height:120px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(160deg,#F7EFE6,#EADBC9);color:#A7742C}.stm-ph .st-img svg{height:70%}
@@ -5253,7 +5265,7 @@ function qovItemMenu(id){
   if(can('shareStatus'))b.push({label:'Status card · WhatsApp',cls:'primary',run:()=>openStatus(scFromItem(t))});
   if(!closed){b.push({label:'Edit item',run:()=>{const x=$('items').querySelector(`[data-edit="${id}"]`);if(x)x.click()}});
     b.push({label:'Remove',run:()=>{const x=$('items').querySelector(`[data-del="${id}"]`);if(x)x.click();paintQOv()}})}
-  if(stockMap.get(k))b.push({label:'Product details',run:()=>stmItem(stockMap.get(k))});
+  if(stockMap.get(k))b.push({label:'Product details',run:()=>stmItem(stockMap.get(k),[stockMap.get(k)])});
   b.push({label:'Close',cls:'ghost'});
   showModal(`${k||'Item'} · ${(t.stock&&t.stock.category)||t.item||''}`,'',b);$('modal').classList.add('stm-sheet');
 }
@@ -6135,13 +6147,20 @@ function stmMoreSheet(){
   $('modalBody').querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>{closeModal();const id=b.dataset.id;if(id==='xlsx')withPerm('stExport','Needs permission: Export Search to Excel.',()=>stExport(stLastRows));else $(id).click()});
 }
 // tap an item: a compact sheet with its photos, details, price and actions
-async function stmItem(r){
+// V1.8.26: the sheet remembers the list it came from, so you can swipe (or arrow) from one item to the next
+let stmNav={list:[],i:0},stmTok=0;
+async function stmItem(r,list,dir){
+  const L=Array.isArray(list)&&list.length?list:(stLastRows.length?stLastRows:[r]);
+  let i=L.findIndex(x=>x.key===r.key);const many=i>=0&&L.length>1;
+  stmNav=many?{list:L,i}:{list:[r],i:0};
+  const tok=++stmTok;
   const o=stPrice(r),lp=o.lp,fv=can('fva')?o.fv:NaN,save=!isNaN(lp)&&!isNaN(fv)&&lp>fv?lp-fv:0,a=attrOf(r);
   showModal(pnameOf(r)||r.item||r.category||'Item','',[]);$('modalTitle').classList.add('stm-ttl');$('modal').classList.add('stm-sheet','stm-itm');
   const W=v=>num(v)>0?num(v).toFixed(3)+' g':'';
   const rows=[['Label no.',r.barcode||r.key],['Item name',pnameOf(r)?r.item:''],['Item type',r.category],['Design',a.jt],['Purity',PLABEL[caratToPurity(r.carat)]||r.carat],['Gross wt',W(r.gw)],['Net wt',W(r.nw)],
     ['Stone',shVal(r,'stone')],['Stone type',(a.st||[]).join(', ')],['Stone colour',a.sc.join(', ')],['Making',r.mkType&&num(r.mk)>0?valText({type:r.mkType,val:num(r.mk)}):''],['HUID no.',r.huidNo],['Size',r.size],['Location',r.location]].filter(x=>x[1]);
   $('modalBody').innerHTML=`<div class="stm-it">
+    ${many?`<div class="stm-nav"><button type="button" data-d="-1" aria-label="Previous item"${i?'':' disabled'}>‹</button><span>${i+1} <small>of</small> ${L.length.toLocaleString('en-IN')}</span><button type="button" data-d="1" aria-label="Next item"${i<L.length-1?'':' disabled'}>›</button></div>`:''}
     <div class="stm-ph" id="stmPh"><div class="st-img">${icoFor(r.category||r.item||'')}</div></div>
     <div class="stm-pr"><div><small>Label price</small><b>${isNaN(lp)?'—':inr(lp)}</b></div>${!isNaN(fv)&&save?`<div class="fv"><small>Fair value</small><b>${inr(fv)}</b></div><div class="sv"><small>Saves</small><b>${inr(save)}</b></div>`:''}</div>
     <dl class="stm-dl">${rows.map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
@@ -6154,8 +6173,49 @@ async function stmItem(r){
   if(can('stockEdit'))acts.push(['Edit','',()=>{closeModal();stockForm(r)}]);
   const ac=$('modalActs');ac.innerHTML='';acts.forEach(([t,c,f])=>{const b=document.createElement('button');b.type='button';b.className='btn '+c;b.textContent=t;b.onclick=f;ac.appendChild(b)});
   const x=document.createElement('button');x.type='button';x.className='btn ghost';x.textContent='Close';x.onclick=()=>closeModal();ac.appendChild(x);
-  const us=await getProdImgs(r.key).catch(()=>[]);if(us.length&&$('stmPh'))$('stmPh').innerHTML=us.map(u=>`<img src="${u}" alt="">`).join('');
+  const it=$('modalBody').querySelector('.stm-it');
+  if(many&&it){
+    if(dir)it.classList.add(dir>0?'in-r':'in-l');
+    it.querySelectorAll('.stm-nav button').forEach(b=>b.onclick=()=>stmGo(num(b.dataset.d)));
+    stmSwipe(it);
+    if(matchMedia('(pointer:coarse)').matches&&!store.get('stmSwipeTip',false)){store.set('stmSwipeTip',true);setTimeout(()=>toast('Swipe left or right to move between items'),500)}
+  }
+  const us=await getProdImgs(r.key).catch(()=>[]);
+  if(tok===stmTok&&us.length&&$('stmPh'))$('stmPh').innerHTML=us.map(u=>`<img src="${u}" alt="">`).join('');
 }
+// move to the item before or after this one, without closing the sheet
+function stmGo(d){
+  const L=stmNav.list,j=stmNav.i+d;
+  if(!L||L.length<2)return;
+  if(j<0||j>=L.length){const it=$('modalBody').querySelector('.stm-it');if(it){it.classList.remove('bump');void it.offsetWidth;it.classList.add('bump')}return}
+  stmItem(stockMap.get(L[j].key)||L[j],L,d);
+}
+// a finger drag across the sheet moves between items; a drag down the page still scrolls, and the photo strip keeps its own swipe
+function stmSwipe(el){
+  let x0=0,y0=0,dx=0,on=false,lock=0;
+  const settle=()=>{el.style.transition='transform .16s ease-out';el.style.transform='';setTimeout(()=>{el.style.transition=''},190)};
+  el.addEventListener('touchstart',e=>{
+    if(e.touches.length!==1)return;
+    const ph=e.target.closest('.stm-ph');if(ph&&ph.scrollWidth>ph.clientWidth+4)return;
+    if(e.target.closest('button,a,input,select'))return;
+    on=true;lock=0;dx=0;x0=e.touches[0].clientX;y0=e.touches[0].clientY;el.style.transition='';
+  },{passive:true});
+  el.addEventListener('touchmove',e=>{
+    if(!on)return;const t=e.touches[0];dx=t.clientX-x0;const dy=t.clientY-y0;
+    if(!lock)lock=Math.abs(dx)>12&&Math.abs(dx)>Math.abs(dy)*1.3?1:(Math.abs(dy)>12?-1:0);
+    if(lock!==1)return;
+    e.preventDefault();
+    const edge=(dx<0&&stmNav.i>=stmNav.list.length-1)||(dx>0&&stmNav.i<=0);
+    el.style.transform='translateX('+(dx*(edge?.18:.4))+'px)';
+  },{passive:false});
+  const fin=()=>{if(!on)return;on=false;const d=dx;settle();if(lock===1&&Math.abs(d)>52)setTimeout(()=>stmGo(d<0?1:-1),40)};
+  el.addEventListener('touchend',fin);el.addEventListener('touchcancel',fin);
+}
+document.addEventListener('keydown',e=>{
+  if($('modal').hidden||!$('modal').classList.contains('stm-itm'))return;
+  if(e.target.closest('input,select,textarea'))return;
+  if(e.key==='ArrowLeft'){e.preventDefault();stmGo(-1)}else if(e.key==='ArrowRight'){e.preventDefault();stmGo(1)}
+});
 // ---- Search: filters, pages, photos ----
 const FILTERS=[['item','Item Name'],['cat','Item Type'],['jt','Design'],['mc','Metal Colour'],['stt','Stone Type'],['sc','Stone Colour'],['pur','Purity'],['type','Label Code'],['stone','Stone'],['sup','Supplier'],['loc','Location'],['lab','Labelled'],['img','Photo'],['pn','Product name'],['imp','Imported']];
 function stFilterBar(rowsAll){
@@ -7582,7 +7642,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.8.25',APP_BUILD='__BUILD__';
+const APP_VERSION='1.8.26',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------
