@@ -49,6 +49,7 @@ label.f{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
 .dvn{position:absolute;top:50%;transform:translateY(-50%);z-index:2;width:44px;height:64px;border:0;border-radius:12px;background:rgba(255,255,255,.14);color:#fff;font-size:30px}.dvn.l{left:8px}.dvn.r{right:8px}.dvn:disabled{opacity:.2}
 .dvfoot{display:flex;align-items:center;justify-content:center;gap:10px;padding:8px 8px calc(10px + env(safe-area-inset-bottom));background:rgba(0,0,0,.6);z-index:2}#dvZ{min-width:48px;text-align:center;font-size:13px;opacity:.8}
 .dvdots{display:flex;gap:5px;margin-left:10px}.dvdots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.35)}.dvdots i.on{background:#fff}
+.afbar{margin-bottom:12px}.afbar .selbar{display:flex;flex-wrap:wrap;gap:8px}.afbar .selbar .grow{min-width:150px;flex:1}@media(max-width:699px){.afbar .selbar{display:grid;grid-template-columns:1fr 1fr}.afbar .selbar .grow{min-width:0}.afbar .selbar .grow:last-child{grid-column:1/-1}}
 .hrem{margin-top:12px;border-color:#F1D9A8;background:#FFFBF2}.hrow{display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:8px 0;border-top:1px solid var(--ln);background:none}.hrow:first-of-type{border-top:0}
 .dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin-top:12px}
 .dcard{display:flex;gap:12px;text-align:left;background:#fff;border:1px solid var(--ln);border-radius:14px;padding:10px;align-items:center;width:100%;min-width:0}.dcard .dbody{min-width:0}.dcard .b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -348,7 +349,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.21';
+const VERSION = '1.22';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -2167,11 +2168,51 @@ async function admUsers() {
   $('#uAdd').onclick = () => edit({ role: 'staff' });
   $('#adm').querySelectorAll('[data-u]').forEach((b) => b.onclick = () => edit(j.users.find((u) => u.id === b.dataset.u)));
 }
+// v1.22 Admin → Locations filters: section, main location, sub display, group, jewellery type, item, purity, search
+const heldOf = (l) => Object.entries(expOf(l.id).lines).filter(([, n]) => n);
+const locItems = (l) => [...new Set([...heldOf(l).map(([k]) => itemOf(k)), ...(l.itemType ? [l.itemType] : [])])];
+const locPurs = (l) => { const h = heldOf(l); return [...new Set(h.length ? h.map(([k]) => purOfLine(l, k) || 'Not set') : [l.purity || 'Not set'])]; };
+const locJtAll = (l) => [...new Set([...locJts(l), ...heldOf(l).map(([k]) => jtOfLine(l, k))])];
 function admLocs() {
-  const st = S.D.settings;
-  $('#adm').innerHTML = `<div class="mut sm" style="margin-bottom:10px">Add, edit or delete counters, trays and boxes. Tap a name to open it (photos, stock). ${editable() ? '' : '<b>Day is closed — reopen to change stock.</b>'}</div>` + SECTIONS.map((s) => `<div class="grp"><span>${s.label} (${activeLocs(s.key).length})</span>${editable() ? `<button class="btn sm sec" data-add="${s.key}">＋ Add ${s.key === 'counter' ? 'counter tray' : s.key === 'tray' ? 'tray' : 'box'}</button>` : ''}</div>
-    <div class="tw"><table><tr><th>Name</th>${s.key === 'counter' ? '<th>Main location</th><th>Sub display</th>' : '<th>Main location</th>'}<th>Group</th><th>Jewellery type</th><th>Purity</th><th>Item</th><th>Pcs</th>${s.key === 'box' ? '<th>Weight g</th>' : ''}<th></th></tr>${activeLocs(s.key).map((l) => `<tr><td class="b" data-loc="${l.id}" style="cursor:pointer;text-decoration:underline dotted">${esc(l.name)}${l.boxNo ? ` <span class="chip m">${esc(l.boxNo)}</span>` : ''}</td><td style="text-align:left">${esc(l.area || '—')}</td>${s.key === 'counter' ? `<td style="text-align:left">${esc(l.sub || '—')}</td>` : ''}<td style="text-align:left">${esc(l.group)}</td><td style="text-align:left">${jtChips(l) || '—'}</td><td style="text-align:left">${esc(l.purity || '—')}</td><td style="text-align:left">${esc(l.itemType || 'Mixed')}</td><td>${fmt(sumLines(expOf(l.id).lines))}</td>${s.key === 'box' ? `<td class="${expOf(l.id).wt ? '' : 'neg'}">${expOf(l.id).wt ? g3(expOf(l.id).wt) : 'not set'}</td>` : ''}
+  const st = S.D.settings; S.af ||= { sec: 'all', area: '', sub: '', group: '', jt: '', item: '', pur: '', q: '' }; const F = S.af;
+  const pool = activeLocs().filter((l) => F.sec === 'all' || l.sec === F.sec);
+  // item / purity / jewellery type must match the same item line (e.g. Ring + 22K = 22K rings); an empty location uses its own settings
+  const lineOk = (l, skip) => { const h = heldOf(l); const want = (k, v) => k === skip || !F[k] || F[k] === v;
+    if (!h.length) return want('item', l.itemType || '') && want('pur', l.purity || 'Not set') && (skip === 'jt' || !F.jt || locJts(l).includes(F.jt));
+    return h.some(([k]) => want('item', itemOf(k)) && want('pur', purOfLine(l, k) || 'Not set') && want('jt', jtOfLine(l, k))); };
+  const tests = [['area', (l) => (l.area || '—') === F.area], ['sub', (l) => (l.sub || '—') === F.sub], ['group', (l) => l.group === F.group], ['line', (l, skip) => lineOk(l, skip)],
+    ['q', (l) => `${l.name} ${l.group} ${l.boxNo || ''} ${l.id} ${l.cat || ''}`.toLowerCase().includes(F.q.toLowerCase())]];
+  const pass = (l, skip) => tests.every(([k, f]) => k === 'line' ? (!F.item && !F.pur && !F.jt) || ((skip === 'item' || skip === 'pur' || skip === 'jt') && !['item', 'pur', 'jt'].some((x) => x !== skip && F[x])) || f(l, skip) : k === skip || !F[k] || f(l));
+  // options for item / purity / type come from the lines that match the other two
+  const lineVals = (pl, k) => pl.flatMap((l) => { const h = heldOf(l); const want = (kk, v) => kk === k || !F[kk] || F[kk] === v;
+    const ok = h.filter(([key]) => want('item', itemOf(key)) && want('pur', purOfLine(l, key) || 'Not set') && want('jt', jtOfLine(l, key)));
+    return h.length ? ok.map(([key]) => k === 'item' ? itemOf(key) : k === 'pur' ? purOfLine(l, key) || 'Not set' : jtOfLine(l, key)) : k === 'item' ? (l.itemType ? [l.itemType] : []) : k === 'pur' ? [l.purity || 'Not set'] : locJts(l); });
+  const opts = (k, vals) => { const pl = pool.filter((l) => pass(l, k)); return vals(pl); };
+  const uniq = (a) => [...new Set(a)].filter((x) => x != null && x !== '');
+  const O = {
+    area: opts('area', (pl) => uniq(pl.map((l) => l.area || '—'))), sub: opts('sub', (pl) => uniq(pl.filter((l) => l.sec === 'counter').map((l) => l.sub || '—'))),
+    group: opts('group', (pl) => uniq(pl.map((l) => l.group))), jt: opts('jt', (pl) => { const set = new Set(lineVals(pl, 'jt')); return LINE_JTYPES.filter((j) => set.has(j)); }),
+    item: opts('item', (pl) => { const set = new Set(lineVals(pl, 'item')); return [...st.itemTypes.filter((t) => set.has(t)), ...[...set].filter((t) => !st.itemTypes.includes(t))]; }),
+    pur: opts('pur', (pl) => uniq(lineVals(pl, 'pur')).sort((a, b) => PUR_ORDER(a) - PUR_ORDER(b))) };
+  const lineF = F.item || F.pur || F.jt;
+  const matchPcs = (l) => !lineF ? sumLines(expOf(l.id).lines) : heldOf(l).filter(([k]) => (!F.item || itemOf(k) === F.item) && (!F.pur || (purOfLine(l, k) || 'Not set') === F.pur) && (!F.jt || jtOfLine(l, k) === F.jt)).reduce((a, [, n]) => a + n, 0);
+  const shown = pool.filter((l) => pass(l)); const active = Object.entries(F).filter(([k, v]) => v && v !== 'all').length;
+  const sel = (k, label, list, lbl = (v) => v) => `<div class="grow"><label class="f">${label}</label><select data-af="${k}"><option value="">All</option>${list.map((v) => `<option value="${esc(v)}" ${F[k] === v ? 'selected' : ''}>${esc(lbl(v))}</option>`).join('')}${F[k] && !list.includes(F[k]) ? `<option value="${esc(F[k])}" selected>${esc(lbl(F[k]))}</option>` : ''}</select></div>`;
+  const bar = `<div class="card afbar">
+    <div class="seg" style="margin-bottom:8px">${[['all', 'All'], ['counter', 'Counter'], ['tray', 'Buffer trays'], ['box', 'Boxes']].map(([k, t]) => `<button data-afs="${k}" class="${F.sec === k ? 'on' : ''}">${t} <span class="sm" style="opacity:.7">${k === 'all' ? activeLocs().length : activeLocs(k).length}</span></button>`).join('')}</div>
+    <div class="selbar" style="padding:0;border:0;background:none">
+      ${sel('area', 'Main location', O.area)}${F.sec === 'all' || F.sec === 'counter' ? sel('sub', 'Sub display', O.sub) : ''}${sel('group', F.sec === 'tray' ? 'Item group' : F.sec === 'counter' ? 'Counter' : 'Group', O.group)}
+      ${sel('jt', 'Jewellery type', O.jt, (j) => JF_LBL[j] || j)}${sel('item', 'Item', O.item)}${sel('pur', 'Purity', O.pur)}
+      <div class="grow"><label class="f">Search</label><input type="search" id="afQ" value="${esc(F.q)}" placeholder="Name, box no., tag…"></div></div>
+    <div class="row sp" style="margin-top:8px"><span class="mut sm">Showing <b>${shown.length}</b> of ${activeLocs().length} · ${lineF ? `<b>${fmt(shown.reduce((a, l) => a + matchPcs(l), 0))}</b> matching pcs (${fmt(shown.reduce((a, l) => a + sumLines(expOf(l.id).lines), 0))} in these locations)` : `${fmt(shown.reduce((a, l) => a + sumLines(expOf(l.id).lines), 0))} pcs`}</span>${active ? '<button class="btn sm ghost" id="afClr">✕ Clear filters</button>' : ''}</div></div>`;
+  const filtered = active > 0;
+  $('#adm').innerHTML = `<div class="mut sm" style="margin-bottom:10px">Add, edit or delete counters, trays and boxes. Tap a name to open it (photos, stock). ${editable() ? '' : '<b>Day is closed — reopen to change stock.</b>'}</div>` + bar + SECTIONS.filter((s) => F.sec === 'all' || F.sec === s.key).filter((s) => !filtered || shown.some((l) => l.sec === s.key) || F.sec === s.key).map((s) => `<div class="grp"><span>${s.label} (${filtered ? `${shown.filter((l) => l.sec === s.key).length} of ` : ''}${activeLocs(s.key).length})</span>${editable() ? `<button class="btn sm sec" data-add="${s.key}">＋ Add ${s.key === 'counter' ? 'counter tray' : s.key === 'tray' ? 'tray' : 'box'}</button>` : ''}</div>
+    <div class="tw"><table><tr><th>Name</th>${s.key === 'counter' ? '<th>Main location</th><th>Sub display</th>' : '<th>Main location</th>'}<th>Group</th><th>Jewellery type</th><th>Purity</th><th>Item</th><th>Pcs</th>${s.key === 'box' ? '<th>Weight g</th>' : ''}<th></th></tr>${shown.filter((l) => l.sec === s.key).map((l) => `<tr><td class="b" data-loc="${l.id}" style="cursor:pointer;text-decoration:underline dotted">${esc(l.name)}${l.boxNo ? ` <span class="chip m">${esc(l.boxNo)}</span>` : ''}</td><td style="text-align:left">${esc(l.area || '—')}</td>${s.key === 'counter' ? `<td style="text-align:left">${esc(l.sub || '—')}</td>` : ''}<td style="text-align:left">${esc(l.group)}</td><td style="text-align:left">${jtChips(l) || '—'}</td><td style="text-align:left">${esc(locPurs(l).join(', '))}</td><td style="text-align:left" class="sm">${esc(locItems(l).join(', ') || l.itemType || '—')}</td><td>${lineF ? `<b>${fmt(matchPcs(l))}</b> <span class="mut sm">/ ${fmt(sumLines(expOf(l.id).lines))}</span>` : fmt(sumLines(expOf(l.id).lines))}</td>${s.key === 'box' ? `<td class="${expOf(l.id).wt ? '' : 'neg'}">${expOf(l.id).wt ? g3(expOf(l.id).wt) : 'not set'}</td>` : ''}
       <td style="white-space:nowrap">${can('setup') && editable() ? `<button class="btn sm ghost" data-edit="${l.id}">✎ Edit</button> <button class="btn sm ghost" data-delloc="${l.id}" style="color:var(--bad)">🗑</button>` : ''}</td></tr>`).join('')}</table></div>`).join('');
+  $('#adm').querySelectorAll('[data-afs]').forEach((b) => b.onclick = () => { F.sec = b.dataset.afs; if (F.sec !== 'all' && F.sec !== 'counter') F.sub = ''; admLocs(); });
+  $('#adm').querySelectorAll('[data-af]').forEach((el) => el.onchange = () => { F[el.dataset.af] = el.value; admLocs(); });
+  $('#afQ').oninput = () => { F.q = $('#afQ').value; const pos = $('#afQ').selectionStart; admLocs(); const q = $('#afQ'); q.focus(); q.setSelectionRange(pos, pos); };
+  $('#afClr') && ($('#afClr').onclick = () => { S.af = { sec: F.sec, area: '', sub: '', group: '', jt: '', item: '', pur: '', q: '' }; admLocs(); });
   $('#adm').querySelectorAll('[data-loc]').forEach((r) => r.onclick = () => locSheet(r.dataset.loc));
   $('#adm').querySelectorAll('[data-edit]').forEach((b) => b.onclick = () => locEdit(S.locById[b.dataset.edit]));
   $('#adm').querySelectorAll('[data-delloc]').forEach((b) => b.onclick = () => delLoc(S.locById[b.dataset.delloc]));
