@@ -217,6 +217,10 @@ export function jtOfLine(loc, k) {
   if (code) return Object.keys(JT_CODE).find((n) => JT_CODE[n] === code) || 'Plain Gold Jewellery';
   return defaultJt(loc);
 }
+// v1.14: a location can hold several jewellery types (loc.jtypes). jtype = the single type, or 'Mixed' when 2+.
+// Returns the ticked types; [] for an old 'Mixed' location without a list (any type).
+export const locJts = (loc) => { const a = (loc?.jtypes || []).filter((j) => JT_CODE[j]); if (a.length) return LINE_JTYPES.filter((j) => a.includes(j)); return loc?.jtype && JT_CODE[loc.jtype] ? [loc.jtype] : []; };
+export const normJts = (arr) => LINE_JTYPES.filter((j) => (arr || []).includes(j));
 export const lineKey = (loc, item, jt, pur) => {
   let k = jt === defaultJt(loc) || !jt ? item : `${item}@${JT_CODE[jt] || 'G'}`;
   if (pur !== undefined && (pur || '') !== defaultPur(loc)) k += `#${pur || '-'}`;

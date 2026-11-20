@@ -2,7 +2,7 @@ import { getStore } from '@netlify/blobs';
 import crypto from 'node:crypto';
 import { buildSeed } from '../lib/seed.mjs';
 import {
-  DEFAULT_SETTINGS, ROLE_PERMS, PERMS, SECTIONS, TXN_TYPES, deriveLocMeta, JTYPES, keyText, lineKey, itemOf, jtOfLine, purOfLine, summarize, closingVerified, computeExpected, erpCompare,
+  DEFAULT_SETTINGS, ROLE_PERMS, PERMS, SECTIONS, TXN_TYPES, deriveLocMeta, JTYPES, normJts, keyText, lineKey, itemOf, jtOfLine, purOfLine, summarize, closingVerified, computeExpected, erpCompare,
   latestCounts, locStatus, sumLines, istDate, r3,
 } from '../../web/core.mjs';
 
@@ -448,7 +448,7 @@ export default async (req: Request) => {
       need('setup');
       const data = await s.get('cfg/locs', { type: 'json' });
       const L = body.loc || {};
-      const fields = ['sec', 'group', 'name', 'purity', 'cat', 'itemType', 'boxNo', 'insert', 'qty', 'mode', 'images', 'note', 'order', 'erpName', 'itemNotes', 'area', 'sub', 'jtype'];
+      const fields = ['sec', 'group', 'name', 'purity', 'cat', 'itemType', 'boxNo', 'insert', 'qty', 'mode', 'images', 'note', 'order', 'erpName', 'itemNotes', 'area', 'sub', 'jtype', 'jtypes'];
       let loc = data.locs.find((l: any) => l.id === L.id);
       if (L.active === false && loc) {
         const day = await ensureToday(s); const { mvs } = await loadDay(s, today);
@@ -470,6 +470,10 @@ export default async (req: Request) => {
         for (const f of fields) if (f in L) loc[f] = L[f];
         loc.order = loc.order ?? data.locs.length + 1;
         data.locs.push(loc);
+      }
+      if (loc && Array.isArray(loc.jtypes)) {   // v1.14 several jewellery types: keep list valid, jtype = single type or Mixed
+        loc.jtypes = normJts(loc.jtypes);
+        if (loc.jtypes.length === 1) loc.jtype = loc.jtypes[0]; else if (loc.jtypes.length > 1) loc.jtype = 'Mixed'; else delete loc.jtypes;
       }
       await s.setJSON('cfg/locs', data);
       return J({ ok: true, loc });
