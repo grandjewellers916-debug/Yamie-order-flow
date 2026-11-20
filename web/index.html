@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#8F171B">
-<title>Yamie Stock Check</title>
+<title>Yamie Core</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -39,7 +39,44 @@ label.f{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
 .top .logo{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;line-height:1}
 .top .logo small{display:block;font-family:Jost;font-size:11px;font-weight:400;opacity:.8;letter-spacing:1.5px;text-transform:uppercase}
 .vtag{display:inline-block;margin-left:6px;padding:0 6px;border-radius:99px;background:rgba(255,255,255,.18);letter-spacing:.3px;text-transform:none;font-weight:500;opacity:1}
-.navver{display:none}.vbadge{display:inline-block;margin-top:8px;padding:2px 10px;border-radius:99px;background:var(--cr);color:var(--mut);font-size:12px}
+.cgrid{display:grid;gap:12px;margin-top:4px;max-width:760px}.ctitle{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:15px;margin-bottom:12px}
+.tagc{font-size:11px;color:var(--m);background:var(--m3);border-radius:99px;padding:3px 9px;font-weight:500}.g2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}.g2 .f{margin-top:0}.g2>div{min-width:0}.g2 select,.g2 input{width:100%}
+.dhead,.drow{display:grid;grid-template-columns:62px 1fr 1fr;gap:9px;align-items:center}.dhead{font-size:11px;color:var(--mut);font-weight:600;padding-bottom:6px}.dhead span:not(:first-child){text-align:center}
+.drow{padding:8px 0;border-top:1px solid var(--ln)}.dnote{background:var(--m3);color:var(--m);text-align:center;border-radius:9px;padding:10px 2px;font-weight:700}
+.dent input{font-size:17px;font-weight:600;height:44px;text-align:center;padding:6px}.dent small{display:block;text-align:center;color:var(--mut);font-size:11px;margin-top:2px;min-height:14px}
+.mini{border:1px solid var(--ln);background:var(--iv);border-radius:12px;padding:10px}.mini span{display:block;font-size:11px;color:var(--mut)}.mini strong{font-size:18px}
+.ctotal{background:linear-gradient(135deg,#8F171B,#6E1014);color:#fff;border-radius:16px;padding:18px}.ctotal .amt{font-size:32px;font-weight:700;margin:2px 0}.ctotal .splits{display:flex;justify-content:space-between;border-top:1px solid rgba(255,255,255,.25);margin-top:12px;padding-top:9px;font-size:12px;opacity:.9}
+.cdiff{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding:12px;background:var(--iv);border-radius:12px}.cdiff strong{font-size:22px}
+.cst{display:inline-block;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:700;letter-spacing:.3px}.cst.ok{background:var(--okb);color:var(--ok)}.cst.warn{background:var(--warnb);color:var(--warn)}.cst.bad{background:var(--badb);color:var(--bad)}.cst.pend{background:var(--pendb);color:var(--pend)}
+.cact{display:grid;grid-template-columns:1fr 1fr;gap:9px}.cact .btn{display:flex;align-items:center;justify-content:center;gap:6px}.banner.ok{background:var(--okb);color:var(--ok);border-color:#BFE3CC}
+.chist{width:100%;text-align:left;display:flex;gap:10px;align-items:center}
+#printArea{display:none}@media print{body.printing #app,body.printing .toast{display:none!important}body.printing #printArea{display:block}}
+.pchit{font:13px/1.4 system-ui,sans-serif;color:#000;max-width:640px;margin:0 auto}.pchit .ph{display:flex;justify-content:space-between;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:8px}.pchit .pl{font:700 26px Georgia,serif;letter-spacing:5px}.pchit .ps{font-size:10px;letter-spacing:2px}
+.pchit table{width:100%;border-collapse:collapse;margin:6px 0}.pchit td,.pchit th{border:1px solid #999;padding:4px 6px;text-align:left}.pchit .pd td:not(:first-child),.pchit .pd th:not(:first-child){text-align:right}.pchit .pt td{font-weight:700}
+.pchit .psig{display:flex;justify-content:space-between;margin-top:36px}.pchit .psig div{border-top:1px solid #000;width:42%;padding-top:4px}.pchit .pf{margin-top:18px;font-size:10px;color:#555}
+.navver{display:none}.nav button.dk{display:none}.top .logo{background:none;border:0;color:inherit;text-align:left;cursor:pointer;padding:0}
+.corelogo{font-family:'Cormorant Garamond',Georgia,serif;font-size:40px;letter-spacing:8px;color:var(--m);font-weight:700;line-height:1;margin:6px 0 4px}.corelogo small{display:block;font-family:Jost,system-ui;font-size:12px;letter-spacing:6px;color:var(--mut);margin-top:6px;font-weight:500}
+/* splash */
+.splash{position:fixed;inset:0;z-index:999;display:grid;place-items:center;background:radial-gradient(120% 90% at 50% 20%,#A3242A 0%,#8F171B 45%,#5E0E12 100%);color:#fff;transition:opacity .5s ease,visibility .5s}
+.splash.out{opacity:0;visibility:hidden}.splash .in{text-align:center;animation:spIn .9s cubic-bezier(.2,.8,.2,1) both}
+.splash .w{font-family:'Cormorant Garamond',Georgia,serif;font-size:58px;font-weight:700;letter-spacing:14px;padding-left:14px;line-height:1}
+.splash .c{font-family:Jost,system-ui;font-size:14px;letter-spacing:9px;padding-left:9px;margin-top:12px;opacity:.85}
+.splash .ln{width:46px;height:1.5px;background:#E8C98A;margin:18px auto 0;animation:spLn 1.1s .3s ease both}
+.splash .m{position:absolute;bottom:calc(28px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;font:12px Jost,system-ui;letter-spacing:2px;opacity:.6}
+@keyframes spIn{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}@keyframes spLn{from{width:0}to{width:46px}}
+/* hero home */
+.hero{background:linear-gradient(135deg,#8F171B,#5E0E12);color:#fff;border-radius:18px;padding:20px 20px 18px;position:relative;overflow:hidden}
+.hero:after{content:'';position:absolute;right:-40px;top:-50px;width:190px;height:190px;border-radius:50%;border:1.5px solid rgba(232,201,138,.35)}
+.hero .hi{font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;font-weight:700;line-height:1.1}.hero .sub{opacity:.8;font-size:13px;margin-top:4px}
+.mods{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}@media(max-width:640px){.mods{grid-template-columns:1fr}}
+.mod{display:block;text-align:left;width:100%;background:#fff;border:1px solid var(--ln);border-radius:18px;padding:16px;cursor:pointer;position:relative;transition:box-shadow .15s,transform .15s}
+.mod:hover{box-shadow:0 6px 20px rgba(60,20,20,.08)}.mod:active{transform:scale(.99)}
+.mod .num{font-size:12px;letter-spacing:2px;color:var(--mut);font-weight:600}.mod h2{font-family:'Cormorant Garamond',Georgia,serif;font-size:30px;margin:2px 0 2px;color:var(--m)}
+.mod .ic{position:absolute;right:16px;top:16px;width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:var(--m3);color:var(--m)}
+.mod .stats{display:flex;gap:16px;margin-top:12px;flex-wrap:wrap}.mod .stats b{display:block;font-size:20px}.mod .stats span{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px}
+.mod .go{margin-top:12px;font-weight:600;color:var(--m);font-size:14px}
+.qk{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}@media(max-width:640px){.qk{grid-template-columns:repeat(2,1fr)}}
+.qk button{background:#fff;border:1px solid var(--ln);border-radius:14px;padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:13px;color:var(--ink)}.qk button svg{color:var(--m)}.vbadge{display:inline-block;margin-top:8px;padding:2px 10px;border-radius:99px;background:var(--cr);color:var(--mut);font-size:12px}
 .top .date{background:rgba(255,255,255,.14);border-radius:8px;padding:6px 10px;font-size:13px}
 .bell{position:relative;width:40px;height:40px;border-radius:10px;color:#fff;display:grid;place-items:center}
 .bell i{position:absolute;top:3px;right:3px;background:#FFD27A;color:var(--m2);font-style:normal;font-size:11px;font-weight:700;border-radius:99px;padding:0 5px;min-width:18px;text-align:center}
@@ -65,6 +102,7 @@ main{padding:14px;padding-bottom:96px;max-width:1300px;margin:0 auto}
 @media(min-width:900px){
   .nav{top:0;bottom:0;right:auto;width:200px;flex-direction:column;border-top:0;border-right:1px solid var(--ln);padding-top:76px;gap:2px}
   .navver{display:block;margin-top:auto;padding:12px 18px 16px;font-size:12px;color:var(--mut)}
+  .nav button.dk{display:flex}.phmore{display:none}
   .nav button{flex:none;flex-direction:row;gap:12px;font-size:15px;padding:12px 20px;justify-content:flex-start}
   .nav button.on{background:var(--m3)}
   main{margin-left:200px;padding:22px 28px 110px;max-width:none}
@@ -274,7 +312,7 @@ table.rep tr.rgrp td{background:var(--iv);font-weight:600;border-top:1px solid v
 <body>
 <div id="app"></div>
 <script type="module">
-import { SECTIONS, PERMS, ROLE_PERMS, REASONS, TXN_TYPES, metalOf, erpMetal, JTYPES, LINE_JTYPES, JT_SHORT, JT_CLS, METALS, jtMetal, locJts, normJts, itemOf, jtOfLine, purOfLine, defaultPur, lineKey, keyText, defaultJt, roundOf, roundCounts, summarize, sumLines, r3, locStatus, istDate, erpCompare, erpKey } from './core.mjs';
+import { CASH_DENOMS, CASH_COUNTERS, CASH_SHIFTS, cashCalc, SECTIONS, PERMS, ROLE_PERMS, REASONS, TXN_TYPES, metalOf, erpMetal, JTYPES, LINE_JTYPES, JT_SHORT, JT_CLS, METALS, jtMetal, locJts, normJts, itemOf, jtOfLine, purOfLine, defaultPur, lineKey, keyText, defaultJt, roundOf, roundCounts, summarize, sumLines, r3, locStatus, istDate, erpCompare, erpKey } from './core.mjs';
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -285,7 +323,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.16';
+const VERSION = '1.17';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -296,6 +334,9 @@ const ICON = {
   bell: '<path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0"/>',
   user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.5 4.5-6.5 8-6.5s7 2 8 6.5"/>',
   cam: '<path d="M4 7h3l2-3h6l2 3h3v12H4z"/><circle cx="12" cy="13" r="3.5"/>',
+  cash: '<rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.8"/><path d="M6 9.5v5M18 9.5v5"/>',
+  stock: '<path d="M12 3l8 4.5-8 4.5-8-4.5z"/><path d="M4 12l8 4.5 8-4.5M4 16.5L12 21l8-4.5"/>',
+  print: '<path d="M7 9V3h10v6M7 17H4v-7h16v7h-3M7 14h10v7H7z"/>',
 };
 const svg = (k, s = 22) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICON[k]}</svg>`;
 
@@ -322,15 +363,14 @@ const img = (key) => `/api/img/${key}?t=${encodeURIComponent(S.token)}`;
 // ---------------- login ----------------
 let LG = { users: [], sel: null, pin: '' };
 async function showLogin() {
-  S.me = null; document.title = 'Yamie Stock Check';
+  S.me = null; document.title = 'Yamie Core';
   try { const j = await api('login-list'); LG.users = j.users; } catch (e) { LG.users = []; }
   LG.sel = localStorage.ysc_last && LG.users.find((u) => u.id === localStorage.ysc_last) ? localStorage.ysc_last : null; LG.pin = '';
   renderLogin();
 }
 function renderLogin() {
   $('#app').innerHTML = `<div class="login"><div class="lbox">
-    <div style="color:var(--m)">${svg('box', 34)}</div>
-    <h1 style="color:var(--m)">Yamie Stock Check</h1><div class="mut sm">Counter · Buffer tray · Box stock</div><div class="vbadge">${esc(verText())}</div>
+    <div class="corelogo">YAMIE<small>CORE</small></div><div class="mut sm">Stock · Cash</div><div class="vbadge">${esc(verText())}</div>
     <div class="users">${LG.users.map((u) => `<button data-u="${esc(u.id)}" class="${LG.sel === u.id ? 'on' : ''}"><div class="av">${esc(u.name[0] || '?')}</div><div class="sm">${esc(u.name)}</div><div class="mut" style="font-size:11px">${esc(u.role)}</div></button>`).join('') || '<div class="mut">Cannot reach server</div>'}</div>
     <div class="${LG.sel ? '' : 'hidden'}"><div class="mut sm">Enter PIN</div><div class="dots">${Array.from({ length: Math.max(4, LG.pin.length) }, (_, i) => `<i class="${i < LG.pin.length ? 'f' : ''}"></i>`).join('')}</div>
     <div class="pad">${[1, 2, 3, 4, 5, 6, 7, 8, 9, '⌫', 0, '→'].map((k) => `<button data-k="${k}" ${k === '→' ? 'style="background:var(--m);color:#fff"' : ''}>${k}</button>`).join('')}</div></div>
@@ -398,14 +438,17 @@ const linesTxt = (l, loc) => Object.entries(l || {}).filter(([, n]) => n).map(([
 const diffTxt = (d, loc) => Object.entries(d || {}).map(([t, n]) => `${kT(t, loc)} ${sgn(n)}`).join(', ');
 
 // ---------------- shell ----------------
-const NAV = [['home', 'Home', 'home'], ['counter', 'Counter', 'counter'], ['tray', 'Trays', 'tray'], ['box', 'Boxes', 'box'], ['total', 'Consolidated', 'total'], ['more', 'More', 'more']];
+// v1.17 Yamie Core: phone bottom bar = Home · Cash · Counter · Trays · Box; the computer sidebar also has Stock, Consolidated and More
+const NAV = [['home', 'Home', 'home'], ['stock', 'Stock', 'stock', 1], ['cash', 'Cash', 'cash'], ['counter', 'Counter', 'counter'], ['tray', 'Trays', 'tray'], ['box', 'Box', 'box'], ['total', 'Consolidated', 'total', 1], ['more', 'More', 'more', 1]];
+const MORE_VIEWS = ['more', 'alerts', 'log', 'admin', 'history', 'eod'];
 function render() {
   if (!S.me) return showLogin();
-  document.title = `Yamie Stock Check · ${S.D.date}`;
-  $('#app').innerHTML = `<header class="top" id="top"></header><main id="main"></main><nav class="nav">${NAV.map(([k, l, i]) => `<button data-nav="${k}" class="${S.view === k || (k === 'more' && ['more', 'alerts', 'log', 'admin', 'history', 'eod'].includes(S.view)) ? 'on' : ''}">${svg(i)}<span>${l === 'Consolidated' && innerWidth < 900 ? 'Total' : l}</span></button>`).join('')}<div class="navver">${esc(verText())}</div></nav>`;
+  document.title = `Yamie Core · ${S.D.date}`;
+  const navOn = (k) => S.view === k || (k === 'more' && MORE_VIEWS.includes(S.view)) || (k === 'home' && innerWidth < 900 && (S.view === 'stock' || S.view === 'total' || MORE_VIEWS.includes(S.view)));
+  $('#app').innerHTML = `<header class="top" id="top"></header><main id="main"></main><nav class="nav">${NAV.map(([k, l, i, dk]) => `<button data-nav="${k}" class="${dk ? 'dk' : ''} ${navOn(k) ? 'on' : ''}">${svg(i)}<span>${l}</span></button>`).join('')}<div class="navver">${esc(verText())}</div></nav>`;
   $('#app').querySelectorAll('[data-nav]').forEach((b) => b.onclick = () => go(b.dataset.nav));
   renderTop();
-  const v = { home: vHome, counter: () => vSection('counter'), tray: () => vSection('tray'), box: () => vSection('box'), total: vTotal, more: vMore, alerts: vAlerts, log: vLog, eod: vEod, admin: vAdmin, history: vHistory }[S.view] || vHome;
+  const v = { home: vHub, stock: vHome, cash: vCash, counter: () => vSection('counter'), tray: () => vSection('tray'), box: () => vSection('box'), total: vTotal, more: vMore, alerts: vAlerts, log: vLog, eod: vEod, admin: vAdmin, history: vHistory }[S.view] || vHome;
   v();
 }
 // v1.16: version on screen — web app version, plus the APK version inside the Android app
@@ -414,9 +457,12 @@ const verText = () => `App v${VERSION}${apkVer() ? ` · APK ${apkVer()}` : ''}`;
 function renderTop() {
   const t = $('#top'); if (!t) return;
   const d = S.D;
-  t.innerHTML = `<div class="logo grow">Yamie<small>Stock Check <span class="vtag" title="${esc(verText())}">v${VERSION}</span></small></div>
+  t.innerHTML = `<button class="logo grow" id="logoBtn">Yamie<small>Core <span class="vtag" title="${esc(verText())}">v${VERSION}</span></small></button>
     <button class="date" id="dateBtn">${isToday() ? 'Today' : '📅'} ${new Date(d.date + 'T00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} · ${d.day.status === 'closed' ? 'Closed' : 'Open'}</button>
-    ${can('alerts') ? `<button class="bell" id="bellBtn" title="Alerts">${svg('bell')}${d.alerts.unread ? `<i>${d.alerts.unread}</i>` : ''}</button>` : ''}`;
+    ${can('alerts') ? `<button class="bell" id="bellBtn" title="Alerts">${svg('bell')}${d.alerts.unread ? `<i>${d.alerts.unread}</i>` : ''}</button>` : ''}
+    <button class="bell phmore" id="moreBtn" title="More">${svg('more')}</button>`;
+  $('#logoBtn').onclick = () => go('home');
+  $('#moreBtn').onclick = () => go('more');
   $('#dateBtn').onclick = () => can('reports') ? go('history') : null;
   $('#bellBtn') && ($('#bellBtn').onclick = () => go('alerts'));
 }
@@ -525,7 +571,7 @@ function vHome() {
   const ins = T.in, outs = T.out;
   const varLocs = activeLocs().filter((l) => ['var', 'stale'].includes(sm.status[l.id].state));
   $('#main').innerHTML = `${viewBanner()}
-  <div class="row sp wrap" style="margin-bottom:12px"><div><h1>Good ${new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'}, ${esc(S.me.name)}</h1><div class="mut">${dt(D.date)} · ${esc(S.me.role)}</div></div></div>
+  <div class="row sp wrap" style="margin-bottom:12px"><div><div class="mut sm" style="letter-spacing:2px">01 · STOCK</div><h1>Stock</h1><div class="mut">${dt(D.date)} · ${esc(S.me.name)}</div></div></div>
   <div class="kpis">
     <div class="kpi"><div class="l">Opening</div><div class="v">${fmt(T.opening)}</div><div class="mut sm">pcs carried forward</div></div>
     <div class="kpi"><div class="l">In / Out today</div><div class="v"><span style="color:var(--ok)">+${fmt(ins)}</span> <span style="color:var(--bad)">−${fmt(outs)}</span></div><div class="mut sm">${S.D.mvs.filter((m) => !m.void).length} entries</div></div>
@@ -1452,6 +1498,167 @@ function exportCSV() {
 }
 
 // ---------------- more / alerts / log / history / admin ----------------
+// ---------------- v1.17 Yamie Core hero home ----------------
+const inr = (n) => '₹' + (+n || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+const CASH_RES = { tallied: ['TALLIED', 'ok'], excess: ['EXCESS', 'warn'], short: ['SHORT', 'bad'], pending: ['AWAITING ACME', 'pend'] };
+function vHub() {
+  const T = S.sum.total; const h = new Date().getHours();
+  const varN = T.var + T.stale;
+  $('#main').innerHTML = `<div class="hero"><div class="hi">Good ${h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening'}, ${esc(S.me.name)}</div><div class="sub">${dt(S.D.date)} · Yamie Core</div></div>
+  <div class="mods">
+    <button class="mod" data-go="stock"><div class="ic">${svg('stock', 24)}</div><div class="num">01</div><h2>Stock</h2><div class="mut sm">Counter · Trays · Boxes · ERP match</div>
+      <div class="stats"><div><b>${fmt(T.expected)}</b><span>pcs expected</span></div><div><b>${T.locs - T.pending}/${T.locs}</b><span>checked</span></div><div><b style="color:${varN ? 'var(--bad)' : 'var(--ok)'}">${varN}</b><span>variance</span></div></div>
+      <div class="go">Open stock ›</div></button>
+    <button class="mod" data-go="cash"><div class="ic">${svg('cash', 24)}</div><div class="num">02</div><h2>Cash</h2><div class="mut sm">Daily cash closing · ACME reconciliation</div>
+      <div class="stats" id="hubCash"><div><b>…</b><span>today</span></div></div>
+      <div class="go">Open cash ›</div></button>
+  </div>
+  <div class="qk">
+    ${[['eod', 'total', 'End-of-day entries', can('move')], ['total', 'total', 'Consolidated', can('reports')], ['alerts', 'bell', 'Alerts', can('alerts')], ['more', 'more', 'More & settings', true]].filter((x) => x[3]).map(([k, i, t]) => `<button data-go="${k}">${svg(i)}<span>${t}</span></button>`).join('')}
+  </div>`;
+  $('#main').querySelectorAll('[data-go]').forEach((b) => b.onclick = () => go(b.dataset.go));
+  if (can('cash') || can('cashVerify') || can('reports')) api(`cash?from=${S.D.today}&to=${S.D.today}`).then((j) => {
+    const el = $('#hubCash'); if (!el) return; const rs = j.records; const closed = rs.filter((r) => r.state === 'closed');
+    const v = closed.filter((r) => r.variance); const tot = rs.reduce((a, r) => a + r.gt, 0);
+    el.innerHTML = rs.length ? `<div><b>${inr(tot)}</b><span>counted today</span></div><div><b>${closed.length}/${rs.length}</b><span>chits closed</span></div>${closed.length ? `<div><b style="color:${v.length ? 'var(--bad)' : 'var(--ok)'}">${v.length ? v.length : '✓'}</b><span>${v.length ? 'with variance' : 'all tallied'}</span></div>` : '<div><b style="color:var(--warn)">Open</b><span>to verify</span></div>'}` : '<div><b>Not started</b><span>today’s closing</span></div>';
+  }).catch(() => { const el = $('#hubCash'); if (el) el.innerHTML = '<div><b>—</b><span>no access</span></div>'; });
+  else $('#hubCash').innerHTML = '<div><b>—</b><span>no access</span></div>';
+}
+
+// ---------------- v1.17 Cash closing (ported from Yamie Cash Closing UI, on the shared database) ----------------
+const blankCash = (date) => ({ date: date || S.D.today, counter: localStorage.ycc_counter || '', shift: 'End of day', chit: '', denoms: CASH_DENOMS.map((d) => ({ note: d, bundles: '', loose: '' })), coins: '', acme: '', remarks: '', countedBy: S.me.id, state: 'new' });
+async function vCash() {
+  if (!can('cash') && !can('cashVerify') && !can('reports')) return $('#main').innerHTML = '<div class="card">No access to cash closing</div>';
+  S.ctab ||= 'closing';
+  $('#main').innerHTML = `<div class="mut sm" style="letter-spacing:2px">02 · CASH</div><h1>Cash Closing</h1><div class="mut">Daily denomination verification</div><div class="mut" style="margin-top:20px">Loading…</div>`;
+  try { S.cashData = await api('cash'); } catch (e) { $('#main').innerHTML = `<div class="card">${esc(e.message)}</div>`; return; }
+  if (!S.cash) { const ex = S.cashData.records.find((r) => r.date === S.D.today && r.counter === localStorage.ycc_counter && r.shift === 'End of day'); S.cash = ex ? JSON.parse(JSON.stringify(ex)) : blankCash(); }
+  drawCash();
+}
+function drawCash() {
+  const tabs = [['closing', 'Closing'], ['history', 'History'], ['reports', 'Reports']];
+  $('#main').innerHTML = `<div class="row sp wrap"><div><div class="mut sm" style="letter-spacing:2px">02 · CASH</div><h1>${S.ctab === 'closing' ? 'Cash Closing' : S.ctab === 'history' ? 'Closing History' : 'Reports & Audit'}</h1><div class="mut">${S.ctab === 'closing' ? 'Daily denomination verification' : S.ctab === 'history' ? 'Cash closing register' : 'Reconciliation summary'}</div></div>
+    ${S.ctab === 'closing' ? `<div style="text-align:right"><b class="sm">${esc(S.cash.chit ? 'Chit · ' + S.cash.chit : 'Chit')}</b><div><span class="cst ${S.cash.state === 'closed' ? 'ok' : 'pend'}">${S.cash.state === 'closed' ? 'Closed' : S.cash.state === 'draft' ? 'Draft saved' : 'Draft'}</span></div></div>` : ''}</div>
+  <div class="tabs noprint" style="margin-top:12px">${tabs.map(([k, t]) => `<button data-ct="${k}" class="${S.ctab === k ? 'on' : ''}">${t}</button>`).join('')}</div>
+  <div id="cashBody"></div>`;
+  $('#main').querySelectorAll('[data-ct]').forEach((b) => b.onclick = () => { S.ctab = b.dataset.ct; drawCash(); });
+  ({ closing: cashForm, history: cashHistory, reports: cashReports })[S.ctab]();
+}
+function cashForm() {
+  const c = S.cash; const ro = c.state === 'closed'; const dis = ro ? 'disabled' : '';
+  const users = S.cashData.users; const counters = [...new Set([...CASH_COUNTERS, ...(c.counter ? [c.counter] : [])])];
+  $('#cashBody').innerHTML = `<div class="cgrid">
+  <div class="card"><div class="ctitle">Closing details ${ro ? '<span class="tagc">Locked</span>' : ''}</div>
+    <div class="g2"><div><label class="f">Date *</label><input type="date" id="cDate" value="${esc(c.date)}" max="${S.D.today}" ${dis}></div>
+    <div><label class="f">Counter *</label><select id="cCounter" ${dis}><option value="">Select counter</option>${counters.map((x) => `<option ${c.counter === x ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></div>
+    <div><label class="f">Chit No.</label><input id="cChit" value="${esc(c.chit)}" placeholder="e.g. CC-001" ${dis}></div>
+    <div><label class="f">Closing session</label><select id="cShift" ${dis}>${CASH_SHIFTS.map((x) => `<option ${c.shift === x ? 'selected' : ''}>${x}</option>`).join('')}</select></div></div></div>
+  <div class="card"><div class="ctitle">Cash denomination count <span class="tagc">₹ INR</span></div>
+    <div class="dhead"><span>NOTE</span><span>BUNDLES × 100</span><span>LOOSE NOTES</span></div>
+    ${CASH_DENOMS.map((d) => { const x = c.denoms.find((y) => +y.note === d) || {}; return `<div class="drow"><div class="dnote">₹${d}</div>
+      <div class="dent"><input type="number" inputmode="numeric" min="0" step="1" data-b="${d}" value="${esc(x.bundles || '')}" placeholder="0" ${dis}><small data-ba="${d}"></small></div>
+      <div class="dent"><input type="number" inputmode="numeric" min="0" step="1" data-l="${d}" value="${esc(x.loose || '')}" placeholder="0" ${dis}><small data-la="${d}"></small></div></div>`; }).join('')}
+    <div class="drow"><div class="dnote" style="font-size:12px">Coins</div><div class="dent" style="grid-column:2/4"><input type="number" inputmode="decimal" min="0" step="1" id="cCoins" value="${esc(c.coins || '')}" placeholder="₹ total of coins / ₹5 ₹2 ₹1" ${dis} style="font-size:15px"></div></div>
+    <div class="g2" style="margin-top:12px"><div class="mini"><span>Bundles · Total (A)</span><strong id="cA">₹0</strong></div><div class="mini"><span>Loose + coins · Total (B)</span><strong id="cB">₹0</strong></div></div>
+    <div class="mut sm" style="margin-top:8px">Enter the number of full 100-note bundles and the number of loose notes. Amounts calculate automatically.</div></div>
+  <div class="ctotal"><div class="sm" style="opacity:.8">GRAND TOTAL · CASH COUNTED (A + B)</div><div class="amt" id="cGT">₹0</div><div class="splits"><span id="cSA">Bundles: ₹0</span><span id="cSB">Loose: ₹0</span></div></div>
+  <div class="card"><div class="ctitle">ACME Reconciliation <span class="tagc">Verification</span></div>
+    <label class="f">ACME closing balance (₹) *</label><input type="number" inputmode="decimal" min="0" step="0.01" id="cAcme" value="${esc(c.acme)}" placeholder="Enter balance from ACME / ERP" ${dis}>
+    <div class="cdiff"><div><div class="mut sm">Variance · Counted − ACME</div><strong id="cVar">—</strong></div><span class="cst pend" id="cRes">AWAITING ACME</span></div>
+    <div class="mut sm" style="margin-top:8px">Tallied: no variance · Excess: physical cash higher · Short: physical cash lower.</div></div>
+  <div class="card"><div class="ctitle">Verification & sign-off</div>
+    <div class="g2"><div><label class="f">Counted by *</label><select id="cBy" ${dis}>${users.map((u) => `<option value="${esc(u.id)}" ${(c.countedBy || S.me.id) === u.id ? 'selected' : ''}>${esc(u.name)}</option>`).join('')}</select></div>
+    <div><label class="f">Verified by</label><input value="${esc(ro ? c.verifiedByName : can('cashVerify') ? S.me.name + ' (you, on Verify & Close)' : 'Manager / admin')}" disabled></div></div>
+    <label class="f">Closing remarks / discrepancy reason</label><textarea id="cRem" rows="3" placeholder="Explain any shortage, excess or other observation…" ${dis}>${esc(c.remarks)}</textarea>
+    <div class="mut sm" style="margin-top:8px">The verifier must be a different person and should independently check the physical cash before closing.</div>
+    ${ro ? `<div class="banner ok" style="margin-top:10px">✓ Closed by ${esc(c.verifiedByName)} · ${new Date(c.closedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</div>` : ''}</div>
+  <div class="cact noprint">${ro ? `<button class="btn sec" id="cNew">＋ New closing</button>${S.me.role === 'admin' ? '<button class="btn ghost" id="cReopen">Reopen (admin)</button>' : ''}` : `<button class="btn sec" id="cSave">Save draft</button>${can('cashVerify') ? '<button class="btn" id="cClose">Verify & close</button>' : '<button class="btn" disabled title="Manager or admin">Verify & close (manager)</button>'}`}</div>
+  <div class="cact noprint"><button class="btn ghost" id="cPrint">${svg('print', 18)} Print chit</button><button class="btn ghost" id="cCsv">⬇ Export CSV</button></div>
+  </div>`;
+  const read = () => {
+    if (ro) return; c.date = $('#cDate').value; c.counter = $('#cCounter').value; c.chit = $('#cChit').value.trim(); c.shift = $('#cShift').value;
+    c.denoms = CASH_DENOMS.map((d) => ({ note: d, bundles: $(`[data-b="${d}"]`).value, loose: $(`[data-l="${d}"]`).value }));
+    c.coins = $('#cCoins').value; c.acme = $('#cAcme').value; c.countedBy = $('#cBy').value; c.remarks = $('#cRem').value;
+  };
+  const calc = () => {
+    read(); const k = cashCalc(c);
+    for (const d of CASH_DENOMS) { const x = c.denoms.find((y) => +y.note === d) || {}; $(`[data-ba="${d}"]`).textContent = inr(Math.floor(+x.bundles || 0) * 100 * d); $(`[data-la="${d}"]`).textContent = inr(Math.floor(+x.loose || 0) * d); }
+    $('#cA').textContent = inr(k.a); $('#cB').textContent = inr(k.b); $('#cGT').textContent = inr(k.gt); $('#cSA').textContent = 'Bundles: ' + inr(k.a); $('#cSB').textContent = 'Loose: ' + inr(k.b);
+    $('#cVar').textContent = k.variance == null ? '—' : (k.variance > 0 ? '+' : '') + inr(k.variance); $('#cVar').style.color = k.variance ? (k.variance > 0 ? 'var(--warn)' : 'var(--bad)') : k.variance === 0 ? 'var(--ok)' : '';
+    const [t, cl] = CASH_RES[k.result]; $('#cRes').textContent = t; $('#cRes').className = 'cst ' + cl;
+    return k;
+  };
+  $('#cashBody').querySelectorAll('input,select,textarea').forEach((el) => el.addEventListener('input', calc));
+  calc();
+  // switching date / counter / session loads that chit if it exists
+  const swap = () => { read(); const ex = S.cashData.records.find((r) => r.date === c.date && r.counter === c.counter && r.shift === c.shift);
+    if (ex && ex.id !== c.id) { if (!confirm(`A ${ex.state === 'closed' ? 'closed' : 'saved'} chit exists for ${c.counter} · ${c.shift} on ${c.date}. Open it?`)) return; S.cash = JSON.parse(JSON.stringify(ex)); drawCash(); } };
+  ['#cDate', '#cCounter', '#cShift'].forEach((sel) => $(sel) && $(sel).addEventListener('change', swap));
+  const save = async (final) => {
+    read(); if (!c.date || !c.counter) return toast('Select the date and counter');
+    const k = cashCalc(c);
+    if (final) { if (c.acme === '') return toast('Enter the ACME closing balance'); if (k.variance && !c.remarks.trim()) return toast('Explain the cash variance in remarks'); if (c.countedBy === S.me.id) return toast('Choose who counted the cash — the verifier must be a different person');
+      if (!confirm(`Confirm the physical cash ${inr(k.gt)} was independently verified, and close this chit?${k.variance ? `\n\nVariance ${k.variance > 0 ? '+' : ''}${inr(k.variance)} (${k.result.toUpperCase()})` : ''}`)) return; }
+    try { const r = await api('cash/save', { rec: c, final }); localStorage.ycc_counter = c.counter; S.cash = r.rec; const i = S.cashData.records.findIndex((x) => x.id === r.rec.id); if (i >= 0) S.cashData.records[i] = r.rec; else S.cashData.records.unshift(r.rec);
+      toast(final ? (r.rec.variance ? `⚠ Closed with ${r.rec.result} ${inr(Math.abs(r.rec.variance))}` : '✓ Cash tallied and closed') : '✓ Draft saved — visible on every device'); drawCash(); } catch (e) { fail(e); }
+  };
+  $('#cSave') && ($('#cSave').onclick = () => save(false));
+  $('#cClose') && ($('#cClose').onclick = () => save(true));
+  $('#cNew') && ($('#cNew').onclick = () => { S.cash = blankCash(); drawCash(); });
+  $('#cReopen') && ($('#cReopen').onclick = async () => { const reason = prompt('Reason to reopen this closed chit'); if (!reason) return; try { const r = await api('cash/reopen', { date: c.date, id: c.id, reason }); S.cash = r.rec; const i = S.cashData.records.findIndex((x) => x.id === r.rec.id); if (i >= 0) S.cashData.records[i] = r.rec; toast('Reopened'); drawCash(); } catch (e) { fail(e); } });
+  $('#cPrint').onclick = () => { read(); printChit(c); };
+  $('#cCsv').onclick = () => { read(); cashCSV([c]); };
+}
+function cashRow(r) { const k = r.state ? r : { ...r, ...cashCalc(r) }; const [t, cl] = CASH_RES[k.result || 'pending'];
+  return `<button class="li chist" data-cid="${esc(r.id)}"><div class="grow"><div class="b">${dt(r.date)} · ${esc(r.counter)}</div><div class="mut sm">${esc(r.shift)}${r.chit ? ' · ' + esc(r.chit) : ''} · counted by ${esc(r.countedByName || '—')}${r.state === 'closed' ? ` · verified by ${esc(r.verifiedByName)}` : ''}</div></div>
+  <div style="text-align:right"><div class="b">${inr(k.gt)}</div><div><span class="cst ${r.state === 'closed' ? cl : 'pend'}">${r.state === 'closed' ? t + (k.variance ? ' ' + (k.variance > 0 ? '+' : '') + inr(k.variance) : '') : 'DRAFT'}</span></div></div></button>`; }
+function cashHistory() {
+  const rs = S.cashData.records; S.cf ||= 'all';
+  const list = rs.filter((r) => S.cf === 'all' || (S.cf === 'draft' ? r.state !== 'closed' : S.cf === 'var' ? r.state === 'closed' && r.variance : r.state === 'closed'));
+  $('#cashBody').innerHTML = `<div class="filters">${[['all', 'All', rs.length], ['closed', 'Closed', rs.filter((r) => r.state === 'closed').length], ['draft', 'Drafts', rs.filter((r) => r.state !== 'closed').length], ['var', 'With variance', rs.filter((r) => r.state === 'closed' && r.variance).length]].map(([k, t, n]) => `<button data-cf="${k}" class="${S.cf === k ? 'on' : ''}">${t} · ${n}</button>`).join('')}</div>
+    <div class="card list" style="padding:0;margin-top:10px">${list.map(cashRow).join('') || '<div class="mut" style="padding:20px;text-align:center">No cash closings yet. Start with today’s cash count.</div>'}</div>
+    <div class="mut sm" style="margin-top:8px">Last 2 months · shared with every device.</div>`;
+  $('#cashBody').querySelectorAll('[data-cf]').forEach((b) => b.onclick = () => { S.cf = b.dataset.cf; cashHistory(); });
+  $('#cashBody').querySelectorAll('[data-cid]').forEach((b) => b.onclick = () => { S.cash = JSON.parse(JSON.stringify(rs.find((r) => r.id === b.dataset.cid))); S.ctab = 'closing'; drawCash(); });
+}
+function cashReports() {
+  S.cmon ||= S.D.today.slice(0, 7);
+  const rs = S.cashData.records.filter((r) => r.date.startsWith(S.cmon)); const closed = rs.filter((r) => r.state === 'closed');
+  const sum = (a, k) => a.reduce((x, r) => x + (+r[k] || 0), 0); const vs = closed.filter((r) => r.variance);
+  const months = [...new Set([S.D.today.slice(0, 7), ...S.cashData.records.map((r) => r.date.slice(0, 7))])].sort().reverse();
+  const byDay = {}; closed.forEach((r) => { const d = (byDay[r.date] ||= { gt: 0, acme: 0, v: 0, n: 0 }); d.gt += r.gt; d.acme += +r.acme || 0; d.v += r.variance || 0; d.n++; });
+  $('#cashBody').innerHTML = `<div class="row wrap" style="gap:8px;margin-bottom:10px"><select id="cMon" style="max-width:200px">${months.map((m) => `<option value="${m}" ${m === S.cmon ? 'selected' : ''}>${new Date(m + '-01T00:00').toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}</option>`).join('')}</select><button class="btn sm ghost" id="cRepCsv">⬇ CSV</button></div>
+  <div class="kpis"><div class="kpi"><div class="l">Closed chits</div><div class="v">${closed.length}</div><div class="mut sm">${rs.length - closed.length} draft</div></div>
+    <div class="kpi"><div class="l">Cash counted</div><div class="v" style="font-size:22px">${inr(sum(closed, 'gt'))}</div><div class="mut sm">ACME ${inr(sum(closed, 'acme'))}</div></div>
+    <div class="kpi"><div class="l">Net variance</div><div class="v" style="font-size:22px;color:${sum(closed, 'variance') ? 'var(--bad)' : 'var(--ok)'}">${sum(closed, 'variance') > 0 ? '+' : ''}${inr(sum(closed, 'variance'))}</div><div class="mut sm">counted − ACME</div></div>
+    <div class="kpi"><div class="l">With variance</div><div class="v">${vs.length}</div><div class="mut sm">${vs.filter((r) => r.variance > 0).length} excess · ${vs.filter((r) => r.variance < 0).length} short</div></div></div>
+  <h3 style="margin:16px 0 8px">Day-wise</h3><div class="tw"><table><tr><th style="text-align:left">Date</th><th>Chits</th><th>Counted</th><th>ACME</th><th>Variance</th></tr>
+  ${Object.entries(byDay).sort((a, b) => b[0].localeCompare(a[0])).map(([d, x]) => `<tr><td style="text-align:left">${dt(d)}</td><td>${x.n}</td><td>${inr(x.gt)}</td><td>${inr(x.acme)}</td><td class="${x.v > 0 ? 'pos' : x.v < 0 ? 'neg' : ''}">${x.v ? (x.v > 0 ? '+' : '') + inr(x.v) : '—'}</td></tr>`).join('') || '<tr><td colspan="5" class="mut">No closed chits this month</td></tr>'}</table></div>
+  ${vs.length ? `<h3 style="margin:16px 0 8px">Variances</h3><div class="card list" style="padding:0">${vs.map(cashRow).join('')}</div>` : ''}
+  <div class="mut sm" style="margin-top:10px">From the shared cash register. Every save, close and reopen is logged with the user and time.</div>`;
+  $('#cMon').onchange = () => { S.cmon = $('#cMon').value; cashReports(); };
+  $('#cRepCsv').onclick = () => cashCSV(rs);
+  $('#cashBody').querySelectorAll('[data-cid]').forEach((b) => b.onclick = () => { S.cash = JSON.parse(JSON.stringify(S.cashData.records.find((r) => r.id === b.dataset.cid))); S.ctab = 'closing'; drawCash(); });
+}
+function cashCSV(list) {
+  const q = (v) => '"' + String(v ?? '').replace(/"/g, '""') + '"'; const rows = [['Date', 'Counter', 'Session', 'Chit', 'State', ...CASH_DENOMS.flatMap((d) => [`₹${d} bundles`, `₹${d} loose`]), 'Coins', 'Bundles total (A)', 'Loose total (B)', 'Grand total', 'ACME', 'Variance', 'Result', 'Counted by', 'Verified by', 'Remarks']];
+  for (const r of list) { const k = cashCalc(r); rows.push([r.date, r.counter, r.shift, r.chit, r.state === 'closed' ? 'Closed' : 'Draft', ...CASH_DENOMS.flatMap((d) => { const x = (r.denoms || []).find((y) => +y.note === d) || {}; return [+x.bundles || 0, +x.loose || 0]; }), +r.coins || 0, k.a, k.b, k.gt, r.acme, k.variance ?? '', k.result, r.countedByName || (S.cashData.users.find((u) => u.id === r.countedBy)?.name) || '', r.verifiedByName || '', r.remarks]); }
+  saveFile(`YAMIE_CASH_CLOSING_${list.length === 1 ? list[0].date + '_' + (list[0].counter || '').replace(/\W+/g, '-') : S.cmon || S.D.today}.csv`, 'text/csv', '﻿' + rows.map((r) => r.map(q).join(',')).join('\r\n'));
+}
+function printChit(c) {
+  const k = cashCalc(c); const by = c.countedByName || S.cashData.users.find((u) => u.id === c.countedBy)?.name || '';
+  let pa = $('#printArea'); if (!pa) { pa = document.createElement('div'); pa.id = 'printArea'; document.body.appendChild(pa); }
+  pa.innerHTML = `<div class="pchit"><div class="ph"><div><div class="pl">YAMIE</div><div class="ps">FINE JEWELLERY · CASH CLOSING CHIT</div></div><div style="text-align:right"><b>${esc(c.chit || '—')}</b><div>${dt(c.date)}</div></div></div>
+  <table><tr><td>Counter</td><td>${esc(c.counter)}</td><td>Session</td><td>${esc(c.shift)}</td></tr></table>
+  <table class="pd"><tr><th>Note</th><th>Bundles ×100</th><th>Amount</th><th>Loose</th><th>Amount</th></tr>${CASH_DENOMS.map((d) => { const x = c.denoms.find((y) => +y.note === d) || {}; const b = Math.floor(+x.bundles || 0), l = Math.floor(+x.loose || 0); return `<tr><td>₹${d}</td><td>${b || ''}</td><td>${b ? inr(b * 100 * d) : ''}</td><td>${l || ''}</td><td>${l ? inr(l * d) : ''}</td></tr>`; }).join('')}
+  <tr><td>Coins</td><td></td><td></td><td></td><td>${+c.coins ? inr(c.coins) : ''}</td></tr>
+  <tr class="pt"><td colspan="2">Total A (bundles)</td><td>${inr(k.a)}</td><td>Total B</td><td>${inr(k.b)}</td></tr></table>
+  <table><tr class="pt"><td>Grand total counted</td><td>${inr(k.gt)}</td></tr><tr><td>ACME closing balance</td><td>${c.acme === '' ? '—' : inr(c.acme)}</td></tr><tr class="pt"><td>Variance (${CASH_RES[k.result][0]})</td><td>${k.variance == null ? '—' : (k.variance > 0 ? '+' : '') + inr(k.variance)}</td></tr></table>
+  ${c.remarks ? `<p><b>Remarks:</b> ${esc(c.remarks)}</p>` : ''}
+  <div class="psig"><div>Counted by<br><b>${esc(by)}</b></div><div>Verified by<br><b>${esc(c.verifiedByName || '')}</b></div></div>
+  <div class="pf">${c.state === 'closed' ? `Closed ${new Date(c.closedAt).toLocaleString('en-IN')}` : 'DRAFT — not closed'} · Yamie Core v${VERSION}</div></div>`;
+  document.body.classList.add('printing'); setTimeout(() => { print(); setTimeout(() => document.body.classList.remove('printing'), 500); }, 50);
+}
 function vMore() {
   const items = [['eod', 'End-of-day entries', 'Sales, returns, smith, samples… then evening count', can('move')], ['log', 'Day log', 'Movements and checks today', true], ['alerts', 'Alerts', 'Variances and reports', can('alerts')], ['history', 'History', 'Past days and closing stock', can('reports')], ['admin', 'Admin', 'Users, locations, settings', can('users') || can('setup')], ['backup', 'Backup database', 'Download all data as a backup file', S.me.role === 'admin']].filter((x) => x[3]);
   $('#main').innerHTML = `<h1 style="margin-bottom:12px">More</h1><div class="list card" style="padding:0">${items.map(([k, t, d]) => `<button class="li" style="width:100%;text-align:left" data-go="${k}"><div class="grow"><div class="b">${t}</div><div class="mut sm">${d}</div></div><span class="mut">›</span></button>`).join('')}
@@ -1522,7 +1729,7 @@ async function admBackup() {
   $('#bkData').onclick = () => runBackup(j, false);
   $('#bkAll').onclick = () => runBackup(j, true);
 }
-const RESTORABLE = /^(cfg\/(locs|users|settings)|day\/\d{4}-\d{2}-\d{2}|(mv|ct|ss|al)\/\d{4}-\d{2}-\d{2}\/[\w@#.\/-]+|erp\/\d{4}-\d{2}-\d{2}|seen\/[\w-]+)$/;
+const RESTORABLE = /^(cfg\/(locs|users|settings)|day\/\d{4}-\d{2}-\d{2}|(mv|ct|ss|al)\/\d{4}-\d{2}-\d{2}\/[\w@#.\/-]+|erp\/\d{4}-\d{2}-\d{2}|seen\/[\w-]+|cash\/\d{4}-\d{2}-\d{2}\/[\w-]+)$/;
 async function buildBackup(j, photos, P) {
   const data = {}; const keys = j.data;
   for (let i = 0; i < keys.length; i += 300) { P.textContent = `Reading records ${Math.min(i + 300, keys.length)} / ${keys.length}…`; Object.assign(data, (await api('backup/get', { keys: keys.slice(i, i + 300) })).items); }
@@ -1673,7 +1880,13 @@ function admSettings() {
 
 // ---------------- boot ----------------
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
-if (S.token) load().then(() => { if (!S.D) showLogin(); }); else showLogin();
+// v1.17 splash: shown on every app start while data loads (at least ~1.2 s)
+(function boot() {
+  const sp = document.createElement('div'); sp.className = 'splash'; sp.innerHTML = '<div class="in"><div class="w">YAMIE</div><div class="c">CORE</div><div class="ln"></div></div><div class="m">STOCK · CASH</div>';
+  document.body.appendChild(sp); const t0 = Date.now();
+  const done = () => setTimeout(() => { sp.classList.add('out'); setTimeout(() => sp.remove(), 600); }, Math.max(0, 1200 - (Date.now() - t0)));
+  (S.token ? load().then(() => { if (!S.D) showLogin(); }) : Promise.resolve(showLogin())).catch(() => showLogin()).finally(done);
+})();
 </script>
 </body>
 </html>

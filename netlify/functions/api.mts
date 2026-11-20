@@ -3,7 +3,7 @@ import crypto from 'node:crypto';
 import { buildSeed } from '../lib/seed.mjs';
 import {
   DEFAULT_SETTINGS, ROLE_PERMS, PERMS, SECTIONS, TXN_TYPES, deriveLocMeta, JTYPES, normJts, keyText, lineKey, itemOf, jtOfLine, purOfLine, summarize, closingVerified, computeExpected, erpCompare,
-  latestCounts, locStatus, sumLines, istDate, r3,
+  latestCounts, locStatus, sumLines, istDate, r3, CASH_DENOMS, cashCalc,
 } from '../../web/core.mjs';
 
 export const config = { path: '/api/*' };
@@ -46,6 +46,10 @@ async function getUsers(s: any) {
     u = { users: [{ id: 'admin', name: 'Admin', role: 'admin', perms: ROLE_PERMS.admin, salt, pinHash: hashPin(process.env.ADMIN_PIN || '1986', salt), active: true }] };
     await s.setJSON('cfg/users', u, { onlyIfNew: true });
     u = await s.get('cfg/users', { type: 'json' });
+  }
+  if (!u.cash17) {   // v1.17: cash closing permissions for existing users
+    for (const x of u.users) { const add = x.role === 'manager' ? ['cash', 'cashVerify'] : x.role === 'staff' ? ['cash'] : x.role === 'admin' ? ['cash', 'cashVerify'] : []; x.perms = [...new Set([...(x.perms || []), ...add])]; }
+    u.cash17 = true; await s.setJSON('cfg/users', u);
   }
   return u.users as any[];
 }
@@ -587,7 +591,7 @@ export default async (req: Request) => {
     }
     // ----- restore from backup (admin only) -----
     // Only these record types can be written by a restore; meta/secret and meta/* are never touched.
-    const RESTORABLE = /^(cfg\/(locs|users|settings)|day\/\d{4}-\d{2}-\d{2}|(mv|ct|ss|al)\/\d{4}-\d{2}-\d{2}\/[\w@#.\/-]+|erp\/\d{4}-\d{2}-\d{2}|seen\/[\w-]+)$/;
+    const RESTORABLE = /^(cfg\/(locs|users|settings)|day\/\d{4}-\d{2}-\d{2}|(mv|ct|ss|al)\/\d{4}-\d{2}-\d{2}\/[\w@#.\/-]+|erp\/\d{4}-\d{2}-\d{2}|seen\/[\w-]+|cash\/\d{4}-\d{2}-\d{2}\/[\w-]+)$/;
     if (path.startsWith('restore/') && me.role !== 'admin') return err('Only admin can restore the database', 403);
     if (path === 'restore/put' && method === 'POST') {
       const items = body.items || {}; let n = 0; const skipped: string[] = [];
@@ -617,6 +621,55 @@ export default async (req: Request) => {
       await s.setJSON('meta/lastRestore', rec);
       await addAlert(s, { type: 'restore', title: `Database restored from backup (${rec.mode})`, body: `${me.name} restored ${rec.written} records${rec.deleted ? `, removed ${rec.deleted}` : ''}${rec.photos ? `, ${rec.photos} photos` : ''} from ${rec.file || 'a backup file'}${rec.exportedAt ? ` taken ${rec.exportedAt.slice(0, 16).replace('T', ' ')}` : ''}.`, by: me.id });
       return J({ ok: true, last: rec });
+    }
+    // ----- v1.17 cash closing (shared register) -----
+    if (path === 'cash' && method === 'GET') {
+      if (!can('cash') && !can('cashVerify') && !can('reports')) need('cash');
+      const to = url.searchParams.get('to') || today; const from = url.searchParams.get('from') || istDate(new Date(Date.now() - 62 * 864e5));
+      const { blobs } = await s.list({ prefix: 'cash/' });
+      const keys = blobs.map((b: any) => b.key).filter((k: string) => { const d = k.split('/')[1]; return d >= from && d <= to; });
+      const recs = (await Promise.all(keys.map((k: string) => s.get(k, { type: 'json' })))).filter(Boolean).sort((a: any, b: any) => (b.date + b.updatedAt).localeCompare(a.date + a.updatedAt));
+      return J({ records: recs, from, to, today, users: users.filter((u) => u.active !== false).map((u) => ({ id: u.id, name: u.name, role: u.role, verify: u.role === 'admin' || (u.perms || []).includes('cashVerify') })) });
+    }
+    if (path === 'cash/save' && method === 'POST') {
+      if (!can('cash') && !can('cashVerify')) need('cash');
+      const R = body.rec || {}; const final = !!body.final;
+      const date = String(R.date || today).slice(0, 10);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date > today) return err('Choose a valid date (not in the future)');
+      const counter = String(R.counter || '').trim().slice(0, 40), shift = String(R.shift || 'End of day').trim().slice(0, 30);
+      if (!counter) return err('Select the counter');
+      const slug = (x: string) => x.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      const id = `${date}_${slug(counter)}_${slug(shift)}`; const key = `cash/${date}/${slug(counter)}_${slug(shift)}`;
+      const old = await s.get(key, { type: 'json' });
+      if (old?.state === 'closed') return err(`This chit was already closed by ${old.verifiedByName}. Ask admin to reopen it.`, 409);
+      const denoms = CASH_DENOMS.map((d) => { const x = (R.denoms || []).find((y: any) => +y.note === d) || {}; return { note: d, bundles: Math.max(0, Math.floor(+x.bundles || 0)), loose: Math.max(0, Math.floor(+x.loose || 0)) }; });
+      const rec: any = { id, date, counter, shift, chit: String(R.chit || '').trim().slice(0, 30), denoms, coins: Math.max(0, +R.coins || 0), acme: R.acme === '' || R.acme == null ? '' : +R.acme, remarks: String(R.remarks || '').trim().slice(0, 600),
+        countedBy: old?.countedBy || me.id, countedByName: old?.countedByName || me.name, createdAt: old?.createdAt || now(), updatedAt: now(), updatedBy: me.id, state: 'draft', log: [...(old?.log || []), { at: now(), by: me.id, name: me.name, act: final ? 'close' : 'save' }].slice(-30) };
+      // the counter is whoever entered it first; a different staff member can be named as counter
+      if (R.countedBy && users.find((u) => u.id === R.countedBy)) { rec.countedBy = R.countedBy; rec.countedByName = users.find((u) => u.id === R.countedBy).name; }
+      Object.assign(rec, cashCalc(rec));
+      if (final) {
+        if (!can('cashVerify')) return err('Only a manager or admin can verify and close cash', 403);
+        if (rec.acme === '') return err('Enter the ACME closing balance');
+        if (rec.countedBy === me.id) return err('The verifier must be a different person from the one who counted the cash', 409);
+        if (rec.variance !== 0 && !rec.remarks) return err('Explain the cash variance in remarks');
+        Object.assign(rec, { state: 'closed', verifiedBy: me.id, verifiedByName: me.name, closedAt: now() });
+        if (rec.variance !== 0) await addAlert(s, { type: 'variance', title: `Cash ${rec.result} · ${counter}`, body: `${date} ${shift}: counted ₹${rec.gt.toLocaleString('en-IN')} vs ACME ₹${(+rec.acme).toLocaleString('en-IN')} → ${rec.variance > 0 ? '+' : ''}₹${rec.variance.toLocaleString('en-IN')}. ${rec.remarks}`, by: me.id });
+        else await addAlert(s, { type: 'report', ok: true, title: `Cash tallied · ${counter}`, body: `${date} ${shift}: ₹${rec.gt.toLocaleString('en-IN')} counted by ${rec.countedByName}, verified by ${me.name}.`, by: me.id });
+      }
+      await s.setJSON(key, rec);
+      return J({ ok: true, rec });
+    }
+    if (path === 'cash/reopen' && method === 'POST') {
+      if (me.role !== 'admin') return err('Only admin can reopen a closed cash chit', 403);
+      const date = String(body.date || ''); const id = String(body.id || '');
+      const key = `cash/${date}/${id.split('_').slice(1).join('_')}`; const rec = await s.get(key, { type: 'json' });
+      if (!rec) return err('Not found', 404);
+      if (!String(body.reason || '').trim()) return err('Give a reason to reopen');
+      rec.state = 'draft'; rec.log = [...(rec.log || []), { at: now(), by: me.id, name: me.name, act: 'reopen', reason: String(body.reason).slice(0, 200) }]; delete rec.verifiedBy; delete rec.verifiedByName; delete rec.closedAt;
+      await s.setJSON(key, rec);
+      await addAlert(s, { type: 'info', title: `Cash chit reopened · ${rec.counter}`, body: `${me.name} reopened ${rec.date} ${rec.shift}. Reason: ${body.reason}`, by: me.id });
+      return J({ ok: true, rec });
     }
     if (path === 'users') { need('users'); return J({ users: users.map(pubUser), perms: PERMS, roles: ROLE_PERMS }); }
     if (path === 'users/save' && method === 'POST') {

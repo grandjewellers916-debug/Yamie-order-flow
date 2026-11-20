@@ -23,7 +23,7 @@ import android.widget.FrameLayout
 import java.io.File
 
 /**
- * Yamie Stock Check — Android shell around the live web app (BuildConfig.APP_URL).
+ * Yamie Core (stock + cash) — Android shell around the live web app (BuildConfig.APP_URL).
  * Adds: camera + gallery for photo inputs, file picker for the ERP PDF,
  * external links (WhatsApp) in their own apps, and saving/sharing CSV exports.
  */
@@ -53,6 +53,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         web = WebView(this)
+        web.setBackgroundColor(0xFF8F171B.toInt())   // no white flash before the Yamie Core splash
         // Keep the app inside the screen: never under the status bar, the phone's navigation bar or the keyboard,
         // so the app's bottom bar (Home · Counter · Trays · Boxes · Total · More) is always visible.
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -167,7 +168,7 @@ class MainActivity : ComponentActivity() {
     companion object {
         private const val OFFLINE = """<!doctype html><meta name=viewport content="width=device-width,initial-scale=1">
 <body style="font-family:sans-serif;background:#FBF9F6;color:#1D1714;display:grid;place-items:center;min-height:90vh;text-align:center">
-<div><div style="font-size:48px">📶</div><h2 style="color:#8F171B">No internet</h2><p>Stock Check needs a connection to the shop database.</p>
+<div><div style="font-size:48px">📶</div><h2 style="color:#8F171B">No internet</h2><p>Yamie Core needs a connection to the shop database.</p>
 <button onclick="YamieStock.reload()" style="background:#8F171B;color:#fff;border:0;border-radius:10px;padding:12px 24px;font-size:16px">Try again</button></div></body>"""
     }
 }

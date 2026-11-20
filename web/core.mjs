@@ -34,11 +34,27 @@ export const PERMS = {
   erp: 'Enter ERP closing (Pc / Lbl)',
   verifyAll: 'Use “Verify all” (mark every item Yes)',
   users: 'Manage users',
+  cash: 'Cash closing — count & save draft',
+  cashVerify: 'Cash closing — verify & close',
 };
+// v1.17 Cash closing
+export const CASH_DENOMS = [500, 200, 100, 50, 20, 10];
+export const CASH_COUNTERS = ['Cash / Billing', 'Counter 1', 'Counter 2', 'Counter 3', 'Other'];
+export const CASH_SHIFTS = ['End of day', 'Shift 1', 'Shift 2'];
+/** Totals of a cash closing: A = bundles of 100 notes, B = loose notes + coins, variance = counted − ACME (null without ACME). */
+export function cashCalc(r) {
+  let a = 0, b = 0;
+  for (const d of CASH_DENOMS) { const x = (r.denoms || []).find((y) => +y.note === d) || {}; a += Math.max(0, Math.floor(+x.bundles || 0)) * 100 * d; b += Math.max(0, Math.floor(+x.loose || 0)) * d; }
+  b += Math.max(0, Math.round((+r.coins || 0) * 100) / 100);
+  const gt = Math.round((a + b) * 100) / 100;
+  const hasAcme = r.acme !== '' && r.acme != null && !isNaN(+r.acme);
+  const variance = hasAcme ? Math.round((gt - +r.acme) * 100) / 100 : null;
+  return { a, b, gt, variance, result: variance == null ? 'pending' : variance === 0 ? 'tallied' : variance > 0 ? 'excess' : 'short' };
+}
 export const ROLE_PERMS = {
   admin: Object.keys(PERMS),
-  manager: ['count', 'move', 'setup', 'accept', 'close', 'reports', 'alerts', 'erp', 'verifyAll'],
-  staff: ['count'],
+  manager: ['count', 'move', 'setup', 'accept', 'close', 'reports', 'alerts', 'erp', 'verifyAll', 'cash', 'cashVerify'],
+  staff: ['count', 'cash'],
 };
 // End-of-day transaction types. dir +1 = stock in, −1 = stock out. admin: only admin may enter.
 export const TXN_TYPES = [

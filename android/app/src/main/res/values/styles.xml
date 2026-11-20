@@ -6,6 +6,7 @@
         <item name="android:colorAccent">#B08A4E</item>
         <item name="android:statusBarColor">#8F171B</item>
         <item name="android:navigationBarColor">#FBF9F6</item>
-        <item name="android:windowBackground">@android:color/white</item>
+        <item name="android:windowBackground">@color/core_maroon</item>
     </style>
+    <color name="core_maroon">#8F171B</color>
 </resources>
