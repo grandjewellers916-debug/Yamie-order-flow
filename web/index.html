@@ -49,6 +49,7 @@ label.f{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
 .dvn{position:absolute;top:50%;transform:translateY(-50%);z-index:2;width:44px;height:64px;border:0;border-radius:12px;background:rgba(255,255,255,.14);color:#fff;font-size:30px}.dvn.l{left:8px}.dvn.r{right:8px}.dvn:disabled{opacity:.2}
 .dvfoot{display:flex;align-items:center;justify-content:center;gap:10px;padding:8px 8px calc(10px + env(safe-area-inset-bottom));background:rgba(0,0,0,.6);z-index:2}#dvZ{min-width:48px;text-align:center;font-size:13px;opacity:.8}
 .dvdots{display:flex;gap:5px;margin-left:10px}.dvdots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.35)}.dvdots i.on{background:#fff}
+.wtp{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid var(--ln);border-radius:12px;padding:10px 12px;background:#fff}
 .addbar{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}.addbar .btn{padding-left:6px;padding-right:6px}
 .afbar{margin-bottom:12px}.afbar .selbar{display:flex;flex-wrap:wrap;gap:8px}.afbar .selbar .grow{min-width:150px;flex:1}@media(max-width:699px){.afbar .selbar{display:grid;grid-template-columns:1fr 1fr}.afbar .selbar .grow{min-width:0}.afbar .selbar .grow:last-child{grid-column:1/-1}}
 .hrem{margin-top:12px;border-color:#F1D9A8;background:#FFFBF2}.hrow{display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:8px 0;border-top:1px solid var(--ln);background:none}.hrow:first-of-type{border-top:0}
@@ -350,7 +351,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.23';
+const VERSION = '1.24';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -1071,6 +1072,7 @@ function resultView(id, ctx) {
   ${editable() && (can('move') || can('setup')) && !ctx.sess ? `<h3 style="margin:16px 0 6px">Manager tools</h3><div class="row wrap">
     ${can('move') ? `<button class="btn sm ghost" data-mv="in">＋ In</button><button class="btn sm ghost" data-mv="out">− Out / Sale</button><button class="btn sm ghost" data-mv="move">⇄ Move</button>` : ''}
     ${can('setup') ? `<button class="btn sm ghost" id="setBtn">Items & stock</button><button class="btn sm ghost" id="editBtn">Edit location</button>` : ''}</div>` : ''}
+  ${(+expOf(id).wt || 0) || (editable() && can('setup') && !ctx.sess) ? `<h3 style="margin:16px 0 6px">Weight</h3>${wtPanel(l)}` : ''}
   ${myMvs.length ? `<h3 style="margin:18px 0 6px">Today's movements</h3><div class="list card" style="padding:0">${myMvs.map((m) => mvLine(m, id)).join('')}</div>` : ''}
   ${myCounts.length > 1 ? `<h3 style="margin:18px 0 6px">Earlier checks today</h3><div class="sm card list" style="padding:0">${myCounts.slice(1).map((x) => `<div class="li">${esc(uname(x.by))} · ${tm(x.at)} · ${x.mode !== 'weight' ? `${fmt(sumLines(x.lines))} pcs` : ''} ${x.wt != null ? g3(x.wt) + ' g' : ''} <span class="st ${x.result}">${STLBL[x.result]}</span></div>`).join('')}</div>` : ''}`;
   modal(head(l), '', html, (ov) => {
@@ -1085,6 +1087,7 @@ function resultView(id, ctx) {
     $('#lBack') && ($('#lBack').onclick = () => closeModal());
     ov.querySelectorAll('[data-mv]').forEach((b) => b.onclick = () => moveForm(b.dataset.mv, id));
     $('#setBtn') && ($('#setBtn').onclick = () => setCountForm(id));
+    ov.querySelectorAll('[data-wt]').forEach((b) => b.onclick = () => weightAction(l, b.dataset.wt, (x) => locSheet(x.id)));
     $('#editBtn') && ($('#editBtn').onclick = () => locEdit(l));
     bindVoid(ov, () => resultView(id, ctx));
   });
@@ -1246,7 +1249,8 @@ function locEdit(l) {
     <div class="row" id="trayF"><div class="grow"><label class="f">Pcs per tray (insert)</label><input type="number" id="eIns" value="${esc(l.insert || '')}"></div><div class="grow"><label class="f">No. of trays</label><input type="number" id="eQty" value="${esc(l.qty || '')}"></div></div>
     <div id="modeF"><label class="f">Default box check</label><select id="eMode">${[['both', 'Weight + count'], ['weight', 'Weight only'], ['count', 'Count only']].map(([k, t]) => `<option value="${k}" ${l.mode === k ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
     <label class="f">Note</label><input type="text" id="eNote" value="${esc(l.note || '')}">
-    ${canItems ? `<h3 style="margin:16px 0 6px">Items in this ${l.sec === 'box' ? 'box' : 'location'}</h3><div class="mut sm">${isNew ? 'Pieces placed here now (you can also add later).' : 'Add, change or delete items. Saving updates book stock (logged).'}</div><div id="iedBox" style="margin-top:8px"></div>${isNew ? '<div id="iniWt"><label class="f">Box weight (g)</label><input type="number" step="0.001" id="eWt"></div>' : ''}` : ''}
+    ${canItems ? `<h3 style="margin:16px 0 6px">Items in this ${l.sec === 'box' ? 'box' : 'location'}</h3><div class="mut sm">${isNew ? 'Pieces placed here now (you can also add later).' : 'Add, change or delete items. Saving updates book stock (logged).'}</div><div id="iedBox" style="margin-top:8px"></div>${isNew ? `<div id="iniWt"><label class="f">${l.sec === 'box' ? 'Box weight (g)' : 'Weight (g, optional)'}</label><input type="number" step="0.001" inputmode="decimal" id="eWt"></div>` : ''}` : ''}
+    ${!isNew ? `<h3 style="margin:16px 0 6px">Weight</h3><div id="eWtP">${wtPanel(l)}</div>` : ''}
     <div class="row" style="margin-top:16px">${!isNew ? `<button class="btn bad sm" id="eDel">🗑 Delete</button>` : ''}<button class="btn grow" id="eSave">${isNew ? `＋ Add ${K.what || 'location'}` : 'Save'}</button></div>`;
   modal(isNew ? `Add ${K.what || 'location'}` : 'Edit · ' + esc(l.name), isNew ? ({ counter: 'Counter display', tray: 'Buffer trays (locker)', box: 'Buffer stock in boxes' })[l.sec] : 'Manager / admin', html, (ov) => {
     ov.querySelectorAll('[data-grp]').forEach((b) => b.onclick = () => { $('#eGrp').value = b.dataset.grp; });
@@ -1264,7 +1268,7 @@ function locEdit(l) {
       if (prev.length === 1 && jsel.length === 1) iRows.forEach((r) => { if (r.jt === prev[0]) r.jt = jsel[0]; });
       else iRows.forEach((r) => { if (!jsel.includes(r.jt) && prev.includes(r.jt) && !(+r.n > 0)) r.jt = jsel[0]; });
       jtHint(); drawItems(); });
-    const vis = () => { const s = $('#eSec').value; $('#subF').classList.toggle('hidden', s !== 'counter'); $('#boxF') && $('#boxF').classList.toggle('hidden', true); $('#modeF').classList.toggle('hidden', s !== 'box'); $('#trayF').classList.toggle('hidden', s !== 'tray'); $('#iniWt') && $('#iniWt').classList.toggle('hidden', s !== 'box'); };
+    const vis = () => { const s = $('#eSec').value; $('#subF').classList.toggle('hidden', s !== 'counter'); $('#boxF') && $('#boxF').classList.toggle('hidden', true); $('#modeF').classList.toggle('hidden', s !== 'box'); $('#trayF').classList.toggle('hidden', s !== 'tray'); };
     $('#eSec').onchange = vis; vis();
     $('#eSave').onclick = async () => {
       const loc = { ...l, area: $('#eArea').value, sub: $('#eSec').value === 'counter' ? $('#eSub').value : '', jtype: jsel.length > 1 ? 'Mixed' : jsel[0], jtypes: jsel, sec: $('#eSec').value, group: $('#eGrp').value.trim(), name: $('#eName').value.trim(), purity: $('#ePur').value, cat: $('#eCat').value, itemType: $('#eType').value, boxNo: (($('#eBox') || $('#eBoxX'))?.value || '').trim(), insert: +$('#eIns').value || 0, qty: +$('#eQty').value || 0, mode: $('#eMode').value, note: $('#eNote').value };
@@ -1292,6 +1296,7 @@ function locEdit(l) {
       } catch (e) { fail(e); }
     };
     $('#eDel') && ($('#eDel').onclick = () => delLoc(l));
+    ov.querySelectorAll('#eWtP [data-wt]').forEach((b) => b.onclick = () => weightAction(l, b.dataset.wt, (x) => locEdit(x)));
   });
 }
 
@@ -2188,6 +2193,19 @@ const locItems = (l) => [...new Set([...heldOf(l).map(([k]) => itemOf(k)), ...(l
 const locPurs = (l) => { const h = heldOf(l); return [...new Set(h.length ? h.map(([k]) => purOfLine(l, k) || 'Not set') : [l.purity || 'Not set'])]; };
 const locJtAll = (l) => [...new Set([...locJts(l), ...heldOf(l).map(([k]) => jtOfLine(l, k))])];
 // v1.23 one place to start each add form (Admin → Locations buttons, section pages)
+// v1.24 book weight of a location: add / edit (set total) / delete — logged as a 'set' movement (items unchanged)
+async function weightAction(l, act, after) {
+  const cur = +expOf(l.id).wt || 0; const lines = { ...expOf(l.id).lines };
+  let nw, reason, note = '';
+  if (act === 'add') { const v = prompt(`Add weight to ${l.name} (grams)${cur ? `\nNow ${g3(cur)} g` : ''}`); if (v == null) return; const x = +String(v).replace(',', '.'); if (!(x > 0)) return toast('Enter grams more than 0'); nw = cur + x; reason = 'Weight added'; note = `+${g3(x)} g`; }
+  else if (act === 'edit') { const v = prompt(`New total weight of ${l.name} (grams)`, cur ? String(cur) : ''); if (v == null) return; const x = +String(v).replace(',', '.'); if (!(x >= 0) || v === '') return toast('Enter the weight in grams'); nw = x; reason = 'Weight edited'; note = `${g3(cur)} → ${g3(x)} g`; }
+  else { if (!cur) return toast('No weight recorded'); if (!confirm(`Delete the weight of ${l.name} (${g3(cur)} g)? Weight will no longer be checked here until set again.`)) return; nw = 0; reason = 'Weight removed'; note = `${g3(cur)} g removed`; }
+  const why = act === 'add' ? '' : prompt('Reason (optional)', '') || ''; if (why) note += ' · ' + why;
+  try { await api('move', { kind: 'set', date: S.D.date, locId: l.id, lines, wt: Math.round(nw * 1000) / 1000, note, reason }); toast(`✓ ${reason}: ${g3(nw)} g`); await load(); after && after(S.locById[l.id]); } catch (e) { fail(e); }
+}
+const wtPanel = (l) => { const w = +expOf(l.id).wt || 0; const ok = can('setup') && editable();
+  return `<div class="wtp"><div><div class="mut sm">Book weight</div><div class="b" style="font-size:18px">${w ? g3(w) + ' g' : '<span class="mut">not set</span>'}</div>${l.sec !== 'box' && w ? '<div class="mut sm">Reference only — weight is checked at counts for boxes.</div>' : ''}</div>
+    ${ok ? `<div class="row" style="gap:6px"><button class="btn sm ghost" data-wt="add">＋ Add</button><button class="btn sm ghost" data-wt="edit">✎ Edit</button>${w ? '<button class="btn sm ghost" data-wt="del" style="color:var(--bad)">🗑</button>' : ''}</div>` : ''}</div>`; };
 function addLoc(sec) { const st = S.D.settings; locEdit({ sec, group: sec === 'counter' && SEL_LAST.counter ? SEL_LAST.counter : '', name: '', cat: '', area: sec === 'counter' ? st.areas[0] : st.areas.includes('Locker Area') ? 'Locker Area' : st.areas[0], sub: sec === 'counter' ? st.subDisplays[0] : '', jtype: JTYPES[0], images: [], mode: 'both' }); }
 const SEL_LAST = {};
 function admLocs() {
@@ -2225,13 +2243,14 @@ function admLocs() {
   const filtered = active > 0;
   const addBar = can('setup') && editable() ? `<div class="addbar"><button class="btn" data-addn="counter">＋ Counter tray</button><button class="btn" data-addn="tray">＋ Buffer tray</button><button class="btn" data-addn="box">＋ Box</button></div>` : '';
   $('#adm').innerHTML = `<div class="mut sm" style="margin-bottom:10px">Add, edit or delete counters, trays and boxes. Tap a name to open it (photos, stock). ${editable() ? '' : '<b>Day is closed — reopen today’s day to add or change locations.</b>'}</div>` + addBar + bar + SECTIONS.filter((s) => F.sec === 'all' || F.sec === s.key).filter((s) => !filtered || shown.some((l) => l.sec === s.key) || F.sec === s.key).map((s) => `<div class="grp"><span>${s.label} (${filtered ? `${shown.filter((l) => l.sec === s.key).length} of ` : ''}${activeLocs(s.key).length})</span>${editable() ? `<button class="btn sm sec" data-add="${s.key}">＋ Add ${s.key === 'counter' ? 'counter tray' : s.key === 'tray' ? 'tray' : 'box'}</button>` : ''}</div>
-    <div class="tw"><table><tr><th>Name</th>${s.key === 'counter' ? '<th>Main location</th><th>Sub display</th>' : '<th>Main location</th>'}<th>Group</th><th>Jewellery type</th><th>Purity</th><th>Item</th><th>Pcs</th>${s.key === 'box' ? '<th>Weight g</th>' : ''}<th></th></tr>${shown.filter((l) => l.sec === s.key).map((l) => `<tr><td class="b" data-loc="${l.id}" style="cursor:pointer;text-decoration:underline dotted">${esc(l.name)}${l.boxNo ? ` <span class="chip m">${esc(l.boxNo)}</span>` : ''}</td><td style="text-align:left">${esc(l.area || '—')}</td>${s.key === 'counter' ? `<td style="text-align:left">${esc(l.sub || '—')}</td>` : ''}<td style="text-align:left">${esc(l.group)}</td><td style="text-align:left">${jtChips(l) || '—'}</td><td style="text-align:left">${esc(locPurs(l).join(', '))}</td><td style="text-align:left" class="sm">${esc(locItems(l).join(', ') || l.itemType || '—')}</td><td>${lineF ? `<b>${fmt(matchPcs(l))}</b> <span class="mut sm">/ ${fmt(sumLines(expOf(l.id).lines))}</span>` : fmt(sumLines(expOf(l.id).lines))}</td>${s.key === 'box' ? `<td class="${expOf(l.id).wt ? '' : 'neg'}">${expOf(l.id).wt ? g3(expOf(l.id).wt) : 'not set'}</td>` : ''}
+    <div class="tw"><table><tr><th>Name</th>${s.key === 'counter' ? '<th>Main location</th><th>Sub display</th>' : '<th>Main location</th>'}<th>Group</th><th>Jewellery type</th><th>Purity</th><th>Item</th><th>Pcs</th><th>Weight g</th><th></th></tr>${shown.filter((l) => l.sec === s.key).map((l) => `<tr><td class="b" data-loc="${l.id}" style="cursor:pointer;text-decoration:underline dotted">${esc(l.name)}${l.boxNo ? ` <span class="chip m">${esc(l.boxNo)}</span>` : ''}</td><td style="text-align:left">${esc(l.area || '—')}</td>${s.key === 'counter' ? `<td style="text-align:left">${esc(l.sub || '—')}</td>` : ''}<td style="text-align:left">${esc(l.group)}</td><td style="text-align:left">${jtChips(l) || '—'}</td><td style="text-align:left">${esc(locPurs(l).join(', '))}</td><td style="text-align:left" class="sm">${esc(locItems(l).join(', ') || l.itemType || '—')}</td><td>${lineF ? `<b>${fmt(matchPcs(l))}</b> <span class="mut sm">/ ${fmt(sumLines(expOf(l.id).lines))}</span>` : fmt(sumLines(expOf(l.id).lines))}</td><td class="${expOf(l.id).wt || s.key !== 'box' ? '' : 'neg'}">${expOf(l.id).wt ? g3(expOf(l.id).wt) : s.key === 'box' ? 'not set' : '—'}${can('setup') && editable() ? ` <button class="lnk" data-wtl="${l.id}">${expOf(l.id).wt ? 'edit' : 'add'}</button>` : ''}</td>
       <td style="white-space:nowrap">${can('setup') && editable() ? `<button class="btn sm ghost" data-edit="${l.id}">✎ Edit</button> <button class="btn sm ghost" data-delloc="${l.id}" style="color:var(--bad)">🗑</button>` : ''}</td></tr>`).join('')}</table></div>`).join('');
   $('#adm').querySelectorAll('[data-afs]').forEach((b) => b.onclick = () => { F.sec = b.dataset.afs; if (F.sec !== 'all' && F.sec !== 'counter') F.sub = ''; admLocs(); });
   $('#adm').querySelectorAll('[data-af]').forEach((el) => el.onchange = () => { F[el.dataset.af] = el.value; admLocs(); });
   $('#afQ').oninput = () => { F.q = $('#afQ').value; const pos = $('#afQ').selectionStart; admLocs(); const q = $('#afQ'); q.focus(); q.setSelectionRange(pos, pos); };
   $('#afClr') && ($('#afClr').onclick = () => { S.af = { sec: F.sec, area: '', sub: '', group: '', jt: '', item: '', pur: '', q: '' }; admLocs(); });
   $('#adm').querySelectorAll('[data-loc]').forEach((r) => r.onclick = () => locSheet(r.dataset.loc));
+  $('#adm').querySelectorAll('[data-wtl]').forEach((b) => b.onclick = () => weightAction(S.locById[b.dataset.wtl], expOf(b.dataset.wtl).wt ? 'edit' : 'add'));
   $('#adm').querySelectorAll('[data-edit]').forEach((b) => b.onclick = () => locEdit(S.locById[b.dataset.edit]));
   $('#adm').querySelectorAll('[data-delloc]').forEach((b) => b.onclick = () => delLoc(S.locById[b.dataset.delloc]));
   $('#adm').querySelectorAll('[data-add],[data-addn]').forEach((b) => b.onclick = () => addLoc(b.dataset.add || b.dataset.addn));

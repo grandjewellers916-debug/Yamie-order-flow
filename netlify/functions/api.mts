@@ -404,7 +404,7 @@ export default async (req: Request) => {
       for (const r of out) {
         const sign = r.T.dir;
         const mv = { id: `${now()}-${rid()}`, date: today, kind: sign > 0 ? 'in' : 'out', txn: r.T.k, reason: r.T.label, ref: r.ref, note: r.note, qty: r.qty, wtTotal: r.wt,
-          legs: [{ locId: r.loc.id, lines: r.qty ? { [r.item]: sign * r.qty } : {}, wt: r.loc.sec === 'box' && ((expAll[r.loc.id]?.wt || 0) > 0 || sign > 0) ? sign * r.wt : 0 }], by: me.id, at: now(), eod: true };
+          legs: [{ locId: r.loc.id, lines: r.qty ? { [r.item]: sign * r.qty } : {}, wt: ((expAll[r.loc.id]?.wt || 0) > 0 || (r.loc.sec === 'box' && sign > 0)) ? sign * r.wt : 0 }]   /* v1.24: any location with a weight keeps it in step */, by: me.id, at: now(), eod: true };
         const L0 = (expAll[r.loc.id] ||= { lines: {}, wt: 0 }); L0.wt = r3(L0.wt + mv.legs[0].wt);
         await s.setJSON(`mv/${today}/${mv.id}`, mv); saved.push(mv);
       }
