@@ -346,7 +346,7 @@ table.rep tr.rgrp td{background:var(--iv);font-weight:600;border-top:1px solid v
 <body>
 <div id="app"></div>
 <script type="module">
-import { DOC_TYPES, VEHICLE_DOC_TYPES, isVehicleDoc, docDaysLeft, docWatch, DOC_REMIND_DEFAULT, CASH_DENOMS, CASH_COUNTERS, CASH_SHIFTS, cashCalc, cashNotes, isMorning, SECTIONS, PERMS, ROLE_PERMS, REASONS, TXN_TYPES, metalOf, erpMetal, JTYPES, LINE_JTYPES, JT_SHORT, JT_CLS, METALS, jtMetal, locJts, normJts, itemOf, jtOfLine, purOfLine, defaultPur, lineKey, keyText, defaultJt, roundOf, roundCounts, summarize, sumLines, r3, locStatus, istDate, erpCompare, erpKey } from './core.mjs';
+import { DOC_TYPES, VEHICLE_DOC_TYPES, isVehicleDoc, docDaysLeft, docWatch, DOC_REMIND_DEFAULT, CASH_DENOMS, CASH_COUNTERS, CASH_SHIFTS, cashCalc, cashNotes, isMorning, SECTIONS, PERMS, ROLE_PERMS, REASONS, TXN_TYPES, metalOf, erpMetal, JTYPES, LINE_JTYPES, JT_SHORT, JT_LABEL, JT_CLS, METALS, jtMetal, locJts, normJts, itemOf, jtOfLine, purOfLine, defaultPur, lineKey, keyText, defaultJt, roundOf, roundCounts, summarize, sumLines, r3, locStatus, istDate, erpCompare, erpKey } from './core.mjs';
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -357,7 +357,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.25';
+const VERSION = '1.26';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -466,8 +466,8 @@ const secLabel = (k) => SECTIONS.find((s) => s.key === k)?.label || k;
 const uname = (id) => (id === 'system' ? 'Yamie Core reminder' : S.D.userNames[id] || id);
 const kT = (k, loc) => (loc || String(k).includes('@') ? keyText(loc, k) : k);
 const JT_CHIP = { 'Platinum': 'pt', 'Diamond Jewellery': 'dia', 'Tanih - CVD Jewellery': 'cvd', Silver: 'ag' };
-const jtNames = (l) => { const a = locJts(l); return a.length ? a.map((j) => JT_SHORT[j]).join(' + ') : (l.jtype === 'Mixed' ? 'Mixed' : ''); };
-const jtChips = (l) => { const a = locJts(l); return a.length ? a.map((j) => `<span class="chip ${JT_CHIP[j] || 'au'}">${esc(JT_SHORT[j])}</span>`).join('') : l.jtype ? `<span class="chip au">${esc(l.jtype)}</span>` : ''; };
+const jtNames = (l) => { const a = locJts(l); return a.length ? a.map((j) => JT_LABEL[j]).join(' + ') : (l.jtype === 'Mixed' ? 'Mixed' : ''); };
+const jtChips = (l) => { const a = locJts(l); return a.length ? a.map((j) => `<span class="chip ${JT_CHIP[j] || 'au'}">${esc(JT_LABEL[j])}</span>`).join('') : l.jtype ? `<span class="chip au">${esc(l.jtype)}</span>` : ''; };
 // types offered for new items at a location: its ticked types first, then the rest
 const jtOrder = (l) => { const a = locJts(l); const first = a.length ? a : [defaultJt(l)]; return [...first, ...LINE_JTYPES.filter((j) => !first.includes(j))]; };
 const jtB = (jt) => `<span class="jtb ${JT_CLS[jt] || 'g'}">${JT_SHORT[jt] || 'Gold'}</span>`;
@@ -728,7 +728,7 @@ function cardPcs(l) { const e = expOf(l.id); const c = S.sum.last[l.id]; const F
   const sumM = (lines) => Object.entries(lines || {}).reduce((a, [k, n]) => a + (!F || F.l(l, k) ? +n || 0 : 0), 0);
   return { exp: sumM(e.lines), all: sumLines(e.lines), cnt: c && c.lines ? sumM(c.lines) : null }; }
 function itemSummary(l) { const e = expOf(l.id).lines; const F = S.cardF; const m = new Map();
-  for (const [k, n] of Object.entries(e)) { if (!n) continue; const nm = keyText(l, k).replace(/^(Gold|Plain Gold) /, ''); const on = !F || F.l(l, k); const x = m.get(nm) || { n: 0, on: false }; x.n += n; x.on ||= on; m.set(nm, x); }
+  for (const [k, n] of Object.entries(e)) { if (!n) continue; const nm = keyText(l, k).replace(/^Gold /, ''); const on = !F || F.l(l, k); const x = m.get(nm) || { n: 0, on: false }; x.n += n; x.on ||= on; m.set(nm, x); }
   const arr = [...m.entries()].sort((a, b) => (b[1].on - a[1].on) || b[1].n - a[1].n);
   return arr.length ? `<div class="isum">${arr.slice(0, 8).map(([nm, x]) => `<span class="${F ? (x.on ? 'on' : 'off') : ''}">${esc(nm)} <b>${fmt(x.n)}</b></span>`).join('')}${arr.length > 8 ? `<span class="off">+${arr.length - 8} more</span>` : ''}</div>` : ''; }
 function locCard(l) {
@@ -980,7 +980,7 @@ function countFlow(id, ctx) {
         ${x.ok === false ? `<div class="vsub"><div><div class="sm b">Actual count</div><div class="step"><button data-st="-1" data-t="${esc(t)}">−</button><input type="number" inputmode="numeric" min="0" data-n="${esc(t)}" value="${esc(x.n ?? '')}"><button data-st="1" data-t="${esc(t)}">+</button></div></div>
           ${blind ? '' : `<div class="grow"><div class="sm b">Reason <span style="color:var(--bad)">*</span></div><select data-r="${esc(t)}" ${d === 0 ? 'disabled' : ''}><option value="">${d === 0 ? 'Matches — no reason needed' : 'Choose reason…'}</option>${S.D.settings.reasons.map((r) => `<option ${x.reason === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select></div>
           <div class="c"><div class="sm b">Difference</div><span class="dbadge ${d < 0 ? 'neg' : d > 0 ? 'pos' : 'zero'}">${d ? sgn(d) : '0'}</span></div>`}</div>` : ''}`; }).join('')}
-      <div class="vr add"><select id="addType"><option value="">＋ Found another item…</option>${jtOrder(l).map((j) => `<optgroup label="${esc(j)}">${types.map((it) => lineKey(l, it, j)).filter((k) => !rows.includes(k)).map((k) => `<option value="${esc(k)}">${esc(keyText(l, k))}</option>`).join('')}</optgroup>`).join('')}</select></div></div>`;
+      <div class="vr add"><select id="addType"><option value="">＋ Found another item…</option>${jtOrder(l).map((j) => `<optgroup label="${esc(JT_LABEL[j])}">${types.map((it) => lineKey(l, it, j)).filter((k) => !rows.includes(k)).map((k) => `<option value="${esc(k)}">${esc(keyText(l, k))}</option>`).join('')}</optgroup>`).join('')}</select></div></div>`;
   } else if (K.step === 'weight') {
     body = `<div class="wbox"><div class="row sp wrap"><h3 style="color:var(--m)">⚖ Box weight verification</h3><span class="chip" style="background:var(--warnb);color:var(--warn)">Opening weight carried from last verified check</span></div>
       <div class="formula">Expected closing weight = Opening + In − Out</div>
@@ -1154,7 +1154,7 @@ function keyOptions(loc, sel) {
   const types = S.D.settings.itemTypes; const have = loc ? Object.keys(expOf(loc.id).lines) : [];
   const opt = (k) => `<option value="${esc(k)}" ${k === sel ? 'selected' : ''}>${esc(keyText(loc, k))}${loc && expOf(loc.id).lines[k] ? ` (${expOf(loc.id).lines[k]})` : ''}</option>`;
   const js = jtOrder(loc);
-  return (have.length ? `<optgroup label="At this location">${have.map(opt).join('')}</optgroup>` : '') + js.map((j) => `<optgroup label="${esc(j)}">${types.map((it) => lineKey(loc, it, j)).filter((k) => !have.includes(k)).map(opt).join('')}</optgroup>`).join('');
+  return (have.length ? `<optgroup label="At this location">${have.map(opt).join('')}</optgroup>` : '') + js.map((j) => `<optgroup label="${esc(JT_LABEL[j])}">${types.map((it) => lineKey(loc, it, j)).filter((k) => !have.includes(k)).map(opt).join('')}</optgroup>`).join('');
 }
 function moveForm(kind, locId, keep) {
   const k = keep || { kind, locId: locId || '', toLocId: '', lines: [{ t: S.locById[locId]?.itemType || '', n: '' }], wt: '', toWt: '', reason: REASONS[kind === 'move' ? 'out' : kind]?.[0] || 'Transfer', ref: '', note: '' };
@@ -1197,7 +1197,7 @@ function moveForm(kind, locId, keep) {
 function itemsEditor(loc, rows, allowed = () => locJts(loc)) {
   const types = S.D.settings.itemTypes;
   const html = () => `<div class="ied">${rows.map((r, i) => `<div class="iedr">
-      <select data-ij="${i}" class="jt-${JT_CLS[r.jt] || 'g'}">${(() => { const a = allowed(); return a.length ? LINE_JTYPES.filter((j) => a.includes(j) || j === r.jt) : LINE_JTYPES; })().map((j) => `<option value="${esc(j)}" ${r.jt === j ? 'selected' : ''}>${esc(JT_SHORT[j])}</option>`).join('')}</select>
+      <select data-ij="${i}" class="jt-${JT_CLS[r.jt] || 'g'}">${(() => { const a = allowed(); return a.length ? LINE_JTYPES.filter((j) => a.includes(j) || j === r.jt) : LINE_JTYPES; })().map((j) => `<option value="${esc(j)}" ${r.jt === j ? 'selected' : ''}>${esc(JT_LABEL[j])}</option>`).join('')}</select>
       <select data-ip="${i}"><option value="">Purity…</option>${[...new Set([...S.D.settings.purities, ...(r.pur ? [r.pur] : [])])].map((p) => `<option ${r.pur === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select>
       <select data-ii="${i}"><option value="">Item…</option>${types.map((t) => `<option ${r.item === t ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select>
       <input type="number" inputmode="numeric" min="0" data-in="${i}" value="${esc(r.n)}" placeholder="Qty">
@@ -1271,7 +1271,7 @@ function locEdit(l) {
   const html = `${isNew ? `<input type="hidden" id="eSec" value="${esc(l.sec)}">` : `<label class="f">Section</label><select id="eSec">${SECTIONS.map((s) => `<option value="${s.key}" ${l.sec === s.key ? 'selected' : ''}>${s.label}</option>`).join('')}</select>`}
     <div id="areaF" class="row"><div class="grow"><label class="f">Main location</label><select id="eArea"><option value="">—</option>${st.areas.map((p) => `<option ${l.area === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div>
       <div class="grow" id="subF"><label class="f">Sub display</label><select id="eSub"><option value="">—</option>${st.subDisplays.map((p) => `<option ${l.sub === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div></div>
-    <label class="f">Jewellery types in this ${l.sec === 'box' ? 'box' : l.sec === 'counter' ? 'counter tray' : 'tray'} <span class="mut" style="text-transform:none;letter-spacing:0">— tick one or more</span></label><div class="jtpick" id="eJt">${LINE_JTYPES.map((p) => `<button type="button" data-jt="${esc(p)}" class="jtp ${JT_CLS[p]} ${jsel.includes(p) ? 'on' : ''}"><span class="tk">✓</span>${esc(p === 'Plain Gold Jewellery' ? 'Plain Gold' : p === 'Diamond Jewellery' ? 'Diamond' : p === 'Tanih - CVD Jewellery' ? 'Tanih CVD' : p)}</button>`).join('')}</div>
+    <label class="f">Jewellery types in this ${l.sec === 'box' ? 'box' : l.sec === 'counter' ? 'counter tray' : 'tray'} <span class="mut" style="text-transform:none;letter-spacing:0">— tick one or more</span></label><div class="jtpick" id="eJt">${LINE_JTYPES.map((p) => `<button type="button" data-jt="${esc(p)}" class="jtp ${JT_CLS[p]} ${jsel.includes(p) ? 'on' : ''}"><span class="tk">✓</span>${esc(JT_LABEL[p] || p)}</button>`).join('')}</div>
     <div class="mut sm" style="margin-top:4px" id="jtHint"></div>
     ${l.sec === 'box' ? `<label class="f">Box number *</label><input type="text" id="eBox" value="${esc(l.boxNo || '')}" placeholder="e.g. B-12">` : ''}
     <label class="f">${K.grp || 'Group'}</label><input type="text" id="eGrp" list="grpL" value="${esc(l.group)}" placeholder="${esc(K.grpPh || '')}"><datalist id="grpL">${groups.map((g) => `<option value="${esc(g)}">`).join('')}</datalist>
@@ -1289,7 +1289,7 @@ function locEdit(l) {
     <div class="row" style="margin-top:16px">${!isNew ? `<button class="btn bad sm" id="eDel">🗑 Delete</button>` : ''}<button class="btn grow" id="eSave">${isNew ? `＋ Add ${K.what || 'location'}` : 'Save'}</button></div>`;
   modal(isNew ? `Add ${K.what || 'location'}` : 'Edit · ' + esc(l.name), isNew ? ({ counter: 'Counter display', tray: 'Buffer trays (locker)', box: 'Buffer stock in boxes' })[l.sec] : 'Manager / admin', html, (ov) => {
     ov.querySelectorAll('[data-grp]').forEach((b) => b.onclick = () => { $('#eGrp').value = b.dataset.grp; });
-    const jtHint = () => { const h = $('#jtHint'); if (h) h.textContent = jsel.length > 1 ? `Mixed: ${jsel.map((j) => JT_SHORT[j]).join(' + ')}. Choose the type of each item below.` : `All items are ${jsel[0]}.`; };
+    const jtHint = () => { const h = $('#jtHint'); if (h) h.textContent = jsel.length > 1 ? `Mixed: ${jsel.map((j) => JT_LABEL[j]).join(' + ')}. Choose the type of each item below.` : `All items are ${JT_LABEL[jsel[0]]}.`; };
     jtHint();
     let purPrev = l.purity || '';
     $('#ePur').onchange = () => { const np = $('#ePur').value; iRows.forEach((r) => { if ((r.pur || '') === purPrev) r.pur = np; }); purPrev = np; drawItems(); };
@@ -1368,7 +1368,7 @@ function closeDayFlow() {
 
 // ---------------- consolidated ----------------
 // ---------- v1.15 reports: purity-wise / item-wise / location-wise ----------
-const JF_LBL = { 'Plain Gold Jewellery': 'Gold', 'Diamond Jewellery': 'Diamond', 'Tanih - CVD Jewellery': 'Lab-grown', Platinum: 'Platinum', Silver: 'Silver' };
+const JF_LBL = JT_LABEL;
 const PUR_ORDER = (p) => { const i = ['24K', '22K', '18K', '14K', '9K', 'PT950', '925'].indexOf(p); return i < 0 ? (p === 'Not set' ? 99 : 50) : i; };
 function repAgg(rows, keyFn) {
   const m = new Map();
@@ -1446,7 +1446,7 @@ function vTotal() {
     <div class="row sp" style="margin-top:8px"><div><div class="v">${fmt(X.exp)}</div><div class="mut sm">pcs expected</div></div><div style="text-align:right"><div class="b">${X.dn.size}/${X.locs.size} locations checked</div><div class="sm" style="color:${X.vr.size ? 'var(--bad)' : 'var(--ok)'}">${X.vr.size ? `${X.vr.size} with variance` : 'no variance'} · ${X.cnt - X.chkExp ? sgn(X.cnt - X.chkExp) : '±0'} pcs</div></div></div></button>`; };
   const types = [...S.D.settings.itemTypes, ...Object.keys(byItem).filter((t) => !S.D.settings.itemTypes.includes(t))].filter((t) => byItem[t]);
   const varLocs = activeLocs().filter((l) => isVar(l.id) && (S.jf === 'all' || L.some((r) => r.locId === l.id)));
-  const jCard = (j) => { const X = JA[j] || empty; return `<button class="card mcard jc-${JT_CLS[j]} ${S.jf === j ? 'on' : ''}" data-jf="${esc(j)}"><div class="row sp"><h3>${JF_LBL[j]}</h3><span class="mut sm">${j === 'Tanih - CVD Jewellery' ? 'Tanih - CVD Jewellery' : jtMetal(j)}</span></div>
+  const jCard = (j) => { const X = JA[j] || empty; return `<button class="card mcard jc-${JT_CLS[j]} ${S.jf === j ? 'on' : ''}" data-jf="${esc(j)}"><div class="row sp"><h3>${JF_LBL[j]}</h3><span class="mut sm">${j === 'Tanih - CVD Jewellery' ? 'Tanih CVD · gold' : jtMetal(j)}</span></div>
     <div class="row sp" style="margin-top:8px"><div><div class="v">${fmt(X.exp)}</div><div class="mut sm">pcs expected</div></div><div style="text-align:right"><div class="b">${X.dn.size}/${X.locs.size} checked</div><div class="sm" style="color:${X.vr.size ? 'var(--bad)' : 'var(--ok)'}">${X.vr.size ? `${X.vr.size} with variance` : 'no variance'} · ${X.cnt - X.chkExp ? sgn(X.cnt - X.chkExp) : '±0'} pcs</div></div></div></button>`; };
   const jfShown = LINE_JTYPES.filter((j) => JA[j] || j !== 'Silver');
   const mixed = activeLocs().filter((l) => l.jtype === 'Mixed').length;
@@ -1454,7 +1454,7 @@ function vTotal() {
   <div class="row sp wrap" style="margin-bottom:12px"><div><h1>Consolidated stock</h1><div class="mut">${dt(S.D.date)} · ${S.D.day.status === 'closed' ? 'Closed' : 'Live'}${S.round === 'evening' ? ' · evening count' : ''}</div></div>
   <div class="row noprint">${can('reports') ? `<button class="btn sm sec" id="erpTab">ERP match</button><button class="btn sm ghost" id="csv">Export CSV</button><button class="btn sm ghost" id="prt">Print</button>${S.D.settings.waNumber ? `<button class="btn sm ok" id="wa">WhatsApp</button>` : ''}` : ''}</div></div>
   ${blind ? '<div class="card mut">Expected totals are hidden while counting is in progress.</div>' : `
-  <div class="seg jfseg noprint" style="margin:0 0 12px">${[['all', 'All stock'], ...jfShown.map((j) => [j, JF_LBL[j] + (j === 'Plain Gold Jewellery' || j === 'Diamond Jewellery' ? ' only' : '')])].map(([k, t]) => `<button data-jf="${esc(k)}" class="${S.jf === k ? 'on' : ''}">${t}</button>`).join('')}</div>
+  <div class="seg jfseg noprint" style="margin:0 0 12px">${[['all', 'All stock'], ...jfShown.map((j) => [j, JF_LBL[j]])].map(([k, t]) => `<button data-jf="${esc(k)}" class="${S.jf === k ? 'on' : ''}">${t}</button>`).join('')}</div>
   <div class="mgrid jgrid">${jfShown.map(jCard).join('')}</div>
   <h3 style="margin:16px 0 8px">By section${jfName ? ` · ${jfName}` : ''}</h3>
   <div class="tw"><table><tr><th>Section</th><th>Opening</th><th>In</th><th>Out</th><th>Expected</th><th>Checked</th><th>Counted</th><th>Variance</th></tr>
@@ -1462,7 +1462,7 @@ function vTotal() {
   <tr class="tot"><td>Total</td>${row('Total', T)}</tr></table></div>
   <h3 style="margin:20px 0 8px">By jewellery type</h3>
   <div class="tw"><table><tr><th>Jewellery type</th><th>Metal</th><th>Opening</th><th>In</th><th>Out</th><th>Expected</th><th>Checked</th><th>Counted</th><th>Variance</th></tr>
-  ${LINE_JTYPES.filter((j) => byJt[j]).map((j) => `<tr><td>${jtB(j)} <b>${esc(j)}</b></td><td style="text-align:left">${jtMetal(j)}</td>${row(j, byJt[j])}</tr>`).join('')}
+  ${LINE_JTYPES.filter((j) => byJt[j]).map((j) => `<tr><td>${jtB(j)} <b>${esc(JT_LABEL[j])}</b></td><td style="text-align:left">${jtMetal(j)}</td>${row(j, byJt[j])}</tr>`).join('')}
   ${S.jf === 'all' ? METALS.filter((m) => MS[m]).map((m) => `<tr class="tot"><td>${m} total</td><td></td>${row(m, MS[m])}</tr>`).join('') : ''}</table></div>
   ${mixed ? `<div class="mut sm" style="margin-top:6px">${mixed} Mixed location${mixed > 1 ? 's are' : ' is'} split by the jewellery type of each item.</div>` : ''}
   <h3 style="margin:20px 0 8px">By item type${jfName ? ` · ${jfName}` : ''}</h3>

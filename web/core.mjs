@@ -20,7 +20,7 @@ export const DEFAULT_SETTINGS = {
   // Location model (v1.8)
   areas: ['Cash Counter Area', 'Locker Area', 'Platinum Area', 'Free standing counter'],
   subDisplays: ['Floor display counters', 'Wall Shelves'],
-  jtypes: ['Plain Gold Jewellery', 'Diamond Jewellery', 'Tanih - CVD Jewellery', 'Platinum', 'Silver', 'Mixed'],     // app count is matched against ERP labels ('lbl') or pieces ('pcs')
+  jtypes: ['Plain Gold Jewellery', 'Diamond Jewellery', 'Platinum', 'Tanih - CVD Jewellery', 'Silver', 'Mixed'],     // app count is matched against ERP labels ('lbl') or pieces ('pcs')
   reasons: ['Item sold, not updated', 'Moved to another tray', 'Sent for repair / approval', 'Label missing / wrong tag', 'Found extra item', 'Other'],
 };
 export const PERMS = {
@@ -242,10 +242,12 @@ export function closingVerified(locs, opening, mvs, counts, settings) {
 // Each stock line key is an item type, optionally with a jewellery type code: "Ring" or "Ring@D".
 // A plain key means the location's own type (Plain Gold when the location is Mixed).
 // v1.13: Tanih - CVD Jewellery (code T, lab-grown diamond, gold metal) and Silver (code S) added.
-export const JTYPES = ['Plain Gold Jewellery', 'Diamond Jewellery', 'Tanih - CVD Jewellery', 'Platinum', 'Silver', 'Mixed'];
-export const LINE_JTYPES = ['Plain Gold Jewellery', 'Diamond Jewellery', 'Tanih - CVD Jewellery', 'Platinum', 'Silver'];
+export const JTYPES = ['Plain Gold Jewellery', 'Diamond Jewellery', 'Platinum', 'Tanih - CVD Jewellery', 'Silver', 'Mixed'];
+export const LINE_JTYPES = ['Plain Gold Jewellery', 'Diamond Jewellery', 'Platinum', 'Tanih - CVD Jewellery', 'Silver'];   // v1.26 order: Gold, Diamond Jewellery, Platinum, Lab Grown, Silver
 export const JT_CODE = { 'Plain Gold Jewellery': 'G', 'Diamond Jewellery': 'D', 'Tanih - CVD Jewellery': 'T', Platinum: 'P', Silver: 'S' };
-export const JT_SHORT = { 'Plain Gold Jewellery': 'Gold', 'Diamond Jewellery': 'Diamond', 'Tanih - CVD Jewellery': 'Tanih CVD', Platinum: 'Platinum', Silver: 'Silver' };
+export const JT_SHORT = { 'Plain Gold Jewellery': 'Gold', 'Diamond Jewellery': 'Diamond', 'Tanih - CVD Jewellery': 'Lab Grown', Platinum: 'Platinum', Silver: 'Silver' };
+// v1.26 names shown to users (stored values unchanged): Gold, Diamond Jewellery, Platinum, Lab Grown, Silver
+export const JT_LABEL = { 'Plain Gold Jewellery': 'Gold', 'Diamond Jewellery': 'Diamond Jewellery', 'Tanih - CVD Jewellery': 'Lab Grown', Platinum: 'Platinum', Silver: 'Silver', Mixed: 'Mixed' };
 export const JT_CLS = { 'Plain Gold Jewellery': 'g', 'Diamond Jewellery': 'd', 'Tanih - CVD Jewellery': 't', Platinum: 'p', Silver: 's' };
 // Report metal of a jewellery type (Tanih CVD is set in gold → Gold).
 export const METALS = ['Gold', 'Platinum', 'Silver'];
