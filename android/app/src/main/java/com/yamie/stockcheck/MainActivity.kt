@@ -161,6 +161,29 @@ class MainActivity : ComponentActivity() {
                 } catch (e: Exception) { }
             }
         }
+        /** v1.19 documents: a photo / PDF / QR (base64) — opened in a viewer (view = true) or offered to Share (WhatsApp, Drive…). */
+        @JavascriptInterface
+        fun shareData(name: String, mime: String, b64: String, view: Boolean) {
+            runOnUiThread {
+                try {
+                    val dir = File(cacheDir, "share").apply { mkdirs() }
+                    val f = File(dir, name.replace(Regex("[^A-Za-z0-9._-]"), "_"))
+                    f.writeBytes(android.util.Base64.decode(b64, android.util.Base64.DEFAULT))
+                    val uri = FileProvider.getUriForFile(this@MainActivity, "$packageName.files", f)
+                    val i = if (view) Intent(Intent.ACTION_VIEW).setDataAndType(uri, mime)
+                            else Intent(Intent.ACTION_SEND).setType(mime).putExtra(Intent.EXTRA_STREAM, uri)
+                    i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    startActivity(Intent.createChooser(i, if (view) "Open $name" else "Share $name"))
+                } catch (e: Exception) { }
+            }
+        }
+        /** v1.19 share plain text (bank details, GSTIN…) */
+        @JavascriptInterface
+        fun shareText(text: String) {
+            runOnUiThread {
+                try { startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text), "Share")) } catch (e: Exception) { }
+            }
+        }
         @JavascriptInterface fun version(): String = BuildConfig.VERSION_NAME
         @JavascriptInterface fun reload() { runOnUiThread { web.loadUrl(BuildConfig.APP_URL) } }
     }

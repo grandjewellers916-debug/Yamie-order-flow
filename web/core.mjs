@@ -36,6 +36,8 @@ export const PERMS = {
   users: 'Manage users',
   cash: 'Cash closing — count & save draft',
   cashVerify: 'Cash closing — verify & close',
+  docs: 'View business documents & bank details',
+  docsEdit: 'Add / edit business documents',
 };
 // v1.17 Cash closing
 export const CASH_DENOMS = [500, 200, 100, 50, 20, 10];
@@ -60,9 +62,11 @@ export function cashCalc(r) {
 }
 /** Notes per denomination (bundles × 100 + loose) — to compare a morning count with the carried-forward closing. */
 export const cashNotes = (r, d) => { const x = (r?.denoms || []).find((y) => +y.note === d) || {}; return Math.floor(+x.bundles || 0) * 100 + Math.floor(+x.loose || 0); };
+// v1.19 Business documents (credentials vault)
+export const DOC_TYPES = ['GST Certificate', 'Trade Licence', 'Shop & Establishment', 'BIS Hallmarking', 'PAN Card', 'Udyam / MSME', 'Insurance', 'Bank Account', 'UPI QR Code', 'Other'];
 export const ROLE_PERMS = {
   admin: Object.keys(PERMS),
-  manager: ['count', 'move', 'setup', 'accept', 'close', 'reports', 'alerts', 'erp', 'verifyAll', 'cash', 'cashVerify'],
+  manager: ['count', 'move', 'setup', 'accept', 'close', 'reports', 'alerts', 'erp', 'verifyAll', 'cash', 'cashVerify', 'docs'],
   staff: ['count', 'cash'],
 };
 // End-of-day transaction types. dir +1 = stock in, −1 = stock out. admin: only admin may enter.

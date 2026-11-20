@@ -55,6 +55,10 @@ async function getUsers(s: any) {
     await s.setJSON('cfg/users', u, { onlyIfNew: true });
     u = await s.get('cfg/users', { type: 'json' });
   }
+  if (!u.docs19) {   // v1.19: managers can view business documents
+    for (const x of u.users) if (x.role === 'manager' || x.role === 'admin') x.perms = [...new Set([...(x.perms || []), 'docs'])];
+    u.docs19 = true; await s.setJSON('cfg/users', u);
+  }
   if (!u.cash17) {   // v1.17: cash closing permissions for existing users
     for (const x of u.users) { const add = x.role === 'manager' ? ['cash', 'cashVerify'] : x.role === 'staff' ? ['cash'] : x.role === 'admin' ? ['cash', 'cashVerify'] : []; x.perms = [...new Set([...(x.perms || []), ...add])]; }
     u.cash17 = true; await s.setJSON('cfg/users', u);
@@ -203,6 +207,7 @@ export default async (req: Request) => {
       const key = path.slice(4).replace(/[^a-z0-9-]/gi, '');
       const e = await s.getWithMetadata(`img/${key}`, { type: 'arrayBuffer' });
       if (e === null) return new Response('Not found', { status: 404 });
+      if ((e.metadata as any)?.doc && !can('docs') && !can('docsEdit')) return new Response('No permission', { status: 403 });
       return new Response(e.data as ArrayBuffer, { headers: { 'content-type': (e.metadata as any)?.type || 'image/jpeg', 'cache-control': 'private, max-age=31536000, immutable' } });
     }
 
@@ -492,12 +497,13 @@ export default async (req: Request) => {
     }
 
     if (path === 'img' && method === 'POST') {
-      if (!can('setup') && !can('count')) need('setup');
-      const m = /^data:(image\/(?:jpeg|png|webp));base64,(.+)$/.exec(body.dataUrl || '');
-      if (!m) return err('Bad image');
-      const buf = Buffer.from(m[2], 'base64'); if (buf.length > 1_500_000) return err('Image too large');
+      const isDoc = !!body.doc;   // v1.19 business documents: images or PDF, readable only with the docs permission
+      if (isDoc) need('docsEdit'); else if (!can('setup') && !can('count')) need('setup');
+      const m = (isDoc ? /^data:(image\/(?:jpeg|png|webp)|application\/pdf);base64,(.+)$/ : /^data:(image\/(?:jpeg|png|webp));base64,(.+)$/).exec(body.dataUrl || '');
+      if (!m) return err(isDoc ? 'Upload a photo (JPG / PNG) or a PDF' : 'Bad image');
+      const buf = Buffer.from(m[2], 'base64'); if (buf.length > (isDoc ? 4_000_000 : 1_500_000)) return err(isDoc ? 'File too large (max 4 MB)' : 'Image too large');
       const key = crypto.randomUUID();
-      await s.set(`img/${key}`, buf, { metadata: { type: m[1], by: me.id, at: now() } });
+      await s.set(`img/${key}`, buf, { metadata: { type: m[1], by: me.id, at: now(), ...(isDoc ? { doc: true } : {}) } });
       return J({ key });
     }
 
@@ -599,7 +605,7 @@ export default async (req: Request) => {
     }
     // ----- restore from backup (admin only) -----
     // Only these record types can be written by a restore; meta/secret and meta/* are never touched.
-    const RESTORABLE = /^(cfg\/(locs|users|settings)|day\/\d{4}-\d{2}-\d{2}|(mv|ct|ss|al)\/\d{4}-\d{2}-\d{2}\/[\w@#.\/-]+|erp\/\d{4}-\d{2}-\d{2}|seen\/[\w-]+|cash\/\d{4}-\d{2}-\d{2}\/[\w-]+)$/;
+    const RESTORABLE = /^(cfg\/(locs|users|settings)|day\/\d{4}-\d{2}-\d{2}|(mv|ct|ss|al)\/\d{4}-\d{2}-\d{2}\/[\w@#.\/-]+|erp\/\d{4}-\d{2}-\d{2}|seen\/[\w-]+|cash\/\d{4}-\d{2}-\d{2}\/[\w-]+|doc\/[\w-]+)$/;
     if (path.startsWith('restore/') && me.role !== 'admin') return err('Only admin can restore the database', 403);
     if (path === 'restore/put' && method === 'POST') {
       const items = body.items || {}; let n = 0; const skipped: string[] = [];
@@ -612,10 +618,10 @@ export default async (req: Request) => {
     }
     if (path === 'restore/img' && method === 'POST') {
       const key = String(body.key || '').replace(/[^a-z0-9-]/gi, '');
-      const m = /^data:(image\/(?:jpeg|png|webp));base64,(.+)$/.exec(body.dataUrl || '');
+      const m = /^data:(image\/(?:jpeg|png|webp)|application\/pdf);base64,(.+)$/.exec(body.dataUrl || '');
       if (!key || !m) return err('Bad photo');
       if (body.onlyIfNew && (await s.getWithMetadata(`img/${key}`, { type: 'arrayBuffer' }))) return J({ ok: true, kept: true });
-      await s.set(`img/${key}`, Buffer.from(m[2], 'base64'), { metadata: { type: m[1], by: me.id, at: now(), restored: true } });
+      await s.set(`img/${key}`, Buffer.from(m[2], 'base64'), { metadata: { type: m[1], by: me.id, at: now(), restored: true, ...(body.doc ? { doc: true } : {}) } });
       return J({ ok: true });
     }
     if (path === 'restore/delete' && method === 'POST') {
@@ -681,6 +687,34 @@ export default async (req: Request) => {
       await s.setJSON(key, rec);
       await addAlert(s, { type: 'info', title: `Cash chit reopened · ${rec.counter}`, body: `${me.name} reopened ${rec.date} ${rec.shift}. Reason: ${body.reason}`, by: me.id });
       return J({ ok: true, rec });
+    }
+    // ----- v1.19 business documents (licences, GST, bank accounts, UPI QR) -----
+    if (path === 'docs' && method === 'GET') {
+      if (!can('docs') && !can('docsEdit')) need('docs');
+      const { blobs } = await s.list({ prefix: 'doc/' });
+      const docs = (await Promise.all(blobs.map((b: any) => s.get(b.key, { type: 'json' })))).filter((d: any) => d && !d.deleted).sort((a: any, b: any) => (a.order ?? 999) - (b.order ?? 999) || String(a.title).localeCompare(String(b.title)));
+      return J({ docs, canEdit: can('docsEdit') });
+    }
+    if (path === 'docs/save' && method === 'POST') {
+      need('docsEdit');
+      const D = body.doc || {}; const id = D.id && /^[\w-]{6,40}$/.test(D.id) ? D.id : 'd' + now().toString(36) + rid();
+      const old = await s.get(`doc/${id}`, { type: 'json' });
+      const str = (v: any, n = 120) => String(v ?? '').trim().slice(0, n);
+      const doc: any = { id, type: str(D.type, 40) || 'Other', title: str(D.title, 80), number: str(D.number, 60), issuedBy: str(D.issuedBy, 80), issueDate: str(D.issueDate, 10), expiry: str(D.expiry, 10), notes: str(D.notes, 1000),
+        bank: D.bank ? { holder: str(D.bank.holder, 80), bank: str(D.bank.bank, 60), account: str(D.bank.account, 30), ifsc: str(D.bank.ifsc, 15).toUpperCase(), branch: str(D.bank.branch, 80), kind: str(D.bank.kind, 30) } : null,
+        upi: D.upi ? { id: str(D.upi.id, 80), name: str(D.upi.name, 80), gen: !!D.upi.gen } : null,
+        files: (Array.isArray(D.files) ? D.files : []).slice(0, 12).map((f: any) => ({ key: String(f.key || '').replace(/[^a-z0-9-]/gi, ''), mime: str(f.mime, 40), label: str(f.label, 60) })).filter((f: any) => f.key),
+        order: D.order ?? old?.order, createdAt: old?.createdAt || now(), createdBy: old?.createdBy || me.id, updatedAt: now(), updatedBy: me.id, updatedByName: me.name };
+      if (!doc.title) doc.title = doc.type;
+      await s.setJSON(`doc/${id}`, doc);
+      return J({ ok: true, doc });
+    }
+    if (path === 'docs/delete' && method === 'POST') {
+      need('docsEdit');
+      const id = String(body.id || ''); const d = await s.get(`doc/${id}`, { type: 'json' }); if (!d) return err('Not found', 404);
+      await s.delete(`doc/${id}`); for (const f of d.files || []) await s.delete(`img/${f.key}`);
+      await addAlert(s, { type: 'info', title: `Document deleted · ${d.title}`, body: `${me.name} deleted ${d.type} “${d.title}”.`, by: me.id });
+      return J({ ok: true });
     }
     if (path === 'users') { need('users'); return J({ users: users.map(pubUser), perms: PERMS, roles: ROLE_PERMS }); }
     if (path === 'users/save' && method === 'POST') {
