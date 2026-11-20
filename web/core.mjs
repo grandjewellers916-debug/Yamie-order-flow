@@ -7,7 +7,7 @@ export const SECTIONS = [
 export const DEFAULT_SETTINGS = {
   shopName: 'Yamie Fine Jewellery',
   itemTypes: ['Ring', 'Stud', 'Pendant', 'Set', 'Bracelet', 'Necklace', 'Bangle', 'Chain', 'Nosepin', 'Coin', 'Findings', 'Mixed'],
-  purities: ['22K', '18K', '14K', '9K', 'PT950', 'Silver', 'Mixed'],
+  purities: ['22K', '18K', '14K', '9K', 'PT950', '925', 'Silver', 'Mixed'],
   categories: ['Gold', 'Diamond', 'Platinum', 'Lab-grown', 'Kids', 'Gents', 'Silver'],
   wtTol: 0.010,        // grams allowed either way on box weight checks
   blind: false,
@@ -16,11 +16,11 @@ export const DEFAULT_SETTINGS = {
   erpBasis: 'lbl',
   erpItemMap: { Ring: 'G-Ring', Stud: 'G-Earring', Pendant: 'G-Pendant', Set: 'G- Jewellery Set', Bracelet: 'G-Bracelet', Necklace: 'G-Necklace', Bangle: 'G-Bangle', Chain: 'G-Chain', Nosepin: 'G-Nosepins', Coin: 'G-Gold Coin', Findings: 'Findings', Mixed: 'G-Diamond Jewellery' },
   erpCatMap: { Diamond: 'G-Diamond Jewellery', 'Lab-grown': 'Tanih - CVD Jewellery' },
-  erpPlatinum: 'YFJ - PLATINUM MM',   // ERP ornament for all Platinum jewellery
+  erpTanih: 'Tanih - CVD Jewellery', erpSilver: 'Silver Jewellery', erpPlatinum: 'YFJ - PLATINUM MM',   // ERP ornament for all Platinum jewellery
   // Location model (v1.8)
   areas: ['Cash Counter Area', 'Locker Area', 'Platinum Area', 'Free standing counter'],
   subDisplays: ['Floor display counters', 'Wall Shelves'],
-  jtypes: ['Plain Gold Jewellery', 'Diamond Jewellery', 'Platinum', 'Mixed'],     // app count is matched against ERP labels ('lbl') or pieces ('pcs')
+  jtypes: ['Plain Gold Jewellery', 'Diamond Jewellery', 'Tanih - CVD Jewellery', 'Platinum', 'Silver', 'Mixed'],     // app count is matched against ERP labels ('lbl') or pieces ('pcs')
   reasons: ['Item sold, not updated', 'Moved to another tray', 'Sent for repair / approval', 'Label missing / wrong tag', 'Found extra item', 'Other'],
 };
 export const PERMS = {
@@ -153,7 +153,7 @@ export function summarize(locs, opening, mvs, counts, settings) {
     const types = new Set([...Object.keys(e.lines), ...Object.keys(o.lines), ...Object.keys(f.in), ...Object.keys(f.out), ...Object.keys(counted ? c.lines || {} : {})]);
     for (const t of types) {
       const it = itemOf(t), jt = jtOfLine(l, t);
-      const rec = { locId: l.id, sec: l.sec, key: t, item: it, jt, purity: purOfLine(l, t), metal: jt === 'Platinum' ? 'Platinum' : 'Gold', op: o.lines[t] || 0, in: f.in[t] || 0, out: f.out[t] || 0, exp: e.lines[t] || 0, cnt: counted ? +(c.lines || {})[t] || 0 : 0, chkExp: counted ? e.lines[t] || 0 : 0, counted: !!counted };
+      const rec = { locId: l.id, sec: l.sec, key: t, item: it, jt, purity: purOfLine(l, t), metal: jtMetal(jt), op: o.lines[t] || 0, in: f.in[t] || 0, out: f.out[t] || 0, exp: e.lines[t] || 0, cnt: counted ? +(c.lines || {})[t] || 0 : 0, chkExp: counted ? e.lines[t] || 0 : 0, counted: !!counted };
       lines.push(rec);
       for (const [map, k] of [[byType, it], [byJt, jt]]) {
         const B = ((map[k] ||= {})[l.sec] ||= { op: 0, in: 0, out: 0, exp: 0, cnt: 0, chkExp: 0 });
@@ -198,10 +198,15 @@ export function closingVerified(locs, opening, mvs, counts, settings) {
 // A location (tray / box / counter tray) has a jewellery type: Plain Gold, Diamond, Platinum or Mixed.
 // Each stock line key is an item type, optionally with a jewellery type code: "Ring" or "Ring@D".
 // A plain key means the location's own type (Plain Gold when the location is Mixed).
-export const JTYPES = ['Plain Gold Jewellery', 'Diamond Jewellery', 'Platinum', 'Mixed'];
-export const LINE_JTYPES = ['Plain Gold Jewellery', 'Diamond Jewellery', 'Platinum'];
-export const JT_CODE = { 'Plain Gold Jewellery': 'G', 'Diamond Jewellery': 'D', Platinum: 'P' };
-export const JT_SHORT = { 'Plain Gold Jewellery': 'Gold', 'Diamond Jewellery': 'Diamond', Platinum: 'Platinum' };
+// v1.13: Tanih - CVD Jewellery (code T, lab-grown diamond, gold metal) and Silver (code S) added.
+export const JTYPES = ['Plain Gold Jewellery', 'Diamond Jewellery', 'Tanih - CVD Jewellery', 'Platinum', 'Silver', 'Mixed'];
+export const LINE_JTYPES = ['Plain Gold Jewellery', 'Diamond Jewellery', 'Tanih - CVD Jewellery', 'Platinum', 'Silver'];
+export const JT_CODE = { 'Plain Gold Jewellery': 'G', 'Diamond Jewellery': 'D', 'Tanih - CVD Jewellery': 'T', Platinum: 'P', Silver: 'S' };
+export const JT_SHORT = { 'Plain Gold Jewellery': 'Gold', 'Diamond Jewellery': 'Diamond', 'Tanih - CVD Jewellery': 'Tanih CVD', Platinum: 'Platinum', Silver: 'Silver' };
+export const JT_CLS = { 'Plain Gold Jewellery': 'g', 'Diamond Jewellery': 'd', 'Tanih - CVD Jewellery': 't', Platinum: 'p', Silver: 's' };
+// Report metal of a jewellery type (Tanih CVD is set in gold → Gold).
+export const METALS = ['Gold', 'Platinum', 'Silver'];
+export const jtMetal = (jt) => (jt === 'Platinum' ? 'Platinum' : jt === 'Silver' ? 'Silver' : 'Gold');
 // v1.10: key may also carry purity: "Ring@D#18K" (jewellery type D, purity 18K). "#-" = no purity.
 export const itemOf = (k) => String(k).split(/[@#]/)[0];
 export const defaultPur = (loc) => loc?.purity || '';
@@ -218,13 +223,13 @@ export const lineKey = (loc, item, jt, pur) => {
   return k;
 };
 export const keyText = (loc, k) => { const p = purOfLine(loc, k); return `${JT_SHORT[jtOfLine(loc, k)]}${p ? ' ' + p : ''} ${itemOf(k)}`; };
-export const lineMetal = (loc, k) => (jtOfLine(loc, k) === 'Platinum' ? 'Platinum' : 'Gold');
-export const metalOf = (loc) => (loc?.jtype === 'Platinum' || (!loc?.jtype && loc?.cat === 'Platinum') ? 'Platinum' : 'Gold');
-export const erpMetal = (name) => (/platinum/i.test(name || '') ? 'Platinum' : 'Gold');
+export const lineMetal = (loc, k) => jtMetal(jtOfLine(loc, k));
+export const metalOf = (loc) => (loc?.jtype ? jtMetal(loc.jtype) : loc?.cat === 'Platinum' ? 'Platinum' : loc?.cat === 'Silver' ? 'Silver' : 'Gold');
+export const erpMetal = (name) => (/platinum/i.test(name || '') ? 'Platinum' : /silver/i.test(name || '') ? 'Silver' : 'Gold');
 /** Best guess of Main location / Sub display / Jewellery type for locations created before v1.8 */
 export function deriveLocMeta(l) {
   const g = `${l.group || ''} ${l.name || ''}`.toLowerCase();
-  const jtype = l.cat === 'Platinum' || /platinum/.test(g) ? 'Platinum' : (l.cat === 'Diamond' || l.cat === 'Lab-grown' || /diamond|\bdia\b/.test(g)) ? 'Diamond Jewellery' : 'Plain Gold Jewellery';
+  const jtype = l.cat === 'Platinum' || /platinum/.test(g) ? 'Platinum' : l.cat === 'Silver' || /silver/.test(g) ? 'Silver' : l.cat === 'Lab-grown' || /\bcvd\b|tanih|lab.?grown/.test(g) ? 'Tanih - CVD Jewellery' : (l.cat === 'Diamond' || /diamond|\bdia\b/.test(g)) ? 'Diamond Jewellery' : 'Plain Gold Jewellery';
   let area = '', sub = '';
   if (l.sec === 'counter') {
     area = /platinum/.test(g) ? 'Platinum Area' : /locker/.test(g) ? 'Locker Area' : /cvd|green shelf|free/.test(g) ? 'Free standing counter' : 'Cash Counter Area';
@@ -236,8 +241,10 @@ export const erpKey = (n) => String(n || '').toLowerCase().replace(/[^a-z0-9]/g,
 export function erpNameFor(loc, key, settings) {
   const jt = jtOfLine(loc, key); const type = itemOf(key);
   if (jt === 'Platinum') return settings?.erpPlatinum || DEFAULT_SETTINGS.erpPlatinum;
+  if (jt === 'Silver') return settings?.erpSilver || DEFAULT_SETTINGS.erpSilver;
   const cm = settings?.erpCatMap || DEFAULT_SETTINGS.erpCatMap; const im = settings?.erpItemMap || DEFAULT_SETTINGS.erpItemMap;
-  if (loc.cat && loc.cat !== 'Diamond' && cm[loc.cat] != null) return cm[loc.cat];   // e.g. Lab-grown → Tanih
+  if (jt === 'Tanih - CVD Jewellery') return settings?.erpTanih || cm['Lab-grown'] || DEFAULT_SETTINGS.erpTanih;
+  if (loc.cat && loc.cat !== 'Diamond' && cm[loc.cat] != null && jt === defaultJt(loc)) return cm[loc.cat];   // e.g. Lab-grown → Tanih
   if (jt === 'Diamond Jewellery') return cm.Diamond || 'G-Diamond Jewellery';
   return im[type] ?? type;
 }

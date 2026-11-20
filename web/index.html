@@ -225,18 +225,18 @@ select.tin{border-color:#9FD0B2;background:#F3FBF6}select.tout{border-color:#E8B
 .ithumbs{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.ithumbs span{position:relative}.ithumbs img{width:48px;height:48px;object-fit:cover;border-radius:8px;cursor:zoom-in;display:block}
 .ithumbs button{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:99px;background:rgba(0,0,0,.65);color:#fff;font-size:13px;line-height:1}
 .jtb{display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:99px;margin-right:6px;vertical-align:1px}
-.jtb.g{background:#FBF1DC;color:#8A6216}.jtb.d{background:#E8F0FB;color:#2B5C9B}.jtb.p{background:#ECEEF1;color:#4A5563}
+.jtb.g{background:#FBF1DC;color:#8A6216}.jtb.d{background:#E8F0FB;color:#2B5C9B}.jtb.p{background:#ECEEF1;color:#4A5563}.jtb.t{background:#E6F5EF;color:#1F7A55}.jtb.s{background:#EEF1F6;color:#5A6577;box-shadow:inset 0 0 0 1px #D5DBE5}
 .ied{border:1px solid var(--ln);border-radius:var(--r);padding:8px;background:#fff}
 .iedr{display:grid;grid-template-columns:110px 96px 1fr 84px 36px;gap:6px;margin-bottom:6px}
 .pub{display:inline-block;font-size:11px;font-weight:600;padding:1px 6px;border-radius:99px;margin-right:6px;background:var(--m3);color:var(--m);vertical-align:1px}
 @media(max-width:599px){.iedr{grid-template-columns:1fr 1fr 56px 32px;gap:4px}.iedr>select[data-ii]{grid-column:1/3;grid-row:2}.iedr>input{grid-row:1/3;grid-column:3;height:auto}.iedr>.x{grid-row:1/3;grid-column:4;height:auto}.iedr select,.iedr input{padding:6px 4px;font-size:14px}.iedr .x{width:32px}}.iedr select,.iedr input{min-height:40px;padding:6px 8px}
-select.jt-g{background:#FFFBF2;border-color:#E9D3A3}select.jt-d{background:#F3F7FD;border-color:#BFD2EE}select.jt-p{background:#F5F6F8;border-color:#CDD3DA}
-.seg.wrap4 button{font-size:14px;padding:8px 4px}
-.chip.au{background:#FBF1DC;color:#8A6216}.chip.dia{background:#E8F0FB;color:#2B5C9B}.chip.pt{background:#ECEEF1;color:#4A5563}
-tr.mhead td{text-align:left;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.6px}tr.mhead.au td{background:#FBF1DC;color:#8A6216}tr.mhead.pt td{background:#ECEEF1;color:#4A5563}
+select.jt-g{background:#FFFBF2;border-color:#E9D3A3}select.jt-d{background:#F3F7FD;border-color:#BFD2EE}select.jt-p{background:#F5F6F8;border-color:#CDD3DA}select.jt-t{background:#F2FAF6;border-color:#B5DEC9}select.jt-s{background:#F6F8FB;border-color:#C9D1DD}
+.seg.wrap4{flex-wrap:wrap}.seg.wrap4 button{font-size:14px;padding:8px 4px;flex:1 1 30%}
+.chip.au{background:#FBF1DC;color:#8A6216}.chip.dia{background:#E8F0FB;color:#2B5C9B}.chip.pt{background:#ECEEF1;color:#4A5563}.chip.cvd{background:#E6F5EF;color:#1F7A55}.chip.ag{background:#EEF1F6;color:#5A6577}
+tr.mhead td{text-align:left;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.6px}tr.mhead.au td{background:#FBF1DC;color:#8A6216}tr.mhead.pt td{background:#ECEEF1;color:#4A5563}tr.mhead.ag td{background:#EEF1F6;color:#5A6577}
 tr.msub td{font-weight:600;background:#FAF7F2}
-.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:599px){.mgrid{grid-template-columns:1fr}}
-.mcard{text-align:left;width:100%;border-width:1.5px}.mcard .v{font-size:26px;font-weight:600}.mcard.au{border-color:#E9D3A3;background:#FFFBF2}.mcard.pt{border-color:#CDD3DA;background:#F7F8FA}.mcard.on{box-shadow:0 0 0 3px var(--m3);border-color:var(--m)}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}@media(max-width:599px){.mgrid{grid-template-columns:1fr}}
+.mcard{text-align:left;width:100%;border-width:1.5px}.mcard .v{font-size:26px;font-weight:600}.mcard.au{border-color:#E9D3A3;background:#FFFBF2}.mcard.pt{border-color:#CDD3DA;background:#F7F8FA}.mcard.ag{border-color:#D5DBE5;background:#F8FAFC}.mcard.on{box-shadow:0 0 0 3px var(--m3);border-color:var(--m)}
 .selbar{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin:10px 0 12px;padding:12px}
 .selbar>.grow{min-width:180px}.selgo{display:flex;flex-direction:column;gap:4px}
 @media(min-width:700px){.locs.wide{grid-template-columns:minmax(0,1fr)}}@media(min-width:1500px){.locs.wide{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -265,7 +265,7 @@ tr.msub td{font-weight:600;background:#FAF7F2}
 <body>
 <div id="app"></div>
 <script type="module">
-import { SECTIONS, PERMS, ROLE_PERMS, REASONS, TXN_TYPES, metalOf, erpMetal, JTYPES, LINE_JTYPES, JT_SHORT, itemOf, jtOfLine, purOfLine, defaultPur, lineKey, keyText, defaultJt, roundOf, roundCounts, summarize, sumLines, r3, locStatus, istDate, erpCompare, erpKey } from './core.mjs';
+import { SECTIONS, PERMS, ROLE_PERMS, REASONS, TXN_TYPES, metalOf, erpMetal, JTYPES, LINE_JTYPES, JT_SHORT, JT_CLS, METALS, jtMetal, itemOf, jtOfLine, purOfLine, defaultPur, lineKey, keyText, defaultJt, roundOf, roundCounts, summarize, sumLines, r3, locStatus, istDate, erpCompare, erpKey } from './core.mjs';
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -276,7 +276,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.12';
+const VERSION = '1.13';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -378,7 +378,7 @@ const hideExp = () => S.D.settings.blind && !can('setup') && !can('move');
 const secLabel = (k) => SECTIONS.find((s) => s.key === k)?.label || k;
 const uname = (id) => S.D.userNames[id] || id;
 const kT = (k, loc) => (loc || String(k).includes('@') ? keyText(loc, k) : k);
-const jtB = (jt) => `<span class="jtb ${{ 'Plain Gold Jewellery': 'g', 'Diamond Jewellery': 'd', Platinum: 'p' }[jt] || 'g'}">${JT_SHORT[jt] || 'Gold'}</span>`;
+const jtB = (jt) => `<span class="jtb ${JT_CLS[jt] || 'g'}">${JT_SHORT[jt] || 'Gold'}</span>`;
 const kL = (loc, k) => { const p = purOfLine(loc, k); return `${jtB(jtOfLine(loc, k))}${p ? `<span class="pub">${esc(p)}</span>` : ''}<span class="b">${esc(itemOf(k))}</span>`; };
 const linesTxt = (l, loc) => Object.entries(l || {}).filter(([, n]) => n).map(([t, n]) => `${kT(t, loc)} ${fmt(n)}`).join(', ') || '—';
 const diffTxt = (d, loc) => Object.entries(d || {}).map(([t, n]) => `${kT(t, loc)} ${sgn(n)}`).join(', ');
@@ -598,7 +598,7 @@ function vSection(sec) {
 function locCard(l) {
   const e = expOf(l.id); const st = S.sum.status[l.id]; const c = S.sum.last[l.id];
   const thumb = l.images?.[0] ? `<img loading="lazy" src="${img(l.images[0].key)}" alt="">` : svg(l.sec, 26);
-  const chips = [l.boxNo ? `<span class="chip m">Box ${esc(l.boxNo)}</span>` : '', l.purity ? `<span class="chip m">${esc(l.purity)}</span>` : '', l.jtype ? `<span class="chip ${metalOf(l) === 'Platinum' ? 'pt' : l.jtype === 'Diamond Jewellery' ? 'dia' : 'au'}">${esc(l.jtype === 'Plain Gold Jewellery' ? 'Gold' : l.jtype === 'Diamond Jewellery' ? 'Diamond' : l.jtype)}</span>` : '', l.cat && !['Gold', 'Diamond', 'Platinum', 'Mixed', l.jtype].includes(l.cat) ? `<span class="chip">${esc(l.cat)}</span>` : '', l.itemType ? `<span class="chip">${esc(l.itemType)}</span>` : ''].join('');
+  const chips = [l.boxNo ? `<span class="chip m">Box ${esc(l.boxNo)}</span>` : '', l.purity ? `<span class="chip m">${esc(l.purity)}</span>` : '', l.jtype ? `<span class="chip ${({ 'Platinum': 'pt', 'Diamond Jewellery': 'dia', 'Tanih - CVD Jewellery': 'cvd', Silver: 'ag' })[l.jtype] || 'au'}">${esc(JT_SHORT[l.jtype] || l.jtype)}</span>` : '', l.cat && !['Gold', 'Diamond', 'Platinum', 'Mixed', 'Silver', 'Lab-grown', l.jtype].includes(l.cat) ? `<span class="chip">${esc(l.cat)}</span>` : '', l.itemType ? `<span class="chip">${esc(l.itemType)}</span>` : ''].join('');
   const slotsHtml = l.sec === 'tray' && +l.insert > 0 ? (() => {
     const rowsS = c?.slots?.length ? c.slots.map((r) => ({ f: r.f, n: r.n })) : hideExp() ? null : [{ f: +l.insert, n: +l.qty || 0, plan: true }];
     if (!rowsS) return '';
@@ -1046,7 +1046,7 @@ function moveForm(kind, locId, keep) {
 function itemsEditor(loc, rows) {
   const types = S.D.settings.itemTypes;
   const html = () => `<div class="ied">${rows.map((r, i) => `<div class="iedr">
-      <select data-ij="${i}" class="jt-${{ 'Plain Gold Jewellery': 'g', 'Diamond Jewellery': 'd', Platinum: 'p' }[r.jt]}">${LINE_JTYPES.map((j) => `<option value="${esc(j)}" ${r.jt === j ? 'selected' : ''}>${esc(JT_SHORT[j])}</option>`).join('')}</select>
+      <select data-ij="${i}" class="jt-${JT_CLS[r.jt] || 'g'}">${LINE_JTYPES.map((j) => `<option value="${esc(j)}" ${r.jt === j ? 'selected' : ''}>${esc(JT_SHORT[j])}</option>`).join('')}</select>
       <select data-ip="${i}"><option value="">Purity…</option>${[...new Set([...S.D.settings.purities, ...(r.pur ? [r.pur] : [])])].map((p) => `<option ${r.pur === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select>
       <select data-ii="${i}"><option value="">Item…</option>${types.map((t) => `<option ${r.item === t ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select>
       <input type="number" inputmode="numeric" min="0" data-in="${i}" value="${esc(r.n)}" placeholder="Qty">
@@ -1114,7 +1114,7 @@ function locEdit(l) {
   const html = `<label class="f">Section</label><select id="eSec">${SECTIONS.map((s) => `<option value="${s.key}" ${l.sec === s.key ? 'selected' : ''}>${s.label}</option>`).join('')}</select>
     <div id="areaF" class="row"><div class="grow"><label class="f">Main location</label><select id="eArea"><option value="">—</option>${st.areas.map((p) => `<option ${l.area === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div>
       <div class="grow" id="subF"><label class="f">Sub display</label><select id="eSub"><option value="">—</option>${st.subDisplays.map((p) => `<option ${l.sub === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div></div>
-    <label class="f">Jewellery type of this ${l.sec === 'box' ? 'box' : 'tray'}</label><div class="seg wrap4" id="eJt">${JTYPES.map((p) => `<button type="button" data-jt="${esc(p)}" class="${(l.jtype || JTYPES[0]) === p ? 'on' : ''}">${esc(p === 'Plain Gold Jewellery' ? 'Plain Gold' : p === 'Diamond Jewellery' ? 'Diamond' : p)}</button>`).join('')}</div>
+    <label class="f">Jewellery type of this ${l.sec === 'box' ? 'box' : 'tray'}</label><div class="seg wrap4" id="eJt">${JTYPES.map((p) => `<button type="button" data-jt="${esc(p)}" class="${(l.jtype || JTYPES[0]) === p ? 'on' : ''}">${esc(p === 'Plain Gold Jewellery' ? 'Plain Gold' : p === 'Diamond Jewellery' ? 'Diamond' : p === 'Tanih - CVD Jewellery' ? 'Tanih CVD' : p)}</button>`).join('')}</div>
     <div class="mut sm" style="margin-top:4px">Mixed = holds more than one type. Each item below has its own jewellery type.</div>
     <label class="f">Group (counter / item / shelf)</label><input type="text" id="eGrp" list="grpL" value="${esc(l.group)}"><datalist id="grpL">${groups.map((g) => `<option value="${esc(g)}">`).join('')}</datalist>
     <label class="f">Name</label><input type="text" id="eName" value="${esc(l.name)}" placeholder="e.g. Tray 2 · 9K / Brown Tray / 9KT Box-1">
@@ -1208,7 +1208,7 @@ function vTotal() {
   const cell = (n) => `<td class="${n > 0 ? 'pos' : n < 0 ? 'neg' : ''}">${n ? sgn(n) : '—'}</td>`;
   const row = (label, X, extra = '') => `<td>${fmt(X.op)}</td><td>${fmt(X.in)}</td><td>${fmt(X.out)}</td>${extra}<td class="b">${fmt(X.exp)}</td><td>${X.dn.size}/${X.locs.size}</td><td>${fmt(X.cnt)}</td>${cell(X.cnt - X.chkExp)}`;
   const empty = { op: 0, in: 0, out: 0, exp: 0, cnt: 0, chkExp: 0, locs: new Set(), dn: new Set(), vr: new Set(), bySec: {} };
-  const mCard = (m, cls) => { const X = MS[m] || empty; return `<button class="card mcard ${cls} ${S.metal === m ? 'on' : ''}" data-metal="${m}"><div class="row sp"><h3>${m}</h3><span class="mut sm">${m === 'Gold' ? 'Plain gold + diamond' : 'Platinum jewellery'}</span></div>
+  const mCard = (m, cls) => { const X = MS[m] || empty; return `<button class="card mcard ${cls} ${S.metal === m ? 'on' : ''}" data-metal="${m}"><div class="row sp"><h3>${m}</h3><span class="mut sm">${m === 'Gold' ? 'Plain gold + diamond + Tanih CVD' : m === 'Silver' ? 'Silver jewellery' : 'Platinum jewellery'}</span></div>
     <div class="row sp" style="margin-top:8px"><div><div class="v">${fmt(X.exp)}</div><div class="mut sm">pcs expected</div></div><div style="text-align:right"><div class="b">${X.dn.size}/${X.locs.size} locations checked</div><div class="sm" style="color:${X.vr.size ? 'var(--bad)' : 'var(--ok)'}">${X.vr.size ? `${X.vr.size} with variance` : 'no variance'} · ${X.cnt - X.chkExp ? sgn(X.cnt - X.chkExp) : '±0'} pcs</div></div></div></button>`; };
   const types = [...S.D.settings.itemTypes, ...Object.keys(byItem).filter((t) => !S.D.settings.itemTypes.includes(t))].filter((t) => byItem[t]);
   const varLocs = activeLocs().filter((l) => isVar(l.id) && (S.metal === 'all' || L.some((r) => r.locId === l.id)));
@@ -1218,16 +1218,16 @@ function vTotal() {
   <div class="row sp wrap" style="margin-bottom:12px"><div><h1>Consolidated stock</h1><div class="mut">${dt(S.D.date)} · ${S.D.day.status === 'closed' ? 'Closed' : 'Live'}${S.round === 'evening' ? ' · evening count' : ''}</div></div>
   <div class="row noprint">${can('reports') ? `<button class="btn sm sec" id="erpTab">ERP match</button><button class="btn sm ghost" id="csv">Export CSV</button><button class="btn sm ghost" id="prt">Print</button>${S.D.settings.waNumber ? `<button class="btn sm ok" id="wa">WhatsApp</button>` : ''}` : ''}</div></div>
   ${blind ? '<div class="card mut">Expected totals are hidden while counting is in progress.</div>' : `
-  <div class="mgrid">${mCard('Gold', 'au')}${mCard('Platinum', 'pt')}</div>
-  <div class="seg noprint" style="margin:12px 0;max-width:420px">${[['all', 'All stock'], ['Gold', 'Gold only'], ['Platinum', 'Platinum only']].map(([k, t]) => `<button data-metal="${k}" class="${S.metal === k ? 'on' : ''}">${t}</button>`).join('')}</div>
+  <div class="mgrid">${mCard('Gold', 'au')}${mCard('Platinum', 'pt')}${MS.Silver ? mCard('Silver', 'ag') : ''}</div>
+  <div class="seg noprint" style="margin:12px 0;max-width:420px">${[['all', 'All stock'], ['Gold', 'Gold only'], ['Platinum', 'Platinum only'], ...(MS.Silver ? [['Silver', 'Silver only']] : [])].map(([k, t]) => `<button data-metal="${k}" class="${S.metal === k ? 'on' : ''}">${t}</button>`).join('')}</div>
   <h3 style="margin:6px 0 8px">By section${S.metal !== 'all' ? ` · ${S.metal}` : ''}</h3>
   <div class="tw"><table><tr><th>Section</th><th>Opening</th><th>In</th><th>Out</th><th>Expected</th><th>Checked</th><th>Counted</th><th>Variance</th></tr>
   ${SECTIONS.filter((x) => bySec[x.key]).map((x) => `<tr><td>${x.label}${x.key === 'box' && S.metal === 'all' ? `<div class="mut sm">${g3(sm.sec.box.wtExpected)} g</div>` : ''}</td>${row(x.label, bySec[x.key])}</tr>`).join('')}
   <tr class="tot"><td>Total</td>${row('Total', T)}</tr></table></div>
   <h3 style="margin:20px 0 8px">By jewellery type</h3>
   <div class="tw"><table><tr><th>Jewellery type</th><th>Metal</th><th>Opening</th><th>In</th><th>Out</th><th>Expected</th><th>Checked</th><th>Counted</th><th>Variance</th></tr>
-  ${LINE_JTYPES.filter((j) => byJt[j]).map((j) => `<tr><td>${jtB(j)} <b>${esc(j)}</b></td><td style="text-align:left">${j === 'Platinum' ? 'Platinum' : 'Gold'}</td>${row(j, byJt[j])}</tr>`).join('')}
-  ${S.metal === 'all' ? ['Gold', 'Platinum'].filter((m) => MS[m]).map((m) => `<tr class="tot"><td>${m} total</td><td></td>${row(m, MS[m])}</tr>`).join('') : ''}</table></div>
+  ${LINE_JTYPES.filter((j) => byJt[j]).map((j) => `<tr><td>${jtB(j)} <b>${esc(j)}</b></td><td style="text-align:left">${jtMetal(j)}</td>${row(j, byJt[j])}</tr>`).join('')}
+  ${S.metal === 'all' ? METALS.filter((m) => MS[m]).map((m) => `<tr class="tot"><td>${m} total</td><td></td>${row(m, MS[m])}</tr>`).join('') : ''}</table></div>
   ${mixed ? `<div class="mut sm" style="margin-top:6px">${mixed} Mixed location${mixed > 1 ? 's are' : ' is'} split by the jewellery type of each item.</div>` : ''}
   <h3 style="margin:20px 0 8px">By item type${S.metal !== 'all' ? ` · ${S.metal}` : ''}</h3>
   <div class="tw"><table><tr><th>Item</th><th>Opening</th><th>In</th><th>Out</th>${SECTIONS.map((x) => `<th>${x.short}</th>`).join('')}<th>Expected</th><th>Checked</th><th>Counted</th><th>Variance</th></tr>
@@ -1304,8 +1304,8 @@ function vErp() {
     <div class="row wrap">${ed ? `<label class="btn sm"><input type="file" accept="application/pdf" id="erpPdf" hidden>⬆ Upload ERP PDF</label><button class="btn sm ghost" id="manual">${manual ? 'Cancel' : 'Enter manually'}</button>` : ''}<button class="btn sm ghost" id="back">← Consolidated</button></div></div>
   <div class="${!E.entered ? 'banner' : E.matched ? 'done-b' : 'banner'}" style="${E.entered && !E.matched ? 'background:var(--badb);color:var(--bad)' : ''}">${!E.entered ? 'Upload the Yamie ERP "Locationwise Item Summary" PDF, or enter the closing Pc / Lbl manually.' : E.matched ? `✓ Matched — app ${wh} ${fmt(E.total.app)} = ERP ${fmt(E.total[E.basis])} ${bL}` : `Not matching — app ${wh} ${fmt(E.total.app)} vs ERP ${fmt(E.total[E.basis])} ${bL} · difference ${sgn(E.total.diff)}`}</div>
   <div class="tw erp" style="margin-top:12px"><table><tr><th>ERP ornament</th><th>App ${wh}</th>${E.which === 'closing' ? '<th>Counted</th>' : ''}<th>ERP Pc</th><th>ERP Lbl</th><th>ERP gross g</th><th>Diff (app − ${bL})</th></tr>
-  ${['Gold', 'Platinum'].map((m) => { const rs = E.rows.filter((r) => erpMetal(r.name) === m); if (!rs.length) return ''; const sum = (k) => rs.reduce((a, r) => a + (+r[k] || 0), 0); const d = rs.reduce((a, r) => a + (r.diff || 0), 0);
-    return `<tr class="mhead ${m === 'Platinum' ? 'pt' : 'au'}"><td colspan="${E.which === 'closing' ? 7 : 6}">${m}</td></tr>` + rs.map((r) => `<tr><td class="b">${esc(r.name)}${!r.erp ? ' <span class="chip">not in ERP</span>' : ''}</td><td>${fmt(r.app)}</td>${E.which === 'closing' ? `<td class="mut">${fmt(r.cnt)}</td>` : ''}<td class="${r.pcs < 0 ? 'neg' : ''}">${manual ? inp(r, 'pcs') : r.pcs ?? '—'}</td><td>${manual ? inp(r, 'lbl') : r.lbl ?? '—'}</td><td>${r.gr != null ? g3(r.gr) : '—'}</td><td class="${r.diff > 0 ? 'pos' : r.diff < 0 ? 'neg' : ''}">${r.diff == null ? '—' : r.diff ? sgn(r.diff) : '✓'}</td></tr>`).join('') + `<tr class="msub"><td>${m} subtotal</td><td>${fmt(sum('app'))}</td>${E.which === 'closing' ? `<td>${fmt(sum('cnt'))}</td>` : ''}<td>${fmt(sum('pcs'))}</td><td>${fmt(sum('lbl'))}</td><td>${g3(sum('gr'))}</td><td class="${d > 0 ? 'pos' : d < 0 ? 'neg' : ''}">${d ? sgn(d) : '✓'}</td></tr>`; }).join('')}
+  ${METALS.map((m) => { const rs = E.rows.filter((r) => erpMetal(r.name) === m); if (!rs.length) return ''; const sum = (k) => rs.reduce((a, r) => a + (+r[k] || 0), 0); const d = rs.reduce((a, r) => a + (r.diff || 0), 0);
+    return `<tr class="mhead ${m === 'Platinum' ? 'pt' : m === 'Silver' ? 'ag' : 'au'}"><td colspan="${E.which === 'closing' ? 7 : 6}">${m}</td></tr>` + rs.map((r) => `<tr><td class="b">${esc(r.name)}${!r.erp ? ' <span class="chip">not in ERP</span>' : ''}</td><td>${fmt(r.app)}</td>${E.which === 'closing' ? `<td class="mut">${fmt(r.cnt)}</td>` : ''}<td class="${r.pcs < 0 ? 'neg' : ''}">${manual ? inp(r, 'pcs') : r.pcs ?? '—'}</td><td>${manual ? inp(r, 'lbl') : r.lbl ?? '—'}</td><td>${r.gr != null ? g3(r.gr) : '—'}</td><td class="${r.diff > 0 ? 'pos' : r.diff < 0 ? 'neg' : ''}">${r.diff == null ? '—' : r.diff ? sgn(r.diff) : '✓'}</td></tr>`).join('') + `<tr class="msub"><td>${m} subtotal</td><td>${fmt(sum('app'))}</td>${E.which === 'closing' ? `<td>${fmt(sum('cnt'))}</td>` : ''}<td>${fmt(sum('pcs'))}</td><td>${fmt(sum('lbl'))}</td><td>${g3(sum('gr'))}</td><td class="${d > 0 ? 'pos' : d < 0 ? 'neg' : ''}">${d ? sgn(d) : '✓'}</td></tr>`; }).join('')}
   <tr class="tot"><td>Bottom total</td><td>${fmt(E.total.app)}</td>${E.which === 'closing' ? `<td>${fmt(S.sum.total.counted)}</td>` : ''}<td>${manual ? `<input type="number" id="tPcs" value="${erp?.total?.pcs ?? ''}">` : E.total.pcs ?? '—'}</td><td>${manual ? `<input type="number" id="tLbl" value="${erp?.total?.lbl ?? ''}">` : E.total.lbl ?? '—'}</td><td>${E.total.gr != null ? g3(E.total.gr) : '—'}</td><td class="${E.total.diff ? 'neg' : 'pos'}">${E.total.diff == null ? '—' : E.total.diff ? sgn(E.total.diff) : '✓ Match'}</td></tr></table></div>
   <div class="mut sm" style="margin-top:6px">App pieces are matched against ERP <b>${bL}</b>. Mapping app item types / categories to ERP ornaments is in Admin → Settings.${E.excluded ? ` ${fmt(E.excluded)} pcs are mapped to "-" (not in the ERP report) and left out.` : ''} Platinum jewellery is matched to <b>${esc(S.D.settings.erpPlatinum || 'YFJ - PLATINUM MM')}</b>. A second PDF for the same date (e.g. the platinum report) can be added to the first.</div>
   ${wo.length ? `<h3 style="margin:16px 0 6px">Weight-only ERP rows — omitted, kept in Boxes</h3><div class="tw"><table><tr><th>ERP item</th><th>ERP gross g</th><th>App box</th><th>App weight g</th></tr>${wo.map((x) => { const l = S.D.locs.find((y) => y.erpName && erpKey(y.erpName) === erpKey(x.name)); return `<tr><td class="b">${esc(x.name)}</td><td>${g3(x.gr)}</td><td>${l ? esc(l.name) : '—'}</td><td>${l ? g3(expOf(l.id).wt) : '—'}</td></tr>`; }).join('')}</table></div>` : ''}
@@ -1328,7 +1328,7 @@ function vErp() {
 }
 function summaryText() {
   const sm = S.sum; const t = sm.total;
-  const metalLines = ['Gold', 'Platinum'].map((m) => { const rs = sm.lines.filter((r) => r.metal === m); const ids = new Set(rs.map((r) => r.locId)); return `${m}: ${rs.reduce((x, r) => x + r.exp, 0)} pcs, checked ${[...ids].filter((i) => sm.status[i]?.state !== 'pending').length}/${ids.size}, variance ${[...ids].filter((i) => ['var', 'stale'].includes(sm.status[i]?.state)).length}`; }).join('\n');
+  const metalLines = METALS.filter((m) => sm.lines.some((r) => r.metal === m)).map((m) => { const rs = sm.lines.filter((r) => r.metal === m); const ids = new Set(rs.map((r) => r.locId)); return `${m}: ${rs.reduce((x, r) => x + r.exp, 0)} pcs, checked ${[...ids].filter((i) => sm.status[i]?.state !== 'pending').length}/${ids.size}, variance ${[...ids].filter((i) => ['var', 'stale'].includes(sm.status[i]?.state)).length}`; }).join('\n');
   return `Yamie stock · ${S.D.date} (${S.D.day.status})\n` + SECTIONS.map((s) => { const X = sm.sec[s.key]; return `${s.label}: ${X.expected} pcs${s.key === 'box' ? ` / ${g3(X.wtExpected)} g` : ''}, checked ${X.locs - X.pending}/${X.locs}, variance ${X.var + X.stale}`; }).join('\n') + `\n${metalLines}\nTotal: opening ${t.opening}, in ${t.in}, out ${t.out}, expected ${t.expected}\nVariance locations: ${t.var + t.stale}` +
     activeLocs().filter((l) => ['var', 'stale'].includes(sm.status[l.id].state)).map((l) => `\n• ${l.name}: ${diffTxt(sm.status[l.id].diff, l) || 'weight/recount'}`).join('');
 }
@@ -1339,7 +1339,7 @@ function exportCSV() {
     const e = expOf(l.id), o = opOf(l.id), f = sm.flows[l.id] || { in: {}, out: {} }, c = sm.last[l.id], st = sm.status[l.id];
     const ts = [...new Set([...Object.keys(e.lines), ...Object.keys(o.lines), ...Object.keys(f.in), ...Object.keys(f.out), ...Object.keys(c?.lines || {})])].sort((a, b) => types.indexOf(a) - types.indexOf(b));
     if (!ts.length) ts.push('');
-    ts.forEach((t, i) => { const cn = c && c.mode !== 'weight' ? (c.lines?.[t] || 0) : ''; rows.push([S.D.date, t ? (jtOfLine(l, t) === 'Platinum' ? 'Platinum' : 'Gold') : metalOf(l), t ? jtOfLine(l, t) : (l.jtype || ''), l.area || '', l.sub || '', secLabel(l.sec), l.group, l.name, l.boxNo || '', t ? purOfLine(l, t) : l.purity, l.cat, t ? itemOf(t) : '', o.lines[t] || 0, f.in[t] || 0, f.out[t] || 0, e.lines[t] || 0, cn, cn === '' ? '' : cn - (e.lines[t] || 0), i ? '' : (l.sec === 'box' ? e.wt : ''), i ? '' : (c?.wt ?? ''), STLBL[st.state], c ? uname(c.by) : '', c ? tm(c.at) : '']); });
+    ts.forEach((t, i) => { const cn = c && c.mode !== 'weight' ? (c.lines?.[t] || 0) : ''; rows.push([S.D.date, t ? jtMetal(jtOfLine(l, t)) : metalOf(l), t ? jtOfLine(l, t) : (l.jtype || ''), l.area || '', l.sub || '', secLabel(l.sec), l.group, l.name, l.boxNo || '', t ? purOfLine(l, t) : l.purity, l.cat, t ? itemOf(t) : '', o.lines[t] || 0, f.in[t] || 0, f.out[t] || 0, e.lines[t] || 0, cn, cn === '' ? '' : cn - (e.lines[t] || 0), i ? '' : (l.sec === 'box' ? e.wt : ''), i ? '' : (c?.wt ?? ''), STLBL[st.state], c ? uname(c.by) : '', c ? tm(c.at) : '']); });
   }
   const csv = rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
   if (window.YamieStock?.shareFile) return window.YamieStock.shareFile(`yamie-stock-${S.D.date}.csv`, 'text/csv', '\ufeff' + csv);
@@ -1554,6 +1554,8 @@ function admSettings() {
     <label class="f">Main locations (comma separated)</label><input type="text" id="sAr" value="${esc(st.areas.join(', '))}">
     <label class="f">Sub displays</label><input type="text" id="sSd" value="${esc(st.subDisplays.join(', '))}">
     <label class="f">ERP ornament for Platinum</label><input type="text" id="sPt" value="${esc(st.erpPlatinum || 'YFJ - PLATINUM MM')}">
+    <label class="f">ERP ornament for Tanih - CVD Jewellery</label><input type="text" id="sTn" value="${esc(st.erpTanih || 'Tanih - CVD Jewellery')}">
+    <label class="f">ERP ornament for Silver</label><input type="text" id="sAg" value="${esc(st.erpSilver || 'Silver Jewellery')}">
     <label class="f">Discrepancy reasons (comma separated)</label><textarea id="sR">${esc(st.reasons.join(', '))}</textarea>
     <label class="f">Item types (comma separated)</label><textarea id="sI">${esc(st.itemTypes.join(', '))}</textarea>
     <label class="f">Purities</label><input type="text" id="sP" value="${esc(st.purities.join(', '))}">
@@ -1561,7 +1563,7 @@ function admSettings() {
     <button class="btn" style="width:100%;margin-top:14px" id="sS">Save settings</button></div>`;
   const list = (v) => v.split(',').map((x) => x.trim()).filter(Boolean);
   const kv = (v) => Object.fromEntries(v.split('\n').map((x) => x.split('=').map((y) => y.trim())).filter((x) => x[0] && x.length > 1));
-  $('#sS').onclick = async () => { try { await api('settings', { settings: { shopName: $('#sN').value, waNumber: $('#sW').value, wtTol: +$('#sT').value, blind: $('#sB').checked, reqPhotos: $('#sPh').checked, erpBasis: $('#sE').value, areas: list($('#sAr').value), subDisplays: list($('#sSd').value), erpPlatinum: $('#sPt').value, erpItemMap: kv($('#sM').value), erpCatMap: kv($('#sCM').value), reasons: list($('#sR').value), itemTypes: list($('#sI').value), purities: list($('#sP').value), categories: list($('#sC').value) } }); toast('Settings saved'); load(true); } catch (e) { fail(e); } };
+  $('#sS').onclick = async () => { try { await api('settings', { settings: { shopName: $('#sN').value, waNumber: $('#sW').value, wtTol: +$('#sT').value, blind: $('#sB').checked, reqPhotos: $('#sPh').checked, erpBasis: $('#sE').value, areas: list($('#sAr').value), subDisplays: list($('#sSd').value), erpPlatinum: $('#sPt').value, erpTanih: $('#sTn').value, erpSilver: $('#sAg').value, erpItemMap: kv($('#sM').value), erpCatMap: kv($('#sCM').value), reasons: list($('#sR').value), itemTypes: list($('#sI').value), purities: list($('#sP').value), categories: list($('#sC').value) } }); toast('Settings saved'); load(true); } catch (e) { fail(e); } };
 }
 
 // ---------------- boot ----------------

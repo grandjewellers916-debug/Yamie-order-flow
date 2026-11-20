@@ -50,7 +50,11 @@ async function getUsers(s: any) {
   return u.users as any[];
 }
 const pubUser = (u: any) => ({ id: u.id, name: u.name, role: u.role, perms: u.perms, active: u.active !== false, phone: u.phone || '' });
-async function getSettings(s: any) { return { ...DEFAULT_SETTINGS, ...((await s.get('cfg/settings', { type: 'json' })) || {}), jtypes: JTYPES }; }
+async function getSettings(s: any) {
+  const st = { ...DEFAULT_SETTINGS, ...((await s.get('cfg/settings', { type: 'json' })) || {}), jtypes: JTYPES };
+  if (Array.isArray(st.purities) && !st.purities.includes('925')) st.purities = [...st.purities.filter((p: string) => !['Silver', 'Mixed'].includes(p)), '925', ...st.purities.filter((p: string) => ['Silver', 'Mixed'].includes(p))];   // v1.13 silver
+  return st;
+}
 async function getLocs(s: any) {
   let l = await s.get('cfg/locs', { type: 'json' });
   if (!l) {
@@ -59,6 +63,11 @@ async function getLocs(s: any) {
     await s.setJSON(`day/${today}`, { date: today, opening: seed.opening, status: 'open', createdAt: now(), seeded: true }, { onlyIfNew: true });
     await s.setJSON('cfg/locs', { locs: seed.locs }, { onlyIfNew: true });
     l = await s.get('cfg/locs', { type: 'json' });
+  }
+  // v1.13: lab-grown (CVD) trays become the new jewellery type Tanih - CVD Jewellery — once
+  if (!l.mig13) {
+    for (const x of l.locs) if (x.cat === 'Lab-grown' && (x.jtype === 'Diamond Jewellery' || x.jtype === undefined)) x.jtype = 'Tanih - CVD Jewellery';
+    l.mig13 = true; await s.setJSON('cfg/locs', l);
   }
   // v1.8: Main location / Sub display / Jewellery type — fill in once for older locations
   if (l.locs.some((x: any) => x.jtype === undefined)) {
@@ -543,6 +552,8 @@ export default async (req: Request) => {
       if (b.reqPhotos != null) next.reqPhotos = !!b.reqPhotos;
       for (const k of ['areas', 'subDisplays']) if (Array.isArray(b[k])) next[k] = b[k].map((x: any) => String(x).trim().slice(0, 40)).filter(Boolean);
       if (typeof b.erpPlatinum === 'string' && b.erpPlatinum.trim()) next.erpPlatinum = b.erpPlatinum.trim().slice(0, 60);
+      if (typeof b.erpTanih === 'string' && b.erpTanih.trim()) next.erpTanih = b.erpTanih.trim().slice(0, 60);
+      if (typeof b.erpSilver === 'string' && b.erpSilver.trim()) next.erpSilver = b.erpSilver.trim().slice(0, 60);
       if (typeof b.waNumber === 'string') next.waNumber = b.waNumber.replace(/[^0-9]/g, '').slice(0, 15);
       await s.setJSON('cfg/settings', next);
       return J({ ok: true, settings: next });
