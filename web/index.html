@@ -49,6 +49,7 @@ label.f{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
 .dvn{position:absolute;top:50%;transform:translateY(-50%);z-index:2;width:44px;height:64px;border:0;border-radius:12px;background:rgba(255,255,255,.14);color:#fff;font-size:30px}.dvn.l{left:8px}.dvn.r{right:8px}.dvn:disabled{opacity:.2}
 .dvfoot{display:flex;align-items:center;justify-content:center;gap:10px;padding:8px 8px calc(10px + env(safe-area-inset-bottom));background:rgba(0,0,0,.6);z-index:2}#dvZ{min-width:48px;text-align:center;font-size:13px;opacity:.8}
 .dvdots{display:flex;gap:5px;margin-left:10px}.dvdots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.35)}.dvdots i.on{background:#fff}
+.addbar{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}.addbar .btn{padding-left:6px;padding-right:6px}
 .afbar{margin-bottom:12px}.afbar .selbar{display:flex;flex-wrap:wrap;gap:8px}.afbar .selbar .grow{min-width:150px;flex:1}@media(max-width:699px){.afbar .selbar{display:grid;grid-template-columns:1fr 1fr}.afbar .selbar .grow{min-width:0}.afbar .selbar .grow:last-child{grid-column:1/-1}}
 .hrem{margin-top:12px;border-color:#F1D9A8;background:#FFFBF2}.hrow{display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:8px 0;border-top:1px solid var(--ln);background:none}.hrow:first-of-type{border-top:0}
 .dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin-top:12px}
@@ -349,7 +350,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.22';
+const VERSION = '1.23';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -1225,23 +1226,30 @@ function locEdit(l) {
   let jsel = locJts(l); if (!jsel.length) jsel = normJts(iRows.map((r) => r.jt)); if (!jsel.length) jsel = [defaultJt(l)];
   const ied = itemsEditor(l, iRows, () => jsel);
   const groups = [...new Set(S.D.locs.filter((x) => x.sec === l.sec).map((x) => x.group))];
-  const html = `<label class="f">Section</label><select id="eSec">${SECTIONS.map((s) => `<option value="${s.key}" ${l.sec === s.key ? 'selected' : ''}>${s.label}</option>`).join('')}</select>
+  // v1.23 separate forms: Counter tray / Buffer tray / Box — labels and required fields per section; section fixed when adding
+  const K = { counter: { what: 'counter tray', grp: 'Counter *', grpPh: 'e.g. Cash side · Counter 1', name: 'Tray name *', namePh: 'e.g. Tray 1 · Diamond' },
+    tray: { what: 'buffer tray', grp: 'Item group', grpPh: 'e.g. Finger rings (blank = main item type)', name: 'Tray name *', namePh: 'e.g. Brown Tray / Beige 14K' },
+    box: { what: 'box', grp: 'Group', grpPh: 'e.g. 9KT boxes (blank = Boxes)', name: 'Box name', namePh: 'e.g. 9KT Box-1 (blank = Box + number)' } }[l.sec] || {};
+  const html = `${isNew ? `<input type="hidden" id="eSec" value="${esc(l.sec)}">` : `<label class="f">Section</label><select id="eSec">${SECTIONS.map((s) => `<option value="${s.key}" ${l.sec === s.key ? 'selected' : ''}>${s.label}</option>`).join('')}</select>`}
     <div id="areaF" class="row"><div class="grow"><label class="f">Main location</label><select id="eArea"><option value="">—</option>${st.areas.map((p) => `<option ${l.area === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div>
       <div class="grow" id="subF"><label class="f">Sub display</label><select id="eSub"><option value="">—</option>${st.subDisplays.map((p) => `<option ${l.sub === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div></div>
     <label class="f">Jewellery types in this ${l.sec === 'box' ? 'box' : l.sec === 'counter' ? 'counter tray' : 'tray'} <span class="mut" style="text-transform:none;letter-spacing:0">— tick one or more</span></label><div class="jtpick" id="eJt">${LINE_JTYPES.map((p) => `<button type="button" data-jt="${esc(p)}" class="jtp ${JT_CLS[p]} ${jsel.includes(p) ? 'on' : ''}"><span class="tk">✓</span>${esc(p === 'Plain Gold Jewellery' ? 'Plain Gold' : p === 'Diamond Jewellery' ? 'Diamond' : p === 'Tanih - CVD Jewellery' ? 'Tanih CVD' : p)}</button>`).join('')}</div>
     <div class="mut sm" style="margin-top:4px" id="jtHint"></div>
-    <label class="f">Group (counter / item / shelf)</label><input type="text" id="eGrp" list="grpL" value="${esc(l.group)}"><datalist id="grpL">${groups.map((g) => `<option value="${esc(g)}">`).join('')}</datalist>
-    <label class="f">Name</label><input type="text" id="eName" value="${esc(l.name)}" placeholder="e.g. Tray 2 · 9K / Brown Tray / 9KT Box-1">
+    ${l.sec === 'box' ? `<label class="f">Box number *</label><input type="text" id="eBox" value="${esc(l.boxNo || '')}" placeholder="e.g. B-12">` : ''}
+    <label class="f">${K.grp || 'Group'}</label><input type="text" id="eGrp" list="grpL" value="${esc(l.group)}" placeholder="${esc(K.grpPh || '')}"><datalist id="grpL">${groups.map((g) => `<option value="${esc(g)}">`).join('')}</datalist>
+    ${groups.length ? `<div class="mut sm" style="margin-top:4px">Existing: ${groups.slice(0, 8).map((g) => `<button type="button" class="lnk" data-grp="${esc(g)}">${esc(g)}</button>`).join(' · ')}${groups.length > 8 ? ' …' : ''}</div>` : ''}
+    <label class="f">${K.name || 'Name'}</label><input type="text" id="eName" value="${esc(l.name)}" placeholder="${esc(K.namePh || '')}">
     <div class="row"><div class="grow"><label class="f">Purity (default for items)</label><select id="ePur"><option value="">—</option>${st.purities.map((p) => `<option ${l.purity === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div>
     <div class="grow"><label class="f">Tag (optional — Lab-grown, Kids, Gents…)</label><select id="eCat"><option value="">—</option>${st.categories.map((p) => `<option ${l.cat === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div></div>
     <div class="row"><div class="grow"><label class="f">Main item type</label><select id="eType"><option value="">Mixed / several</option>${st.itemTypes.map((p) => `<option ${l.itemType === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div>
-    <div class="grow" id="boxF"><label class="f">Box number</label><input type="text" id="eBox" value="${esc(l.boxNo || '')}"></div></div>
+    ${l.sec === 'box' ? '' : `<div class="grow hidden" id="boxF"><label class="f">Box number</label><input type="text" id="eBoxX" value="${esc(l.boxNo || '')}"></div>`}</div>
     <div class="row" id="trayF"><div class="grow"><label class="f">Pcs per tray (insert)</label><input type="number" id="eIns" value="${esc(l.insert || '')}"></div><div class="grow"><label class="f">No. of trays</label><input type="number" id="eQty" value="${esc(l.qty || '')}"></div></div>
     <div id="modeF"><label class="f">Default box check</label><select id="eMode">${[['both', 'Weight + count'], ['weight', 'Weight only'], ['count', 'Count only']].map(([k, t]) => `<option value="${k}" ${l.mode === k ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
     <label class="f">Note</label><input type="text" id="eNote" value="${esc(l.note || '')}">
     ${canItems ? `<h3 style="margin:16px 0 6px">Items in this ${l.sec === 'box' ? 'box' : 'location'}</h3><div class="mut sm">${isNew ? 'Pieces placed here now (you can also add later).' : 'Add, change or delete items. Saving updates book stock (logged).'}</div><div id="iedBox" style="margin-top:8px"></div>${isNew ? '<div id="iniWt"><label class="f">Box weight (g)</label><input type="number" step="0.001" id="eWt"></div>' : ''}` : ''}
-    <div class="row" style="margin-top:16px">${!isNew ? `<button class="btn bad sm" id="eDel">🗑 Delete</button>` : ''}<button class="btn grow" id="eSave">${isNew ? 'Add location' : 'Save'}</button></div>`;
-  modal(isNew ? 'Add location' : 'Edit · ' + esc(l.name), 'Manager / admin', html, (ov) => {
+    <div class="row" style="margin-top:16px">${!isNew ? `<button class="btn bad sm" id="eDel">🗑 Delete</button>` : ''}<button class="btn grow" id="eSave">${isNew ? `＋ Add ${K.what || 'location'}` : 'Save'}</button></div>`;
+  modal(isNew ? `Add ${K.what || 'location'}` : 'Edit · ' + esc(l.name), isNew ? ({ counter: 'Counter display', tray: 'Buffer trays (locker)', box: 'Buffer stock in boxes' })[l.sec] : 'Manager / admin', html, (ov) => {
+    ov.querySelectorAll('[data-grp]').forEach((b) => b.onclick = () => { $('#eGrp').value = b.dataset.grp; });
     const jtHint = () => { const h = $('#jtHint'); if (h) h.textContent = jsel.length > 1 ? `Mixed: ${jsel.map((j) => JT_SHORT[j]).join(' + ')}. Choose the type of each item below.` : `All items are ${jsel[0]}.`; };
     jtHint();
     let purPrev = l.purity || '';
@@ -1256,11 +1264,14 @@ function locEdit(l) {
       if (prev.length === 1 && jsel.length === 1) iRows.forEach((r) => { if (r.jt === prev[0]) r.jt = jsel[0]; });
       else iRows.forEach((r) => { if (!jsel.includes(r.jt) && prev.includes(r.jt) && !(+r.n > 0)) r.jt = jsel[0]; });
       jtHint(); drawItems(); });
-    const vis = () => { const s = $('#eSec').value; $('#subF').classList.toggle('hidden', s !== 'counter'); $('#boxF').classList.toggle('hidden', s !== 'box'); $('#modeF').classList.toggle('hidden', s !== 'box'); $('#trayF').classList.toggle('hidden', s !== 'tray'); $('#iniWt') && $('#iniWt').classList.toggle('hidden', s !== 'box'); };
+    const vis = () => { const s = $('#eSec').value; $('#subF').classList.toggle('hidden', s !== 'counter'); $('#boxF') && $('#boxF').classList.toggle('hidden', true); $('#modeF').classList.toggle('hidden', s !== 'box'); $('#trayF').classList.toggle('hidden', s !== 'tray'); $('#iniWt') && $('#iniWt').classList.toggle('hidden', s !== 'box'); };
     $('#eSec').onchange = vis; vis();
     $('#eSave').onclick = async () => {
-      const loc = { ...l, area: $('#eArea').value, sub: $('#eSec').value === 'counter' ? $('#eSub').value : '', jtype: jsel.length > 1 ? 'Mixed' : jsel[0], jtypes: jsel, sec: $('#eSec').value, group: $('#eGrp').value.trim(), name: $('#eName').value.trim(), purity: $('#ePur').value, cat: $('#eCat').value, itemType: $('#eType').value, boxNo: $('#eBox').value.trim(), insert: +$('#eIns').value || 0, qty: +$('#eQty').value || 0, mode: $('#eMode').value, note: $('#eNote').value };
-      if (!loc.name || !loc.group) return toast('Group and name are required');
+      const loc = { ...l, area: $('#eArea').value, sub: $('#eSec').value === 'counter' ? $('#eSub').value : '', jtype: jsel.length > 1 ? 'Mixed' : jsel[0], jtypes: jsel, sec: $('#eSec').value, group: $('#eGrp').value.trim(), name: $('#eName').value.trim(), purity: $('#ePur').value, cat: $('#eCat').value, itemType: $('#eType').value, boxNo: (($('#eBox') || $('#eBoxX'))?.value || '').trim(), insert: +$('#eIns').value || 0, qty: +$('#eQty').value || 0, mode: $('#eMode').value, note: $('#eNote').value };
+      if (loc.sec === 'box') { loc.boxNo = ($('#eBox') || $('#eBoxX'))?.value.trim() || loc.boxNo || ''; if (!loc.boxNo && !loc.name) return toast('Enter the box number'); if (!loc.name) loc.name = /^box/i.test(loc.boxNo) ? loc.boxNo : `Box ${loc.boxNo}`; if (!loc.group) loc.group = loc.itemType ? `${loc.itemType} boxes` : 'Boxes'; }
+      if (loc.sec === 'tray' && !loc.group) loc.group = loc.itemType ? `${loc.itemType} trays` : 'Buffer trays';
+      if (loc.sec === 'counter' && !loc.group) return toast('Enter the counter (e.g. Cash side · Counter 1)');
+      if (!loc.name) return toast(loc.sec === 'box' ? 'Enter the box number or name' : 'Enter the tray name');
       try {
         if (canItems && ied.invalid()) return toast('Choose the item for every row with a quantity');
         const off = canItems ? [...new Set(iRows.filter((r) => +r.n > 0 && !jsel.includes(r.jt)).map((r) => JT_SHORT[r.jt]))] : [];
@@ -1274,7 +1285,10 @@ function locEdit(l) {
           if (isNew ? (Object.keys(lines).length || wt) : (rekey || !sameLines(lines, before)))
             await api('move', { kind: 'set', date: S.D.date, locId: saved.id, lines, wt, note: isNew ? 'Opening stock for new location' : 'Items edited (Edit location)', reason: 'Count set' });
         }
-        toast('Saved'); closeModal(); await load();
+        closeModal(); await load();
+        if (isNew) { toast(`✓ Added ${loc.name} to ${({ counter: 'Counter', tray: 'Buffer trays', box: 'Boxes' })[loc.sec]}`, 3500);
+          if (S.view === 'admin' && S.tab === 'locs') { S.af = { sec: loc.sec, area: '', sub: '', group: '', jt: '', item: '', pur: '', q: loc.name }; admLocs(); } }
+        else toast('Saved');
       } catch (e) { fail(e); }
     };
     $('#eDel') && ($('#eDel').onclick = () => delLoc(l));
@@ -2173,6 +2187,9 @@ const heldOf = (l) => Object.entries(expOf(l.id).lines).filter(([, n]) => n);
 const locItems = (l) => [...new Set([...heldOf(l).map(([k]) => itemOf(k)), ...(l.itemType ? [l.itemType] : [])])];
 const locPurs = (l) => { const h = heldOf(l); return [...new Set(h.length ? h.map(([k]) => purOfLine(l, k) || 'Not set') : [l.purity || 'Not set'])]; };
 const locJtAll = (l) => [...new Set([...locJts(l), ...heldOf(l).map(([k]) => jtOfLine(l, k))])];
+// v1.23 one place to start each add form (Admin → Locations buttons, section pages)
+function addLoc(sec) { const st = S.D.settings; locEdit({ sec, group: sec === 'counter' && SEL_LAST.counter ? SEL_LAST.counter : '', name: '', cat: '', area: sec === 'counter' ? st.areas[0] : st.areas.includes('Locker Area') ? 'Locker Area' : st.areas[0], sub: sec === 'counter' ? st.subDisplays[0] : '', jtype: JTYPES[0], images: [], mode: 'both' }); }
+const SEL_LAST = {};
 function admLocs() {
   const st = S.D.settings; S.af ||= { sec: 'all', area: '', sub: '', group: '', jt: '', item: '', pur: '', q: '' }; const F = S.af;
   const pool = activeLocs().filter((l) => F.sec === 'all' || l.sec === F.sec);
@@ -2206,7 +2223,8 @@ function admLocs() {
       <div class="grow"><label class="f">Search</label><input type="search" id="afQ" value="${esc(F.q)}" placeholder="Name, box no., tag…"></div></div>
     <div class="row sp" style="margin-top:8px"><span class="mut sm">Showing <b>${shown.length}</b> of ${activeLocs().length} · ${lineF ? `<b>${fmt(shown.reduce((a, l) => a + matchPcs(l), 0))}</b> matching pcs (${fmt(shown.reduce((a, l) => a + sumLines(expOf(l.id).lines), 0))} in these locations)` : `${fmt(shown.reduce((a, l) => a + sumLines(expOf(l.id).lines), 0))} pcs`}</span>${active ? '<button class="btn sm ghost" id="afClr">✕ Clear filters</button>' : ''}</div></div>`;
   const filtered = active > 0;
-  $('#adm').innerHTML = `<div class="mut sm" style="margin-bottom:10px">Add, edit or delete counters, trays and boxes. Tap a name to open it (photos, stock). ${editable() ? '' : '<b>Day is closed — reopen to change stock.</b>'}</div>` + bar + SECTIONS.filter((s) => F.sec === 'all' || F.sec === s.key).filter((s) => !filtered || shown.some((l) => l.sec === s.key) || F.sec === s.key).map((s) => `<div class="grp"><span>${s.label} (${filtered ? `${shown.filter((l) => l.sec === s.key).length} of ` : ''}${activeLocs(s.key).length})</span>${editable() ? `<button class="btn sm sec" data-add="${s.key}">＋ Add ${s.key === 'counter' ? 'counter tray' : s.key === 'tray' ? 'tray' : 'box'}</button>` : ''}</div>
+  const addBar = can('setup') && editable() ? `<div class="addbar"><button class="btn" data-addn="counter">＋ Counter tray</button><button class="btn" data-addn="tray">＋ Buffer tray</button><button class="btn" data-addn="box">＋ Box</button></div>` : '';
+  $('#adm').innerHTML = `<div class="mut sm" style="margin-bottom:10px">Add, edit or delete counters, trays and boxes. Tap a name to open it (photos, stock). ${editable() ? '' : '<b>Day is closed — reopen today’s day to add or change locations.</b>'}</div>` + addBar + bar + SECTIONS.filter((s) => F.sec === 'all' || F.sec === s.key).filter((s) => !filtered || shown.some((l) => l.sec === s.key) || F.sec === s.key).map((s) => `<div class="grp"><span>${s.label} (${filtered ? `${shown.filter((l) => l.sec === s.key).length} of ` : ''}${activeLocs(s.key).length})</span>${editable() ? `<button class="btn sm sec" data-add="${s.key}">＋ Add ${s.key === 'counter' ? 'counter tray' : s.key === 'tray' ? 'tray' : 'box'}</button>` : ''}</div>
     <div class="tw"><table><tr><th>Name</th>${s.key === 'counter' ? '<th>Main location</th><th>Sub display</th>' : '<th>Main location</th>'}<th>Group</th><th>Jewellery type</th><th>Purity</th><th>Item</th><th>Pcs</th>${s.key === 'box' ? '<th>Weight g</th>' : ''}<th></th></tr>${shown.filter((l) => l.sec === s.key).map((l) => `<tr><td class="b" data-loc="${l.id}" style="cursor:pointer;text-decoration:underline dotted">${esc(l.name)}${l.boxNo ? ` <span class="chip m">${esc(l.boxNo)}</span>` : ''}</td><td style="text-align:left">${esc(l.area || '—')}</td>${s.key === 'counter' ? `<td style="text-align:left">${esc(l.sub || '—')}</td>` : ''}<td style="text-align:left">${esc(l.group)}</td><td style="text-align:left">${jtChips(l) || '—'}</td><td style="text-align:left">${esc(locPurs(l).join(', '))}</td><td style="text-align:left" class="sm">${esc(locItems(l).join(', ') || l.itemType || '—')}</td><td>${lineF ? `<b>${fmt(matchPcs(l))}</b> <span class="mut sm">/ ${fmt(sumLines(expOf(l.id).lines))}</span>` : fmt(sumLines(expOf(l.id).lines))}</td>${s.key === 'box' ? `<td class="${expOf(l.id).wt ? '' : 'neg'}">${expOf(l.id).wt ? g3(expOf(l.id).wt) : 'not set'}</td>` : ''}
       <td style="white-space:nowrap">${can('setup') && editable() ? `<button class="btn sm ghost" data-edit="${l.id}">✎ Edit</button> <button class="btn sm ghost" data-delloc="${l.id}" style="color:var(--bad)">🗑</button>` : ''}</td></tr>`).join('')}</table></div>`).join('');
   $('#adm').querySelectorAll('[data-afs]').forEach((b) => b.onclick = () => { F.sec = b.dataset.afs; if (F.sec !== 'all' && F.sec !== 'counter') F.sub = ''; admLocs(); });
@@ -2216,7 +2234,7 @@ function admLocs() {
   $('#adm').querySelectorAll('[data-loc]').forEach((r) => r.onclick = () => locSheet(r.dataset.loc));
   $('#adm').querySelectorAll('[data-edit]').forEach((b) => b.onclick = () => locEdit(S.locById[b.dataset.edit]));
   $('#adm').querySelectorAll('[data-delloc]').forEach((b) => b.onclick = () => delLoc(S.locById[b.dataset.delloc]));
-  $('#adm').querySelectorAll('[data-add]').forEach((b) => b.onclick = () => locEdit({ sec: b.dataset.add, group: '', name: '', cat: '', area: b.dataset.add === 'counter' ? st.areas[0] : 'Locker Area', sub: b.dataset.add === 'counter' ? st.subDisplays[0] : '', jtype: JTYPES[0], images: [], mode: 'both' }));
+  $('#adm').querySelectorAll('[data-add],[data-addn]').forEach((b) => b.onclick = () => addLoc(b.dataset.add || b.dataset.addn));
 }
 function admSettings() {
   const st = S.D.settings;
