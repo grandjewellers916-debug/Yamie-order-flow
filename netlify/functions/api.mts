@@ -3,7 +3,7 @@ import crypto from 'node:crypto';
 import { buildSeed } from '../lib/seed.mjs';
 import { runDocReminders } from '../lib/reminders.mjs';
 import {
-  DEFAULT_SETTINGS, ROLE_PERMS, PERMS, SECTIONS, TXN_TYPES, deriveLocMeta, JTYPES, normJts, keyText, lineKey, itemOf, jtOfLine, purOfLine, summarize, closingVerified, computeExpected, erpCompare,
+  DEFAULT_SETTINGS, ROLE_PERMS, PERMS, SECTIONS, TXN_TYPES, deriveLocMeta, JTYPES, normJts, applyJewelleryTypes, keyText, lineKey, itemOf, jtOfLine, purOfLine, summarize, closingVerified, computeExpected, erpCompare,
   latestCounts, locStatus, sumLines, istDate, r3, CASH_DENOMS, cashCalc, isMorning,
 } from '../../web/core.mjs';
 
@@ -68,7 +68,8 @@ async function getUsers(s: any) {
 }
 const pubUser = (u: any) => ({ id: u.id, name: u.name, role: u.role, perms: u.perms, active: u.active !== false, phone: u.phone || '' });
 async function getSettings(s: any) {
-  const st = { ...DEFAULT_SETTINGS, ...((await s.get('cfg/settings', { type: 'json' })) || {}), jtypes: JTYPES };
+  const st: any = { ...DEFAULT_SETTINGS, ...((await s.get('cfg/settings', { type: 'json' })) || {}) };
+  applyJewelleryTypes(st); st.jtypes = [...JTYPES];   // v1.28 admin-managed jewellery types
   if (Array.isArray(st.purities) && !st.purities.includes('925')) st.purities = [...st.purities.filter((p: string) => !['Silver', 'Mixed'].includes(p)), '925', ...st.purities.filter((p: string) => ['Silver', 'Mixed'].includes(p))];   // v1.13 silver
   return st;
 }
@@ -404,7 +405,7 @@ export default async (req: Request) => {
       for (const r of out) {
         const sign = r.T.dir;
         const mv = { id: `${now()}-${rid()}`, date: today, kind: sign > 0 ? 'in' : 'out', txn: r.T.k, reason: r.T.label, ref: r.ref, note: r.note, qty: r.qty, wtTotal: r.wt,
-          legs: [{ locId: r.loc.id, lines: r.qty ? { [r.item]: sign * r.qty } : {}, wt: ((expAll[r.loc.id]?.wt || 0) > 0 || (r.loc.sec === 'box' && sign > 0)) ? sign * r.wt : 0 }]   /* v1.24: any location with a weight keeps it in step */, by: me.id, at: now(), eod: true };
+          legs: [{ locId: r.loc.id, lines: r.qty ? { [r.item]: sign * r.qty } : {}, wt: r.loc.sec === 'box' && ((expAll[r.loc.id]?.wt || 0) > 0 || sign > 0) ? sign * r.wt : 0 }]   /* v1.28: weight for boxes only */, by: me.id, at: now(), eod: true };
         const L0 = (expAll[r.loc.id] ||= { lines: {}, wt: 0 }); L0.wt = r3(L0.wt + mv.legs[0].wt);
         await s.setJSON(`mv/${today}/${mv.id}`, mv); saved.push(mv);
       }
@@ -467,7 +468,7 @@ export default async (req: Request) => {
       need('setup');
       const data = await s.get('cfg/locs', { type: 'json' });
       const L = body.loc || {};
-      const fields = ['sec', 'group', 'name', 'purity', 'cat', 'itemType', 'boxNo', 'insert', 'qty', 'mode', 'images', 'note', 'order', 'erpName', 'itemNotes', 'area', 'sub', 'jtype', 'jtypes'];
+      const fields = ['sec', 'group', 'name', 'purity', 'cat', 'itemType', 'boxNo', 'insert', 'qty', 'mode', 'images', 'note', 'order', 'erpName', 'itemNotes', 'area', 'sub', 'jtype', 'jtypes', 'cover'];
       let loc = data.locs.find((l: any) => l.id === L.id);
       if (L.active === false && loc) {
         const day = await ensureToday(s); const { mvs } = await loadDay(s, today);
@@ -563,6 +564,18 @@ export default async (req: Request) => {
     }
     if (path === 'alerts/seen' && method === 'POST') { await s.set(`seen/${me.id}`, String(now())); return J({ ok: true }); }
 
+    if (path === 'master/rename' && method === 'POST') {   // v1.28: rename a main location / sub display / item type and move locations that use it
+      need('setup'); const kind = body.kind; const from = String(body.from || '').trim(), to = String(body.to || '').trim().slice(0, 40);
+      if (!from || !to || from === to) return err('Enter the new name');
+      const cur = await getSettings(s); const field = kind === 'area' ? 'areas' : kind === 'sub' ? 'subDisplays' : kind === 'item' ? 'itemTypes' : '';
+      if (!field) return err('Unknown list'); if (cur[field].includes(to)) return err(`“${to}” already exists`);
+      cur[field] = cur[field].map((x: string) => x === from ? to : x);
+      const data = await s.get('cfg/locs', { type: 'json' }); let n = 0;
+      for (const l of data.locs) { if (kind === 'area' && l.area === from) { l.area = to; n++; } if (kind === 'sub' && l.sub === from) { l.sub = to; n++; } if (kind === 'item' && l.itemType === from) { l.itemType = to; n++; } }
+      if (kind === 'item' && cur.erpItemMap?.[from]) { cur.erpItemMap[to] = cur.erpItemMap[from]; delete cur.erpItemMap[from]; }
+      await s.setJSON('cfg/locs', data); await s.setJSON('cfg/settings', cur);
+      return J({ ok: true, moved: n });
+    }
     if (path === 'settings' && method === 'POST') {
       need('setup');
       const cur = await getSettings(s); const b = body.settings || {};
@@ -579,6 +592,15 @@ export default async (req: Request) => {
       if (typeof b.erpTanih === 'string' && b.erpTanih.trim()) next.erpTanih = b.erpTanih.trim().slice(0, 60);
       if (typeof b.erpSilver === 'string' && b.erpSilver.trim()) next.erpSilver = b.erpSilver.trim().slice(0, 60);
       if (typeof b.waNumber === 'string') next.waNumber = b.waNumber.replace(/[^0-9]/g, '').slice(0, 15);
+      // v1.28 jewellery types managed by admin
+      const str = (v: any, n = 40) => String(v ?? '').trim().slice(0, n);
+      if (b.jtLabels && typeof b.jtLabels === 'object') next.jtLabels = Object.fromEntries(Object.entries(b.jtLabels).map(([k, v]: any) => [str(k, 60), str(v)]).filter(([, v]) => v));
+      if (b.jtShort && typeof b.jtShort === 'object') next.jtShort = Object.fromEntries(Object.entries(b.jtShort).map(([k, v]: any) => [str(k, 60), str(v, 20)]).filter(([, v]) => v));
+      if (Array.isArray(b.jtHidden)) next.jtHidden = b.jtHidden.map((x: any) => str(x, 60)).filter((x: string) => x && x !== 'Plain Gold Jewellery');
+      if (Array.isArray(b.jtOrder)) next.jtOrder = b.jtOrder.map((x: any) => str(x, 60)).filter(Boolean);
+      if (Array.isArray(b.jtCustom)) { const used = new Set(['G', 'D', 'P', 'T', 'S']);
+        next.jtCustom = b.jtCustom.slice(0, 15).map((c: any) => ({ name: str(c.name, 60), code: str(c.code, 1).toUpperCase(), label: str(c.label || c.name), short: str(c.short || c.label || c.name, 20), metal: ['Gold', 'Platinum', 'Silver'].includes(c.metal) ? c.metal : 'Gold' }))
+          .filter((c: any) => c.name && /^[A-Z]$/.test(c.code) && !used.has(c.code) && (used.add(c.code), true) && !['Plain Gold Jewellery', 'Diamond Jewellery', 'Platinum', 'Tanih - CVD Jewellery', 'Silver', 'Mixed'].includes(c.name)); }
       await s.setJSON('cfg/settings', next);
       return J({ ok: true, settings: next });
     }

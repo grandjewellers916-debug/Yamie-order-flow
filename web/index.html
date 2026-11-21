@@ -51,6 +51,17 @@ label.f{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
 .dvdots{display:flex;gap:5px;margin-left:10px}.dvdots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.35)}.dvdots i.on{background:#fff}
 .ltab th.sortable,table th{cursor:pointer;user-select:none}.sarr{margin-left:4px;font-size:10px;opacity:.45}th.on .sarr,th[data-sdir] .sarr{opacity:1;color:var(--m)}
 .colist{display:flex;flex-direction:column;gap:6px}.colrow{display:grid;grid-template-columns:28px 1fr auto auto;gap:6px;align-items:center}.colrow input[type=text]{min-height:38px;padding:6px 10px}
+.lgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}.lrow{display:flex;gap:6px;align-items:center;padding:7px 0;border-top:1px solid var(--ln)}.lrow .grow{min-width:0;overflow-wrap:anywhere}.lrow.off{opacity:.55}
+.jtb.cu{background:#F1EAF7;color:#6B3FA0}.chip.cx{background:#F1EAF7;color:#6B3FA0}select.jt-cu{background:#FAF6FD;border-color:#D7C6EA}.jtp.on.cu{background:#F1EAF7;border-color:#B79AD8;color:#6B3FA0}.jtp.on.cu .tk{background:#6B3FA0;border-color:#6B3FA0}
+details.cz{margin-top:14px}details.cz>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--ln);margin-bottom:8px}details.cz>summary::-webkit-details-marker{display:none}
+details.cz>summary::before{content:'▾';color:var(--mut);font-size:13px;width:12px;transition:transform .15s}details.cz:not([open])>summary::before{transform:rotate(-90deg)}details.cz>summary h3{margin:0;flex:1}
+.ptbl tr.pclick{cursor:pointer}.ptbl tr.pclick:hover td{background:#FBF7F1}.caret{display:inline-block;width:12px;color:var(--mut)}
+@media print{details.cz>summary::before{display:none}}
+button.fbtool{border:1px dashed var(--ln);background:transparent;color:var(--mut);border-radius:9px;padding:4px 9px;font-size:13px;cursor:pointer;align-self:center;flex:0 0 auto;min-height:30px}.selbar>.fbtool{grid-column:1/-1;justify-self:end}button.fbtool.on{background:var(--m);color:#fff;border-style:solid;border-color:var(--m)}
+.fbhid{display:none!important}.fbarr .fbhid{display:revert!important;opacity:.38}.fbarr>[data-fkey]{position:relative;cursor:grab;touch-action:none;outline:1.5px dashed #D9C6A5;outline-offset:2px;border-radius:10px;animation:fbw .35s ease-in-out infinite alternate}
+.fbarr>[data-fkey] *{pointer-events:none}.fbarr .fbeye{pointer-events:auto!important;position:absolute;top:-9px;right:-7px;background:#fff;border:1px solid var(--ln);border-radius:99px;font-size:11px;line-height:1;padding:3px 4px;cursor:pointer;z-index:2}
+.fbarr>.fbdrag{opacity:.85;box-shadow:0 8px 20px rgba(0,0,0,.18);animation:none;cursor:grabbing;z-index:3}.fbarr{touch-action:none}.selbar.fbarr,.filters.fbarr,.seg.fbarr,.tabs.fbarr{padding-top:12px}
+@keyframes fbw{from{transform:rotate(-.6deg)}to{transform:rotate(.6deg)}}@media (prefers-reduced-motion:reduce){.fbarr>[data-fkey]{animation:none}}@media print{.fbtool{display:none}}
 .isum{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:6px;font-size:12px;color:var(--mut)}.isum b{color:var(--ink);font-weight:600}.isum .on{color:var(--m)}.isum .on b{color:var(--m)}.isum .off{opacity:.55}
 .wtl{margin-top:4px;font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap}.wtl.none{font-weight:400;color:var(--warn);font-size:11px}
 details.msel{position:relative}details.msel>summary{list-style:none;cursor:pointer;border:1px solid var(--ln);border-radius:10px;background:#fff;min-height:44px;padding:10px 30px 10px 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative}
@@ -348,7 +359,7 @@ table.rep tr.rgrp td{background:var(--iv);font-weight:600;border-top:1px solid v
 <body>
 <div id="app"></div>
 <script type="module">
-import { DOC_TYPES, VEHICLE_DOC_TYPES, isVehicleDoc, docDaysLeft, docWatch, DOC_REMIND_DEFAULT, CASH_DENOMS, CASH_COUNTERS, CASH_SHIFTS, cashCalc, cashNotes, isMorning, SECTIONS, PERMS, ROLE_PERMS, REASONS, TXN_TYPES, metalOf, erpMetal, JTYPES, LINE_JTYPES, JT_SHORT, JT_LABEL, JT_CLS, METALS, jtMetal, locJts, normJts, itemOf, jtOfLine, purOfLine, defaultPur, lineKey, keyText, defaultJt, roundOf, roundCounts, summarize, sumLines, r3, locStatus, istDate, erpCompare, erpKey } from './core.mjs';
+import { DOC_TYPES, VEHICLE_DOC_TYPES, isVehicleDoc, docDaysLeft, docWatch, DOC_REMIND_DEFAULT, CASH_DENOMS, CASH_COUNTERS, CASH_SHIFTS, cashCalc, cashNotes, isMorning, SECTIONS, PERMS, ROLE_PERMS, REASONS, TXN_TYPES, metalOf, erpMetal, JTYPES, LINE_JTYPES, JT_SHORT, JT_LABEL, JT_CLS, JT_METAL, JT_CODE, JT_FREE_CODES, applyJewelleryTypes, METALS, jtMetal, locJts, normJts, itemOf, jtOfLine, purOfLine, defaultPur, lineKey, keyText, defaultJt, roundOf, roundCounts, summarize, sumLines, r3, locStatus, istDate, erpCompare, erpKey } from './core.mjs';
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -359,7 +370,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.27';
+const VERSION = '1.28';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -440,7 +451,7 @@ async function load(quiet) {
   try {
     const j = await api('state' + (S.date ? '?date=' + S.date : ''));
     const prevUnread = S.D?.alerts?.unread || 0;
-    S.D = j; S.me = j.me; S.date = j.date === j.today ? null : j.date;
+    S.D = j; S.me = j.me; S.date = j.date === j.today ? null : j.date; applyJewelleryTypes(j.settings);
     S.round = roundOf(j.day);
     S.sum = summarize(j.locs, j.day.opening, j.mvs, roundCounts(j.counts, S.round), j.settings);
     const mT = S.round === 'morning' ? S.sum.total : summarize(j.locs, j.day.opening, j.mvs, roundCounts(j.counts, 'morning'), j.settings).total;
@@ -469,7 +480,7 @@ const uname = (id) => (id === 'system' ? 'Yamie Core reminder' : S.D.userNames[i
 const kT = (k, loc) => (loc || String(k).includes('@') ? keyText(loc, k) : k);
 const JT_CHIP = { 'Platinum': 'pt', 'Diamond Jewellery': 'dia', 'Tanih - CVD Jewellery': 'cvd', Silver: 'ag' };
 const jtNames = (l) => { const a = locJts(l); return a.length ? a.map((j) => JT_LABEL[j]).join(' + ') : (l.jtype === 'Mixed' ? 'Mixed' : ''); };
-const jtChips = (l) => { const a = locJts(l); return a.length ? a.map((j) => `<span class="chip ${JT_CHIP[j] || 'au'}">${esc(JT_LABEL[j])}</span>`).join('') : l.jtype ? `<span class="chip au">${esc(l.jtype)}</span>` : ''; };
+const jtChips = (l) => { const a = locJts(l); return a.length ? a.map((j) => `<span class="chip ${JT_CHIP[j] || (JT_CLS[j] === 'cu' ? 'cx' : 'au')}">${esc(JT_LABEL[j])}</span>`).join('') : l.jtype ? `<span class="chip au">${esc(l.jtype)}</span>` : ''; };
 // types offered for new items at a location: its ticked types first, then the rest
 const jtOrder = (l) => { const a = locJts(l); const first = a.length ? a : [defaultJt(l)]; return [...first, ...LINE_JTYPES.filter((j) => !first.includes(j))]; };
 const jtB = (jt) => `<span class="jtb ${JT_CLS[jt] || 'g'}">${JT_SHORT[jt] || 'Gold'}</span>`;
@@ -484,12 +495,12 @@ const MORE_VIEWS = ['more', 'alerts', 'log', 'admin', 'history', 'eod'];
 function render() {
   if (!S.me) return showLogin();
   document.title = `Yamie Core · ${S.D.date}`;
-  const navOn = (k) => S.view === k || (k === 'more' && MORE_VIEWS.includes(S.view)) || (k === 'home' && innerWidth < 900 && (S.view === 'stock' || S.view === 'total' || S.view === 'docs' || MORE_VIEWS.includes(S.view)));
+  const navOn = (k) => S.view === k || (k === 'more' && MORE_VIEWS.includes(S.view)) || (k === 'box' && S.view === 'boxwt') || (k === 'home' && innerWidth < 900 && (S.view === 'stock' || S.view === 'total' || S.view === 'docs' || MORE_VIEWS.includes(S.view)));
   $('#app').innerHTML = `<header class="top" id="top"></header><main id="main"></main><nav class="nav">${NAV.map(([k, l, i, dk]) => `<button data-nav="${k}" class="${dk ? 'dk' : ''} ${navOn(k) ? 'on' : ''}">${svg(i)}<span>${l}</span></button>`).join('')}<div class="navver">${esc(verText())}</div></nav>`;
   $('#app').querySelectorAll('[data-nav]').forEach((b) => b.onclick = () => go(b.dataset.nav));
   renderTop();
   S.cardF = null;   // section filters only shape the cards on their own page
-  const v = { home: vHub, stock: vHome, cash: vCash, docs: vDocs, counter: () => vSection('counter'), tray: () => vSection('tray'), box: () => vSection('box'), total: vTotal, more: vMore, alerts: vAlerts, log: vLog, eod: vEod, admin: vAdmin, history: vHistory }[S.view] || vHome;
+  const v = { home: vHub, stock: vHome, cash: vCash, docs: vDocs, boxwt: vBoxWt, counter: () => vSection('counter'), tray: () => vSection('tray'), box: () => vSection('box'), total: vTotal, more: vMore, alerts: vAlerts, log: vLog, eod: vEod, admin: vAdmin, history: vHistory }[S.view] || vHome;
   v();
 }
 // v1.16: version on screen — web app version, plus the APK version inside the Android app
@@ -564,7 +575,7 @@ function vEod() {
       <select data-f="item" data-i="${i}" ${l ? '' : 'disabled'}><option value="">${l ? 'Item…' : 'Item (pick location first)'}</option>${l ? keyOptions(l, r.item) : ''}</select>
       <div class="oc" data-op="${i}">${oc ? `<b>${fmt(oc.op)}</b>${box ? `<span>${g3(oc.opWt)} g</span>` : ''}${oc.now !== oc.op || (box && oc.nowWt !== oc.opWt) ? `<span class="mut">now ${fmt(oc.now)}${box ? ` · ${g3(oc.nowWt)} g` : ''}</span>` : ''}` : '<span class="mut">—</span>'}</div>
       <input type="number" inputmode="numeric" min="0" data-f="qty" data-i="${i}" value="${esc(r.qty)}" placeholder="Qty">
-      <input type="number" inputmode="decimal" step="0.001" min="0" data-f="wt" data-i="${i}" value="${esc(r.wt)}" placeholder="Weight g">
+      <input type="number" inputmode="decimal" step="0.001" min="0" data-f="wt" data-i="${i}" value="${r.sec === 'box' ? esc(r.wt) : ''}" placeholder="${r.sec === 'box' ? 'Weight g' : 'No weight'}" ${r.sec === 'box' ? '' : 'disabled'}>
       <div class="oc cl ${oc && oc.cl < 0 ? 'neg' : ''}" data-cl="${i}">${eodClHtml(oc, box)}</div>
       <input type="text" data-f="ref" data-i="${i}" value="${esc(r.ref)}" placeholder="Invoice / voucher">
       <button class="x" data-del="${i}" title="Remove">×</button></div>`; }).join('')}
@@ -701,12 +712,12 @@ function vSection(sec) {
   const groups = {}; list.forEach((l) => (groups[l.group || '—'] ||= []).push(l));
   $('#main').innerHTML = `${viewBanner()}
   <div class="row sp wrap" style="margin-bottom:10px"><div><h1>${secLabel(sec)}</h1><div class="mut">${X.locs - X.pending}/${X.locs} checked · ${hideExp() ? '' : `${fmt(X.expected)} pcs expected`}${sec === 'box' && !hideExp() ? ` · ${X.wtExpected ? '⚖ ' + g3(X.wtExpected) + ' g' : 'box weights not set'}` : ''}</div></div>
-  ${can('setup') && editable() ? `<button class="btn sm sec" id="addLoc">＋ Add ${sec === 'box' ? 'box' : sec === 'tray' ? 'tray' : 'counter tray'}</button>` : ''}</div>
+  <div class="row" style="gap:6px">${sec === 'box' ? '<button class="btn sm" id="bwBtn">⚖ Box weight tracker</button>' : ''}${can('setup') && editable() ? `<button class="btn sm sec" id="addLoc">＋ Add ${sec === 'box' ? 'box' : sec === 'tray' ? 'tray' : 'counter tray'}</button>` : ''}</div></div>
   ${selOn ? '' : startPanel(sec)}
   ${selBar}
   <input type="search" id="q" placeholder="Search name, purity, box no…" value="${esc(S.q)}">
   <div class="filters" style="margin-top:10px">${[['all', 'All', X.locs], ['pending', 'Not checked', X.pending], ['var', 'Variance', X.var + X.stale], ['ok', 'OK', X.ok]].map(([k, l, n]) => `<button data-f="${k}" class="${S.filter === k ? 'on' : ''}">${l} · ${n}</button>`).join('')}</div>
-  ${Object.entries(groups).map(([g, ls]) => `<div class="grp"><span>${esc(g)}</span><span>${hideExp() ? '' : `${fmt(ls.reduce((a, l) => a + cardPcs(l).exp, 0))} pcs${S.cardF ? ` <span style="opacity:.6">of ${fmt(ls.reduce((a, l) => a + sumLines(expOf(l.id).lines), 0))}</span>` : ''}${sec === 'tray' && ls.some((l) => +l.qty) ? ` · ${fmt(ls.reduce((a, l) => a + (+l.qty || 0), 0))} trays` : ''}${(() => { const w = ls.reduce((a, l) => a + (+expOf(l.id).wt || 0), 0); return w ? ` · ⚖ ${g3(w)} g` : sec === 'box' ? ' · weight not set' : ''; })()}`}</span></div><div class="locs ${sec === 'tray' ? 'wide' : ''}">${ls.map(locCard).join('')}</div>`).join('') || '<div class="card mut" style="text-align:center">Nothing here</div>'}
+  ${Object.entries(groups).map(([g, ls]) => `<div class="grp"><span>${esc(g)}</span><span>${hideExp() ? '' : `${fmt(ls.reduce((a, l) => a + cardPcs(l).exp, 0))} pcs${S.cardF ? ` <span style="opacity:.6">of ${fmt(ls.reduce((a, l) => a + sumLines(expOf(l.id).lines), 0))}</span>` : ''}${sec === 'tray' && ls.some((l) => +l.qty) ? ` · ${fmt(ls.reduce((a, l) => a + (+l.qty || 0), 0))} trays` : ''}${(() => { const w = ls.reduce((a, l) => a + (+expOf(l.id).wt || 0), 0); return sec !== 'box' ? '' : w ? ` · ⚖ ${g3(w)} g` : ' · weight not set'; })()}`}</span></div><div class="locs ${sec === 'tray' ? 'wide' : ''}">${ls.map(locCard).join('')}</div>`).join('') || '<div class="card mut" style="text-align:center">Nothing here</div>'}
 `;
   bindBanner();
   const qi = $('#q'); qi.oninput = () => { S.q = qi.value; const p = qi.selectionStart; vSection(sec); const n = $('#q'); n.focus(); n.setSelectionRange(p, p); };
@@ -721,6 +732,7 @@ function vSection(sec) {
     d.addEventListener('toggle', () => { if (!d.open) apply(); else $('#main').querySelectorAll('details.msel').forEach((o) => { if (o !== d) o.open = false; }); }); });
   $('#selClr') && ($('#selClr').onclick = () => { for (const k of Object.keys(SEL)) SEL[k] = ['j', 'i', 'p'].includes(k) ? [] : ''; vSection(sec); });
   $('#selVerify') && ($('#selVerify').onclick = () => startCount(sec, selIds, `${secLabel(sec)} · ${selName}`));
+  $('#bwBtn') && ($('#bwBtn').onclick = () => go('boxwt'));
   $('#addLoc') && ($('#addLoc').onclick = () => locEdit({ sec, group: SEL.c || (sec === 'tray' ? SEL.a : '') || '', name: '', purity: '', cat: '', itemType: '', area: SEL.a && sec === 'counter' ? SEL.a : sec === 'counter' ? S.D.settings.areas[0] : 'Locker Area', sub: sec === 'counter' ? (SEL.b || S.D.settings.subDisplays[0]) : '', jtype: SEL.j || JTYPES[0], images: [], mode: 'both' }));
   bindStart();
   bindLocCards();
@@ -746,7 +758,7 @@ function locCard(l) {
   })() : '';
   const sub = st.state === 'var' || st.state === 'stale' ? `${diffTxt(st.diff, l)}${st.mode !== 'count' && st.wtDiff ? ` ${st.wtDiff > 0 ? '+' : ''}${g3(st.wtDiff)} g` : ''}` : c ? `${uname(c.by)} · ${tm(c.at)}` : '';
   return `<button class="loc ${st.state}" data-loc="${l.id}"><div class="th">${thumb}</div><div class="grow" style="min-width:0"><div class="nm">${esc(l.name)}</div><div class="meta">${chips}</div><div class="row sm" style="margin-top:4px;align-items:flex-start"><span class="st ${st.state}" style="flex:none">${STLBL[st.state]}</span><span class="mut vtx" title="${esc(sub)}">${esc(sub)}</span></div>${hideExp() ? '' : itemSummary(l)}</div>
-    ${slotsHtml}<div class="q">${(() => { const P = cardPcs(l); const F = S.cardF; const wtL = l.sec === 'box' || e.wt ? `<div class="wtl ${e.wt ? '' : 'none'}">${e.wt ? '⚖ ' + g3(e.wt) + ' g' : '⚖ weight not set'}</div>` : '';
+    ${slotsHtml}<div class="q">${(() => { const P = cardPcs(l); const F = S.cardF; const wtL = l.sec === 'box' ? `<div class="wtl ${e.wt ? '' : 'none'}">${e.wt ? '⚖ ' + g3(e.wt) + ' g' : '⚖ weight not set'}</div>${e.wt && +l.cover ? `<div class="mut sm">net ${g3(e.wt - l.cover)} g</div>` : ''}` : '';
       const cn = c && c.mode !== 'weight' && !['pending', 'stale'].includes(st.state) ? P.cnt : null; const ex = P.exp;
       if (cn != null) return `<div class="v" style="color:${cn === ex ? 'inherit' : 'var(--bad)'}">${fmt(cn)}</div><div class="mut sm">${hideExp() ? 'pcs' : cn === ex ? (F ? `of ${fmt(P.all)} pcs` : 'pcs') : `of ${fmt(ex)}${F ? ' matching' : ''}`}</div>${l.sec === 'box' && c.wt != null ? `<div class="wtl">⚖ ${g3(c.wt)} g counted</div>` : wtL}`;
       return hideExp() ? wtL : `<div class="v">${fmt(ex)}</div><div class="mut sm">${F ? `of ${fmt(P.all)} pcs` : 'pcs'}</div>${wtL}`; })()}</div></button>`;
@@ -1109,7 +1121,7 @@ function resultView(id, ctx) {
   ${editable() && (can('move') || can('setup')) && !ctx.sess ? `<h3 style="margin:16px 0 6px">Manager tools</h3><div class="row wrap">
     ${can('move') ? `<button class="btn sm ghost" data-mv="in">＋ In</button><button class="btn sm ghost" data-mv="out">− Out / Sale</button><button class="btn sm ghost" data-mv="move">⇄ Move</button>` : ''}
     ${can('setup') ? `<button class="btn sm ghost" id="setBtn">Items & stock</button><button class="btn sm ghost" id="editBtn">Edit location</button>` : ''}</div>` : ''}
-  ${(+expOf(id).wt || 0) || (editable() && can('setup') && !ctx.sess) ? `<h3 style="margin:16px 0 6px">Weight</h3>${wtPanel(l)}` : ''}
+  ${l.sec === 'box' && ((+expOf(id).wt || 0) || (editable() && can('setup') && !ctx.sess)) ? `<h3 style="margin:16px 0 6px">Weight</h3>${wtPanel(l)}` : ''}
   ${myMvs.length ? `<h3 style="margin:18px 0 6px">Today's movements</h3><div class="list card" style="padding:0">${myMvs.map((m) => mvLine(m, id)).join('')}</div>` : ''}
   ${myCounts.length > 1 ? `<h3 style="margin:18px 0 6px">Earlier checks today</h3><div class="sm card list" style="padding:0">${myCounts.slice(1).map((x) => `<div class="li">${esc(uname(x.by))} · ${tm(x.at)} · ${x.mode !== 'weight' ? `${fmt(sumLines(x.lines))} pcs` : ''} ${x.wt != null ? g3(x.wt) + ' g' : ''} <span class="st ${x.result}">${STLBL[x.result]}</span></div>`).join('')}</div>` : ''}`;
   modal(head(l), '', html, (ov) => {
@@ -1286,8 +1298,8 @@ function locEdit(l) {
     <div class="row" id="trayF"><div class="grow"><label class="f">Pcs per tray (insert)</label><input type="number" id="eIns" value="${esc(l.insert || '')}"></div><div class="grow"><label class="f">No. of trays</label><input type="number" id="eQty" value="${esc(l.qty || '')}"></div></div>
     <div id="modeF"><label class="f">Default box check</label><select id="eMode">${[['both', 'Weight + count'], ['weight', 'Weight only'], ['count', 'Count only']].map(([k, t]) => `<option value="${k}" ${l.mode === k ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
     <label class="f">Note</label><input type="text" id="eNote" value="${esc(l.note || '')}">
-    ${canItems ? `<h3 style="margin:16px 0 6px">Items in this ${l.sec === 'box' ? 'box' : 'location'}</h3><div class="mut sm">${isNew ? 'Pieces placed here now (you can also add later).' : 'Add, change or delete items. Saving updates book stock (logged).'}</div><div id="iedBox" style="margin-top:8px"></div>${isNew ? `<div id="iniWt"><label class="f">${l.sec === 'box' ? 'Box weight (g)' : 'Weight (g, optional)'}</label><input type="number" step="0.001" inputmode="decimal" id="eWt"></div>` : ''}` : ''}
-    ${!isNew ? `<h3 style="margin:16px 0 6px">Weight</h3><div id="eWtP">${wtPanel(l)}</div>` : ''}
+    ${canItems ? `<h3 style="margin:16px 0 6px">Items in this ${l.sec === 'box' ? 'box' : 'location'}</h3><div class="mut sm">${isNew ? 'Pieces placed here now (you can also add later).' : 'Add, change or delete items. Saving updates book stock (logged).'}</div><div id="iedBox" style="margin-top:8px"></div>${isNew && l.sec === 'box' ? `<div id="iniWt"><label class="f">Box weight (g)</label><input type="number" step="0.001" inputmode="decimal" id="eWt"></div>` : ''}` : ''}
+    ${!isNew && l.sec === 'box' ? `<h3 style="margin:16px 0 6px">Weight</h3><div id="eWtP">${wtPanel(l)}</div>` : ''}
     <div class="row" style="margin-top:16px">${!isNew ? `<button class="btn bad sm" id="eDel">🗑 Delete</button>` : ''}<button class="btn grow" id="eSave">${isNew ? `＋ Add ${K.what || 'location'}` : 'Save'}</button></div>`;
   modal(isNew ? `Add ${K.what || 'location'}` : 'Edit · ' + esc(l.name), isNew ? ({ counter: 'Counter display', tray: 'Buffer trays (locker)', box: 'Buffer stock in boxes' })[l.sec] : 'Manager / admin', html, (ov) => {
     ov.querySelectorAll('[data-grp]').forEach((b) => b.onclick = () => { $('#eGrp').value = b.dataset.grp; });
@@ -1411,77 +1423,215 @@ function repTables(L) {
 }
 const REP_TABS = [['pur', 'Purity-wise'], ['item', 'Item-wise'], ['loc', 'Location-wise']];
 function reportsBlock(L, jfName) {
-  S.rep ||= 'pur'; const t = repTables(L)[S.rep]; const varCol = t.cols.indexOf('Variance');
+  S.rep ||= 'pur'; const saved = repsGet(); if (S.rep.startsWith('c') && !saved[+S.rep.slice(1)] && S.rep !== 'cnew') S.rep = 'pur';
+  if (S.rep === 'cnew' || S.rep.startsWith('c')) return customBlock(L, saved);
+  const t = repTables(L)[S.rep]; const varCol = t.cols.indexOf('Variance');
   const td = (v, i) => { if (i === varCol && v !== '') return `<td class="${v > 0 ? 'pos' : v < 0 ? 'neg' : ''}">${v ? sgn(v) : '—'}</td>`; if (typeof v === 'number') return `<td>${v ? fmt(v) : '—'}</td>`; if (/^\d+\/\d+( checked)?$/.test(String(v))) return `<td>${esc(v)}</td>`; return `<td class="${t.cols[i] === 'Items' ? 'wrap sm' : ''}" style="text-align:left">${esc(String(v).trim())}</td>`; };
-  return `<div class="row sp wrap" style="margin:22px 0 8px"><h3>Reports${jfName ? ` · ${jfName}` : ''}</h3><button class="btn sm ghost noprint" id="repCsv">⬇ CSV</button></div>
-  <div class="tabs noprint" style="margin-bottom:10px">${REP_TABS.map(([k, n]) => `<button class="tab ${S.rep === k ? 'on' : ''}" data-rep="${k}">${n}</button>`).join('')}</div>
+  return `<div class="row sp wrap" style="margin:4px 0 8px"><span></span><button class="btn sm ghost noprint" id="repCsv">⬇ CSV</button></div>
+  ${repTabsHtml()}
   <div class="tw"><table class="rep"><tr>${t.cols.map((c, i) => `<th${i === 0 || ['Section', 'Jewellery type', 'Purity', 'Items', 'Status'].includes(c) ? ' style="text-align:left"' : ''}>${esc(c)}</th>`).join('')}</tr>
   ${t.rows.map((r) => `<tr class="${r.cls || ''}" ${r.id ? `data-loc="${r.id}" style="cursor:pointer"` : ''}>${r.cells.map((v, i) => i === 0 ? `<td class="${r.cls === 'sub' ? 'ind' : 'b'}" style="text-align:left">${esc(String(v).trim())}</td>` : td(v, i)).join('')}</tr>`).join('') || `<tr><td colspan="${t.cols.length}" class="mut">No stock</td></tr>`}</table></div>
   <div class="mut sm" style="margin-top:6px">${S.rep === 'pur' ? 'Each purity with its items underneath; pieces split by jewellery type.' : S.rep === 'item' ? 'Each item with expected pieces split by purity.' : 'Grouped by main location; tap a row to open it.'} Counted and variance cover checked locations only.</div>`;
 }
+const repTabsHtml = () => `<div class="tabs noprint" data-fbar="cons-rep" style="margin-bottom:10px">${[...REP_TABS, ...repsGet().map((r, i) => ['c' + i, '★ ' + r.name])].map(([k, n]) => `<button class="tab ${S.rep === k ? 'on' : ''}" data-rep="${k}" data-fk="${esc(k.startsWith('c') ? 'c:' + n : k)}">${esc(n)}</button>`).join('')}<button class="tab ${S.rep === 'cnew' ? 'on' : ''}" data-rep="cnew" data-fk="cnew">＋ Custom report</button></div>`;
+function customBlock(L, saved) {
+  const cur = S.rep === 'cnew' ? (S.crep ||= { name: '', r: 'item', r2: '', c: 'place', m: 'exp' }) : saved[+S.rep.slice(1)];
+  const t = customTable(L, cur);
+  const dsel = (id, v, none) => `<select id="${id}">${none ? `<option value="">${none}</option>` : ''}${Object.entries(RDIM).map(([k, n]) => `<option value="${k}" ${v === k ? 'selected' : ''}>${n}</option>`).join('')}</select>`;
+  return `<div class="row sp wrap" style="margin:4px 0 8px"><span></span><button class="btn sm ghost noprint" id="repCsv">⬇ CSV</button></div>${repTabsHtml()}
+  <div class="selbar card noprint" data-fbar="cons-crep" style="margin-bottom:10px">
+    <div class="grow" data-fk="r"><label class="f" style="margin-top:0">Rows</label>${dsel('crR', cur.r)}</div>
+    <div class="grow" data-fk="r2"><label class="f" style="margin-top:0">Then by</label>${dsel('crR2', cur.r2, '— none —')}</div>
+    <div class="grow" data-fk="c"><label class="f" style="margin-top:0">Columns</label>${dsel('crC', cur.c, '— none —')}</div>
+    <div class="grow" data-fk="m"><label class="f" style="margin-top:0">Show</label><select id="crM">${Object.entries(RMEAS).map(([k, n]) => `<option value="${k}" ${cur.m === k ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
+    <div class="row" data-fk="save" style="align-self:flex-end;gap:6px">${S.rep === 'cnew' ? '<button class="btn" id="crSave">★ Save report</button>' : '<button class="btn ghost" id="crRen">✎ Rename</button><button class="btn ghost" id="crDel" style="color:var(--bad)">🗑</button>'}</div></div>
+  <div class="tw"><table class="rep"><tr>${t.cols.map((c, i) => `<th${i === 0 ? ' style="text-align:left"' : ''}>${esc(c)}</th>`).join('')}</tr>
+  ${t.rows.map((r) => `<tr class="${r.cls || ''}">${r.cells.map((v, i) => i === 0 ? `<td class="${r.cls === 'sub' ? 'ind' : 'b'}" style="text-align:left">${esc(String(v).trim())}</td>` : t.isVar ? `<td class="${v > 0 ? 'pos' : v < 0 ? 'neg' : ''}">${v ? sgn(v) : '—'}</td>` : `<td>${v ? fmt(v) : '—'}</td>`).join('')}</tr>`).join('')}</table></div>
+  <div class="mut sm" style="margin-top:6px">Build any report: pick rows, an optional second level, columns and what to show. Saved reports appear as tabs on this device. Uses the stock type and filters above.</div>`;
+}
 function bindReports(L, jfName) {
   $('#main').querySelectorAll('[data-rep]').forEach((b) => b.onclick = () => { S.rep = b.dataset.rep; vTotal(); });
+  if (S.rep === 'cnew' || S.rep.startsWith('c')) {
+    const saved = repsGet(); const idx = +S.rep.slice(1); const cur = S.rep === 'cnew' ? S.crep : saved[idx];
+    const upd = () => { Object.assign(cur, { r: $('#crR').value, r2: $('#crR2').value, c: $('#crC').value, m: $('#crM').value }); if (cur.r2 === cur.r) cur.r2 = ''; if (cur.c === cur.r || cur.c === cur.r2) cur.c = ''; if (S.rep !== 'cnew') repsSet(saved); vTotal(); };
+    ['#crR', '#crR2', '#crC', '#crM'].forEach((id) => { $(id).onchange = upd; });
+    $('#crSave') && ($('#crSave').onclick = () => { const n = (prompt('Report name', `${RDIM[cur.r]}${cur.c ? ' × ' + RDIM[cur.c] : ''}`) || '').trim(); if (!n) return; saved.push({ ...cur, name: n }); repsSet(saved); S.rep = 'c' + (saved.length - 1); S.crep = null; toast('✓ Report saved'); vTotal(); });
+    $('#crRen') && ($('#crRen').onclick = () => { const n = (prompt('Report name', cur.name) || '').trim(); if (!n) return; cur.name = n; repsSet(saved); vTotal(); });
+    $('#crDel') && ($('#crDel').onclick = () => { if (!confirm(`Delete report “${cur.name}”?`)) return; saved.splice(idx, 1); repsSet(saved); S.rep = 'pur'; vTotal(); });
+    $('#repCsv').onclick = () => { const t = customTable(L, cur); const q = (v) => { const x = String(v ?? '').trim(); return /[",\n]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x; };
+      saveFile(`yamie-report-${(cur.name || 'custom').toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${S.D.date}.csv`, 'text/csv', [t.cols, ...t.rows.map((r) => r.cells.map((v, i) => (i === 0 && r.cls === 'sub' ? '  ' : '') + String(v).trim()))].map((r) => r.map(q).join(',')).join('\n')); };
+    return;
+  }
   $('#repCsv') && ($('#repCsv').onclick = () => { const t = repTables(L)[S.rep]; const q = (v) => { const x = String(v ?? '').trim(); return /[",\n]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x; };
     const csv = [t.cols, ...t.rows.map((r) => r.cells.map((v, i) => (i === 0 && r.cls === 'sub' ? '  ' : '') + String(v).trim()))].map((r) => r.map(q).join(',')).join('\n');
     saveFile(`yamie-${S.rep === 'pur' ? 'purity' : S.rep === 'item' ? 'item' : 'location'}-report-${S.D.date}${jfName ? '-' + jfName.toLowerCase() : ''}.csv`, 'text/csv', csv); });
 }
+// ---------------- v1.28 customisable filter bars: drag to reorder, tap 👁 to show / hide (saved on this device) ----------------
+const FB_KEY = 'ysc_fbar';
+const fbGet = () => { try { return JSON.parse(localStorage.getItem(FB_KEY) || '{}'); } catch { return {}; } };
+const fbSet = (m) => { try { localStorage.setItem(FB_KEY, JSON.stringify(m)); } catch {} };
+const fbKids = (bar) => [...bar.children].filter((c) => !c.classList.contains('fbtool'));
+const fbKeyOf = (el) => el.dataset.fk || el.dataset.f || el.dataset.jf || el.dataset.afs || el.dataset.ms || el.querySelector('[data-ms],[data-lv],[data-af]')?.dataset.ms || el.querySelector('[data-lv]')?.dataset.lv || el.querySelector('[data-af]')?.dataset.af || el.querySelector('label.f')?.textContent.trim() || el.textContent.trim().slice(0, 30);
+function fbApply(bar) {
+  if (bar.dataset.fbDone) return; bar.dataset.fbDone = 1;
+  const id = bar.dataset.fbar; const cfg = fbGet()[id] || {}; const kids = fbKids(bar); if (kids.length < 2) return;
+  kids.forEach((k) => { k.dataset.fkey = fbKeyOf(k); });
+  if (cfg.order) { const pos = (k) => { const i = cfg.order.indexOf(k.dataset.fkey); return i < 0 ? 999 + kids.indexOf(k) : i; }; [...kids].sort((a, b) => pos(a) - pos(b)).forEach((k) => bar.appendChild(k)); }
+  kids.forEach((k) => { const hid = (cfg.hidden || []).includes(k.dataset.fkey) && !k.classList.contains('on'); k.classList.toggle('fbhid', hid); });
+  const t = document.createElement('button'); t.type = 'button'; t.className = 'fbtool noprint'; t.title = 'Arrange filters'; t.textContent = '⇅'; t.onclick = (e) => { e.preventDefault(); e.stopPropagation(); fbArrange(bar); }; bar.appendChild(t);
+}
+function fbArrange(bar) {
+  const id = bar.dataset.fbar; if (bar.classList.contains('fbarr')) return;
+  bar.classList.add('fbarr'); bar.querySelectorAll('details.msel').forEach((d) => { d.open = false; });
+  const kids = fbKids(bar);
+  kids.forEach((k) => { const eye = document.createElement('span'); eye.className = 'fbeye'; eye.textContent = k.classList.contains('fbhid') ? '🚫' : '👁'; eye.onpointerdown = (e) => e.stopPropagation(); eye.onclick = (e) => { e.preventDefault(); e.stopPropagation(); k.classList.toggle('fbhid'); eye.textContent = k.classList.contains('fbhid') ? '🚫' : '👁'; }; k.appendChild(eye); });
+  const tool = bar.querySelector('.fbtool'); tool.textContent = '✓ Done'; tool.classList.add('on');
+  const block = (e) => { if (e.target.closest('.fbeye') || e.target.closest('.fbtool') || e.target.closest('.fbreset')) return; e.preventDefault(); e.stopPropagation(); };
+  bar.addEventListener('click', block, true);
+  const rs = document.createElement('button'); rs.type = 'button'; rs.className = 'fbtool fbreset'; rs.textContent = 'Reset'; bar.appendChild(rs);
+  // pointer drag — works with mouse and touch; neighbours slide as you move
+  let drag = null;
+  const down = (e) => { const k = e.target.closest('[data-fkey]'); if (!k || k.parentElement !== bar || e.target.closest('.fbeye')) return; e.preventDefault(); drag = k; k.classList.add('fbdrag'); bar.setPointerCapture(e.pointerId); };
+  const move = (e) => { if (!drag) return; e.preventDefault(); const over = fbKids(bar).find((k) => { if (k === drag) return false; const r = k.getBoundingClientRect(); return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom; });
+    if (!over) return; const r = over.getBoundingClientRect(); const after = (r.width > r.height * 1.5 && r.top < e.clientY && e.clientY < r.bottom) ? e.clientX > r.left + r.width / 2 : e.clientY > r.top + r.height / 2;
+    const first = new Map(fbKids(bar).map((k) => [k, k.getBoundingClientRect()]));
+    bar.insertBefore(drag, after ? over.nextSibling : over);
+    fbKids(bar).forEach((k) => { if (k === drag) return; const a = first.get(k), b = k.getBoundingClientRect(); const dx = a.left - b.left, dy = a.top - b.top; if (dx || dy) k.animate([{ transform: `translate(${dx}px,${dy}px)` }, { transform: 'none' }], { duration: 160, easing: 'ease-out' }); }); };
+  const up = () => { if (drag) drag.classList.remove('fbdrag'); drag = null; };
+  bar.addEventListener('pointerdown', down); bar.addEventListener('pointermove', move); bar.addEventListener('pointerup', up); bar.addEventListener('pointercancel', up);
+  const finish = (reset) => { bar.removeEventListener('click', block, true); bar.removeEventListener('pointerdown', down); bar.removeEventListener('pointermove', move); bar.removeEventListener('pointerup', up); bar.removeEventListener('pointercancel', up);
+    const m = fbGet(); if (reset) delete m[id]; else m[id] = { order: fbKids(bar).map((k) => k.dataset.fkey), hidden: fbKids(bar).filter((k) => k.classList.contains('fbhid')).map((k) => k.dataset.fkey) }; fbSet(m);
+    toast(reset ? 'Filters reset' : '✓ Filter layout saved on this device'); render(); };
+  tool.onclick = (e) => { e.preventDefault(); e.stopPropagation(); finish(false); };
+  rs.onclick = (e) => { e.preventDefault(); e.stopPropagation(); finish(true); };
+}
+// every filter bar on every page gets the arrange tool (selbars, status filters, jewellery type tabs, report tabs)
+function fbScan(root) { root.querySelectorAll('[data-fbar], .selbar, .filters, .jfseg, .afbar > .seg').forEach((bar, i) => { if (!bar.dataset.fbar) bar.dataset.fbar = `${S.view || 'x'}${S.view === 'admin' ? '-' + S.tab : ''}-${bar.className.split(' ')[0]}-${i}`; fbApply(bar); }); }
+new MutationObserver(() => { const m = $('#main'); if (m) fbScan(m); }).observe(document.body, { childList: true, subtree: true });
+// v1.28 shared helpers: multi-select dropdown, collapsible sections
+const msel = (k, label, opts, sel, allTxt) => `<div class="grow" data-fk="${esc(k)}"><label class="f" style="margin-top:0">${esc(label)}</label><details class="msel" data-ms="${esc(k)}"><summary>${sel.length ? esc(sel.map((v) => (opts.find((o) => o[0] === v) || [v, v])[1]).join(', ')) : esc(allTxt || 'All')}</summary><div class="mslist">${opts.map(([v, t]) => `<label><input type="checkbox" data-mv2="${esc(v)}" ${sel.includes(v) ? 'checked' : ''}> ${esc(t)}</label>`).join('') || '<div class="mut sm">Nothing to choose</div>'}<div class="row" style="gap:6px;margin-top:6px"><button type="button" class="btn sm ghost" data-msall>All</button><button type="button" class="btn sm ghost" data-msnone>None</button><button type="button" class="btn sm" data-msok>Done</button></div></div></details></div>`;
+function bindMsel(root, get, set) {
+  root.querySelectorAll('details.msel').forEach((d) => { const k = d.dataset.ms;
+    const apply = () => { const v = [...d.querySelectorAll('[data-mv2]')].filter((x) => x.checked).map((x) => x.dataset.mv2); if (JSON.stringify(v) !== JSON.stringify(get(k))) set(k, v); };
+    d.querySelector('[data-msok]').onclick = (e) => { e.preventDefault(); d.open = false; apply(); };
+    d.querySelector('[data-msall]').onclick = (e) => { e.preventDefault(); d.querySelectorAll('[data-mv2]').forEach((x) => { x.checked = true; }); };
+    d.querySelector('[data-msnone]').onclick = (e) => { e.preventDefault(); d.querySelectorAll('[data-mv2]').forEach((x) => { x.checked = false; }); };
+    d.addEventListener('toggle', () => { if (!d.open) apply(); else root.querySelectorAll('details.msel').forEach((o) => { if (o !== d) o.open = false; }); }); });
+}
+const czGet = () => { try { return JSON.parse(localStorage.getItem('ysc_cz') || '{}'); } catch { return {}; } };
+const cz = (k, title, body, extra = '') => `<details class="cz" data-cz="${k}" ${czGet()[k] === false ? '' : 'open'}><summary><h3>${title}</h3>${extra}</summary><div class="czb">${body}</div></details>`;
+function bindCz(root) { root.querySelectorAll('details.cz').forEach((d) => d.addEventListener('toggle', () => { const m = czGet(); m[d.dataset.cz] = d.open; try { localStorage.setItem('ysc_cz', JSON.stringify(m)); } catch {} })); }
+// place of a location for the consolidated count table: Counter (floor display) / Shelf (wall shelves) / Tray / Box
+const placeOf = (l) => l.sec === 'counter' ? (/shel/i.test(l.sub || '') ? 'Shelf' : 'Counter') : l.sec === 'tray' ? 'Tray' : 'Box';
+const PLACES = ['Counter', 'Shelf', 'Tray', 'Box'];
+// custom report dimensions / measures
+const RDIM = { item: 'Item', purity: 'Purity', jt: 'Jewellery type', metal: 'Metal', place: 'Place', sec: 'Section', area: 'Main location', group: 'Group', loc: 'Location' };
+const RMEAS = { exp: 'Expected pcs', op: 'Opening pcs', in: 'In pcs', out: 'Out pcs', cnt: 'Counted pcs', var: 'Variance pcs', locs: 'No. of locations' };
+const rdVal = (r, d) => { const l = S.locById[r.locId]; return d === 'purity' ? r.purity || 'Not set' : d === 'jt' ? JF_LBL[r.jt] || r.jt : d === 'place' ? placeOf(l) : d === 'sec' ? secLabel(r.sec) : d === 'area' ? l.area || 'Not set' : d === 'group' ? l.group || '—' : d === 'loc' ? `${l.group ? l.group + ' · ' : ''}${l.name}` : r[d]; };
+const rdOrder = (d, vals) => { const by = (arr) => [...arr.filter((v) => vals.includes(v)), ...vals.filter((v) => !arr.includes(v)).sort()];
+  return d === 'item' ? by(S.D.settings.itemTypes) : d === 'purity' ? [...vals].sort((a, b) => PUR_ORDER(a) - PUR_ORDER(b) || a.localeCompare(b)) : d === 'jt' ? by(LINE_JTYPES.map((j) => JF_LBL[j])) : d === 'metal' ? by(METALS) : d === 'place' ? by(PLACES) : d === 'sec' ? by(SECTIONS.map((x) => x.label)) : d === 'area' ? by(S.D.settings.areas) : vals.slice().sort((a, b) => a.localeCompare(b, undefined, { numeric: true })); };
+const repsGet = () => { try { return JSON.parse(localStorage.getItem('ysc_reports') || '[]'); } catch { return []; } };
+const repsSet = (a) => { try { localStorage.setItem('ysc_reports', JSON.stringify(a)); } catch {} };
+function customTable(L, R) {
+  const meas = (rows) => { if (R.m === 'locs') return new Set(rows.map((r) => r.locId)).size; if (R.m === 'var') return rows.reduce((a, r) => a + r.cnt - r.chkExp, 0); return rows.reduce((a, r) => a + (r[R.m] || 0), 0); };
+  const live = L.filter((r) => r.exp || r.op || r.cnt || r.in || r.out);
+  const rv = rdOrder(R.r, [...new Set(live.map((r) => rdVal(r, R.r)))]); const cv = R.c ? rdOrder(R.c, [...new Set(live.map((r) => rdVal(r, R.c)))]) : [];
+  const cols = [RDIM[R.r], ...(R.c ? cv : []), R.c ? 'Total' : RMEAS[R.m]]; const rows = [];
+  const line = (lab, rs, cls) => ({ cls, cells: [lab, ...(R.c ? cv.map((c) => meas(rs.filter((r) => rdVal(r, R.c) === c))) : []), meas(rs)] });
+  for (const v of rv) { const rs = live.filter((r) => rdVal(r, R.r) === v); rows.push(line(v, rs, R.r2 ? 'rgrp' : ''));
+    if (R.r2) for (const v2 of rdOrder(R.r2, [...new Set(rs.map((r) => rdVal(r, R.r2)))])) rows.push(line('   ' + v2, rs.filter((r) => rdVal(r, R.r2) === v2), 'sub')); }
+  rows.push(line('Total', live, 'tot'));
+  return { cols, rows, isVar: R.m === 'var' };
+}
 function vTotal() {
   if (!can('reports') && !can('count')) return $('#main').innerHTML = '<div class="card">No access</div>';
   if (S.tab === 'erp') return vErp();
-  // v1.9: everything is built from item lines, so a Mixed tray splits into its Plain Gold / Diamond / Platinum pieces.
-  // v1.15: filter by jewellery type (All / Gold / Diamond / Platinum / Lab-grown / Silver)
-  S.jf ||= 'all'; S.metal = 'all';
+  // v1.28: stock type is multi-select (S.jfs) + filters by main location, place, item, purity
+  if (!Array.isArray(S.jfs)) S.jfs = []; S.metal = 'all';
+  const CF = (S.cf ||= { a: [], pl: [], i: [], p: [] });
   const sm = S.sum; const blind = hideExp();
   const ALL = sm.lines.filter((r) => S.locById[r.locId]);
-  const L = ALL.filter((r) => S.jf === 'all' || r.jt === S.jf);
-  const jfName = S.jf === 'all' ? '' : JF_LBL[S.jf];
+  const fOk = (r, skip) => (skip === 'a' || !CF.a.length || CF.a.includes(S.locById[r.locId].area || 'Not set')) && (skip === 'pl' || !CF.pl.length || CF.pl.includes(placeOf(S.locById[r.locId])))
+    && (skip === 'i' || !CF.i.length || CF.i.includes(r.item)) && (skip === 'p' || !CF.p.length || CF.p.includes(r.purity || 'Not set'));
+  const jOk = (r) => !S.jfs.length || S.jfs.includes(r.jt);
+  const FL = ALL.filter((r) => fOk(r)); const L = FL.filter(jOk);
+  const fOn = S.jfs.length + CF.a.length + CF.pl.length + CF.i.length + CF.p.length;
+  const jfName = [S.jfs.map((j) => JF_LBL[j]).join(' + '), ...['a', 'pl', 'i', 'p'].filter((k) => CF[k].length).map((k) => CF[k].join(', '))].filter(Boolean).join(' · ');
+  const live = (r) => r.exp || r.op || r.cnt;
+  const fOpts = (k, fn, order) => { const vals = [...new Set(ALL.filter((r) => fOk(r, k) && jOk(r) && live(r)).map(fn))]; for (const v of CF[k]) if (!vals.includes(v)) vals.push(v); return order(vals).map((v) => [v, v]); };
+  const fBar = `<div class="selbar card noprint" data-fbar="cons-f">
+    <div class="grow" data-fk="jt"><label class="f" style="margin-top:0">Stock type</label><details class="msel" data-ms="jt"><summary>${S.jfs.length ? esc(S.jfs.map((j) => JF_LBL[j]).join(' + ')) : 'All stock'}</summary><div class="mslist">${LINE_JTYPES.filter((j) => ALL.some((r) => r.jt === j && live(r)) || S.jfs.includes(j)).map((j) => `<label><input type="checkbox" data-mv2="${esc(j)}" ${S.jfs.includes(j) ? 'checked' : ''}> ${jtB(j)} ${esc(JF_LBL[j])}</label>`).join('')}<div class="row" style="gap:6px;margin-top:6px"><button type="button" class="btn sm ghost" data-msall>All</button><button type="button" class="btn sm ghost" data-msnone>None</button><button type="button" class="btn sm" data-msok>Done</button></div></div></details></div>
+    ${msel('a', 'Main location', fOpts('a', (r) => S.locById[r.locId].area || 'Not set', (v) => rdOrder('area', v)), CF.a, 'All locations')}
+    ${msel('pl', 'Place', fOpts('pl', (r) => placeOf(S.locById[r.locId]), (v) => rdOrder('place', v)), CF.pl, 'Counter, shelf, tray, box')}
+    ${msel('i', 'Item', fOpts('i', (r) => r.item, (v) => rdOrder('item', v)), CF.i, 'All items')}
+    ${msel('p', 'Purity', fOpts('p', (r) => r.purity || 'Not set', (v) => rdOrder('purity', v)), CF.p, 'All purities')}
+    ${fOn ? '<div style="align-self:flex-end" data-fk="clr"><button class="btn ghost" id="cfClr">Clear filters</button></div>' : ''}</div>`;
   const done = (id) => sm.status[id] && sm.status[id].state !== 'pending';
   const isVar = (id) => sm.status[id] && ['var', 'stale'].includes(sm.status[id].state);
   const agg = (rows, keyFn) => { const m = {}; for (const r of rows) { const k = keyFn(r); const x = (m[k] ||= { op: 0, in: 0, out: 0, exp: 0, cnt: 0, chkExp: 0, locs: new Set(), dn: new Set(), vr: new Set(), bySec: {} }); x.op += r.op; x.in += r.in; x.out += r.out; x.exp += r.exp; x.cnt += r.cnt; x.chkExp += r.chkExp; x.locs.add(r.locId); if (done(r.locId)) x.dn.add(r.locId); if (isVar(r.locId)) x.vr.add(r.locId); x.bySec[r.sec] = (x.bySec[r.sec] || 0) + r.exp; } return m; };
-  const sumAll = (rows) => agg(rows, () => 'all').all || { op: 0, in: 0, out: 0, exp: 0, cnt: 0, chkExp: 0, locs: new Set(), dn: new Set(), vr: new Set(), bySec: {} };
-  const MS = agg(ALL, (r) => r.metal); const T = sumAll(L); const JA = agg(ALL, (r) => r.jt);
+  const empty = { op: 0, in: 0, out: 0, exp: 0, cnt: 0, chkExp: 0, locs: new Set(), dn: new Set(), vr: new Set(), bySec: {} };
+  const sumAll = (rows) => agg(rows, () => 'all').all || empty;
+  const MS = agg(FL, (r) => r.metal); const T = sumAll(L); const JA = agg(FL, (r) => r.jt);
   const bySec = agg(L, (r) => r.sec); const byJt = agg(L, (r) => r.jt); const byItem = agg(L, (r) => r.item);
   const cell = (n) => `<td class="${n > 0 ? 'pos' : n < 0 ? 'neg' : ''}">${n ? sgn(n) : '—'}</td>`;
   const row = (label, X, extra = '') => `<td>${fmt(X.op)}</td><td>${fmt(X.in)}</td><td>${fmt(X.out)}</td>${extra}<td class="b">${fmt(X.exp)}</td><td>${X.dn.size}/${X.locs.size}</td><td>${fmt(X.cnt)}</td>${cell(X.cnt - X.chkExp)}`;
-  const empty = { op: 0, in: 0, out: 0, exp: 0, cnt: 0, chkExp: 0, locs: new Set(), dn: new Set(), vr: new Set(), bySec: {} };
-  const mCard = (m, cls) => { const X = MS[m] || empty; return `<button class="card mcard ${cls} ${S.metal === m ? 'on' : ''}" data-metal="${m}"><div class="row sp"><h3>${m}</h3><span class="mut sm">${m === 'Gold' ? 'Plain gold + diamond + Tanih CVD' : m === 'Silver' ? 'Silver jewellery' : 'Platinum jewellery'}</span></div>
-    <div class="row sp" style="margin-top:8px"><div><div class="v">${fmt(X.exp)}</div><div class="mut sm">pcs expected</div></div><div style="text-align:right"><div class="b">${X.dn.size}/${X.locs.size} locations checked</div><div class="sm" style="color:${X.vr.size ? 'var(--bad)' : 'var(--ok)'}">${X.vr.size ? `${X.vr.size} with variance` : 'no variance'} · ${X.cnt - X.chkExp ? sgn(X.cnt - X.chkExp) : '±0'} pcs</div></div></div></button>`; };
-  const types = [...S.D.settings.itemTypes, ...Object.keys(byItem).filter((t) => !S.D.settings.itemTypes.includes(t))].filter((t) => byItem[t]);
-  const varLocs = activeLocs().filter((l) => isVar(l.id) && (S.jf === 'all' || L.some((r) => r.locId === l.id)));
-  const jCard = (j) => { const X = JA[j] || empty; return `<button class="card mcard jc-${JT_CLS[j]} ${S.jf === j ? 'on' : ''}" data-jf="${esc(j)}"><div class="row sp"><h3>${JF_LBL[j]}</h3><span class="mut sm">${j === 'Tanih - CVD Jewellery' ? 'Tanih CVD · gold' : jtMetal(j)}</span></div>
+  const types = rdOrder('item', Object.keys(byItem)).filter((t) => byItem[t]);
+  const varLocs = activeLocs().filter((l) => isVar(l.id) && (!fOn || L.some((r) => r.locId === l.id)));
+  const jCard = (j) => { const X = JA[j] || empty; return `<button class="card mcard jc-${JT_CLS[j]} ${S.jfs.includes(j) ? 'on' : ''}" data-jf="${esc(j)}"><div class="row sp"><h3>${S.jfs.includes(j) ? '☑ ' : ''}${JF_LBL[j]}</h3><span class="mut sm">${j === 'Tanih - CVD Jewellery' ? 'Tanih CVD · gold' : jtMetal(j)}</span></div>
     <div class="row sp" style="margin-top:8px"><div><div class="v">${fmt(X.exp)}</div><div class="mut sm">pcs expected</div></div><div style="text-align:right"><div class="b">${X.dn.size}/${X.locs.size} checked</div><div class="sm" style="color:${X.vr.size ? 'var(--bad)' : 'var(--ok)'}">${X.vr.size ? `${X.vr.size} with variance` : 'no variance'} · ${X.cnt - X.chkExp ? sgn(X.cnt - X.chkExp) : '±0'} pcs</div></div></div></button>`; };
-  const jfShown = LINE_JTYPES.filter((j) => JA[j] || j !== 'Silver');
+  const jfShown = LINE_JTYPES.filter((j) => JA[j] || !['Silver'].includes(j) && JT_CLS[j] !== 'cu');
   const mixed = activeLocs().filter((l) => l.jtype === 'Mixed').length;
-  $('#main').innerHTML = `${viewBanner()}
-  <div class="row sp wrap" style="margin-bottom:12px"><div><h1>Consolidated stock</h1><div class="mut">${dt(S.D.date)} · ${S.D.day.status === 'closed' ? 'Closed' : 'Live'}${S.round === 'evening' ? ' · evening count' : ''}</div></div>
-  <div class="row noprint">${can('reports') ? `<button class="btn sm sec" id="erpTab">ERP match</button><button class="btn sm ghost" id="csv">Export CSV</button><button class="btn sm ghost" id="prt">Print</button>${S.D.settings.waNumber ? `<button class="btn sm ok" id="wa">WhatsApp</button>` : ''}` : ''}</div></div>
-  ${blind ? '<div class="card mut">Expected totals are hidden while counting is in progress.</div>' : `
-  <div class="seg jfseg noprint" style="margin:0 0 12px">${[['all', 'All stock'], ...jfShown.map((j) => [j, JF_LBL[j]])].map(([k, t]) => `<button data-jf="${esc(k)}" class="${S.jf === k ? 'on' : ''}">${t}</button>`).join('')}</div>
-  <div class="mgrid jgrid">${jfShown.map(jCard).join('')}</div>
-  <h3 style="margin:16px 0 8px">By section${jfName ? ` · ${jfName}` : ''}</h3>
-  <div class="tw"><table><tr><th>Section</th><th>Opening</th><th>In</th><th>Out</th><th>Expected</th><th>Checked</th><th>Counted</th><th>Variance</th></tr>
-  ${SECTIONS.filter((x) => bySec[x.key]).map((x) => `<tr><td>${x.label}${x.key === 'box' && S.jf === 'all' ? `<div class="mut sm">${g3(sm.sec.box.wtExpected)} g</div>` : ''}</td>${row(x.label, bySec[x.key])}</tr>`).join('')}
-  <tr class="tot"><td>Total</td>${row('Total', T)}</tr></table></div>
-  <h3 style="margin:20px 0 8px">By jewellery type</h3>
-  <div class="tw"><table><tr><th>Jewellery type</th><th>Metal</th><th>Opening</th><th>In</th><th>Out</th><th>Expected</th><th>Checked</th><th>Counted</th><th>Variance</th></tr>
+  // item count by place (Counter / Shelf / Tray / Box) or by main location
+  S.pcol ||= 'place';
+  const colV = S.pcol === 'place' ? PLACES.filter((p) => L.some((r) => r.exp && placeOf(S.locById[r.locId]) === p)) : rdOrder('area', [...new Set(L.filter((r) => r.exp).map((r) => S.locById[r.locId].area || 'Not set'))]);
+  const colOf = (r) => S.pcol === 'place' ? placeOf(S.locById[r.locId]) : S.locById[r.locId].area || 'Not set';
+  const PX = {}; for (const r of L) { if (!r.exp) continue; const pu = r.purity || 'Not set'; for (const k of [r.item + '|*', r.item + '|' + pu]) { const x = (PX[k] ||= { t: 0 }); x[colOf(r)] = (x[colOf(r)] || 0) + r.exp; x.t += r.exp; } const x = (PX['*'] ||= { t: 0 }); x[colOf(r)] = (x[colOf(r)] || 0) + r.exp; x.t += r.exp; }
+  S.pexp ||= {};
+  const pRow = (lab, pur, X, cls, attr = '') => `<tr class="${cls}" ${attr}><td style="text-align:left" class="${cls === 'sub' ? 'ind' : 'b'}">${lab}</td><td style="text-align:left">${esc(pur)}</td>${colV.map((c) => `<td>${X[c] ? fmt(X[c]) : '—'}</td>`).join('')}<td class="b">${fmt(X.t)}</td></tr>`;
+  const placeTbl = `<div class="seg noprint" style="margin-bottom:8px;max-width:360px">${[['place', 'By place'], ['area', 'By main location']].map(([k, t]) => `<button data-pcol="${k}" class="${S.pcol === k ? 'on' : ''}">${t}</button>`).join('')}</div>
+    <div class="tw"><table class="ptbl"><tr><th style="text-align:left">Item</th><th style="text-align:left">Purity</th>${colV.map((c) => `<th>${esc(c)}</th>`).join('')}<th>Total</th></tr>
+    ${types.filter((t) => PX[t + '|*']).map((t) => { const purs = rdOrder('purity', Object.keys(PX).filter((k) => k.startsWith(t + '|') && !k.endsWith('|*')).map((k) => k.slice(t.length + 1))); const open = S.pexp[t];
+      return pRow(`${purs.length > 1 ? `<span class="caret">${open ? '▾' : '▸'}</span> ` : ''}${esc(t)}`, purs.length > 1 ? 'All' : purs[0], PX[t + '|*'], purs.length > 1 ? 'pclick' : '', purs.length > 1 ? `data-pexp="${esc(t)}"` : '') + (open && purs.length > 1 ? purs.map((p) => pRow(esc(t), p, PX[t + '|' + p], 'sub')).join('') : ''); }).join('')}
+    ${PX['*'] ? pRow('Total', '', PX['*'], 'tot') : `<tr><td colspan="${colV.length + 3}" class="mut">No stock</td></tr>`}</table></div>
+    <div class="mut sm" style="margin-top:6px">Expected pieces. ${S.pcol === 'place' ? 'Counter = floor display counters, Shelf = wall shelves, Tray = buffer trays, Box = boxes.' : 'Columns are the main stock locations.'} Tap an item to see each purity.</div>`;
+  const secTbl = `<div class="tw"><table><tr><th>Section</th><th>Opening</th><th>In</th><th>Out</th><th>Expected</th><th>Checked</th><th>Counted</th><th>Variance</th></tr>
+  ${SECTIONS.filter((x) => bySec[x.key]).map((x) => `<tr><td>${x.label}${x.key === 'box' && !fOn ? `<div class="mut sm">${g3(sm.sec.box.wtExpected)} g</div>` : ''}</td>${row(x.label, bySec[x.key])}</tr>`).join('')}
+  <tr class="tot"><td>Total</td>${row('Total', T)}</tr></table></div>`;
+  const jtTbl = `<div class="tw"><table><tr><th>Jewellery type</th><th>Metal</th><th>Opening</th><th>In</th><th>Out</th><th>Expected</th><th>Checked</th><th>Counted</th><th>Variance</th></tr>
   ${LINE_JTYPES.filter((j) => byJt[j]).map((j) => `<tr><td>${jtB(j)} <b>${esc(JT_LABEL[j])}</b></td><td style="text-align:left">${jtMetal(j)}</td>${row(j, byJt[j])}</tr>`).join('')}
-  ${S.jf === 'all' ? METALS.filter((m) => MS[m]).map((m) => `<tr class="tot"><td>${m} total</td><td></td>${row(m, MS[m])}</tr>`).join('') : ''}</table></div>
-  ${mixed ? `<div class="mut sm" style="margin-top:6px">${mixed} Mixed location${mixed > 1 ? 's are' : ' is'} split by the jewellery type of each item.</div>` : ''}
-  <h3 style="margin:20px 0 8px">By item type${jfName ? ` · ${jfName}` : ''}</h3>
-  <div class="tw"><table><tr><th>Item</th><th>Opening</th><th>In</th><th>Out</th>${SECTIONS.map((x) => `<th>${x.short}</th>`).join('')}<th>Expected</th><th>Checked</th><th>Counted</th><th>Variance</th></tr>
+  ${!S.jfs.length ? METALS.filter((m) => MS[m]).map((m) => `<tr class="tot"><td>${m} total</td><td></td>${row(m, MS[m])}</tr>`).join('') : ''}</table></div>
+  ${mixed ? `<div class="mut sm" style="margin-top:6px">${mixed} Mixed location${mixed > 1 ? 's are' : ' is'} split by the jewellery type of each item.</div>` : ''}`;
+  const itemTbl = `<div class="tw"><table><tr><th>Item</th><th>Opening</th><th>In</th><th>Out</th>${SECTIONS.map((x) => `<th>${x.short}</th>`).join('')}<th>Expected</th><th>Checked</th><th>Counted</th><th>Variance</th></tr>
   ${types.map((t) => `<tr><td class="b">${esc(t)}</td>${row(t, byItem[t], '').replace(/^(<td>[^<]*<\/td><td>[^<]*<\/td><td>[^<]*<\/td>)/, `$1${SECTIONS.map((x) => `<td>${fmt(byItem[t].bySec[x.key] || 0)}</td>`).join('')}`)}</tr>`).join('')}
   <tr class="tot"><td>Total</td>${row('Total', T).replace(/^(<td>[^<]*<\/td><td>[^<]*<\/td><td>[^<]*<\/td>)/, `$1${SECTIONS.map((x) => `<td>${fmt(T.bySec[x.key] || 0)}</td>`).join('')}`)}</tr></table></div>
-  <div class="mut sm" style="margin-top:6px">Counted and variance cover checked locations only.</div>
-  ${reportsBlock(L, jfName)}`}
-  ${varLocs.length ? `<h3 style="margin:20px 0 8px">Variances (${varLocs.length})</h3><div class="locs">${varLocs.map(locCard).join('')}</div>` : ''}
+  <div class="mut sm" style="margin-top:6px">Counted and variance cover checked locations only.</div>`;
+  const czAll = (open) => `<button class="btn sm ghost noprint" data-czall="${open ? 1 : 0}">${open ? 'Expand all' : 'Collapse all'}</button>`;
+  $('#main').innerHTML = `${viewBanner()}
+  <div class="row sp wrap" style="margin-bottom:12px"><div><h1>Consolidated stock</h1><div class="mut">${dt(S.D.date)} · ${S.D.day.status === 'closed' ? 'Closed' : 'Live'}${S.round === 'evening' ? ' · evening count' : ''}${jfName ? ` · <b>${esc(jfName)}</b>` : ''}</div></div>
+  <div class="row noprint">${czAll(0)}${czAll(1)}${can('reports') ? `<button class="btn sm sec" id="erpTab">ERP match</button><button class="btn sm ghost" id="csv">Export CSV</button><button class="btn sm ghost" id="prt">Print</button>${S.D.settings.waNumber ? `<button class="btn sm ok" id="wa">WhatsApp</button>` : ''}` : ''}</div></div>
+  ${blind ? '<div class="card mut">Expected totals are hidden while counting is in progress.</div>' : `
+  <div class="seg jfseg noprint" data-fbar="cons-jt" style="margin:0 0 10px">${[['all', 'All stock'], ...jfShown.map((j) => [j, JF_LBL[j]])].map(([k, t]) => `<button data-jf="${esc(k)}" data-fk="${esc(k)}" class="${k === 'all' ? (S.jfs.length ? '' : 'on') : S.jfs.includes(k) ? 'on' : ''}">${k !== 'all' && S.jfs.includes(k) ? '✓ ' : ''}${t}</button>`).join('')}</div>
+  ${fBar}
+  ${cz('cards', 'Stock types', `<div class="mgrid jgrid">${jfShown.map(jCard).join('')}</div><div class="mut sm" style="margin-top:6px">Tap types to combine them — e.g. Gold + Diamond Jewellery + Lab Grown.</div>`)}
+  ${cz('place', `Item count by ${S.pcol === 'place' ? 'place' : 'main location'}${jfName ? ` · ${esc(jfName)}` : ''}`, placeTbl, `<span class="mut sm">${fmt(T.exp)} pcs</span>`)}
+  ${cz('sec', `By section${jfName ? ` · ${esc(jfName)}` : ''}`, secTbl)}
+  ${cz('jt', 'By jewellery type', jtTbl)}
+  ${cz('item', `By item type${jfName ? ` · ${esc(jfName)}` : ''}`, itemTbl)}
+  ${cz('rep', `Reports${jfName ? ` · ${esc(jfName)}` : ''}`, reportsBlock(L, jfName))}`}
+  ${varLocs.length ? cz('var', `Variances (${varLocs.length})`, `<div class="locs">${varLocs.map(locCard).join('')}</div>`) : ''}
   ${editable() && can('close') ? `<button class="btn" style="width:100%;margin-top:20px" id="closeBtn">Close day</button>` : ''}`;
-  bindBanner(); bindLocCards();
+  bindBanner(); bindLocCards(); bindCz($('#main'));
+  $('#main').querySelectorAll('[data-czall]').forEach((b) => b.onclick = () => { const o = b.dataset.czall === '1'; const m = czGet(); $('#main').querySelectorAll('details.cz').forEach((d) => { d.open = o; m[d.dataset.cz] = o; }); try { localStorage.setItem('ysc_cz', JSON.stringify(m)); } catch {} });
   $('#closeBtn') && ($('#closeBtn').onclick = closeDayFlow);
   $('#csv') && ($('#csv').onclick = exportCSV);
   $('#erpTab') && ($('#erpTab').onclick = () => { S.tab = 'erp'; vTotal(); });
-  $('#main').querySelectorAll('[data-jf]').forEach((b) => b.onclick = () => { S.jf = S.jf === b.dataset.jf && b.classList.contains('mcard') ? 'all' : b.dataset.jf; vTotal(); });
+  $('#main').querySelectorAll('[data-jf]').forEach((b) => b.onclick = () => { const j = b.dataset.jf; if (j === 'all') S.jfs = []; else S.jfs = S.jfs.includes(j) ? S.jfs.filter((x) => x !== j) : [...S.jfs, j]; vTotal(); });
+  bindMsel($('#main'), (k) => k === 'jt' ? S.jfs : CF[k], (k, v) => { if (k === 'jt') S.jfs = v; else CF[k] = v; vTotal(); });
+  $('#cfClr') && ($('#cfClr').onclick = () => { S.jfs = []; S.cf = { a: [], pl: [], i: [], p: [] }; vTotal(); });
+  $('#main').querySelectorAll('[data-pcol]').forEach((b) => b.onclick = () => { S.pcol = b.dataset.pcol; vTotal(); });
+  $('#main').querySelectorAll('[data-pexp]').forEach((r) => r.onclick = () => { const t = r.dataset.pexp; S.pexp[t] = !S.pexp[t]; vTotal(); });
   bindReports(L, jfName);
-  $('#prt') && ($('#prt').onclick = () => print());
+  $('#prt') && ($('#prt').onclick = () => { $('#main').querySelectorAll('details.cz').forEach((d) => { d.open = true; }); print(); });
   $('#wa') && ($('#wa').onclick = () => open(`https://wa.me/${S.D.settings.waNumber}?text=${encodeURIComponent(summaryText())}`, '_blank'));
 }
 async function loadPdfjs() {
@@ -2053,6 +2203,72 @@ document.addEventListener('click', (e) => {
   sorted.forEach((r) => tb.appendChild(r));
   if (dir) { th.dataset.sdir = String(dir); th.insertAdjacentHTML('beforeend', `<span class="sarr">${dir > 0 ? '▲' : '▼'}</span>`); }
 });
+// ---------------- v1.28 Box weight tracker: gross, items, cover / packaging, net, inward / outward with reason, closing ----------------
+const BW_IN = ['New stock in', 'Sales return', 'Smith receipt', 'Repair receipt', 'Transfer in', 'Weight correction', 'Other'];
+const BW_OUT = ['Sales', 'Smith issue', 'Repair issue', 'Transfer out', 'Partner drawings', 'Samples', 'Weight correction', 'Other'];
+function boxLedger(l) {
+  const op = +opOf(l.id).wt || 0; let inw = 0, outw = 0, adj = 0; const rows = [];
+  for (const m of S.D.mvs) { if (m.void) continue; for (const g of m.legs || []) { if (g.locId !== l.id || !g.wt) continue;
+    if (m.kind === 'set' || m.kind === 'accept') adj += g.wt; else if (g.wt > 0) inw += g.wt; else outw -= g.wt;
+    rows.push({ at: m.at, by: m.by, kind: m.kind, reason: m.reason || (m.kind === 'move' ? 'Moved' : ''), note: m.note || '', wt: g.wt, pcs: Object.values(g.lines || {}).reduce((a, n) => a + n, 0) }); } }
+  const close = +expOf(l.id).wt || 0; const cover = +l.cover || 0;
+  return { op, inw, outw, adj, close, cover, net: close ? Math.round((close - cover) * 1000) / 1000 : 0, pcs: sumLines(expOf(l.id).lines), rows };
+}
+function vBoxWt() {
+  const boxes = activeLocs('box'); const ok = can('move') && editable(); const okSet = can('setup') && editable();
+  const L = boxes.map((l) => [l, boxLedger(l)]); const T = L.reduce((a, [, x]) => { for (const k of ['op', 'inw', 'outw', 'adj', 'close', 'cover', 'net', 'pcs']) a[k] += x[k]; return a; }, { op: 0, inw: 0, outw: 0, adj: 0, close: 0, cover: 0, net: 0, pcs: 0 });
+  const g = (n) => n ? g3(n) : '—';
+  $('#main').innerHTML = `${viewBanner()}<div class="row sp wrap" style="margin-bottom:10px"><div><div class="mut sm" style="letter-spacing:2px">BOXES</div><h1>Box weight tracker</h1><div class="mut">${dt(S.D.date)} · weights in grams · gross = box with jewellery and packaging</div></div><button class="btn sm ghost" id="bwBack">‹ Boxes</button></div>
+  <div class="kpis"><div class="kpi"><div class="l">Total box weight</div><div class="v" style="font-size:22px">${g(T.close)}</div><div class="mut sm">gross · opening ${g(T.op)}</div></div>
+    <div class="kpi"><div class="l">Item count</div><div class="v">${fmt(T.pcs)}</div><div class="mut sm">${boxes.length} boxes</div></div>
+    <div class="kpi"><div class="l">Cover / packaging</div><div class="v" style="font-size:22px">${g(T.cover)}</div><div class="mut sm">net ${g(T.net)}</div></div>
+    <div class="kpi"><div class="l">Inward / Outward</div><div class="v" style="font-size:20px"><span style="color:var(--ok)">+${g3(T.inw)}</span> <span style="color:var(--bad)">−${g3(T.outw)}</span></div><div class="mut sm">today${T.adj ? ` · adj ${T.adj > 0 ? '+' : ''}${g3(T.adj)}` : ''}</div></div></div>
+  <div class="tw" style="margin-top:12px"><table class="bwt"><tr><th style="text-align:left">Box</th><th>Items</th><th>Opening g</th><th>Inward g</th><th>Outward g</th><th>Adj. g</th><th>Closing g</th><th>Cover g</th><th>Net g</th><th></th></tr>
+  ${L.map(([l, x]) => `<tr><td style="text-align:left"><button class="lnk b" data-bwl="${l.id}">${esc(l.name)}</button>${l.boxNo && !l.name.includes(l.boxNo) ? ` <span class="chip m">${esc(l.boxNo)}</span>` : ''}</td><td>${fmt(x.pcs)}</td><td>${g(x.op)}</td>
+    <td class="pos">${x.inw ? '+' + g3(x.inw) : '—'}</td><td class="neg">${x.outw ? '−' + g3(x.outw) : '—'}</td><td>${x.adj ? (x.adj > 0 ? '+' : '') + g3(x.adj) : '—'}</td><td class="b">${x.close ? g3(x.close) : '<span class="mut">not set</span>'}</td>
+    <td>${g(x.cover)}${okSet ? ` <button class="lnk" data-bwc="${l.id}">${x.cover ? 'edit' : 'set'}</button>` : ''}</td><td class="b">${g(x.net)}</td>
+    <td style="white-space:nowrap">${ok ? `<button class="btn sm sec" data-bwi="${l.id}">＋ In</button> <button class="btn sm ghost" data-bwo="${l.id}">− Out</button>` : ''}${okSet && !x.close ? ` <button class="btn sm ghost" data-bws="${l.id}" title="Set weight">⚖</button>` : ''}</td></tr>`).join('')}
+  <tr class="tot"><td style="text-align:left">Total · ${boxes.length}</td><td>${fmt(T.pcs)}</td><td>${g3(T.op)}</td><td>+${g3(T.inw)}</td><td>−${g3(T.outw)}</td><td>${T.adj ? (T.adj > 0 ? '+' : '') + g3(T.adj) : '—'}</td><td>${g3(T.close)}</td><td>${g3(T.cover)}</td><td>${g3(T.net)}</td><td></td></tr></table></div>
+  <div class="mut sm" style="margin-top:8px">Closing = opening + inward − outward ± adjustments (weight set / count accepted). Net = closing − cover. Closing carries forward as tomorrow's opening. Tap a box for its entries.</div>`;
+  $('#bwBack').onclick = () => go('box');
+  bindBanner();
+  $('#main').querySelectorAll('[data-bwi]').forEach((b) => b.onclick = () => bwEntry(S.locById[b.dataset.bwi], 'in'));
+  $('#main').querySelectorAll('[data-bwo]').forEach((b) => b.onclick = () => bwEntry(S.locById[b.dataset.bwo], 'out'));
+  $('#main').querySelectorAll('[data-bws]').forEach((b) => b.onclick = () => weightAction(S.locById[b.dataset.bws], 'edit', () => vBoxWt()));
+  $('#main').querySelectorAll('[data-bwl]').forEach((b) => b.onclick = () => bwLedger(S.locById[b.dataset.bwl]));
+  $('#main').querySelectorAll('[data-bwc]').forEach((b) => b.onclick = async () => { const l = S.locById[b.dataset.bwc]; const v = prompt(`Cover / packaging weight of ${l.name} (g) — box, pouches, tags`, l.cover || ''); if (v == null) return; const x = +String(v).replace(',', '.'); if (!(x >= 0)) return toast('Enter grams');
+    try { await api('loc', { loc: { ...l, cover: Math.round(x * 1000) / 1000 } }); toast('✓ Cover weight saved'); await load(); vBoxWt(); } catch (e) { fail(e); } });
+}
+function bwEntry(l, dir) {
+  const x = boxLedger(l); const items = Object.entries(expOf(l.id).lines).filter(([, n]) => n).map(([k]) => k); const types = S.D.settings.itemTypes;
+  modal(`${dir === 'in' ? '＋ Inward' : '− Outward'} · ${esc(l.name)}`, `Now ${x.close ? g3(x.close) + ' g gross' : 'weight not set'} · ${fmt(x.pcs)} pcs`, `
+    <label class="f">Weight ${dir === 'in' ? 'added' : 'taken out'} (g) *</label><input type="number" step="0.001" inputmode="decimal" id="bwW" placeholder="e.g. 12.345">
+    <label class="f">Reason *</label><select id="bwR">${(dir === 'in' ? BW_IN : BW_OUT).map((r) => `<option>${r}</option>`).join('')}</select>
+    <label class="f">Pieces (optional)</label><div class="row" style="gap:6px"><select id="bwI" class="grow"><option value="">No pieces — weight only</option>${(dir === 'out' ? items : [...items, ...types.map((t) => lineKey(l, t)).filter((k) => !items.includes(k))]).map((k) => `<option value="${esc(k)}">${esc(kT(k, l))}${dir === 'out' ? ` (${expOf(l.id).lines[k]})` : ''}</option>`).join('')}</select><input type="number" inputmode="numeric" min="1" id="bwN" placeholder="Qty" style="max-width:90px"></div>
+    <label class="f">Note</label><input type="text" id="bwNote" placeholder="Bill no., smith, customer…">
+    <div class="mut sm" id="bwPrev" style="margin-top:8px"></div>
+    <button class="btn" id="bwSave" style="width:100%;margin-top:12px">${dir === 'in' ? 'Add inward' : 'Record outward'}</button>`, (ov) => {
+    const prev = () => { const w = +($('#bwW').value || 0); $('#bwPrev').textContent = w ? `Closing will be ${g3(x.close + (dir === 'in' ? w : -w))} g gross${x.cover ? ` · net ${g3(x.close + (dir === 'in' ? w : -w) - x.cover)} g` : ''}` : ''; };
+    $('#bwW').oninput = prev;
+    $('#bwSave').onclick = async () => { const w = +String($('#bwW').value).replace(',', '.'); if (!(w > 0)) return toast('Enter the weight in grams');
+      if (dir === 'out' && x.close && w > x.close + 1e-6) return toast(`Only ${g3(x.close)} g in this box`);
+      const k = $('#bwI').value, n = +$('#bwN').value || 0; if (k && !(n > 0)) return toast('Enter the number of pieces');
+      if (k && dir === 'out' && n > (expOf(l.id).lines[k] || 0)) return toast('More pieces than in the box');
+      const reason = $('#bwR').value, note = $('#bwNote').value.trim();
+      try { await api('move', { kind: dir, date: S.D.date, locId: l.id, lines: k ? { [k]: n } : {}, wt: Math.round(w * 1000) / 1000, reason, note });
+        closeModal(); toast(`✓ ${dir === 'in' ? 'Inward' : 'Outward'} ${g3(w)} g · ${reason}`); await load(); if (S.view === 'boxwt') vBoxWt(); } catch (e) { fail(e); } };
+  });
+}
+function bwLedger(l) {
+  const x = boxLedger(l);
+  modal(`⚖ ${esc(l.name)}`, `${dt(S.D.date)} · weight entries`, `<div class="kpis"><div class="kpi"><div class="l">Opening</div><div class="v" style="font-size:20px">${g3(x.op)}</div></div><div class="kpi"><div class="l">Closing</div><div class="v" style="font-size:20px">${g3(x.close)}</div></div><div class="kpi"><div class="l">Cover</div><div class="v" style="font-size:20px">${g3(x.cover)}</div></div><div class="kpi"><div class="l">Net</div><div class="v" style="font-size:20px">${g3(x.net)}</div></div></div>
+    <div class="tw" style="margin-top:10px"><table><tr><th style="text-align:left">Time</th><th style="text-align:left">Entry</th><th>Pcs</th><th>Weight g</th><th style="text-align:left">By</th></tr>
+    <tr><td style="text-align:left" class="mut">Opening</td><td style="text-align:left">Carried forward</td><td>${fmt(sumLines(opOf(l.id).lines))}</td><td>${g3(x.op)}</td><td></td></tr>
+    ${x.rows.map((r) => `<tr><td style="text-align:left">${new Date(r.at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</td><td style="text-align:left">${esc(r.reason || r.kind)}${r.note ? `<div class="mut sm">${esc(r.note)}</div>` : ''}</td><td>${r.pcs ? (r.pcs > 0 ? '+' : '') + fmt(r.pcs) : '—'}</td><td class="${r.wt > 0 ? 'pos' : 'neg'}">${r.wt > 0 ? '+' : '−'}${g3(Math.abs(r.wt))}</td><td style="text-align:left">${esc(uname(r.by))}</td></tr>`).join('')}
+    <tr class="tot"><td style="text-align:left">Closing</td><td></td><td>${fmt(x.pcs)}</td><td>${g3(x.close)}</td><td></td></tr></table></div>
+    ${can('move') && editable() ? `<div class="cact" style="margin-top:12px"><button class="btn" id="lgIn">＋ Inward</button><button class="btn ghost" id="lgOut">− Outward</button></div>` : ''}`, () => {
+    $('#lgIn') && ($('#lgIn').onclick = () => bwEntry(l, 'in')); $('#lgOut') && ($('#lgOut').onclick = () => bwEntry(l, 'out')); });
+}
 function vMore() {
   const items = [['docs', 'Business documents', 'Licences, GST certificate, bank accounts, UPI QR', can('docs') || can('docsEdit')], ['eod', 'End-of-day entries', 'Sales, returns, smith, samples… then evening count', can('move')], ['log', 'Day log', 'Movements and checks today', true], ['alerts', 'Alerts', 'Variances and reports', can('alerts')], ['history', 'History', 'Past days and closing stock', can('reports')], ['admin', 'Admin', 'Users, locations, settings', can('users') || can('setup')], ['backup', 'Backup database', 'Download all data as a backup file', S.me.role === 'admin']].filter((x) => x[3]);
   $('#main').innerHTML = `<h1 style="margin-bottom:12px">More</h1><div class="list card" style="padding:0">${items.map(([k, t, d]) => `<button class="li" style="width:100%;text-align:left" data-go="${k}"><div class="grow"><div class="b">${t}</div><div class="mut sm">${d}</div></div><span class="mut">›</span></button>`).join('')}
@@ -2096,11 +2312,11 @@ async function vHistory() {
   } catch (e) { fail(e); }
 }
 async function vAdmin() {
-  const tabs = [['users', 'Users', can('users')], ['locs', 'Locations', can('setup')], ['settings', 'Settings', can('setup')], ['backup', 'Backup', S.me.role === 'admin']].filter((x) => x[2]);
+  const tabs = [['users', 'Users', can('users')], ['locs', 'Locations', can('setup')], ['settings', 'Settings', can('setup')], ['lists', 'Lists', can('setup')], ['backup', 'Backup', S.me.role === 'admin']].filter((x) => x[2]);
   if (!tabs.find((t) => t[0] === S.tab)) S.tab = tabs[0]?.[0];
   $('#main').innerHTML = `<h1 style="margin-bottom:12px">Admin</h1><div class="tabs">${tabs.map(([k, t]) => `<button data-t="${k}" class="${S.tab === k ? 'on' : ''}">${t}</button>`).join('')}</div><div id="adm"></div>`;
   $('#main').querySelectorAll('[data-t]').forEach((b) => b.onclick = () => { S.tab = b.dataset.t; vAdmin(); });
-  if (S.tab === 'users') admUsers(); else if (S.tab === 'locs') admLocs(); else if (S.tab === 'backup') admBackup(); else admSettings();
+  if (S.tab === 'users') admUsers(); else if (S.tab === 'locs') admLocs(); else if (S.tab === 'backup') admBackup(); else if (S.tab === 'lists') admLists(); else admSettings();
 }
 // ---------- database backup (admin) ----------
 const kb = (n) => n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
@@ -2251,7 +2467,7 @@ const LCOLS = [
   { k: 'pcs', t: 'Pcs', num: true, v: (l) => sumLines(expOf(l.id).lines) },
   { k: 'trays', t: 'No. of trays', num: true, v: (l) => +l.qty || 0, secs: ['tray'] },
   { k: 'slots', t: 'Slots / tray', num: true, v: (l) => +l.insert || 0, secs: ['tray'] },
-  { k: 'wt', t: 'Weight g', num: true, v: (l) => +expOf(l.id).wt || 0 },
+  { k: 'wt', t: 'Weight g', num: true, v: (l) => +expOf(l.id).wt || 0, secs: ['box'] },
   { k: 'status', t: 'Status', v: (l) => STLBL[S.sum.status[l.id]?.state] || '' },
   { k: 'tag', t: 'Tag', v: (l) => l.cat || '', off: true },
   { k: 'mode', t: 'Box check', v: (l) => ({ both: 'Weight + count', weight: 'Weight only', count: 'Count only' })[l.mode] || '', secs: ['box'], off: true },
@@ -2314,7 +2530,7 @@ async function weightAction(l, act, after) {
   try { await api('move', { kind: 'set', date: S.D.date, locId: l.id, lines, wt: Math.round(nw * 1000) / 1000, note, reason }); toast(`✓ ${reason}: ${g3(nw)} g`); await load(); after && after(S.locById[l.id]); } catch (e) { fail(e); }
 }
 const wtPanel = (l) => { const w = +expOf(l.id).wt || 0; const ok = can('setup') && editable();
-  return `<div class="wtp"><div><div class="mut sm">Book weight</div><div class="b" style="font-size:18px">${w ? g3(w) + ' g' : '<span class="mut">not set</span>'}</div>${l.sec !== 'box' && w ? '<div class="mut sm">Reference only — weight is checked at counts for boxes.</div>' : ''}</div>
+  return `<div class="wtp"><div><div class="mut sm">Book weight</div><div class="b" style="font-size:18px">${w ? g3(w) + ' g' : '<span class="mut">not set</span>'}</div></div>
     ${ok ? `<div class="row" style="gap:6px"><button class="btn sm ghost" data-wt="add">＋ Add</button><button class="btn sm ghost" data-wt="edit">✎ Edit</button>${w ? '<button class="btn sm ghost" data-wt="del" style="color:var(--bad)">🗑</button>' : ''}</div>` : ''}</div>`; };
 function addLoc(sec) { const st = S.D.settings; locEdit({ sec, group: sec === 'counter' && SEL_LAST.counter ? SEL_LAST.counter : '', name: '', cat: '', area: sec === 'counter' ? st.areas[0] : st.areas.includes('Locker Area') ? 'Locker Area' : st.areas[0], sub: sec === 'counter' ? st.subDisplays[0] : '', jtype: JTYPES[0], images: [], mode: 'both' }); }
 const SEL_LAST = {};
@@ -2366,6 +2582,65 @@ function admLocs() {
   $('#adm').querySelectorAll('[data-delloc]').forEach((b) => b.onclick = () => delLoc(S.locById[b.dataset.delloc]));
   $('#adm').querySelectorAll('[data-add],[data-addn]').forEach((b) => b.onclick = () => addLoc(b.dataset.add || b.dataset.addn));
 }
+// ---------------- v1.28 Admin → Lists: stock locations, sub displays, jewellery types, items (add / rename / delete) ----------------
+window.__yc = () => ({ S, LINE_JTYPES, activeLocs, go });   // debug/test hook
+function admLists() {
+  const st = S.D.settings; const locs = activeLocs();
+  const used = { area: (v) => locs.filter((l) => l.area === v).length, sub: (v) => locs.filter((l) => l.sub === v).length,
+    item: (v) => locs.reduce((a, l) => a + Object.entries(expOf(l.id).lines).filter(([k]) => itemOf(k) === v).reduce((x, [, n]) => x + n, 0), 0),
+    jt: (v) => locs.reduce((a, l) => a + Object.entries(expOf(l.id).lines).filter(([k]) => jtOfLine(l, k) === v).reduce((x, [, n]) => x + n, 0), 0) };
+  const list = (kind, title, hint, arr, unit) => `<div class="card lcard"><div class="row sp"><h3>${title}</h3><button class="btn sm" data-ladd="${kind}">＋ Add</button></div><div class="mut sm" style="margin:4px 0 8px">${hint}</div>
+    ${arr.map((v, i) => { const n = used[kind](v); return `<div class="lrow"><span class="grow b">${esc(v)}</span><span class="mut sm">${n ? `${fmt(n)} ${unit}` : 'not used'}</span>
+      <button class="btn sm ghost" data-lup="${kind}:${i}" ${i ? '' : 'disabled'}>↑</button><button class="btn sm ghost" data-lren="${kind}:${esc(v)}">✎</button><button class="btn sm ghost" data-ldel="${kind}:${esc(v)}" style="color:var(--bad)">🗑</button></div>`; }).join('')}</div>`;
+  const jts = [...st.jtOrder || [], ...['Plain Gold Jewellery', 'Diamond Jewellery', 'Platinum', 'Tanih - CVD Jewellery', 'Silver', ...(st.jtCustom || []).map((c) => c.name)]].filter((v, i, a) => a.indexOf(v) === i && JT_CODE[v]);
+  const hidden = st.jtHidden || [];
+  $('#adm').innerHTML = `<div class="mut sm" style="margin-bottom:10px">Lists used everywhere in the app. Renaming a stock location or sub display moves its counters, trays and boxes with it. Something still in use can't be deleted — move or rename it instead.</div>
+  <div class="lgrid">
+  ${list('area', '📍 Stock locations', 'Main locations that hold stock — e.g. Cash Counter Area, Locker Area, Grand, Partners, Repair, Sample.', st.areas, 'locations')}
+  ${list('sub', '🗄 Sub displays', 'For counters — e.g. Floor display counters, Wall Shelves.', st.subDisplays, 'locations')}
+  <div class="card lcard"><div class="row sp"><h3>💎 Jewellery types</h3><button class="btn sm" data-ladd="jt">＋ Add</button></div><div class="mut sm" style="margin:4px 0 8px">Name shown everywhere, short badge before each item, metal for totals. Built-in types can be renamed or hidden; new types can be deleted when not used.</div>
+    ${jts.map((j, i) => { const c = (st.jtCustom || []).find((x) => x.name === j); const n = used.jt(j); const off = hidden.includes(j);
+      return `<div class="lrow ${off ? 'off' : ''}"><span class="jtb ${JT_CLS[j] || 'cu'}">${esc(JT_SHORT[j])}</span><span class="grow"><b>${esc(JT_LABEL[j])}</b>${off ? ' <span class="mut sm">(hidden)</span>' : ''}<br><span class="mut sm">${JT_METAL[j]} · ${n ? fmt(n) + ' pcs' : 'not used'}</span></span>
+        <button class="btn sm ghost" data-jup="${i}" ${i ? '' : 'disabled'}>↑</button><button class="btn sm ghost" data-jed="${esc(j)}">✎</button>${c ? `<button class="btn sm ghost" data-jdel="${esc(j)}" style="color:var(--bad)">🗑</button>` : j === 'Plain Gold Jewellery' ? '<span style="width:38px"></span>' : `<button class="btn sm ghost" data-jhide="${esc(j)}" title="${off ? 'Show' : 'Hide'}">${off ? '👁' : '🚫'}</button>`}</div>`; }).join('')}</div>
+  ${list('item', '💍 Items', 'Item types used for counting — Ring, Stud, Pendant…', st.itemTypes, 'pcs')}
+  </div>`;
+  const save = async (patch, msg) => { try { await api('settings', { settings: patch }); toast(msg || '✓ Saved'); await load(); S.tab = 'lists'; admLists(); } catch (e) { fail(e); } };
+  const fieldOf = { area: 'areas', sub: 'subDisplays', item: 'itemTypes' };
+  $('#adm').querySelectorAll('[data-ladd]').forEach((b) => b.onclick = () => { const k = b.dataset.ladd; if (k === 'jt') return jtEdit(null);
+    const v = (prompt(`New ${k === 'area' ? 'stock location' : k === 'sub' ? 'sub display' : 'item'}`) || '').trim(); if (!v) return; const arr = st[fieldOf[k]];
+    if (arr.some((x) => x.toLowerCase() === v.toLowerCase())) return toast('Already in the list'); save({ [fieldOf[k]]: [...arr, v] }, `✓ Added ${v}`); });
+  $('#adm').querySelectorAll('[data-lup]').forEach((b) => b.onclick = () => { const [k, i] = b.dataset.lup.split(':'); const a = [...st[fieldOf[k]]]; [a[i - 1], a[i]] = [a[i], a[i - 1]]; save({ [fieldOf[k]]: a }, '✓ Order saved'); });
+  $('#adm').querySelectorAll('[data-lren]').forEach((b) => b.onclick = async () => { const [k, ...r] = b.dataset.lren.split(':'); const from = r.join(':');
+    if (k === 'item' && used.item(from)) return toast(`${from} has ${used.item(from)} pcs in stock — the name is part of their stock records, so it can't be renamed. Add a new item instead.`, 5000);
+    const to = (prompt(`Rename “${from}” to`, from) || '').trim(); if (!to || to === from) return;
+    try { const r2 = await api('master/rename', { kind: k, from, to }); toast(`✓ Renamed${r2.moved ? ` · ${r2.moved} locations moved` : ''}`); await load(); S.tab = 'lists'; admLists(); } catch (e) { fail(e); } });
+  $('#adm').querySelectorAll('[data-ldel]').forEach((b) => b.onclick = () => { const [k, ...r] = b.dataset.ldel.split(':'); const v = r.join(':'); const n = used[k](v);
+    if (n) return toast(`“${v}” is used by ${fmt(n)} ${k === 'item' ? 'pcs' : 'locations'} — move or rename them first`, 4000);
+    if (st[fieldOf[k]].length <= 1) return toast('Keep at least one'); if (!confirm(`Delete “${v}”?`)) return; save({ [fieldOf[k]]: st[fieldOf[k]].filter((x) => x !== v) }, `✓ Deleted ${v}`); });
+  $('#adm').querySelectorAll('[data-jup]').forEach((b) => b.onclick = () => { const i = +b.dataset.jup; const a = [...jts]; [a[i - 1], a[i]] = [a[i], a[i - 1]]; save({ jtOrder: a }, '✓ Order saved'); });
+  $('#adm').querySelectorAll('[data-jed]').forEach((b) => b.onclick = () => jtEdit(b.dataset.jed));
+  $('#adm').querySelectorAll('[data-jhide]').forEach((b) => b.onclick = () => { const j = b.dataset.jhide; const h = new Set(hidden); if (h.has(j)) h.delete(j); else { if (used.jt(j)) return toast(`${JT_LABEL[j]} has ${used.jt(j)} pcs in stock — it stays visible`, 4000); h.add(j); } save({ jtHidden: [...h] }); });
+  $('#adm').querySelectorAll('[data-jdel]').forEach((b) => b.onclick = () => { const j = b.dataset.jdel; if (used.jt(j)) return toast(`${JT_LABEL[j]} has ${used.jt(j)} pcs in stock — can't delete`, 4000);
+    if (!confirm(`Delete jewellery type “${JT_LABEL[j]}”?`)) return; save({ jtCustom: (st.jtCustom || []).filter((c) => c.name !== j), jtOrder: jts.filter((x) => x !== j) }, '✓ Deleted'); });
+}
+function jtEdit(j) {
+  const st = S.D.settings; const isNew = !j; const c = (st.jtCustom || []).find((x) => x.name === j); const builtin = j && !c;
+  modal(isNew ? 'Add jewellery type' : 'Edit · ' + esc(JT_LABEL[j]), isNew ? 'Shown everywhere in the app' : builtin ? 'Built-in type — rename only' : 'Custom type', `
+    <label class="f">Name *</label><input type="text" id="jtN" value="${esc(isNew ? '' : JT_LABEL[j])}" placeholder="e.g. Polki, Kundan, Antique">
+    <label class="f">Short badge</label><input type="text" id="jtS" value="${esc(isNew ? '' : JT_SHORT[j])}" placeholder="e.g. Polki (max 12 letters)" maxlength="12">
+    <label class="f">Metal (for totals)</label><select id="jtM" ${builtin ? 'disabled' : ''}>${['Gold', 'Platinum', 'Silver'].map((m) => `<option ${(isNew ? 'Gold' : JT_METAL[j]) === m ? 'selected' : ''}>${m}</option>`).join('')}</select>
+    ${builtin ? `<div class="mut sm" style="margin-top:6px">Stored as “${esc(j)}”${j === 'Tanih - CVD Jewellery' ? ' — the ERP match still uses “Tanih - CVD Jewellery”' : ''}.</div>` : ''}
+    <button class="btn" id="jtSave" style="width:100%;margin-top:14px">${isNew ? '＋ Add type' : 'Save'}</button>`, () => {
+    $('#jtSave').onclick = async () => { const name = $('#jtN').value.trim(); const short = $('#jtS').value.trim() || name; if (!name) return toast('Enter the name');
+      if (Object.values(JT_LABEL).some((v) => v.toLowerCase() === name.toLowerCase()) && (isNew || name !== JT_LABEL[j])) return toast('That name is already used');
+      let patch;
+      if (builtin) patch = { jtLabels: { ...(st.jtLabels || {}), [j]: name }, jtShort: { ...(st.jtShort || {}), [j]: short } };
+      else if (c) patch = { jtCustom: (st.jtCustom || []).map((x) => x.name === j ? { ...x, label: name, short, metal: $('#jtM').value } : x) };
+      else { const usedC = new Set([...'GDPTS', ...(st.jtCustom || []).map((x) => x.code)]); const code = JT_FREE_CODES.find((x) => !usedC.has(x)); if (!code) return toast('No more types can be added');
+        patch = { jtCustom: [...(st.jtCustom || []), { name, code, label: name, short, metal: $('#jtM').value }] }; }
+      try { await api('settings', { settings: patch }); closeModal(); toast(isNew ? `✓ Added ${name}` : '✓ Saved'); await load(); S.tab = 'lists'; admLists(); } catch (e) { fail(e); } };
+  });
+}
 function admSettings() {
   const st = S.D.settings;
   $('#adm').innerHTML = `<div class="card">
@@ -2377,19 +2652,18 @@ function admSettings() {
     <label class="f">Match app count against ERP</label><select id="sE"><option value="lbl" ${st.erpBasis !== 'pcs' ? 'selected' : ''}>Labels (Lbl)</option><option value="pcs" ${st.erpBasis === 'pcs' ? 'selected' : ''}>Pieces (Pc)</option></select>
     <label class="f">App item type → ERP ornament (one per line, e.g. Ring = G-Ring)</label><textarea id="sM" style="min-height:150px">${esc(Object.entries(st.erpItemMap || {}).map(([a, b]) => `${a} = ${b}`).join('\n'))}</textarea>
     <label class="f">Category → ERP ornament (overrides item type; use - for "not in this ERP report")</label><textarea id="sCM">${esc(Object.entries(st.erpCatMap || {}).map(([a, b]) => `${a} = ${b}`).join('\n'))}</textarea>
-    <label class="f">Main locations (comma separated)</label><input type="text" id="sAr" value="${esc(st.areas.join(', '))}">
-    <label class="f">Sub displays</label><input type="text" id="sSd" value="${esc(st.subDisplays.join(', '))}">
+    <div class="banner" style="margin-top:12px">Stock locations, sub displays, jewellery types and items are edited in <b>Admin → Lists</b>.</div>
     <label class="f">ERP ornament for Platinum</label><input type="text" id="sPt" value="${esc(st.erpPlatinum || 'YFJ - PLATINUM MM')}">
     <label class="f">ERP ornament for Tanih - CVD Jewellery</label><input type="text" id="sTn" value="${esc(st.erpTanih || 'Tanih - CVD Jewellery')}">
     <label class="f">ERP ornament for Silver</label><input type="text" id="sAg" value="${esc(st.erpSilver || 'Silver Jewellery')}">
     <label class="f">Discrepancy reasons (comma separated)</label><textarea id="sR">${esc(st.reasons.join(', '))}</textarea>
-    <label class="f">Item types (comma separated)</label><textarea id="sI">${esc(st.itemTypes.join(', '))}</textarea>
+
     <label class="f">Purities</label><input type="text" id="sP" value="${esc(st.purities.join(', '))}">
     <label class="f">Categories</label><input type="text" id="sC" value="${esc(st.categories.join(', '))}">
     <button class="btn" style="width:100%;margin-top:14px" id="sS">Save settings</button></div>`;
   const list = (v) => v.split(',').map((x) => x.trim()).filter(Boolean);
   const kv = (v) => Object.fromEntries(v.split('\n').map((x) => x.split('=').map((y) => y.trim())).filter((x) => x[0] && x.length > 1));
-  $('#sS').onclick = async () => { try { await api('settings', { settings: { shopName: $('#sN').value, waNumber: $('#sW').value, wtTol: +$('#sT').value, blind: $('#sB').checked, reqPhotos: $('#sPh').checked, erpBasis: $('#sE').value, areas: list($('#sAr').value), subDisplays: list($('#sSd').value), erpPlatinum: $('#sPt').value, erpTanih: $('#sTn').value, erpSilver: $('#sAg').value, erpItemMap: kv($('#sM').value), erpCatMap: kv($('#sCM').value), reasons: list($('#sR').value), itemTypes: list($('#sI').value), purities: list($('#sP').value), categories: list($('#sC').value) } }); toast('Settings saved'); load(true); } catch (e) { fail(e); } };
+  $('#sS').onclick = async () => { try { await api('settings', { settings: { shopName: $('#sN').value, waNumber: $('#sW').value, wtTol: +$('#sT').value, blind: $('#sB').checked, reqPhotos: $('#sPh').checked, erpBasis: $('#sE').value, erpPlatinum: $('#sPt').value, erpTanih: $('#sTn').value, erpSilver: $('#sAg').value, erpItemMap: kv($('#sM').value), erpCatMap: kv($('#sCM').value), reasons: list($('#sR').value), purities: list($('#sP').value), categories: list($('#sC').value) } }); toast('Settings saved'); load(true); } catch (e) { fail(e); } };
 }
 
 // ---------------- boot ----------------

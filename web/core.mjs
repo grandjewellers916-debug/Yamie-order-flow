@@ -251,7 +251,26 @@ export const JT_LABEL = { 'Plain Gold Jewellery': 'Gold', 'Diamond Jewellery': '
 export const JT_CLS = { 'Plain Gold Jewellery': 'g', 'Diamond Jewellery': 'd', 'Tanih - CVD Jewellery': 't', Platinum: 'p', Silver: 's' };
 // Report metal of a jewellery type (Tanih CVD is set in gold → Gold).
 export const METALS = ['Gold', 'Platinum', 'Silver'];
-export const jtMetal = (jt) => (jt === 'Platinum' ? 'Platinum' : jt === 'Silver' ? 'Silver' : 'Gold');
+export const JT_METAL = { 'Plain Gold Jewellery': 'Gold', 'Diamond Jewellery': 'Gold', 'Tanih - CVD Jewellery': 'Gold', Platinum: 'Platinum', Silver: 'Silver' };
+export const jtMetal = (jt) => JT_METAL[jt] || 'Gold';
+/** v1.28 admin-managed jewellery types. settings.jtLabels {stored name: label}, settings.jtShort {name: short}, settings.jtHidden [names],
+ *  settings.jtCustom [{ name, code (one letter, not G D P T S), label, short, metal }]. Mutates the shared lists/maps in place. */
+const JT_BUILTIN = { order: ['Plain Gold Jewellery', 'Diamond Jewellery', 'Platinum', 'Tanih - CVD Jewellery', 'Silver'], code: { ...JT_CODE }, short: { ...JT_SHORT }, label: { ...JT_LABEL }, cls: { ...JT_CLS }, metal: { ...JT_METAL } };
+export const JT_FREE_CODES = 'ABCEFHIJKLMNOQRUVWXYZ'.split('');
+export function applyJewelleryTypes(st) {
+  const custom = (st?.jtCustom || []).filter((c) => c && c.name && /^[A-Z]$/.test(c.code) && !'GDPTS'.includes(c.code));
+  const hidden = st?.jtHidden || [];
+  for (const o of [JT_CODE, JT_SHORT, JT_LABEL, JT_CLS, JT_METAL]) for (const k of Object.keys(o)) delete o[k];
+  Object.assign(JT_CODE, JT_BUILTIN.code); Object.assign(JT_SHORT, JT_BUILTIN.short); Object.assign(JT_LABEL, JT_BUILTIN.label); Object.assign(JT_CLS, JT_BUILTIN.cls); Object.assign(JT_METAL, JT_BUILTIN.metal);
+  for (const c of custom) { JT_CODE[c.name] = c.code; JT_SHORT[c.name] = c.short || c.label || c.name; JT_LABEL[c.name] = c.label || c.name; JT_CLS[c.name] = 'cu'; JT_METAL[c.name] = ['Gold', 'Platinum', 'Silver'].includes(c.metal) ? c.metal : 'Gold'; }
+  for (const [k, v] of Object.entries(st?.jtLabels || {})) if (JT_CODE[k] && v) JT_LABEL[k] = String(v);
+  for (const [k, v] of Object.entries(st?.jtShort || {})) if (JT_CODE[k] && v) JT_SHORT[k] = String(v);
+  const order = [...JT_BUILTIN.order, ...custom.map((c) => c.name)].filter((j) => !hidden.includes(j) || j === 'Plain Gold Jewellery');
+  const ord2 = Array.isArray(st?.jtOrder) ? [...st.jtOrder.filter((j) => order.includes(j)), ...order.filter((j) => !st.jtOrder.includes(j))] : order;
+  LINE_JTYPES.length = 0; LINE_JTYPES.push(...ord2);
+  JTYPES.length = 0; JTYPES.push(...ord2, 'Mixed');
+  JT_LABEL.Mixed = 'Mixed';
+}
 // v1.10: key may also carry purity: "Ring@D#18K" (jewellery type D, purity 18K). "#-" = no purity.
 export const itemOf = (k) => String(k).split(/[@#]/)[0];
 export const defaultPur = (loc) => loc?.purity || '';
