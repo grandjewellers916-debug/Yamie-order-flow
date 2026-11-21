@@ -1,0 +1,50 @@
+name: Build Order Desk APK
+
+on:
+  push:
+    branches: [order-desk]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Gradle 8.7
+        run: |
+          for u in https://github.com/gradle/gradle-distributions/releases/download/v8.7.0/gradle-8.7-bin.zip https://downloads.gradle.org/distributions/gradle-8.7-bin.zip https://services.gradle.org/distributions/gradle-8.7-bin.zip; do
+            for i in 1 2 3; do curl -fsSL -o /tmp/gradle.zip "$u" && break 2; sleep 10; done
+          done
+          unzip -q /tmp/gradle.zip -d /opt
+          echo "/opt/gradle-8.7/bin" >> $GITHUB_PATH
+
+      - name: Build APK
+        run: gradle -p android assembleRelease --no-daemon
+
+      - name: Name the APK
+        run: |
+          V=$(grep -o 'versionName "[0-9.]*"' android/app/build.gradle | grep -o '[0-9][0-9.]*')
+          cp android/app/build/outputs/apk/release/app-release.apk "Yamie-Order-Desk-v${V}${{ github.run_number }}.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yamie-order-desk-apk
+          path: Yamie-Order-Desk-v*.apk
+
+      - name: Publish download
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: order-desk-v${{ github.run_number }}
+          name: Yamie Order Desk v1.0.${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
+          files: Yamie-Order-Desk-v*.apk
+          body: "Yamie Order Desk V1.0: enquiries and estimates (EST numbers), customer approval, 20% verified advance and optional gold-rate lock, orders (YOR numbers, 20 working days), vendor work orders and follow-ups, receiving, QC, final price, ready message, invoice and handover; reminders, reports, staff permissions, backup & restore. Same shared database as the web version (yamie-order-desk.netlify.app). New versions install over the old one."

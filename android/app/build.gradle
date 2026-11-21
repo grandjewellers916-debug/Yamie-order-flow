@@ -1,0 +1,63 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'com.yamie.orderdesk'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.yamie.orderdesk'
+        minSdk 24
+        targetSdk 34
+        versionCode Integer.parseInt(System.getenv('GITHUB_RUN_NUMBER') ?: '1')
+        versionName "1.0." + (System.getenv('GITHUB_RUN_NUMBER') ?: '0')
+    }
+
+    // Fixed key so each new APK installs over the previous one and keeps its settings
+    signingConfigs {
+        sideload {
+            storeFile file('yamie-order.keystore')
+            storePassword 'yamieorder'
+            keyAlias 'yamie'
+            keyPassword 'yamieorder'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.sideload
+        }
+        debug {
+            signingConfig signingConfigs.sideload
+        }
+    }
+
+    // The web app in ../../web is bundled as the app's screens
+    sourceSets {
+        main {
+            assets.srcDirs = ['src/main/assets', '../../web']
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.activity:activity-ktx:1.9.1'
+    implementation 'androidx.webkit:webkit:1.11.0'
+    implementation 'androidx.work:work-runtime-ktx:2.9.1'
+}

@@ -1,0 +1,16 @@
+[build]
+  publish = "web"
+  functions = "netlify/functions"
+  command = ""
+
+[functions]
+  node_bundler = "esbuild"
+
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "ADMIN_PIN"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "same-origin"

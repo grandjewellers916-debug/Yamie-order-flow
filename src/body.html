@@ -1,0 +1,42 @@
+<div class="lock" id="lock">
+  <img class="mk" data-logo="markW" alt="">
+  <img class="wd" data-logo="wordW" alt="Yamie">
+  <div class="tag">ORDER DESK</div>
+  <div class="lockBox" id="lockBox"></div>
+</div>
+
+<div class="app" id="app" hidden>
+  <header class="top">
+    <div class="lg"><img data-logo="markM" alt=""><div><span>Order Desk</span><b>YAMIE FINE JEWELLERY</b></div></div>
+    <div class="topR">
+      <button class="iconBtn syncDot ok" id="syncBtn" onclick="pullNow()" title="Sync">✓</button>
+      <button class="iconBtn" id="bellBtn" onclick="go('vHome')" title="Tasks">🔔<em id="bellN" hidden></em></button>
+      <button class="iconBtn" id="meBtn" onclick="go('vMore')"></button>
+    </div>
+  </header>
+
+  <nav class="nav" id="nav">
+    <button data-v="vHome" onclick="go('vHome')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg>Home</button>
+    <button data-v="vOrders" onclick="go('vOrders')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Orders</button>
+    <button class="plus" data-v="vNew" onclick="newEnquiry()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>Enquiry</button>
+    <button data-v="vReports" onclick="go('vReports')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Reports</button>
+    <button data-v="vMore" onclick="go('vMore')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>More</button>
+  </nav>
+
+  <main class="main" id="main">
+    <section class="view" id="vHome"></section>
+    <section class="view" id="vOrders"></section>
+    <section class="view" id="vDetail"></section>
+    <section class="view" id="vNew"></section>
+    <section class="view" id="vReports"></section>
+    <section class="view" id="vMore"></section>
+    <section class="view" id="vSub"></section>
+  </main>
+</div>
+
+<div class="sheetBg" id="sheetBg" onclick="if(event.target===this)closeSheet()"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
+<div id="printArea"></div>
+<input type="file" id="phCam" accept="image/*" capture="environment" hidden>
+<input type="file" id="phGal" accept="image/*" multiple hidden>
+<input type="file" id="bkFile" accept=".zip,application/zip" hidden>
