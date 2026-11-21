@@ -69,6 +69,9 @@ button.fbtool{border:1px dashed var(--ln);background:transparent;color:var(--mut
 label.ck{display:flex;gap:6px;align-items:center;font-size:14px;min-height:44px;white-space:nowrap}label.ck input{width:auto;min-height:0}
 @media (max-width:700px){.rptypes{grid-template-columns:1fr 1fr}.rptypes button span{display:none}}
 .shgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.shb{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;padding:12px;border:1px solid var(--ln);border-radius:12px;background:#fff;cursor:pointer;font:inherit;color:inherit}.shb span{font-size:12px;color:var(--mut)}.shb:hover{border-color:var(--m)}
+.rphl{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;background:#FFF4CF;border:1px solid #E8C766;border-radius:12px;padding:10px 12px}.rphl>div{display:flex;flex-direction:column;gap:2px;min-width:0}.rphl span{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#7A5A00}.rphl b{font-size:14px;color:#3A2A00;overflow-wrap:anywhere}
+@media (max-width:600px){.rphl{grid-template-columns:1fr}}.shrec .lrow{gap:6px}.holchip{background:#FFF4CF;color:#7A5A00;border-radius:99px;padding:2px 9px;font-size:12px;font-weight:600}
+.holcard{display:block;width:100%;text-align:left;background:#FFF4CF;border-color:#E8C766;color:#3A2A00;margin-top:10px;font:inherit}.holcard.due{cursor:pointer;background:#FBF1EF;border-color:var(--m);color:var(--m)}
 .isum{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:6px;font-size:12px;color:var(--mut)}.isum b{color:var(--ink);font-weight:600}.isum .on{color:var(--m)}.isum .on b{color:var(--m)}.isum .off{opacity:.55}
 .wtl{margin-top:4px;font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap}.wtl.none{font-weight:400;color:var(--warn);font-size:11px}
 details.msel{position:relative}details.msel>summary{list-style:none;cursor:pointer;border:1px solid var(--ln);border-radius:10px;background:#fff;min-height:44px;padding:10px 30px 10px 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative}
@@ -366,7 +369,7 @@ table.rep tr.rgrp td{background:var(--iv);font-weight:600;border-top:1px solid v
 <body>
 <div id="app"></div>
 <script type="module">
-import { DOC_TYPES, VEHICLE_DOC_TYPES, isVehicleDoc, docDaysLeft, docWatch, DOC_REMIND_DEFAULT, CASH_DENOMS, CASH_COUNTERS, CASH_SHIFTS, cashCalc, cashNotes, isMorning, SECTIONS, PERMS, ROLE_PERMS, REASONS, TXN_TYPES, metalOf, erpMetal, JTYPES, LINE_JTYPES, JT_SHORT, JT_LABEL, JT_CLS, JT_METAL, JT_CODE, JT_FREE_CODES, applyJewelleryTypes, mainLocsOf, placesFor, defaultPlace, LOC_KINDS, METALS, jtMetal, locJts, normJts, itemOf, jtOfLine, purOfLine, defaultPur, lineKey, keyText, defaultJt, roundOf, roundCounts, summarize, sumLines, r3, locStatus, istDate, erpCompare, erpKey } from './core.mjs';
+import { DOC_TYPES, VEHICLE_DOC_TYPES, isVehicleDoc, docDaysLeft, docWatch, DOC_REMIND_DEFAULT, CASH_DENOMS, CASH_COUNTERS, CASH_SHIFTS, cashCalc, cashNotes, isMorning, SECTIONS, PERMS, ROLE_PERMS, REASONS, TXN_TYPES, metalOf, erpMetal, JTYPES, LINE_JTYPES, JT_SHORT, JT_LABEL, JT_CLS, JT_METAL, JT_CODE, JT_FREE_CODES, applyJewelleryTypes, holidayOf, mainLocsOf, placesFor, defaultPlace, LOC_KINDS, METALS, jtMetal, locJts, normJts, itemOf, jtOfLine, purOfLine, defaultPur, lineKey, keyText, defaultJt, roundOf, roundCounts, summarize, sumLines, r3, locStatus, istDate, erpCompare, erpKey } from './core.mjs';
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -377,7 +380,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.31';
+const VERSION = '1.32';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -518,7 +521,7 @@ function renderTop() {
   const t = $('#top'); if (!t) return;
   const d = S.D;
   t.innerHTML = `<button class="logo grow" id="logoBtn">Yamie<small>Core <span class="vtag" title="${esc(verText())}">v${VERSION}</span></small></button>
-    <button class="date" id="dateBtn">${isToday() ? 'Today' : '📅'} ${new Date(d.date + 'T00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} · ${d.day.status === 'closed' ? 'Closed' : 'Open'}</button>
+    <button class="date" id="dateBtn">${isToday() ? 'Today' : '📅'} ${new Date(d.date + 'T00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} · ${holidayOf(d.settings, d.date) ? '🗓 ' + esc(holidayOf(d.settings, d.date)) : d.day.status === 'closed' ? 'Closed' : 'Open'}</button>
     ${can('alerts') ? `<button class="bell" id="bellBtn" title="Alerts">${svg('bell')}${d.alerts.unread ? `<i>${d.alerts.unread}</i>` : ''}</button>` : ''}
     <button class="bell phmore" id="moreBtn" title="More">${svg('more')}</button>`;
   $('#logoBtn').onclick = () => go('home');
@@ -1541,6 +1544,8 @@ function rpLines(P) { const F = P.f; return S.sum.lines.filter((r) => { const l 
 function rpLocs(P) { const F = P.f; const lineOn = F.jt.length || F.i.length || F.p.length; const L = rpLines(P);
   return activeLocs().filter((l) => (P.sec === 'all' || l.sec === P.sec) && (!F.a.length || F.a.includes(l.area || 'Not set')) && (!F.pl.length || F.pl.includes(placeOf(l)))
     && (!lineOn || L.some((r) => r.locId === l.id && (r.exp || r.op || r.cnt)) || (!heldOf(l).length && (!F.i.length || F.i.includes(l.itemType)) && (!F.p.length || F.p.includes(l.purity || 'Not set')) && (!F.jt.length || locJts(l).some((j) => F.jt.includes(j)))))); }
+const rpProd = (P) => { const F = P.f; return [F.jt.map((j) => JF_LBL[j]).join(' + ') || 'All stock types', F.i.join(', ') || 'All items', F.p.join(', ') || 'All purities'].join(' · '); };
+const rpLocTxt = (P) => { const F = P.f; return [P.sec !== 'all' ? secLabel(P.sec) : 'All sections', F.a.join(', ') || 'All main locations', F.pl.join(', ') || (F.a.length ? 'all sub locations' : '')].filter(Boolean).join(' · '); };
 const rpFilterText = (P) => { const F = P.f; return [P.sec !== 'all' ? secLabel(P.sec) : '', F.jt.map((j) => JF_LBL[j]).join(' + '), F.a.join(', '), F.pl.join(', '), F.i.join(', '), F.p.join(', ')].filter(Boolean).join(' · ') || 'All stock'; };
 const ord = (l) => { const ML = mainLocsOf(S.D.settings); const mi = ML.findIndex((m) => m.name === l.area); const si = mi < 0 ? 0 : (ML[mi].subs || []).findIndex((x) => x.name === l.sub); return [mi < 0 ? 99 : mi, si, SECTIONS.findIndex((x) => x.key === l.sec)]; };
 const byPlace = (a, b) => { const x = ord(a), y = ord(b); return x[0] - y[0] || x[1] - y[1] || x[2] - y[2] || String(a.group).localeCompare(String(b.group), undefined, { numeric: true }) || (a.order || 0) - (b.order || 0) || a.name.localeCompare(b.name, undefined, { numeric: true }); };
@@ -1578,7 +1583,7 @@ function rpBuild(P) {
     const rows = X.map(([l, x]) => ({ cells: [l.name, l.boxNo || '', placeOf(l), ...k.map((q) => x[q])] })); rows.push({ cls: 'tot', cells: [`Total · ${bx.length}`, '', '', ...k.map((q) => X.reduce((a, [, x]) => a + x[q], 0))] });
     return T('Box weight report', [{ t: 'Box' }, { t: 'Box no.' }, { t: 'Location' }, { t: 'Items', num: true }, ...['Opening g', 'Inward g', 'Outward g', 'Adj. g', 'Closing g', 'Cover g', 'Net g'].map((t) => ({ t, num: true, g3: true }))], rows); }
   if (P.type === 'var') { const st = S.sum.status; const ls = rpLocs(P).filter((l) => st[l.id] && ['var', 'stale'].includes(st[l.id].state)).sort(byPlace); const c = S.sum.last;
-    const rows = ls.map((l) => { const e = sumLines(expOf(l.id).lines), n = c[l.id] && c[l.id].mode !== 'weight' ? sumLines(c[l.id].lines || {}) : 0; return { cells: [l.name, placeOf(l), secLabel(l.sec), e, n, n - e, STLBL[st[l.id].state], diffTxt(st[l.id].diff, l) || 'Weight / recount', c[l.id] ? (S.D.users?.find?.((u) => u.id === c[l.id].by)?.name || '') : ''] }; });
+    const rows = ls.map((l) => { const e = sumLines(expOf(l.id).lines), n = c[l.id] && c[l.id].mode !== 'weight' ? sumLines(c[l.id].lines || {}) : 0; return { cells: [l.name, placeOf(l), secLabel(l.sec), e, n, n - e, STLBL[st[l.id].state], diffTxt(st[l.id].diff, l) || 'Weight / recount', c[l.id] ? (S.D.userNames?.[c[l.id].by] || '') : ''] }; });
     rows.push({ cls: 'tot', cells: [`Total · ${ls.length}`, '', '', rows.reduce((a, r) => a + r.cells[3], 0), rows.reduce((a, r) => a + r.cells[4], 0), rows.reduce((a, r) => a + r.cells[5], 0), '', '', ''] });
     return T('Variance report', [{ t: 'Location' }, { t: 'Main › sub' }, { t: 'Section' }, { t: 'Expected', num: true }, { t: 'Counted', num: true }, { t: 'Variance', num: true }, { t: 'Status' }, { t: 'Difference' }, { t: 'Checked by' }], rows); }
   const R = P.saved !== '' && repsGet()[+P.saved] ? repsGet()[+P.saved] : P.cr; const t = customTable(L, R);
@@ -1607,7 +1612,9 @@ function vReports() {
     ${P.type === 'custom' ? `<div class="grow" data-fk="saved"><label class="f" style="margin-top:0">Saved report</label><select id="rpSaved"><option value="">— build below —</option>${saved.map((r, i) => `<option value="${i}" ${P.saved === String(i) ? 'selected' : ''}>★ ${esc(r.name)}</option>`).join('')}</select></div>
       ${P.saved === '' ? ['r', 'r2', 'c'].map((k) => `<div class="grow" data-fk="${k}"><label class="f" style="margin-top:0">${{ r: 'Rows', r2: 'Then by', c: 'Columns' }[k]}</label><select data-cr="${k}">${k !== 'r' ? '<option value="">— none —</option>' : ''}${Object.entries(RDIM).map(([d, n]) => `<option value="${d}" ${P.cr[k] === d ? 'selected' : ''}>${n}</option>`).join('')}</select></div>`).join('') + `<div class="grow" data-fk="m"><label class="f" style="margin-top:0">Show</label><select data-cr="m">${Object.entries(RMEAS).map(([d, n]) => `<option value="${d}" ${P.cr.m === d ? 'selected' : ''}>${n}</option>`).join('')}</select></div><div data-fk="sv" style="align-self:flex-end"><button class="btn ghost" id="rpSave">★ Save</button></div>` : `<div data-fk="del" style="align-self:flex-end"><button class="btn ghost" id="rpDel" style="color:var(--bad)">🗑 Delete</button></div>`}` : ''}
     <div data-fk="clr" style="align-self:flex-end"><button class="btn ghost" id="rpClr">Clear</button></div></div>
-  <div class="card rpprev"><div class="row sp wrap"><div><h3 style="margin:0">${esc(R.title)}</h3><div class="mut sm">${esc(S.D.settings.shopName || 'Yamie')} · ${dt(S.D.date)} · ${esc(rpFilterText(P))}</div></div><span class="mut sm">${R.rows.filter((r) => r.cls !== 'tot' && r.cls !== 'rgrp').length} rows</span></div>
+  <div class="card rpprev"><div class="row sp wrap"><div><h3 style="margin:0">${esc(R.title)}</h3><div class="mut sm">${esc(S.D.settings.shopName || 'Yamie')} · ${dt(S.D.date)}${holidayOf(S.D.settings, S.D.date) ? ` · <b style="color:var(--warn)">Holiday — ${esc(holidayOf(S.D.settings, S.D.date))}</b>` : ''}</div></div><span class="mut sm">${R.rows.filter((r) => r.cls !== 'tot' && r.cls !== 'rgrp').length} rows</span></div>
+  <div class="rphl"><div><span>📦 Product</span><b>${esc(rpProd(P))}</b></div><div><span>📍 Location</span><b>${esc(rpLocTxt(P))}</b></div></div>
+  ${(S.D.rpSent || []).length ? `<div class="mut sm" style="margin-top:6px">📤 Sent today: ${S.D.rpSent.slice(-5).map((x) => `${esc(x.title)} → ${esc(x.to || x.via)} (${new Date(x.at).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })})`).join(' · ')}</div>` : ''}
   <div class="tw" style="margin-top:10px"><table class="rep"><tr>${R.cols.map((c) => `<th${c.num ? '' : ' style="text-align:left"'}>${esc(c.t)}</th>`).join('')}</tr>
   ${R.rows.map((r) => `<tr class="${r.cls || ''}">${r.cells.map((v, i) => `<td${R.cols[i].num ? '' : ` style="text-align:left" class="${i === 0 && r.cls === 'sub' ? 'ind' : i === 0 ? 'b' : ''}"`}>${typeof v === 'string' && i === 0 ? esc(v.trim()) : rpFmt(v, R.cols[i])}</td>`).join('')}</tr>`).join('') || `<tr><td colspan="${R.cols.length}" class="mut">Nothing to show</td></tr>`}</table></div></div>
   <div class="mut sm" style="margin-top:6px">Excel opens in Excel / Google Sheets with numbers as numbers; PDF is ready to print or send on WhatsApp. Filters apply to every report.</div>`;
@@ -1627,8 +1634,9 @@ function vReports() {
   const fname = (ext) => `yamie-${R.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-${S.D.date}.${ext}`;
   if (!can('share')) return;
   $('#rpS').onclick = () => rpShare(R, P, fname);
-  $('#rpX').onclick = () => { try { saveBin(fname('xlsx'), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', xlsxBuild(R, rpFilterText(P))); toast('✓ Excel file ready'); } catch (e) { fail(e); } };
-  $('#rpP').onclick = async () => { try { toast('Making PDF…'); saveBin(fname('pdf'), 'application/pdf', await pdfBuild(R, rpFilterText(P)), true); } catch (e) { fail(e); } };
+  if (S.rpAuto) { S.rpAuto = false; setTimeout(() => rpShare(R, P, fname, true), 50); }
+  $('#rpX').onclick = () => { try { saveBin(fname('xlsx'), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', xlsxBuild(R, rpFilterText(P), P)); toast('✓ Excel file ready'); } catch (e) { fail(e); } };
+  $('#rpP').onclick = async () => { try { toast('Making PDF…'); saveBin(fname('pdf'), 'application/pdf', await pdfBuild(R, rpFilterText(P), P), true); } catch (e) { fail(e); } };
   $('#rpC').onclick = () => { const q = (v) => { const x = String(v ?? ''); return /[",\n]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x; }; saveFile(fname('csv'), 'text/csv', [R.cols.map((c) => c.t), ...R.rows.map((r) => r.cells)].map((r) => r.map(q).join(',')).join('\n')); };
 }
 // v1.31 share a report: PDF / Excel to WhatsApp, mail, Drive… or a text summary — needs the 'share' permission
@@ -1638,30 +1646,50 @@ function rpText(R, P, max = 40) {
     const rest = r.cells.slice(1).map((v, i) => [R.cols[i + 1].t, val(v, R.cols[i + 1])]).filter(([, v]) => v && v !== '0' && v !== '—').map(([t, v]) => `${t} ${v}`).join(' · ');
     return `${b}${val(r.cells[0], R.cols[0])}${b}${rest ? ' — ' + rest : ''}`; });
   const more = R.rows.length - body.length;
-  return `*${R.title}*\n${S.D.settings.shopName || 'Yamie'} · ${dt(S.D.date)}\n${rpFilterText(P)}\n\n${body.join('\n')}${more > 0 ? `\n… ${more} more rows — see the PDF / Excel` : ''}\n\n— ${S.me.name} · Yamie Core`;
+  return `*${R.title}*\n${S.D.settings.shopName || 'Yamie'} · ${dt(S.D.date)}\n📦 *Product:* ${rpProd(P)}\n📍 *Location:* ${rpLocTxt(P)}\n\n${body.join('\n')}${more > 0 ? `\n… ${more} more rows — see the PDF / Excel` : ''}\n\n— ${S.me.name} · Yamie Core`;
 }
 async function shareBin(name, mime, bytes, title) {
   if (window.YamieStock?.shareData) return saveBin(name, mime, bytes, false);
   try { const f = new File([bytes], name, { type: mime }); if (navigator.canShare?.({ files: [f] })) { await navigator.share({ files: [f], title }); return; } } catch (e) { if (e.name === 'AbortError') return; }
   saveBin(name, mime, bytes); toast('Downloaded — attach it in WhatsApp / mail', 4000);
 }
-function rpShare(R, P, fname) {
-  const wa = S.D.settings.waNumber;
-  modal('📤 Share report', `${esc(R.title)} · ${esc(rpFilterText(P))}`, `
-    <div class="shgrid">
-      <button class="shb" data-sh="pdf"><b>📄 PDF</b><span>Ready to print · WhatsApp, mail</span></button>
-      <button class="shb" data-sh="xlsx"><b>📊 Excel</b><span>Opens in Excel / Google Sheets</span></button>
-      <button class="shb" data-sh="text"><b>💬 Text summary</b><span>Short message with the main figures</span></button>
-      ${wa ? `<button class="shb" data-sh="wa"><b>🟢 WhatsApp admin</b><span>Text summary to +${esc(wa)}</span></button>` : ''}
+function rpShare(R, P, fname, daily) {
+  const st = S.D.settings; const rec = st.rpRecipients || []; S.shFmt ||= 'pdf';
+  const subject = `${R.title} · ${st.shopName || 'Yamie'} · ${dt(S.D.date)}`;
+  modal('📤 Share report', `${esc(R.title)}`, `
+    <div class="rphl" style="margin:0 0 10px"><div><span>📦 Product</span><b>${esc(rpProd(P))}</b></div><div><span>📍 Location</span><b>${esc(rpLocTxt(P))}</b></div></div>
+    <label class="f" style="margin-top:0">Send as</label><div class="seg" id="shFmt">${[['pdf', '📄 PDF'], ['xlsx', '📊 Excel'], ['text', '💬 Text only']].map(([k, t]) => `<button data-fmt="${k}" class="${S.shFmt === k ? 'on' : ''}">${t}</button>`).join('')}</div>
+    ${rec.length ? `<label class="f">Send to</label><div class="shrec">${rec.map((r, i) => `<div class="lrow"><span class="grow"><b>${esc(r.name)}</b><br><span class="mut sm">${[r.wa ? '+' + esc(r.wa) : '', esc(r.email)].filter(Boolean).join(' · ')}</span></span>
+      ${r.wa ? `<button class="btn sm ok" data-shto="wa:${i}">WhatsApp</button>` : ''}${r.email ? `<button class="btn sm sec" data-shto="mail:${i}">Email</button>` : ''}</div>`).join('')}</div>` : `<div class="mut sm" style="margin-top:8px">Add regular people (partners, accountant) in <b>Admin → Holidays &amp; sharing</b> to send in one tap.</div>`}
+    <label class="f">Or</label><div class="shgrid">
+      <button class="shb" data-shto="wa:"><b>🟢 WhatsApp</b><span>Pick a chat or group</span></button>
+      <button class="shb" data-shto="mail:"><b>✉️ Email</b><span>Pick or type the address</span></button>
+      <button class="shb" data-shto="any:"><b>📤 Other apps</b><span>Drive, Telegram, save to phone</span></button>
     </div><div class="mut sm" style="margin-top:10px">Only people with the “Share &amp; download reports” permission see this — set it in Admin → Users.</div>`, () => {
-    document.querySelectorAll('[data-sh]').forEach((b) => b.onclick = async () => { const k = b.dataset.sh;
+    document.querySelectorAll('[data-fmt]').forEach((b) => b.onclick = () => { S.shFmt = b.dataset.fmt; document.querySelectorAll('[data-fmt]').forEach((x) => x.classList.toggle('on', x === b)); });
+    document.querySelectorAll('[data-shto]').forEach((b) => b.onclick = async () => {
+      const [app, idx] = b.dataset.shto.split(':'); const r = idx !== '' && idx != null ? rec[+idx] : null; const to = r ? (app === 'wa' ? r.wa : r.email) : '';
+      const fmtK = S.shFmt; const text = rpText(R, P); const win = !window.YamieStock && app === 'wa' ? open('', '_blank') : null;   // opened on the tap so the browser allows it
       try {
-        if (k === 'pdf') { toast('Making PDF…'); await shareBin(fname('pdf'), 'application/pdf', await pdfBuild(R, rpFilterText(P)), R.title); }
-        else if (k === 'xlsx') await shareBin(fname('xlsx'), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', xlsxBuild(R, rpFilterText(P)), R.title);
-        else if (k === 'text') await shareText(rpText(R, P), R.title);
-        else open(`https://wa.me/${wa}?text=${encodeURIComponent(rpText(R, P))}`, '_blank');
+        let bytes = null, name = '', mime = '';
+        if (fmtK === 'pdf') { toast('Making PDF…'); bytes = await pdfBuild(R, rpFilterText(P), P); name = fname('pdf'); mime = 'application/pdf'; }
+        if (fmtK === 'xlsx') { bytes = xlsxBuild(R, rpFilterText(P), P); name = fname('xlsx'); mime = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'; }
+        const caption = bytes ? `*${R.title}*\n${st.shopName || 'Yamie'} · ${dt(S.D.date)}\n📦 Product: ${rpProd(P)}\n📍 Location: ${rpLocTxt(P)}` : text;
+        await sendReport(app, to, subject, caption, name, mime, bytes, win);
+        api('rpsent', { title: R.title, via: app === 'any' ? 'share' : app, to: r ? r.name : '', daily: !!daily }).then((j) => { (S.D.rpSent ||= []).push(j.rec); }).catch(() => {});
         closeModal();
       } catch (e) { fail(e); } }); });
+}
+const b64of = (bytes) => { let b = ''; for (let i = 0; i < bytes.length; i += 0x8000) b += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(b); };
+async function sendReport(app, to, subject, text, name, mime, bytes, win) {
+  const Y = window.YamieStock;
+  if (Y?.shareTo && app !== 'any') return Y.shareTo(app, to || '', subject, text, name || '', mime || '', bytes ? b64of(bytes) : '');
+  if (app === 'any') { if (bytes) return shareBin(name, mime, bytes, subject); return shareText(text, subject); }
+  if (Y?.shareData && bytes) return Y.shareData(name, mime, b64of(bytes), false);   // older app: share sheet
+  // browser: download the file, then open WhatsApp / mail with the message
+  if (bytes) { saveBin(name, mime, bytes); toast(`${name} downloaded — attach it in ${app === 'wa' ? 'WhatsApp' : 'the e-mail'}`, 5000); }
+  if (app === 'wa') { const u = `https://wa.me/${(to || '').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(text)}`; if (win) win.location.href = u; else open(u, '_blank'); }
+  else location.href = `mailto:${encodeURIComponent(to || '')}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text.replace(/\*/g, ''))}`;
 }
 function saveBin(name, mime, bytes, view) {
   if (window.YamieStock?.shareData) { let b = ''; for (let i = 0; i < bytes.length; i += 0x8000) b += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return window.YamieStock.shareData(name, mime, btoa(b), !!view); }
@@ -1681,12 +1709,14 @@ function zipStore(files) {
   const all = [...parts, ...cen, new Uint8Array([...u32(0x06054b50), ...u16(0), ...u16(0), ...u16(files.length), ...u16(files.length), ...u32(cl), ...u32(off), ...u16(0)])];
   const out = new Uint8Array(all.reduce((a, x) => a + x.length, 0)); let p = 0; for (const x of all) { out.set(x, p); p += x.length; } return out;
 }
-function xlsxBuild(R, filt) {
+function xlsxBuild(R, filt, P) {
   const x = (v) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '');
   const col = (i) => { let s = ''; i++; while (i) { const m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); } return s; };
   // styles: 0 normal · 1 title · 2 sub · 3 header · 4 bold · 5 int · 6 int bold · 7 g3 · 8 g3 bold · 9 header right
   const rows = []; const cellS = (r, c, v, st) => typeof v === 'number' ? `<c r="${col(c)}${r}" s="${st}"><v>${v}</v></c>` : v === '' || v == null ? '' : `<c r="${col(c)}${r}" s="${st}" t="inlineStr"><is><t xml:space="preserve">${x(v)}</t></is></c>`;
-  rows.push(`<row r="1">${cellS(1, 0, R.title, 1)}</row>`, `<row r="2">${cellS(2, 0, `${S.D.settings.shopName || 'Yamie'} · ${S.D.date} · ${filt}`, 2)}</row>`);
+  const hol = holidayOf(S.D.settings, S.D.date);
+  rows.push(`<row r="1">${cellS(1, 0, R.title, 1)}</row>`, `<row r="2">${cellS(2, 0, `${S.D.settings.shopName || 'Yamie'} · ${dt(S.D.date)}${hol ? ' · Holiday — ' + hol : ''}`, 2)}</row>`);
+  if (P) rows.push(`<row r="3" ht="20" customHeight="1">${cellS(3, 0, 'PRODUCT: ' + rpProd(P) + '     |     LOCATION: ' + rpLocTxt(P), 10)}${R.cols.slice(1).map((c, i) => `<c r="${col(i + 1)}3" s="10"/>`).join('')}</row>`);
   rows.push(`<row r="4">${R.cols.map((c, i) => cellS(4, i, c.t, c.num ? 9 : 3)).join('')}</row>`);
   R.rows.forEach((r, k) => { const n = 5 + k; const b = r.cls === 'tot' || r.cls === 'rgrp';
     rows.push(`<row r="${n}">${r.cells.map((v, i) => { const c = R.cols[i]; const num = typeof v === 'number'; return cellS(n, i, num ? v : typeof v === 'string' ? (i === 0 && r.cls === 'sub' ? '   ' + v.trim() : v) : v, num ? (c.g3 ? (b ? 8 : 7) : (b ? 6 : 5)) : b ? 4 : 0); }).join('')}</row>`); });
@@ -1694,9 +1724,9 @@ function xlsxBuild(R, filt) {
   const sheet = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="4" topLeftCell="A5" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>${w.map((v, i) => `<col min="${i + 1}" max="${i + 1}" width="${v}" customWidth="1"/>`).join('')}</cols><sheetData>${rows.join('')}</sheetData><autoFilter ref="A4:${col(R.cols.length - 1)}${4 + R.rows.length}"/><pageSetup orientation="${R.cols.length > 7 ? 'landscape' : 'portrait'}" fitToWidth="1" fitToHeight="0"/></worksheet>`;
   const styles = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="1"><numFmt numFmtId="164" formatCode="#,##0.000"/></numFmts>
 <fonts count="5"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="14"/><color rgb="FF8E1B1E"/><name val="Calibri"/></font><font><sz val="10"/><color rgb="FF777777"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts>
-<fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF8E1B1E"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF7EFE3"/></patternFill></fill></fills>
+<fills count="5"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF8E1B1E"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF7EFE3"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFFFE9A8"/></patternFill></fill></fills>
 <borders count="2"><border/><border><bottom style="thin"><color rgb="FFE5DCCF"/></bottom></border></borders><cellStyleXfs count="1"><xf/></cellStyleXfs>
-<cellXfs count="10"><xf/><xf fontId="1" applyFont="1"/><xf fontId="2" applyFont="1"/><xf fontId="3" fillId="2" applyFont="1" applyFill="1"/><xf fontId="4" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/><xf numFmtId="3" applyNumberFormat="1"/><xf numFmtId="3" fontId="4" fillId="3" borderId="1" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1"/><xf numFmtId="164" applyNumberFormat="1"/><xf numFmtId="164" fontId="4" fillId="3" borderId="1" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1"/><xf fontId="3" fillId="2" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="right"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+<cellXfs count="11"><xf/><xf fontId="1" applyFont="1"/><xf fontId="2" applyFont="1"/><xf fontId="3" fillId="2" applyFont="1" applyFill="1"/><xf fontId="4" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/><xf numFmtId="3" applyNumberFormat="1"/><xf numFmtId="3" fontId="4" fillId="3" borderId="1" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1"/><xf numFmtId="164" applyNumberFormat="1"/><xf numFmtId="164" fontId="4" fillId="3" borderId="1" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1"/><xf fontId="3" fillId="2" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="right"/></xf><xf fontId="4" fillId="4" applyFont="1" applyFill="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
   const sn = x(R.title.replace(/[\\/?*[\]:]/g, ' ').slice(0, 31));
   return zipStore([
     ['[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'],
@@ -1707,14 +1737,19 @@ function xlsxBuild(R, filt) {
 }
 // ---- PDF (jsPDF + AutoTable, loaded on first use) ----
 const loadScript = (src) => new Promise((ok, no) => { if (document.querySelector(`script[src="${src}"]`)) return ok(); const t = document.createElement('script'); t.src = src; t.onload = ok; t.onerror = () => no(new Error('Could not load ' + src)); document.head.appendChild(t); });
-async function pdfBuild(R, filt) {
+async function pdfBuild(R, filt, P) {
   await loadScript('vendor/jspdf.umd.min.js'); await loadScript('vendor/jspdf.plugin.autotable.min.js');
   const { jsPDF } = window.jspdf; const land = R.cols.length > 7; const doc = new jsPDF({ orientation: land ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
   const clean = (v) => String(v ?? '').replace(/₹/g, 'Rs ').replace(/[^\x20-\x7E -ÿ–—‘’“”•…›]/g, '');
   doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.setTextColor(142, 27, 30); doc.text(clean(R.title), 14, 15);
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(110); doc.text(clean(`${S.D.settings.shopName || 'Yamie'} · ${dt(S.D.date)} · ${filt}`), 14, 21);
+  const hol = holidayOf(S.D.settings, S.D.date);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(110); doc.text(clean(`${S.D.settings.shopName || 'Yamie'} · ${dt(S.D.date)}${hol ? ' · Holiday - ' + hol : ''}`), 14, 21);
+  let y0 = 25;
+  if (P) { const W = doc.internal.pageSize.getWidth() - 20; doc.setFillColor(255, 233, 168); doc.setDrawColor(214, 170, 60); doc.roundedRect(10, 24, W, 13, 1.5, 1.5, 'FD');
+    doc.setTextColor(90, 60, 0); doc.setFontSize(7); doc.text('PRODUCT', 13, 28.5); doc.text('LOCATION', 13 + W / 2, 28.5);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(30); doc.text(doc.splitTextToSize(clean(rpProd(P)), W / 2 - 6)[0], 13, 33.5); doc.text(doc.splitTextToSize(clean(rpLocTxt(P)), W / 2 - 6)[0], 13 + W / 2, 33.5); doc.setFont('helvetica', 'normal'); y0 = 40; }
   const body = R.rows.map((r) => r.cells.map((v, i) => { const c = R.cols[i]; return typeof v === 'number' ? (c.g3 ? (v ? g3(v) : '-') : v ? fmt(v) : '-') : clean(i === 0 && r.cls === 'sub' ? '   ' + String(v).trim() : v); }));
-  doc.autoTable({ startY: 25, head: [R.cols.map((c) => clean(c.t))], body, theme: 'grid', margin: { left: 10, right: 10, bottom: 14 },
+  doc.autoTable({ startY: y0, head: [R.cols.map((c) => clean(c.t))], body, theme: 'grid', margin: { left: 10, right: 10, bottom: 14 },
     styles: { font: 'helvetica', fontSize: R.cols.length > 10 ? 7 : 8, cellPadding: 1.6, lineColor: [229, 220, 207], lineWidth: 0.15, textColor: 30, overflow: 'linebreak' },
     headStyles: { fillColor: [142, 27, 30], textColor: 255, fontStyle: 'bold' },
     columnStyles: Object.fromEntries(R.cols.map((c, i) => [i, c.num ? { halign: 'right' } : {}])),
@@ -1957,6 +1992,48 @@ function exportCSV() {
 const inr = (n) => '₹' + (+n || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
 const CASH_RES = { tallied: ['TALLIED', 'ok'], excess: ['EXCESS', 'warn'], short: ['SHORT', 'bad'], pending: ['AWAITING ACME', 'pend'], nobase: ['FIRST OPENING', 'pend'] };
 const sessOf = (r) => (r.shift === 'Morning' ? 'Morning' : 'Evening');
+// v1.32 Admin → Holidays & sharing: Sundays + special holidays, report recipients (WhatsApp / e-mail), daily report reminder
+function admShare() {
+  const st = S.D.settings; const H = { sunday: st.holidays?.sunday !== false, dates: [...(st.holidays?.dates || [])] }; const RC = [...(st.rpRecipients || [])].map((x) => ({ ...x }));
+  const D = { on: false, time: '20:00', type: 'place', ...(st.rpDaily || {}) }; const today = S.D.today;
+  const up = H.dates.filter((x) => x.date >= today), past = H.dates.filter((x) => x.date < today);
+  $('#adm').innerHTML = `<div class="lgrid">
+  <div class="card lcard"><h3>🗓 Holidays</h3><div class="mut sm" style="margin:4px 0 8px">Shop closed — no stock or cash counts expected, and no daily report reminder. Shown on Home and on reports.</div>
+    <label class="chk"><input type="checkbox" id="hSun" ${H.sunday ? 'checked' : ''}> Every Sunday is a holiday</label>
+    <div class="row" style="gap:6px;margin-top:8px"><input type="date" id="hD" value="${today}" style="max-width:170px"><input type="text" id="hN" placeholder="e.g. Onam, Christmas, Diwali" class="grow"><button class="btn sm" id="hAdd">＋ Add</button></div>
+    ${up.map((x) => `<div class="lrow"><span style="width:110px" class="b">${dt(x.date)}</span><span class="grow">${esc(x.name)}${x.date === today ? ' <span class="holchip">today</span>' : ''}</span><button class="btn sm ghost" data-hdel="${x.date}" style="color:var(--bad)">🗑</button></div>`).join('') || '<div class="mut sm" style="margin-top:8px">No special holidays coming up.</div>'}
+    ${past.length ? `<details style="margin-top:8px"><summary class="mut sm">${past.length} past holidays</summary>${past.map((x) => `<div class="lrow"><span style="width:110px">${dt(x.date)}</span><span class="grow mut">${esc(x.name)}</span><button class="btn sm ghost" data-hdel="${x.date}">🗑</button></div>`).join('')}</details>` : ''}</div>
+  <div class="card lcard"><div class="row sp"><h3>👥 Send reports to</h3><button class="btn sm" id="rcAdd">＋ Add</button></div><div class="mut sm" style="margin:4px 0 8px">People who get reports — one tap in Share sends the PDF / Excel on WhatsApp or e-mail.</div>
+    ${RC.map((r, i) => `<div class="lrow"><span class="grow"><b>${esc(r.name)}</b><br><span class="mut sm">${[r.wa ? '🟢 +' + esc(r.wa) : '', r.email ? '✉️ ' + esc(r.email) : ''].filter(Boolean).join(' · ')}</span></span><button class="btn sm ghost" data-rced="${i}">✎</button><button class="btn sm ghost" data-rcdel="${i}" style="color:var(--bad)">🗑</button></div>`).join('') || '<div class="mut sm">Nobody added yet.</div>'}</div>
+  <div class="card lcard"><h3>⏰ Daily report</h3><div class="mut sm" style="margin:4px 0 8px">On working days (not Sundays / holidays) after this time, Home shows “Send today's report” to everyone allowed to share, until it is sent.</div>
+    <label class="chk"><input type="checkbox" id="dOn" ${D.on ? 'checked' : ''}> Remind to send the daily report</label>
+    <div class="row" style="gap:8px"><div class="grow"><label class="f">After</label><input type="time" id="dT" value="${esc(D.time)}"></div><div class="grow" style="flex:2"><label class="f">Report</label><select id="dTy">${RP_TYPES.filter((x) => x[0] !== 'custom').map(([k, t]) => `<option value="${k}" ${D.type === k ? 'selected' : ''}>${t}</option>`).join('')}</select></div></div>
+    <button class="btn" id="dSave" style="width:100%;margin-top:12px">Save</button></div></div>`;
+  const save = async (patch, msg) => { try { await api('settings', { settings: patch }); toast(msg || '✓ Saved'); await load(); S.tab = 'share'; admShare(); } catch (e) { fail(e); } };
+  $('#hSun').onchange = () => save({ holidays: { ...H, sunday: $('#hSun').checked } });
+  $('#hAdd').onclick = () => { const d = $('#hD').value, n = $('#hN').value.trim(); if (!d) return toast('Pick the date'); if (!n) return toast('Enter the holiday name'); save({ holidays: { ...H, dates: [...H.dates.filter((x) => x.date !== d), { date: d, name: n }] } }, `✓ ${n} added`); };
+  $('#adm').querySelectorAll('[data-hdel]').forEach((b) => b.onclick = () => save({ holidays: { ...H, dates: H.dates.filter((x) => x.date !== b.dataset.hdel) } }, '✓ Removed'));
+  const edit = (i) => { const r = i == null ? { name: '', wa: '', email: '' } : RC[i];
+    modal(i == null ? 'Add person' : 'Edit · ' + esc(r.name), 'Gets reports on WhatsApp and / or e-mail', `<label class="f">Name *</label><input type="text" id="rN" value="${esc(r.name)}" placeholder="e.g. Partner, Accountant">
+      <label class="f">WhatsApp number (with country code)</label><input type="tel" id="rW" value="${esc(r.wa)}" placeholder="91XXXXXXXXXX"><label class="f">E-mail</label><input type="email" id="rE" value="${esc(r.email)}" placeholder="name@example.com">
+      <button class="btn" id="rS" style="width:100%;margin-top:14px">Save</button>`, () => { $('#rS').onclick = () => { const x = { name: $('#rN').value.trim(), wa: $('#rW').value.replace(/[^0-9]/g, ''), email: $('#rE').value.trim() };
+        if (!x.name) return toast('Enter the name'); if (!x.wa && !x.email) return toast('Enter a WhatsApp number or e-mail'); if (x.wa && x.wa.length === 10) x.wa = '91' + x.wa;
+        if (x.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(x.email)) return toast('Check the e-mail address');
+        const a = [...RC]; if (i == null) a.push(x); else a[i] = x; closeModal(); save({ rpRecipients: a }); }; }); };
+  $('#rcAdd').onclick = () => edit(null);
+  $('#adm').querySelectorAll('[data-rced]').forEach((b) => b.onclick = () => edit(+b.dataset.rced));
+  $('#adm').querySelectorAll('[data-rcdel]').forEach((b) => b.onclick = () => { if (!confirm(`Remove ${RC[+b.dataset.rcdel].name}?`)) return; save({ rpRecipients: RC.filter((_, k) => k !== +b.dataset.rcdel) }, '✓ Removed'); });
+  $('#dSave').onclick = () => save({ rpDaily: { on: $('#dOn').checked, time: $('#dT').value || '20:00', type: $('#dTy').value } });
+}
+// Home: holiday banner + daily report due
+function hubNotes() {
+  const st = S.D.settings; const hol = holidayOf(st, S.D.today); const out = [];
+  if (hol) out.push(`<div class="card holcard">🗓 <b>Holiday today — ${esc(hol)}.</b> Shop closed: no stock or cash counts needed.</div>`);
+  const D = st.rpDaily; const now = new Date(); const hm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  if (D?.on && !hol && can('share') && can('reports') && S.D.date === S.D.today && hm >= D.time && !(S.D.rpSent || []).some((x) => x.daily))
+    out.push(`<button class="card holcard due" id="rpDue">📤 <b>Send today's report</b> — ${esc((RP_TYPES.find((x) => x[0] === D.type) || RP_TYPES[1])[1])} to ${(st.rpRecipients || []).map((r) => esc(r.name)).join(', ') || 'WhatsApp / e-mail'} ›</button>`);
+  return out.join('');
+}
 function vHub() {
   const T = S.sum.total; const h = new Date().getHours();
   const varN = T.var + T.stale;
@@ -1969,11 +2046,13 @@ function vHub() {
       <div class="stats" id="hubCash"><div><b>…</b><span>today</span></div></div>
       <div class="go">Open cash ›</div></button>
   </div>
+  ${hubNotes()}
   <div id="hubRem"></div>
   <div class="qk">
     ${[['eod', 'total', 'End-of-day entries', can('move')], ['total', 'total', 'Consolidated', can('reports')], ['reports', 'rep', 'Reports · Excel / PDF', can('reports')], ['docs', 'doc', 'Documents', can('docs') || can('docsEdit')], ['alerts', 'bell', 'Alerts', can('alerts')], ['more', 'more', 'More & settings', true]].filter((x) => x[3]).map(([k, i, t]) => `<button data-go="${k}">${svg(i)}<span>${t}</span></button>`).join('')}
   </div>`;
   $('#main').querySelectorAll('[data-go]').forEach((b) => b.onclick = () => go(b.dataset.go));
+  $('#rpDue') && ($('#rpDue').onclick = () => { const P = rpState(); P.type = S.D.settings.rpDaily.type || 'place'; P.sec = 'all'; P.f = { jt: [], a: [], pl: [], i: [], p: [] }; S.rpAuto = true; go('reports'); });
   if (can('docs') || can('docsEdit')) api('docs').then((j) => { S.docs = j; const due = j.docs.filter((d) => docWatch(d, S.D.today)).sort((a, b) => docDaysLeft(a, S.D.today) - docDaysLeft(b, S.D.today)); const el = $('#hubRem'); if (!el || !due.length) return;
     el.innerHTML = `<div class="card hrem"><div class="row sp"><div class="b">⏰ Renewals due</div><button class="lnk" data-go2="docs">All documents ›</button></div>${due.slice(0, 6).map((d) => { const n = docDaysLeft(d, S.D.today); return `<button class="hrow" data-doc="${esc(d.id)}"><span>${DOC_IC[d.type] || '📄'}</span><span class="grow"><b>${esc(d.title)}</b>${d.vehicle && !d.title.includes(d.vehicle) ? ` <span class="mut sm">${esc(d.vehicle)}</span>` : ''}<br><span class="mut sm">${esc(d.type)} · valid till ${dt(d.expiry)}</span></span><span class="cst ${n <= 7 ? 'bad' : 'warn'}">${n < 0 ? 'Expired' : n === 0 ? 'Today' : n + ' days'}</span></button>`; }).join('')}${due.length > 6 ? `<div class="mut sm">+${due.length - 6} more</div>` : ''}</div>`;
     el.querySelectorAll('[data-doc]').forEach((b) => b.onclick = () => docView(b.dataset.doc)); el.querySelector('[data-go2]').onclick = () => { S.dt = 'soon'; go('docs'); };
@@ -2531,11 +2610,11 @@ async function vHistory() {
   } catch (e) { fail(e); }
 }
 async function vAdmin() {
-  const tabs = [['users', 'Users', can('users')], ['locs', 'Locations', can('setup')], ['settings', 'Settings', can('setup')], ['lists', 'Lists', can('setup')], ['backup', 'Backup', S.me.role === 'admin']].filter((x) => x[2]);
+  const tabs = [['users', 'Users', can('users')], ['locs', 'Locations', can('setup')], ['settings', 'Settings', can('setup')], ['lists', 'Lists', can('setup')], ['share', 'Holidays & sharing', can('setup')], ['backup', 'Backup', S.me.role === 'admin']].filter((x) => x[2]);
   if (!tabs.find((t) => t[0] === S.tab)) S.tab = tabs[0]?.[0];
   $('#main').innerHTML = `<h1 style="margin-bottom:12px">Admin</h1><div class="tabs">${tabs.map(([k, t]) => `<button data-t="${k}" class="${S.tab === k ? 'on' : ''}">${t}</button>`).join('')}</div><div id="adm"></div>`;
   $('#main').querySelectorAll('[data-t]').forEach((b) => b.onclick = () => { S.tab = b.dataset.t; vAdmin(); });
-  if (S.tab === 'users') admUsers(); else if (S.tab === 'locs') admLocs(); else if (S.tab === 'backup') admBackup(); else if (S.tab === 'lists') admLists(); else admSettings();
+  if (S.tab === 'users') admUsers(); else if (S.tab === 'locs') admLocs(); else if (S.tab === 'backup') admBackup(); else if (S.tab === 'lists') admLists(); else if (S.tab === 'share') admShare(); else admSettings();
 }
 // ---------- database backup (admin) ----------
 const kb = (n) => n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';

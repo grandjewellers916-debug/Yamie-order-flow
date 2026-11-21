@@ -177,6 +177,37 @@ class MainActivity : ComponentActivity() {
                 } catch (e: Exception) { }
             }
         }
+        /** v1.32 reports: send a file (PDF / Excel) with a message straight to WhatsApp (app = "wa", to = number) or e-mail (app = "mail", to = address). */
+        @JavascriptInterface
+        fun shareTo(app: String, to: String, subject: String, text: String, name: String, mime: String, b64: String) {
+            runOnUiThread {
+                try {
+                    var uri: android.net.Uri? = null
+                    if (b64.isNotEmpty()) {
+                        val dir = File(cacheDir, "share").apply { mkdirs() }
+                        val f = File(dir, name.replace(Regex("[^A-Za-z0-9._-]"), "_"))
+                        f.writeBytes(android.util.Base64.decode(b64, android.util.Base64.DEFAULT))
+                        uri = FileProvider.getUriForFile(this@MainActivity, "$packageName.files", f)
+                    }
+                    val i = Intent(Intent.ACTION_SEND).setType(if (uri != null) mime else "text/plain")
+                    if (uri != null) { i.putExtra(Intent.EXTRA_STREAM, uri); i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+                    if (text.isNotEmpty()) i.putExtra(Intent.EXTRA_TEXT, text)
+                    if (subject.isNotEmpty()) i.putExtra(Intent.EXTRA_SUBJECT, subject)
+                    if (app == "mail") {
+                        if (to.isNotEmpty()) i.putExtra(Intent.EXTRA_EMAIL, to.split(",").map { it.trim() }.toTypedArray())
+                        startActivity(Intent.createChooser(i, "Send e-mail"))
+                    } else {
+                        val num = to.replace(Regex("[^0-9]"), "")
+                        if (num.isNotEmpty()) i.putExtra("jid", "$num@s.whatsapp.net")
+                        var ok = false
+                        for (pkg in listOf("com.whatsapp", "com.whatsapp.w4b")) {
+                            try { i.setPackage(pkg); startActivity(i); ok = true; break } catch (e: Exception) { }
+                        }
+                        if (!ok) { i.setPackage(null); startActivity(Intent.createChooser(i, "Share")) }
+                    }
+                } catch (e: Exception) { }
+            }
+        }
         /** v1.19 share plain text (bank details, GSTIN…) */
         @JavascriptInterface
         fun shareText(text: String) {

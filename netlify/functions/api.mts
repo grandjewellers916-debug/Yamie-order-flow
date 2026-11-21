@@ -240,7 +240,8 @@ export default async (req: Request) => {
       }
       const days = await dayKeys(s);
       const [sessions, erp] = await Promise.all([listJSON(s, `ss/${date}/`), s.get(`erp/${date}`, { type: 'json' })]);
-      return J({ today, date, day: d.day, mvs: d.mvs, counts: d.allCounts, sessions, erp, locs, settings, me: pubUser(me), alerts, days, userNames: Object.fromEntries(users.map((u) => [u.id, u.name])) });
+      const rpSent = can('share') ? await listJSON(s, `rps/${today}/`) : [];
+      return J({ today, date, day: d.day, mvs: d.mvs, counts: d.allCounts, sessions, erp, locs, settings, me: pubUser(me), alerts, days, rpSent, userNames: Object.fromEntries(users.map((u) => [u.id, u.name])) });
     }
 
     // helpers needing an open day
@@ -576,6 +577,11 @@ export default async (req: Request) => {
     }
     if (path === 'alerts/seen' && method === 'POST') { await s.set(`seen/${me.id}`, String(now())); return J({ ok: true }); }
 
+    if (path === 'rpsent' && method === 'POST') {   // v1.32: a report was shared (WhatsApp / email / file) — log it; clears the daily report reminder
+      need('share'); const t = (v: any, n = 80) => String(v ?? '').slice(0, n); const at = now();
+      const rec = { id: `${at}-${rid().slice(0, 6)}`, date: today, at, by: me.id, title: t(body.title, 120), via: t(body.via, 20), to: t(body.to), daily: !!body.daily };
+      await s.setJSON(`rps/${today}/${rec.id}`, rec); return J({ ok: true, rec });
+    }
     if (path === 'master/rename' && method === 'POST') {   // v1.28: rename a main location / sub display / item type and move locations that use it
       need('setup'); const kind = body.kind; const from = String(body.from || '').trim(), to = String(body.to || '').trim().slice(0, 40);
       if (!from || !to || from === to) return err('Enter the new name');
@@ -601,6 +607,11 @@ export default async (req: Request) => {
       if (b.wtTol != null) next.wtTol = Math.max(0, r3(b.wtTol));
       if (b.blind != null) next.blind = !!b.blind;
       if (b.reqPhotos != null) next.reqPhotos = !!b.reqPhotos;
+      // v1.32 holidays, report recipients, daily report
+      if (b.holidays && typeof b.holidays === 'object') next.holidays = { sunday: b.holidays.sunday !== false,
+        dates: (Array.isArray(b.holidays.dates) ? b.holidays.dates : []).filter((x: any) => /^\d{4}-\d{2}-\d{2}$/.test(x?.date)).map((x: any) => ({ date: x.date, name: String(x.name || 'Holiday').trim().slice(0, 40) })).sort((a: any, c: any) => a.date.localeCompare(c.date)).slice(-200) };
+      if (Array.isArray(b.rpRecipients)) next.rpRecipients = b.rpRecipients.slice(0, 20).map((x: any) => ({ name: String(x.name || '').trim().slice(0, 40), wa: String(x.wa || '').replace(/[^0-9]/g, '').slice(0, 15), email: String(x.email || '').trim().slice(0, 80) })).filter((x: any) => x.name && (x.wa || x.email));
+      if (b.rpDaily && typeof b.rpDaily === 'object') next.rpDaily = { on: !!b.rpDaily.on, time: /^\d{2}:\d{2}$/.test(b.rpDaily.time) ? b.rpDaily.time : '20:00', type: String(b.rpDaily.type || 'place').slice(0, 20) };
       if (Array.isArray(b.mainLocs)) { const K = ['counter', 'tray', 'box']; const t = (v: any) => String(v ?? '').trim().slice(0, 40); const seen = new Set();
         const ml = b.mainLocs.map((m: any) => ({ name: t(m.name), kind: K.includes(m.kind) ? m.kind : 'box', subs: (Array.isArray(m.subs) ? m.subs : []).map((x: any) => ({ name: t(x.name), ...(K.includes(x.kind) && x.kind !== m.kind ? { kind: x.kind } : {}) })).filter((x: any, i: number, a: any[]) => x.name && a.findIndex((y: any) => y.name === x.name) === i) }))
           .filter((m: any) => m.name && !seen.has(m.name) && (seen.add(m.name), true));

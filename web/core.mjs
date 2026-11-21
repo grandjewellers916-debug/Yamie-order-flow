@@ -303,6 +303,13 @@ export const keyText = (loc, k) => { const p = purOfLine(loc, k); return `${JT_S
 export const lineMetal = (loc, k) => jtMetal(jtOfLine(loc, k));
 export const metalOf = (loc) => (loc?.jtype ? jtMetal(loc.jtype) : loc?.cat === 'Platinum' ? 'Platinum' : loc?.cat === 'Silver' ? 'Silver' : 'Gold');
 export const erpMetal = (name) => (/platinum/i.test(name || '') ? 'Platinum' : /silver/i.test(name || '') ? 'Silver' : 'Gold');
+// ---- v1.32 shop holidays: Sundays + special holidays (no counts / reports expected) ----
+export function holidayOf(st, date) {
+  const H = st?.holidays || {}; const d = String(date || '');
+  const sp = (H.dates || []).find((x) => x.date === d); if (sp) return sp.name || 'Holiday';
+  if (H.sunday !== false && /^\d{4}-\d{2}-\d{2}$/.test(d) && new Date(d + 'T12:00:00Z').getUTCDay() === 0) return 'Sunday';
+  return '';
+}
 // ---- v1.29 main / sub locations ----
 export const LOC_KINDS = { counter: 'Counter', tray: 'Tray', box: 'Box' };
 export const mainLocsOf = (st) => (Array.isArray(st?.mainLocs) && st.mainLocs.length ? st.mainLocs : DEFAULT_SETTINGS.mainLocs);
