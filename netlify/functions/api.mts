@@ -7,6 +7,7 @@
 //   cfg/users|smiths|settings|roleperms, meta/cfgv, meta/secret, lock/<uid>
 import { getStore } from '@netlify/blobs';
 import crypto from 'node:crypto';
+import { backupOp } from '../lib/backup.mts';
 
 export const config = { path: '/api/*' };
 
@@ -308,6 +309,15 @@ export default async (req: Request) => {
       await s.setJSON('cfg/users', data);
       await bumpCfg(s);
       return J({ user: pubUser(u) });
+    }
+    // Backup & restore of the whole database, photos included (admin only). The change log and PIN locks are not
+    // backed up; meta/secret (signs logins) stays as it is on this site.
+    if (path.startsWith('bk/') && method === 'POST') {
+      admin();
+      return J(await backupOp(s, path.slice(3), body, {
+        skip: (k) => k.startsWith('chg/') || k.startsWith('lock/') || k === 'meta/secret',
+        done: async () => { await s.set('meta/resetAt', String(now())); await bumpCfg(s); },   // every phone reloads everything
+      }));
     }
     return err('Not found', 404);
   } catch (e: any) {
