@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 env:
-  APP_VERSION: '1.19'   # keep in step with VERSION in web/index.html
+  APP_VERSION: '1.29'   # keep in step with VERSION in web/index.html
 
 jobs:
   apk:
@@ -46,7 +46,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: stock-check-apk-v${{ env.APP_VERSION }}.${{ github.run_number }}
-          name: Yamie Stock Check APK v${{ env.APP_VERSION }}.${{ github.run_number }}
+          name: Yamie Core APK v${{ env.APP_VERSION }}.${{ github.run_number }}
           target_commitish: ${{ github.sha }}
           files: yamie-stock-check-v${{ env.APP_VERSION }}.${{ github.run_number }}.apk
           body: "Install on shop phones (allow install from this source). Opens https://yamie-stock-check.netlify.app — web updates arrive without a new APK. Each new APK installs over the previous one."
