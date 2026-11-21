@@ -130,7 +130,7 @@
   }
 
   // ---------- backup ----------
-  // o = { app, appId, version, by, call(op,args)→Promise<json>, shared:true|false, skip(key)→bool,
+  // o = { app, appId, version, by, call(op,args)→Promise<json>, shared:true|false, skip(key)→bool, photoKey(key)→bool,
   //       phone: async()→object|null, progress(text, fraction) }
   async function backup(o) {
     const prog = o.progress || (() => { });
@@ -156,7 +156,7 @@
         if (meta && Object.keys(meta).length) ent.meta = meta;
         z.add(ent.file, c.bytes); ents[i] = ent;
         bytes += data.length; done++;
-        if (c.kind === 'img') man.totals.photos++;
+        if (c.kind === 'img' || (o.photoKey && o.photoKey(key))) man.totals.photos++;   // photoKey: pictures the app keeps encrypted
         prog(`Backing up ${done} of ${keys.length} records · ${fmtMB(bytes)}`, done / keys.length * 0.95);
       });
       man.shared = ents.filter(Boolean); man.totals.records = man.shared.length; man.totals.bytes = bytes;
