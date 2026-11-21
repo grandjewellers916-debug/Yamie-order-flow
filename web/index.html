@@ -65,6 +65,9 @@ button.fbtool{border:1px dashed var(--ln);background:transparent;color:var(--mut
 .mlg{border-top:1px solid var(--ln);padding:4px 0}.mlg .lrow{border-top:0}.lrow.sub{padding-left:34px;padding-top:4px;padding-bottom:4px}.lrow.sub .grow{font-size:14px}.mlno{font-family:'Cormorant Garamond',Georgia,serif;font-weight:700;color:var(--m);width:26px}select.mlk{width:auto;min-height:32px;padding:4px 8px;font-size:13px}
 .ptbl th.mlh{text-align:center;border-bottom:1px solid var(--ln)}
 .mlgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}.mlc{padding:10px 12px}.mlh2,.mls{display:flex;width:100%;align-items:center;gap:8px;text-align:left;padding:8px 2px;background:none;border:0;cursor:pointer;font:inherit;color:inherit}.mls{padding-left:34px;border-top:1px solid var(--ln)}.mlh2:hover,.mls:hover{background:#FBF7F1}
+.rptypes{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;margin-bottom:10px}.rptypes button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:10px 12px;border:1px solid var(--ln);border-radius:12px;background:#fff;cursor:pointer;font:inherit;color:inherit}.rptypes button span{font-size:12px;color:var(--mut)}.rptypes button.on{border-color:var(--m);background:#FBF1EF;box-shadow:inset 0 0 0 1px var(--m)}.rptypes>.fbtool{align-self:center;justify-self:start}
+label.ck{display:flex;gap:6px;align-items:center;font-size:14px;min-height:44px;white-space:nowrap}label.ck input{width:auto;min-height:0}
+@media (max-width:700px){.rptypes{grid-template-columns:1fr 1fr}.rptypes button span{display:none}}
 .isum{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:6px;font-size:12px;color:var(--mut)}.isum b{color:var(--ink);font-weight:600}.isum .on{color:var(--m)}.isum .on b{color:var(--m)}.isum .off{opacity:.55}
 .wtl{margin-top:4px;font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap}.wtl.none{font-weight:400;color:var(--warn);font-size:11px}
 details.msel{position:relative}details.msel>summary{list-style:none;cursor:pointer;border:1px solid var(--ln);border-radius:10px;background:#fff;min-height:44px;padding:10px 30px 10px 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative}
@@ -373,7 +376,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.29';
+const VERSION = '1.30';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -388,6 +391,7 @@ const ICON = {
   stock: '<path d="M12 3l8 4.5-8 4.5-8-4.5z"/><path d="M4 12l8 4.5 8-4.5M4 16.5L12 21l8-4.5"/>',
   print: '<path d="M7 9V3h10v6M7 17H4v-7h16v7h-3M7 14h10v7H7z"/>',
   doc: '<path d="M6 3h8l5 5v13H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/>',
+  rep: '<path d="M4 3h16v18H4z"/><path d="M8 16v-4M12 16V8M16 16v-6"/>',
   share: '<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"/>',
   copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',
   qr: '<path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2"/>',
@@ -493,7 +497,7 @@ const diffTxt = (d, loc) => Object.entries(d || {}).map(([t, n]) => `${kT(t, loc
 
 // ---------------- shell ----------------
 // v1.17 Yamie Core: phone bottom bar = Home · Cash · Counter · Trays · Box; the computer sidebar also has Stock, Consolidated and More
-const NAV = [['home', 'Home', 'home'], ['stock', 'Stock', 'stock', 1], ['cash', 'Cash', 'cash'], ['counter', 'Counter', 'counter'], ['tray', 'Trays', 'tray'], ['box', 'Box', 'box'], ['total', 'Consolidated', 'total', 1], ['docs', 'Documents', 'doc', 1], ['more', 'More', 'more', 1]];
+const NAV = [['home', 'Home', 'home'], ['stock', 'Stock', 'stock', 1], ['cash', 'Cash', 'cash'], ['counter', 'Counter', 'counter'], ['tray', 'Trays', 'tray'], ['box', 'Box', 'box'], ['total', 'Consolidated', 'total', 1], ['reports', 'Reports', 'rep', 1], ['docs', 'Documents', 'doc', 1], ['more', 'More', 'more', 1]];
 const MORE_VIEWS = ['more', 'alerts', 'log', 'admin', 'history', 'eod'];
 function render() {
   if (!S.me) return showLogin();
@@ -503,7 +507,7 @@ function render() {
   $('#app').querySelectorAll('[data-nav]').forEach((b) => b.onclick = () => go(b.dataset.nav));
   renderTop();
   S.cardF = null;   // section filters only shape the cards on their own page
-  const v = { home: vHub, stock: vHome, cash: vCash, docs: vDocs, boxwt: vBoxWt, counter: () => vSection('counter'), tray: () => vSection('tray'), box: () => vSection('box'), total: vTotal, more: vMore, alerts: vAlerts, log: vLog, eod: vEod, admin: vAdmin, history: vHistory }[S.view] || vHome;
+  const v = { reports: vReports, home: vHub, stock: vHome, cash: vCash, docs: vDocs, boxwt: vBoxWt, counter: () => vSection('counter'), tray: () => vSection('tray'), box: () => vSection('box'), total: vTotal, more: vMore, alerts: vAlerts, log: vLog, eod: vEod, admin: vAdmin, history: vHistory }[S.view] || vHome;
   v();
 }
 // v1.16: version on screen — web app version, plus the APK version inside the Android app
@@ -1525,6 +1529,164 @@ function fbArrange(bar) {
 // every filter bar on every page gets the arrange tool (selbars, status filters, jewellery type tabs, report tabs)
 function fbScan(root) { root.querySelectorAll('[data-fbar], .selbar, .filters, .jfseg, .afbar > .seg').forEach((bar, i) => { if (!bar.dataset.fbar) bar.dataset.fbar = `${S.view || 'x'}${S.view === 'admin' ? '-' + S.tab : ''}-${bar.className.split(' ')[0]}-${i}`; fbApply(bar); }); }
 new MutationObserver(() => { const m = $('#main'); if (m) fbScan(m); }).observe(document.body, { childList: true, subtree: true });
+// ================= v1.30 Reports page: build a report, preview, export Excel (.xlsx) / PDF / CSV =================
+const RP_TYPES = [['locs', 'Location list', 'Counters, trays and boxes with the columns you choose'], ['place', 'Item count by location', 'Item × main / sub location'], ['pur', 'Purity-wise', 'Purity with items underneath'],
+  ['item', 'Item-wise', 'Item split by purity'], ['loc', 'Location-wise', 'Main location → each counter / tray / box'], ['jt', 'Jewellery type', 'Type and metal totals'], ['boxwt', 'Box weight', 'Opening, inward, outward, closing, cover, net'],
+  ['var', 'Variances', 'Locations not matching'], ['custom', 'Custom', 'Rows × columns you pick']];
+function rpState() { return (S.rp ||= { type: 'locs', sec: 'all', f: { jt: [], a: [], pl: [], i: [], p: [] }, cols: null, pcol: 'place', purs: true, group: true, cr: { r: 'item', r2: '', c: 'area', m: 'exp' }, saved: '' }); }
+// filtered summary lines + location test (same item line must match type / item / purity)
+function rpLines(P) { const F = P.f; return S.sum.lines.filter((r) => { const l = S.locById[r.locId]; if (!l) return false;
+  return (P.sec === 'all' || l.sec === P.sec) && (!F.jt.length || F.jt.includes(r.jt)) && (!F.a.length || F.a.includes(l.area || 'Not set')) && (!F.pl.length || F.pl.includes(placeOf(l))) && (!F.i.length || F.i.includes(r.item)) && (!F.p.length || F.p.includes(r.purity || 'Not set')); }); }
+function rpLocs(P) { const F = P.f; const lineOn = F.jt.length || F.i.length || F.p.length; const L = rpLines(P);
+  return activeLocs().filter((l) => (P.sec === 'all' || l.sec === P.sec) && (!F.a.length || F.a.includes(l.area || 'Not set')) && (!F.pl.length || F.pl.includes(placeOf(l)))
+    && (!lineOn || L.some((r) => r.locId === l.id && (r.exp || r.op || r.cnt)) || (!heldOf(l).length && (!F.i.length || F.i.includes(l.itemType)) && (!F.p.length || F.p.includes(l.purity || 'Not set')) && (!F.jt.length || locJts(l).some((j) => F.jt.includes(j)))))); }
+const rpFilterText = (P) => { const F = P.f; return [P.sec !== 'all' ? secLabel(P.sec) : '', F.jt.map((j) => JF_LBL[j]).join(' + '), F.a.join(', '), F.pl.join(', '), F.i.join(', '), F.p.join(', ')].filter(Boolean).join(' · ') || 'All stock'; };
+const ord = (l) => { const ML = mainLocsOf(S.D.settings); const mi = ML.findIndex((m) => m.name === l.area); const si = mi < 0 ? 0 : (ML[mi].subs || []).findIndex((x) => x.name === l.sub); return [mi < 0 ? 99 : mi, si, SECTIONS.findIndex((x) => x.key === l.sec)]; };
+const byPlace = (a, b) => { const x = ord(a), y = ord(b); return x[0] - y[0] || x[1] - y[1] || x[2] - y[2] || String(a.group).localeCompare(String(b.group), undefined, { numeric: true }) || (a.order || 0) - (b.order || 0) || a.name.localeCompare(b.name, undefined, { numeric: true }); };
+// -> { title, cols:[{t, num, g3}], rows:[{cls, cells}] }
+function rpBuild(P) {
+  const L = rpLines(P); const T = (title, cols, rows) => ({ title, cols, rows });
+  if (P.type === 'locs') {
+    const all = LCOLS.filter((c) => !c.secs || P.sec === 'all' || c.secs.includes(P.sec)); const keys = P.cols || colCfg().order.filter((k) => !colCfg().hidden.includes(k));
+    const cols = keys.map((k) => all.find((c) => c.k === k)).filter(Boolean); const lineOn = P.f.jt.length || P.f.i.length || P.f.p.length;
+    const pcs = (l) => lineOn ? L.filter((r) => r.locId === l.id).reduce((a, r) => a + r.exp, 0) : sumLines(expOf(l.id).lines);
+    const val = (c, l) => c.k === 'pcs' ? pcs(l) : c.k === 'name' && l.boxNo && !keys.includes('boxNo') && !l.name.includes(l.boxNo) ? `${l.name} (${l.boxNo})` : c.v(l);
+    const locs = rpLocs(P).sort(byPlace); const rows = [];
+    const sumRow = (lab, ls, cls) => ({ cls, cells: cols.map((c, i) => i === 0 ? lab : c.num ? ls.reduce((a, l) => a + (+val(c, l) || 0), 0) : '') });
+    if (P.group) { for (const a of [...new Set(locs.map((l) => l.area || 'Not set'))]) { const ls = locs.filter((l) => (l.area || 'Not set') === a); rows.push(sumRow(`${a} · ${ls.length}`, ls, 'rgrp')); ls.forEach((l) => rows.push({ cls: 'sub', cells: cols.map((c) => val(c, l)) })); } }
+    else locs.forEach((l) => rows.push({ cells: cols.map((c) => val(c, l)) }));
+    rows.push(sumRow(`Total · ${locs.length}`, locs, 'tot'));
+    return T(`Location list${P.sec !== 'all' ? ' · ' + secLabel(P.sec) : ''}`, cols.map((c) => ({ t: c.t, num: !!c.num, g3: c.k === 'wt' })), rows);
+  }
+  if (P.type === 'place') {
+    const live = L.filter((r) => r.exp); const colOf = (r) => P.pcol === 'place' ? placeOf(S.locById[r.locId]) : S.locById[r.locId].area || 'Not set';
+    const cv = rdOrder(P.pcol === 'place' ? 'place' : 'area', [...new Set(live.map(colOf))]); const items = rdOrder('item', [...new Set(live.map((r) => r.item))]);
+    const line = (lab, pur, rs, cls) => ({ cls, cells: [lab, pur, ...cv.map((c) => rs.filter((r) => colOf(r) === c).reduce((a, r) => a + r.exp, 0)), rs.reduce((a, r) => a + r.exp, 0)] });
+    const rows = []; for (const it of items) { const rs = live.filter((r) => r.item === it); const purs = rdOrder('purity', [...new Set(rs.map((r) => r.purity || 'Not set'))]);
+      rows.push(line(it, purs.length > 1 ? 'All' : purs[0], rs, P.purs && purs.length > 1 ? 'rgrp' : '')); if (P.purs && purs.length > 1) purs.forEach((p) => rows.push(line('   ' + it, p, rs.filter((r) => (r.purity || 'Not set') === p), 'sub'))); }
+    rows.push(line('Total', '', live, 'tot'));
+    return T('Item count by ' + (P.pcol === 'place' ? 'sub location' : 'main location'), [{ t: 'Item' }, { t: 'Purity' }, ...cv.map((c) => ({ t: c, num: true })), { t: 'Total', num: true }], rows);
+  }
+  if (['pur', 'item', 'loc'].includes(P.type)) { const t = repTables(L)[P.type]; return T(RP_TYPES.find((x) => x[0] === P.type)[1] + ' report', t.cols.map((c, i) => ({ t: c, num: i > 0 && t.rows.some((r) => typeof r.cells[i] === 'number') })), t.rows.map((r) => ({ cls: r.cls, cells: r.cells.map((v) => typeof v === 'string' ? v.replace(/^\s+/, (m) => r.cls === 'sub' ? '   ' : '') : v) }))); }
+  if (P.type === 'jt') { const g = (k) => L.filter((r) => r.jt === k); const nums = (rs) => { const x = rs.reduce((a, r) => (a.op += r.op, a.in += r.in, a.out += r.out, a.exp += r.exp, a.cnt += r.cnt, a.ce += r.chkExp, a), { op: 0, in: 0, out: 0, exp: 0, cnt: 0, ce: 0 }); return [x.op, x.in, x.out, x.exp, x.cnt, x.cnt - x.ce]; };
+    const rows = LINE_JTYPES.filter((j) => g(j).some((r) => r.exp || r.op)).map((j) => ({ cells: [JF_LBL[j], jtMetal(j), ...nums(g(j))] }));
+    METALS.forEach((m) => { const rs = L.filter((r) => r.metal === m); if (rs.some((r) => r.exp || r.op)) rows.push({ cls: 'rgrp', cells: [`${m} total`, '', ...nums(rs)] }); });
+    rows.push({ cls: 'tot', cells: ['Total', '', ...nums(L)] });
+    return T('Jewellery type report', [{ t: 'Jewellery type' }, { t: 'Metal' }, ...['Opening', 'In', 'Out', 'Expected', 'Counted', 'Variance'].map((t) => ({ t, num: true }))], rows); }
+  if (P.type === 'boxwt') { const bx = rpLocs({ ...P, sec: 'box' }).sort(byPlace); const X = bx.map((l) => [l, boxLedger(l)]); const k = ['pcs', 'op', 'inw', 'outw', 'adj', 'close', 'cover', 'net'];
+    const rows = X.map(([l, x]) => ({ cells: [l.name, l.boxNo || '', placeOf(l), ...k.map((q) => x[q])] })); rows.push({ cls: 'tot', cells: [`Total · ${bx.length}`, '', '', ...k.map((q) => X.reduce((a, [, x]) => a + x[q], 0))] });
+    return T('Box weight report', [{ t: 'Box' }, { t: 'Box no.' }, { t: 'Location' }, { t: 'Items', num: true }, ...['Opening g', 'Inward g', 'Outward g', 'Adj. g', 'Closing g', 'Cover g', 'Net g'].map((t) => ({ t, num: true, g3: true }))], rows); }
+  if (P.type === 'var') { const st = S.sum.status; const ls = rpLocs(P).filter((l) => st[l.id] && ['var', 'stale'].includes(st[l.id].state)).sort(byPlace); const c = S.sum.last;
+    const rows = ls.map((l) => { const e = sumLines(expOf(l.id).lines), n = c[l.id] && c[l.id].mode !== 'weight' ? sumLines(c[l.id].lines || {}) : 0; return { cells: [l.name, placeOf(l), secLabel(l.sec), e, n, n - e, STLBL[st[l.id].state], diffTxt(st[l.id].diff, l) || 'Weight / recount', c[l.id] ? (S.D.users?.find?.((u) => u.id === c[l.id].by)?.name || '') : ''] }; });
+    rows.push({ cls: 'tot', cells: [`Total · ${ls.length}`, '', '', rows.reduce((a, r) => a + r.cells[3], 0), rows.reduce((a, r) => a + r.cells[4], 0), rows.reduce((a, r) => a + r.cells[5], 0), '', '', ''] });
+    return T('Variance report', [{ t: 'Location' }, { t: 'Main › sub' }, { t: 'Section' }, { t: 'Expected', num: true }, { t: 'Counted', num: true }, { t: 'Variance', num: true }, { t: 'Status' }, { t: 'Difference' }, { t: 'Checked by' }], rows); }
+  const R = P.saved !== '' && repsGet()[+P.saved] ? repsGet()[+P.saved] : P.cr; const t = customTable(L, R);
+  return T(R.name || `${RDIM[R.r]}${R.c ? ' × ' + RDIM[R.c] : ''} · ${RMEAS[R.m]}`, t.cols.map((c, i) => ({ t: c, num: i > 0 })), t.rows);
+}
+const rpFmt = (v, c) => typeof v === 'number' ? (c.g3 ? (v ? g3(v) : '—') : v ? fmt(v) : '—') : esc(String(v ?? ''));
+function vReports() {
+  if (!can('reports')) return $('#main').innerHTML = '<div class="card">No access</div>';
+  const P = rpState(); const F = P.f; const R = rpBuild(P); const ALL = S.sum.lines.filter((r) => S.locById[r.locId]); const live = ALL.filter((r) => r.exp || r.op || r.cnt);
+  const opts = (fn, order) => order([...new Set(live.map(fn))]).map((v) => [v, v]);
+  const colsBox = P.type === 'locs' ? (() => { const all = LCOLS.filter((c) => !c.secs || P.sec === 'all' || c.secs.includes(P.sec)); const keys = P.cols || colCfg().order.filter((k) => !colCfg().hidden.includes(k));
+    return `<details class="msel" data-ms="cols" style="min-width:200px"><summary>Columns · ${keys.filter((k) => all.some((c) => c.k === k)).length}</summary><div class="mslist">${[...keys.filter((k) => all.some((c) => c.k === k)), ...all.map((c) => c.k).filter((k) => !keys.includes(k))].map((k) => { const c = all.find((x) => x.k === k); return `<label><input type="checkbox" data-mv2="${k}" ${keys.includes(k) ? 'checked' : ''} ${c.lock ? 'disabled' : ''}> ${esc(c.t)}</label>`; }).join('')}<div class="row" style="gap:6px;margin-top:6px"><button type="button" class="btn sm ghost" data-msall>All</button><button type="button" class="btn sm ghost" data-msnone>None</button><button type="button" class="btn sm" data-msok>Done</button></div></div></details>`; })() : '';
+  const saved = repsGet();
+  $('#main').innerHTML = `${viewBanner()}<div class="row sp wrap" style="margin-bottom:10px"><div><h1>Reports</h1><div class="mut">${dt(S.D.date)} · ${S.D.day.status === 'closed' ? 'Closed' : 'Live'} · export to Excel or PDF</div></div>
+    <div class="row noprint" style="gap:6px"><button class="btn" id="rpX">⬇ Excel</button><button class="btn sec" id="rpP">⬇ PDF</button><button class="btn ghost" id="rpC">CSV</button></div></div>
+  <div class="rptypes noprint" data-fbar="rp-types">${RP_TYPES.map(([k, t, d]) => `<button data-rpt="${k}" data-fk="${k}" class="${P.type === k ? 'on' : ''}"><b>${t}</b><span>${d}</span></button>`).join('')}</div>
+  <div class="selbar card noprint" data-fbar="rp-f">
+    ${['locs', 'var', 'boxwt'].includes(P.type) ? '' : ''}${P.type !== 'boxwt' ? `<div class="grow" data-fk="sec"><label class="f" style="margin-top:0">Section</label><select id="rpSec">${[['all', 'All sections'], ...SECTIONS.map((x) => [x.key, x.label])].map(([k, t]) => `<option value="${k}" ${P.sec === k ? 'selected' : ''}>${t}</option>`).join('')}</select></div>` : ''}
+    ${msel('jt', 'Stock type', LINE_JTYPES.filter((j) => live.some((r) => r.jt === j) || F.jt.includes(j)).map((j) => [j, JF_LBL[j]]), F.jt, 'All stock')}
+    ${msel('a', 'Main location', opts((r) => S.locById[r.locId].area || 'Not set', (v) => rdOrder('area', v)), F.a, 'All main locations')}
+    ${msel('pl', 'Sub location', opts((r) => placeOf(S.locById[r.locId]), (v) => rdOrder('place', v)), F.pl, 'All sub locations')}
+    ${msel('i', 'Item', opts((r) => r.item, (v) => rdOrder('item', v)), F.i, 'All items')}
+    ${msel('p', 'Purity', opts((r) => r.purity || 'Not set', (v) => rdOrder('purity', v)), F.p, 'All purities')}
+    ${P.type === 'locs' ? `<div class="grow" data-fk="cols"><label class="f" style="margin-top:0">Columns</label>${colsBox}</div><label class="ck" data-fk="grp" style="align-self:flex-end"><input type="checkbox" id="rpGrp" ${P.group ? 'checked' : ''}> Group by main location</label>` : ''}
+    ${P.type === 'place' ? `<div class="grow" data-fk="pcol"><label class="f" style="margin-top:0">Columns</label><select id="rpPcol"><option value="place" ${P.pcol === 'place' ? 'selected' : ''}>Sub locations</option><option value="area" ${P.pcol === 'area' ? 'selected' : ''}>Main locations</option></select></div><label class="ck" data-fk="purs" style="align-self:flex-end"><input type="checkbox" id="rpPurs" ${P.purs ? 'checked' : ''}> Purity rows</label>` : ''}
+    ${P.type === 'custom' ? `<div class="grow" data-fk="saved"><label class="f" style="margin-top:0">Saved report</label><select id="rpSaved"><option value="">— build below —</option>${saved.map((r, i) => `<option value="${i}" ${P.saved === String(i) ? 'selected' : ''}>★ ${esc(r.name)}</option>`).join('')}</select></div>
+      ${P.saved === '' ? ['r', 'r2', 'c'].map((k) => `<div class="grow" data-fk="${k}"><label class="f" style="margin-top:0">${{ r: 'Rows', r2: 'Then by', c: 'Columns' }[k]}</label><select data-cr="${k}">${k !== 'r' ? '<option value="">— none —</option>' : ''}${Object.entries(RDIM).map(([d, n]) => `<option value="${d}" ${P.cr[k] === d ? 'selected' : ''}>${n}</option>`).join('')}</select></div>`).join('') + `<div class="grow" data-fk="m"><label class="f" style="margin-top:0">Show</label><select data-cr="m">${Object.entries(RMEAS).map(([d, n]) => `<option value="${d}" ${P.cr.m === d ? 'selected' : ''}>${n}</option>`).join('')}</select></div><div data-fk="sv" style="align-self:flex-end"><button class="btn ghost" id="rpSave">★ Save</button></div>` : `<div data-fk="del" style="align-self:flex-end"><button class="btn ghost" id="rpDel" style="color:var(--bad)">🗑 Delete</button></div>`}` : ''}
+    <div data-fk="clr" style="align-self:flex-end"><button class="btn ghost" id="rpClr">Clear</button></div></div>
+  <div class="card rpprev"><div class="row sp wrap"><div><h3 style="margin:0">${esc(R.title)}</h3><div class="mut sm">${esc(S.D.settings.shopName || 'Yamie')} · ${dt(S.D.date)} · ${esc(rpFilterText(P))}</div></div><span class="mut sm">${R.rows.filter((r) => r.cls !== 'tot' && r.cls !== 'rgrp').length} rows</span></div>
+  <div class="tw" style="margin-top:10px"><table class="rep"><tr>${R.cols.map((c) => `<th${c.num ? '' : ' style="text-align:left"'}>${esc(c.t)}</th>`).join('')}</tr>
+  ${R.rows.map((r) => `<tr class="${r.cls || ''}">${r.cells.map((v, i) => `<td${R.cols[i].num ? '' : ` style="text-align:left" class="${i === 0 && r.cls === 'sub' ? 'ind' : i === 0 ? 'b' : ''}"`}>${typeof v === 'string' && i === 0 ? esc(v.trim()) : rpFmt(v, R.cols[i])}</td>`).join('')}</tr>`).join('') || `<tr><td colspan="${R.cols.length}" class="mut">Nothing to show</td></tr>`}</table></div></div>
+  <div class="mut sm" style="margin-top:6px">Excel opens in Excel / Google Sheets with numbers as numbers; PDF is ready to print or send on WhatsApp. Filters apply to every report.</div>`;
+  bindBanner();
+  const re = () => vReports();
+  $('#main').querySelectorAll('[data-rpt]').forEach((b) => b.onclick = () => { P.type = b.dataset.rpt; re(); });
+  bindMsel($('#main'), (k) => k === 'cols' ? (P.cols || colCfg().order.filter((x) => !colCfg().hidden.includes(x))) : F[k], (k, v) => { if (k === 'cols') P.cols = ['name', ...v.filter((x) => x !== 'name')]; else F[k] = v; re(); });
+  $('#rpSec') && ($('#rpSec').onchange = () => { P.sec = $('#rpSec').value; re(); });
+  $('#rpGrp') && ($('#rpGrp').onchange = () => { P.group = $('#rpGrp').checked; re(); });
+  $('#rpPcol') && ($('#rpPcol').onchange = () => { P.pcol = $('#rpPcol').value; re(); });
+  $('#rpPurs') && ($('#rpPurs').onchange = () => { P.purs = $('#rpPurs').checked; re(); });
+  $('#rpSaved') && ($('#rpSaved').onchange = () => { P.saved = $('#rpSaved').value; re(); });
+  $('#main').querySelectorAll('[data-cr]').forEach((el) => el.onchange = () => { P.cr[el.dataset.cr] = el.value; if (P.cr.r2 === P.cr.r) P.cr.r2 = ''; if (P.cr.c === P.cr.r || P.cr.c === P.cr.r2) P.cr.c = ''; re(); });
+  $('#rpSave') && ($('#rpSave').onclick = () => { const n = (prompt('Report name', R.title) || '').trim(); if (!n) return; const a = repsGet(); a.push({ ...P.cr, name: n }); repsSet(a); P.saved = String(a.length - 1); toast('✓ Saved'); re(); });
+  $('#rpDel') && ($('#rpDel').onclick = () => { const a = repsGet(); const r = a[+P.saved]; if (!r || !confirm(`Delete report “${r.name}”?`)) return; a.splice(+P.saved, 1); repsSet(a); P.saved = ''; re(); });
+  $('#rpClr').onclick = () => { P.f = { jt: [], a: [], pl: [], i: [], p: [] }; P.sec = 'all'; re(); };
+  const fname = (ext) => `yamie-${R.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-${S.D.date}.${ext}`;
+  $('#rpX').onclick = () => { try { saveBin(fname('xlsx'), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', xlsxBuild(R, rpFilterText(P))); toast('✓ Excel file ready'); } catch (e) { fail(e); } };
+  $('#rpP').onclick = async () => { try { toast('Making PDF…'); saveBin(fname('pdf'), 'application/pdf', await pdfBuild(R, rpFilterText(P)), true); } catch (e) { fail(e); } };
+  $('#rpC').onclick = () => { const q = (v) => { const x = String(v ?? ''); return /[",\n]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x; }; saveFile(fname('csv'), 'text/csv', [R.cols.map((c) => c.t), ...R.rows.map((r) => r.cells)].map((r) => r.map(q).join(',')).join('\n')); };
+}
+function saveBin(name, mime, bytes, view) {
+  if (window.YamieStock?.shareData) { let b = ''; for (let i = 0; i < bytes.length; i += 0x8000) b += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return window.YamieStock.shareData(name, mime, btoa(b), !!view); }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([bytes], { type: mime })); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+// ---- minimal .xlsx writer (one sheet, stored zip): title rows, bold header, bold group / total rows, number formats ----
+const CRC_T = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+const crc32 = (u) => { let c = 0xFFFFFFFF; for (let i = 0; i < u.length; i++) c = CRC_T[(c ^ u[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+function zipStore(files) {
+  const enc = new TextEncoder(); const parts = []; const cen = []; let off = 0;
+  const u16 = (v) => [v & 255, (v >> 8) & 255], u32 = (v) => [v & 255, (v >> 8) & 255, (v >> 16) & 255, (v >>> 24) & 255];
+  for (const [name, text] of files) { const n = enc.encode(name), d = enc.encode(text), c = crc32(d);
+    const h = new Uint8Array([...u32(0x04034b50), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21), ...u32(c), ...u32(d.length), ...u32(d.length), ...u16(n.length), ...u16(0)]);
+    parts.push(h, n, d); cen.push(new Uint8Array([...u32(0x02014b50), ...u16(20), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21), ...u32(c), ...u32(d.length), ...u32(d.length), ...u16(n.length), ...u16(0), ...u16(0), ...u16(0), ...u16(0), ...u32(0), ...u32(off)]), n);
+    off += h.length + n.length + d.length; }
+  const cl = cen.reduce((a, x) => a + x.length, 0);
+  const all = [...parts, ...cen, new Uint8Array([...u32(0x06054b50), ...u16(0), ...u16(0), ...u16(files.length), ...u16(files.length), ...u32(cl), ...u32(off), ...u16(0)])];
+  const out = new Uint8Array(all.reduce((a, x) => a + x.length, 0)); let p = 0; for (const x of all) { out.set(x, p); p += x.length; } return out;
+}
+function xlsxBuild(R, filt) {
+  const x = (v) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '');
+  const col = (i) => { let s = ''; i++; while (i) { const m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); } return s; };
+  // styles: 0 normal · 1 title · 2 sub · 3 header · 4 bold · 5 int · 6 int bold · 7 g3 · 8 g3 bold · 9 header right
+  const rows = []; const cellS = (r, c, v, st) => typeof v === 'number' ? `<c r="${col(c)}${r}" s="${st}"><v>${v}</v></c>` : v === '' || v == null ? '' : `<c r="${col(c)}${r}" s="${st}" t="inlineStr"><is><t xml:space="preserve">${x(v)}</t></is></c>`;
+  rows.push(`<row r="1">${cellS(1, 0, R.title, 1)}</row>`, `<row r="2">${cellS(2, 0, `${S.D.settings.shopName || 'Yamie'} · ${S.D.date} · ${filt}`, 2)}</row>`);
+  rows.push(`<row r="4">${R.cols.map((c, i) => cellS(4, i, c.t, c.num ? 9 : 3)).join('')}</row>`);
+  R.rows.forEach((r, k) => { const n = 5 + k; const b = r.cls === 'tot' || r.cls === 'rgrp';
+    rows.push(`<row r="${n}">${r.cells.map((v, i) => { const c = R.cols[i]; const num = typeof v === 'number'; return cellS(n, i, num ? v : typeof v === 'string' ? (i === 0 && r.cls === 'sub' ? '   ' + v.trim() : v) : v, num ? (c.g3 ? (b ? 8 : 7) : (b ? 6 : 5)) : b ? 4 : 0); }).join('')}</row>`); });
+  const w = R.cols.map((c, i) => Math.min(60, Math.max(c.t.length + 2, ...R.rows.map((r) => { const v = r.cells[i]; return (typeof v === 'number' ? (c.g3 ? g3(v) : fmt(v)) : String(v ?? '')).length + 2; }), i === 0 ? 14 : 8)));
+  const sheet = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="4" topLeftCell="A5" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>${w.map((v, i) => `<col min="${i + 1}" max="${i + 1}" width="${v}" customWidth="1"/>`).join('')}</cols><sheetData>${rows.join('')}</sheetData><autoFilter ref="A4:${col(R.cols.length - 1)}${4 + R.rows.length}"/><pageSetup orientation="${R.cols.length > 7 ? 'landscape' : 'portrait'}" fitToWidth="1" fitToHeight="0"/></worksheet>`;
+  const styles = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="1"><numFmt numFmtId="164" formatCode="#,##0.000"/></numFmts>
+<fonts count="5"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="14"/><color rgb="FF8E1B1E"/><name val="Calibri"/></font><font><sz val="10"/><color rgb="FF777777"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts>
+<fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF8E1B1E"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF7EFE3"/></patternFill></fill></fills>
+<borders count="2"><border/><border><bottom style="thin"><color rgb="FFE5DCCF"/></bottom></border></borders><cellStyleXfs count="1"><xf/></cellStyleXfs>
+<cellXfs count="10"><xf/><xf fontId="1" applyFont="1"/><xf fontId="2" applyFont="1"/><xf fontId="3" fillId="2" applyFont="1" applyFill="1"/><xf fontId="4" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/><xf numFmtId="3" applyNumberFormat="1"/><xf numFmtId="3" fontId="4" fillId="3" borderId="1" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1"/><xf numFmtId="164" applyNumberFormat="1"/><xf numFmtId="164" fontId="4" fillId="3" borderId="1" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1"/><xf fontId="3" fillId="2" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="right"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+  const sn = x(R.title.replace(/[\\/?*[\]:]/g, ' ').slice(0, 31));
+  return zipStore([
+    ['[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'],
+    ['_rels/.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'],
+    ['xl/workbook.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="${sn}" sheetId="1" r:id="rId1"/></sheets><definedNames><definedName name="_xlnm._FilterDatabase" localSheetId="0" hidden="1">'${sn.replace(/'/g, "''")}'!$A$4:$${col(R.cols.length - 1)}$${4 + R.rows.length}</definedName><definedName name="_xlnm.Print_Titles" localSheetId="0">'${sn.replace(/'/g, "''")}'!$4:$4</definedName></definedNames></workbook>`],
+    ['xl/_rels/workbook.xml.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>'],
+    ['xl/styles.xml', styles], ['xl/worksheets/sheet1.xml', sheet]]);
+}
+// ---- PDF (jsPDF + AutoTable, loaded on first use) ----
+const loadScript = (src) => new Promise((ok, no) => { if (document.querySelector(`script[src="${src}"]`)) return ok(); const t = document.createElement('script'); t.src = src; t.onload = ok; t.onerror = () => no(new Error('Could not load ' + src)); document.head.appendChild(t); });
+async function pdfBuild(R, filt) {
+  await loadScript('vendor/jspdf.umd.min.js'); await loadScript('vendor/jspdf.plugin.autotable.min.js');
+  const { jsPDF } = window.jspdf; const land = R.cols.length > 7; const doc = new jsPDF({ orientation: land ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
+  const clean = (v) => String(v ?? '').replace(/₹/g, 'Rs ').replace(/[^\x20-\x7E -ÿ–—‘’“”•…›]/g, '');
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.setTextColor(142, 27, 30); doc.text(clean(R.title), 14, 15);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(110); doc.text(clean(`${S.D.settings.shopName || 'Yamie'} · ${dt(S.D.date)} · ${filt}`), 14, 21);
+  const body = R.rows.map((r) => r.cells.map((v, i) => { const c = R.cols[i]; return typeof v === 'number' ? (c.g3 ? (v ? g3(v) : '-') : v ? fmt(v) : '-') : clean(i === 0 && r.cls === 'sub' ? '   ' + String(v).trim() : v); }));
+  doc.autoTable({ startY: 25, head: [R.cols.map((c) => clean(c.t))], body, theme: 'grid', margin: { left: 10, right: 10, bottom: 14 },
+    styles: { font: 'helvetica', fontSize: R.cols.length > 10 ? 7 : 8, cellPadding: 1.6, lineColor: [229, 220, 207], lineWidth: 0.15, textColor: 30, overflow: 'linebreak' },
+    headStyles: { fillColor: [142, 27, 30], textColor: 255, fontStyle: 'bold' },
+    columnStyles: Object.fromEntries(R.cols.map((c, i) => [i, c.num ? { halign: 'right' } : {}])),
+    didParseCell: (d) => { if (d.section === 'head' && R.cols[d.column.index]?.num) d.cell.styles.halign = 'right'; if (d.section !== 'body') return; const r = R.rows[d.row.index]; if (r?.cls === 'tot' || r?.cls === 'rgrp') { d.cell.styles.fontStyle = 'bold'; d.cell.styles.fillColor = r.cls === 'tot' ? [242, 226, 222] : [247, 239, 227]; } },
+    didDrawPage: () => { const n = doc.internal.getNumberOfPages(); const h = doc.internal.pageSize.getHeight(), w = doc.internal.pageSize.getWidth(); doc.setFontSize(7.5); doc.setTextColor(140); doc.text(clean(`Yamie Core v${VERSION} · printed ${new Date().toLocaleString('en-IN')} · ${S.me.name}`), 10, h - 6); doc.text(`Page ${n}`, w - 10, h - 6, { align: 'right' }); } });
+  return new Uint8Array(doc.output('arraybuffer'));
+}
 // v1.28 shared helpers: multi-select dropdown, collapsible sections
 const msel = (k, label, opts, sel, allTxt) => `<div class="grow" data-fk="${esc(k)}"><label class="f" style="margin-top:0">${esc(label)}</label><details class="msel" data-ms="${esc(k)}"><summary>${sel.length ? esc(sel.map((v) => (opts.find((o) => o[0] === v) || [v, v])[1]).join(', ')) : esc(allTxt || 'All')}</summary><div class="mslist">${opts.map(([v, t]) => `<label><input type="checkbox" data-mv2="${esc(v)}" ${sel.includes(v) ? 'checked' : ''}> ${esc(t)}</label>`).join('') || '<div class="mut sm">Nothing to choose</div>'}<div class="row" style="gap:6px;margin-top:6px"><button type="button" class="btn sm ghost" data-msall>All</button><button type="button" class="btn sm ghost" data-msnone>None</button><button type="button" class="btn sm" data-msok>Done</button></div></div></details></div>`;
 function bindMsel(root, get, set) {
@@ -1773,7 +1935,7 @@ function vHub() {
   </div>
   <div id="hubRem"></div>
   <div class="qk">
-    ${[['eod', 'total', 'End-of-day entries', can('move')], ['total', 'total', 'Consolidated', can('reports')], ['docs', 'doc', 'Documents', can('docs') || can('docsEdit')], ['alerts', 'bell', 'Alerts', can('alerts')], ['more', 'more', 'More & settings', true]].filter((x) => x[3]).map(([k, i, t]) => `<button data-go="${k}">${svg(i)}<span>${t}</span></button>`).join('')}
+    ${[['eod', 'total', 'End-of-day entries', can('move')], ['total', 'total', 'Consolidated', can('reports')], ['reports', 'rep', 'Reports · Excel / PDF', can('reports')], ['docs', 'doc', 'Documents', can('docs') || can('docsEdit')], ['alerts', 'bell', 'Alerts', can('alerts')], ['more', 'more', 'More & settings', true]].filter((x) => x[3]).map(([k, i, t]) => `<button data-go="${k}">${svg(i)}<span>${t}</span></button>`).join('')}
   </div>`;
   $('#main').querySelectorAll('[data-go]').forEach((b) => b.onclick = () => go(b.dataset.go));
   if (can('docs') || can('docsEdit')) api('docs').then((j) => { S.docs = j; const due = j.docs.filter((d) => docWatch(d, S.D.today)).sort((a, b) => docDaysLeft(a, S.D.today) - docDaysLeft(b, S.D.today)); const el = $('#hubRem'); if (!el || !due.length) return;
@@ -2594,12 +2756,14 @@ function admLocs() {
       ${sel('area', 'Main location', O.area)}${sel('sub', 'Sub location', O.sub)}${sel('group', F.sec === 'tray' ? 'Item group' : F.sec === 'counter' ? 'Counter' : 'Group', O.group)}
       ${sel('jt', 'Jewellery type', O.jt, (j) => JF_LBL[j] || j)}${sel('item', 'Item', O.item)}${sel('pur', 'Purity', O.pur)}
       <div class="grow"><label class="f">Search</label><input type="search" id="afQ" value="${esc(F.q)}" placeholder="Name, box no., tag…"></div></div>
-    <div class="row sp" style="margin-top:8px;gap:8px;flex-wrap:wrap"><span class="mut sm">Showing <b>${shown.length}</b> of ${activeLocs().length} · ${lineF ? `<b>${fmt(shown.reduce((a, l) => a + matchPcs(l), 0))}</b> matching pcs (${fmt(shown.reduce((a, l) => a + sumLines(expOf(l.id).lines), 0))} in these locations)` : `${fmt(shown.reduce((a, l) => a + sumLines(expOf(l.id).lines), 0))} pcs`}</span><span class="row" style="gap:6px">${active ? '<button class="btn sm ghost" id="afClr">✕ Clear filters</button>' : ''}<button class="btn sm ghost" id="colBtn">⚙ Columns</button></span></div></div>`;
+    <div class="row sp" style="margin-top:8px;gap:8px;flex-wrap:wrap"><span class="mut sm">Showing <b>${shown.length}</b> of ${activeLocs().length} · ${lineF ? `<b>${fmt(shown.reduce((a, l) => a + matchPcs(l), 0))}</b> matching pcs (${fmt(shown.reduce((a, l) => a + sumLines(expOf(l.id).lines), 0))} in these locations)` : `${fmt(shown.reduce((a, l) => a + sumLines(expOf(l.id).lines), 0))} pcs`}</span><span class="row" style="gap:6px">${active ? '<button class="btn sm ghost" id="afClr">✕ Clear filters</button>' : ''}<button class="btn sm ghost" id="colBtn">⚙ Columns</button>${can('reports') ? '<button class="btn sm" id="rpBtn">📊 Report · Excel / PDF</button>' : ''}</span></div></div>`;
   const filtered = active > 0;
   const addBar = can('setup') && editable() ? `<div class="addbar"><button class="btn" data-addn="counter">＋ Counter tray</button><button class="btn" data-addn="tray">＋ Buffer tray</button><button class="btn" data-addn="box">＋ Box</button></div>` : '';
   $('#adm').innerHTML = `<div class="mut sm" style="margin-bottom:10px">Add, edit or delete counters, trays and boxes. Tap a name to open it (photos, stock). ${editable() ? '' : '<b>Day is closed — reopen today’s day to add or change locations.</b>'}</div>` + addBar + bar + SECTIONS.filter((s) => F.sec === 'all' || F.sec === s.key).filter((s) => !filtered || shown.some((l) => l.sec === s.key) || F.sec === s.key).map((s) => `<div class="grp"><span>${s.label} (${filtered ? `${shown.filter((l) => l.sec === s.key).length} of ` : ''}${activeLocs(s.key).length})</span>${editable() ? `<button class="btn sm sec" data-add="${s.key}">＋ Add ${s.key === 'counter' ? 'counter tray' : s.key === 'tray' ? 'tray' : 'box'}</button>` : ''}</div>
     ${locTable(s.key, shown.filter((l) => l.sec === s.key), lineF, matchPcs)}`).join('');
   $('#colBtn').onclick = colPicker;
+  $('#rpBtn') && ($('#rpBtn').onclick = () => { const P = rpState(); P.type = 'locs'; P.sec = F.sec; P.cols = null; P.group = true;
+    P.f = { jt: F.jt ? [F.jt] : [], a: F.area && F.area !== '—' ? [F.area] : [], pl: F.area && F.sub && F.sub !== '—' ? [`${F.area} › ${F.sub}`] : [], i: F.item ? [F.item] : [], p: F.pur ? [F.pur] : [] }; go('reports'); });
   $('#adm').querySelectorAll('[data-sort]').forEach((h) => h.onclick = () => { const [sec, k] = h.dataset.sort.split(':'); const cur = (S.lsort ||= {})[sec]; S.lsort[sec] = cur?.k === k ? (cur.dir > 0 ? { k, dir: -1 } : null) : { k, dir: 1 }; admLocs(); });
   $('#adm').querySelectorAll('[data-afs]').forEach((b) => b.onclick = () => { F.sec = b.dataset.afs;  admLocs(); });
   $('#adm').querySelectorAll('[data-af]').forEach((el) => el.onchange = () => { F[el.dataset.af] = el.value; admLocs(); });
