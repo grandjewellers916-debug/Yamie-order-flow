@@ -185,18 +185,21 @@
     if (man.format !== 'yamie-backup') throw new Error('not_backup');
     return { zip, manifest: man };
   }
-  // o = { call, progress, replace:true|false, skip(key), sharedOn:true, phoneOn:true, restorePhone(obj) }
+  // o = { call, progress, replace:true|false, skip(key), last(key), sharedOn:true, phoneOn:true, restorePhone(obj) }
+  // Login records (o.last) go in after everything else, so the admin doing the restore stays signed in until the end.
   async function restore(o, bk) {
     const prog = o.progress || (() => { }), man = bk.manifest, list = o.sharedOn === false ? [] : man.shared;
-    let done = 0, sent = 0;
+    const isLast = k => !!(o.last && o.last(k));
+    let done = 0, sent = 0, extraLast = [];
     if (list.length) {
       if (o.replace) {
         prog('Checking what to remove…', 0);
         const want = new Set(list.map(e => e.key));
-        const cur = ((await retry(() => o.call('list', {}))).keys || []).filter(k => !want.has(k) && !(o.skip && o.skip(k)));
+        const all = ((await retry(() => o.call('list', {}))).keys || []).filter(k => !want.has(k) && !(o.skip && o.skip(k)));
+        const cur = all.filter(k => !isLast(k)); extraLast = all.filter(isLast);
         for (let i = 0; i < cur.length; i += 50) { await retry(() => o.call('del', { keys: cur.slice(i, i + 50) })); prog(`Removing records not in the backup · ${Math.min(i + 50, cur.length)} of ${cur.length}`, 0.02); }
       }
-      await pool(list, PAR, async (ent) => {
+      const putOne = async (ent) => {
         const data = rebuild(ent, await bk.zip.read(ent.file));
         const parts = Math.max(1, Math.ceil(data.length / CHUNK));
         for (let p = 0; p < parts; p++) {
@@ -205,9 +208,12 @@
         }
         done++; sent += data.length;
         prog(`Restoring ${done} of ${list.length} records · ${fmtMB(sent)}`, 0.03 + done / list.length * 0.92);
-      });
+      };
+      await pool(list.filter(e => !isLast(e.key)), PAR, putOne);
       prog('Telling every phone to reload…', 0.96);
       await retry(() => o.call('done', {}));
+      for (const e of list.filter(e => isLast(e.key))) await putOne(e);
+      if (extraLast.length) await retry(() => o.call('del', { keys: extraLast }));
     }
     if (o.phoneOn !== false && man.phone && o.restorePhone) {
       prog('Restoring this phone’s data…', 0.98);

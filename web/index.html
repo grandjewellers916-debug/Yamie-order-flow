@@ -7695,7 +7695,7 @@ $('bkGo').onclick=()=>withPerm('stock','Only an admin can restore a backup.',asy
   if(shared&&!sync.key){toast('Connect the shared database first (Settings → Shared database)',null,true);return}
   bkLock(true);$('bkRs').hidden=true;
   try{
-    const r=await YBK.restore({call:bkCall,progress:bkProg,replace:bkMode==='replace',sharedOn:!!shared,phoneOn:phone,restorePhone:bkRestorePhone},bk);
+    const r=await YBK.restore({call:bkCall,progress:bkProg,last:k=>k==='users',replace:bkMode==='replace',sharedOn:!!shared,phoneOn:phone,restorePhone:bkRestorePhone},bk);
     bkProg(`Restored ${r.records} records${phone?' and this phone’s data':''}. Reloading…`,1);
     toast('Backup restored');bkPicked=null;
     setTimeout(()=>location.reload(),1500);
