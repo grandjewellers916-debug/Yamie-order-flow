@@ -3,7 +3,7 @@ import crypto from 'node:crypto';
 import { buildSeed } from '../lib/seed.mjs';
 import { runDocReminders } from '../lib/reminders.mjs';
 import {
-  DEFAULT_SETTINGS, ROLE_PERMS, PERMS, SECTIONS, TXN_TYPES, deriveLocMeta, JTYPES, normJts, applyJewelleryTypes, keyText, lineKey, itemOf, jtOfLine, purOfLine, summarize, closingVerified, computeExpected, erpCompare,
+  DEFAULT_SETTINGS, ROLE_PERMS, PERMS, SECTIONS, TXN_TYPES, deriveLocMeta, JTYPES, normJts, applyJewelleryTypes, mainLocsOf, placeLoc29, defaultPlace, keyText, lineKey, itemOf, jtOfLine, purOfLine, summarize, closingVerified, computeExpected, erpCompare,
   latestCounts, locStatus, sumLines, istDate, r3, CASH_DENOMS, cashCalc, isMorning,
 } from '../../web/core.mjs';
 
@@ -70,6 +70,8 @@ const pubUser = (u: any) => ({ id: u.id, name: u.name, role: u.role, perms: u.pe
 async function getSettings(s: any) {
   const st: any = { ...DEFAULT_SETTINGS, ...((await s.get('cfg/settings', { type: 'json' })) || {}) };
   applyJewelleryTypes(st); st.jtypes = [...JTYPES];   // v1.28 admin-managed jewellery types
+  st.mainLocs = mainLocsOf(st); st.areas = st.mainLocs.map((m: any) => m.name);   // v1.29 main → sub locations
+  st.subDisplays = [...new Set(st.mainLocs.flatMap((m: any) => (m.subs || []).map((x: any) => x.name)))];
   if (Array.isArray(st.purities) && !st.purities.includes('925')) st.purities = [...st.purities.filter((p: string) => !['Silver', 'Mixed'].includes(p)), '925', ...st.purities.filter((p: string) => ['Silver', 'Mixed'].includes(p))];   // v1.13 silver
   return st;
 }
@@ -86,6 +88,12 @@ async function getLocs(s: any) {
   if (!l.mig13) {
     for (const x of l.locs) if (x.cat === 'Lab-grown' && (x.jtype === 'Diamond Jewellery' || x.jtype === undefined)) x.jtype = 'Tanih - CVD Jewellery';
     l.mig13 = true; await s.setJSON('cfg/locs', l);
+  }
+  // v1.29: main locations Counter Display / Buffer Tray / Buffer Boxes / Grand Jewellers with sub locations — move older locations once
+  if (!l.mig29) {
+    const st = await getSettings(s);
+    for (const x of l.locs) { const p = placeLoc29(x, st); if (p) { x.area = p.area; x.sub = p.sub; if (p.spot) x.spot = p.spot; } }
+    l.mig29 = true; await s.setJSON('cfg/locs', l);
   }
   // v1.8: Main location / Sub display / Jewellery type — fill in once for older locations
   if (l.locs.some((x: any) => x.jtype === undefined)) {
@@ -347,7 +355,7 @@ export default async (req: Request) => {
         if (data.locs.some((l: any) => l.erpName && l.erpName.toLowerCase().replace(/[^a-z0-9]/g, '') === x.name.toLowerCase().replace(/[^a-z0-9]/g, ''))) continue;
         const pm = /\((\d{1,2})K?\)/i.exec(x.name); const purity = pm ? `${pm[1]}K` : '';
         const nice = x.name.replace(/\((\d{1,2})K?\)/i, (_m, k) => `${k}K`).replace(/\s+/g, ' ').replace(/\b(loose)\b/i, 'Loose').trim();
-        const loc = { id: 'B' + now().toString(36) + rid().slice(0, 3), sec: 'box', group: 'Loose stock (weight only)', name: nice, erpName: x.name, purity, cat: 'Gold', itemType: /finding/i.test(x.name) ? 'Findings' : '', mode: 'weight', images: [], active: true, order: data.locs.length + 1, note: 'Added from ERP (weight only, no count)' };
+        const loc = { id: 'B' + now().toString(36) + rid().slice(0, 3), sec: 'box', group: 'Loose stock (weight only)', name: nice, erpName: x.name, purity, cat: 'Gold', itemType: /finding/i.test(x.name) ? 'Findings' : '', mode: 'weight', ...defaultPlace(await getSettings(s), 'box'), images: [], active: true, order: data.locs.length + 1, note: 'Added from ERP (weight only, no count)' };
         data.locs.push(loc); added.push(loc.name);
         const wt = r3(x.gr ?? x.net);
         await s.setJSON(`mv/${today}/${now()}-${rid()}`, { id: `${now()}-${rid()}`, date: today, kind: 'set', reason: 'From ERP', ref: rec.fileName || 'ERP', note: `Opening weight from ERP ${reportDate} (gross)`, legs: [{ locId: loc.id, lines: {}, wt }], by: me.id, at: now() });
@@ -468,7 +476,7 @@ export default async (req: Request) => {
       need('setup');
       const data = await s.get('cfg/locs', { type: 'json' });
       const L = body.loc || {};
-      const fields = ['sec', 'group', 'name', 'purity', 'cat', 'itemType', 'boxNo', 'insert', 'qty', 'mode', 'images', 'note', 'order', 'erpName', 'itemNotes', 'area', 'sub', 'jtype', 'jtypes', 'cover'];
+      const fields = ['sec', 'group', 'name', 'purity', 'cat', 'itemType', 'boxNo', 'insert', 'qty', 'mode', 'images', 'note', 'order', 'erpName', 'itemNotes', 'area', 'sub', 'jtype', 'jtypes', 'cover', 'spot'];
       let loc = data.locs.find((l: any) => l.id === L.id);
       if (L.active === false && loc) {
         const day = await ensureToday(s); const { mvs } = await loadDay(s, today);
@@ -567,11 +575,13 @@ export default async (req: Request) => {
     if (path === 'master/rename' && method === 'POST') {   // v1.28: rename a main location / sub display / item type and move locations that use it
       need('setup'); const kind = body.kind; const from = String(body.from || '').trim(), to = String(body.to || '').trim().slice(0, 40);
       if (!from || !to || from === to) return err('Enter the new name');
-      const cur = await getSettings(s); const field = kind === 'area' ? 'areas' : kind === 'sub' ? 'subDisplays' : kind === 'item' ? 'itemTypes' : '';
-      if (!field) return err('Unknown list'); if (cur[field].includes(to)) return err(`“${to}” already exists`);
-      cur[field] = cur[field].map((x: string) => x === from ? to : x);
+      const cur = await getSettings(s); const main = String(body.main || '');
+      if (kind === 'area') { if (cur.mainLocs.some((m: any) => m.name === to)) return err(`“${to}” already exists`); const m = cur.mainLocs.find((m: any) => m.name === from); if (!m) return err('Not found'); m.name = to; }
+      else if (kind === 'sub') { const m = cur.mainLocs.find((m: any) => m.name === main); const x = m?.subs?.find((x: any) => x.name === from); if (!x) return err('Not found'); if (m.subs.some((y: any) => y.name === to)) return err(`“${to}” already exists`); x.name = to; }
+      else if (kind === 'item') { if (cur.itemTypes.includes(to)) return err(`“${to}” already exists`); cur.itemTypes = cur.itemTypes.map((x: string) => x === from ? to : x); }
+      else return err('Unknown list');
       const data = await s.get('cfg/locs', { type: 'json' }); let n = 0;
-      for (const l of data.locs) { if (kind === 'area' && l.area === from) { l.area = to; n++; } if (kind === 'sub' && l.sub === from) { l.sub = to; n++; } if (kind === 'item' && l.itemType === from) { l.itemType = to; n++; } }
+      for (const l of data.locs) { if (kind === 'area' && l.area === from) { l.area = to; n++; } if (kind === 'sub' && l.area === main && l.sub === from) { l.sub = to; n++; } if (kind === 'item' && l.itemType === from) { l.itemType = to; n++; } }
       if (kind === 'item' && cur.erpItemMap?.[from]) { cur.erpItemMap[to] = cur.erpItemMap[from]; delete cur.erpItemMap[from]; }
       await s.setJSON('cfg/locs', data); await s.setJSON('cfg/settings', cur);
       return J({ ok: true, moved: n });
@@ -587,7 +597,11 @@ export default async (req: Request) => {
       if (b.wtTol != null) next.wtTol = Math.max(0, r3(b.wtTol));
       if (b.blind != null) next.blind = !!b.blind;
       if (b.reqPhotos != null) next.reqPhotos = !!b.reqPhotos;
-      for (const k of ['areas', 'subDisplays']) if (Array.isArray(b[k])) next[k] = b[k].map((x: any) => String(x).trim().slice(0, 40)).filter(Boolean);
+      if (Array.isArray(b.mainLocs)) { const K = ['counter', 'tray', 'box']; const t = (v: any) => String(v ?? '').trim().slice(0, 40); const seen = new Set();
+        const ml = b.mainLocs.map((m: any) => ({ name: t(m.name), kind: K.includes(m.kind) ? m.kind : 'box', subs: (Array.isArray(m.subs) ? m.subs : []).map((x: any) => ({ name: t(x.name), ...(K.includes(x.kind) && x.kind !== m.kind ? { kind: x.kind } : {}) })).filter((x: any, i: number, a: any[]) => x.name && a.findIndex((y: any) => y.name === x.name) === i) }))
+          .filter((m: any) => m.name && !seen.has(m.name) && (seen.add(m.name), true));
+        if (ml.length) next.mainLocs = ml; }
+      for (const k of ['areas', 'subDisplays']) if (Array.isArray(b[k]) && !Array.isArray(b.mainLocs)) next[k] = b[k].map((x: any) => String(x).trim().slice(0, 40)).filter(Boolean);
       if (typeof b.erpPlatinum === 'string' && b.erpPlatinum.trim()) next.erpPlatinum = b.erpPlatinum.trim().slice(0, 60);
       if (typeof b.erpTanih === 'string' && b.erpTanih.trim()) next.erpTanih = b.erpTanih.trim().slice(0, 60);
       if (typeof b.erpSilver === 'string' && b.erpSilver.trim()) next.erpSilver = b.erpSilver.trim().slice(0, 60);

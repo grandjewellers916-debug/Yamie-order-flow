@@ -62,6 +62,9 @@ button.fbtool{border:1px dashed var(--ln);background:transparent;color:var(--mut
 .fbarr>[data-fkey] *{pointer-events:none}.fbarr .fbeye{pointer-events:auto!important;position:absolute;top:-9px;right:-7px;background:#fff;border:1px solid var(--ln);border-radius:99px;font-size:11px;line-height:1;padding:3px 4px;cursor:pointer;z-index:2}
 .fbarr>.fbdrag{opacity:.85;box-shadow:0 8px 20px rgba(0,0,0,.18);animation:none;cursor:grabbing;z-index:3}.fbarr{touch-action:none}.selbar.fbarr,.filters.fbarr,.seg.fbarr,.tabs.fbarr{padding-top:12px}
 @keyframes fbw{from{transform:rotate(-.6deg)}to{transform:rotate(.6deg)}}@media (prefers-reduced-motion:reduce){.fbarr>[data-fkey]{animation:none}}@media print{.fbtool{display:none}}
+.mlg{border-top:1px solid var(--ln);padding:4px 0}.mlg .lrow{border-top:0}.lrow.sub{padding-left:34px;padding-top:4px;padding-bottom:4px}.lrow.sub .grow{font-size:14px}.mlno{font-family:'Cormorant Garamond',Georgia,serif;font-weight:700;color:var(--m);width:26px}select.mlk{width:auto;min-height:32px;padding:4px 8px;font-size:13px}
+.ptbl th.mlh{text-align:center;border-bottom:1px solid var(--ln)}
+.mlgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}.mlc{padding:10px 12px}.mlh2,.mls{display:flex;width:100%;align-items:center;gap:8px;text-align:left;padding:8px 2px;background:none;border:0;cursor:pointer;font:inherit;color:inherit}.mls{padding-left:34px;border-top:1px solid var(--ln)}.mlh2:hover,.mls:hover{background:#FBF7F1}
 .isum{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:6px;font-size:12px;color:var(--mut)}.isum b{color:var(--ink);font-weight:600}.isum .on{color:var(--m)}.isum .on b{color:var(--m)}.isum .off{opacity:.55}
 .wtl{margin-top:4px;font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap}.wtl.none{font-weight:400;color:var(--warn);font-size:11px}
 details.msel{position:relative}details.msel>summary{list-style:none;cursor:pointer;border:1px solid var(--ln);border-radius:10px;background:#fff;min-height:44px;padding:10px 30px 10px 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative}
@@ -359,7 +362,7 @@ table.rep tr.rgrp td{background:var(--iv);font-weight:600;border-top:1px solid v
 <body>
 <div id="app"></div>
 <script type="module">
-import { DOC_TYPES, VEHICLE_DOC_TYPES, isVehicleDoc, docDaysLeft, docWatch, DOC_REMIND_DEFAULT, CASH_DENOMS, CASH_COUNTERS, CASH_SHIFTS, cashCalc, cashNotes, isMorning, SECTIONS, PERMS, ROLE_PERMS, REASONS, TXN_TYPES, metalOf, erpMetal, JTYPES, LINE_JTYPES, JT_SHORT, JT_LABEL, JT_CLS, JT_METAL, JT_CODE, JT_FREE_CODES, applyJewelleryTypes, METALS, jtMetal, locJts, normJts, itemOf, jtOfLine, purOfLine, defaultPur, lineKey, keyText, defaultJt, roundOf, roundCounts, summarize, sumLines, r3, locStatus, istDate, erpCompare, erpKey } from './core.mjs';
+import { DOC_TYPES, VEHICLE_DOC_TYPES, isVehicleDoc, docDaysLeft, docWatch, DOC_REMIND_DEFAULT, CASH_DENOMS, CASH_COUNTERS, CASH_SHIFTS, cashCalc, cashNotes, isMorning, SECTIONS, PERMS, ROLE_PERMS, REASONS, TXN_TYPES, metalOf, erpMetal, JTYPES, LINE_JTYPES, JT_SHORT, JT_LABEL, JT_CLS, JT_METAL, JT_CODE, JT_FREE_CODES, applyJewelleryTypes, mainLocsOf, placesFor, defaultPlace, LOC_KINDS, METALS, jtMetal, locJts, normJts, itemOf, jtOfLine, purOfLine, defaultPur, lineKey, keyText, defaultJt, roundOf, roundCounts, summarize, sumLines, r3, locStatus, istDate, erpCompare, erpKey } from './core.mjs';
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -370,7 +373,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.28';
+const VERSION = '1.29';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -618,6 +621,17 @@ function vEod() {
 }
 
 // ---------------- home ----------------
+// v1.29 Stock page: main locations 01–04 with their sub locations (pcs and checked); tap to open that place
+function mainLocPanel() {
+  if (hideExp()) return ''; const st = S.sum.status; const all = activeLocs();
+  const info = (ls) => ({ pcs: ls.reduce((a, l) => a + sumLines(expOf(l.id).lines), 0), n: ls.length, dn: ls.filter((l) => st[l.id] && st[l.id].state !== 'pending').length, vr: ls.filter((l) => st[l.id] && ['var', 'stale'].includes(st[l.id].state)).length });
+  const chip = (X) => `<span class="mut sm">${fmt(X.pcs)} pcs · ${X.dn}/${X.n}${X.vr ? ` · <span style="color:var(--bad)">${X.vr} var.</span>` : ''}</span>`;
+  const ML = mainLocsOf(S.D.settings).map((m) => ({ m, ls: all.filter((l) => l.area === m.name) })).filter((x) => x.ls.length || x.m.subs?.length);
+  if (!ML.length) return '';
+  return `<h3 style="margin:18px 0 8px">Main locations</h3><div class="mlgrid">${ML.map(({ m, ls }, i) => { const X = info(ls); const secs = [...new Set(ls.map((l) => l.sec))];
+    return `<div class="card mlc"><button class="mlh2" data-mlgo="${secs[0] || m.kind}||${esc(m.name)}||"><span class="mlno">${String(i + 1).padStart(2, '0')}</span><span class="grow b">${esc(m.name)}</span>${chip(X)}</button>
+      ${(m.subs || []).map((x) => { const sl = ls.filter((l) => l.sub === x.name); const Y = info(sl); return `<button class="mls" data-mlgo="${x.kind || m.kind}||${esc(m.name)}||${esc(x.name)}"><span class="grow">${esc(x.name)}</span>${sl.length ? chip(Y) : '<span class="mut sm">empty</span>'}<span class="mut">›</span></button>`; }).join('')}</div>`; }).join('')}</div>`;
+}
 function vHome() {
   const { sum: sm, D } = S; const T = sm.total;
   const ins = T.in, outs = T.out;
@@ -633,6 +647,7 @@ function vHome() {
   ${dayFlow()}
   ${startPanel('all')}
   <div class="secs">${SECTIONS.map((s) => secCard(s)).join('')}</div>
+  ${mainLocPanel()}
   ${editable() && (can('move') || can('close') || can('setup')) ? `<div class="acts">
     ${can('move') ? `<button class="btn" id="eodBtn">🧾 End-of-day entries</button><button class="btn sec" data-mv="in">＋ Stock in</button><button class="btn sec" data-mv="out">− Stock out</button><button class="btn ghost" data-mv="move">⇄ Move</button>` : ''}
     ${can('close') ? `<button class="btn ghost" id="closeBtn">Close day</button>` : ''}</div>` : ''}
@@ -640,6 +655,7 @@ function vHome() {
   `;
   bindBanner();
   $('#main').querySelectorAll('[data-sec]').forEach((b) => b.onclick = () => go(b.dataset.sec));
+  $('#main').querySelectorAll('[data-mlgo]').forEach((b) => b.onclick = () => { const [sec, a, sb] = b.dataset.mlgo.split('||'); const SEL = ((S.sel ||= {})[sec] ||= {}); for (const k of Object.keys(SEL)) SEL[k] = ['j', 'i', 'p'].includes(k) ? [] : ''; SEL.m = a; if (sb) SEL[sec === 'tray' ? 's' : 'b'] = sb; go(sec); });
   $('#main').querySelectorAll('[data-mv]').forEach((b) => b.onclick = () => moveForm(b.dataset.mv));
   $('#closeBtn') && ($('#closeBtn').onclick = closeDayFlow);
   $('#eodBtn') && ($('#eodBtn').onclick = () => go('eod'));
@@ -679,9 +695,10 @@ function vSection(sec) {
     pur: { opts: (pool) => [...new Set(pool.flatMap((l) => [...held(l).map(([k]) => purOfLine(l, k) || 'Not set'), ...(l.purity && !held(l).length ? [l.purity] : [])]))].sort((a, b) => PUR_ORDER(a) - PUR_ORDER(b)).map((v) => [v, v]), has: (l, v) => held(l).some(([k]) => (purOfLine(l, k) || 'Not set') === v) || (!held(l).length && (l.purity || 'Not set') === v) },
   };
   const LJ = ['j', 'Jewellery type', null, null, 'jt'], LI = ['i', 'Item', null, null, 'item'], LP = ['p', 'Purity', null, null, 'pur'];
-  const LV = sec === 'counter' ? [['a', 'Main location', (l) => l.area || '—'], ['b', 'Sub display', (l) => l.sub || '—'], LJ, LI, LP, ['c', 'Counter', (l) => l.group]]
-    : sec === 'tray' ? [['a', 'Item group', (l) => l.group], LJ, LP, ['b', 'Tray', (l) => l.id, (l) => `${l.name}${l.insert ? ` (${l.insert} × ${l.qty || 1})` : ''}`]]
-    : [LJ, LI, LP, ['a', 'Box', (l) => l.id, boxLbl]];
+  const LM = ['m', 'Main location', (l) => l.area || '—'];
+  const LV = (sec === 'counter' ? [LM, ['b', 'Sub location', (l) => l.sub || '—'], ['a', 'Position', (l) => l.spot || '—'], LJ, LI, LP, ['c', 'Counter', (l) => l.group]]
+    : sec === 'tray' ? [LM, ['s', 'Sub location', (l) => l.sub || '—'], ['a', 'Item group', (l) => l.group], LJ, LP, ['b', 'Tray', (l) => l.id, (l) => `${l.name}${l.insert ? ` (${l.insert} × ${l.qty || 1})` : ''}`]]
+    : [LM, ['b', 'Sub location', (l) => l.sub || '—'], LJ, LI, LP, ['a', 'Box', (l) => l.id, boxLbl]]);
   // v1.25: jewellery type / item / purity are multi-select (arrays) and must match on the same item line
   for (const k of ['j', 'i', 'p']) if (SEL[k] && !Array.isArray(SEL[k])) SEL[k] = [SEL[k]]; else SEL[k] ||= [];
   const LF = { j: SEL.j, i: SEL.i, p: SEL.p }; const lfOn = LF.j.length || LF.i.length || LF.p.length;
@@ -704,9 +721,9 @@ function vSection(sec) {
   const selName = LV.filter(has).map((lv) => lv[4] ? SEL[lv[0]].map((v) => lv[0] === 'j' ? JF_LBL[v] || v : v).join(' + ') : (lvOpts[LV.indexOf(lv)].find((o) => o[0] === SEL[lv[0]])?.[1]) || SEL[lv[0]]).join(' · ');
   const selPend = selIds.filter((i) => ['pending', 'stale'].includes(st[i].state)).length;
   const unit = sec === 'box' ? 'box' : 'tray'; const units = sec === 'box' ? 'boxes' : 'trays';
-  const plural = (t) => ({ Box: 'boxes', 'Sub display': 'sub displays', 'Jewellery type': 'jewellery types', 'Main location': 'main locations', Purity: 'purities', 'Item group': 'item groups' }[t] || t.toLowerCase() + 's');
+  const plural = (t) => ({ Box: 'boxes', 'Sub display': 'sub displays', 'Jewellery type': 'jewellery types', 'Main location': 'main locations', 'Sub location': 'sub locations', Position: 'positions', Purity: 'purities', 'Item group': 'item groups' }[t] || t.toLowerCase() + 's');
   const selBar = `<div class="selbar card">
-    ${LV.map((lv, i) => lv[4] ? (lvOpts[i].length ? `<div class="grow"><label class="f" style="margin-top:0">${lv[1]}</label><details class="msel" data-ms="${lv[0]}"><summary>${SEL[lv[0]].length ? esc(SEL[lv[0]].map((v) => (lvOpts[i].find((o) => o[0] === v) || [v, v])[1]).join(', ')) : `All ${plural(lv[1])}`}</summary><div class="mslist">${lvOpts[i].map(([v, t]) => `<label><input type="checkbox" data-mv2="${esc(v)}" ${SEL[lv[0]].includes(v) ? 'checked' : ''}> ${esc(t)}</label>`).join('')}<div class="row" style="gap:6px;margin-top:6px"><button type="button" class="btn sm ghost" data-msall>All</button><button type="button" class="btn sm ghost" data-msnone>None</button><button type="button" class="btn sm" data-msok>Done</button></div></div></details></div>` : '') : lvOpts[i].length ? `<div class="grow"><label class="f" style="margin-top:0">${lv[1]}</label><select data-lv="${lv[0]}"><option value="">All ${plural(lv[1])}</option>${lvOpts[i].map(([v, t]) => `<option value="${esc(v)}" ${SEL[lv[0]] === v ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></div>` : '').join('')}
+    ${LV.map((lv, i) => lv[4] ? (lvOpts[i].length ? `<div class="grow"><label class="f" style="margin-top:0">${lv[1]}</label><details class="msel" data-ms="${lv[0]}"><summary>${SEL[lv[0]].length ? esc(SEL[lv[0]].map((v) => (lvOpts[i].find((o) => o[0] === v) || [v, v])[1]).join(', ')) : `All ${plural(lv[1])}`}</summary><div class="mslist">${lvOpts[i].map(([v, t]) => `<label><input type="checkbox" data-mv2="${esc(v)}" ${SEL[lv[0]].includes(v) ? 'checked' : ''}> ${esc(t)}</label>`).join('')}<div class="row" style="gap:6px;margin-top:6px"><button type="button" class="btn sm ghost" data-msall>All</button><button type="button" class="btn sm ghost" data-msnone>None</button><button type="button" class="btn sm" data-msok>Done</button></div></div></details></div>` : '') : lvOpts[i].length && !(['m', 'b', 's'].includes(lv[0]) && lvOpts[i].length <= 1 && !SEL[lv[0]]) ? `<div class="grow"><label class="f" style="margin-top:0">${lv[1]}</label><select data-lv="${lv[0]}"><option value="">All ${plural(lv[1])}</option>${lvOpts[i].map(([v, t]) => `<option value="${esc(v)}" ${SEL[lv[0]] === v ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></div>` : '').join('')}
     ${selOn ? `<div class="selgo"><div class="sm mut">${selIds.length} ${selIds.length === 1 ? unit : units} · ${selPend} to verify</div><div class="row">${can('count') && editable() && selIds.length ? `<button class="btn" id="selVerify">${selPend ? 'Verify selected ›' : 'View summary'}</button>` : ''}<button class="btn ghost" id="selClr">Clear</button></div></div>` : ''}</div>`;
   const list = all.filter((l) => inSel(l) && (S.filter === 'all' || (S.filter === 'var' ? ['var', 'stale'].includes(st[l.id].state) : st[l.id].state === S.filter)) && (!q || `${l.name} ${l.group} ${l.purity} ${l.cat} ${l.itemType} ${l.boxNo || ''}`.toLowerCase().includes(q)));
   const groups = {}; list.forEach((l) => (groups[l.group || '—'] ||= []).push(l));
@@ -733,7 +750,7 @@ function vSection(sec) {
   $('#selClr') && ($('#selClr').onclick = () => { for (const k of Object.keys(SEL)) SEL[k] = ['j', 'i', 'p'].includes(k) ? [] : ''; vSection(sec); });
   $('#selVerify') && ($('#selVerify').onclick = () => startCount(sec, selIds, `${secLabel(sec)} · ${selName}`));
   $('#bwBtn') && ($('#bwBtn').onclick = () => go('boxwt'));
-  $('#addLoc') && ($('#addLoc').onclick = () => locEdit({ sec, group: SEL.c || (sec === 'tray' ? SEL.a : '') || '', name: '', purity: '', cat: '', itemType: '', area: SEL.a && sec === 'counter' ? SEL.a : sec === 'counter' ? S.D.settings.areas[0] : 'Locker Area', sub: sec === 'counter' ? (SEL.b || S.D.settings.subDisplays[0]) : '', jtype: SEL.j || JTYPES[0], images: [], mode: 'both' }));
+  $('#addLoc') && ($('#addLoc').onclick = () => { const dp = defaultPlace(S.D.settings, sec); const pl = placesFor(S.D.settings, sec).find((p) => (!SEL.m || p.area === SEL.m) && (!SEL.b || p.sub === SEL.b)) || dp; locEdit({ sec, group: SEL.c || (sec === 'tray' ? SEL.a : '') || '', name: '', purity: '', cat: '', itemType: '', area: pl.area, sub: pl.sub, spot: sec === 'counter' ? SEL.a || '' : '', jtype: (SEL.j && SEL.j[0]) || JTYPES[0], images: [], mode: 'both' }); });
   bindStart();
   bindLocCards();
 }
@@ -1283,8 +1300,8 @@ function locEdit(l) {
     tray: { what: 'buffer tray', grp: 'Item group', grpPh: 'e.g. Finger rings (blank = main item type)', name: 'Tray name *', namePh: 'e.g. Brown Tray / Beige 14K' },
     box: { what: 'box', grp: 'Group', grpPh: 'e.g. 9KT boxes (blank = Boxes)', name: 'Box name', namePh: 'e.g. 9KT Box-1 (blank = Box + number)' } }[l.sec] || {};
   const html = `${isNew ? `<input type="hidden" id="eSec" value="${esc(l.sec)}">` : `<label class="f">Section</label><select id="eSec">${SECTIONS.map((s) => `<option value="${s.key}" ${l.sec === s.key ? 'selected' : ''}>${s.label}</option>`).join('')}</select>`}
-    <div id="areaF" class="row"><div class="grow"><label class="f">Main location</label><select id="eArea"><option value="">—</option>${st.areas.map((p) => `<option ${l.area === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div>
-      <div class="grow" id="subF"><label class="f">Sub display</label><select id="eSub"><option value="">—</option>${st.subDisplays.map((p) => `<option ${l.sub === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div></div>
+    <div class="row"><div class="grow" style="flex:2"><label class="f">Location *</label><select id="ePlace">${placeOpts(l.sec, l.area, l.sub)}</select></div>
+      <div class="grow"><label class="f">Position (optional)</label><input type="text" id="eSpot" list="spotL" value="${esc(l.spot || '')}" placeholder="e.g. Cash Counter Area"><datalist id="spotL">${[...new Set([...(st.spots || []), ...S.D.locs.map((x) => x.spot).filter(Boolean)])].map((x) => `<option value="${esc(x)}">`).join('')}</datalist></div></div>
     <label class="f">Jewellery types in this ${l.sec === 'box' ? 'box' : l.sec === 'counter' ? 'counter tray' : 'tray'} <span class="mut" style="text-transform:none;letter-spacing:0">— tick one or more</span></label><div class="jtpick" id="eJt">${LINE_JTYPES.map((p) => `<button type="button" data-jt="${esc(p)}" class="jtp ${JT_CLS[p]} ${jsel.includes(p) ? 'on' : ''}"><span class="tk">✓</span>${esc(JT_LABEL[p] || p)}</button>`).join('')}</div>
     <div class="mut sm" style="margin-top:4px" id="jtHint"></div>
     ${l.sec === 'box' ? `<label class="f">Box number *</label><input type="text" id="eBox" value="${esc(l.boxNo || '')}" placeholder="e.g. B-12">` : ''}
@@ -1317,10 +1334,10 @@ function locEdit(l) {
       if (prev.length === 1 && jsel.length === 1) iRows.forEach((r) => { if (r.jt === prev[0]) r.jt = jsel[0]; });
       else iRows.forEach((r) => { if (!jsel.includes(r.jt) && prev.includes(r.jt) && !(+r.n > 0)) r.jt = jsel[0]; });
       jtHint(); drawItems(); });
-    const vis = () => { const s = $('#eSec').value; $('#subF').classList.toggle('hidden', s !== 'counter'); $('#boxF') && $('#boxF').classList.toggle('hidden', true); $('#modeF').classList.toggle('hidden', s !== 'box'); $('#trayF').classList.toggle('hidden', s !== 'tray'); };
+    const vis = () => { const s = $('#eSec').value; const cur = $('#ePlace').value.split('||'); $('#ePlace').innerHTML = placeOpts(s, cur[0], cur[1] || ''); $('#boxF') && $('#boxF').classList.toggle('hidden', true); $('#modeF').classList.toggle('hidden', s !== 'box'); $('#trayF').classList.toggle('hidden', s !== 'tray'); };
     $('#eSec').onchange = vis; vis();
     $('#eSave').onclick = async () => {
-      const loc = { ...l, area: $('#eArea').value, sub: $('#eSec').value === 'counter' ? $('#eSub').value : '', jtype: jsel.length > 1 ? 'Mixed' : jsel[0], jtypes: jsel, sec: $('#eSec').value, group: $('#eGrp').value.trim(), name: $('#eName').value.trim(), purity: $('#ePur').value, cat: $('#eCat').value, itemType: $('#eType').value, boxNo: (($('#eBox') || $('#eBoxX'))?.value || '').trim(), insert: +$('#eIns').value || 0, qty: +$('#eQty').value || 0, mode: $('#eMode').value, note: $('#eNote').value };
+      const [pA, pS = ''] = $('#ePlace').value.split('||'); const loc = { ...l, area: pA, sub: pS, spot: $('#eSpot').value.trim(), jtype: jsel.length > 1 ? 'Mixed' : jsel[0], jtypes: jsel, sec: $('#eSec').value, group: $('#eGrp').value.trim(), name: $('#eName').value.trim(), purity: $('#ePur').value, cat: $('#eCat').value, itemType: $('#eType').value, boxNo: (($('#eBox') || $('#eBoxX'))?.value || '').trim(), insert: +$('#eIns').value || 0, qty: +$('#eQty').value || 0, mode: $('#eMode').value, note: $('#eNote').value };
       if (loc.sec === 'box') { loc.boxNo = ($('#eBox') || $('#eBoxX'))?.value.trim() || loc.boxNo || ''; if (!loc.boxNo && !loc.name) return toast('Enter the box number'); if (!loc.name) loc.name = /^box/i.test(loc.boxNo) ? loc.boxNo : `Box ${loc.boxNo}`; if (!loc.group) loc.group = loc.itemType ? `${loc.itemType} boxes` : 'Boxes'; }
       if (loc.sec === 'tray' && !loc.group) loc.group = loc.itemType ? `${loc.itemType} trays` : 'Buffer trays';
       if (loc.sec === 'counter' && !loc.group) return toast('Enter the counter (e.g. Cash side · Counter 1)');
@@ -1522,14 +1539,14 @@ const czGet = () => { try { return JSON.parse(localStorage.getItem('ysc_cz') || 
 const cz = (k, title, body, extra = '') => `<details class="cz" data-cz="${k}" ${czGet()[k] === false ? '' : 'open'}><summary><h3>${title}</h3>${extra}</summary><div class="czb">${body}</div></details>`;
 function bindCz(root) { root.querySelectorAll('details.cz').forEach((d) => d.addEventListener('toggle', () => { const m = czGet(); m[d.dataset.cz] = d.open; try { localStorage.setItem('ysc_cz', JSON.stringify(m)); } catch {} })); }
 // place of a location for the consolidated count table: Counter (floor display) / Shelf (wall shelves) / Tray / Box
-const placeOf = (l) => l.sec === 'counter' ? (/shel/i.test(l.sub || '') ? 'Shelf' : 'Counter') : l.sec === 'tray' ? 'Tray' : 'Box';
-const PLACES = ['Counter', 'Shelf', 'Tray', 'Box'];
+const placeOf = (l) => l.sub ? `${l.area || 'Not set'} › ${l.sub}` : l.area || 'Not set';   // v1.29 main › sub location
+const placeList = () => placesFor(S.D.settings).map((p) => p.sub ? `${p.area} › ${p.sub}` : p.area);
 // custom report dimensions / measures
-const RDIM = { item: 'Item', purity: 'Purity', jt: 'Jewellery type', metal: 'Metal', place: 'Place', sec: 'Section', area: 'Main location', group: 'Group', loc: 'Location' };
+const RDIM = { item: 'Item', purity: 'Purity', jt: 'Jewellery type', metal: 'Metal', place: 'Sub location', sec: 'Section', area: 'Main location', spot: 'Position', group: 'Group', loc: 'Location' };
 const RMEAS = { exp: 'Expected pcs', op: 'Opening pcs', in: 'In pcs', out: 'Out pcs', cnt: 'Counted pcs', var: 'Variance pcs', locs: 'No. of locations' };
-const rdVal = (r, d) => { const l = S.locById[r.locId]; return d === 'purity' ? r.purity || 'Not set' : d === 'jt' ? JF_LBL[r.jt] || r.jt : d === 'place' ? placeOf(l) : d === 'sec' ? secLabel(r.sec) : d === 'area' ? l.area || 'Not set' : d === 'group' ? l.group || '—' : d === 'loc' ? `${l.group ? l.group + ' · ' : ''}${l.name}` : r[d]; };
+const rdVal = (r, d) => { const l = S.locById[r.locId]; return d === 'purity' ? r.purity || 'Not set' : d === 'jt' ? JF_LBL[r.jt] || r.jt : d === 'place' ? placeOf(l) : d === 'sec' ? secLabel(r.sec) : d === 'area' ? l.area || 'Not set' : d === 'group' ? l.group || '—' : d === 'spot' ? l.spot || '—' : d === 'loc' ? `${l.group ? l.group + ' · ' : ''}${l.name}` : r[d]; };
 const rdOrder = (d, vals) => { const by = (arr) => [...arr.filter((v) => vals.includes(v)), ...vals.filter((v) => !arr.includes(v)).sort()];
-  return d === 'item' ? by(S.D.settings.itemTypes) : d === 'purity' ? [...vals].sort((a, b) => PUR_ORDER(a) - PUR_ORDER(b) || a.localeCompare(b)) : d === 'jt' ? by(LINE_JTYPES.map((j) => JF_LBL[j])) : d === 'metal' ? by(METALS) : d === 'place' ? by(PLACES) : d === 'sec' ? by(SECTIONS.map((x) => x.label)) : d === 'area' ? by(S.D.settings.areas) : vals.slice().sort((a, b) => a.localeCompare(b, undefined, { numeric: true })); };
+  return d === 'item' ? by(S.D.settings.itemTypes) : d === 'purity' ? [...vals].sort((a, b) => PUR_ORDER(a) - PUR_ORDER(b) || a.localeCompare(b)) : d === 'jt' ? by(LINE_JTYPES.map((j) => JF_LBL[j])) : d === 'metal' ? by(METALS) : d === 'place' ? by(placeList()) : d === 'sec' ? by(SECTIONS.map((x) => x.label)) : d === 'area' ? by(mainLocsOf(S.D.settings).map((m) => m.name)) : vals.slice().sort((a, b) => a.localeCompare(b, undefined, { numeric: true })); };
 const repsGet = () => { try { return JSON.parse(localStorage.getItem('ysc_reports') || '[]'); } catch { return []; } };
 const repsSet = (a) => { try { localStorage.setItem('ysc_reports', JSON.stringify(a)); } catch {} };
 function customTable(L, R) {
@@ -1562,7 +1579,7 @@ function vTotal() {
   const fBar = `<div class="selbar card noprint" data-fbar="cons-f">
     <div class="grow" data-fk="jt"><label class="f" style="margin-top:0">Stock type</label><details class="msel" data-ms="jt"><summary>${S.jfs.length ? esc(S.jfs.map((j) => JF_LBL[j]).join(' + ')) : 'All stock'}</summary><div class="mslist">${LINE_JTYPES.filter((j) => ALL.some((r) => r.jt === j && live(r)) || S.jfs.includes(j)).map((j) => `<label><input type="checkbox" data-mv2="${esc(j)}" ${S.jfs.includes(j) ? 'checked' : ''}> ${jtB(j)} ${esc(JF_LBL[j])}</label>`).join('')}<div class="row" style="gap:6px;margin-top:6px"><button type="button" class="btn sm ghost" data-msall>All</button><button type="button" class="btn sm ghost" data-msnone>None</button><button type="button" class="btn sm" data-msok>Done</button></div></div></details></div>
     ${msel('a', 'Main location', fOpts('a', (r) => S.locById[r.locId].area || 'Not set', (v) => rdOrder('area', v)), CF.a, 'All locations')}
-    ${msel('pl', 'Place', fOpts('pl', (r) => placeOf(S.locById[r.locId]), (v) => rdOrder('place', v)), CF.pl, 'Counter, shelf, tray, box')}
+    ${msel('pl', 'Sub location', fOpts('pl', (r) => placeOf(S.locById[r.locId]), (v) => rdOrder('place', v)), CF.pl, 'All sub locations')}
     ${msel('i', 'Item', fOpts('i', (r) => r.item, (v) => rdOrder('item', v)), CF.i, 'All items')}
     ${msel('p', 'Purity', fOpts('p', (r) => r.purity || 'Not set', (v) => rdOrder('purity', v)), CF.p, 'All purities')}
     ${fOn ? '<div style="align-self:flex-end" data-fk="clr"><button class="btn ghost" id="cfClr">Clear filters</button></div>' : ''}</div>`;
@@ -1583,17 +1600,21 @@ function vTotal() {
   const mixed = activeLocs().filter((l) => l.jtype === 'Mixed').length;
   // item count by place (Counter / Shelf / Tray / Box) or by main location
   S.pcol ||= 'place';
-  const colV = S.pcol === 'place' ? PLACES.filter((p) => L.some((r) => r.exp && placeOf(S.locById[r.locId]) === p)) : rdOrder('area', [...new Set(L.filter((r) => r.exp).map((r) => S.locById[r.locId].area || 'Not set'))]);
+  const colV = S.pcol === 'place' ? rdOrder('place', [...new Set(L.filter((r) => r.exp).map((r) => placeOf(S.locById[r.locId])))]) : rdOrder('area', [...new Set(L.filter((r) => r.exp).map((r) => S.locById[r.locId].area || 'Not set'))]);
   const colOf = (r) => S.pcol === 'place' ? placeOf(S.locById[r.locId]) : S.locById[r.locId].area || 'Not set';
   const PX = {}; for (const r of L) { if (!r.exp) continue; const pu = r.purity || 'Not set'; for (const k of [r.item + '|*', r.item + '|' + pu]) { const x = (PX[k] ||= { t: 0 }); x[colOf(r)] = (x[colOf(r)] || 0) + r.exp; x.t += r.exp; } const x = (PX['*'] ||= { t: 0 }); x[colOf(r)] = (x[colOf(r)] || 0) + r.exp; x.t += r.exp; }
   S.pexp ||= {};
   const pRow = (lab, pur, X, cls, attr = '') => `<tr class="${cls}" ${attr}><td style="text-align:left" class="${cls === 'sub' ? 'ind' : 'b'}">${lab}</td><td style="text-align:left">${esc(pur)}</td>${colV.map((c) => `<td>${X[c] ? fmt(X[c]) : '—'}</td>`).join('')}<td class="b">${fmt(X.t)}</td></tr>`;
-  const placeTbl = `<div class="seg noprint" style="margin-bottom:8px;max-width:360px">${[['place', 'By place'], ['area', 'By main location']].map(([k, t]) => `<button data-pcol="${k}" class="${S.pcol === k ? 'on' : ''}">${t}</button>`).join('')}</div>
-    <div class="tw"><table class="ptbl"><tr><th style="text-align:left">Item</th><th style="text-align:left">Purity</th>${colV.map((c) => `<th>${esc(c)}</th>`).join('')}<th>Total</th></tr>
+  const grpC = []; for (const c of colV) { const [m, sb] = S.pcol === 'place' ? c.split(' › ') : [c]; const last = grpC[grpC.length - 1]; if (last && last.m === m) last.subs.push(sb); else grpC.push({ m, subs: [sb] }); }
+  const two = S.pcol === 'place' && grpC.some((g) => g.subs.some(Boolean));
+  const pHead = two ? `<tr><th rowspan="2" style="text-align:left">Item</th><th rowspan="2" style="text-align:left">Purity</th>${grpC.map((g) => g.subs.length === 1 && !g.subs[0] ? `<th rowspan="2">${esc(g.m)}</th>` : `<th colspan="${g.subs.length}" class="mlh">${esc(g.m)}</th>`).join('')}<th rowspan="2">Total</th></tr><tr>${grpC.flatMap((g) => g.subs.length === 1 && !g.subs[0] ? [] : g.subs.map((x) => `<th>${esc(x)}</th>`)).join('')}</tr>`
+    : `<tr><th style="text-align:left">Item</th><th style="text-align:left">Purity</th>${colV.map((c) => `<th>${esc(c)}</th>`).join('')}<th>Total</th></tr>`;
+  const placeTbl = `<div class="seg noprint" style="margin-bottom:8px;max-width:360px">${[['place', 'By sub location'], ['area', 'By main location']].map(([k, t]) => `<button data-pcol="${k}" class="${S.pcol === k ? 'on' : ''}">${t}</button>`).join('')}</div>
+    <div class="tw"><table class="ptbl">${pHead}
     ${types.filter((t) => PX[t + '|*']).map((t) => { const purs = rdOrder('purity', Object.keys(PX).filter((k) => k.startsWith(t + '|') && !k.endsWith('|*')).map((k) => k.slice(t.length + 1))); const open = S.pexp[t];
       return pRow(`${purs.length > 1 ? `<span class="caret">${open ? '▾' : '▸'}</span> ` : ''}${esc(t)}`, purs.length > 1 ? 'All' : purs[0], PX[t + '|*'], purs.length > 1 ? 'pclick' : '', purs.length > 1 ? `data-pexp="${esc(t)}"` : '') + (open && purs.length > 1 ? purs.map((p) => pRow(esc(t), p, PX[t + '|' + p], 'sub')).join('') : ''); }).join('')}
     ${PX['*'] ? pRow('Total', '', PX['*'], 'tot') : `<tr><td colspan="${colV.length + 3}" class="mut">No stock</td></tr>`}</table></div>
-    <div class="mut sm" style="margin-top:6px">Expected pieces. ${S.pcol === 'place' ? 'Counter = floor display counters, Shelf = wall shelves, Tray = buffer trays, Box = boxes.' : 'Columns are the main stock locations.'} Tap an item to see each purity.</div>`;
+    <div class="mut sm" style="margin-top:6px">Expected pieces. ${S.pcol === 'place' ? 'Columns are main locations and their sub locations (Admin → Lists).' : 'Columns are the main locations.'} Tap an item to see each purity.</div>`;
   const secTbl = `<div class="tw"><table><tr><th>Section</th><th>Opening</th><th>In</th><th>Out</th><th>Expected</th><th>Checked</th><th>Counted</th><th>Variance</th></tr>
   ${SECTIONS.filter((x) => bySec[x.key]).map((x) => `<tr><td>${x.label}${x.key === 'box' && !fOn ? `<div class="mut sm">${g3(sm.sec.box.wtExpected)} g</div>` : ''}</td>${row(x.label, bySec[x.key])}</tr>`).join('')}
   <tr class="tot"><td>Total</td>${row('Total', T)}</tr></table></div>`;
@@ -1613,7 +1634,7 @@ function vTotal() {
   <div class="seg jfseg noprint" data-fbar="cons-jt" style="margin:0 0 10px">${[['all', 'All stock'], ...jfShown.map((j) => [j, JF_LBL[j]])].map(([k, t]) => `<button data-jf="${esc(k)}" data-fk="${esc(k)}" class="${k === 'all' ? (S.jfs.length ? '' : 'on') : S.jfs.includes(k) ? 'on' : ''}">${k !== 'all' && S.jfs.includes(k) ? '✓ ' : ''}${t}</button>`).join('')}</div>
   ${fBar}
   ${cz('cards', 'Stock types', `<div class="mgrid jgrid">${jfShown.map(jCard).join('')}</div><div class="mut sm" style="margin-top:6px">Tap types to combine them — e.g. Gold + Diamond Jewellery + Lab Grown.</div>`)}
-  ${cz('place', `Item count by ${S.pcol === 'place' ? 'place' : 'main location'}${jfName ? ` · ${esc(jfName)}` : ''}`, placeTbl, `<span class="mut sm">${fmt(T.exp)} pcs</span>`)}
+  ${cz('place', `Item count by ${S.pcol === 'place' ? 'location' : 'main location'}${jfName ? ` · ${esc(jfName)}` : ''}`, placeTbl, `<span class="mut sm">${fmt(T.exp)} pcs</span>`)}
   ${cz('sec', `By section${jfName ? ` · ${esc(jfName)}` : ''}`, secTbl)}
   ${cz('jt', 'By jewellery type', jtTbl)}
   ${cz('item', `By item type${jfName ? ` · ${esc(jfName)}` : ''}`, itemTbl)}
@@ -1721,7 +1742,7 @@ function summaryText() {
 }
 function exportCSV() {
   const sm = S.sum; const types = S.D.settings.itemTypes;
-  const rows = [['Date', 'Metal', 'Jewellery type', 'Main location', 'Sub display', 'Section', 'Group', 'Location', 'Box no', 'Purity', 'Category', 'Item type', 'Opening', 'In', 'Out', 'Expected', 'Counted', 'Variance', 'Exp. weight g', 'Counted weight g', 'Status', 'Checked by', 'Checked at']];
+  const rows = [['Date', 'Metal', 'Jewellery type', 'Main location', 'Sub location', 'Section', 'Group', 'Location', 'Box no', 'Purity', 'Category', 'Item type', 'Opening', 'In', 'Out', 'Expected', 'Counted', 'Variance', 'Exp. weight g', 'Counted weight g', 'Status', 'Checked by', 'Checked at']];
   for (const l of activeLocs()) {
     const e = expOf(l.id), o = opOf(l.id), f = sm.flows[l.id] || { in: {}, out: {} }, c = sm.last[l.id], st = sm.status[l.id];
     const ts = [...new Set([...Object.keys(e.lines), ...Object.keys(o.lines), ...Object.keys(f.in), ...Object.keys(f.out), ...Object.keys(c?.lines || {})])].sort((a, b) => types.indexOf(a) - types.indexOf(b));
@@ -2458,7 +2479,8 @@ async function admUsers() {
 const LCOLS = [
   { k: 'name', t: 'Name', v: (l) => l.name, lock: true },
   { k: 'area', t: 'Main location', v: (l) => l.area || '' },
-  { k: 'sub', t: 'Sub display', v: (l) => l.sub || '', secs: ['counter'] },
+  { k: 'sub', t: 'Sub location', v: (l) => l.sub || '' },
+  { k: 'spot', t: 'Position', v: (l) => l.spot || '' },
   { k: 'group', t: 'Group', v: (l) => l.group || '' },
   { k: 'boxNo', t: 'Box no.', v: (l) => l.boxNo || '', secs: ['box'] },
   { k: 'jt', t: 'Jewellery type', v: (l) => jtNames(l) },
@@ -2532,7 +2554,14 @@ async function weightAction(l, act, after) {
 const wtPanel = (l) => { const w = +expOf(l.id).wt || 0; const ok = can('setup') && editable();
   return `<div class="wtp"><div><div class="mut sm">Book weight</div><div class="b" style="font-size:18px">${w ? g3(w) + ' g' : '<span class="mut">not set</span>'}</div></div>
     ${ok ? `<div class="row" style="gap:6px"><button class="btn sm ghost" data-wt="add">＋ Add</button><button class="btn sm ghost" data-wt="edit">✎ Edit</button>${w ? '<button class="btn sm ghost" data-wt="del" style="color:var(--bad)">🗑</button>' : ''}</div>` : ''}</div>`; };
-function addLoc(sec) { const st = S.D.settings; locEdit({ sec, group: sec === 'counter' && SEL_LAST.counter ? SEL_LAST.counter : '', name: '', cat: '', area: sec === 'counter' ? st.areas[0] : st.areas.includes('Locker Area') ? 'Locker Area' : st.areas[0], sub: sec === 'counter' ? st.subDisplays[0] : '', jtype: JTYPES[0], images: [], mode: 'both' }); }
+// v1.29 Location picker: Main location › Sub location, only those counted as this section (counter / tray / box)
+function placeOpts(sec, area, sub) {
+  const st = S.D.settings; const ps = placesFor(st, sec); const has = ps.some((p) => p.area === area && p.sub === (sub || ''));
+  const groups = {}; ps.forEach((p) => (groups[p.area] ||= []).push(p));
+  return `${!has && area ? `<option value="${esc(area)}||${esc(sub || '')}" selected>${esc(area)}${sub ? ' › ' + esc(sub) : ''} (old)</option>` : ''}${Object.entries(groups).map(([a, list]) => list.length === 1 && !list[0].sub ? `<option value="${esc(a)}||" ${has && area === a ? 'selected' : ''}>${esc(a)}</option>`
+    : `<optgroup label="${esc(a)}">${list.map((p) => `<option value="${esc(a)}||${esc(p.sub)}" ${has && area === a && sub === p.sub ? 'selected' : ''}>${esc(a)} › ${esc(p.sub)}</option>`).join('')}</optgroup>`).join('')}`;
+}
+function addLoc(sec) { const st = S.D.settings; locEdit({ sec, group: sec === 'counter' && SEL_LAST.counter ? SEL_LAST.counter : '', name: '', cat: '', ...defaultPlace(st, sec), jtype: JTYPES[0], images: [], mode: 'both' }); }
 const SEL_LAST = {};
 function admLocs() {
   const st = S.D.settings; S.af ||= { sec: 'all', area: '', sub: '', group: '', jt: '', item: '', pur: '', q: '' }; const F = S.af;
@@ -2551,7 +2580,7 @@ function admLocs() {
   const opts = (k, vals) => { const pl = pool.filter((l) => pass(l, k)); return vals(pl); };
   const uniq = (a) => [...new Set(a)].filter((x) => x != null && x !== '');
   const O = {
-    area: opts('area', (pl) => uniq(pl.map((l) => l.area || '—'))), sub: opts('sub', (pl) => uniq(pl.filter((l) => l.sec === 'counter').map((l) => l.sub || '—'))),
+    area: opts('area', (pl) => uniq(pl.map((l) => l.area || '—'))), sub: opts('sub', (pl) => uniq(pl.map((l) => l.sub || '—'))),
     group: opts('group', (pl) => uniq(pl.map((l) => l.group))), jt: opts('jt', (pl) => { const set = new Set(lineVals(pl, 'jt')); return LINE_JTYPES.filter((j) => set.has(j)); }),
     item: opts('item', (pl) => { const set = new Set(lineVals(pl, 'item')); return [...st.itemTypes.filter((t) => set.has(t)), ...[...set].filter((t) => !st.itemTypes.includes(t))]; }),
     pur: opts('pur', (pl) => uniq(lineVals(pl, 'pur')).sort((a, b) => PUR_ORDER(a) - PUR_ORDER(b))) };
@@ -2562,7 +2591,7 @@ function admLocs() {
   const bar = `<div class="card afbar">
     <div class="seg" style="margin-bottom:8px">${[['all', 'All'], ['counter', 'Counter'], ['tray', 'Buffer trays'], ['box', 'Boxes']].map(([k, t]) => `<button data-afs="${k}" class="${F.sec === k ? 'on' : ''}">${t} <span class="sm" style="opacity:.7">${k === 'all' ? activeLocs().length : activeLocs(k).length}</span></button>`).join('')}</div>
     <div class="selbar" style="padding:0;border:0;background:none">
-      ${sel('area', 'Main location', O.area)}${F.sec === 'all' || F.sec === 'counter' ? sel('sub', 'Sub display', O.sub) : ''}${sel('group', F.sec === 'tray' ? 'Item group' : F.sec === 'counter' ? 'Counter' : 'Group', O.group)}
+      ${sel('area', 'Main location', O.area)}${sel('sub', 'Sub location', O.sub)}${sel('group', F.sec === 'tray' ? 'Item group' : F.sec === 'counter' ? 'Counter' : 'Group', O.group)}
       ${sel('jt', 'Jewellery type', O.jt, (j) => JF_LBL[j] || j)}${sel('item', 'Item', O.item)}${sel('pur', 'Purity', O.pur)}
       <div class="grow"><label class="f">Search</label><input type="search" id="afQ" value="${esc(F.q)}" placeholder="Name, box no., tag…"></div></div>
     <div class="row sp" style="margin-top:8px;gap:8px;flex-wrap:wrap"><span class="mut sm">Showing <b>${shown.length}</b> of ${activeLocs().length} · ${lineF ? `<b>${fmt(shown.reduce((a, l) => a + matchPcs(l), 0))}</b> matching pcs (${fmt(shown.reduce((a, l) => a + sumLines(expOf(l.id).lines), 0))} in these locations)` : `${fmt(shown.reduce((a, l) => a + sumLines(expOf(l.id).lines), 0))} pcs`}</span><span class="row" style="gap:6px">${active ? '<button class="btn sm ghost" id="afClr">✕ Clear filters</button>' : ''}<button class="btn sm ghost" id="colBtn">⚙ Columns</button></span></div></div>`;
@@ -2572,7 +2601,7 @@ function admLocs() {
     ${locTable(s.key, shown.filter((l) => l.sec === s.key), lineF, matchPcs)}`).join('');
   $('#colBtn').onclick = colPicker;
   $('#adm').querySelectorAll('[data-sort]').forEach((h) => h.onclick = () => { const [sec, k] = h.dataset.sort.split(':'); const cur = (S.lsort ||= {})[sec]; S.lsort[sec] = cur?.k === k ? (cur.dir > 0 ? { k, dir: -1 } : null) : { k, dir: 1 }; admLocs(); });
-  $('#adm').querySelectorAll('[data-afs]').forEach((b) => b.onclick = () => { F.sec = b.dataset.afs; if (F.sec !== 'all' && F.sec !== 'counter') F.sub = ''; admLocs(); });
+  $('#adm').querySelectorAll('[data-afs]').forEach((b) => b.onclick = () => { F.sec = b.dataset.afs;  admLocs(); });
   $('#adm').querySelectorAll('[data-af]').forEach((el) => el.onchange = () => { F[el.dataset.af] = el.value; admLocs(); });
   $('#afQ').oninput = () => { F.q = $('#afQ').value; const pos = $('#afQ').selectionStart; admLocs(); const q = $('#afQ'); q.focus(); q.setSelectionRange(pos, pos); };
   $('#afClr') && ($('#afClr').onclick = () => { S.af = { sec: F.sec, area: '', sub: '', group: '', jt: '', item: '', pur: '', q: '' }; admLocs(); });
@@ -2584,6 +2613,41 @@ function admLocs() {
 }
 // ---------------- v1.28 Admin → Lists: stock locations, sub displays, jewellery types, items (add / rename / delete) ----------------
 window.__yc = () => ({ S, LINE_JTYPES, activeLocs, go });   // debug/test hook
+// v1.29 Admin → Lists: Main locations → Sub locations (tree), each counted as Counter / Tray / Box
+function mainLocCard(locs) {
+  const ML = mainLocsOf(S.D.settings); const n = (a, b) => locs.filter((l) => l.area === a && (b === undefined || (l.sub || '') === b)).length;
+  const kindSel = (v, attr) => `<select class="mlk" ${attr}>${Object.entries(LOC_KINDS).map(([k, t]) => `<option value="${k}" ${v === k ? 'selected' : ''}>${t}</option>`).join('')}</select>`;
+  return `<div class="card lcard" style="grid-column:1/-1"><div class="row sp"><h3>📍 Main locations</h3><button class="btn sm" data-mladd>＋ Main location</button></div>
+  <div class="mut sm" style="margin:4px 0 8px">Where stock is kept. Each main location can have sub locations. “Counted as” decides the page and the counting — <b>Counter</b> (counter trays), <b>Tray</b> (buffer trays) or <b>Box</b> (boxes, with weight).</div>
+  ${ML.map((m, i) => `<div class="mlg"><div class="lrow"><span class="mlno">${String(i + 1).padStart(2, '0')}</span><span class="grow b">${esc(m.name)}</span><span class="mut sm">${n(m.name) ? n(m.name) + (n(m.name) === 1 ? ' location' : ' locations') : 'not used'}</span>${kindSel(m.kind, `data-mlk="${i}" title="Counted as"`)}
+      <button class="btn sm ghost" data-mlup="${i}" ${i ? '' : 'disabled'}>↑</button><button class="btn sm ghost" data-mlren="${i}">✎</button><button class="btn sm ghost" data-mldel="${i}" style="color:var(--bad)">🗑</button></div>
+    ${(m.subs || []).map((x, j) => `<div class="lrow sub"><span class="grow">${esc(x.name)}</span><span class="mut sm">${n(m.name, x.name) ? n(m.name, x.name) + (n(m.name, x.name) === 1 ? ' location' : ' locations') : 'not used'}</span>${kindSel(x.kind || m.kind, `data-slk="${i}:${j}"`)}
+      <button class="btn sm ghost" data-slup="${i}:${j}" ${j ? '' : 'disabled'}>↑</button><button class="btn sm ghost" data-slren="${i}:${j}">✎</button><button class="btn sm ghost" data-sldel="${i}:${j}" style="color:var(--bad)">🗑</button></div>`).join('')}
+    <div class="lrow sub"><button class="lnk" data-sladd="${i}">＋ Sub location in ${esc(m.name)}</button></div></div>`).join('')}</div>`;
+}
+function bindMainLocs(locs) {
+  const ML = JSON.parse(JSON.stringify(mainLocsOf(S.D.settings))); const root = $('#adm');
+  const n = (a, b) => locs.filter((l) => l.area === a && (b === undefined || (l.sub || '') === b)).length;
+  const save = async (msg) => { try { await api('settings', { settings: { mainLocs: ML } }); toast(msg || '✓ Saved'); await load(); S.tab = 'lists'; admLists(); } catch (e) { fail(e); } };
+  const ren = async (kind, from, main) => { const to = (prompt(`Rename “${from}” to`, from) || '').trim(); if (!to || to === from) return;
+    try { const r = await api('master/rename', { kind, from, to, main }); toast(`✓ Renamed${r.moved ? ` · ${r.moved} locations moved` : ''}`); await load(); S.tab = 'lists'; admLists(); } catch (e) { fail(e); } };
+  const ij = (b, k) => b.dataset[k].split(':').map(Number);
+  root.querySelector('[data-mladd]').onclick = () => { const v = (prompt('New main location (e.g. Locker, Exhibition)') || '').trim(); if (!v) return; if (ML.some((m) => m.name.toLowerCase() === v.toLowerCase())) return toast('Already in the list'); ML.push({ name: v, kind: 'box', subs: [] }); save(`✓ Added ${v} — counted as Box; change it if needed`); };
+  root.querySelectorAll('[data-sladd]').forEach((b) => b.onclick = () => { const m = ML[+b.dataset.sladd]; const v = (prompt(`New sub location in ${m.name}`) || '').trim(); if (!v) return; if (m.subs.some((x) => x.name.toLowerCase() === v.toLowerCase())) return toast('Already in the list');
+    const loose = !m.subs.length && n(m.name); m.subs.push({ name: v }); save(loose ? `✓ Added ${v} · ${loose} locations in ${m.name} have no sub location yet — edit them to choose one` : `✓ Added ${v}`); });
+  root.querySelectorAll('[data-mlk]').forEach((el) => el.onchange = () => { const m = ML[+el.dataset.mlk]; const used = locs.filter((l) => l.area === m.name && !(m.subs || []).some((x) => x.name === l.sub && x.kind));
+    if (used.some((l) => l.sec !== el.value)) { el.value = m.kind; return toast(`${m.name} has ${used.length} locations counted as ${LOC_KINDS[used[0].sec]} — move them first`, 5000); } m.kind = el.value; (m.subs || []).forEach((x) => { if (x.kind === m.kind) delete x.kind; }); save(); });
+  root.querySelectorAll('[data-slk]').forEach((el) => el.onchange = () => { const [i, j] = ij(el, 'slk'); const m = ML[i], x = m.subs[j]; const used = locs.filter((l) => l.area === m.name && l.sub === x.name);
+    if (used.some((l) => l.sec !== el.value)) { el.value = x.kind || m.kind; return toast(`${x.name} already has ${used.length} locations counted as ${LOC_KINDS[used[0].sec]} — move them first`, 5000); } if (el.value === m.kind) delete x.kind; else x.kind = el.value; save(); });
+  root.querySelectorAll('[data-mlup]').forEach((b) => b.onclick = () => { const i = +b.dataset.mlup; [ML[i - 1], ML[i]] = [ML[i], ML[i - 1]]; save('✓ Order saved'); });
+  root.querySelectorAll('[data-slup]').forEach((b) => b.onclick = () => { const [i, j] = ij(b, 'slup'); const a = ML[i].subs; [a[j - 1], a[j]] = [a[j], a[j - 1]]; save('✓ Order saved'); });
+  root.querySelectorAll('[data-mlren]').forEach((b) => b.onclick = () => ren('area', ML[+b.dataset.mlren].name));
+  root.querySelectorAll('[data-slren]').forEach((b) => b.onclick = () => { const [i, j] = ij(b, 'slren'); ren('sub', ML[i].subs[j].name, ML[i].name); });
+  root.querySelectorAll('[data-mldel]').forEach((b) => b.onclick = () => { const i = +b.dataset.mldel; const m = ML[i]; if (n(m.name)) return toast(`${m.name} has ${n(m.name)} locations — move them first`, 4000); if (ML.length <= 1) return toast('Keep at least one');
+    if (!confirm(`Delete main location “${m.name}”${m.subs.length ? ` and its ${m.subs.length} sub locations` : ''}?`)) return; ML.splice(i, 1); save(`✓ Deleted ${m.name}`); });
+  root.querySelectorAll('[data-sldel]').forEach((b) => b.onclick = () => { const [i, j] = ij(b, 'sldel'); const m = ML[i], x = m.subs[j]; if (n(m.name, x.name)) return toast(`${x.name} has ${n(m.name, x.name)} locations — move them first`, 4000);
+    if (!confirm(`Delete sub location “${x.name}”?`)) return; m.subs.splice(j, 1); save(`✓ Deleted ${x.name}`); });
+}
 function admLists() {
   const st = S.D.settings; const locs = activeLocs();
   const used = { area: (v) => locs.filter((l) => l.area === v).length, sub: (v) => locs.filter((l) => l.sub === v).length,
@@ -2594,10 +2658,9 @@ function admLists() {
       <button class="btn sm ghost" data-lup="${kind}:${i}" ${i ? '' : 'disabled'}>↑</button><button class="btn sm ghost" data-lren="${kind}:${esc(v)}">✎</button><button class="btn sm ghost" data-ldel="${kind}:${esc(v)}" style="color:var(--bad)">🗑</button></div>`; }).join('')}</div>`;
   const jts = [...st.jtOrder || [], ...['Plain Gold Jewellery', 'Diamond Jewellery', 'Platinum', 'Tanih - CVD Jewellery', 'Silver', ...(st.jtCustom || []).map((c) => c.name)]].filter((v, i, a) => a.indexOf(v) === i && JT_CODE[v]);
   const hidden = st.jtHidden || [];
-  $('#adm').innerHTML = `<div class="mut sm" style="margin-bottom:10px">Lists used everywhere in the app. Renaming a stock location or sub display moves its counters, trays and boxes with it. Something still in use can't be deleted — move or rename it instead.</div>
+  $('#adm').innerHTML = `<div class="mut sm" style="margin-bottom:10px">Lists used everywhere in the app. Renaming a main or sub location moves its counters, trays and boxes with it. Something still in use can't be deleted — move or rename it instead.</div>
   <div class="lgrid">
-  ${list('area', '📍 Stock locations', 'Main locations that hold stock — e.g. Cash Counter Area, Locker Area, Grand, Partners, Repair, Sample.', st.areas, 'locations')}
-  ${list('sub', '🗄 Sub displays', 'For counters — e.g. Floor display counters, Wall Shelves.', st.subDisplays, 'locations')}
+  ${mainLocCard(locs)}
   <div class="card lcard"><div class="row sp"><h3>💎 Jewellery types</h3><button class="btn sm" data-ladd="jt">＋ Add</button></div><div class="mut sm" style="margin:4px 0 8px">Name shown everywhere, short badge before each item, metal for totals. Built-in types can be renamed or hidden; new types can be deleted when not used.</div>
     ${jts.map((j, i) => { const c = (st.jtCustom || []).find((x) => x.name === j); const n = used.jt(j); const off = hidden.includes(j);
       return `<div class="lrow ${off ? 'off' : ''}"><span class="jtb ${JT_CLS[j] || 'cu'}">${esc(JT_SHORT[j])}</span><span class="grow"><b>${esc(JT_LABEL[j])}</b>${off ? ' <span class="mut sm">(hidden)</span>' : ''}<br><span class="mut sm">${JT_METAL[j]} · ${n ? fmt(n) + ' pcs' : 'not used'}</span></span>
@@ -2605,7 +2668,8 @@ function admLists() {
   ${list('item', '💍 Items', 'Item types used for counting — Ring, Stud, Pendant…', st.itemTypes, 'pcs')}
   </div>`;
   const save = async (patch, msg) => { try { await api('settings', { settings: patch }); toast(msg || '✓ Saved'); await load(); S.tab = 'lists'; admLists(); } catch (e) { fail(e); } };
-  const fieldOf = { area: 'areas', sub: 'subDisplays', item: 'itemTypes' };
+  const fieldOf = { item: 'itemTypes' };
+  bindMainLocs(locs);
   $('#adm').querySelectorAll('[data-ladd]').forEach((b) => b.onclick = () => { const k = b.dataset.ladd; if (k === 'jt') return jtEdit(null);
     const v = (prompt(`New ${k === 'area' ? 'stock location' : k === 'sub' ? 'sub display' : 'item'}`) || '').trim(); if (!v) return; const arr = st[fieldOf[k]];
     if (arr.some((x) => x.toLowerCase() === v.toLowerCase())) return toast('Already in the list'); save({ [fieldOf[k]]: [...arr, v] }, `✓ Added ${v}`); });

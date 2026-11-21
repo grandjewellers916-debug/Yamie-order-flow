@@ -18,8 +18,16 @@ export const DEFAULT_SETTINGS = {
   erpCatMap: { Diamond: 'G-Diamond Jewellery', 'Lab-grown': 'Tanih - CVD Jewellery' },
   erpTanih: 'Tanih - CVD Jewellery', erpSilver: 'Silver Jewellery', erpPlatinum: 'YFJ - PLATINUM MM',   // ERP ornament for all Platinum jewellery
   // Location model (v1.8)
-  areas: ['Cash Counter Area', 'Locker Area', 'Platinum Area', 'Free standing counter'],
-  subDisplays: ['Floor display counters', 'Wall Shelves'],
+  // v1.29 main locations → sub locations; kind = counter / tray / box (how it is counted; weight for boxes only)
+  mainLocs: [
+    { name: 'Counter Display', kind: 'counter', subs: [{ name: 'Counter' }, { name: 'Shelves' }] },
+    { name: 'Buffer Tray', kind: 'tray', subs: [] },
+    { name: 'Buffer Boxes', kind: 'box', subs: [{ name: 'Gold boxes' }, { name: 'Sales Return' }, { name: 'Samples/Repairs' }, { name: 'Partner Drawings' }, { name: 'Photoshoot items' }] },
+    { name: 'Grand Jewellers', kind: 'box', subs: [{ name: 'Mixed items' }, { name: 'Trays', kind: 'tray' }] },
+  ],
+  areas: ['Counter Display', 'Buffer Tray', 'Buffer Boxes', 'Grand Jewellers'],
+  subDisplays: ['Counter', 'Shelves'],
+  spots: ['Cash Counter Area', 'Locker Area', 'Platinum Area', 'Free standing counter'],   // physical position (before v1.29 this was the main location)
   jtypes: ['Plain Gold Jewellery', 'Diamond Jewellery', 'Platinum', 'Tanih - CVD Jewellery', 'Silver', 'Mixed'],     // app count is matched against ERP labels ('lbl') or pieces ('pcs')
   reasons: ['Item sold, not updated', 'Moved to another tray', 'Sent for repair / approval', 'Label missing / wrong tag', 'Found extra item', 'Other'],
 };
@@ -294,16 +302,37 @@ export const keyText = (loc, k) => { const p = purOfLine(loc, k); return `${JT_S
 export const lineMetal = (loc, k) => jtMetal(jtOfLine(loc, k));
 export const metalOf = (loc) => (loc?.jtype ? jtMetal(loc.jtype) : loc?.cat === 'Platinum' ? 'Platinum' : loc?.cat === 'Silver' ? 'Silver' : 'Gold');
 export const erpMetal = (name) => (/platinum/i.test(name || '') ? 'Platinum' : /silver/i.test(name || '') ? 'Silver' : 'Gold');
+// ---- v1.29 main / sub locations ----
+export const LOC_KINDS = { counter: 'Counter', tray: 'Tray', box: 'Box' };
+export const mainLocsOf = (st) => (Array.isArray(st?.mainLocs) && st.mainLocs.length ? st.mainLocs : DEFAULT_SETTINGS.mainLocs);
+export const mainOf = (st, name) => mainLocsOf(st).find((m) => m.name === name);
+export const subKind = (m, sub) => (m?.subs || []).find((x) => x.name === sub)?.kind || m?.kind || 'box';
+/** places (main + sub) that hold a section, e.g. box → Buffer Boxes › Gold boxes …, Grand Jewellers › Mixed items */
+export function placesFor(st, sec) { const out = []; for (const m of mainLocsOf(st)) { if (m.subs?.length) { for (const x of m.subs) if (!sec || (x.kind || m.kind) === sec) out.push({ area: m.name, sub: x.name }); } else if (!sec || m.kind === sec) out.push({ area: m.name, sub: '' }); } return out; }
+export const defaultPlace = (st, sec) => placesFor(st, sec)[0] || { area: '', sub: '' };
+/** move a pre-v1.29 location to the new main / sub locations (old physical area kept as spot) */
+export function placeLoc29(l, st) {
+  const mains = mainLocsOf(st); const g = `${l.group || ''} ${l.name || ''} ${l.area || ''}`.toLowerCase();
+  const ok = mains.some((m) => m.name === l.area && (!m.subs?.length || m.subs.some((x) => x.name === l.sub)));
+  if (ok) return null;
+  const spot = l.area && !mains.some((m) => m.name === l.area) && !/^(grand|partners?|repairs?|samples?)$/i.test(l.area) ? l.area : (l.spot || '');
+  const find = (re, sec) => placesFor(st, sec).find((p) => re.test(`${p.area} ${p.sub}`));
+  let p;
+  if (/grand/.test(g)) p = find(new RegExp(l.sec === 'tray' ? 'grand.*tray' : 'grand.*mixed', 'i'), l.sec) || find(/grand/i);
+  if (!p && l.sec === 'counter') p = /wall|shel/.test(`${l.sub || ''} ${g}`.toLowerCase()) ? find(/shel/i, 'counter') : find(/counter display.*counter$/i, 'counter');
+  if (!p && l.sec === 'box') p = /return/.test(g) ? find(/return/i, 'box') : /sample|repair/.test(g) ? find(/sample|repair/i, 'box') : /partner/.test(g) ? find(/partner/i, 'box') : /photo/.test(g) ? find(/photo/i, 'box') : find(/gold box/i, 'box');
+  p ||= defaultPlace(st, l.sec);
+  return { area: p.area, sub: p.sub, spot };
+}
 /** Best guess of Main location / Sub display / Jewellery type for locations created before v1.8 */
 export function deriveLocMeta(l) {
   const g = `${l.group || ''} ${l.name || ''}`.toLowerCase();
   const jtype = l.cat === 'Platinum' || /platinum/.test(g) ? 'Platinum' : l.cat === 'Silver' || /silver/.test(g) ? 'Silver' : l.cat === 'Lab-grown' || /\bcvd\b|tanih|lab.?grown/.test(g) ? 'Tanih - CVD Jewellery' : (l.cat === 'Diamond' || /diamond|\bdia\b/.test(g)) ? 'Diamond Jewellery' : 'Plain Gold Jewellery';
-  let area = '', sub = '';
-  if (l.sec === 'counter') {
-    area = /platinum/.test(g) ? 'Platinum Area' : /locker/.test(g) ? 'Locker Area' : /cvd|green shelf|free/.test(g) ? 'Free standing counter' : 'Cash Counter Area';
-    sub = /wall|shelf/.test(g) ? 'Wall Shelves' : 'Floor display counters';
-  } else area = 'Locker Area';
-  return { area, sub, jtype };
+  let spot = '';
+  if (l.sec === 'counter') spot = /platinum/.test(g) ? 'Platinum Area' : /locker/.test(g) ? 'Locker Area' : /cvd|green shelf|free/.test(g) ? 'Free standing counter' : 'Cash Counter Area';
+  else spot = 'Locker Area';
+  const p = placeLoc29({ ...l, area: '', sub: /wall|shelf/.test(g) ? 'Shelves' : '' }, DEFAULT_SETTINGS);
+  return { area: p.area, sub: p.sub, spot, jtype };
 }
 export const erpKey = (n) => String(n || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 export function erpNameFor(loc, key, settings) {
