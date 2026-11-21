@@ -68,6 +68,7 @@ button.fbtool{border:1px dashed var(--ln);background:transparent;color:var(--mut
 .rptypes{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;margin-bottom:10px}.rptypes button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:10px 12px;border:1px solid var(--ln);border-radius:12px;background:#fff;cursor:pointer;font:inherit;color:inherit}.rptypes button span{font-size:12px;color:var(--mut)}.rptypes button.on{border-color:var(--m);background:#FBF1EF;box-shadow:inset 0 0 0 1px var(--m)}.rptypes>.fbtool{align-self:center;justify-self:start}
 label.ck{display:flex;gap:6px;align-items:center;font-size:14px;min-height:44px;white-space:nowrap}label.ck input{width:auto;min-height:0}
 @media (max-width:700px){.rptypes{grid-template-columns:1fr 1fr}.rptypes button span{display:none}}
+.shgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.shb{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;padding:12px;border:1px solid var(--ln);border-radius:12px;background:#fff;cursor:pointer;font:inherit;color:inherit}.shb span{font-size:12px;color:var(--mut)}.shb:hover{border-color:var(--m)}
 .isum{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:6px;font-size:12px;color:var(--mut)}.isum b{color:var(--ink);font-weight:600}.isum .on{color:var(--m)}.isum .on b{color:var(--m)}.isum .off{opacity:.55}
 .wtl{margin-top:4px;font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap}.wtl.none{font-weight:400;color:var(--warn);font-size:11px}
 details.msel{position:relative}details.msel>summary{list-style:none;cursor:pointer;border:1px solid var(--ln);border-radius:10px;background:#fff;min-height:44px;padding:10px 30px 10px 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative}
@@ -376,7 +377,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.30';
+const VERSION = '1.31';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -1448,7 +1449,7 @@ function reportsBlock(L, jfName) {
   if (S.rep === 'cnew' || S.rep.startsWith('c')) return customBlock(L, saved);
   const t = repTables(L)[S.rep]; const varCol = t.cols.indexOf('Variance');
   const td = (v, i) => { if (i === varCol && v !== '') return `<td class="${v > 0 ? 'pos' : v < 0 ? 'neg' : ''}">${v ? sgn(v) : '—'}</td>`; if (typeof v === 'number') return `<td>${v ? fmt(v) : '—'}</td>`; if (/^\d+\/\d+( checked)?$/.test(String(v))) return `<td>${esc(v)}</td>`; return `<td class="${t.cols[i] === 'Items' ? 'wrap sm' : ''}" style="text-align:left">${esc(String(v).trim())}</td>`; };
-  return `<div class="row sp wrap" style="margin:4px 0 8px"><span></span><button class="btn sm ghost noprint" id="repCsv">⬇ CSV</button></div>
+  return `<div class="row sp wrap" style="margin:4px 0 8px"><span></span>${can('share') ? '<button class="btn sm ghost noprint" id="repCsv">⬇ CSV</button>' : ''}</div>
   ${repTabsHtml()}
   <div class="tw"><table class="rep"><tr>${t.cols.map((c, i) => `<th${i === 0 || ['Section', 'Jewellery type', 'Purity', 'Items', 'Status'].includes(c) ? ' style="text-align:left"' : ''}>${esc(c)}</th>`).join('')}</tr>
   ${t.rows.map((r) => `<tr class="${r.cls || ''}" ${r.id ? `data-loc="${r.id}" style="cursor:pointer"` : ''}>${r.cells.map((v, i) => i === 0 ? `<td class="${r.cls === 'sub' ? 'ind' : 'b'}" style="text-align:left">${esc(String(v).trim())}</td>` : td(v, i)).join('')}</tr>`).join('') || `<tr><td colspan="${t.cols.length}" class="mut">No stock</td></tr>`}</table></div>
@@ -1459,7 +1460,7 @@ function customBlock(L, saved) {
   const cur = S.rep === 'cnew' ? (S.crep ||= { name: '', r: 'item', r2: '', c: 'place', m: 'exp' }) : saved[+S.rep.slice(1)];
   const t = customTable(L, cur);
   const dsel = (id, v, none) => `<select id="${id}">${none ? `<option value="">${none}</option>` : ''}${Object.entries(RDIM).map(([k, n]) => `<option value="${k}" ${v === k ? 'selected' : ''}>${n}</option>`).join('')}</select>`;
-  return `<div class="row sp wrap" style="margin:4px 0 8px"><span></span><button class="btn sm ghost noprint" id="repCsv">⬇ CSV</button></div>${repTabsHtml()}
+  return `<div class="row sp wrap" style="margin:4px 0 8px"><span></span>${can('share') ? '<button class="btn sm ghost noprint" id="repCsv">⬇ CSV</button>' : ''}</div>${repTabsHtml()}
   <div class="selbar card noprint" data-fbar="cons-crep" style="margin-bottom:10px">
     <div class="grow" data-fk="r"><label class="f" style="margin-top:0">Rows</label>${dsel('crR', cur.r)}</div>
     <div class="grow" data-fk="r2"><label class="f" style="margin-top:0">Then by</label>${dsel('crR2', cur.r2, '— none —')}</div>
@@ -1479,8 +1480,8 @@ function bindReports(L, jfName) {
     $('#crSave') && ($('#crSave').onclick = () => { const n = (prompt('Report name', `${RDIM[cur.r]}${cur.c ? ' × ' + RDIM[cur.c] : ''}`) || '').trim(); if (!n) return; saved.push({ ...cur, name: n }); repsSet(saved); S.rep = 'c' + (saved.length - 1); S.crep = null; toast('✓ Report saved'); vTotal(); });
     $('#crRen') && ($('#crRen').onclick = () => { const n = (prompt('Report name', cur.name) || '').trim(); if (!n) return; cur.name = n; repsSet(saved); vTotal(); });
     $('#crDel') && ($('#crDel').onclick = () => { if (!confirm(`Delete report “${cur.name}”?`)) return; saved.splice(idx, 1); repsSet(saved); S.rep = 'pur'; vTotal(); });
-    $('#repCsv').onclick = () => { const t = customTable(L, cur); const q = (v) => { const x = String(v ?? '').trim(); return /[",\n]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x; };
-      saveFile(`yamie-report-${(cur.name || 'custom').toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${S.D.date}.csv`, 'text/csv', [t.cols, ...t.rows.map((r) => r.cells.map((v, i) => (i === 0 && r.cls === 'sub' ? '  ' : '') + String(v).trim()))].map((r) => r.map(q).join(',')).join('\n')); };
+    $('#repCsv') && ($('#repCsv').onclick = () => { const t = customTable(L, cur); const q = (v) => { const x = String(v ?? '').trim(); return /[",\n]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x; };
+      saveFile(`yamie-report-${(cur.name || 'custom').toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${S.D.date}.csv`, 'text/csv', [t.cols, ...t.rows.map((r) => r.cells.map((v, i) => (i === 0 && r.cls === 'sub' ? '  ' : '') + String(v).trim()))].map((r) => r.map(q).join(',')).join('\n')); });
     return;
   }
   $('#repCsv') && ($('#repCsv').onclick = () => { const t = repTables(L)[S.rep]; const q = (v) => { const x = String(v ?? '').trim(); return /[",\n]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x; };
@@ -1592,7 +1593,7 @@ function vReports() {
     return `<details class="msel" data-ms="cols" style="min-width:200px"><summary>Columns · ${keys.filter((k) => all.some((c) => c.k === k)).length}</summary><div class="mslist">${[...keys.filter((k) => all.some((c) => c.k === k)), ...all.map((c) => c.k).filter((k) => !keys.includes(k))].map((k) => { const c = all.find((x) => x.k === k); return `<label><input type="checkbox" data-mv2="${k}" ${keys.includes(k) ? 'checked' : ''} ${c.lock ? 'disabled' : ''}> ${esc(c.t)}</label>`; }).join('')}<div class="row" style="gap:6px;margin-top:6px"><button type="button" class="btn sm ghost" data-msall>All</button><button type="button" class="btn sm ghost" data-msnone>None</button><button type="button" class="btn sm" data-msok>Done</button></div></div></details>`; })() : '';
   const saved = repsGet();
   $('#main').innerHTML = `${viewBanner()}<div class="row sp wrap" style="margin-bottom:10px"><div><h1>Reports</h1><div class="mut">${dt(S.D.date)} · ${S.D.day.status === 'closed' ? 'Closed' : 'Live'} · export to Excel or PDF</div></div>
-    <div class="row noprint" style="gap:6px"><button class="btn" id="rpX">⬇ Excel</button><button class="btn sec" id="rpP">⬇ PDF</button><button class="btn ghost" id="rpC">CSV</button></div></div>
+    <div class="row noprint" style="gap:6px">${can('share') ? '<button class="btn" id="rpS">📤 Share</button><button class="btn sec" id="rpX">⬇ Excel</button><button class="btn sec" id="rpP">⬇ PDF</button><button class="btn ghost" id="rpC">CSV</button>' : '<span class="mut sm">🔒 Sharing and downloads need the “Share &amp; download reports” permission — ask the admin</span>'}</div></div>
   <div class="rptypes noprint" data-fbar="rp-types">${RP_TYPES.map(([k, t, d]) => `<button data-rpt="${k}" data-fk="${k}" class="${P.type === k ? 'on' : ''}"><b>${t}</b><span>${d}</span></button>`).join('')}</div>
   <div class="selbar card noprint" data-fbar="rp-f">
     ${['locs', 'var', 'boxwt'].includes(P.type) ? '' : ''}${P.type !== 'boxwt' ? `<div class="grow" data-fk="sec"><label class="f" style="margin-top:0">Section</label><select id="rpSec">${[['all', 'All sections'], ...SECTIONS.map((x) => [x.key, x.label])].map(([k, t]) => `<option value="${k}" ${P.sec === k ? 'selected' : ''}>${t}</option>`).join('')}</select></div>` : ''}
@@ -1624,9 +1625,43 @@ function vReports() {
   $('#rpDel') && ($('#rpDel').onclick = () => { const a = repsGet(); const r = a[+P.saved]; if (!r || !confirm(`Delete report “${r.name}”?`)) return; a.splice(+P.saved, 1); repsSet(a); P.saved = ''; re(); });
   $('#rpClr').onclick = () => { P.f = { jt: [], a: [], pl: [], i: [], p: [] }; P.sec = 'all'; re(); };
   const fname = (ext) => `yamie-${R.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-${S.D.date}.${ext}`;
+  if (!can('share')) return;
+  $('#rpS').onclick = () => rpShare(R, P, fname);
   $('#rpX').onclick = () => { try { saveBin(fname('xlsx'), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', xlsxBuild(R, rpFilterText(P))); toast('✓ Excel file ready'); } catch (e) { fail(e); } };
   $('#rpP').onclick = async () => { try { toast('Making PDF…'); saveBin(fname('pdf'), 'application/pdf', await pdfBuild(R, rpFilterText(P)), true); } catch (e) { fail(e); } };
   $('#rpC').onclick = () => { const q = (v) => { const x = String(v ?? ''); return /[",\n]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x; }; saveFile(fname('csv'), 'text/csv', [R.cols.map((c) => c.t), ...R.rows.map((r) => r.cells)].map((r) => r.map(q).join(',')).join('\n')); };
+}
+// v1.31 share a report: PDF / Excel to WhatsApp, mail, Drive… or a text summary — needs the 'share' permission
+function rpText(R, P, max = 40) {
+  const val = (v, c) => typeof v === 'number' ? (c.g3 ? g3(v) : fmt(v)) : String(v ?? '').trim();
+  const body = R.rows.filter((r) => r.cls !== 'sub' || R.rows.length <= max).slice(0, max).map((r) => { const b = r.cls === 'tot' || r.cls === 'rgrp' ? '*' : '';
+    const rest = r.cells.slice(1).map((v, i) => [R.cols[i + 1].t, val(v, R.cols[i + 1])]).filter(([, v]) => v && v !== '0' && v !== '—').map(([t, v]) => `${t} ${v}`).join(' · ');
+    return `${b}${val(r.cells[0], R.cols[0])}${b}${rest ? ' — ' + rest : ''}`; });
+  const more = R.rows.length - body.length;
+  return `*${R.title}*\n${S.D.settings.shopName || 'Yamie'} · ${dt(S.D.date)}\n${rpFilterText(P)}\n\n${body.join('\n')}${more > 0 ? `\n… ${more} more rows — see the PDF / Excel` : ''}\n\n— ${S.me.name} · Yamie Core`;
+}
+async function shareBin(name, mime, bytes, title) {
+  if (window.YamieStock?.shareData) return saveBin(name, mime, bytes, false);
+  try { const f = new File([bytes], name, { type: mime }); if (navigator.canShare?.({ files: [f] })) { await navigator.share({ files: [f], title }); return; } } catch (e) { if (e.name === 'AbortError') return; }
+  saveBin(name, mime, bytes); toast('Downloaded — attach it in WhatsApp / mail', 4000);
+}
+function rpShare(R, P, fname) {
+  const wa = S.D.settings.waNumber;
+  modal('📤 Share report', `${esc(R.title)} · ${esc(rpFilterText(P))}`, `
+    <div class="shgrid">
+      <button class="shb" data-sh="pdf"><b>📄 PDF</b><span>Ready to print · WhatsApp, mail</span></button>
+      <button class="shb" data-sh="xlsx"><b>📊 Excel</b><span>Opens in Excel / Google Sheets</span></button>
+      <button class="shb" data-sh="text"><b>💬 Text summary</b><span>Short message with the main figures</span></button>
+      ${wa ? `<button class="shb" data-sh="wa"><b>🟢 WhatsApp admin</b><span>Text summary to +${esc(wa)}</span></button>` : ''}
+    </div><div class="mut sm" style="margin-top:10px">Only people with the “Share &amp; download reports” permission see this — set it in Admin → Users.</div>`, () => {
+    document.querySelectorAll('[data-sh]').forEach((b) => b.onclick = async () => { const k = b.dataset.sh;
+      try {
+        if (k === 'pdf') { toast('Making PDF…'); await shareBin(fname('pdf'), 'application/pdf', await pdfBuild(R, rpFilterText(P)), R.title); }
+        else if (k === 'xlsx') await shareBin(fname('xlsx'), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', xlsxBuild(R, rpFilterText(P)), R.title);
+        else if (k === 'text') await shareText(rpText(R, P), R.title);
+        else open(`https://wa.me/${wa}?text=${encodeURIComponent(rpText(R, P))}`, '_blank');
+        closeModal();
+      } catch (e) { fail(e); } }); });
 }
 function saveBin(name, mime, bytes, view) {
   if (window.YamieStock?.shareData) { let b = ''; for (let i = 0; i < bytes.length; i += 0x8000) b += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return window.YamieStock.shareData(name, mime, btoa(b), !!view); }
@@ -1791,7 +1826,7 @@ function vTotal() {
   const czAll = (open) => `<button class="btn sm ghost noprint" data-czall="${open ? 1 : 0}">${open ? 'Expand all' : 'Collapse all'}</button>`;
   $('#main').innerHTML = `${viewBanner()}
   <div class="row sp wrap" style="margin-bottom:12px"><div><h1>Consolidated stock</h1><div class="mut">${dt(S.D.date)} · ${S.D.day.status === 'closed' ? 'Closed' : 'Live'}${S.round === 'evening' ? ' · evening count' : ''}${jfName ? ` · <b>${esc(jfName)}</b>` : ''}</div></div>
-  <div class="row noprint">${czAll(0)}${czAll(1)}${can('reports') ? `<button class="btn sm sec" id="erpTab">ERP match</button><button class="btn sm ghost" id="csv">Export CSV</button><button class="btn sm ghost" id="prt">Print</button>${S.D.settings.waNumber ? `<button class="btn sm ok" id="wa">WhatsApp</button>` : ''}` : ''}</div></div>
+  <div class="row noprint">${czAll(0)}${czAll(1)}${can('reports') ? `<button class="btn sm sec" id="erpTab">ERP match</button>${can('share') ? `<button class="btn sm" id="toRep">📤 Share / Excel / PDF</button><button class="btn sm ghost" id="csv">Export CSV</button><button class="btn sm ghost" id="prt">Print</button>${S.D.settings.waNumber ? `<button class="btn sm ok" id="wa">WhatsApp</button>` : ''}` : ''}` : ''}</div></div>
   ${blind ? '<div class="card mut">Expected totals are hidden while counting is in progress.</div>' : `
   <div class="seg jfseg noprint" data-fbar="cons-jt" style="margin:0 0 10px">${[['all', 'All stock'], ...jfShown.map((j) => [j, JF_LBL[j]])].map(([k, t]) => `<button data-jf="${esc(k)}" data-fk="${esc(k)}" class="${k === 'all' ? (S.jfs.length ? '' : 'on') : S.jfs.includes(k) ? 'on' : ''}">${k !== 'all' && S.jfs.includes(k) ? '✓ ' : ''}${t}</button>`).join('')}</div>
   ${fBar}
@@ -1808,6 +1843,7 @@ function vTotal() {
   $('#closeBtn') && ($('#closeBtn').onclick = closeDayFlow);
   $('#csv') && ($('#csv').onclick = exportCSV);
   $('#erpTab') && ($('#erpTab').onclick = () => { S.tab = 'erp'; vTotal(); });
+  $('#toRep') && ($('#toRep').onclick = () => { const P = rpState(); P.type = 'place'; P.sec = 'all'; P.f = { jt: [...S.jfs], a: [...CF.a], pl: [...CF.pl], i: [...CF.i], p: [...CF.p] }; go('reports'); });
   $('#main').querySelectorAll('[data-jf]').forEach((b) => b.onclick = () => { const j = b.dataset.jf; if (j === 'all') S.jfs = []; else S.jfs = S.jfs.includes(j) ? S.jfs.filter((x) => x !== j) : [...S.jfs, j]; vTotal(); });
   bindMsel($('#main'), (k) => k === 'jt' ? S.jfs : CF[k], (k, v) => { if (k === 'jt') S.jfs = v; else CF[k] = v; vTotal(); });
   $('#cfClr') && ($('#cfClr').onclick = () => { S.jfs = []; S.cf = { a: [], pl: [], i: [], p: [] }; vTotal(); });
@@ -2776,7 +2812,7 @@ function admLocs() {
   $('#adm').querySelectorAll('[data-add],[data-addn]').forEach((b) => b.onclick = () => addLoc(b.dataset.add || b.dataset.addn));
 }
 // ---------------- v1.28 Admin → Lists: stock locations, sub displays, jewellery types, items (add / rename / delete) ----------------
-window.__yc = () => ({ S, LINE_JTYPES, activeLocs, go });   // debug/test hook
+window.__yc = () => ({ S, LINE_JTYPES, activeLocs, go, api });   // debug/test hook
 // v1.29 Admin → Lists: Main locations → Sub locations (tree), each counted as Counter / Tray / Box
 function mainLocCard(locs) {
   const ML = mainLocsOf(S.D.settings); const n = (a, b) => locs.filter((l) => l.area === a && (b === undefined || (l.sub || '') === b)).length;

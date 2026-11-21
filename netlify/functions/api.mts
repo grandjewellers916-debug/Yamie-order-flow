@@ -56,6 +56,10 @@ async function getUsers(s: any) {
     await s.setJSON('cfg/users', u, { onlyIfNew: true });
     u = await s.get('cfg/users', { type: 'json' });
   }
+  if (!u.share30) {   // v1.31: sharing / downloading reports is a permission — admin and managers keep it
+    for (const x of u.users) if (x.role === 'manager' || x.role === 'admin') x.perms = [...new Set([...(x.perms || []), 'share'])];
+    u.share30 = true; await s.setJSON('cfg/users', u);
+  }
   if (!u.docs19) {   // v1.19: managers can view business documents
     for (const x of u.users) if (x.role === 'manager' || x.role === 'admin') x.perms = [...new Set([...(x.perms || []), 'docs'])];
     u.docs19 = true; await s.setJSON('cfg/users', u);
