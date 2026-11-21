@@ -394,6 +394,15 @@ details.settings .grid{margin-top:10px}
 .rate-pick{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
 .rate-pick button{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:8px 14px;font:600 14px var(--body);cursor:pointer;min-height:40px}
 .rate-pick button[aria-pressed="true"]{background:var(--maroon);border-color:var(--maroon);color:var(--maroon-ink)}
+/* Backup & restore */
+.bk-prog{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.bk-bar{height:10px;border-radius:99px;background:var(--sunk);overflow:hidden}
+.bk-bar i{display:block;height:100%;width:0;background:var(--maroon);border-radius:99px;transition:width .25s}
+.bk-rs{border:1.5px solid var(--warn);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.bk-rs h3{color:var(--warn)}
+.bk-warn{color:var(--bad);font-weight:600}
+.bk-chk{display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer}
+.bk-chk input{width:20px;height:20px;flex:none;accent-color:var(--maroon);margin:0}
 /* Pop-up */
 .modal{position:fixed;inset:0;z-index:20;background:rgba(20,8,8,.55);display:flex;align-items:flex-end;justify-content:center;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
 .sheet{background:var(--surface);color:var(--fg);border-radius:16px;padding:18px 16px 14px;width:100%;max-width:520px;display:flex;flex-direction:column;gap:10px;box-shadow:0 10px 40px rgba(0,0,0,.3)}
@@ -2367,6 +2376,24 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
       <div class="rs-acts" style="margin-top:8px"><button class="btn primary" type="button" id="expXlsx">Excel (.xlsx)</button><button class="btn" type="button" id="expPdf">PDF</button></div>
       <p class="note" id="expNote" aria-live="polite"></p>
   </details>
+  <details class="card datacard setcard" id="setBackup" data-pane="settings" data-perm="stock">
+    <summary><span class="dc-t">Backup &amp; restore</span><span class="dc-s" id="bkMini">Everything · photos</span><span class="dc-chev" aria-hidden="true">▾</span></summary>
+      <p class="note" style="margin-block:4px 0">One .zip file with everything in the shared database: stock, day's rates and history, settings, making helpers, item codes, users and roles, quotes, enquiries, sold labels, product names and details, and <b>every product photo</b>. It also holds this phone's own data: saved bills, quote photos and display settings.</p>
+      <div class="rs-acts" style="margin-top:8px"><button class="btn primary" type="button" id="bkMake">Make backup</button><button class="btn" type="button" id="bkPick">Restore from a backup…</button></div>
+      <input class="hidden-input" id="bkFile" type="file" accept=".zip,application/zip,application/x-zip-compressed" aria-label="Choose a backup file">
+      <div class="bk-prog" id="bkProg" hidden><div class="bk-bar"><i id="bkBar"></i></div><p class="note" id="bkTxt" aria-live="polite"></p></div>
+      <div class="bk-rs" id="bkRs" hidden>
+        <h3>Restore this backup?</h3>
+        <dl class="ss-rec" id="bkInfo"></dl>
+        <label class="bk-chk"><input type="checkbox" id="bkShared" checked> Shared database (every phone)</label>
+        <label class="bk-chk"><input type="checkbox" id="bkPhone" checked> This phone's data (saved bills, quote photos, display settings)</label>
+        <div class="seg" id="bkMode" role="group" aria-label="How to restore" style="margin-top:4px"><button type="button" data-m="replace" aria-pressed="true">Replace everything</button><button type="button" data-m="merge" aria-pressed="false">Add &amp; update only</button></div>
+        <p class="note" id="bkModeNote"></p>
+        <div class="f full" style="margin-top:6px"><label for="bkConfirm">Type RESTORE to confirm</label><input id="bkConfirm" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="RESTORE"></div>
+        <div class="rs-acts" style="margin-top:8px"><button class="btn danger" type="button" id="bkGo" disabled>Restore now</button><button class="btn" type="button" id="bkCancel">Cancel</button></div>
+      </div>
+      <p class="note" id="bkLast" style="margin-top:6px"></p>
+  </details>
   <details class="card datacard setcard" id="dataCard" data-pane="settings" data-perm="stock">
     <summary><span class="dc-t">Stock data</span><span class="dc-s" id="dataMini">No stock loaded</span><span class="dc-chev" aria-hidden="true">▾</span></summary>
     <div class="sec-head"><button class="btn sm back" type="button" id="dataBack">‹ Back to app</button><button class="linkbtn" type="button" id="dataOpen">Find / history</button></div>
@@ -2687,6 +2714,7 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
   <div class="sheet"><h4 id="modalTitle"></h4><p id="modalBody"></p><div class="acts" id="modalActs"></div></div>
 </div>
 
+<script src="ybk.js"></script>
 <script src="parser.js"></script>
 <script>
 (function(){
@@ -5393,7 +5421,7 @@ $('dkShare').onclick=()=>$('waBtn').click();
 // Top header (logo, item types, search, alerts, user), page subtitles, pricing sheet on Home,
 // Settings as a card grid and Search with filters, pages, photos and a grid view.
 const PS_ICO={tag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.4"/></svg>',gold:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19h18l-2.5-5h-13z"/><path d="M6.5 14 8 10h8l1.5 4"/><path d="M9 10l1-3h4l1 3"/></svg>',value:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6.5 9.5v5M17.5 9.5v5"/></svg>',stone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 7 4h10l4 5.5L12 20z"/><path d="M3 9.5h18M9 4l3 16 3-16"/></svg>',mk:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.4M12 18.8v2.4M4.2 7.5l2 1.2M17.8 15.3l2 1.2M4.2 16.5l2-1.2M17.8 8.7l2-1.2"/><circle cx="12" cy="12" r="7"/></svg>',huid:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.3 7.5 9.5 4.3-1.2 7.5-4.9 7.5-9.5V6z"/><path d="m9 12 2 2 4-4"/></svg>',sum:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 5H7l6 7-6 7h10"/></svg>',gst:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 5 5 19"/><circle cx="7" cy="7" r="2.3"/><circle cx="17" cy="17" r="2.3"/></svg>',check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.7 2.7L16.5 9.5"/></svg>'};
-const SET_ICO={setRules:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg>',setPromo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.4"/></svg>',setReports:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',setExport:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5.5" rx="7.5" ry="2.8"/><path d="M4.5 5.5v13c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8v-13M4.5 12c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8"/></svg>',dataCard:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></svg>',soldCard:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12V4h8l10 10-7 7z"/><path d="m8 8 6 6M14 8l-6 6"/></svg>',setTheme:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-1 1.6-2.1-.5-1.3.4-2.4 1.7-2.4H18a3 3 0 0 0 3-3C21 7.4 17 3 12 3z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="15" cy="7.5" r="1.2"/></svg>',setAppr:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.3 7.5 9.5 4.3-1.2 7.5-4.9 7.5-9.5V6z"/><path d="m9 12 2 2 4-4"/></svg>',setFoot:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 15h18"/></svg>',setPd:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>',setDevice:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>',setText:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7V5h11v2M9.5 5v14M7 19h5M14 12v-1.5h6V12M17 10.5V19M15.5 19h3"/></svg>',setImg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="9.5" r="1.8"/><path d="m21 16-5-5-9 9"/></svg>',setRates:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>',setCharges:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 5 5 19"/><circle cx="7" cy="7" r="2.3"/><circle cx="17" cy="17" r="2.3"/></svg>',setMk:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14.5 6.5 3 3M4 20l3.5-1L19 7.5a2.1 2.1 0 0 0-3-3L4.5 16z"/><path d="M8 4 4 8l2 2M16 20l4-4-2-2"/></svg>',setConv:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.4"/><path d="m9.5 16.5 5-5"/></svg>',setCodes:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5v14M7 5v14M10.5 5v14M13 5v14M16.5 5v14M20 5v14"/></svg>',setSync:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5.5" rx="7.5" ry="2.8"/><path d="M4.5 5.5v13c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8v-13M4.5 12c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8"/></svg>',setRoles:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.2c3 .2 5.5 2.6 5.5 5.8"/></svg>',adminCard:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20.5c0-4.1 3.4-7 7.5-7s7.5 2.9 7.5 7"/></svg>'},SET_DESC={setRules:'Making, wastage, FVA and diamond rate conventions by karat, weight, type and supplier',setPromo:'Create and manage offers and customer promotions',setReports:'Sales, quotes and staff reports with charts',setExport:'Download the stock data for backup or use elsewhere',dataCard:'Upload and manage the stock sheet',soldCard:'Remove sold item tags from the stock',setTheme:'App style and colours',setAppr:'Approval flow for staff quotes',setFoot:'Footer tabs shown to staff',setPd:'Which product details are shown',setDevice:'Auto log-out and alerts on this computer',setText:'Text size on this device',setImg:'Where product images are shown',setRates:'Purities shown and their order',setCharges:'GST rate and HUID charge',setMk:'CZ and diamond making slabs (MBD / MAD)',setConv:'Usual making and fair value per item; label check after scan',setCodes:'Barcode prefixes and item names',setSync:'Connect devices with the shop key',setRoles:'Create roles and choose what each can do',adminCard:'Add, edit and manage staff users'};
+const SET_ICO={setBackup:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v4h-4"/><path d="M12 8v4l3 2"/></svg>',setRules:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg>',setPromo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.4"/></svg>',setReports:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',setExport:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5.5" rx="7.5" ry="2.8"/><path d="M4.5 5.5v13c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8v-13M4.5 12c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8"/></svg>',dataCard:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></svg>',soldCard:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12V4h8l10 10-7 7z"/><path d="m8 8 6 6M14 8l-6 6"/></svg>',setTheme:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-1 1.6-2.1-.5-1.3.4-2.4 1.7-2.4H18a3 3 0 0 0 3-3C21 7.4 17 3 12 3z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="15" cy="7.5" r="1.2"/></svg>',setAppr:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.3 7.5 9.5 4.3-1.2 7.5-4.9 7.5-9.5V6z"/><path d="m9 12 2 2 4-4"/></svg>',setFoot:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 15h18"/></svg>',setPd:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>',setDevice:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>',setText:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7V5h11v2M9.5 5v14M7 19h5M14 12v-1.5h6V12M17 10.5V19M15.5 19h3"/></svg>',setImg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="9.5" r="1.8"/><path d="m21 16-5-5-9 9"/></svg>',setRates:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>',setCharges:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 5 5 19"/><circle cx="7" cy="7" r="2.3"/><circle cx="17" cy="17" r="2.3"/></svg>',setMk:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14.5 6.5 3 3M4 20l3.5-1L19 7.5a2.1 2.1 0 0 0-3-3L4.5 16z"/><path d="M8 4 4 8l2 2M16 20l4-4-2-2"/></svg>',setConv:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.4"/><path d="m9.5 16.5 5-5"/></svg>',setCodes:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5v14M7 5v14M10.5 5v14M13 5v14M16.5 5v14M20 5v14"/></svg>',setSync:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5.5" rx="7.5" ry="2.8"/><path d="M4.5 5.5v13c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8v-13M4.5 12c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8"/></svg>',setRoles:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.2c3 .2 5.5 2.6 5.5 5.8"/></svg>',adminCard:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20.5c0-4.1 3.4-7 7.5-7s7.5 2.9 7.5 7"/></svg>'},SET_DESC={setRules:'Making, wastage, FVA and diamond rate conventions by karat, weight, type and supplier',setPromo:'Create and manage offers and customer promotions',setReports:'Sales, quotes and staff reports with charts',setExport:'Download the stock data for backup or use elsewhere',setBackup:'Everything in one file, photos included; restore on any phone',dataCard:'Upload and manage the stock sheet',soldCard:'Remove sold item tags from the stock',setTheme:'App style and colours',setAppr:'Approval flow for staff quotes',setFoot:'Footer tabs shown to staff',setPd:'Which product details are shown',setDevice:'Auto log-out and alerts on this computer',setText:'Text size on this device',setImg:'Where product images are shown',setRates:'Purities shown and their order',setCharges:'GST rate and HUID charge',setMk:'CZ and diamond making slabs (MBD / MAD)',setConv:'Usual making and fair value per item; label check after scan',setCodes:'Barcode prefixes and item names',setSync:'Connect devices with the shop key',setRoles:'Create roles and choose what each can do',adminCard:'Add, edit and manage staff users'};
 const WT_ORDER=['CHN','BGL','FRG','STD','BRC','NLC','PND','NSP','RST','DIA','LDJ','FIN','MMP','EXT'];
 let findType='',stPage=1,stPer=25,stGrid=false;const findF={jt:'',mc:'',stt:'',sc:'',pn:'',cat:'',item:'',pur:'',stone:'',sup:'',loc:'',lab:'',img:'',imp:'',wBy:'',wMin:'',wMax:'',pMin:'',pMax:'',fMin:'',fMax:'',mMin:'',mMax:'',dMin:'',dMax:''};
 // V1.7.88 picked items (Search) and a list of items another user sent
@@ -7596,6 +7624,84 @@ async function exportStock(kind){
 }
 $('expXlsx').onclick=()=>withPerm('export','Only an admin can export the database.',()=>exportStock('xlsx'));
 $('expPdf').onclick=()=>withPerm('export','Only an admin can export the database.',()=>exportStock('pdf'));
+
+// ---------- Backup & restore (V1.8.27): the whole shared database with every photo, plus this phone's own data, in one .zip ----------
+const BK_APP=BRAND.id==='grand'?'price-check-grand':'price-check-yamie';
+const bkCall=(op,args)=>syncApi('bk_'+op,'POST',args||{},adminCreds);
+function bkIdbAll(name,storeName){return new Promise(res=>{let r;try{r=indexedDB.open(name)}catch(e){return res([])}
+  r.onerror=()=>res([]);r.onupgradeneeded=()=>{try{r.transaction.abort()}catch(e){}};
+  r.onsuccess=()=>{const db=r.result;if(!db.objectStoreNames.contains(storeName)){db.close();return res([])}
+    const out=[],c=db.transaction(storeName).objectStore(storeName).openCursor();c.onsuccess=()=>{const x=c.result;if(x){out.push([x.key,x.value]);x.continue()}else{db.close();res(out)}};c.onerror=()=>{db.close();res(out)}}})}
+async function bkPhoneData(){
+  const ls={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith('ypc_'))ls[k]=localStorage.getItem(k)}
+  const photos=await bkIdbAll('ypc-photos','p');let n=0;photos.forEach(([,v])=>{if(Array.isArray(v))n+=v.length});
+  const out={shop:BRAND.id,ls,photos,photoCount:n};
+  if(!sync.key){try{out.stock=await IDB.all()}catch(e){}}   // not connected: this phone's stock list is the only copy
+  return out;
+}
+const BK_LS_SKIP=['ypc_session','ypc_syncV','ypc_syncQ','ypc_syncDirty','ypc_syncDay'];
+async function bkRestorePhone(d){
+  if(d.shop&&d.shop!==BRAND.id)throw new Error('This phone data is from another shop.');
+  const keepKey=localStorage.getItem('ypc_syncKey');
+  Object.keys(d.ls||{}).forEach(k=>{if(k.startsWith('ypc_')&&!BK_LS_SKIP.includes(k))try{localStorage.setItem(k,d.ls[k])}catch(e){}});
+  if(keepKey)localStorage.setItem('ypc_syncKey',keepKey);
+  BK_LS_SKIP.slice(1).forEach(k=>localStorage.removeItem(k));     // the next sync downloads everything again
+  for(const [id,arr] of (d.photos||[]))await PH.set(id,arr);
+  if(Array.isArray(d.stock)&&d.stock.length&&!localStorage.getItem('ypc_syncKey')){try{await IDB.putMany(d.stock,true)}catch(e){}}
+}
+function bkProg(t,f){$('bkProg').hidden=false;$('bkTxt').textContent=t;$('bkBar').style.width=Math.round(Math.max(0,Math.min(1,f))*100)+'%'}
+let bkBusy=false,bkPicked=null,bkMode='replace';
+function bkLock(on){bkBusy=on;['bkMake','bkPick','bkGo','bkCancel'].forEach(k=>$(k).disabled=on||(k==='bkGo'&&$('bkConfirm').value.trim().toUpperCase()!=='RESTORE'))}
+function bkPaintLast(){const l=store.get('bkLast',null);$('bkLast').textContent=l?`Last backup on this phone: ${whenText(l.at)} · ${l.records} records, ${l.photos} photos, ${YBK.fmtMB(l.size)}.`:'No backup made on this phone yet.';$('bkMini').textContent=l?'Last '+whenText(l.at):'Everything · photos'}
+async function bkMake(){
+  if(bkBusy)return;bkLock(true);$('bkRs').hidden=true;
+  try{
+    const r=await YBK.backup({app:BRAND.app||'Price Check',appId:BK_APP,fileBase:(BRAND.id==='grand'?'grand':'yamie')+'-price-check',version:APP_VERSION,by:curUser?(curUser.name||curUser.username):'',
+      call:sync.key?bkCall:null,shared:!!sync.key,phone:bkPhoneData,progress:bkProg});
+    bkProg('Saving the file…',1);
+    const how=await YBK.save(r.blob,r.name,NATIVE);
+    store.set('bkLast',{at:new Date().toISOString(),records:r.manifest.totals.records,photos:r.manifest.totals.photos,size:r.blob.size});
+    bkProg(`Backup ready: ${r.name} · ${r.manifest.totals.records} records, ${r.manifest.totals.photos} photos, ${YBK.fmtMB(r.blob.size)}${how==='native'?' · saved to Downloads':''}.`,1);
+    if(!sync.key)toast('Backed up this phone only. Connect the shared database to include it.');
+    bkPaintLast();
+  }catch(e){bkProg('Backup failed: '+YBK.errText(e),0);toast('Backup failed',null,true)}
+  finally{bkLock(false)}
+}
+$('bkMake').onclick=()=>withPerm('stock','Only an admin can make a backup.',bkMake,true);
+$('bkPick').onclick=()=>withPerm('stock','Only an admin can restore a backup.',()=>{$('bkFile').value='';$('bkFile').click()},true);
+function bkPaintMode(){[...$('bkMode').children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.m===bkMode)));
+  $('bkModeNote').innerHTML=bkMode==='replace'?'<span class="bk-warn">The shared database becomes exactly the backup.</span> Anything added after the backup (stock, quotes, photos, users) is removed from every phone.':'Records in the backup are put back and overwrite the same records. Anything added after the backup is kept.'}
+[...$('bkMode').children].forEach(b=>b.onclick=()=>{bkMode=b.dataset.m;bkPaintMode()});
+$('bkConfirm').addEventListener('input',()=>{$('bkGo').disabled=bkBusy||$('bkConfirm').value.trim().toUpperCase()!=='RESTORE'});
+$('bkCancel').onclick=()=>{bkPicked=null;$('bkRs').hidden=true;$('bkProg').hidden=true};
+$('bkFile').onchange=async e=>{
+  const f=e.target.files&&e.target.files[0];if(!f)return;
+  bkLock(true);bkProg('Reading the backup…',0);
+  try{
+    const bk=await YBK.read(f),m=bk.manifest;
+    if(!/^price-check-/.test(m.appId||''))throw new Error(`This backup is from ${m.app||'another app'}, not Price Check.`);
+    if(m.appId!==BK_APP)throw new Error(`This backup is from ${m.appId==='price-check-grand'?'Grand Jewellers':'Yamie'}. This app is ${BRAND.full||BRAND.name}.`);
+    bkPicked=bk;$('bkProg').hidden=true;
+    $('bkInfo').innerHTML=`<dt>Made</dt><dd>${esc(new Date(m.created).toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'}))}${m.by?' · '+esc(m.by):''}</dd><dt>App</dt><dd>${esc(m.app)} ${esc(m.version||'')}</dd><dt>Shared</dt><dd>${m.shared.length} records · ${m.totals.photos} photos · ${YBK.fmtMB(m.totals.bytes||0)}</dd><dt>Phone</dt><dd>${m.phone?'Included':'Not included'}</dd><dt>File</dt><dd>${esc(f.name)} · ${YBK.fmtMB(f.size)}</dd>`;
+    $('bkShared').checked=!!m.shared.length;$('bkShared').disabled=!m.shared.length;$('bkPhone').checked=!!m.phone;$('bkPhone').disabled=!m.phone;
+    bkMode='replace';bkPaintMode();$('bkConfirm').value='';$('bkRs').hidden=false;$('bkRs').scrollIntoView({behavior:'smooth',block:'center'});
+  }catch(er){bkPicked=null;bkProg(YBK.errText(er),0)}
+  finally{bkLock(false)}
+};
+$('bkGo').onclick=()=>withPerm('stock','Only an admin can restore a backup.',async()=>{
+  const bk=bkPicked;if(!bk||bkBusy)return;
+  const shared=$('bkShared').checked&&bk.manifest.shared.length,phone=$('bkPhone').checked&&!!bk.manifest.phone;
+  if(!shared&&!phone){toast('Tick what to restore',null,true);return}
+  if(shared&&!sync.key){toast('Connect the shared database first (Settings → Shared database)',null,true);return}
+  bkLock(true);$('bkRs').hidden=true;
+  try{
+    const r=await YBK.restore({call:bkCall,progress:bkProg,replace:bkMode==='replace',sharedOn:!!shared,phoneOn:phone,restorePhone:bkRestorePhone},bk);
+    bkProg(`Restored ${r.records} records${phone?' and this phone’s data':''}. Reloading…`,1);
+    toast('Backup restored');bkPicked=null;
+    setTimeout(()=>location.reload(),1500);
+  }catch(e){bkProg('Restore stopped: '+YBK.errText(e)+' Nothing is lost: run the restore again to finish it.',0);toast('Restore stopped',null,true);bkLock(false)}
+},true);
+bkPaintLast();
 // Search stock: is a label available?
 function openFind(q){setView('search');if(sync.key&&!openFind.pulled){openFind.pulled=1;pullImgIdx().then(runFind)}if(q!=null)$('findQ').value=q;runFind();setTimeout(()=>$('findQ').focus(),80)}
 function runFind(){
@@ -7642,7 +7748,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.8.26',APP_BUILD='__BUILD__';
+const APP_VERSION='1.8.27',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------

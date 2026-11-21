@@ -50,6 +50,7 @@ class MainActivity : ComponentActivity() {
     private val recognizer by lazy { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
     private val barcodes by lazy { BarcodeScanning.getClient() }
     private var fileCallback: ValueCallback<Array<Uri>>? = null
+    private val outFiles = java.util.concurrent.ConcurrentHashMap<String, Array<String>>()
 
     // Lets the page's <input type="file"> open the phone's file picker (stock Excel import)
     private val pickFile = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
@@ -117,16 +118,18 @@ class MainActivity : ComponentActivity() {
             override fun onShowFileChooser(view: WebView, callback: ValueCallback<Array<Uri>>, params: FileChooserParams): Boolean {
                 fileCallback?.onReceiveValue(null)
                 fileCallback = callback
+                val zip = params.acceptTypes.any { it.contains("zip") }
                 return try {
                     val i = Intent(Intent.ACTION_GET_CONTENT).apply {
                         addCategory(Intent.CATEGORY_OPENABLE)
                         type = "*/*"
-                        putExtra(Intent.EXTRA_MIME_TYPES, arrayOf(
+                        putExtra(Intent.EXTRA_MIME_TYPES, if (zip) arrayOf("application/zip", "application/x-zip-compressed", "application/x-zip", "application/octet-stream")
+                        else arrayOf(
                             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                             "application/vnd.ms-excel", "application/vnd.ms-excel.sheet.macroEnabled.12",
                             "text/csv", "text/comma-separated-values", "application/octet-stream"))
                     }
-                    pickFile.launch(Intent.createChooser(i, "Choose stock Excel file"))
+                    pickFile.launch(Intent.createChooser(i, if (zip) "Choose backup file" else "Choose stock Excel file"))
                     true
                 } catch (e: Exception) {
                     fileCallback = null
@@ -321,6 +324,55 @@ class MainActivity : ComponentActivity() {
                 try {
                     val send = Intent(Intent.ACTION_SEND).apply { type = mime; putExtra(Intent.EXTRA_STREAM, u); addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) }
                     startActivity(Intent.createChooser(send, if (saved) "Saved to Downloads · share" else "Share export"))
+                } catch (e: Exception) { }
+            }
+        }
+
+        // Large files (backups): written in pieces, then saved to Downloads and offered to share
+        @JavascriptInterface
+        fun fileBegin(name: String, mime: String): String {
+            val id = java.util.UUID.randomUUID().toString().substring(0, 8)
+            val safe = name.replace(Regex("[^A-Za-z0-9._ -]"), "_")
+            val dir = File(cacheDir, "share").apply { mkdirs() }
+            val now = System.currentTimeMillis()
+            dir.listFiles()?.forEach { if (now - it.lastModified() > 6 * 3600 * 1000L) it.delete() }
+            val f = File(dir, safe)
+            f.delete()
+            outFiles[id] = arrayOf(f.absolutePath, safe, mime)
+            return id
+        }
+
+        @JavascriptInterface
+        fun fileAppend(id: String, base64: String): Boolean {
+            val o = outFiles[id] ?: return false
+            return try {
+                java.io.FileOutputStream(o[0], true).use { it.write(Base64.decode(base64, Base64.DEFAULT)) }
+                true
+            } catch (e: Exception) { false }
+        }
+
+        @JavascriptInterface
+        fun fileEnd(id: String) {
+            val o = outFiles.remove(id) ?: return
+            val f = File(o[0]); val safe = o[1]; val mime = o[2]
+            var saved = false
+            if (Build.VERSION.SDK_INT >= 29) {
+                try {
+                    val cv = android.content.ContentValues().apply {
+                        put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, safe)
+                        put(android.provider.MediaStore.MediaColumns.MIME_TYPE, mime)
+                        put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS)
+                    }
+                    val uri = contentResolver.insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, cv)
+                    if (uri != null) { contentResolver.openOutputStream(uri)?.use { out -> f.inputStream().use { it.copyTo(out) } }; saved = true }
+                } catch (e: Exception) { }
+            }
+            val u = FileProvider.getUriForFile(this@MainActivity, "$packageName.files", f)
+            runOnUiThread {
+                web.evaluateJavascript("window.onNativeSaved && window.onNativeSaved(${JSONObject.quote(safe)}, $saved)", null)
+                try {
+                    val send = Intent(Intent.ACTION_SEND).apply { type = mime; putExtra(Intent.EXTRA_STREAM, u); addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+                    startActivity(Intent.createChooser(send, if (saved) "Saved to Downloads · share" else "Share backup"))
                 } catch (e: Exception) { }
             }
         }

@@ -1,4 +1,5 @@
 import { getStore } from "@netlify/blobs"
+import { backupOp } from "../lib/backup.mts"
 import type { Config } from "@netlify/functions"
 
 // Shared database for all Yamie Price Check phones (Android app, iPhone home-screen app).
@@ -399,6 +400,23 @@ export default async (req: Request) => {
 
     let body: any
     try { body = await req.json() } catch { return json(req, { error: "bad_json" }, 400) }
+    // Backup & restore of the whole shared database, photos included (admins only)
+    if (op.startsWith("bk_")) {
+      if ((await callerRole()) !== "admin") return json(req, { error: "bad_pin" }, 403)
+      try {
+        return json(req, await backupOp(st, op.slice(3), body || {}, {
+          done: async () => {
+            // restored data is newer than every phone's copy: make them all download it again
+            const m: any = ((await st.get("meta", { type: "json" })) as any) || {}
+            const t = Date.now()
+            for (const k of ["stock", "rates", "settings", "users", "quotes", "imgs", "leads", "sold", "pattrs", "pnames"]) m[k] = t
+            for (const k of Object.keys(m)) if (typeof m[k] === "number" && k !== "count") m[k] = t
+            m.restoredAt = t
+            await st.setJSON("meta", m)
+          },
+        }))
+      } catch (e: any) { return json(req, { error: e?.message || "backup_failed" }, e?.status || 500) }
+    }
     if (op === "login") {
       const u = await verifyUser(body?.username, String(body?.pin || ""))
       if (u) return json(req, { ok: true, user: publicUser(u, true) })
