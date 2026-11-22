@@ -558,7 +558,17 @@ body{padding-top:0}
 .login-in .brand.with-logo{text-align:center;align-self:center}
 
 /* ===== v1.4: views, compact header, price card, quote page, login ===== */
-body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote"] [data-pane]:not([data-pane="quote"]),body[data-view="settings"] [data-pane]:not([data-pane="settings"]),body[data-view="search"] [data-pane]:not([data-pane="search"]),body[data-view="reports"] [data-pane],body[data-view="quotes"] [data-pane]:not([data-pane="quotes"]),body[data-view="shop"] [data-pane]:not([data-pane="shop"]){display:none!important}
+body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote"] [data-pane]:not([data-pane="quote"]),body[data-view="settings"] [data-pane]:not([data-pane="settings"]),body[data-view="search"] [data-pane]:not([data-pane="search"]),body[data-view="reports"] [data-pane],body[data-view="quotes"] [data-pane]:not([data-pane="quotes"]),body[data-view="shop"] [data-pane]:not([data-pane="shop"]),body[data-view="orders"] [data-pane]:not([data-pane="orders"]){display:none!important}
+.od-row{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;margin:0 0 8px;color:inherit;font:inherit;cursor:pointer}
+.od-row b{font-size:15px}.od-row small{display:block;color:var(--muted,#7a7270);font-size:12.5px;margin-top:2px}.od-row .od-r{margin-left:auto;text-align:right;white-space:nowrap}
+.od-pill{display:inline-block;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--sunk);color:var(--fg)}
+.od-pill.g{background:#e3f2ea;color:#1f6b46}.od-pill.w{background:#fbefd9;color:#8a5a12}.od-pill.r{background:#f8dede;color:#9b1c1c}
+.od-it{border:1px solid var(--line);border-radius:14px;padding:12px;margin:10px 0;background:var(--surface)}
+.od-it .lead-f{margin-bottom:8px}.od-two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.od-refs{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}.od-refs img{width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+.od-seg{display:flex;gap:6px;margin:4px 0 10px}.od-seg button{flex:1}
+#odForm select,#odForm input,#odForm textarea{width:100%;box-sizing:border-box}
+#odCard{max-width:980px}
 .hero{padding:calc(10px + env(safe-area-inset-top,0px)) 12px 12px;background:linear-gradient(180deg,#7A0F1E 0%,var(--band) 100%)}
 .hero::after{display:none}
 .hero-in{display:grid!important;grid-template-columns:44px 1fr auto 44px;align-items:center;gap:6px;flex-wrap:nowrap}
@@ -2339,6 +2349,15 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
       <div class="wl-list" id="wlList"></div>
       <div class="wl-selbar" id="wlSelBar" hidden><span id="wlSelN"></span><button type="button" class="btn primary" id="wlSelShare">Share on WhatsApp</button><button type="button" class="btn ghost" id="wlSelClr">Clear</button></div>
     </div>
+    <div class="card" data-pane="orders" id="odCard">
+      <div class="sec-head"><h2>Orders</h2><button class="linkbtn" type="button" id="odRefresh">↻ Refresh</button></div>
+      <p class="note">Orders and customisation sent to Yamie Order Desk. Tap an order to open it in Order Desk.</p>
+      <button type="button" class="btn primary" id="odNewBtn" style="width:100%;margin:4px 0 12px">+ New order</button>
+      <div id="odForm" hidden></div>
+      <div class="seg" id="odFilter"><button type="button" data-f="mine" aria-pressed="true">Mine</button><button type="button" data-f="open" aria-pressed="false">All open</button><button type="button" data-f="all" aria-pressed="false">All</button></div>
+      <input id="odSearch" class="q-search" type="search" placeholder="Search customer, phone, design or order no." autocomplete="off">
+      <div id="odList"><p class="note">Loading…</p></div>
+    </div>
     <div class="card q-list" data-pane="quotes" id="qListCard">
       <div class="sec-head"><h2>All quotations</h2><button class="linkbtn" type="button" id="qRefresh">↻ Refresh</button></div>
       <div class="seg q-filter" id="qFilter"><button type="button" data-f="open" aria-pressed="true">Open</button><button type="button" data-f="closed">Sold</button><button type="button" data-f="cancelled">Enquiry</button><button type="button" data-f="all">All</button></div>
@@ -2559,6 +2578,7 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
   <button type="button" class="tab" id="tabQuote"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg><span>Quote</span><b class="tab-badge" id="tabBadge" hidden>0</b></button>
   <button type="button" class="tab" id="tabShop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9l1.5-5h13L20 9"/><path d="M4 9h16v2a3 3 0 0 1-5.3 1.9A3 3 0 0 1 12 14a3 3 0 0 1-2.7-1.1A3 3 0 0 1 4 11z"/><path d="M5 13.5V20h14v-6.5M10 20v-4h4v4"/></svg><span>Shop</span></button>
   <button type="button" class="tab" id="tabQuotes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><span>Quotes</span></button>
+  <button type="button" class="tab" id="tabOrders" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4h6l1 2h3v15H5V6h3z"/><path d="M9 4v3h6V4M9 12h6M9 16h4"/></svg><span>Orders</span></button>
   <button type="button" class="tab tab-dk" id="tabRep" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/></svg><span>Reports</span></button>
   <button type="button" class="tab" id="tabRates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18"/><path d="M5 20l1.5-5h5L13 20"/><path d="M11 20l1.5-5h5L19 20"/><path d="M8 15l1.5-5h5L16 15"/></svg><span>Gold Rates</span></button>
   <button type="button" class="tab" id="tabSet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="6.6"/><path d="M12 2.5v2.9M12 18.6v2.9M2.5 12h2.9M18.6 12h2.9M5.3 5.3l2 2M16.7 16.7l2 2M5.3 18.7l2-2M16.7 7.3l2-2"/></svg><span>Settings</span></button>
@@ -4101,42 +4121,94 @@ const _oldEdit=notClosed(()=>{
   if(!bill.items.length){toast('Add items first');return}
   withManager('A manager must log in to change making after discount.',()=>{mgrMode=true;renderBill();toast('Enter making after discount for each item')});
 });
-// Send items + customer to Yamie Order Desk: creates an enquiry there (authorised by the shop key), then can open it
-function sendToOrderDesk(list){
-  list=list.filter(t=>t&&t.sku);
-  const seen=new Set();list=list.filter(t=>{const k=keyOf(t.sku);if(seen.has(k))return false;seen.add(k);return true}).slice(0,10);
+// ---------- Orders section (Yamie Order Desk) ----------
+const OD_CATS=['Ring','Earrings','Nose pin','Pendant','Chain','Necklace','Bangle','Bracelet','Mangalsutra','Set','Anklet','Other'];
+const OD_PUR=[['22k','22K (916)'],['18k','18K (750)'],['14k','14K (585)'],['9k','9K (375)'],['pt','Platinum'],['ag','Silver']];
+let odAll=[],odF='mine',odDraft=null;
+const odBase=()=>BRAND.orderDesk.replace(/\/$/,'');
+function odOpen(id){const u=odBase()+'/new?o='+encodeURIComponent(id);if(NATIVE&&NATIVE.openUrl)NATIVE.openUrl(u);else window.open(u,'_blank','noopener')}
+async function loadOrders(){
   if(!BRAND.orderDesk)return;
-  if(!list.length){toast('Add an item first',null,true);return}
-  if(!sync.key){toast('Connect the shared database first (Admin settings → Shared database)',null,true);return}
-  const c=bill&&bill.cust||{};
-  $('modalTitle').textContent='Send to Order Desk';$('modalTitle').classList.remove('price-pop');
-  $('modalBody').innerHTML=`<p class="note">${list.length} item${list.length>1?'s':''}: ${list.map(t=>esc(keyOf(t.sku))).join(', ')}. Order Desk makes a new enquiry with the design, model number, weights and photos from the stock list.</p>
-    <div class="lead-f"><label for="odN">Customer name</label><input id="odN" autocomplete="off" maxlength="60" value="${esc(c.name||'')}"></div>
-    <div class="lead-f"><label for="odP">Phone / WhatsApp</label><input id="odP" type="tel" inputmode="tel" maxlength="16" value="${esc(c.phone||'')}"></div>
-    <label class="ap-opt"><input type="checkbox" id="odC"> Customer wants changes (customise the design)</label>
-    <div class="lead-f"><label for="odT">Note for Order Desk</label><input id="odT" autocomplete="off" maxlength="300" placeholder="Size, colour, changes, delivery date…"></div>`;
-  const a=$('modalActs');a.innerHTML='';const mk=(t,cl,f)=>{const el=document.createElement('button');el.type='button';el.className='btn '+cl;el.textContent=t;el.onclick=f;a.appendChild(el);return el};
-  const go=mk('Send','primary',async()=>{
-    const name=$('odN').value.trim(),phone=$('odP').value.trim();
-    if(!name){toast('Enter the customer name',null,true);$('odN').focus();return}
-    go.disabled=true;go.textContent='Sending…';
-    try{
-      const r=await fetch(BRAND.orderDesk.replace(/\/$/,'')+'/api/pc-order',{method:'POST',headers:{'content-type':'application/json','x-shop-key':sync.key},
-        body:JSON.stringify({by:meName(),cust:{name,phone},custom:$('odC').checked,note:[$('odT').value.trim(),bill&&(bill.no||bill.pno)?'Price Check quote '+quoteLabel(bill):''].filter(Boolean).join(' · '),
-          items:list.map(t=>({key:keyOf(t.sku),label:t.sku,name:t.item||'',size:t.size||'',qty:1}))})});
-      const d=await r.json().catch(()=>({}));
-      if(!r.ok)throw new Error(d.error||('Order Desk answered '+r.status));
-      if(c&&!c.name&&bill){bill.cust.name=name;bill.cust.phone=phone;saveBill()}
-      $('modalTitle').textContent='Sent to Order Desk';
-      $('modalBody').innerHTML=`<p>New enquiry for <b>${esc(name)}</b> with ${d.items} item${d.items>1?'s':''}. Order Desk staff get a reminder to check the price and send the estimate.</p>`;
-      a.innerHTML='';mk('Open Order Desk','primary',()=>{closeModal();const u=BRAND.orderDesk.replace(/\/$/,'')+'/new?o='+encodeURIComponent(d.id);if(NATIVE&&NATIVE.openUrl)NATIVE.openUrl(u);else window.open(u,'_blank','noopener')});mk('Done','ghost',closeModal);
-    }catch(e){go.disabled=false;go.textContent='Send';toast(navigator.onLine?(e.message||'Could not send'):'No internet',null,true)}
-  });
-  mk('Cancel','ghost',closeModal);
-  $('modal').hidden=false;setTimeout(()=>$('odN').focus(),40);
+  if(!sync.key){$('odList').innerHTML='<p class="note">Connect the shared database first (Settings → Shared database).</p>';return}
+  try{const r=await fetch(odBase()+'/api/pc-orders',{headers:{'x-shop-key':sync.key}});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||('Order Desk answered '+r.status));odAll=d.orders||[];paintOrders()}
+  catch(e){$('odList').innerHTML=`<p class="note">${esc(navigator.onLine?(e.message||'Could not load orders'):'No internet')}</p>`}
 }
-$('pdOrd').onclick=()=>sendToOrderDesk([cur]);
-$('qtOrd').onclick=()=>sendToOrderDesk(bill.items);
+function paintOrders(){
+  const q=($('odSearch').value||'').trim().toLowerCase(),me=meName();
+  const list=odAll.filter(o=>(odF==='all'||(odF==='open'?!['closed','lost'].includes(o.status):o.by===me))&&(!q||[o.ref,o.cust,o.phone,o.label].concat(o.items.map(i=>[i.product,i.designNo,i.model].join(' '))).join(' ').toLowerCase().includes(q)));
+  const cls=o=>['ready','final_ok','closed'].includes(o.status)?'g':['qc_fail','rework','lost'].includes(o.status)?'r':o.status==='enquiry'?'w':'';
+  $('odList').innerHTML=list.length?list.map(o=>`<button type="button" class="od-row" data-id="${esc(o.id)}"><div style="min-width:0"><b>${esc(o.cust||'Customer')}</b> <span class="od-pill ${cls(o)}">${esc(o.label)}</span>
+      <small>${esc(o.items.map(i=>(i.design==='custom'?'✎ ':'')+(i.product||'Item')+(i.designNo?' #'+i.designNo:'')+(i.model?' · '+i.model:'')).join(' | '))}</small>
+      <small>${esc(o.ref)} · by ${esc(o.by)} · ${esc(new Date(o.at).toLocaleDateString('en-IN',{day:'numeric',month:'short'}))}${o.promise?' · delivery '+esc(o.promise):''}</small>
+      ${o.help?'<small style="color:#8a5a12">Waiting for the Design desk</small>':o.answer?`<small style="color:#1f6b46">Design desk: ${esc(o.answer.slice(0,90))}</small>`:''}</div>
+      <div class="od-r">${o.total?`<b>${inr(o.total)}</b><small>${o.totalKind==='final'?'final':'estimate'}</small>`:''}</div></button>`).join(''):`<p class="note">${odAll.length?'No orders match.':'No orders sent yet. Tap + New order.'}</p>`;
+  $('odList').querySelectorAll('.od-row').forEach(b=>b.onclick=()=>odOpen(b.dataset.id));
+}
+function odNewItem(d){return Object.assign({design:'ours',key:'',cat:'Ring',name:'',modelRef:'',purity:'18k',wt:'',size:'',custom:'',refs:[]},d||{})}
+function odStart(fromQuote){
+  const c=bill&&bill.cust||{};
+  const items=fromQuote?bill.items.filter(t=>t.sku).map(t=>odNewItem({key:keyOf(t.sku),name:t.item||''})):[];
+  odDraft={name:c.name||'',phone:c.phone||'',note:'',help:false,helpNote:'',items:items.length?items:[odNewItem()]};
+  setView('orders');paintOdForm();setTimeout(()=>{$('odForm').scrollIntoView({behavior:'smooth',block:'start'})},80);
+}
+function paintOdForm(){
+  const f=$('odForm');if(!odDraft){f.hidden=true;f.innerHTML='';$('odNewBtn').hidden=false;return}
+  f.hidden=false;$('odNewBtn').hidden=true;const d=odDraft;
+  f.innerHTML=`<div class="lead-f"><label>Customer name</label><input data-k="name" value="${esc(d.name)}" maxlength="60"></div>
+    <div class="lead-f"><label>Phone / WhatsApp</label><input data-k="phone" type="tel" inputmode="tel" value="${esc(d.phone)}" maxlength="16"></div>
+    ${d.items.map((it,i)=>{const rec=it.key?findStock(it.key):null;return `<div class="od-it" data-i="${i}"><div class="sec-head"><b>Item ${i+1}</b>${d.items.length>1?`<button type="button" class="linkbtn" data-del="${i}">Remove</button>`:''}</div>
+      <div class="od-seg"><button type="button" class="btn ${it.design==='ours'?'primary':''}" data-des="ours">Our design</button><button type="button" class="btn ${it.design==='custom'?'primary':''}" data-des="custom">Customised</button></div>
+      ${it.design==='ours'?`<div class="lead-f"><label>Design / tag label (from stock)</label><input data-f="key" value="${esc(it.key)}" autocapitalize="characters" placeholder="e.g. FRG1042"></div>
+        <p class="note" style="margin:-2px 0 6px">${rec?`✓ ${esc([rec.barcode,rec.category,rec.carat,rec.nw!=null?fmtN(rec.nw)+' g':'',rec.model?'model '+rec.model:''].filter(Boolean).join(' · '))}`:it.key?'Not found in the stock list — Order Desk will search its copy.':'Type the label, or use the Order button on a priced item.'}</p>`
+      :`<div class="od-two"><div class="lead-f"><label>Item</label><select data-f="cat">${OD_CATS.map(c=>`<option ${c===it.cat?'selected':''}>${c}</option>`).join('')}</select></div>
+          <div class="lead-f"><label>Purity</label><select data-f="purity">${OD_PUR.map(([k,l])=>`<option value="${k}" ${k===it.purity?'selected':''}>${l}</option>`).join('')}</select></div></div>
+        <div class="lead-f"><label>Product name</label><input data-f="name" value="${esc(it.name)}" placeholder="e.g. Emerald cocktail ring"></div>
+        <div class="lead-f"><label>Model reference *</label><input data-f="modelRef" value="${esc(it.modelRef)}" placeholder="Similar model / design no. or website link"></div>
+        <div class="od-two"><div class="lead-f"><label>Approx. weight (g)</label><input data-f="wt" inputmode="decimal" value="${esc(it.wt)}"></div><div class="lead-f"><label>Size / length</label><input data-f="size" value="${esc(it.size)}"></div></div>
+        <div class="lead-f"><label>What the customer wants changed</label><textarea data-f="custom" rows="2">${esc(it.custom)}</textarea></div>
+        <label class="note" style="display:block;margin-top:4px">Reference images from the customer *</label>
+        <div class="od-refs">${it.refs.map((r,k)=>`<img src="${r}" alt="" data-rm="${k}" title="Tap to remove">`).join('')}<label class="btn" style="display:inline-flex;align-items:center">+ Photo<input type="file" accept="image/*" multiple hidden data-ref="${i}"></label></div>`}
+    </div>`}).join('')}
+    <button type="button" class="btn" id="odAddIt" style="width:100%">+ Add another item</button>
+    ${bill&&bill.items.length?'<button type="button" class="btn" id="odFromQ" style="width:100%;margin-top:8px">Add the items from the current quote</button>':''}
+    <div class="lead-f" style="margin-top:10px"><label>Note for Order Desk</label><input data-k="note" value="${esc(d.note)}" placeholder="Delivery date, budget, anything else"></div>
+    <label class="ap-opt"><input type="checkbox" data-k="help" ${d.help?'checked':''}> Not sure — ask the Design desk for help</label>
+    ${d.help?`<div class="lead-f"><label>Question for the Design desk</label><input data-k="helpNote" value="${esc(d.helpNote)}" placeholder="e.g. Which setting suits this stone?"></div>`:''}
+    <div class="od-two" style="margin:12px 0 16px"><button type="button" class="btn ghost" id="odCancel">Cancel</button><button type="button" class="btn primary" id="odSend">Send to Order Desk</button></div>`;
+  f.querySelectorAll('[data-k]').forEach(el=>el.oninput=el.onchange=()=>{const k=el.dataset.k;d[k]=el.type==='checkbox'?el.checked:el.value;if(k==='help')paintOdForm()});
+  f.querySelectorAll('.od-it').forEach(box=>{const it=d.items[+box.dataset.i];
+    box.querySelectorAll('[data-f]').forEach(el=>{el.oninput=el.onchange=()=>{it[el.dataset.f]=el.dataset.f==='key'?el.value.toUpperCase():el.value;if(el.dataset.f==='key'&&el.type!=='select-one'){const p=box.querySelector('p.note');const rec=findStock(it.key);if(p)p.textContent=rec?'✓ '+[rec.barcode,rec.category,rec.carat,rec.nw!=null?fmtN(rec.nw)+' g':'',rec.model?'model '+rec.model:''].filter(Boolean).join(' · '):(it.key?'Not found in the stock list — Order Desk will search its copy.':'')}}});
+    box.querySelectorAll('[data-des]').forEach(b=>b.onclick=()=>{it.design=b.dataset.des;paintOdForm()});
+    box.querySelectorAll('[data-rm]').forEach(im=>im.onclick=()=>{it.refs.splice(+im.dataset.rm,1);paintOdForm()});
+    const fi=box.querySelector('[data-ref]');if(fi)fi.onchange=async()=>{for(const file of [...fi.files].slice(0,4-it.refs.length)){const u=await shrink(file);if(u)it.refs.push(u)}paintOdForm()};
+    const del=box.querySelector('[data-del]');if(del)del.onclick=()=>{d.items.splice(+del.dataset.del,1);paintOdForm()};});
+  $('odAddIt').onclick=()=>{d.items.push(odNewItem());paintOdForm()};
+  if($('odFromQ'))$('odFromQ').onclick=()=>{const have=new Set(d.items.map(x=>keyOf(x.key)));bill.items.filter(t=>t.sku&&!have.has(keyOf(t.sku))).forEach(t=>d.items.push(odNewItem({key:keyOf(t.sku),name:t.item||''})));d.items=d.items.filter(x=>x.design==='custom'||x.key);if(!d.items.length)d.items=[odNewItem()];paintOdForm()};
+  $('odCancel').onclick=()=>{odDraft=null;paintOdForm()};
+  $('odSend').onclick=()=>odSend();
+}
+async function odSend(){
+  const d=odDraft;if(!d)return;
+  if(!d.name.trim()){toast('Enter the customer name',null,true);return}
+  for(let i=0;i<d.items.length;i++){const it=d.items[i];
+    if(it.design==='ours'&&!it.key.trim()){toast(`Item ${i+1}: type the design / tag label`,null,true);return}
+    if(it.design==='custom'&&!it.modelRef.trim()&&!it.refs.length){toast(`Item ${i+1}: add a model reference or the customer's image`,null,true);return}}
+  const b=$('odSend');b.disabled=true;b.textContent='Sending…';
+  try{
+    const r=await fetch(odBase()+'/api/pc-order',{method:'POST',headers:{'content-type':'application/json','x-shop-key':sync.key},body:JSON.stringify({by:meName(),cust:{name:d.name.trim(),phone:d.phone.trim()},note:d.note.trim(),help:d.help,helpNote:d.helpNote.trim(),
+      items:d.items.map(it=>it.design==='ours'?{design:'ours',key:keyOf(it.key),label:it.key,name:it.name,qty:1}:{design:'custom',cat:it.cat,name:it.name||it.cat,modelRef:it.modelRef,purity:it.purity,wt:it.wt,size:it.size,custom:it.custom,refs:it.refs})})});
+    const res=await r.json().catch(()=>({}));if(!r.ok)throw new Error(res.error||('Order Desk answered '+r.status));
+    odDraft=null;paintOdForm();toast('Sent to Order Desk');loadOrders();
+  }catch(e){b.disabled=false;b.textContent='Send to Order Desk';toast(navigator.onLine?(e.message||'Could not send'):'No internet',null,true)}
+}
+$('tabOrders').onclick=()=>setView('orders');
+$('odNewBtn').onclick=()=>odStart(false);
+$('odRefresh').onclick=()=>loadOrders();
+$('odSearch').oninput=()=>paintOrders();
+$('odFilter').querySelectorAll('button').forEach(b=>b.onclick=()=>{odF=b.dataset.f;$('odFilter').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));paintOrders()});
+$('tabOrders').hidden=!BRAND.orderDesk;
+$('pdOrd').onclick=()=>{const c=bill&&bill.cust||{};odDraft={name:c.name||'',phone:c.phone||'',note:'',help:false,helpNote:'',items:[odNewItem({key:keyOf(cur.sku),name:cur.item||''})]};setView('orders');paintOdForm()};
+$('qtOrd').onclick=()=>{if(!bill.items.length){toast('Add an item first',null,true);return}odStart(true)};
 $('qtOrd').hidden=!BRAND.orderDesk;
 $('qtDel').onclick=()=>{
   if(billIsEmpty()){toast('Nothing to delete');return}
@@ -5103,14 +5175,15 @@ function setMenu(on){$('menu').hidden=!on;$('menuScrim').hidden=!on;$('menuBtn')
 $('menuBtn').onclick=()=>setMenu(true);$('menuClose').onclick=$('menuScrim').onclick=()=>setMenu(false);
 $('menu').addEventListener('click',e=>{if(e.target.closest('.menu-acts button'))setMenu(false)});
 // Views: Home (price check), Quote, Settings (stock data + admin settings)
-const VIEW_TITLE={shop:'Shop links',quotes:'All quotations',home:'Price Check',quote:'Quote',settings:'Settings',search:'Search',reports:'Reports'};
-const VIEW_SUB={shop:'Website, catalogue and collection links to share with customers.',quotes:'Every quote. Tap one to make it the current quote.',home:'Scan or type a label to price it at today\u2019s gold rate.',quote:'Create a bill or price quote for jewellery items.',settings:'Configure pricing, charges, products, users and application preferences.',search:'Find items by label no., item name, item type, supplier or stone.',reports:'Sales, quotes and staff performance.'};
+const VIEW_TITLE={orders:'Orders',shop:'Shop links',quotes:'All quotations',home:'Price Check',quote:'Quote',settings:'Settings',search:'Search',reports:'Reports'};
+const VIEW_SUB={orders:'Orders and customisation sent to Yamie Order Desk, with their status.',shop:'Website, catalogue and collection links to share with customers.',quotes:'Every quote. Tap one to make it the current quote.',home:'Scan or type a label to price it at today\u2019s gold rate.',quote:'Create a bill or price quote for jewellery items.',settings:'Configure pricing, charges, products, users and application preferences.',search:'Find items by label no., item name, item type, supplier or stone.',reports:'Sales, quotes and staff performance.'};
 function setView(v){
   const was=document.body.dataset.view;document.body.dataset.view=v;
-  $('viewTitle').textContent=VIEW_TITLE[v];$('dkTitle').textContent=VIEW_TITLE[v];$('dkSub').textContent=VIEW_SUB[v]||'';try{paintWtop()}catch(e){}{const t=$({shop:'tabShop',quotes:'tabQuotes',home:'tabHome',quote:'tabQuote',settings:'tabSet',search:'tabFind',reports:'tabRep'}[v]);const g=t&&t.querySelector('svg');if(g)$('dkIco').innerHTML=g.outerHTML}$('heroBack').hidden=v==='home';
-  [['tabHome','home'],['tabFind','search'],['tabQuote','quote'],['tabQuotes','quotes'],['tabShop','shop'],['tabSet','settings'],['tabRep','reports']].forEach(([id,k])=>$(id).classList.toggle('on',k===v));
+  $('viewTitle').textContent=VIEW_TITLE[v];$('dkTitle').textContent=VIEW_TITLE[v];$('dkSub').textContent=VIEW_SUB[v]||'';try{paintWtop()}catch(e){}{const t=$({orders:'tabOrders',shop:'tabShop',quotes:'tabQuotes',home:'tabHome',quote:'tabQuote',settings:'tabSet',search:'tabFind',reports:'tabRep'}[v]);const g=t&&t.querySelector('svg');if(g)$('dkIco').innerHTML=g.outerHTML}$('heroBack').hidden=v==='home';
+  [['tabHome','home'],['tabFind','search'],['tabQuote','quote'],['tabQuotes','quotes'],['tabOrders','orders'],['tabShop','shop'],['tabSet','settings'],['tabRep','reports']].forEach(([id,k])=>$(id).classList.toggle('on',k===v));
   if(v==='quote'){renderBill();if(sync.key)pullQuotes();try{goStep(was!=='quote'?'ov':qStep,true)}catch(e){}}
   if(v==='quotes'){try{renderRecent()}catch(e){}if(sync.key)pullQuotes()}
+  if(v==='orders')loadOrders();
   if(v==='reports'){$('setReports').open=true;buildReport();if(sync.key)pullQuotes().then(()=>{if(document.body.dataset.view==='reports')buildReport()}).catch(()=>{})}
   else if(was==='reports')$('setReports').open=false;
   if(v==='home')setTimeout(()=>scanFocus(),60);
@@ -7787,7 +7860,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.8.28',APP_BUILD='__BUILD__';
+const APP_VERSION='1.8.29',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------
@@ -8168,11 +8241,12 @@ setInterval(()=>pollInbox(),30000);
 setInterval(()=>{try{if(needsAppr()&&apprState(bill)==='pending')pollInbox()}catch(e){}},8000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pollInbox()});
 // Footer tabs each role sees (admin chooses; admins always see all). Home is always shown.
-const FOOT_TABS=[['tabScan','Scan'],['tabFind','Search'],['tabQuote','Quote'],['tabQuotes','All quotes'],['tabShop','Shop'],['tabRates','Gold Rates'],['tabSet','Settings']];
+const FOOT_TABS=[['tabScan','Scan'],['tabFind','Search'],['tabQuote','Quote'],['tabQuotes','All quotes'],['tabOrders','Orders'],['tabShop','Shop'],['tabRates','Gold Rates'],['tabSet','Settings']];
 function applyTabs(){
   const role=curUser?curUser.role:'',hid=role&&role!=='admin'?((settings.tabHide||{})[role]||[]):[];
   FOOT_TABS.forEach(([id])=>{const b=$(id);if(b)b.hidden=hid.includes(id)});
   if($('tabShop')&&!can('shopTab'))$('tabShop').hidden=true;
+  if($('tabOrders')&&!BRAND.orderDesk)$('tabOrders').hidden=true;
   try{paintFooterSet()}catch(e){}
 }
 function paintFooterSet(){

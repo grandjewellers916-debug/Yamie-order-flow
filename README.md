@@ -589,3 +589,9 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 - A pop-up asks for the customer name, phone, "customer wants changes" and a note, then POSTs to `https://yamie-order-desk.netlify.app/api/pc-order` with the shared-database shop key (`x-shop-key`). Order Desk builds the enquiry from the stock list (design, model, weights, photos).
 - After sending, **Open Order Desk** opens `/new?o=<id>` (the Order Desk app if installed, else the web page).
 - sw.js cache `ypc-v112`.
+
+## V 1.8.29 — Orders section (22 Nov 2026)
+- New **Orders** tab (Yamie only; can be hidden per role in Footer settings): list of orders sent to Yamie Order Desk (GET `/api/pc-orders` with the shop key) — Mine / All open / All, search, status, estimate or final total, delivery date, Design desk help state. Tap → opens the order in Order Desk.
+- **+ New order**: customer, any number of items — Our design (stock label, checked against the stock list) or Customised (item, purity, product name, model reference, weight, size, changes, reference images from the customer, shrunk to 1280 px). "Not sure — ask the Design desk for help" with a question. Sends to `/api/pc-order`.
+- **Order** on the product card and **Order Desk** in the quote tools open this form with the item(s) filled in.
+- sw.js cache `ypc-v113`.
