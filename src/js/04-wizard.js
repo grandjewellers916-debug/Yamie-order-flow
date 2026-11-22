@@ -13,11 +13,12 @@ function newEnquiry(prefill) {
   else wiz.o = { cust: { name: '', phone: '', src: 'Walk-in', notes: '' }, items: [prefill || newItem()], disc: 0, owner: me.name };
   wiz.id = null; wiz.step = 0; go('vNew');
 }
-function editOrder(id) {
+function editOrder(id, force) {
   const o = orders.find((x) => x.id === id);
-  if (!o || !EDITABLE.includes(o.status)) return toast('Items are locked after the order is confirmed');
-  if (!can('enquiry')) return toast('Your role cannot edit enquiries');
-  wiz.id = id; wiz.o = clone(o); if (!wiz.o.items.length) wiz.o.items = [newItem()];
+  const reviewer = force && (o.reviews || []).some((r) => !r.ans && canAnswer(r));
+  if (!o || (!EDITABLE.includes(o.status) && !(force && me.role === 'admin'))) return toast('Items are locked after the order is confirmed');
+  if (!can('enquiry') && !reviewer && me.role !== 'admin') return toast('Your role cannot edit enquiries');
+  wiz.id = id; wiz.admin = !EDITABLE.includes(o.status); wiz.o = clone(o); if (!wiz.o.items.length) wiz.o.items = [newItem()];
   wiz.step = 1; go('vNew');
 }
 function keepDraft() { if (!wiz.id) store('yod_draft', wiz.o); }
@@ -121,7 +122,6 @@ function stoneEditor(i, j, s) {
       <div class="field"><label>Pieces</label><input inputmode="numeric" value="${esc(s.pcs)}" oninput="setSt(${i},${j},'pcs',this.value)"></div></div>
     <div class="two"><div class="field"><label>${t === 'diamond' || t === 'labgrown' ? 'Quality (clarity)' : 'Quality / grade'}</label><input value="${esc(s.quality)}" oninput="setSt(${i},${j},'quality',this.value)" placeholder="${t === 'diamond' || t === 'labgrown' ? 'VVS, VS1, SI…' : 'AAA, AA…'}"></div>
       <div class="field"><label>${t === 'diamond' || t === 'labgrown' ? 'Colour grade' : 'Stone colour'}</label><input value="${esc(s.colour)}" oninput="setSt(${i},${j},'colour',this.value)" placeholder="${t === 'diamond' || t === 'labgrown' ? 'D–F, G–H, I–J' : 'Red, blue…'}"></div></div>
-    <div class="field"><label>Setting</label><div class="choiceRow">${['Prong', 'Bezel', 'Pavé', 'Channel', 'Invisible', 'Flush'].map((x) => `<button class="chip ${s.setting === x ? 'active' : ''}" onclick="setSt(${i},${j},'setting','${x}');wizItems()">${x}</button>`).join('')}</div></div>
     <div class="two"><div class="field"><label>Priced</label><select onchange="setSt(${i},${j},'unit',this.value);wizItems()">${opt(t === 'synthetic' ? [['pc', 'Per piece'], ['g', 'Per gram']] : [['ct', 'Per carat'], ['pc', 'Per piece']], unit)}</select></div>
       ${unit === 'g' ? `<div class="field"><label>Weight (g)</label><input inputmode="decimal" value="${esc(s.wtg)}" oninput="setSt(${i},${j},'wtg',this.value)"></div>` : ''}
       <div class="field"><label>Rate ₹ ${UNIT_LABEL[unit]}</label><input inputmode="decimal" value="${esc(s.rate)}" oninput="setSt(${i},${j},'rate',this.value)"></div></div>
@@ -160,7 +160,7 @@ function itemEditor(it, i) {
       <button class="chip ${it.design === 'ours' ? 'active' : ''}" onclick="setIt(${i},'design','ours');wizItems()">Our design</button>
       <button class="chip ${it.design === 'custom' ? 'active' : ''}" onclick="setIt(${i},'design','custom');wizItems()">Customised</button></div></div>
     <div class="wtRow"><div class="field"><label>11. ${it.design === 'ours' ? 'Design number / label (Price Check)' : 'Reference design no.'}</label><input id="dn${i}" value="${esc(it.designNo)}" oninput="setIt(${i},'designNo',this.value)" placeholder="e.g. YR1042 or tag label"></div>
-      <button class="btn small soft" onclick="pcFind(${i})">Find</button></div>
+      <button class="btn small soft" onclick="pcBrowse(${i})">Search designs</button></div>
     <div class="two"><div class="field"><label>Model number</label><input value="${esc(it.model)}" oninput="setIt(${i},'model',this.value)"></div>
       <div class="field"><label>Preferred vendor</label><select onchange="setIt(${i},'vendor',this.value)"><option value="">Decide later</option>${opt(vendors.filter((v) => v.active !== false).map((v) => v.name), it.vendor)}</select></div></div>
     <div class="field"><label>Design details</label><textarea oninput="setIt(${i},'details',this.value)" placeholder="Style, finish, anything special…">${esc(it.details)}</textarea></div>
@@ -192,6 +192,39 @@ async function pcFind(i) {
       <small class="hint" style="margin:0">${esc([r.category, r.carat, r.gw ? 'GW ' + r.gw : '', r.nw ? 'NW ' + r.nw : '', r.dw ? 'Dia ' + r.dw + ' ct' : '', r.imgs ? r.imgs + ' photo(s)' : ''].filter(Boolean).join(' · '))}</small></div>
       <button class="btn small" onclick="pcUse(${i},${k})">Use</button></div>`).join('')}`);
 }
+// Search list of designs available in Price Check (photos, category filter, paging).
+const PCB = { i: 0, q: '', cat: '', off: 0, rows: [], total: 0, cats: [], t: 0, thumbs: {} };
+function pcBrowse(i) {
+  const it = wiz.o.items[i];
+  Object.assign(PCB, { i, q: (it.designNo || '').trim(), cat: '', off: 0, rows: [], total: 0 });
+  openSheet(`<h2>Designs in Price Check</h2><p class="sub" id="pcbSub">Search by design number, tag, model or name. Tap a design to use it.</p>
+    <input class="search" id="pcbQ" value="${esc(PCB.q)}" placeholder="e.g. YR1042, solitaire, bangle" oninput="clearTimeout(PCB.t);PCB.t=setTimeout(()=>{PCB.q=this.value.trim();PCB.off=0;pcbLoad()},350)">
+    <div class="choiceRow" id="pcbCats" style="margin:8px 0"></div><div id="pcbList"><p class="hint">Loading…</p></div>`);
+  pcbLoad();
+}
+async function pcbLoad(more) {
+  let d;
+  try { d = await api(`pc/list?q=${encodeURIComponent(PCB.q)}&cat=${encodeURIComponent(PCB.cat)}&off=${PCB.off}`); }
+  catch (e) { if ($('pcbList')) $('pcbList').innerHTML = `<div class="badBox">${esc(isNet(e) ? 'No internet' : e.message)}</div>`; return; }
+  if (!$('pcbList')) return;
+  PCB.rows = more ? PCB.rows.concat(d.rows) : d.rows; PCB.total = d.total; PCB.cats = d.cats;
+  $('pcbSub').textContent = `${d.total} design${d.total === 1 ? '' : 's'} available · stock as of ${dtt(d.at)}`;
+  $('pcbCats').innerHTML = [['', 'All']].concat(d.cats.slice(0, 14).map((c) => [c.name, `${c.name} (${c.n})`])).map(([k, l]) => `<button class="chip ${PCB.cat === k ? 'active' : ''}" onclick='PCB.cat=${esc(JSON.stringify(k))};PCB.off=0;pcbLoad()'>${esc(l)}</button>`).join('');
+  $('pcbList').innerHTML = PCB.rows.length ? `<div class="pcGrid">${PCB.rows.map((r, k) => `<button class="pcCard" onclick="pcbUse(${k})"><span class="pcImg" id="pcb_${esc(r.k)}">${PCB.thumbs[r.k] ? `<img src="${esc(PCB.thumbs[r.k])}" alt="">` : r.imgs ? '<i>…</i>' : '<i>No photo</i>'}</span>
+      <b>${esc(r.label)}</b><small>${esc([r.name || r.item, r.carat, r.nw ? 'NW ' + r.nw + ' g' : r.gw ? 'GW ' + r.gw + ' g' : '', r.dw ? 'Dia ' + r.dw + ' ct' : '', r.stock > 1 ? r.stock + ' in stock' : ''].filter(Boolean).join(' · '))}</small></button>`).join('')}</div>
+    ${PCB.rows.length < PCB.total ? '<button class="btn secondary block" style="margin-top:10px" onclick="PCB.off=PCB.rows.length;pcbLoad(true)">Show more</button>' : ''}` : '<p class="hint">No designs match.</p>';
+  pcbThumbs();
+}
+async function pcbThumbs() {
+  const todo = PCB.rows.filter((r) => r.imgs && !PCB.thumbs[r.k]);
+  for (let n = 0; n < todo.length; n += 4) {
+    await Promise.all(todo.slice(n, n + 4).map(async (r) => {
+      try { const d = await api('pc/thumb?k=' + encodeURIComponent(r.k)); PCB.thumbs[r.k] = d.img || ''; const el = $('pcb_' + r.k); if (el) el.innerHTML = d.img ? `<img src="${esc(d.img)}" alt="">` : '<i>No photo</i>'; } catch (e) { /* skip */ }
+    }));
+    if (!$('pcbList')) return;
+  }
+}
+function pcbUse(k) { window._pcRows = PCB.rows; pcUse(PCB.i, k); }
 function pcUse(i, k) {
   const r = window._pcRows[k], it = wiz.o.items[i];
   it.designNo = r.label; it.design = 'ours';
@@ -241,6 +274,7 @@ function wizPrice() {
     </div>`).join('')}
     <div class="card"><h3>Estimate</h3>
       <div class="field"><label>Discount ₹</label><input inputmode="decimal" value="${esc(o.disc || '')}" oninput="wiz.o.disc=this.value;keepDraft();priceLive()"></div>
+      <div class="field"><label>Making charge on the customer card</label><select onchange="wiz.o.mkShow=this.value;keepDraft()"><option value="">Default (${esc((MK_SHOW.find((m) => m[0] === (S.mkShow || 'type')) || [])[1] || '')})</option>${opt(MK_SHOW, o.mkShow || '')}</select></div>
       <div id="pTot"></div></div>`;
   priceLive();
 }
@@ -271,6 +305,7 @@ function wizReview() {
       <p class="hint">Delivery: at least ${S.leadDays} working days from order confirmation (about ${dt(promise)} if confirmed today). Estimate valid ${S.estValid} days.</p></div>
     <div class="actions">
       <button class="btn secondary" onclick="wizSave(false)">Save as draft</button>
+      <button class="btn soft" onclick="wizSave('review')">Not sure? Save & ask for review</button>
       ${can('estimate') ? `<button class="btn" onclick="wizSave(true)">${wiz.id && (orders.find((x) => x.id === wiz.id) || {}).estNo ? 'Re-issue estimate' : 'Issue estimate'}</button>` : ''}
     </div>`;
 }
@@ -297,15 +332,18 @@ async function wizSave(issue) {
     const lastEst = lastOf(was.ests);
     if (lastEst) o.items.forEach((it) => { const old = (lastEst.items || []).find((x) => x.id === it.id); if (old && was.approval && JSON.stringify(Object.assign({}, old, { rev: 0 })) !== JSON.stringify(Object.assign({}, it, { rev: 0 }))) it.rev = (old.rev || 1) + 1; });
     if (['estimate', 'approved'].includes(was.status)) { o.status = 'enquiry'; o.approval = null; }
-    o.log = (o.log || []).concat([{ t: Date.now(), by: me.name, a: was.status === 'enquiry' ? 'Enquiry edited' : 'Revised — needs a new estimate and customer approval' }]);
+    o.log = (o.log || []).concat([{ t: Date.now(), by: me.name, a: !EDITABLE.includes(was.status) ? 'Admin edited items / price (status kept: ' + stLabel(was.status) + ')' : was.status === 'enquiry' ? 'Enquiry edited' : 'Revised — needs a new estimate and customer approval' }]);
     saved = await saveOrder(o);
     if (!saved) return;
   }
+  if (issue === 'review') { toast('Saved'); openOrder(saved.id); shReview(); return; }
   if (issue) saved = await issueEstimate(saved.id) || saved;
   else toast('Saved');
   openOrder(saved.id);
 }
 async function issueEstimate(id) {
+  const oo = orders.find((x) => x.id === id);
+  if (oo && openReviews(oo).length && !confirm('A review request is still open. Issue the estimate anyway?')) return null;
   return step(id, (o) => {
     if (o.status === 'hold') return toast('Resume the enquiry first'), false;
     o.ests = (o.ests || []).concat([makeEstimate(o)]);

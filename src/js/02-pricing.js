@@ -94,7 +94,8 @@ function breakdownHtml(b, items, opt = {}) {
   rows.push([`GST ${b.gstPct}%`, rupee2(b.gst)]);
   if (b.round) rows.push([`Rounded up to ₹${b.roundTo || S.roundTo}`, '+' + rupee2(b.round)]);
   return rows.map((r) => `<div class="kv"><span>${esc(r[0])}</span><span>${r[1]}</span></div>`).join('') +
-    `<div class="kv tot"><span>${opt.label || 'Estimated total'}</span><span>${rupee(b.total)}</span></div>`;
+    `<div class="kv tot"><span>${opt.label || 'Estimated total'}</span><span>${rupee(b.total)}</span></div>` +
+    (num(b.disc) ? `<div class="kv"><span style="color:var(--ok);font-weight:700">Customer saves</span><span style="color:var(--ok);font-weight:800">${rupee(Math.round(num(b.disc) * (1 + num(b.gstPct) / 100)))}</span></div>` : '');
 }
 
 // ---------------- working days (same rule as the server) ----------------

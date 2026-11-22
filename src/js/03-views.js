@@ -67,27 +67,29 @@ function openOrder(id) { cur.id = id; cur.tab = 'next'; go('vDetail'); }
 
 // ---------------- tasks / reminders ----------------
 function tasksFor(o) {
-  const t = [], now = Date.now(), dayMs = 864e5, est = lastOf(o.ests), r = [];
-  if (o.status === 'estimate' && est && now - est.at > num(S.approveDays) * dayMs) t.push(['Follow up estimate · no reply in ' + Math.floor((now - est.at) / dayMs) + ' days', 'w', est.at + num(S.approveDays) * dayMs]);
-  if (o.status === 'approved' && verified(o, 'advance') < num(est && est.minAdv)) t.push(['Take advance (min ' + rupee(est && est.minAdv) + ')', 'w', o.approval ? o.approval.at : now]);
-  if (can('verify') && (o.pays || []).some((p) => !p.ok)) t.push(['Verify payment', 'r', now]);
-  if (o.status === 'approved' && verified(o, 'advance') >= num(est && est.minAdv) && can('confirm')) t.push(['Advance verified · confirm the order', 'g', now]);
-  if (o.status === 'confirmed') t.push(['Assign vendor', 'w', o.confirmedAt]);
-  if (o.status === 'vendor' && !o.vendor.sentAt) t.push(['Send work order to ' + o.vendor.name, 'w', now]);
+  const t = reviewTasks(o), now = Date.now(), dayMs = 864e5, est = lastOf(o.ests), fin = lastOf(o.finals);
+  const on = remOn, n = remN;
+  if (o.status === 'estimate' && est && on('estFollow') && now - est.at > n('estFollow') * dayMs) t.push(['Follow up estimate · no reply in ' + Math.floor((now - est.at) / dayMs) + ' days', 'w', est.at + n('estFollow') * dayMs]);
+  if (['estimate', 'approved'].includes(o.status) && est && est.valid && on('estExpiry')) { const v = new Date(est.valid + 'T18:00:00').getTime(); if (today() > est.valid) t.push(['Estimate expired ' + dshort(est.valid) + ' · re-issue at today\'s rates', 'r', v]); else if (v - now < n('estExpiry') * dayMs) t.push(['Estimate valid till ' + dshort(est.valid), 'w', v - n('estExpiry') * dayMs]); }
+  const apAt = o.approval ? o.approval.at : now;
+  if (o.status === 'approved' && on('advance') && verified(o, 'advance') < num(est && est.minAdv) && now >= apAt + n('advance') * dayMs) t.push(['Take advance (min ' + rupee(est && est.minAdv) + ')', 'w', apAt + n('advance') * dayMs]);
+  if (on('verify') && can('verify') && (o.pays || []).some((p) => !p.ok)) t.push(['Verify payment', 'r', now]);
+  if (on('confirm') && o.status === 'approved' && verified(o, 'advance') >= num(est && est.minAdv) && can('confirm')) t.push(['Advance verified · confirm the order', 'g', now]);
+  if (on('assignVendor') && o.status === 'confirmed' && now >= (o.confirmedAt || 0) + n('assignVendor') * dayMs) t.push(['Assign vendor', 'w', (o.confirmedAt || now) + n('assignVendor') * dayMs]);
+  if (on('workOrder') && o.status === 'vendor' && !o.vendor.sentAt) t.push(['Send work order to ' + o.vendor.name, 'w', now]);
   if (['vendor', 'production', 'rework'].includes(o.status) && o.vendor && o.vendor.etd) {
     const etd = new Date(o.vendor.etd + 'T10:00:00').getTime();
-    if (today() > o.vendor.etd) t.push(['Vendor ETD passed (' + dshort(o.vendor.etd) + ') · follow up', 'r', etd]);
-    else if (etd - now < num(S.etdWarnDays) * dayMs) t.push(['Vendor ETD ' + dshort(o.vendor.etd) + ' · check progress', 'w', etd - num(S.etdWarnDays) * dayMs]);
+    if (today() > o.vendor.etd) { if (on('etdPassed')) t.push(['Vendor ETD passed (' + dshort(o.vendor.etd) + ') · follow up', 'r', etd]); }
+    else if (on('etdWarn') && etd - now < n('etdWarn') * dayMs) t.push(['Vendor ETD ' + dshort(o.vendor.etd) + ' · check progress', 'w', etd - n('etdWarn') * dayMs]);
   }
   const fu = lastOf(o.fu);
-  if (fu && fu.next && fu.next <= today() && stage(o) === 'ord' && ['vendor', 'production', 'rework'].includes(o.status)) t.push(['Vendor follow-up due', 'w', new Date(fu.next + 'T10:00:00').getTime()]);
-  if (o.status === 'received') t.push(['QC inspection pending', 'w', now]);
-  if (o.status === 'qc_fail') t.push(['QC rejected · send for rework', 'r', now]);
-  if (o.status === 'qc_ok') t.push(['Calculate final price', 'w', now]);
-  if (o.status === 'final') t.push(['Final price to approve', 'w', now]);
-  if (o.status === 'final_ok') t.push(['Tell the customer: ready', 'g', now]);
-  if (o.status === 'ready' && o.readyAt && now - o.readyAt > num(S.collectDays) * dayMs) t.push(['Not collected for ' + Math.floor((now - o.readyAt) / dayMs) + ' days', 'r', o.readyAt + num(S.collectDays) * dayMs]);
-  if (o.promise && stage(o) === 'ord' && today() > o.promise) t.push(['Promised delivery passed (' + dshort(o.promise) + ')', 'r', new Date(o.promise + 'T10:00:00').getTime()]);
+  if (on('vendorFollow') && fu && fu.next && fu.next <= today() && stage(o) === 'ord' && ['vendor', 'production', 'rework'].includes(o.status)) t.push(['Vendor follow-up due', 'w', new Date(fu.next + 'T10:00:00').getTime()]);
+  if (on('qc')) { if (o.status === 'received') t.push(['QC inspection pending', 'w', now]); if (o.status === 'qc_fail') t.push(['QC rejected · send for rework', 'r', now]); }
+  if (on('finalCalc')) { if (o.status === 'qc_ok') t.push(['Calculate final price', 'w', now]); if (o.status === 'final' && fin && fin.cust) t.push(['Final price to approve', 'w', now]); }
+  if (on('custOk') && o.status === 'final' && fin && !fin.cust) { const at = (fin.at || now) + n('custOk') * dayMs; t.push([now >= at ? 'No customer OK on final price · follow up' : 'Waiting for customer OK on final price', now >= at ? 'r' : 'w', at]); }
+  if (on('ready') && o.status === 'final_ok') t.push(['Tell the customer: ready', 'g', now]);
+  if (on('collect') && o.status === 'ready' && o.readyAt && now - o.readyAt > n('collect') * dayMs) t.push(['Not collected for ' + Math.floor((now - o.readyAt) / dayMs) + ' days', 'r', o.readyAt + n('collect') * dayMs]);
+  if (on('promise') && o.promise && stage(o) === 'ord' && today() > o.promise) t.push(['Promised delivery passed (' + dshort(o.promise) + ')', 'r', new Date(o.promise + 'T10:00:00').getTime()]);
   return t;
 }
 function allTasks() {

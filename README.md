@@ -57,3 +57,14 @@ The page talks to `localStorage.yod_api` when set (tests set it to the local ser
 - More → Picture lists: edit every list (item types per category), add real photos, reorder, remove, reset. Saved in settings.lists.
 - More → Making charge helper: default rules by vendor, category, purity and net-weight range (most specific wins). Price step fills making automatically until staff change it; the helper button lists matching rules. Saved via POST /api/mkrules (rates or settings permission).
 - Picture cards (estimate, work order, final, ready) show the first product photo large, the rest as thumbnails.
+
+## V1.5 (22-11-2026)
+- New app logo (launcher icon, web icon, lock screen).
+- Making charge on customer cards/print: settings.mkShow 'type' | 'amount' | 'hide' (Pricing & policy); per order o.mkShow (Price step, final price sheet, estimate "Making on card").
+- Savings: discount × (1 + GST) shown as "You save" on estimate / final cards, print and WhatsApp text, "Customer saves" on screens.
+- Review requests (o.reviews): staff ask a desk (settings.reviewDesks, reviewTopics) about pricing / design; desk members (none = admins) get a reminder, can edit items and answer; requester sees the answer. Permission `review`.
+- Reminders: settings.rem {key: {on, n}} — More → Reminders (src/js/11-review.js REMS).
+- Admin tools on each order: edit items/price in any status, change/reset status with reason, delete (type DELETE).
+- Design search list: GET /api/pc/list?q=&cat=&off= (grouped by design, category chips, 30 per page) and /api/pc/thumb?k= (cached in pc/thumb/).
+- Stone "Setting" chips removed (setting style lives in ring details).
+

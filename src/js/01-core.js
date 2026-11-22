@@ -1,7 +1,7 @@
 // ======================================================================
 // Yamie Order Desk — core: helpers, server calls, sync, login
 // ======================================================================
-const APP_VERSION = '1.4';
+const APP_VERSION = '1.5';
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s != null ? s : '').replace(/[&<>"']/g, (x) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[x]);
 const num = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(/[,₹\s]/g, '')); return isFinite(n) ? n : 0; };
@@ -30,7 +30,7 @@ const PERMS = [
   ['vendor', 'Assign vendor / change ETD'], ['production', 'Vendor follow-up & production'], ['receive', 'Receive in store'],
   ['qc', 'QC approve / reject'], ['finalprice', 'Calculate final price'], ['approvefinal', 'Approve final price'],
   ['ready', 'Notify ready'], ['close', 'Invoice & close'], ['cancel', 'Hold / cancel confirmed orders'], ['rates', 'Update gold rates'],
-  ['vendors', 'Edit vendor list'], ['vendorcontact', 'See vendor phone numbers'], ['viewcost', 'See vendor cost'], ['reports', 'Reports'], ['delete', 'Delete enquiries'], ['settings', 'Settings'],
+  ['vendors', 'Edit vendor list'], ['vendorcontact', 'See vendor phone numbers'], ['review', 'Answer review requests (pricing / design)'], ['viewcost', 'See vendor cost'], ['reports', 'Reports'], ['delete', 'Delete enquiries'], ['settings', 'Settings'],
 ];
 const DEF_ROLE_PERMS = {
   manager: PERMS.map((p) => p[0]).filter((k) => k !== 'settings'),
@@ -41,7 +41,7 @@ const DEF_SETTINGS = {
   shopAddr: '63/322Aa Ground Level, Grand Business Center, K K Road, Kadavanthra, Ernakulam, Kerala 682020',
   rates: { k22: 0, k18: 0, k14: 0, k9: 0, pt: 0, ag: 0, at: 0, by: '', src: '', kioskAt: '' },
   kioskAuto: true, kioskUrl: 'https://grandjewellers.com/api/kiosk-rates',
-  gst: 3, minAdv: 20, roundTo: 50, finalRoundTo: 100, gems: null, lists: null, mkRules: [], mkOnStone: true, leadDays: 20, qcBuffer: 2, weeklyOff: [0], holidays: [],
+  gst: 3, minAdv: 20, roundTo: 50, finalRoundTo: 100, gems: null, lists: null, mkRules: [], mkShow: 'type', rem: {}, reviewDesks: [{ name: 'Owner / Admin', users: [] }, { name: 'Design desk', users: [] }], reviewTopics: ['Pricing', 'Making charge', 'Design style', 'Stones', 'Size / weight', 'Other'], mkOnStone: true, leadDays: 20, qcBuffer: 2, weeklyOff: [0], holidays: [],
   estValid: 7, tol: 2, discLimit: 0, karatRef: { k22: 32.6, k18: 28.4, k14: 24.3, k9: 18.7 },
   approveDays: 2, etdWarnDays: 2, collectDays: 7, autoLock: 20,
   priceCheckUrl: 'https://yamie-price-check.netlify.app', repairUrl: 'https://yamie-repair-desk.netlify.app',

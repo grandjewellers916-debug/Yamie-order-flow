@@ -18,6 +18,7 @@ function nextActions(o) {
     add('', 'Send estimate card (WhatsApp)', `sendEstimate('${o.id}')`, 'main');
     add('approve', 'Record customer approval', 'shApprove()');
     add('', 'Print / PDF estimate', `printEstimate('${o.id}')`);
+    add('estimate', 'Making on card: ' + ({ type: 'amount + type', amount: 'amount only', hide: 'hidden' })[mkShowOf(o)], 'shMkShow()');
     add('estimate', "Re-issue at today's rates", `issueEstimate('${o.id}')`);
     add('enquiry', 'Revise items', `editOrder('${o.id}')`);
   }
@@ -78,7 +79,9 @@ function renderDetail() {
       ${o.vendor && o.vendor.etd ? `<div class="kv"><span>Vendor ETD</span><span>${dt(o.vendor.etd)} · ${esc(o.vendor.name)}</span></div>` : ''}
       ${['hold', 'lost'].includes(o.status) && o.outcome ? `<div class="warnBox">${esc(stLabel(o.status))}: ${esc(o.outcome.reason)}</div>` : ''}
       <div class="actions"><button class="btn small soft" onclick="waChat('${o.id}')">WhatsApp</button><button class="btn small soft" onclick="callCust('${o.id}')">Call</button>
-        ${can('delete') && !o.ono ? `<button class="btn small danger" onclick="delOrder('${o.id}')">Delete</button>` : ''}</div>
+        ${can('delete') && !o.ono && me.role !== 'admin' ? `<button class="btn small danger" onclick="delOrder('${o.id}')">Delete</button>` : ''}
+        ${!['closed', 'lost'].includes(o.status) ? `<button class="btn small soft" onclick="shReview()">Ask for review${openReviews(o).length ? ' (' + openReviews(o).length + ' open)' : ''}</button>` : ''}
+        ${me.role === 'admin' ? `<button class="btn small secondary" onclick="shAdmin()">Admin: edit / reset / delete</button>` : ''}</div>
       <div class="stage">${MILESTONES.map((m, i) => `<span class="${i < curM ? 'done' : i === curM ? 'now' : ''}">${i < curM ? '✓ ' : ''}${m[0]}</span>`).join('')}</div>
     </div>
     ${acts.length ? `<div class="card"><h3>Next step</h3><div class="next">${acts.map(([l, f, cl]) => `<button class="btn ${cl === 'main' ? '' : 'secondary'}" onclick="${f}">${esc(l)}</button>`).join('')}</div>
@@ -90,7 +93,7 @@ function renderDetail() {
 
 function tabOverview(o) {
   const est = lastOf(o.ests), fin = lastOf(o.finals);
-  let h = '';
+  let h = reviewCard(o);
   if (fin) h += `<div class="card"><h3>Final price v${fin.v} <span class="badge">${fin.ok ? 'approved' : 'to approve'}</span></h3>${breakdownHtml(fin, fin.items || o.items, { label: 'Final price' })}
     <div class="kv"><span>Basis</span><span>${esc(fin.basis)}</span></div>
     <div class="kv"><span>Difference from estimate</span><span class="${fin.needCust ? 'overdue' : ''}">${fin.var >= 0 ? '+' : ''}${rupee(fin.var)} (${fin.varPct}%)</span></div></div>`;
@@ -367,6 +370,7 @@ function shFinal() {
   openSheet(`<h2>Final price</h2><p class="sub">${esc(finalCalc(o, 0).basis)} · actual weights${(lastOf(o.recv) || {}).purs ? ' and purity' : ''} from the receipt · rounded up to ₹${S.finalRoundTo || 100}.</p>
     <div class="two"><div class="field"><label>Additional approved charges ₹</label><input id="fnEx" inputmode="decimal" value="${last ? last.extra || '' : ''}" oninput="fnLive()"></div>
     <div class="field"><label>Discount ₹</label><input id="fnDisc" inputmode="decimal" value="${last ? last.discIn || '' : num(o.disc) || ''}" oninput="fnLive()"></div></div>
+    <div class="field"><label>Making charge on the customer card</label><select id="fnMk"><option value="">Default (${esc((MK_SHOW.find((m) => m[0] === (S.mkShow || 'type')) || [])[1] || '')})</option>${opt(MK_SHOW, o.mkShow || '')}</select></div>
     <div id="fnBox"></div>
     <button class="btn block" onclick="doFinal()">Save final price</button>`);
   fnLive();
@@ -379,7 +383,7 @@ function fnLive() {
     <div class="okBox">Next: send the final price card and ask the customer to reply <b>OK</b>.</div>`;
 }
 function doFinal() {
-  step(cur.id, (o) => { const b = finalCalc(o, num(f('fnEx')), f('fnDisc')); b.v = (o.finals || []).length + 1; o.finals = (o.finals || []).concat([b]); o.status = 'final'; },
+  step(cur.id, (o) => { const b = finalCalc(o, num(f('fnEx')), f('fnDisc')); b.v = (o.finals || []).length + 1; b.at = Date.now(); o.finals = (o.finals || []).concat([b]); o.status = 'final'; o.mkShow = $('fnMk').value; },
     'Final price calculated', 'Final price saved — send it to the customer').then((r) => r && closeSheet());
 }
 function shCustOk() {
@@ -446,4 +450,10 @@ function doOutcome() {
   if (!f('ocR')) return toast('Give the reason');
   const t = f('ocT');
   step(cur.id, (o) => { o.outcome = { reason: f('ocR') }; o.status = t; }, (t === 'hold' ? 'On hold · ' : 'Lost / cancelled · ') + f('ocR'), 'Saved').then((r) => r && closeSheet());
+}
+
+function shMkShow() {
+  const o = getO();
+  openSheet(`<h2>Making charge on customer cards</h2><p class="sub">For this ${o.ono ? 'order' : 'estimate'} only. Default: ${esc((MK_SHOW.find((m) => m[0] === (S.mkShow || 'type')) || [])[1] || '')}.</p>
+    ${MK_SHOW.map(([k, l]) => `<button class="btn ${mkShowOf(o) === k ? '' : 'secondary'} block" style="margin-bottom:8px" onclick="step(cur.id,(x)=>{x.mkShow='${k}'},'Making on card: ${esc(l)}','Saved').then((r)=>r&&closeSheet())">${esc(l)}</button>`).join('')}`);
 }

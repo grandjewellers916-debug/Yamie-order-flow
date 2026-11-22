@@ -44,7 +44,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: order-desk-v${{ github.run_number }}
-          name: Yamie Order Desk v1.4.${{ github.run_number }}
+          name: Yamie Order Desk v1.5.${{ github.run_number }}
           target_commitish: ${{ github.sha }}
           files: Yamie-Order-Desk-v*.apk
-          body: "Yamie Order Desk V1.4 (Update 2): category, item type, setting, shank, finish, stone and stone shape are picture dropdowns with large pop-up cards and full-screen zoom; every list can be edited in More - Picture lists with real photos; making charge helper with default rules by vendor, item, purity and weight range; large product photo on all picture cards. New versions install over the old one."
+          body: "Yamie Order Desk V1.5: new app logo; show or hide making charge on customer cards; savings shown when a discount is given; ask for review (Owner / Design desk) with reminders; customisable reminders; admin edit, reset and delete of any order; design search list from Price Check; stone setting removed from the stone section. Installs over the old version."

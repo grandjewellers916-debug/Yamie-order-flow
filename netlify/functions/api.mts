@@ -16,7 +16,7 @@ import { backupOp } from '../lib/backup.mts';
 export const config = { path: '/api/*' };
 
 const PERM_KEYS = ['enquiry', 'estimate', 'approve', 'advance', 'verify', 'discount', 'confirm', 'vendor', 'production', 'receive', 'qc',
-  'finalprice', 'approvefinal', 'ready', 'close', 'cancel', 'rates', 'vendors', 'vendorcontact', 'viewcost', 'reports', 'delete', 'settings'];
+  'finalprice', 'approvefinal', 'ready', 'close', 'cancel', 'rates', 'vendors', 'vendorcontact', 'review', 'viewcost', 'reports', 'delete', 'settings'];
 const DEF_ROLE_PERMS: Record<string, string[]> = {
   manager: PERM_KEYS.filter((k) => k !== 'settings'),
   staff: ['enquiry', 'estimate', 'approve', 'advance', 'confirm', 'production', 'receive', 'finalprice', 'ready', 'close'],
@@ -26,7 +26,7 @@ const DEF_SETTINGS: any = {
   shopAddr: '63/322Aa Ground Level, Grand Business Center, K K Road, Kadavanthra, Ernakulam, Kerala 682020',
   rates: { k22: 0, k18: 0, k14: 0, k9: 0, pt: 0, ag: 0, at: 0, by: '', src: '', kioskAt: '' },
   kioskAuto: true, kioskUrl: 'https://grandjewellers.com/api/kiosk-rates',
-  gst: 3, minAdv: 20, roundTo: 50, finalRoundTo: 100, gems: null, lists: null, mkRules: [], mkOnStone: true, leadDays: 20, qcBuffer: 2, weeklyOff: [0], holidays: [],
+  gst: 3, minAdv: 20, roundTo: 50, finalRoundTo: 100, gems: null, lists: null, mkRules: [], mkShow: 'type', rem: {}, reviewDesks: [{ name: 'Owner / Admin', users: [] }, { name: 'Design desk', users: [] }], reviewTopics: ['Pricing', 'Making charge', 'Design style', 'Stones', 'Size / weight', 'Other'], mkOnStone: true, leadDays: 20, qcBuffer: 2, weeklyOff: [0], holidays: [],
   estValid: 7, tol: 2, discLimit: 0, karatRef: { k22: 32.6, k18: 28.4, k14: 24.3, k9: 18.7 },
   approveDays: 2, etdWarnDays: 2, collectDays: 7, autoLock: 20,
   priceCheckUrl: 'https://yamie-price-check.netlify.app', repairUrl: 'https://yamie-repair-desk.netlify.app',
@@ -417,6 +417,32 @@ async function pcFind(s: any, q: string) {
   await Promise.all(rows.slice(0, 4).filter((r: any) => r.imgs).map(async (r: any) => { try { r.thumb = (await pcGet('img', `&k=${encodeURIComponent(normK(r.key))}&i=1`)).img || ''; } catch (e) { /* no thumb */ } }));
   return { at: c.at, rows };
 }
+// Browse list of designs in Price Check stock (grouped by design / label), for the design search pop-up.
+async function pcList(s: any, q: string, cat: string, off: number) {
+  const c = await pcLoad(s), nq = normK(q), nc = String(cat || '').toLowerCase();
+  const groups = new Map<string, any>();
+  for (const r of c.rows) {
+    const g = normK(r.design || r.label || r.key); if (!g) continue;
+    const x = groups.get(g); if (x) { x.n++; continue; }
+    groups.set(g, { r, n: 1 });
+  }
+  const cats = new Map<string, number>();
+  for (const { r } of groups.values()) { const k = String(r.category || r.item || 'Other').trim() || 'Other'; cats.set(k, (cats.get(k) || 0) + 1); }
+  const text = (r: any, k: string) => [r.key, r.barcode, r.label, r.design, r.model, r.item, r.category, r.pname, c.names[k]].map((v) => String(v || '')).join(' ').toUpperCase();
+  let list = [...groups.values()].filter(({ r }) => {
+    if (nc && String(r.category || r.item || 'Other').trim().toLowerCase() !== nc) return false;
+    if (!nq) return true;
+    const k = normK(r.key), t = text(r, k);
+    return String(q).toUpperCase().split(/\s+/).filter(Boolean).every((w) => t.includes(w) || normK(t).includes(normK(w)));
+  });
+  list.sort((a: any, b: any) => (pcImgCount(c, normK(b.r.key)) ? 1 : 0) - (pcImgCount(c, normK(a.r.key)) ? 1 : 0) || String(a.r.label || '').localeCompare(String(b.r.label || '')));
+  const total = list.length;
+  const rows = list.slice(off, off + 30).map(({ r, n }: any) => {
+    const k = normK(r.key);
+    return { ...r, k, label: r.design || r.label || r.barcode || r.key, name: c.names[k] || r.pname || '', attrs: { ...(c.attrs[k] || {}), size: r.size, mc: r.mcol }, imgs: pcImgCount(c, k), stock: n };
+  });
+  return { at: c.at, total, off, rows, cats: [...cats.entries()].sort((a, b) => b[1] - a[1]).map(([name, n]) => ({ name, n })) };
+}
 async function pcPhotos(s: any, q: string) {
   const c = await pcLoad(s), nq = normK(q);
   const row = c.rows.find((r: any) => [r.key, r.barcode, r.label, r.design].map(normK).includes(nq));
@@ -594,6 +620,17 @@ export default async (req: Request) => {
       return J(await cfgOut());
     }
     if (path === 'pc/find') { need('enquiry'); return J(await pcFind(s, url.searchParams.get('q') || '')); }
+    if (path === 'pc/list') { need('enquiry'); return J(await pcList(s, url.searchParams.get('q') || '', url.searchParams.get('cat') || '', Math.max(0, Math.round(num(url.searchParams.get('off')))))); }
+    if (path === 'pc/thumb') {
+      need('enquiry');
+      const k = normK(url.searchParams.get('k') || '');
+      const hit: any = await s.get(`pc/thumb/${k}`, { type: 'json' });
+      if (hit) return J(hit);
+      const d: any = await pcGet('img', `&k=${encodeURIComponent(k)}&i=1`);
+      const out = { img: d.img || '' };
+      if (out.img && out.img.length < 400000) await s.setJSON(`pc/thumb/${k}`, out);
+      return J(out);
+    }
     if (path === 'pc/photos' && method === 'POST') { need('enquiry'); return J(await pcPhotos(s, String(body.k || ''))); }
     if (path === 'settings' && method === 'POST') {
       need('settings');
@@ -659,7 +696,7 @@ export default async (req: Request) => {
     if (path.startsWith('bk/') && method === 'POST') {
       admin();
       return J(await backupOp(s, path.slice(3), body, {
-        skip: (k) => k.startsWith('chg/') || k.startsWith('lock/') || k === 'meta/secret' || k === 'pc/cache',
+        skip: (k) => k.startsWith('chg/') || k.startsWith('lock/') || k === 'meta/secret' || k === 'pc/cache' || k.startsWith('pc/thumb/'),
         done: async () => { await s.set('meta/resetAt', String(now())); await bumpCfg(s); },
       }));
     }

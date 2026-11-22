@@ -66,6 +66,10 @@ async function drawCard(spec) {
     x.fillStyle = '#f8ebf0'; x.fillRect(P, y, W - 2 * P, 120);
     x.fillStyle = '#78213f'; x.font = `600 28px ${F}`; x.fillText(spec.big[0], P + 30, y + 48);
     x.font = `800 56px Georgia,serif`; x.textAlign = 'right'; x.fillText(spec.big[1], W - P - 30, y + 90); x.textAlign = 'left';
+    if (spec.big[2]) {
+      x.fillStyle = '#287b56'; x.beginPath(); x.roundRect ? x.roundRect(P + 30, y + 66, 300, 40, 20) : x.rect(P + 30, y + 66, 300, 40); x.fill();
+      x.fillStyle = '#fff'; x.font = `800 24px ${F}`; x.fillText(spec.big[2], P + 48, y + 94);
+    }
     y += bigH;
   }
   secs.forEach(([t, rows]) => {
@@ -89,7 +93,13 @@ async function drawCard(spec) {
   return c.toDataURL('image/jpeg', 0.9);
 }
 
-function itemRows(it, withPrice, line) {
+// How making is shown to the customer: 'type' (amount + VA %/₹ per g), 'amount' (amount only), 'hide' (inside the gold value).
+const MK_SHOW = [['type', 'Show amount and type (VA % / ₹ per g)'], ['amount', 'Show amount only'], ['hide', 'Hide (include in the gold value)']];
+const mkShowOf = (o) => (o && o.mkShow) || S.mkShow || 'type';
+const mkLabel = (it) => (it.mkMode === 'pg' ? `₹${num(it.mkPg)}/g` : it.mkMode === 'combo' ? `₹${num(it.mkPg)}/g + ${num(it.mk)}%` : it.mkMode === 'flat' ? `₹${num(it.mk)} flat` : `VA ${num(it.mk)}%`);
+/** Customer saving from a discount (discount + the GST on it). */
+const savingOf = (b) => (num(b && b.disc) ? Math.round(num(b.disc) * (1 + num(b.gstPct) / 100)) : 0);
+function itemRows(it, withPrice, line, mkShow) {
   const rows = [
     ['Design', (it.design === 'ours' ? 'Yamie design' : 'Customised') + (it.designNo ? ' #' + it.designNo : '') + ' · rev ' + (it.rev || 1)],
   ];
@@ -103,9 +113,11 @@ function itemRows(it, withPrice, line) {
   (it.stones || []).forEach((s) => rows.push([stoneLabel(s.type) + (s.gem ? ' · ' + s.gem : ''), [s.shape, s.size ? s.size + ' mm' : '', s.ct ? s.ct + ' ct' : '', s.pcs ? s.pcs + ' pc' : '', s.quality, s.colour, s.setting].filter(Boolean).join(' · ')]));
   rows.push([withPrice ? 'Approx. net weight' : 'Target net weight', g3(line ? line.wt : it.wt)]);
   if (withPrice && line) {
-    rows.push(['Gold value', rupee(line.metal) + ' @ ' + rupee(line.rate) + '/g']);
+    const mk = line.making + line.va, ms = mkShow || 'type';
+    if (ms === 'hide') rows.push(['Gold value incl. making', rupee(line.metal + mk)]);
+    else rows.push(['Gold value', rupee(line.metal) + ' @ ' + rupee(line.rate) + '/g']);
     if (line.stone) rows.push(['Stones', rupee(line.stone)]);
-    if (line.making + line.va) rows.push(['Making / VA', rupee(line.making + line.va)]);
+    if (mk && ms !== 'hide') rows.push([ms === 'type' ? `Making (${mkLabel(it)})` : 'Making charges', rupee(mk)]);
     if (line.other) rows.push(['Other', rupee(line.other)]);
   } else if (!withPrice && it.prodNotes) rows.push(['Production notes', it.prodNotes]);
   return rows;
@@ -167,14 +179,17 @@ async function copyImg(quiet) {
 }
 
 function estimateSpec(o, est) {
-  const sections = est.items.map((it, i) => [qtyName(it, i), itemRows(it, true, est.lines[i])]);
+  const ms = mkShowOf(o), save = savingOf(est);
+  const sections = est.items.map((it, i) => [qtyName(it, i), itemRows(it, true, est.lines[i], ms)]);
   const sum = [['Value before tax', rupee(est.sub)]];
   if (est.disc) sum.push(['Discount', '−' + rupee(est.disc)]);
-  sum.push([`GST ${est.gstPct}%`, rupee(est.gst)], ['Estimated total', rupee(est.total), true], [`Booking advance (min ${S.minAdv}%)`, rupee(est.minAdv)], ['Advance to lock the gold rate', rupee(est.lock)]);
+  sum.push([`GST ${est.gstPct}%`, rupee(est.gst)], ['Estimated total', rupee(est.total), true]);
+  if (save) sum.push(['You save', rupee(save), true]);
+  sum.push( [`Booking advance (min ${S.minAdv}%)`, rupee(est.minAdv)], ['Advance to lock the gold rate', rupee(est.lock)]);
   sections.push(['Estimate', sum]);
   return {
     title: 'Provisional estimate', ref: (est.no || 'EST') + (est.v > 1 ? ' v' + est.v : ''), sub: `${o.cust.name} · ${dt(est.at)} · valid till ${dshort(est.valid)}`,
-    photos: allPhotos(est.items), big: ['Estimated total incl. GST', rupee(est.total)], sections,
+    photos: allPhotos(est.items), big: ['Estimated total incl. GST', rupee(est.total), save ? 'You save ' + rupee(save) : ''], sections,
     foot: ['Weights are approximate. The final price uses the actual weight at delivery.',
       `Delivery: at least ${S.leadDays} working days from order confirmation.`,
       `A ${S.minAdv}% booking advance confirms the order but does not lock the gold rate. Paying the metal value locks it.`,
@@ -184,7 +199,8 @@ function estimateSpec(o, est) {
 }
 function sendEstimate(id, v) {
   const o = orders.find((x) => x.id === id), est = v ? o.ests.find((e) => e.v === v) : lastOf(o.ests);
-  const cap = `Dear ${o.cust.name}, here is your Yamie estimate ${est.no || ''}: ${rupee(est.total)} incl. GST. Booking advance ${rupee(est.minAdv)}. Valid till ${dshort(est.valid)}. — ${S.shop}`;
+  const sv = savingOf(est);
+  const cap = `Dear ${o.cust.name}, here is your Yamie estimate ${est.no || ''}: ${rupee(est.total)} incl. GST${sv ? ' (you save ' + rupee(sv) + ')' : ''}. Booking advance ${rupee(est.minAdv)}. Valid till ${dshort(est.valid)}. — ${S.shop}`;
   shareCard(o, estimateSpec(o, est), o.cust.phone, cap, 'Estimate ' + (est.no || ''));
 }
 function sendWorkOrder(id) {
@@ -198,13 +214,16 @@ function sendWorkOrder(id) {
 }
 function sendFinal(id) {
   const o = orders.find((x) => x.id === id), fin = lastOf(o.finals);
+  const ms = mkShowOf(o), save = savingOf(fin);
   const sum = [['Value before tax', rupee(fin.sub)]];
   if (fin.disc) sum.push(['Discount', '−' + rupee(fin.disc)]);
-  sum.push([`GST ${fin.gstPct}%`, rupee(fin.gst)], ['Final price', rupee(fin.total), true], ['Paid', rupee(verified(o))], ['Balance', rupee(Math.max(0, fin.total - verified(o))), true]);
-  const spec = { title: 'Final price', ref: o.ono, sub: o.cust.name + ' · ' + dt(Date.now()), big: ['Final price incl. GST', rupee(fin.total)],
-    sections: fin.items.map((it, i) => [qtyName(it, i), itemRows(it, true, fin.lines[i])]).concat([['Summary', sum]]),
+  sum.push([`GST ${fin.gstPct}%`, rupee(fin.gst)], ['Final price', rupee(fin.total), true]);
+  if (save) sum.push(['You save', rupee(save), true]);
+  sum.push( ['Paid', rupee(verified(o))], ['Balance', rupee(Math.max(0, fin.total - verified(o))), true]);
+  const spec = { title: 'Final price', ref: o.ono, sub: o.cust.name + ' · ' + dt(Date.now()), big: ['Final price incl. GST', rupee(fin.total), save ? 'You save ' + rupee(save) : ''],
+    sections: fin.items.map((it, i) => [qtyName(it, i), itemRows(it, true, fin.lines[i], ms)]).concat([['Summary', sum]]),
     foot: ['Please reply OK on WhatsApp to confirm this price.', fin.basis + '.', `Estimate was ${rupee(fin.estTotal)} (${fin.var >= 0 ? '+' : ''}${fin.varPct}%) — the difference comes from the actual weight${o.lock === 'full' ? '' : ' and today\'s gold rate'}.`] };
-  shareCard(o, spec, o.cust.phone, `Dear ${o.cust.name}, the final price of your Yamie order ${o.ono} is ${rupee(fin.total)} incl. GST (balance ${rupee(Math.max(0, fin.total - verified(o)))}). Please reply OK to confirm. — ${S.shop}`, 'Final price (asked for OK)');
+  shareCard(o, spec, o.cust.phone, `Dear ${o.cust.name}, the final price of your Yamie order ${o.ono} is ${rupee(fin.total)} incl. GST${save ? ' (you save ' + rupee(save) + ')' : ''} (balance ${rupee(Math.max(0, fin.total - verified(o)))}). Please reply OK to confirm. — ${S.shop}`, 'Final price (asked for OK)');
 }
 function sendReady(id, again) {
   const o = orders.find((x) => x.id === id), fin = lastOf(o.finals);
@@ -217,14 +236,15 @@ function sendReady(id, again) {
 
 function printEstimate(id) {
   const o = orders.find((x) => x.id === id), est = lastOf(o.ests);
+  const ms = mkShowOf(o), hideMk = ms === 'hide', save = savingOf(est);
   const rows = est.items.map((it, i) => { const l = est.lines[i]; return `<tr><td>${i + 1}</td><td><b>${esc(it.product)}</b>${it.designNo ? ' #' + esc(it.designNo) : ''}<br>${esc(it.details || '')}${it.custom ? '<br>' + esc(it.custom) : ''}${(it.stones || []).map((s) => '<br>' + esc(stoneLabel(s.type) + ' ' + [s.shape, s.size, s.ct ? s.ct + ' ct' : '', s.quality].filter(Boolean).join(' '))).join('')}</td>
-    <td>${purShort(it.purity)} ${esc(it.colour)}</td><td class="r">${it.qty}</td><td class="r">${fmtN(l.wt)}</td><td class="r">${rupee(l.rate)}</td><td class="r">${rupee2(l.metal)}</td><td class="r">${rupee2(l.stone)}</td><td class="r">${rupee2(l.making + l.va)}</td><td class="r">${rupee2(l.sub)}</td></tr>`; }).join('');
+    <td>${purShort(it.purity)} ${esc(it.colour)}</td><td class="r">${it.qty}</td><td class="r">${fmtN(l.wt)}</td><td class="r">${rupee(l.rate)}</td><td class="r">${rupee2(hideMk ? l.metal + l.making + l.va : l.metal)}</td><td class="r">${rupee2(l.stone)}</td>${hideMk ? '' : `<td class="r">${rupee2(l.making + l.va)}${ms === 'type' ? '<br><small>' + esc(mkLabel(it)) + '</small>' : ''}</td>`}<td class="r">${rupee2(l.sub)}</td></tr>`; }).join('');
   const h = `<div class="pdoc"><table style="border:0"><tr><td style="border:0"><h1>${esc(S.shop)}</h1>${esc(S.shopAddr)}<br>${esc(S.shopPhone)} · GSTIN ${esc(S.gstin)}</td>
     <td style="border:0;text-align:right"><h1>Provisional estimate</h1><b>${esc(est.no || '')}${est.v > 1 ? ' v' + est.v : ''}</b><br>${dt(est.at)} · valid till ${dt(est.valid)}</td></tr></table>
     <p><b>Customer:</b> ${esc(o.cust.name)} · ${esc(o.cust.phone)}</p>
-    <table><tr><th>#</th><th>Item</th><th>Metal</th><th class="r">Qty</th><th class="r">Net wt (g)</th><th class="r">Rate</th><th class="r">Gold value</th><th class="r">Stones</th><th class="r">Making</th><th class="r">Amount</th></tr>${rows}</table>
+    <table><tr><th>#</th><th>Item</th><th>Metal</th><th class="r">Qty</th><th class="r">Net wt (g)</th><th class="r">Rate</th><th class="r">${hideMk ? 'Gold value incl. making' : 'Gold value'}</th><th class="r">Stones</th>${hideMk ? '' : '<th class="r">Making</th>'}<th class="r">Amount</th></tr>${rows}</table>
     <table style="width:50%;margin-left:auto"><tr><td>Value before tax</td><td class="r">${rupee2(est.sub)}</td></tr>${est.disc ? `<tr><td>Discount</td><td class="r">−${rupee2(est.disc)}</td></tr>` : ''}
-    <tr><td>GST ${est.gstPct}%</td><td class="r">${rupee2(est.gst)}</td></tr><tr><th>Estimated total</th><th class="r">${rupee(est.total)}</th></tr><tr><td>Booking advance (min ${S.minAdv}%)</td><td class="r">${rupee(est.minAdv)}</td></tr></table>
+    <tr><td>GST ${est.gstPct}%</td><td class="r">${rupee2(est.gst)}</td></tr><tr><th>Estimated total</th><th class="r">${rupee(est.total)}</th></tr>${save ? `<tr><th style="color:#287b56">You save</th><th class="r" style="color:#287b56">${rupee(save)}</th></tr>` : ''}<tr><td>Booking advance (min ${S.minAdv}%)</td><td class="r">${rupee(est.minAdv)}</td></tr></table>
     <p style="font-size:11px;color:#555">Weights are approximate; the final price uses the actual weight at delivery. Delivery at least ${S.leadDays} working days from confirmation. A ${S.minAdv}% advance confirms the order but does not lock the gold rate; paying the metal value (${rupee(est.lock)}) locks it. Not a tax invoice.</p>
     <p style="margin-top:40px">Customer signature ____________________ &nbsp;&nbsp; For ${esc(S.shop)} ____________________</p></div>`;
   if (NATIVE && NATIVE.printHtml) { NATIVE.printHtml('<!doctype html><html><head><meta charset="utf-8"><style>' + document.querySelector('style').textContent + ' #printArea{display:block}</style></head><body><div id="printArea">' + h + '</div></body></html>', 'Yamie estimate ' + (est.no || '')); return; }

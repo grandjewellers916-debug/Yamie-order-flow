@@ -10,6 +10,8 @@ function renderMore() {
     ['policy', 'Pricing & policy', `GST ${S.gst}% · advance ${S.minAdv}% · ${S.leadDays} working days`, can('settings')],
     ['lists', 'Picture lists', 'Categories, item types, settings, shanks, finishes, stones, shapes — with real photos', can('settings')],
     ['mk', 'Making charge helper', `${(S.mkRules || []).length} default rule(s) by vendor, purity and weight`, can('rates') || can('settings')],
+    ['rem', 'Reminders', 'Switch reminders on or off and set their timing', can('settings')],
+    ['review', 'Review desks', `${desks().map((d) => d.name).join(', ')} · ${(S.reviewTopics || []).length} topics`, can('settings')],
     ['users', 'Staff logins', `${users.filter((u) => u.active).length} active`, me.role === 'admin'],
     ['perms', 'Role permissions', 'What managers and staff can do', me.role === 'admin'],
     ['backup', 'Backup & restore', 'One file with every order, photo and setting', me.role === 'admin'],
@@ -22,7 +24,7 @@ function renderMore() {
 }
 function renderSub() {
   const back = '<button class="btn small secondary" onclick="go(\'vMore\')" style="margin-bottom:12px">‹ More</button>';
-  const fn = { gems: subLists, lists: subLists, mk: subMk, rates: subRates, vendors: subVendors, policy: subPolicy, users: subUsers, perms: subPerms, backup: subBackup, links: subLinks, pin: subPin }[sub];
+  const fn = { gems: subLists, lists: subLists, mk: subMk, rem: subRem, review: subReviewCfg, rates: subRates, vendors: subVendors, policy: subPolicy, users: subUsers, perms: subPerms, backup: subBackup, links: subLinks, pin: subPin }[sub];
   $('vSub').innerHTML = back + '<div id="subBody"></div>';
   if (fn) fn();
 }
@@ -74,6 +76,7 @@ function subPolicy() {
   $('subBody').innerHTML = `
     <div class="card"><h3>Pricing</h3><div class="field">${inp('gst', 'GST %')}</div>
       <div class="two">${['roundTo', 'finalRoundTo'].map((k) => `<div class="field"><label>${k === 'roundTo' ? 'Estimates: round up to next ₹' : 'Final price: round up to next ₹'}</label><select id="po_${k}">${[1, 10, 50, 100, 500].map((v) => `<option value="${v}" ${num(s[k] || (k === 'finalRoundTo' ? 100 : 50)) === v ? 'selected' : ''}>${v === 1 ? 'No rounding' : '₹' + v}</option>`).join('')}</select></div>`).join('')}</div>
+      <div class="field"><label>Making charge on customer cards & print (default)</label><select id="po_mkShow">${opt(MK_SHOW, s.mkShow || 'type')}</select><p class="hint">Staff can change it for each estimate / final price.</p></div>
       <label class="check"><input type="checkbox" id="po_mkOnStone" ${s.mkOnStone ? 'checked' : ''}><span>VA / making % applies to metal + stone (Price Check / Yamie workbook). Untick for metal only.</span></label>
       <div class="two">${inp('discLimit', 'Sales discount limit % (above needs manager)')}${inp('tol', 'Final price tolerance ±%')}</div>
       <p class="hint">Karat reference weights (same design in each karat; from the Karat Converter bangle):</p>
@@ -83,8 +86,7 @@ function subPolicy() {
       <div class="two">${inp('estValid', 'Estimate valid (days)')}${inp('qcBuffer', 'Receiving + QC days after ETD')}</div>
       <div class="field"><label>Weekly off</label><div class="choiceRow">${days.map((d, i) => `<button class="chip ${_off.includes(i) ? 'active' : ''}" onclick="this.classList.toggle('active');_off=_off.includes(${i})?_off.filter(x=>x!==${i}):_off.concat(${i})">${d}</button>`).join('')}</div></div>
       <div class="field"><label>Holidays</label><div class="choiceRow" id="holL"></div><div class="two" style="margin-top:8px"><input type="date" id="holD" class="search" style="margin:0"><button class="btn small soft" onclick="if($('holD').value&&!_hol.includes($('holD').value)){_hol.push($('holD').value);_hol.sort();holList()}">Add holiday</button></div></div></div>
-    <div class="card"><h3>Reminders</h3><div class="two">${inp('approveDays', 'Follow up estimate after (days)')}${inp('etdWarnDays', 'Warn before vendor ETD (days)')}</div>
-      <div class="two">${inp('collectDays', 'Not collected warning (days)')}${inp('autoLock', 'Auto-lock after (minutes, 0 = off)')}</div></div>
+    <div class="card"><h3>Security</h3><div class="two">${inp('autoLock', 'Auto-lock after (minutes, 0 = off)')}</div><p class="hint">Reminder timings are in More → Reminders.</p></div>
     <div class="card"><h3>Shop details (on cards & print)</h3>
       ${['shop', 'shopPhone', 'gstin', 'shopAddr', 'priceCheckUrl', 'repairUrl'].map((k) => `<div class="field"><label>${({ shop: 'Shop name', shopPhone: 'Phone', gstin: 'GSTIN', shopAddr: 'Address', priceCheckUrl: 'Price Check link', repairUrl: 'Repair Desk link' })[k]}</label><input id="po_${k}" value="${esc(s[k])}"></div>`).join('')}</div>
     <button class="btn block" onclick="savePolicy()">Save settings</button>`;
@@ -93,9 +95,9 @@ function subPolicy() {
 function holList() { $('holL').innerHTML = _hol.map((h) => `<button class="chip" onclick="_hol=_hol.filter(x=>x!=='${h}');holList()">${dshort(h)} ✕</button>`).join('') || '<span class="hint">None</span>'; }
 function savePolicy() {
   const st = clone(S);
-  ['gst', 'roundTo', 'finalRoundTo', 'discLimit', 'tol', 'minAdv', 'leadDays', 'estValid', 'qcBuffer', 'approveDays', 'etdWarnDays', 'collectDays', 'autoLock'].forEach((k) => { st[k] = num($('po_' + k).value); });
+  ['gst', 'roundTo', 'finalRoundTo', 'discLimit', 'tol', 'minAdv', 'leadDays', 'estValid', 'qcBuffer', 'autoLock'].forEach((k) => { st[k] = num($('po_' + k).value); });
   ['shop', 'shopPhone', 'gstin', 'shopAddr', 'priceCheckUrl', 'repairUrl'].forEach((k) => { st[k] = $('po_' + k).value.trim(); });
-  st.mkOnStone = $('po_mkOnStone').checked; st.karatRef22Weighed = $('po_k22w').checked;
+  st.mkOnStone = $('po_mkOnStone').checked; st.mkShow = $('po_mkShow').value; st.karatRef22Weighed = $('po_k22w').checked;
   ['k22', 'k18', 'k14', 'k9'].forEach((k) => { st.karatRef[k] = num($('kr_' + k).value) || st.karatRef[k]; });
   if (_off.length >= 7) return toast('Keep at least one working day');
   st.weeklyOff = _off; st.holidays = _hol;
