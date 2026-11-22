@@ -498,14 +498,24 @@ async function pcOrder(s: any, b: any) {
     const nk = normK(x.key || x.label);
     const r = (c && c.rows.find((y: any) => normK(y.key) === nk || normK(y.barcode) === nk || normK(y.label) === nk)) || {};
     const k = normK(r.key || nk), at = (c && c.attrs[k]) || {};
-    const it: any = { id: rid().slice(0, 10), cat: pcCat({ ...x, ...r }), product: clip((c && c.names[k]) || r.pname || x.name || r.item || x.item || '', 80), qty: Math.max(1, Math.round(num(x.qty) || 1)),
-      design: b.custom ? 'custom' : 'ours', designNo: clip(r.design || r.label || x.label || r.barcode || r.key, 40), model: clip(r.model, 40), details: clip(at.jt || '', 200), custom: clip(x.custom || (b.custom ? b.note : ''), 300),
-      purity: pcPur(r.carat || x.carat) || '18k', colour: 'Yellow', wt: num(r.nw || x.nw) || '', gwt: num(r.gw || x.gw) || '', size: clip(x.size || r.size || at.size, 20), dims: '', spec: {}, stones: [],
-      mkMode: 'pct', mk: 14, mkPg: 0, other: 0, vendor: '', prodNotes: '', photos: [], rev: 1, pcKey: k, pcPrice: num(x.price) || 0 };
+    const hasRow = !!r.key, custom = x.design ? x.design === 'custom' : !!b.custom;
+    const xcat = OD_CATS.includes(x.cat) ? x.cat : '';
+    const it: any = { id: rid().slice(0, 10), cat: hasRow ? pcCat({ ...x, ...r }) : xcat || pcCat(x), product: clip((c && c.names[k]) || r.pname || x.name || r.item || x.item || '', 80), qty: Math.max(1, Math.round(num(x.qty) || 1)),
+      design: custom ? 'custom' : 'ours', designNo: clip(r.design || r.label || x.label || r.barcode || r.key, 40), model: clip(r.model || x.modelRef || x.model, 120), details: clip(at.jt || x.details || '', 300), custom: clip(x.custom || (custom ? b.note : ''), 500),
+      purity: (['22k', '18k', '14k', '9k', 'pt', 'ag'].includes(x.purity) ? x.purity : '') || pcPur(r.carat || x.carat) || '18k', colour: ['Yellow', 'Rose', 'White', 'Two-tone'].includes(x.colour) ? x.colour : 'Yellow', wt: num(r.nw || x.nw || x.wt) || '', gwt: num(r.gw || x.gw) || '', size: clip(x.size || r.size || at.size, 20), dims: '', spec: {}, stones: [],
+      mkMode: 'pct', mk: 14, mkPg: 0, other: 0, vendor: '', prodNotes: '', photos: [], refs: [], rev: 1, pcKey: hasRow ? k : '', pcPrice: num(x.price) || 0 };
+    // reference images the customer sent (data URLs from Price Check, already shrunk there)
+    for (const d of (Array.isArray(x.refs) ? x.refs : []).slice(0, 4)) {
+      const m = /^data:(image\/(?:jpeg|png|webp));base64,(.+)$/.exec(String(d || ''));
+      if (!m || m[2].length > 2_800_000) continue;
+      const id = crypto.randomUUID();
+      await s.set(`img/${id}`, Buffer.from(m[2], 'base64'), { metadata: { type: m[1], from: 'pricecheck-ref', at: now() } });
+      it.refs.push('img:' + id);
+    }
     if (!it.product) it.product = it.cat;
     if (num(r.dw)) it.stones.push({ type: 'diamond', shape: 'Round', size: '', ct: r.dw, pcs: r.dq || 1, quality: '', colour: '', unit: 'ct', rate: '', charge: num(r.sa) || '' });
     const mc = String(r.mcol || at.mc || '').toLowerCase(); if (/rose|pink/.test(mc)) it.colour = 'Rose'; else if (/white/.test(mc)) it.colour = 'White'; else if (/two|dual/.test(mc)) it.colour = 'Two-tone';
-    if (c && k) { try { it.photos = (await pcPhotos(s, k)).keys.slice(0, 4).map((id: string) => 'img:' + id); } catch (e) { /* no photos */ } }
+    if (c && hasRow) { try { it.photos = (await pcPhotos(s, k)).keys.slice(0, 4).map((id: string) => 'img:' + id); } catch (e) { /* no photos */ } }
     items.push(it);
   }
   const o: any = cleanOrder({ cust, items, disc: 0, owner: by, reviews: [] });
@@ -513,10 +523,32 @@ async function pcOrder(s: any, b: any) {
   o.status = 'enquiry'; o.createdAt = now(); o.createdBy = by + ' (Price Check)';
   o.pays = []; o.ests = []; o.rev = 1; o.updatedAt = now(); o.updatedBy = by;
   o.fromPc = { by, at: now(), seen: false };
+  if (b.help) {
+    const st = await getSettings(s), dk = (st.reviewDesks || []).find((d: any) => /design/i.test(d.name)) || (st.reviewDesks || [])[0] || { name: 'Design desk' };
+    o.reviews = [{ id: rid().slice(0, 10), desk: dk.name, topics: ['Design style'], item: null, note: clip(b.helpNote || b.note || 'Please help with the design', 500), by, at: now(), ans: null }];
+  }
   o.log = [{ t: now(), by, a: 'Sent from Price Check', d: `${items.length} item(s)${b.custom ? ' · customise' : ''}${cust.notes ? ' · ' + cust.notes : ''}` }];
   await s.setJSON(`orders/${o.id}`, o, { onlyIfNew: true });
+  await s.setJSON(`pcidx/${o.id}`, { at: now(), by });
   await logChange(s, o.id);
   return o;
+}
+const ST_LABEL: any = { enquiry: 'Enquiry', estimate: 'Estimate sent', approved: 'Approved · advance due', confirmed: 'Order confirmed', vendor: 'With vendor', production: 'In production', received: 'Received · QC', qc_fail: 'QC rejected', rework: 'Rework', qc_ok: 'QC passed', final: 'Final price', final_ok: 'Final price approved', ready: 'Ready for pickup', closed: 'Delivered', hold: 'On hold', lost: 'Cancelled' };
+/** Orders that came from Price Check, newest first, for the Orders section in Price Check. */
+async function pcOrders(s: any, by: string) {
+  const { blobs } = await s.list({ prefix: 'pcidx/' });
+  const ids = blobs.map((b: any) => b.key.slice(6)).sort().reverse().slice(0, 150);
+  const out: any[] = [];
+  await Promise.all(ids.map(async (id: string) => {
+    const o: any = await s.get(`orders/${id}`, { type: 'json' }); if (!o) return;
+    if (by && o.fromPc?.by !== by) return;
+    const est = lastOf(o.ests), fin = lastOf(o.finals), rv = (o.reviews || []);
+    out.push({ id: o.id, ref: o.ono || est?.no || 'Draft', status: o.status, label: ST_LABEL[o.status] || o.status, cust: o.cust?.name || '', phone: o.cust?.phone || '',
+      items: (o.items || []).map((it: any) => ({ product: it.product, design: it.design, designNo: it.designNo, model: it.model, purity: it.purity, wt: it.wt })),
+      total: fin ? fin.total : est ? est.total : 0, totalKind: fin ? 'final' : est ? 'estimate' : '', promise: o.promise || '', at: o.fromPc?.at || o.createdAt, by: o.fromPc?.by || '', updatedAt: o.updatedAt,
+      help: rv.filter((r: any) => !r.ans).length, answer: (rv.filter((r: any) => r.ans).pop() || {}).ans?.note || '' });
+  }));
+  return out.sort((a, b) => b.at - a.at);
 }
 
 // ---------- handler ----------
@@ -559,6 +591,12 @@ export default async (req: Request) => {
       if (!key || got.length !== key.length || !crypto.timingSafeEqual(Buffer.from(got), Buffer.from(key))) return err('Shop key not accepted by Order Desk', 401);
       const o = await pcOrder(s, body);
       return J({ ok: true, id: o.id, items: o.items.length });
+    }
+    if (path === 'pc-orders' && method === 'GET') {
+      const key = Netlify.env.get('PC_SHOP_KEY') || '';
+      const got = req.headers.get('x-shop-key') || '';
+      if (!key || got.length !== key.length || !crypto.timingSafeEqual(Buffer.from(got), Buffer.from(key))) return err('Shop key not accepted by Order Desk', 401);
+      return J({ orders: await pcOrders(s, url.searchParams.get('by') || '') });
     }
 
     // ----- logged in -----
@@ -640,7 +678,7 @@ export default async (req: Request) => {
     if (path === 'order-delete' && method === 'POST') {
       const cur = await s.get(`orders/${body.id}`, { type: 'json' });
       if (cur?.ono) admin(); else need('delete');
-      await s.delete(`orders/${body.id}`);
+      await s.delete(`orders/${body.id}`); await s.delete(`pcidx/${body.id}`);
       await logChange(s, body.id, true);
       return J({ ok: true });
     }

@@ -44,7 +44,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: order-desk-v${{ github.run_number }}
-          name: Yamie Order Desk v1.6.${{ github.run_number }}
+          name: Yamie Order Desk v1.7.${{ github.run_number }}
           target_commitish: ${{ github.sha }}
           files: Yamie-Order-Desk-v*.apk
-          body: "Yamie Order Desk V1.6: enquiries sent from Yamie Price Check (with design, model number, weights and photos) and a From Price Check list; links from Price Check open the enquiry in this app; design search filters (purity, stones, weight, photos, sort); model number filled from the Price Check database. Installs over the old version."
+          body: "Yamie Order Desk V1.7: design section first on each item; our design opens the Price Check design search; customised design asks for a model reference and the customer reference images, with an Ask the Design desk button; orders and customisation from the new Orders section in Price Check (with reference images and design help). Installs over the old version."

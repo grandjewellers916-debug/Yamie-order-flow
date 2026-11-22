@@ -111,6 +111,7 @@ function tabOverview(o) {
 }
 function tabItems(o) {
   $('dTab').innerHTML = o.items.map((it, i) => `<div class="card"><h3>Item ${i + 1}: ${num(it.qty) > 1 ? it.qty + ' × ' : ''}${esc(it.product)} <span class="badge">rev ${it.rev || 1}</span></h3>
+    ${(it.refs || []).length ? `<p class="hint" style="margin:0 0 4px">Customer's reference images</p><div class="thumbs" style="margin-bottom:10px">${it.refs.map((p) => `<div class="th"><img src="${esc(imgUrl(p))}" onclick="zoomImg(this.src,'Reference')" alt=""></div>`).join('')}</div>` : ''}
     ${(it.photos || []).length ? `<div class="thumbs" style="margin-bottom:10px">${it.photos.map((p) => `<div class="th"><img src="${esc(imgUrl(p))}" onclick="window.open(this.src)" alt=""></div>`).join('')}</div>` : ''}
     ${[['Category', it.cat], ['Design', (it.design === 'ours' ? 'Our design' : 'Customised') + (it.designNo ? ' #' + it.designNo : '')], ['Model no.', it.model], ['Details', it.details], ['Customisation', it.custom],
       ['Metal', purLabel(it.purity) + ' · ' + it.colour], ['Approx. net / gross', g3(it.wt) + ' / ' + g3(it.gwt)], ['Size / length', it.size], ['Width / thickness', it.dims],

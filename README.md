@@ -74,3 +74,9 @@ The page talks to `localStorage.yod_api` when set (tests set it to the local ser
 - Design search filters: purity, stones (diamond / colour / plain), weight range, photos only, sort (pc/list pur, st, wmin, wmax, ph, sort).
 - Model number taken from the Price Check stock list.
 
+## V1.7 (22-11-2026)
+- Item form: 1. Design first. Our design → design number + Search Price Check (opens automatically when chosen). Customised → Model reference (it.model), customer's reference images (it.refs, Gallery / WhatsApp or Camera), customisation text, "Ask the Design desk for help" (saves, then review sheet preset to the design desk + Design style). Customised needs a model reference or a reference image.
+- it.refs shown on the Items tab and added to estimate / work order cards; "Model reference" label for customised items.
+- /api/pc-order: per-item design 'custom' with cat, name, modelRef, purity, wt, size, custom, refs (data URLs, ≤4) ; help + helpNote → review to the design desk; index pcidx/<id>.
+- GET /api/pc-orders (x-shop-key): Price Check orders with status, totals, promise, help state — for the Orders section in Price Check.
+

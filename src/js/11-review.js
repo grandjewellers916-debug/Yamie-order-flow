@@ -63,12 +63,13 @@ function reviewTasks(o) {
   return t;
 }
 
-function shReview(itemIdx) {
+function shReview(itemIdx, preset) {
   const o = getO(); if (!o) return;
-  window._rvT = [];
+  window._rvT = preset && preset.topics ? preset.topics.slice() : [];
+  const dk0 = (preset && preset.desk && (desks().find((d) => new RegExp(preset.desk, 'i').test(d.name)) || {}).name) || desks()[0].name;
   openSheet(`<h2>Ask for review</h2><p class="sub">Not sure about the price or the design? Send it to the Owner or the Design desk. They get a reminder and can edit the items and price.</p>
-    <div class="field"><label>Send to</label><select id="rvDesk">${opt(desks().map((d) => d.name), desks()[0].name)}</select></div>
-    <div class="field"><label>About <i class="req">*</i></label><div class="choiceRow">${(S.reviewTopics || []).map((x) => `<button class="chip" onclick='this.classList.toggle("active");_rvT=_rvT.includes(${esc(JSON.stringify(x))})?_rvT.filter(y=>y!==${esc(JSON.stringify(x))}):_rvT.concat(${esc(JSON.stringify(x))})'>${esc(x)}</button>`).join('')}</div></div>
+    <div class="field"><label>Send to</label><select id="rvDesk">${opt(desks().map((d) => d.name), dk0)}</select></div>
+    <div class="field"><label>About <i class="req">*</i></label><div class="choiceRow">${(S.reviewTopics || []).map((x) => `<button class="chip ${_rvT.includes(x) ? 'active' : ''}" onclick='this.classList.toggle("active");_rvT=_rvT.includes(${esc(JSON.stringify(x))})?_rvT.filter(y=>y!==${esc(JSON.stringify(x))}):_rvT.concat(${esc(JSON.stringify(x))})'>${esc(x)}</button>`).join('')}</div></div>
     ${o.items.length > 1 ? `<div class="field"><label>Item</label><select id="rvItem"><option value="">All items</option>${o.items.map((it, i) => `<option value="${i}" ${itemIdx === i ? 'selected' : ''}>${i + 1}. ${esc(it.product || it.cat)}</option>`).join('')}</select></div>` : ''}
     <div class="field"><label>Question / what you are unsure about <i class="req">*</i></label><textarea id="rvNote" placeholder="e.g. Customer wants a thinner shank — is 14% VA right? Which setting suits a 0.5 ct oval?"></textarea></div>
     <button class="btn block" onclick="doReview()">Send for review</button>`);

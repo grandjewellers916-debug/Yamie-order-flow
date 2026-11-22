@@ -55,7 +55,7 @@ with sync_playwright() as p:
     shot(pg, '03-wiz-customer')
     btn(pg, 'Next: Items')
     pick(pg, 'Category', 'Ring'); pick(pg, 'Item type', 'Solitaire ring'); shot(pg, '03b-item-type-picker-after')
-    pg.fill('#dn0', 'yr1042'); btn(pg, 'Search designs'); pg.wait_for_timeout(2500); shot(pg, '04a-pc-search')
+    pg.fill('#dn0', 'yr1042'); btn(pg, 'Search Price Check'); pg.wait_for_timeout(2500); shot(pg, '04a-pc-search')
     pg.click('#pcbF summary'); pg.locator('#pcbF .chip:has-text("Diamond")').click(); pg.wait_for_timeout(1500); print('filter diamond:', pg.inner_text('#pcbSub')); shot(pg, '04a2-pc-filters')
     pg.locator('#pcbF .chip:has-text("Any")').nth(1).click(); pg.wait_for_timeout(1000)
     pg.fill('#pcbQ', ''); pg.wait_for_timeout(2000); print('design list (all):', pg.locator('#sheet .pcCard').count(), '|', pg.inner_text('#pcbSub'))
@@ -131,6 +131,20 @@ with sync_playwright() as p:
     pg.click('.nav button[data-v="vReports"]'); pg.wait_for_timeout(500); shot(pg, '17-reports')
     pg.click('#meBtn'); pg.wait_for_timeout(300); btn(pg, 'Reminders'); shot(pg, '18-reminders'); pg.locator('#rm_n_review').fill('2'); btn(pg, 'Save reminders')
     btn(pg, '‹ More'); btn(pg, 'Review desks'); shot(pg, '19-review-desks'); btn(pg, 'Save')
+    # customised item: model reference + customer's image + ask the Design desk
+    pg.click('.nav .plus'); pg.wait_for_timeout(400)
+    if pg.locator('#sheet').is_visible(): pass
+    pg.fill('#cName', 'Divya'); pg.fill('#cPhone', '98470 55555'); btn(pg, 'Next: Items')
+    if pg.locator('#sheet .bpSel').count(): pg.click('#sheet .x'); pg.wait_for_timeout(300)
+    pg.locator('#wizBody button:has-text("Customised")').first.click(); pg.wait_for_timeout(300)
+    pg.locator('#wizBody .field:has(label:has-text("Model reference")) input').fill('Like Instagram post, 3-stone')
+    with pg.expect_file_chooser() as fc: pg.click('.addPh:has-text("Gallery / WhatsApp")')
+    fc.value.set_files('/tmp/ring.jpg'); pg.wait_for_timeout(1500)
+    shot(pg, '18b-customised')
+    btn(pg, 'Ask the Design desk'); pg.wait_for_timeout(1500)
+    print('help preset:', pg.input_value('#rvDesk'), '|', pg.locator('#sheet .chip.active').inner_text())
+    pg.fill('#rvNote', 'Which setting for 3 stones?'); btn(pg, 'Send for review'); pg.wait_for_timeout(800)
+    shot(pg, '18c-help-sent')
     import json, urllib.request
     rq = urllib.request.Request('http://localhost:8789/api/pc-order', data=json.dumps({'by': 'Anu', 'cust': {'name': 'Meera', 'phone': '9847000011'}, 'custom': True, 'note': 'Size 13', 'items': [{'key': 'YR1042'}, {'key': 'STD2201'}]}).encode(), headers={'content-type': 'application/json', 'x-shop-key': 'testkey'})
     oid = json.loads(urllib.request.urlopen(rq).read())['id']

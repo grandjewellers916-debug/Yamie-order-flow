@@ -103,7 +103,7 @@ function itemRows(it, withPrice, line, mkShow) {
   const rows = [
     ['Design', (it.design === 'ours' ? 'Yamie design' : 'Customised') + (it.designNo ? ' #' + it.designNo : '') + ' · rev ' + (it.rev || 1)],
   ];
-  if (it.model) rows.push(['Model no.', it.model]);
+  if (it.model) rows.push([it.design === 'custom' ? 'Model reference' : 'Model no.', it.model]);
   if (it.details) rows.push(['Details', it.details]);
   if (it.custom) rows.push(['Customisation', it.custom]);
   rows.push(['Metal', purLabel(it.purity) + ' · ' + it.colour]);
@@ -126,7 +126,7 @@ function vendorRows(it) {
   const rows = [['Item', [it.cat, it.product].filter(Boolean).join(' · ')], ['Quantity', String(it.qty || 1)], ['Purity', purLabel(it.purity)], ['Colour', it.colour]];
   if (it.size) rows.push([sizeLabel(it.cat), it.size]);
   rows.push(['Design no.', (it.designNo || '—') + (it.design === 'custom' ? ' (customised)' : '') + ' · rev ' + (it.rev || 1)]);
-  if (it.model) rows.push(['Model no.', it.model]);
+  if (it.model) rows.push([it.design === 'custom' ? 'Model reference' : 'Model no.', it.model]);
   rows.push(['Gross wt (target)', g3(it.gwt)], ['Net wt (target)', g3(it.wt)]);
   const sp = specText(it); if (sp) rows.push(['Details', sp]);
   if (it.dims) rows.push(['Width / other', it.dims]);
@@ -138,7 +138,7 @@ function vendorRows(it) {
   return rows;
 }
 const qtyName = (it, i) => `Item ${i + 1} · ${num(it.qty) > 1 ? it.qty + ' × ' : ''}${it.product || it.cat || 'Item'}`;
-const allPhotos = (items) => items.reduce((a, it) => a.concat(it.photos || []), []);
+const allPhotos = (items) => items.reduce((a, it) => a.concat(it.photos || [], it.refs || []), []);
 
 async function shareCard(o, spec, phone, caption, label, after) {
   toast('Making the card…');

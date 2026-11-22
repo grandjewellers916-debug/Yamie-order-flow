@@ -20,7 +20,7 @@ const CATS = ['Ring', 'Earrings', 'Pendant', 'Necklace', 'Chain', 'Bangle', 'Bra
 
 function newItem() {
   return { id: uid(), cat: 'Ring', product: '', qty: 1, design: 'ours', designNo: '', model: '', details: '', custom: '', purity: '18k', colour: 'Yellow',
-    wt: '', gwt: '', size: '', dims: '', spec: {}, stones: [], mkMode: 'pct', mk: 14, mkPg: 0, other: 0, vendor: '', prodNotes: '', photos: [], rev: 1 };
+    wt: '', gwt: '', size: '', dims: '', spec: {}, stones: [], mkMode: 'pct', mk: 14, mkPg: 0, other: 0, vendor: '', prodNotes: '', photos: [], refs: [], rev: 1 };
 }
 /** Stone charge for ONE piece of jewellery: carats × rate, pieces × rate or grams × rate (older records: fixed charge). */
 function stoneCharge(s) {
