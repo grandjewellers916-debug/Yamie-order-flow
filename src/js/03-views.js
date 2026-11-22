@@ -112,7 +112,7 @@ function renderHome() {
   $('vHome').innerHTML = `
     <p class="kicker">${new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
     <h1 class="h1">Hello ${esc((me.name || '').split(' ')[0])}</h1>
-    <p class="sub">Gold 22K ${rupee(r.k22)} · 18K ${rupee(r.k18)} · 14K ${rupee(r.k14)}${r.at ? ' · updated ' + ago(r.at) : ' · <b class="overdue">rates not set</b>'}</p>
+    <p class="sub">Gold 22K ${rupee(r.k22)} · 18K ${rupee(r.k18)} · 14K ${rupee(r.k14)}${r.at ? ' · ' + (r.src === 'kiosk' ? 'kiosk' : 'typed') + ' ' + ago(r.at) : ' · <b class="overdue">rates not set</b>'}</p>
     <div class="stats">
       <div class="stat" onclick="cur.filter='enq';go('vOrders')"><b>${enq}</b><span>ENQUIRIES</span></div>
       <div class="stat" onclick="cur.filter='ord';go('vOrders')"><b>${act}</b><span>ACTIVE</span></div>

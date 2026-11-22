@@ -32,7 +32,7 @@ with sync_playwright() as p:
     # rates + vendor
     pg.click('#meBtn'); pg.wait_for_timeout(300); btn(pg, 'Gold rates')
     for k, v in [('k22', '11800'), ('k18', '9655'), ('k14', '7520'), ('k9', '4830'), ('pt', '4200'), ('ag', '160')]: pg.fill('#rt_' + k, v)
-    btn(pg, 'Save rates'); btn(pg, '‹ More'); btn(pg, 'Vendors'); btn(pg, '+ Add vendor')
+    btn(pg, 'Save typed rates'); btn(pg, '‹ More'); btn(pg, 'Vendors'); btn(pg, '+ Add vendor')
     pg.locator('#vdList input').nth(0).fill('Demo Setters Mumbai'); pg.locator('#vdList input').nth(1).fill('9000000102')
     btn(pg, 'Save vendors')
     # new enquiry

@@ -5,7 +5,7 @@ let sub = '';
 function openSub(k) { sub = k; go('vSub'); }
 function renderMore() {
   const items = [
-    ['rates', 'Gold rates', S.rates.at ? `Updated ${ago(S.rates.at)} by ${S.rates.by}` : 'Not set yet', can('rates')],
+    ['rates', 'Gold rates', S.rates.at ? `${S.rates.src === 'kiosk' ? 'From kiosk' : 'Typed in'} · ${ago(S.rates.at)}` : 'Not set yet', can('rates')],
     ['vendors', 'Vendors', `${vendors.length} vendor(s)`, can('vendors') || can('vendor')],
     ['policy', 'Pricing & policy', `GST ${S.gst}% · advance ${S.minAdv}% · ${S.leadDays} working days`, can('settings')],
     ['users', 'Staff logins', `${users.filter((u) => u.active).length} active`, me.role === 'admin'],
@@ -29,16 +29,25 @@ async function cfgCall(path, body, msg) {
   catch (e) { toast(isNet(e) ? 'No internet — not saved' : e.message); return false; }
 }
 
+function rateSrc(r) { return r.src === 'kiosk' ? 'Kiosk' + (r.kioskAt ? ' (kiosk updated ' + esc(String(r.kioskAt).replace('T', ' ').slice(0, 16)) + ')' : '') : r.src === 'manual' ? 'Typed in by hand' : '—'; }
 function subRates() {
   const r = S.rates;
-  $('subBody').innerHTML = `<div class="card"><h3>Gold rates per gram (selling)</h3>
+  $('subBody').innerHTML = `<div class="card"><h3>Gold rates per gram (selling) <span class="badge">${r.src === 'kiosk' ? 'KIOSK' : r.src === 'manual' ? 'MANUAL' : 'NOT SET'}</span></h3>
     <p class="sub">Used for every new estimate and for final prices of orders without a rate lock. Estimates keep the rates they were issued with.</p>
+    <div class="okBox" style="margin-top:0">Source: <b>${rateSrc(r)}</b>${r.at ? ' · saved ' + dtt(r.at) + ' by ' + esc(r.by) : ''}</div>
+    <button class="btn block" onclick="kioskNow()">Get rates from kiosk now</button>
+    <label class="check"><input type="checkbox" id="kAuto" ${S.kioskAuto ? 'checked' : ''} ${can('settings') ? '' : 'disabled'} onchange="kioskAuto(this.checked)"><span><b>Use kiosk rates automatically</b><br>Checked every 10 minutes while the app is open. On a day when rates are typed in below, the typed rates are kept until the next day.</span></label>
+    <h3 style="margin-top:14px">Or type today's rates</h3>
     ${PURITIES.map((p) => `<div class="field"><label>${p[1]}</label><input id="rt_${p[2]}" inputmode="decimal" value="${r[p[2]] || ''}"></div>`).join('')}
-    <button class="btn block" onclick="saveRates()">Save rates</button>
-    <p class="hint">${r.at ? 'Last updated ' + dtt(r.at) + ' by ' + esc(r.by) : ''}. The same rates as Yamie Price Check (Shopify metafields gold_rate_*) — automatic sync can be added once a rates endpoint is available.</p></div>`;
+    <button class="btn secondary block" onclick="saveRates()">Save typed rates</button>
+    <p class="hint">Kiosk feed: ${esc(S.kioskUrl || '')} (the same rates as the Grand Jewellers kiosk and Price Check).</p></div>`;
 }
-function saveRates() { const rates = {}; PURITIES.forEach((p) => { rates[p[2]] = num($('rt_' + p[2]).value); }); cfgCall('rates', { rates }, 'Rates saved'); }
-
+async function kioskNow() {
+  try { const d = await api('rates-kiosk', {}); applyCfg(d); cacheLocal(); toast(d.changed ? 'Kiosk rates loaded' : 'Already the latest kiosk rates'); renderSub(); }
+  catch (e) { toast(isNet(e) ? 'No internet' : e.message); }
+}
+function saveRates() { const rates = {}; PURITIES.forEach((p) => { rates[p[2]] = num($('rt_' + p[2]).value); }); cfgCall('rates', { rates }, 'Typed rates saved for today'); }
+function kioskAuto(on) { const st = clone(S); st.kioskAuto = on; cfgCall('settings', { settings: st }, on ? 'Kiosk rates on' : 'Kiosk rates off'); }
 function subVendors() {
   const edit = can('vendors');
   window._vd = clone(vendors);

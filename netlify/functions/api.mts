@@ -24,7 +24,8 @@ const DEF_ROLE_PERMS: Record<string, string[]> = {
 const DEF_SETTINGS: any = {
   shop: 'Yamie Fine Jewellery', shopPhone: '+91 87141 22750', gstin: '32AACFY4685K1ZR',
   shopAddr: '63/322Aa Ground Level, Grand Business Center, K K Road, Kadavanthra, Ernakulam, Kerala 682020',
-  rates: { k22: 0, k18: 0, k14: 0, k9: 0, pt: 0, ag: 0, at: 0, by: '' },
+  rates: { k22: 0, k18: 0, k14: 0, k9: 0, pt: 0, ag: 0, at: 0, by: '', src: '', kioskAt: '' },
+  kioskAuto: true, kioskUrl: 'https://grandjewellers.com/api/kiosk-rates',
   gst: 3, minAdv: 20, roundTo: 50, mkOnStone: true, leadDays: 20, qcBuffer: 2, weeklyOff: [0], holidays: [],
   estValid: 7, tol: 2, discLimit: 0, karatRef: { k22: 32.6, k18: 28.4, k14: 24.3, k9: 18.7 },
   approveDays: 2, etdWarnDays: 2, collectDays: 7, autoLock: 20,
@@ -114,6 +115,42 @@ function addWorkDays(fromYmd: string, n: number, st: any) {
     if (!off.includes(d.getUTCDay()) && !hol.has(y)) left--;
   }
   return d.toISOString().slice(0, 10);
+}
+
+// ---------- gold rates from the Grand Jewellers kiosk ----------
+// Same feed the Grand / Yamie Price Check uses (/api/rates there). Fields: r22 r18 r14 r9 platinum silver updated_at.
+const KIOSK_MAP: Record<string, string> = { r22: 'k22', r18: 'k18', r14: 'k14', r9: 'k9', platinum: 'pt', silver: 'ag' };
+async function readKiosk(url: string) {
+  const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 8000);
+  try {
+    const r = await fetch(url, { headers: { accept: 'application/json' }, signal: ctl.signal });
+    if (!r.ok) throw new HttpError(`Kiosk answered ${r.status}`, 502);
+    const j: any = await r.json();
+    const rates: any = {};
+    for (const [k, v] of Object.entries(KIOSK_MAP)) { const n = Number(j[k]); if (Number.isFinite(n) && n > 0) rates[v] = n; }
+    if (!Object.keys(rates).length) throw new HttpError('The kiosk has no rates right now', 502);
+    return { rates, updated: typeof j.updated_at === 'string' ? j.updated_at : '' };
+  } catch (e: any) { throw e instanceof HttpError ? e : new HttpError('Kiosk rates are unavailable right now', 502); }
+  finally { clearTimeout(t); }
+}
+/** Apply kiosk rates. Automatic runs skip a day on which someone typed rates by hand. Returns true if rates changed. */
+async function applyKiosk(s: any, who: string, auto: boolean) {
+  const st = await getSettings(s);
+  if (auto) {
+    if (!st.kioskAuto) return false;
+    if (st.rates.src === 'manual' && istDate(num(st.rates.at)) === istDate(now())) return false;
+    const last = +((await s.get('meta/kioskCheck')) || 0);
+    if (now() - last < 10 * 60000) return false;
+    await s.set('meta/kioskCheck', String(now()));
+  }
+  const k = await readKiosk(st.kioskUrl || DEF_SETTINGS.kioskUrl);
+  const merged = { ...st.rates, ...k.rates };
+  const same = ['k22', 'k18', 'k14', 'k9', 'pt', 'ag'].every((x) => num(merged[x]) === num(st.rates[x]));
+  if (same && st.rates.src === 'kiosk') { if (!auto) { st.rates.checkedAt = now(); } return false; }
+  st.rates = { ...merged, at: now(), by: who, src: 'kiosk', kioskAt: k.updated };
+  await s.setJSON('cfg/settings', st);
+  await bumpCfg(s);
+  return true;
 }
 
 // ---------- order rules ----------
@@ -381,6 +418,7 @@ export default async (req: Request) => {
       return J({ key });
     }
 
+    if (path === 'state' || path === 'changes') { try { await applyKiosk(s, 'Kiosk (auto)', true); } catch (e) { /* keep last rates */ } }
     if (path === 'state') {
       const [orders, cfg, resetAt] = await Promise.all([allOrders(s), getCfg(s), s.get('meta/resetAt')]);
       return J({ now: now(), orders: orders.map(out), ...cfg, resetAt: resetAt || '', me: pubUser(me) });
@@ -448,10 +486,15 @@ export default async (req: Request) => {
       const st = await getSettings(s);
       const r: any = {};
       for (const k of ['k22', 'k18', 'k14', 'k9', 'pt', 'ag']) r[k] = Math.max(0, num(body.rates?.[k]));
-      st.rates = { ...r, at: now(), by: me.name };
+      st.rates = { ...r, at: now(), by: me.name, src: 'manual', kioskAt: '' };
       await s.setJSON('cfg/settings', st);
       await bumpCfg(s);
       return J(await getCfg(s));
+    }
+    if (path === 'rates-kiosk' && method === 'POST') {
+      need('rates');
+      const changed = await applyKiosk(s, me.name + ' (kiosk)', false);
+      return J({ ...(await getCfg(s)), changed });
     }
     if (path === 'settings' && method === 'POST') {
       need('settings');

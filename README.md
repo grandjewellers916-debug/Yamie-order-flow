@@ -36,7 +36,7 @@ python3 test/ui_flow.py                   # full walkthrough, screenshots in /tm
 The page talks to `localStorage.yod_api` when set (tests set it to the local server).
 
 ## Not done yet
-- Live gold rates from Shopify / Price Check: rates are entered in More → Gold rates (needs a rates endpoint; the APK must not hold a Shopify token).
+- Gold rates come from the Grand Jewellers kiosk feed (grandjewellers.com/api/kiosk-rates) automatically every 10 min, or by the button in More → Gold rates; rates typed in by hand win for that day.
 - Repair Desk / Price Check data: linked by buttons only; they keep their own logins and databases.
 - ERP: invoice number and amount are typed in.
 - Offline: cached data can be viewed, but saving needs the internet (Repair Desk queues edits; Order Desk does not yet).
