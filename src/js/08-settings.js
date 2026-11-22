@@ -8,7 +8,8 @@ function renderMore() {
     ['rates', 'Gold rates', S.rates.at ? `${S.rates.src === 'kiosk' ? 'From kiosk' : 'Typed in'} · ${ago(S.rates.at)}` : 'Not set yet', can('rates')],
     ['vendors', 'Vendors', `${vendors.length} vendor(s)`, can('vendors') || can('vendor')],
     ['policy', 'Pricing & policy', `GST ${S.gst}% · advance ${S.minAdv}% · ${S.leadDays} working days`, can('settings')],
-    ['gems', 'Precious stones list', `${gems().length} stones with picture cards`, can('settings')],
+    ['lists', 'Picture lists', 'Categories, item types, settings, shanks, finishes, stones, shapes — with real photos', can('settings')],
+    ['mk', 'Making charge helper', `${(S.mkRules || []).length} default rule(s) by vendor, purity and weight`, can('rates') || can('settings')],
     ['users', 'Staff logins', `${users.filter((u) => u.active).length} active`, me.role === 'admin'],
     ['perms', 'Role permissions', 'What managers and staff can do', me.role === 'admin'],
     ['backup', 'Backup & restore', 'One file with every order, photo and setting', me.role === 'admin'],
@@ -21,7 +22,7 @@ function renderMore() {
 }
 function renderSub() {
   const back = '<button class="btn small secondary" onclick="go(\'vMore\')" style="margin-bottom:12px">‹ More</button>';
-  const fn = { gems: subGems, rates: subRates, vendors: subVendors, policy: subPolicy, users: subUsers, perms: subPerms, backup: subBackup, links: subLinks, pin: subPin }[sub];
+  const fn = { gems: subLists, lists: subLists, mk: subMk, rates: subRates, vendors: subVendors, policy: subPolicy, users: subUsers, perms: subPerms, backup: subBackup, links: subLinks, pin: subPin }[sub];
   $('vSub').innerHTML = back + '<div id="subBody"></div>';
   if (fn) fn();
 }
@@ -101,22 +102,59 @@ function savePolicy() {
   cfgCall('settings', { settings: st }, 'Settings saved');
 }
 
-function subGems() {
-  window._gm = clone(gems());
-  $('subBody').innerHTML = `<div class="card"><h3>Precious stones</h3><p class="sub">Shown as picture cards when adding a precious or synthetic stone to an item. Pick a colour, or add a photo of the real stone.</p><div id="gmList"></div>
-    <button class="btn soft block" onclick="_gm.push({name:'',color:'#b3122e'});gmList()">+ Add stone</button>
-    <div class="actions"><button class="btn secondary" onclick="if(confirm('Go back to the starting list?')){_gm=clone(DEF_GEMS);gmList()}">Reset list</button><button class="btn" onclick="saveGems()">Save list</button></div></div>`;
-  gmList();
+let _lk = 'cat', _lc = 'Ring', _le = [];
+function subLists() {
+  const keys = Object.keys(LISTS);
+  $('subBody').innerHTML = `<div class="card"><h3>Picture lists</h3><p class="sub">These are the picture cards staff choose from when adding an item. Add a real photo to any card — it shows large in the pop-up and on cards.</p>
+    <div class="two"><div class="field"><label>List</label><select onchange="_lk=this.value;loadList()">${opt(keys.map((k) => [k, LISTS[k].title]), _lk)}</select></div>
+    ${_lk === 'prod' ? `<div class="field"><label>For category</label><select onchange="_lc=this.value;loadList()">${opt(listItems('cat').map((e) => e.name), _lc)}</select></div>` : ''}</div>
+    <div id="leList"></div>
+    <button class="btn soft block" onclick="_le.push({name:''});leList()">+ Add card</button>
+    <div class="actions"><button class="btn secondary" onclick="if(confirm('Go back to the starting list?')){_le=LISTS[_lk].def(_lc).map((n)=>_lk==='gems'?Object.assign({},DEF_GEMS.find((g)=>g.name===n)):{name:n});leList()}">Reset list</button><button class="btn" onclick="saveList()">Save list</button></div></div>`;
+  _le = clone(listItems(_lk, _lc)); leList();
 }
-function gmList() {
-  $('gmList').innerHTML = _gm.map((g, i) => `<div class="pay"><div style="display:flex;gap:10px;align-items:center;flex:1">
-      <div class="pic" style="min-height:0;width:66px;padding:4px">${g.img ? `<img src="${esc(imgUrl(g.img))}" alt="">` : gemSvg(g.color)}</div>
-      <div style="flex:1"><input class="search" style="margin:0 0 6px" value="${esc(g.name)}" placeholder="Stone name" oninput="_gm[${i}].name=this.value">
-      <div class="choiceRow"><input type="color" value="${esc(g.color || '#b3122e')}" oninput="_gm[${i}].color=this.value;_gm[${i}].img='';gmList()" style="width:44px;height:34px;border:0;background:none">
-        <button class="btn small soft" onclick="pickPhoto((r)=>{_gm[${i}].img=r;gmList()},false)">Photo</button>
-        <button class="btn small danger" onclick="_gm.splice(${i},1);gmList()">✕</button></div></div></div></div>`).join('');
+function loadList() { subLists(); }
+function leList() {
+  const g = _lk === 'gems';
+  $('leList').innerHTML = _le.map((e, i) => `<div class="listEd"><span class="pdImg" title="Add photo" onclick="pickPhoto((r)=>{_le[${i}].img=r;leList()},false)">${picHtml(_lk, e, _lc)}</span>
+      <input type="text" value="${esc(e.name)}" placeholder="Name" oninput="_le[${i}].name=this.value">
+      ${g ? `<input type="color" value="${esc(e.color || '#b3122e')}" oninput="_le[${i}].color=this.value;leList()">` : ''}
+      <button class="btn small soft" onclick="pickPhoto((r)=>{_le[${i}].img=r;leList()},false)">Photo</button>
+      ${e.img ? `<button class="btn small secondary" onclick="_le[${i}].img='';leList()" title="Remove photo">⌫</button>` : ''}
+      <button class="btn small secondary" onclick="if(${i}>0){_le.splice(${i - 1},0,_le.splice(${i},1)[0]);leList()}">↑</button>
+      <button class="btn small danger" onclick="_le.splice(${i},1);leList()">✕</button></div>`).join('') || '<p class="hint">No cards yet.</p>';
 }
-function saveGems() { const st = clone(S); st.gems = _gm.filter((g) => g.name.trim()).map((g) => ({ name: g.name.trim(), color: g.color || '#999999', img: g.img || '' })); cfgCall('settings', { settings: st }, 'Stone list saved'); }
+function saveList() {
+  const st = clone(S); st.lists = Object.assign({}, S.lists || {});
+  st.lists[listKey(_lk, _lc)] = _le.filter((e) => e.name.trim()).map((e) => { const o = { name: e.name.trim() }; if (e.img) o.img = e.img; if (_lk === 'gems') o.color = e.color || '#999999'; return o; });
+  if (_lk === 'gems') st.gems = st.lists.gems;
+  cfgCall('settings', { settings: st }, LISTS[_lk].title + ' saved');
+}
+let _mr = [];
+function subMk() {
+  _mr = clone(S.mkRules || []);
+  $('subBody').innerHTML = `<div class="card"><h3>Making charge helper</h3><p class="sub">Default making charge by vendor, item, purity and weight range. The most specific matching rule fills the making charge on the Price step; staff can still change it, and the "Making charge helper" button shows every matching rule.</p>
+    <div id="mrList"></div><button class="btn soft block" onclick="_mr.push({vendor:'',cat:'',purity:'',min:'',max:'',mode:'pct',mk:14,mkPg:0,note:''});mrList()">+ Add rule</button>
+    <div class="actions"><button class="btn" onclick="saveMk()">Save rules</button></div></div>`;
+  mrList();
+}
+function mrList() {
+  const vn = vendors.filter((v) => v.active !== false).map((v) => v.name);
+  $('mrList').innerHTML = _mr.map((r, i) => { const set = (k) => `oninput="_mr[${i}].${k}=this.value"`, ch = (k) => `onchange="_mr[${i}].${k}=this.value;mrList()"`;
+    return `<div class="mkRule"><div class="two">
+      <div class="field"><label>Vendor</label><select ${ch('vendor')}><option value="">Any vendor</option>${opt(vn, r.vendor)}</select></div>
+      <div class="field"><label>Category</label><select ${ch('cat')}><option value="">Any item</option>${opt(listItems('cat').map((e) => e.name), r.cat)}</select></div>
+      <div class="field"><label>Purity</label><select ${ch('purity')}><option value="">Any purity</option>${opt(PURITIES.map((p) => [p[0], p[1]]), r.purity)}</select></div>
+      <div class="field"><label>Net weight from – to (g)</label><div class="two" style="gap:6px"><input inputmode="decimal" placeholder="0" value="${esc(r.min)}" ${set('min')}><input inputmode="decimal" placeholder="no limit" value="${esc(r.max)}" ${set('max')}></div></div>
+      <div class="field"><label>Making</label><select ${ch('mode')}>${opt(MK_MODES, r.mode)}</select></div>
+      <div class="field"><label>${r.mode === 'pg' ? '₹ per gram' : r.mode === 'flat' ? 'Flat ₹' : r.mode === 'combo' ? '₹/g  ·  VA %' : 'VA / making %'}</label>${r.mode === 'combo' ? `<div class="two" style="gap:6px"><input inputmode="decimal" value="${esc(r.mkPg)}" ${set('mkPg')}><input inputmode="decimal" value="${esc(r.mk)}" ${set('mk')}></div>` : r.mode === 'pg' ? `<input inputmode="decimal" value="${esc(r.mkPg)}" ${set('mkPg')}>` : `<input inputmode="decimal" value="${esc(r.mk)}" ${set('mk')}>`}</div></div>
+      <div class="field"><label>Note (optional)</label><input value="${esc(r.note || '')}" ${set('note')} placeholder="e.g. Kolkata work, light weight"></div>
+      <button class="btn small danger" onclick="_mr.splice(${i},1);mrList()">Remove rule</button></div>`; }).join('') || '<p class="hint">No rules yet — making charge stays as typed.</p>';
+}
+function saveMk() {
+  const rules = _mr.map((r) => ({ vendor: r.vendor || '', cat: r.cat || '', purity: r.purity || '', min: num(r.min) || '', max: num(r.max) || '', mode: r.mode || 'pct', mk: num(r.mk), mkPg: num(r.mkPg), note: String(r.note || '').trim() }));
+  cfgCall('mkrules', { rules }, 'Making rules saved');
+}
 function subUsers() {
   $('subBody').innerHTML = `<div class="card"><h3>Staff logins</h3>${users.map((u) => `<div class="pay"><div><b>${esc(u.name)}</b> · ${esc(u.role)}${u.active ? '' : ' · <span class="overdue">disabled</span>'}<small>${esc(u.phone || '')}</small></div>
     <button class="btn small soft" onclick="userSheet('${u.id}')">Edit</button></div>`).join('')}

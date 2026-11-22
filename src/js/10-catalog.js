@@ -88,21 +88,99 @@ const DEF_GEMS = [
 function gemSvg(color) {
   return svg(`<circle cx="32" cy="32" r="21" fill="${color}" stroke="${W_}" stroke-width="1.4"/><path d="M32 11l9 12 12 9-12 9-9 12-9-12-12-9 12-9z" stroke="#ffffffaa" stroke-width="1.2"/><circle cx="32" cy="32" r="8" stroke="#ffffff99" stroke-width="1.2"/><path d="M22 19l4 5" stroke="#fff" stroke-width="2.4"/>`);
 }
-const gems = () => (S.gems && S.gems.length ? S.gems : DEF_GEMS);
 const STONE_TYPES = [['diamond', 'Natural diamond', 'ct'], ['labgrown', 'Lab-grown diamond', 'ct'], ['precious', 'Precious / colour stone', 'ct'], ['synthetic', 'Synthetic / CZ', 'pc']];
 const stoneUnitDefault = (t) => (STONE_TYPES.find((x) => x[0] === t) || [0, 0, 'ct'])[2];
 const UNIT_LABEL = { ct: 'per carat', pc: 'per piece', g: 'per gram' };
 
-// Item-specific details by category (kept in item.spec)
+// Category drawings (fallback until real photos are added in Settings)
+const CAT_SVG = {
+  Ring: band + gemTop(32, 20, 8),
+  Earrings: gemTop(20, 22, 7) + gemTop(44, 22, 7) + '<path d="M20 29c-3 8-3 14 0 18M44 29c3 8 3 14 0 18"/>',
+  Pendant: '<path d="M14 8c4 14 32 14 36 0" stroke-width="1.6"/><path d="M32 20v4"/><path d="M32 54L20 40a8 8 0 0112-10 8 8 0 0112 10z"/>',
+  Necklace: '<path d="M10 10c2 30 42 30 44 0"/>' + [0, 1, 2, 3, 4].map((i) => gemTop(18 + i * 7, 34 + (i === 2 ? 4 : i % 2 ? 3 : 0), 3)).join(''),
+  Chain: [0, 1, 2, 3].map((i) => `<ellipse cx="${14 + i * 12}" cy="32" rx="8" ry="5" transform="rotate(${i % 2 ? 30 : -30} ${14 + i * 12} 32)"/>`).join(''),
+  Bangle: '<ellipse cx="32" cy="32" rx="22" ry="20" stroke-width="5"/>',
+  Bracelet: '<ellipse cx="32" cy="34" rx="22" ry="12"/>' + [0, 1, 2, 3, 4, 5].map((i) => gemTop(14 + i * 7, 24 + Math.abs(2.5 - i) * 1.5, 2.6)).join(''),
+  'Nose pin': gemTop(26, 24, 8) + '<path d="M26 32v18h10"/>',
+  Mangalsutra: '<path d="M10 8c2 26 42 26 44 0" stroke-dasharray="2 3"/>' + gemTop(32, 40, 6),
+  Set: '<path d="M8 8c2 22 30 22 32 0"/>' + gemTop(24, 28, 4) + gemTop(48, 36, 5) + gemTop(48, 52, 4),
+  Anklet: '<path d="M8 40c8-10 40-10 48 0" stroke-dasharray="3 3"/>' + [0, 1, 2].map((i) => `<circle cx="${20 + i * 12}" cy="${44}" r="2.5"/>`).join(''),
+  Other: gemTop(32, 32, 14),
+};
+const FINISH_SVG = {
+  'High polish': '<ellipse cx="32" cy="32" rx="22" ry="16"/><path d="M18 24c4-4 10-6 16-6" stroke="#fff" stroke-width="3"/><path d="M18 24c4-4 10-6 16-6" stroke-width="1"/>',
+  Matte: '<ellipse cx="32" cy="32" rx="22" ry="16" fill="#efe4e8"/>',
+  Satin: '<ellipse cx="32" cy="32" rx="22" ry="16"/><path d="M14 28h36M12 32h40M14 36h36" stroke-width="1"/>',
+  Hammered: '<ellipse cx="32" cy="32" rx="22" ry="16"/>' + [[22, 28], [32, 25], [42, 28], [26, 36], [38, 36]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3" stroke-width="1"/>`).join(''),
+  Milgrain: '<ellipse cx="32" cy="32" rx="22" ry="16"/><ellipse cx="32" cy="32" rx="19" ry="13" stroke-dasharray="1 2.5" stroke-width="2.4"/>',
+  Brushed: '<ellipse cx="32" cy="32" rx="22" ry="16"/><path d="M16 26l6 12M24 22l6 18M32 20l6 20M40 22l6 16" stroke-width="1"/>',
+  Rhodium: '<ellipse cx="32" cy="32" rx="22" ry="16" fill="#e6e8ea"/>',
+};
+
+// Customisable picture lists. Each entry {name, img?} — img is a real photo ('img:key'); without one a drawing is used.
+const LISTS = {
+  cat: { title: 'Categories', draw: CAT_SVG, def: () => Object.keys(PRODUCTS) },
+  prod: { title: 'Item types', perCat: true, def: (c) => PRODUCTS[c] || [] },
+  setting: { title: 'Setting styles', draw: RING_SETTINGS, def: () => Object.keys(RING_SETTINGS) },
+  shank: { title: 'Shank styles', draw: SHANK_STYLES, def: () => Object.keys(SHANK_STYLES) },
+  finish: { title: 'Finish styles', draw: FINISH_SVG, def: () => Object.keys(FINISH_SVG) },
+  earType: { title: 'Earring types', draw: EAR_TYPES, def: () => Object.keys(EAR_TYPES) },
+  back: { title: 'Earring screws / backs', draw: EAR_BACKS, def: () => Object.keys(EAR_BACKS) },
+  gems: { title: 'Stones', gem: true, def: () => DEF_GEMS.map((g) => g.name) },
+  shapes: { title: 'Stone shapes', draw: SHAPES, def: () => Object.keys(SHAPES) },
+};
+const listKey = (k, cat) => (k === 'prod' ? 'prod:' + (cat || 'Other') : k);
+function listItems(k, cat) {
+  const L = S.lists || {}, key = listKey(k, cat);
+  if (Array.isArray(L[key])) return L[key];
+  if (k === 'gems' && S.gems && S.gems.length) return S.gems;
+  const d = LISTS[k].def(cat);
+  return d.map((n) => (k === 'gems' ? Object.assign({}, DEF_GEMS.find((g) => g.name === n)) : { name: n }));
+}
+const gems = () => listItems('gems');
+/** The picture for a list entry: real photo, else drawing, else stone colour, else category drawing. */
+function picHtml(k, entry, cat) {
+  if (!entry) return svg('<circle cx="32" cy="32" r="14" stroke-dasharray="3 3"/>');
+  if (entry.img) return `<img src="${esc(imgUrl(entry.img))}" alt="" loading="lazy">`;
+  if (k === 'gems') return gemSvg(entry.color || (DEF_GEMS.find((g) => g.name === entry.name) || {}).color || '#bbbbbb');
+  const d = LISTS[k].draw;
+  if (d && d[entry.name]) return svg(d[entry.name]);
+  if (k === 'prod' && CAT_SVG[cat]) return svg(CAT_SVG[cat]);
+  return svg(gemTop(32, 32, 14));
+}
+const findEntry = (k, name, cat) => listItems(k, cat).find((e) => e.name === name) || (name ? { name } : null);
+
+/** A dropdown that opens a pop-up of large picture cards. onPick = handler expression from pk(). */
+function picField(label, k, value, onPick, cat, opts = {}) {
+  const e = findEntry(k, value, cat);
+  return `<div class="field"><label>${label}</label><button type="button" class="picDrop" onclick="openPicker('${k}',${esc(JSON.stringify(cat || ''))},${esc(JSON.stringify(label))},${esc(JSON.stringify(onPick))},${esc(JSON.stringify(value || ''))},${opts.clear ? 1 : 0})">
+    <span class="pdImg">${value ? picHtml(k, e, cat) : ''}</span><span class="pdTxt">${value ? esc(value) : '<span class="hint" style="margin:0">Choose…</span>'}</span><span>▾</span></button></div>`;
+}
+function openPicker(k, cat, label, onPick, cur0, canClear) {
+  const items = listItems(k, cat);
+  window._pickFn = onPick;
+  openSheet(`<h2>${esc(label.replace(/^\d+\.\s*/, ''))}</h2><p class="sub">Tap a card to choose it · ⤢ shows the picture large.${can('settings') ? ' Edit this list in More → Picture lists.' : ''}</p>
+    <div class="bigPics">${items.map((e) => `<div class="bigPic ${e.name === cur0 ? 'on' : ''}"><button type="button" class="bpSel" onclick='closeSheet();(${onPick})(${esc(JSON.stringify(e.name))})'>${picHtml(k, e, cat)}<span>${esc(e.name)}</span></button>
+      ${e.img ? `<button type="button" class="bpZoom" onclick="zoomImg('${esc(imgUrl(e.img))}',${esc(JSON.stringify(e.name))})">⤢</button>` : ''}</div>`).join('') || '<p class="hint">This list is empty — add items in More → Picture lists.</p>'}</div>
+    ${canClear && cur0 ? `<button class="btn secondary block" style="margin-top:12px" onclick='closeSheet();(${onPick})("")'>Clear</button>` : ''}`);
+}
+function zoomImg(src, name) {
+  let z = $('zoom');
+  if (!z) { z = document.createElement('div'); z.id = 'zoom'; z.className = 'zoom'; z.onclick = () => z.classList.remove('on'); document.body.appendChild(z); }
+  z.innerHTML = `<img src="${esc(src)}" alt=""><div>${esc(name || '')} · tap to close</div>`;
+  z.classList.add('on');
+}
+
+// Item-specific details by category (kept in item.spec). 'list' fields use the customisable picture lists.
 const SPEC = {
-  Ring: [['shankW', 'Shank width (mm)', 'num'], ['depth', 'Shank depth / thickness (mm)', 'num'], ['setting', 'Setting style', 'pic', RING_SETTINGS], ['shank', 'Shank style', 'pic', SHANK_STYLES], ['finish', 'Finish', 'chips', ['High polish', 'Matte', 'Satin', 'Hammered', 'Milgrain']]],
-  Earrings: [['earType', 'Type', 'pic', EAR_TYPES], ['back', 'Screw / back', 'pic', EAR_BACKS], ['pair', 'Pair or single', 'chips', ['Pair', 'Single']], ['dropLen', 'Drop length (mm)', 'num']],
-  'Nose pin': [['back', 'Screw / back', 'pic', { 'Screw': EAR_BACKS['Screw-back'], 'Push pin': EAR_BACKS['Push-back (butterfly)'], 'L-shape': '<path d="M26 10v34h14" stroke-width="3"/>', 'Ring': '<circle cx="32" cy="32" r="14" stroke-width="3"/>' }]],
-  Pendant: [['bail', 'Bail', 'chips', ['Fixed bail', 'Hidden bail', 'Hinged bail', 'Enhancer bail']], ['chain', 'With chain', 'chips', ['No chain', '16 in', '18 in', '20 in', '22 in']]],
-  Chain: [['thick', 'Thickness (mm)', 'num'], ['clasp', 'Clasp', 'chips', ['Lobster', 'Spring ring', 'S-hook', 'Box clasp']]],
-  Necklace: [['clasp', 'Clasp', 'chips', ['Lobster', 'Hook', 'Box clasp', 'Dori (thread)']], ['adj', 'Adjustable length', 'chips', ['Yes', 'No']]],
-  Bangle: [['bwidth', 'Width (mm)', 'num'], ['open', 'Opening', 'chips', ['Closed', 'Openable (screw)', 'Hinged']], ['pcs', 'Pieces', 'chips', ['1', '2', '4', '6']]],
-  Bracelet: [['bwidth', 'Width (mm)', 'num'], ['clasp', 'Clasp', 'chips', ['Box clasp', 'Lobster', 'Hidden', 'Openable']]],
+  Ring: [['shankW', 'Shank width (mm)', 'num'], ['depth', 'Shank depth / thickness (mm)', 'num'], ['setting', 'Setting style', 'list', 'setting'], ['shank', 'Shank style', 'list', 'shank'], ['finish', 'Finish style', 'list', 'finish']],
+  Earrings: [['earType', 'Type', 'list', 'earType'], ['back', 'Screw / back', 'list', 'back'], ['finish', 'Finish style', 'list', 'finish'], ['pair', 'Pair or single', 'chips', ['Pair', 'Single']], ['dropLen', 'Drop length (mm)', 'num']],
+  'Nose pin': [['back', 'Screw / back', 'chips', ['Screw', 'Push pin', 'L-shape', 'Ring']], ['finish', 'Finish style', 'list', 'finish']],
+  Pendant: [['bail', 'Bail', 'chips', ['Fixed bail', 'Hidden bail', 'Hinged bail', 'Enhancer bail']], ['chain', 'With chain', 'chips', ['No chain', '16 in', '18 in', '20 in', '22 in']], ['finish', 'Finish style', 'list', 'finish']],
+  Chain: [['thick', 'Thickness (mm)', 'num'], ['clasp', 'Clasp', 'chips', ['Lobster', 'Spring ring', 'S-hook', 'Box clasp']], ['finish', 'Finish style', 'list', 'finish']],
+  Necklace: [['clasp', 'Clasp', 'chips', ['Lobster', 'Hook', 'Box clasp', 'Dori (thread)']], ['adj', 'Adjustable length', 'chips', ['Yes', 'No']], ['finish', 'Finish style', 'list', 'finish']],
+  Bangle: [['bwidth', 'Width (mm)', 'num'], ['open', 'Opening', 'chips', ['Closed', 'Openable (screw)', 'Hinged']], ['pcs', 'Pieces', 'chips', ['1', '2', '4', '6']], ['finish', 'Finish style', 'list', 'finish']],
+  Bracelet: [['bwidth', 'Width (mm)', 'num'], ['clasp', 'Clasp', 'chips', ['Box clasp', 'Lobster', 'Hidden', 'Openable']], ['finish', 'Finish style', 'list', 'finish']],
   Mangalsutra: [['beads', 'Black beads', 'chips', ['Single line', 'Double line', 'Gold-capped']]],
 };
 const specText = (it) => {
@@ -110,13 +188,29 @@ const specText = (it) => {
   return list.filter(([k]) => s[k]).map(([k, l]) => `${l.replace(/ \(mm\)/, '')}: ${s[k]}${/\(mm\)/.test(l) ? ' mm' : ''}`).join(' · ');
 };
 
-// ---------------- picture-card pickers ----------------
-function picCards(map, selected, onPick, opts = {}) {
-  return `<div class="pics">${Object.keys(map).map((name) => `<button type="button" class="pic ${selected === name ? 'on' : ''}" onclick="${onPick}(${esc(JSON.stringify(name))})">${opts.raw ? map[name] : svg(map[name])}<span>${esc(name)}</span></button>`).join('')}</div>`;
+// ---------------- making charge helper ----------------
+// Rules: {vendor, cat, purity, min, max, mode, mk, mkPg, note}; blank vendor/cat/purity = any.
+function mkMatches(it) {
+  const w = num(it.wt);
+  return (S.mkRules || []).map((r, i) => Object.assign({ i }, r)).filter((r) =>
+    (!r.vendor || r.vendor === it.vendor) && (!r.cat || r.cat === it.cat) && (!r.purity || r.purity === it.purity) &&
+    (!num(r.min) || w >= num(r.min)) && (!num(r.max) || w <= num(r.max)))
+    .sort((a, b) => ['vendor', 'cat', 'purity'].filter((k) => b[k]).length - ['vendor', 'cat', 'purity'].filter((k) => a[k]).length || (num(a.max || 1e9) - num(a.min)) - (num(b.max || 1e9) - num(b.min)));
 }
-function gemCards(selected, onPick) {
-  return `<div class="pics">${gems().map((g) => `<button type="button" class="pic ${selected === g.name ? 'on' : ''}" onclick="${onPick}(${esc(JSON.stringify(g.name))})">${g.img ? `<img src="${esc(imgUrl(g.img))}" alt="">` : gemSvg(g.color)}<span>${esc(g.name)}</span></button>`).join('')}</div>`;
+const mkText = (r) => (r.mode === 'pct' ? `${r.mk}% VA` : r.mode === 'pg' ? `₹${r.mkPg}/g` : r.mode === 'combo' ? `₹${r.mkPg}/g + ${r.mk}%` : `₹${r.mk} flat`);
+const mkWhen = (r) => [r.vendor || 'Any vendor', r.cat || 'any item', r.purity ? purShort(r.purity) : 'any purity', (num(r.min) || num(r.max)) ? `${num(r.min) || 0}–${num(r.max) || '∞'} g` : 'any weight'].join(' · ');
+function applyMkRule(it, r) { it.mkMode = r.mode; if (r.mode === 'pct' || r.mode === 'combo' || r.mode === 'flat') it.mk = r.mk; if (r.mode === 'pg' || r.mode === 'combo') it.mkPg = r.mkPg; it.mkRule = mkWhen(r); }
+/** Default making from the best rule, unless staff changed it by hand. */
+function autoMaking(it) { if (it.mkManual) return; const r = mkMatches(it)[0]; if (r) applyMkRule(it, r); }
+function showMkHelper(i) {
+  const it = wiz.o.items[i], m = mkMatches(it), all = S.mkRules || [];
+  openSheet(`<h2>Making charge helper</h2><p class="sub">${esc([it.vendor || 'No vendor yet', it.cat, purShort(it.purity), g3(it.wt)].filter(Boolean).join(' · '))}</p>
+    ${m.length ? m.map((r) => `<div class="pcRes"><div style="flex:1"><b>${esc(mkText(r))}</b><br><small class="hint" style="margin:0">${esc(mkWhen(r))}${r.note ? ' · ' + esc(r.note) : ''}</small></div><button class="btn small" onclick="useMk(${i},${r.i})">Use</button></div>`).join('')
+      : `<div class="warnBox">No rule matches this vendor, item, purity and weight.${all.length ? '' : ' No rules set yet.'}</div>`}
+    ${all.length > m.length ? `<details class="sec"><summary>All rules (${all.length})</summary><div class="in">${all.map((r, k) => `<div class="pay"><div><b>${esc(mkText(r))}</b><small>${esc(mkWhen(r))}</small></div><button class="btn small soft" onclick="useMk(${i},${k})">Use</button></div>`).join('')}</div></details>` : ''}
+    ${can('rates') ? '<button class="btn secondary block" style="margin-top:10px" onclick="closeSheet();openSub(\'mk\')">Edit rules</button>' : ''}`);
 }
+function useMk(i, k) { const it = wiz.o.items[i]; applyMkRule(it, S.mkRules[k]); it.mkManual = true; keepDraft(); closeSheet(); wizPrice(); }
 
 // ---------------- karat-wise weight pop-up ----------------
 function karatWeights(wt, purity) {

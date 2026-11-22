@@ -27,14 +27,16 @@ async function drawCard(spec) {
   const W = 1080, P = 64, F = '-apple-system,"Segoe UI",Roboto,Arial,sans-serif';
   const c = document.createElement('canvas'), x = c.getContext('2d');
   c.width = W; c.height = 10;
-  const [mk, wd, ...phs] = await Promise.all([loadImg(LOGO.markW), loadImg(LOGO.wordW)].concat((spec.photos || []).slice(0, 6).map((p) => loadImg(imgUrl(p)))));
+  const [mk, wd, ...phs] = await Promise.all([loadImg(LOGO.markW), loadImg(LOGO.wordW)].concat((spec.photos || []).slice(0, 9).map((p) => loadImg(imgUrl(p)))));
   const photos = phs.filter(Boolean);
   const KW = 400, VW = W - 2 * P - KW - 20;
   x.font = `500 31px ${F}`;
   const secs = (spec.sections || []).map(([t, rows]) => [t, rows.map(([k, v, b]) => ({ k: wrapT(x, k, KW), v: wrapT(x, v, VW), b }))]);
   x.font = `400 27px ${F}`;
   const foot = (spec.foot || []).map((t) => wrapT(x, '• ' + t, W - 2 * P));
-  const headH = 300, phRows = Math.ceil(photos.length / 3), phH = photos.length ? (photos.length === 1 ? 330 : phRows * 320 + 10) : 0, bigH = spec.big ? 150 : 0;
+  const HW = W - 2 * P, hero = photos[0], heroH = hero ? Math.round(HW * Math.max(0.62, Math.min(1, hero.height / hero.width))) : 0;
+  const thumbs = photos.slice(1), TG = 18, TS = Math.floor((HW - TG * 3) / 4), thRows = Math.ceil(thumbs.length / 4);
+  const headH = 300, phH = hero ? heroH + 24 + (thRows ? thRows * (TS + TG) + 6 : 0) : 0, bigH = spec.big ? 150 : 0;
   const secH = secs.reduce((s, [, rows]) => s + 80 + rows.reduce((t, r) => t + Math.max(r.k.length, r.v.length) * 42 + 16, 0), 0);
   const footH = foot.reduce((t, l) => t + l.length * 37 + 8, 0) + 40;
   const H = headH + 40 + phH + bigH + secH + footH + 120;
@@ -51,11 +53,13 @@ async function drawCard(spec) {
   x.textAlign = 'right'; x.font = `700 34px ${F}`; x.fillStyle = '#fff'; x.fillText(spec.ref || '', W - P, 92); x.textAlign = 'left';
   let y = headH + 40;
   if (photos.length) {
-    const n = Math.min(3, photos.length), gap = 20, sz = Math.min(300, (W - 2 * P - gap * (n - 1)) / n);
-    photos.forEach((im, i) => {
-      const s = Math.min(im.width, im.height), sx = (im.width - s) / 2, sy = (im.height - s) / 2, px = P + (i % 3) * (sz + gap), py = y + Math.floor(i / 3) * (sz + 20);
-      x.save(); x.beginPath(); x.roundRect ? x.roundRect(px, py, sz, sz, 22) : x.rect(px, py, sz, sz); x.clip(); x.drawImage(im, sx, sy, s, s, px, py, sz, sz); x.restore();
-    });
+    // Large hero photo of the product, then the rest as thumbnails (cover-cropped).
+    const cover = (im, px, py, w, h, r) => {
+      const k = Math.max(w / im.width, h / im.height), sw = w / k, sh = h / k, sx = (im.width - sw) / 2, sy = (im.height - sh) / 2;
+      x.save(); x.beginPath(); x.roundRect ? x.roundRect(px, py, w, h, r) : x.rect(px, py, w, h); x.clip(); x.fillStyle = '#f8ebf0'; x.fillRect(px, py, w, h); x.drawImage(im, sx, sy, sw, sh, px, py, w, h); x.restore();
+    };
+    cover(hero, P, y, HW, heroH, 26);
+    thumbs.forEach((im, i) => cover(im, P + (i % 4) * (TS + TG), y + heroH + 24 + Math.floor(i / 4) * (TS + TG), TS, TS, 18));
     y += phH;
   }
   if (spec.big) {

@@ -26,7 +26,7 @@ const DEF_SETTINGS: any = {
   shopAddr: '63/322Aa Ground Level, Grand Business Center, K K Road, Kadavanthra, Ernakulam, Kerala 682020',
   rates: { k22: 0, k18: 0, k14: 0, k9: 0, pt: 0, ag: 0, at: 0, by: '', src: '', kioskAt: '' },
   kioskAuto: true, kioskUrl: 'https://grandjewellers.com/api/kiosk-rates',
-  gst: 3, minAdv: 20, roundTo: 50, finalRoundTo: 100, gems: null, mkOnStone: true, leadDays: 20, qcBuffer: 2, weeklyOff: [0], holidays: [],
+  gst: 3, minAdv: 20, roundTo: 50, finalRoundTo: 100, gems: null, lists: null, mkRules: [], mkOnStone: true, leadDays: 20, qcBuffer: 2, weeklyOff: [0], holidays: [],
   estValid: 7, tol: 2, discLimit: 0, karatRef: { k22: 32.6, k18: 28.4, k14: 24.3, k9: 18.7 },
   approveDays: 2, etdWarnDays: 2, collectDays: 7, autoLock: 20,
   priceCheckUrl: 'https://yamie-price-check.netlify.app', repairUrl: 'https://yamie-repair-desk.netlify.app',
@@ -580,12 +580,34 @@ export default async (req: Request) => {
       const changed = await applyKiosk(s, me.name + ' (kiosk)', false);
       return J({ ...(await cfgOut()), changed });
     }
+    if (path === 'mkrules' && method === 'POST') {
+      if (!can('rates') && !can('settings')) return err('Not allowed', 403);
+      const st = await getSettings(s);
+      const MODES = ['pct', 'pg', 'combo', 'flat'];
+      st.mkRules = (Array.isArray(body.rules) ? body.rules : []).slice(0, 200).map((r: any) => ({
+        vendor: String(r.vendor || '').slice(0, 80), cat: String(r.cat || '').slice(0, 60), purity: String(r.purity || '').slice(0, 10),
+        min: num(r.min) > 0 ? num(r.min) : '', max: num(r.max) > 0 ? num(r.max) : '', mode: MODES.includes(r.mode) ? r.mode : 'pct',
+        mk: Math.max(0, num(r.mk)), mkPg: Math.max(0, num(r.mkPg)), note: String(r.note || '').slice(0, 120),
+      }));
+      await s.setJSON('cfg/settings', st);
+      await bumpCfg(s);
+      return J(await cfgOut());
+    }
     if (path === 'pc/find') { need('enquiry'); return J(await pcFind(s, url.searchParams.get('q') || '')); }
     if (path === 'pc/photos' && method === 'POST') { need('enquiry'); return J(await pcPhotos(s, String(body.k || ''))); }
     if (path === 'settings' && method === 'POST') {
       need('settings');
       const cur = await getSettings(s);
       const st = { ...DEF_SETTINGS, ...(body.settings || {}), rates: cur.rates };
+      if (st.lists && typeof st.lists === 'object') {
+        const L: any = {};
+        for (const [k, v] of Object.entries(st.lists).slice(0, 60)) if (Array.isArray(v)) L[String(k).slice(0, 60)] = (v as any[]).slice(0, 120).map((e: any) => {
+          const o: any = { name: String(e.name || '').trim().slice(0, 60) };
+          if (e.img) o.img = String(e.img).slice(0, 200); if (e.color) o.color = String(e.color).slice(0, 9); return o;
+        }).filter((e: any) => e.name);
+        st.lists = L;
+      } else st.lists = cur.lists || null;
+      if (!Array.isArray(st.mkRules)) st.mkRules = cur.mkRules || [];
       st.weeklyOff = (Array.isArray(st.weeklyOff) ? st.weeklyOff : [0]).map((x: any) => Math.round(num(x))).filter((x: number) => x >= 0 && x <= 6).slice(0, 6);
       st.holidays = (Array.isArray(st.holidays) ? st.holidays : []).filter((x: any) => /^\d{4}-\d\d-\d\d$/.test(x)).slice(0, 200);
       await s.setJSON('cfg/settings', st);

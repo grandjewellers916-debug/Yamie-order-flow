@@ -134,3 +134,22 @@ details.sec .in{padding:0 12px 12px}
 .wtRow{display:flex;gap:6px;align-items:flex-end}.wtRow .field{flex:1}.wtRow .btn{margin-bottom:12px;white-space:nowrap}
 .pcRes{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;margin:6px 0;display:flex;gap:10px;align-items:center}
 .pcRes img{width:56px;height:56px;border-radius:8px;object-fit:cover;background:var(--blush)}
+/* V1.4 picture dropdowns + pop-up */
+.picDrop{display:flex;align-items:center;gap:10px;width:100%;background:#fff;border:1px solid var(--line);border-radius:12px;padding:6px 10px 6px 6px;text-align:left;color:inherit;font:inherit;cursor:pointer;min-height:58px}
+.picDrop>span:last-child{color:var(--muted)}
+.pdImg{width:46px;height:46px;border-radius:9px;background:var(--blush);flex:none;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.pdImg img,.pdImg svg{width:100%;height:100%;object-fit:cover}
+.pdTxt{flex:1;font-weight:700;font-size:13.5px;line-height:1.25;overflow:hidden}
+.bigPics{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.bigPic{position:relative;border:2px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
+.bigPic.on{border-color:var(--wine);box-shadow:0 0 0 2px var(--blush)}
+.bpSel{display:block;width:100%;background:none;border:0;padding:0;cursor:pointer;color:inherit;font:inherit}
+.bpSel img,.bpSel svg{display:block;width:100%;height:140px;object-fit:cover;background:var(--blush)}
+.bpSel span{display:block;padding:8px 6px;font-weight:700;font-size:13px;text-align:center}
+.bpZoom{position:absolute;top:6px;right:6px;width:32px;height:32px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;font-size:16px;cursor:pointer}
+.zoom{position:fixed;inset:0;background:rgba(15,10,12,.92);z-index:99;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#fff;padding:16px}
+.zoom.on{display:flex}.zoom img{max-width:100%;max-height:80vh;border-radius:12px;object-fit:contain}
+.listEd{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+.listEd .pdImg{width:52px;height:52px;cursor:pointer}.listEd input[type=text]{flex:1;min-width:0}
+.listEd input[type=color]{width:34px;height:34px;padding:0;border:0;background:none}
+.mkRule{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}

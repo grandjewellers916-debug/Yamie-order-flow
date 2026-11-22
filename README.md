@@ -51,3 +51,9 @@ The page talks to `localStorage.yod_api` when set (tests set it to the local ser
 - ERP: invoice number and amount are typed in.
 - Offline: cached data can be viewed, but saving needs the internet (Repair Desk queues edits; Order Desk does not yet).
 - The server trusts the price totals the app calculates (it checks the rules, numbers and permissions, not the arithmetic).
+
+## V1.4 — Update 2 (22-11-2026)
+- Category, Item type, Setting style, Shank style, Finish style, Stone and Stone shape are picture dropdowns: tap to open a pop-up of large cards; ⤢ opens the real photo full screen.
+- More → Picture lists: edit every list (item types per category), add real photos, reorder, remove, reset. Saved in settings.lists.
+- More → Making charge helper: default rules by vendor, category, purity and net-weight range (most specific wins). Price step fills making automatically until staff change it; the helper button lists matching rules. Saved via POST /api/mkrules (rates or settings permission).
+- Picture cards (estimate, work order, final, ready) show the first product photo large, the rest as thumbnails.

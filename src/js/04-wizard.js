@@ -114,8 +114,8 @@ function stoneEditor(i, j, s) {
   return `<div class="stone">
     <div class="itemHead" style="margin-bottom:6px"><b>${esc(stoneLabel(t))}${s.gem ? ' · ' + esc(s.gem) : ''}</b><button class="btn small danger" onclick="delStone(${i},${j})">Remove</button></div>
     <div class="choiceRow" style="margin-bottom:10px">${STONE_TYPES.map(([k, l, u]) => `<button class="chip ${t === k ? 'active' : ''}" onclick="setSt(${i},${j},'type','${k}');setSt(${i},${j},'unit','${u}');wizItems()">${l}</button>`).join('')}</div>
-    ${t === 'precious' || t === 'synthetic' ? `<details class="sec" ${s.gem ? '' : 'open'}><summary>Stone: ${esc(s.gem || 'choose')}</summary><div class="in">${gemCards(s.gem, pk('g' + i + '_' + j, (n) => { setSt(i, j, 'gem', n); const g = gems().find((x) => x.name === n); if (g && !s.colour) setSt(i, j, 'colour', n); wizItems(); }))}</div></details>` : ''}
-    <details class="sec" ${s.shape && s.shape !== 'Round' ? 'open' : ''}><summary>Shape: ${esc(s.shape || '—')}</summary><div class="in">${picCards(SHAPES, s.shape, pk('sh' + i + '_' + j, (n) => { setSt(i, j, 'shape', n); wizItems(); }))}</div></details>
+    <div class="two">${t === 'precious' || t === 'synthetic' ? picField('Stone', 'gems', s.gem, pk('g' + i + '_' + j, (n) => { setSt(i, j, 'gem', n); if (n && !s.colour) setSt(i, j, 'colour', n); wizItems(); })) : ''}
+      ${picField('Shape', 'shapes', s.shape, pk('sh' + i + '_' + j, (n) => { setSt(i, j, 'shape', n); wizItems(); }))}</div>
     <div class="three"><div class="field"><label>Size (mm)</label><input value="${esc(s.size)}" oninput="setSt(${i},${j},'size',this.value)"></div>
       <div class="field"><label>Total ct</label><input inputmode="decimal" value="${esc(s.ct)}" oninput="setSt(${i},${j},'ct',this.value)"></div>
       <div class="field"><label>Pieces</label><input inputmode="numeric" value="${esc(s.pcs)}" oninput="setSt(${i},${j},'pcs',this.value)"></div></div>
@@ -130,16 +130,14 @@ function stoneEditor(i, j, s) {
 }
 
 function itemEditor(it, i) {
-  const prods = PRODUCTS[it.cat] || [];
   const spec = SPEC[it.cat] || [];
   const sp = it.spec || {};
   return `<div class="item">
     <div class="itemHead"><b>Item ${i + 1}${it.rev > 1 ? ` <span class="badge">rev ${it.rev}</span>` : ''}</b>
       <span><button class="btn small soft" onclick="dupItem(${i})">Duplicate</button> <button class="btn small danger" onclick="delItem(${i})">Remove</button></span></div>
-    <div class="field"><label>1. Category</label><div class="choiceRow">${CATS2.map((c) => `<button class="chip ${it.cat === c ? 'active' : ''}" onclick="setIt(${i},'cat','${c}');wizItems()">${c}</button>`).join('')}</div></div>
-    <div class="field"><label>2. Product / item <i class="req">*</i></label>
-      ${prods.length ? `<div class="choiceRow" style="margin-bottom:8px">${prods.map((p) => `<button class="chip ${it.product === p ? 'active' : ''}" onclick='setIt(${i},"product",${esc(JSON.stringify(p))});wizItems()'>${esc(p)}</button>`).join('')}</div>` : ''}
-      <input value="${esc(it.product)}" oninput="setIt(${i},'product',this.value)" placeholder="${prods.length ? 'Or type the product' : 'e.g. Solitaire ring'}"></div>
+    <div class="two">${picField('1. Category', 'cat', it.cat, pk('cat' + i, (n) => { setIt(i, 'cat', n); wizItems(); }))}
+      ${picField('2. Item type', 'prod', listItems('prod', it.cat).some((e) => e.name === it.product) ? it.product : '', pk('prod' + i, (n) => { setIt(i, 'product', n); wizItems(); }), it.cat)}</div>
+    <div class="field" style="margin-top:-4px"><label>Product name on estimate <i class="req">*</i></label><input value="${esc(it.product)}" oninput="setIt(${i},'product',this.value)" placeholder="Pick an item type above, or type a name"></div>
     <div class="two">
       <div class="field"><label>3. Purity</label><select onchange="setIt(${i},'purity',this.value)">${opt(PURITIES.map((p) => [p[0], p[1]]), it.purity)}</select></div>
       <div class="field"><label>Quantity</label><input inputmode="numeric" value="${esc(it.qty)}" oninput="setIt(${i},'qty',Math.max(1,parseInt(this.value)||1))"></div>
@@ -151,7 +149,7 @@ function itemEditor(it, i) {
     <details class="sec" ${Object.keys(sp).length ? 'open' : ''}><summary>8. ${esc(it.cat || 'Item')} details${specText(it) ? ' · ' + esc(specText(it)) : ''}</summary><div class="in">
       ${spec.length ? spec.map(([k, l, type, data]) => type === 'num' ? `<div class="field"><label>${l}</label><input inputmode="decimal" value="${esc(sp[k] || '')}" oninput="setSpec(${i},'${k}',this.value)"></div>`
         : type === 'chips' ? `<div class="field"><label>${l}</label><div class="choiceRow">${data.map((x) => `<button class="chip ${sp[k] === x ? 'active' : ''}" onclick='setSpec(${i},"${k}",${esc(JSON.stringify(x))});wizItems()'>${esc(x)}</button>`).join('')}</div></div>`
-        : `<div class="field"><label>${l}${sp[k] ? ': <b>' + esc(sp[k]) + '</b>' : ''}</label>${picCards(data, sp[k], pk('sp' + i + k, (n) => { setSpec(i, k, sp[k] === n ? '' : n); wizItems(); }))}</div>`).join('') : '<p class="hint">Choose a category with specific options (Ring, Earrings…), or write details below.</p>'}
+        : picField(l, data, sp[k], pk('sp' + i + k, (n) => { setSpec(i, k, n); wizItems(); }), null, { clear: true })).join('') : '<p class="hint">Choose a category with specific options (Ring, Earrings…), or write details below.</p>'}
       <div class="field"><label>Width / thickness / other</label><input value="${esc(it.dims)}" oninput="setIt(${i},'dims',this.value)"></div>
     </div></details>
     <details class="sec" ${it.stones.length ? 'open' : ''}><summary>9. Stones${it.stones.length ? ' · ' + it.stones.map((s) => esc(s.gem || stoneLabel(s.type))).join(', ') : ''}</summary><div class="in">
@@ -223,6 +221,7 @@ async function pcPhotos(i) {
 // ---------------- 3. price ----------------
 function wizPrice() {
   const o = wiz.o, r = S.rates || {};
+  o.items.forEach(autoMaking);
   const missing = [...new Set(o.items.map((it) => it.purity))].filter((p) => !(rateOf(p) > 0));
   $('wizBody').innerHTML = `
     <div class="card"><h3>Today's rates <span class="badge">${r.at ? ago(r.at) : 'not set'}</span></h3>
@@ -230,11 +229,13 @@ function wizPrice() {
       ${missing.length ? `<div class="badBox">No rate set for ${missing.map(purShort).join(', ')}. ${can('rates') ? '<a href="#" onclick="openSub(\'rates\');return false">Set rates</a>' : 'Ask a manager to set the rates.'}</div>` : ''}</div>
     ${o.items.map((it, i) => `<div class="card"><h3>Item ${i + 1} · ${esc(it.product || 'Item')} <span class="badge">${purShort(it.purity)} · ${g3(it.wt)}</span></h3>
       <div class="two">
-        <div class="field"><label>Making charge</label><select onchange="setIt(${i},'mkMode',this.value);wizPrice()">${opt(MK_MODES, it.mkMode)}</select></div>
-        ${it.mkMode === 'pct' || it.mkMode === 'combo' ? `<div class="field"><label>VA / wastage %</label><input inputmode="decimal" value="${esc(it.mk)}" oninput="setIt(${i},'mk',this.value);priceLive()"></div>` : ''}
-        ${it.mkMode === 'flat' ? `<div class="field"><label>₹ per piece</label><input inputmode="decimal" value="${esc(it.mk)}" oninput="setIt(${i},'mk',this.value);priceLive()"></div>` : ''}
-        ${it.mkMode === 'pg' || it.mkMode === 'combo' ? `<div class="field"><label>₹ per gram</label><input inputmode="decimal" value="${esc(it.mkPg)}" oninput="setIt(${i},'mkPg',this.value);priceLive()"></div>` : ''}
+        <div class="field"><label>Making charge</label><select onchange="setIt(${i},'mkMode',this.value);setIt(${i},'mkManual',true);wizPrice()">${opt(MK_MODES, it.mkMode)}</select></div>
+        ${it.mkMode === 'pct' || it.mkMode === 'combo' ? `<div class="field"><label>VA / wastage %</label><input inputmode="decimal" value="${esc(it.mk)}" oninput="setIt(${i},'mk',this.value);setIt(${i},'mkManual',true);priceLive()"></div>` : ''}
+        ${it.mkMode === 'flat' ? `<div class="field"><label>₹ per piece</label><input inputmode="decimal" value="${esc(it.mk)}" oninput="setIt(${i},'mk',this.value);setIt(${i},'mkManual',true);priceLive()"></div>` : ''}
+        ${it.mkMode === 'pg' || it.mkMode === 'combo' ? `<div class="field"><label>₹ per gram</label><input inputmode="decimal" value="${esc(it.mkPg)}" oninput="setIt(${i},'mkPg',this.value);setIt(${i},'mkManual',true);priceLive()"></div>` : ''}
       </div>
+      <div class="actions" style="margin:-4px 0 10px"><button class="btn small soft" onclick="showMkHelper(${i})">Making charge helper${mkMatches(it).length ? ' (' + mkMatches(it).length + ')' : ''}</button>
+        ${it.mkRule && !it.mkManual ? `<span class="hint" style="align-self:center;margin:0">Default from rule: ${esc(it.mkRule)}</span>` : it.mkManual && mkMatches(it)[0] ? `<button class="btn small secondary" onclick="wiz.o.items[${i}].mkManual=false;wizPrice()">Back to default</button>` : ''}</div>
       <div class="field"><label>Other approved charges ₹ (this item)</label><input inputmode="decimal" value="${esc(it.other)}" oninput="setIt(${i},'other',this.value);priceLive()"></div>
       <div id="kq${i}"></div>
     </div>`).join('')}

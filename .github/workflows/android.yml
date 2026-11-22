@@ -44,7 +44,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: order-desk-v${{ github.run_number }}
-          name: Yamie Order Desk v1.3.${{ github.run_number }}
+          name: Yamie Order Desk v1.4.${{ github.run_number }}
           target_commitish: ${{ github.sha }}
           files: Yamie-Order-Desk-v*.apk
-          body: "Yamie Order Desk V1.3 (22-11-2026): new Items page (category, popular products, karat-wise weights, ring and earring details with picture cards, stones with picture cards priced per carat / piece / gram, design number linked to Price Check with its photos); vendor work order and receive-in-store details; final price with discount, rounding to next 100 and customer OK; direct WhatsApp card sharing; vendor phone hidden from staff. New versions install over the old one."
+          body: "Yamie Order Desk V1.4 (Update 2): category, item type, setting, shank, finish, stone and stone shape are picture dropdowns with large pop-up cards and full-screen zoom; every list can be edited in More - Picture lists with real photos; making charge helper with default rules by vendor, item, purity and weight range; large product photo on all picture cards. New versions install over the old one."
