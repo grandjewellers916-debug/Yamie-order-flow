@@ -1,7 +1,7 @@
 // ======================================================================
 // Yamie Order Desk — core: helpers, server calls, sync, login
 // ======================================================================
-const APP_VERSION = '1.1';
+const APP_VERSION = '1.2';
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s != null ? s : '').replace(/[&<>"']/g, (x) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[x]);
 const num = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(/[,₹\s]/g, '')); return isFinite(n) ? n : 0; };
@@ -178,6 +178,7 @@ async function onPhotoPicked(e) {
 // ---------------- login / lock ----------------
 let loginList = load('yod_loginlist', null), pickUser = null, pinBuf = '', lastAct = Date.now();
 function showLock(reason) {
+  lockMode = 'pin';
   $('lock').hidden = false; $('app').hidden = true; pinBuf = '';
   if (me) pickUser = me.id;
   me = null; token = null; store('yod_token', null);
@@ -185,6 +186,7 @@ function showLock(reason) {
   api('login-list').then((d) => { loginList = d; store('yod_loginlist', d); renderLock(reason || ''); }).catch(() => renderLock('Offline — log in needs the internet'));
 }
 function renderLock(msg) {
+  if (lockMode !== 'pin') return;
   const L = loginList;
   if (!L) { $('lockBox').innerHTML = '<div class="msg">Connecting…</div>'; return; }
   if (!pickUser || !L.users.find((u) => u.id === pickUser)) pickUser = L.users.length === 1 ? L.users[0].id : load('yod_lastuser', null);
@@ -201,7 +203,12 @@ function padKey(k) {
   renderLock();
   if (pinBuf.length === 4) doLogin();
 }
-document.addEventListener('keydown', (e) => { if (!$('lock').hidden && /^[0-9]$/.test(e.key)) padKey(e.key); else if (!$('lock').hidden && e.key === 'Backspace') padKey('⌫'); });
+let lockMode = 'pin';   // 'pin' = keypad on screen, 'setup' = first-time name + PIN form
+document.addEventListener('keydown', (e) => {
+  if ($('lock').hidden || lockMode !== 'pin') return;
+  if (e.target && e.target.matches && e.target.matches('input,textarea,select')) return;
+  if (/^[0-9]$/.test(e.key)) padKey(e.key); else if (e.key === 'Backspace') padKey('⌫');
+});
 async function doLogin() {
   const pin = pinBuf;
   try {
@@ -213,6 +220,7 @@ async function doLogin() {
   } catch (e) { pinBuf = ''; renderLock(isNet(e) ? 'No internet — cannot log in' : e.message); }
 }
 function firstSetup() {
+  lockMode = 'setup';
   $('lockBox').innerHTML = `<div class="msg" style="color:#fff;margin:0 0 10px">Set your own name and a new 4-digit PIN.</div>
     <input id="fsName" placeholder="Your name" value="${esc(me.name === 'Admin' ? '' : me.name)}">
     <input id="fsPin" placeholder="New 4-digit PIN" inputmode="numeric" maxlength="4">
@@ -221,7 +229,7 @@ function firstSetup() {
 async function saveFirst() {
   const name = $('fsName').value.trim(), pin = $('fsPin').value.trim();
   if (!name || !/^\d{4}$/.test(pin)) { $('fsMsg').textContent = 'Enter your name and 4 digits'; return; }
-  try { const r = await api('mypin', { pin, name }); me = r.user; await pullAll(); startSession(); } catch (e) { $('fsMsg').textContent = e.message; }
+  try { const r = await api('mypin', { pin, name }); me = r.user; lockMode = 'pin'; await pullAll(); startSession(); } catch (e) { $('fsMsg').textContent = isNet(e) ? 'No internet — try again' : e.message; }
 }
 function logout() { store('yod_token', null); token = null; showLock(); }
 function startSession() {

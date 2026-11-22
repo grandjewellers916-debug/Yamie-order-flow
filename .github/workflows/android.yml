@@ -44,7 +44,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: order-desk-v${{ github.run_number }}
-          name: Yamie Order Desk v1.1.${{ github.run_number }}
+          name: Yamie Order Desk v1.2.${{ github.run_number }}
           target_commitish: ${{ github.sha }}
           files: Yamie-Order-Desk-v*.apk
-          body: "Yamie Order Desk V1.1: gold rates from the Grand Jewellers kiosk (automatic, or the Get rates from kiosk button). enquiries and estimates (EST numbers), customer approval, 20% verified advance and optional gold-rate lock, orders (YOR numbers, 20 working days), vendor work orders and follow-ups, receiving, QC, final price, ready message, invoice and handover; reminders, reports, staff permissions, backup & restore. Same shared database as the web version (yamie-order-desk.netlify.app). New versions install over the old one."
+          body: "Yamie Order Desk V1.2: fixed first login (setting a new PIN no longer jumps back to the start). gold rates from the Grand Jewellers kiosk (automatic, or the Get rates from kiosk button). enquiries and estimates (EST numbers), customer approval, 20% verified advance and optional gold-rate lock, orders (YOR numbers, 20 working days), vendor work orders and follow-ups, receiving, QC, final price, ready message, invoice and handover; reminders, reports, staff permissions, backup & restore. Same shared database as the web version (yamie-order-desk.netlify.app). New versions install over the old one."
