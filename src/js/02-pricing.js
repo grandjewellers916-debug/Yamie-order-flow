@@ -13,21 +13,27 @@ const purShort = (p) => ({ '22k': '22K', '18k': '18K', '14k': '14K', '9k': '9K',
 const rateKey = (p) => (PURITIES.find((x) => x[0] === p) || [0, 0, 'k18'])[2];
 const rateOf = (p, rates) => num((rates || S.rates)[rateKey(p)]);
 const COLOURS = ['Yellow', 'Rose', 'White', 'Two-tone'];
-const STONES = [['diamond', 'Natural diamond'], ['labgrown', 'Lab-grown diamond'], ['precious', 'Precious / colour stone'], ['other', 'Other']];
+const STONES = [['diamond', 'Natural diamond'], ['labgrown', 'Lab-grown diamond'], ['precious', 'Precious / colour stone'], ['synthetic', 'Synthetic / CZ'], ['other', 'Other']];
 const stoneLabel = (t) => (STONES.find((x) => x[0] === t) || [t, t])[1];
 const MK_MODES = [['pct', 'VA / making %'], ['pg', '₹ per gram'], ['combo', '₹/g + VA %'], ['flat', 'Flat ₹ per piece']];
 const CATS = ['Ring', 'Earrings', 'Pendant', 'Necklace', 'Chain', 'Bangle', 'Bracelet', 'Nose pin', 'Mangalsutra', 'Set', 'Other'];
 
 function newItem() {
-  return { id: uid(), cat: '', product: '', qty: 1, design: 'ours', designNo: '', model: '', details: '', custom: '', purity: '18k', colour: 'Yellow',
-    wt: '', gwt: '', size: '', dims: '', stones: [], mkMode: 'pct', mk: 14, mkPg: 0, other: 0, vendor: '', prodNotes: '', photos: [], rev: 1 };
+  return { id: uid(), cat: 'Ring', product: '', qty: 1, design: 'ours', designNo: '', model: '', details: '', custom: '', purity: '18k', colour: 'Yellow',
+    wt: '', gwt: '', size: '', dims: '', spec: {}, stones: [], mkMode: 'pct', mk: 14, mkPg: 0, other: 0, vendor: '', prodNotes: '', photos: [], rev: 1 };
+}
+/** Stone charge for ONE piece of jewellery: carats × rate, pieces × rate or grams × rate (older records: fixed charge). */
+function stoneCharge(s) {
+  if (s.rate === '' || s.rate == null) return num(s.charge);
+  const u = s.unit || 'ct', q = u === 'ct' ? num(s.ct) : u === 'pc' ? num(s.pcs) : num(s.wtg);
+  return Math.round(q * num(s.rate) * 100) / 100;
 }
 
 function priceLine(it, rates, wt) {
   const qty = Math.max(1, Math.round(num(it.qty) || 1));
   const w = num(wt != null ? wt : it.wt), rate = rateOf(it.purity, rates);
   const metal = r2(w * rate * qty);
-  const stone = r2((it.stones || []).reduce((t, s) => t + num(s.charge), 0) * qty);
+  const stone = r2((it.stones || []).reduce((t, s) => t + stoneCharge(s), 0) * qty);
   const base = S.mkOnStone ? metal + stone : metal;
   let making = 0, va = 0;
   if (it.mkMode === 'pct') va = r2(base * num(it.mk) / 100);
@@ -39,17 +45,17 @@ function priceLine(it, rates, wt) {
 }
 
 /** Whole-order price. `wts` = actual weights by item id (final price). */
-function priceOrder(items, rates, disc, extra, wts) {
+function priceOrder(items, rates, disc, extra, wts, roundTo) {
   const lines = items.map((it) => priceLine(it, rates, wts ? wts[it.id] : null));
   const sub = r2(lines.reduce((t, l) => t + l.sub, 0) + num(extra));
   const d = r2(Math.min(Math.max(0, num(disc)), sub));
   const pre = r2(sub - d);
   const gst = r2(pre * num(S.gst) / 100);
   const raw = r2(pre + gst);
-  const step = num(S.roundTo) || 1;
+  const step = num(roundTo != null ? roundTo : S.roundTo) || 1;
   const total = Math.ceil(raw / step - 1e-9) * step;
   const metal = r2(lines.reduce((t, l) => t + l.metal, 0));
-  return { lines, extra: r2(num(extra)), sub, disc: d, pre, gstPct: num(S.gst), gst, raw, round: r2(total - raw), total,
+  return { lines, extra: r2(num(extra)), sub, disc: d, pre, gstPct: num(S.gst), gst, raw, round: r2(total - raw), roundTo: step, total,
     metal, minAdv: Math.ceil(total * num(S.minAdv) / 100), lock: Math.ceil(metal) };
 }
 
@@ -84,9 +90,9 @@ function breakdownHtml(b, items, opt = {}) {
   });
   if (b.extra) rows.push(['Extra charges', rupee2(b.extra)]);
   rows.push(['Value before tax', rupee2(b.sub)]);
-  if (b.disc) rows.push(['Discount', '−' + rupee2(b.disc)]);
+  if (b.disc) rows.push([`Discount${b.discOk ? '' : opt.discNote || ''}`, '−' + rupee2(b.disc)]);
   rows.push([`GST ${b.gstPct}%`, rupee2(b.gst)]);
-  if (b.round) rows.push([`Rounded up to ₹${S.roundTo}`, '+' + rupee2(b.round)]);
+  if (b.round) rows.push([`Rounded up to ₹${b.roundTo || S.roundTo}`, '+' + rupee2(b.round)]);
   return rows.map((r) => `<div class="kv"><span>${esc(r[0])}</span><span>${r[1]}</span></div>`).join('') +
     `<div class="kv tot"><span>${opt.label || 'Estimated total'}</span><span>${rupee(b.total)}</span></div>`;
 }

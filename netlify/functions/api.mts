@@ -16,7 +16,7 @@ import { backupOp } from '../lib/backup.mts';
 export const config = { path: '/api/*' };
 
 const PERM_KEYS = ['enquiry', 'estimate', 'approve', 'advance', 'verify', 'discount', 'confirm', 'vendor', 'production', 'receive', 'qc',
-  'finalprice', 'approvefinal', 'ready', 'close', 'cancel', 'rates', 'vendors', 'viewcost', 'reports', 'delete', 'settings'];
+  'finalprice', 'approvefinal', 'ready', 'close', 'cancel', 'rates', 'vendors', 'vendorcontact', 'viewcost', 'reports', 'delete', 'settings'];
 const DEF_ROLE_PERMS: Record<string, string[]> = {
   manager: PERM_KEYS.filter((k) => k !== 'settings'),
   staff: ['enquiry', 'estimate', 'approve', 'advance', 'confirm', 'production', 'receive', 'finalprice', 'ready', 'close'],
@@ -26,7 +26,7 @@ const DEF_SETTINGS: any = {
   shopAddr: '63/322Aa Ground Level, Grand Business Center, K K Road, Kadavanthra, Ernakulam, Kerala 682020',
   rates: { k22: 0, k18: 0, k14: 0, k9: 0, pt: 0, ag: 0, at: 0, by: '', src: '', kioskAt: '' },
   kioskAuto: true, kioskUrl: 'https://grandjewellers.com/api/kiosk-rates',
-  gst: 3, minAdv: 20, roundTo: 50, mkOnStone: true, leadDays: 20, qcBuffer: 2, weeklyOff: [0], holidays: [],
+  gst: 3, minAdv: 20, roundTo: 50, finalRoundTo: 100, gems: null, mkOnStone: true, leadDays: 20, qcBuffer: 2, weeklyOff: [0], holidays: [],
   estValid: 7, tol: 2, discLimit: 0, karatRef: { k22: 32.6, k18: 28.4, k14: 24.3, k9: 18.7 },
   approveDays: 2, etdWarnDays: 2, collectDays: 7, autoLock: 20,
   priceCheckUrl: 'https://yamie-price-check.netlify.app', repairUrl: 'https://yamie-repair-desk.netlify.app',
@@ -211,6 +211,13 @@ function checkOrder(o: any, old: any, me: any, can: (p: string) => boolean, st: 
   }
   if (oldPays.size && me.role !== 'admin') throw new HttpError('Only an admin can remove a payment', 403);
 
+  // --- customer OK on the final price: stamped by the server ---
+  const lf = lastOf(o.finals), lfOld = lastOf(old?.finals);
+  if (lf && lf.cust && !(lfOld && lfOld.v === lf.v && lfOld.cust)) {
+    need('finalprice', 'record the customer\'s OK');
+    lf.cust = { ev: String(lf.cust.ev || '').slice(0, 300), at: now(), by: me.name };
+  }
+
   // --- restricted vendor cost ---
   if (o.vendor && !can('viewcost')) o.vendor.cost = old?.vendor?.cost ?? null;
 
@@ -285,7 +292,7 @@ function checkOrder(o: any, old: any, me: any, can: (p: string) => boolean, st: 
   if (to === 'final_ok') {
     const f = lastOf(o.finals);
     if (!f) throw new HttpError('Final price missing', 400);
-    if (f.needCust && !f.cust) throw new HttpError(`Final price is ${f.varPct}% from the estimate — record the customer's agreement`, 400);
+    if (!f.cust) throw new HttpError('Record the customer\'s OK on the final price first', 400);
     f.ok = { by: me.name, at: now() };
   }
   if (to === 'ready') {
@@ -354,7 +361,81 @@ function cleanOrder(o: any) {
   if (o.log.length > 400) o.log = o.log.slice(-400);
   return o;
 }
+const stripVendorPhones = (cfg: any) => ({ ...cfg, vendors: (cfg.vendors || []).map((v: any) => ({ ...v, phone: '' })) });
 const hideCost = (o: any) => (o?.vendor && 'cost' in o.vendor ? { ...o, vendor: { ...o.vendor, cost: null } } : o);
+
+// ---------- link to Yamie Price Check (design numbers & photos) ----------
+// Reads the Price Check shared database with its shop key (env PC_SHOP_KEY; site PC_URL).
+const PC_FIELDS = ['key', 'barcode', 'label', 'item', 'category', 'carat', 'gw', 'nw', 'sw', 'dw', 'dq', 'sa', 'pname', 'design', 'model', 'size', 'mcol', 'scol', 'stype', 'stoneName', 'supplier'];
+const normK = (v: any) => String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+async function pcGet(op: string, extra = '') {
+  const key = Netlify.env.get('PC_SHOP_KEY');
+  if (!key) throw new HttpError('Link to Price Check is not set up: add PC_SHOP_KEY (the Yamie Price Check shop key) in Netlify', 503);
+  const base = (Netlify.env.get('PC_URL') || 'https://yamie-price-check.netlify.app').replace(/\/$/, '');
+  const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 20000);
+  try {
+    const r = await fetch(`${base}/api/sync?op=${op}${extra}`, { headers: { 'x-shop-key': key }, signal: ctl.signal });
+    if (r.status === 401) throw new HttpError('Price Check refused the shop key (check PC_SHOP_KEY)', 502);
+    if (!r.ok) throw new HttpError(`Price Check answered ${r.status}`, 502);
+    return await r.json();
+  } catch (e: any) { throw e instanceof HttpError ? e : new HttpError('Price Check is not reachable right now', 502); }
+  finally { clearTimeout(t); }
+}
+async function pcLoad(s: any) {
+  let c: any = await s.get('pc/cache', { type: 'json' });
+  if (c && now() - c.chk < 10 * 60000) return c;
+  const meta: any = await pcGet('meta');
+  const v = { stock: meta.stock || 0, imgs: meta.imgs || 0, pattrs: meta.pattrs || 0, pnames: meta.pnames || 0 };
+  c = c || { v: {}, rows: [], idx: {}, n: {}, attrs: {}, names: {} };
+  if (c.v.stock !== v.stock || !c.rows.length) {
+    const d: any = await pcGet('stock');
+    c.rows = (d.rows || []).map((r: any) => { const o: any = {}; for (const f of PC_FIELDS) if (r[f] != null && r[f] !== '') o[f] = r[f]; return o; });
+  }
+  if (c.v.imgs !== v.imgs) { const d: any = await pcGet('imgidx'); c.idx = d.idx || {}; c.n = d.n || {}; }
+  if (c.v.pattrs !== v.pattrs) { const d: any = await pcGet('pattrs'); c.attrs = d.map || {}; }
+  if (c.v.pnames !== v.pnames) { const d: any = await pcGet('pnames'); c.names = d.map || {}; }
+  c.v = v; c.chk = now(); c.at = now();
+  await s.setJSON('pc/cache', c);
+  return c;
+}
+const pcImgCount = (c: any, k: string) => (c.idx && c.idx[k] ? Math.max(1, num(c.n && c.n[k]) || 1) : 0);
+async function pcFind(s: any, q: string) {
+  const c = await pcLoad(s), nq = normK(q);
+  if (nq.length < 2) return { at: c.at, rows: [] };
+  const score = (r: any) => {
+    const ks = [r.key, r.barcode, r.label, r.design, r.model].map(normK);
+    if (ks.includes(nq)) return 3;
+    if (ks.some((k) => k.startsWith(nq))) return 2;
+    if (ks.some((k) => k.includes(nq))) return 1;
+    return 0;
+  };
+  const hits = c.rows.map((r: any) => [score(r), r]).filter((x: any) => x[0] > 0).sort((a: any, b: any) => b[0] - a[0]).slice(0, 10).map((x: any) => x[1]);
+  const rows = hits.map((r: any) => {
+    const k = normK(r.key);
+    return { ...r, label: r.label || r.barcode || r.key, name: c.names[k] || r.pname || '', attrs: { ...(c.attrs[k] || {}), size: r.size, mc: r.mcol }, imgs: pcImgCount(c, k) };
+  });
+  await Promise.all(rows.slice(0, 4).filter((r: any) => r.imgs).map(async (r: any) => { try { r.thumb = (await pcGet('img', `&k=${encodeURIComponent(normK(r.key))}&i=1`)).img || ''; } catch (e) { /* no thumb */ } }));
+  return { at: c.at, rows };
+}
+async function pcPhotos(s: any, q: string) {
+  const c = await pcLoad(s), nq = normK(q);
+  const row = c.rows.find((r: any) => [r.key, r.barcode, r.label, r.design].map(normK).includes(nq));
+  const k = row ? normK(row.key) : nq;
+  const done: any = await s.get(`pc/imgmap/${k}`, { type: 'json' });
+  const count = pcImgCount(c, k);
+  if (done && done.keys && done.keys.length >= count && done.v === c.v.imgs) return { keys: done.keys };
+  const keys: string[] = [];
+  for (let i = 1; i <= Math.min(6, count); i++) {
+    const d: any = await pcGet('img', `&k=${encodeURIComponent(k)}&i=${i}`);
+    const m = /^data:(image\/[a-z+]+);base64,(.+)$/.exec(d.img || '');
+    if (!m) continue;
+    const id = crypto.randomUUID();
+    await s.set(`img/${id}`, Buffer.from(m[2], 'base64'), { metadata: { type: m[1], from: 'pricecheck:' + k, at: now() } });
+    keys.push(id);
+  }
+  await s.setJSON(`pc/imgmap/${k}`, { keys, v: c.v.imgs });
+  return { keys };
+}
 
 // ---------- handler ----------
 export default async (req: Request) => {
@@ -401,6 +482,7 @@ export default async (req: Request) => {
     const need = (perm: string) => { if (!can(perm)) throw new HttpError('Your role does not have permission for this', 403); };
     const admin = () => { if (me.role !== 'admin') throw new HttpError('Admin only', 403); };
     const out = (o: any) => (can('viewcost') ? o : hideCost(o));
+    const cfgOut = async () => { const c = await getCfg(s); return can('vendorcontact') ? c : stripVendorPhones(c); };
 
     if (path.startsWith('img/') && method === 'GET') {
       const key = path.slice(4).replace(/[^a-z0-9-]/gi, '');
@@ -420,7 +502,7 @@ export default async (req: Request) => {
 
     if (path === 'state' || path === 'changes') { try { await applyKiosk(s, 'Kiosk (auto)', true); } catch (e) { /* keep last rates */ } }
     if (path === 'state') {
-      const [orders, cfg, resetAt] = await Promise.all([allOrders(s), getCfg(s), s.get('meta/resetAt')]);
+      const [orders, cfg, resetAt] = await Promise.all([allOrders(s), cfgOut(), s.get('meta/resetAt')]);
       return J({ now: now(), orders: orders.map(out), ...cfg, resetAt: resetAt || '', me: pubUser(me) });
     }
     if (path === 'changes') {
@@ -429,7 +511,7 @@ export default async (req: Request) => {
       const ch = await changesSince(s, since);
       const cfgv = (await s.get('meta/cfgv')) || '0';
       const res: any = { now: t, orders: ch.orders.map(out), deleted: ch.deleted, cfgv, resetAt: (await s.get('meta/resetAt')) || '', me: pubUser(me) };
-      if (cfgv !== url.searchParams.get('cfgv')) Object.assign(res, await getCfg(s));
+      if (cfgv !== url.searchParams.get('cfgv')) Object.assign(res, await cfgOut());
       return J(res);
     }
 
@@ -474,12 +556,14 @@ export default async (req: Request) => {
 
     if (path === 'vendors' && method === 'POST') {
       need('vendors');
+      const oldV: any[] = (await s.get('cfg/vendors', { type: 'json' })) || [];
+      if (!can('vendorcontact')) for (const x of body.vendors || []) x.phone = (oldV.find((v) => v.name === x.name) || {}).phone || '';
       await s.setJSON('cfg/vendors', (body.vendors || []).slice(0, 200).map((x: any) => ({
         name: String(x.name || '').trim().slice(0, 80), phone: String(x.phone || '').trim().slice(0, 20), spec: String(x.spec || '').trim().slice(0, 80),
         lead: Math.max(1, Math.min(120, Math.round(num(x.lead) || 15))), active: x.active !== false,
       })).filter((x: any) => x.name));
       await bumpCfg(s);
-      return J(await getCfg(s));
+      return J(await cfgOut());
     }
     if (path === 'rates' && method === 'POST') {
       need('rates');
@@ -489,13 +573,15 @@ export default async (req: Request) => {
       st.rates = { ...r, at: now(), by: me.name, src: 'manual', kioskAt: '' };
       await s.setJSON('cfg/settings', st);
       await bumpCfg(s);
-      return J(await getCfg(s));
+      return J(await cfgOut());
     }
     if (path === 'rates-kiosk' && method === 'POST') {
       need('rates');
       const changed = await applyKiosk(s, me.name + ' (kiosk)', false);
-      return J({ ...(await getCfg(s)), changed });
+      return J({ ...(await cfgOut()), changed });
     }
+    if (path === 'pc/find') { need('enquiry'); return J(await pcFind(s, url.searchParams.get('q') || '')); }
+    if (path === 'pc/photos' && method === 'POST') { need('enquiry'); return J(await pcPhotos(s, String(body.k || ''))); }
     if (path === 'settings' && method === 'POST') {
       need('settings');
       const cur = await getSettings(s);
@@ -504,7 +590,7 @@ export default async (req: Request) => {
       st.holidays = (Array.isArray(st.holidays) ? st.holidays : []).filter((x: any) => /^\d{4}-\d\d-\d\d$/.test(x)).slice(0, 200);
       await s.setJSON('cfg/settings', st);
       await bumpCfg(s);
-      return J(await getCfg(s));
+      return J(await cfgOut());
     }
     if (path === 'roleperms' && method === 'POST') {
       admin();
@@ -512,7 +598,7 @@ export default async (req: Request) => {
       for (const r of ['manager', 'staff']) rp[r] = (body.rolePerms?.[r] || []).filter((x: string) => PERM_KEYS.includes(x));
       await s.setJSON('cfg/roleperms', rp);
       await bumpCfg(s);
-      return J(await getCfg(s));
+      return J(await cfgOut());
     }
     if (path === 'user' && method === 'POST') {
       admin();
@@ -536,7 +622,7 @@ export default async (req: Request) => {
       if (!list.some((x) => x.role === 'admin' && x.active !== false)) return err('Keep at least one active admin');
       await s.setJSON('cfg/users', { users: list });
       await bumpCfg(s);
-      return J(await getCfg(s));
+      return J(await cfgOut());
     }
     if (path === 'mypin' && method === 'POST') {
       if (!/^\d{4}$/.test(String(body.pin || ''))) return err('PIN must be 4 digits');
@@ -551,7 +637,7 @@ export default async (req: Request) => {
     if (path.startsWith('bk/') && method === 'POST') {
       admin();
       return J(await backupOp(s, path.slice(3), body, {
-        skip: (k) => k.startsWith('chg/') || k.startsWith('lock/') || k === 'meta/secret',
+        skip: (k) => k.startsWith('chg/') || k.startsWith('lock/') || k === 'meta/secret' || k === 'pc/cache',
         done: async () => { await s.set('meta/resetAt', String(now())); await bumpCfg(s); },
       }));
     }

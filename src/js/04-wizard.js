@@ -92,69 +92,132 @@ function custSuggest() {
 }
 
 // ---------------- 2. items ----------------
+const PK = {};                    // click handlers for picture cards, by id
+const pk = (id, fn) => { PK[id] = fn; return `PK[${esc(JSON.stringify(id))}]`; };
 function setIt(i, k, v) { wiz.o.items[i][k] = v; keepDraft(); }
-function setSt(i, j, k, v) { wiz.o.items[i].stones[j][k] = v; keepDraft(); }
+function setSpec(i, k, v) { const it = wiz.o.items[i]; it.spec = it.spec || {}; it.spec[k] = v; keepDraft(); }
+function setSt(i, j, k, v) { const s = wiz.o.items[i].stones[j]; s[k] = v; keepDraft(); const el = $(`stc${i}_${j}`); if (el) el.textContent = rupee(stoneCharge(s)); }
 function addItem() { wiz.o.items.push(newItem()); wizItems(); }
 function dupItem(i) { const c = clone(wiz.o.items[i]); c.id = uid(); c.rev = 1; wiz.o.items.splice(i + 1, 0, c); wizItems(); }
 function delItem(i) { if (wiz.o.items.length === 1) return toast('An enquiry needs at least one item'); if (!confirm('Remove item ' + (i + 1) + '?')) return; wiz.o.items.splice(i, 1); wizItems(); }
-function addStone(i) { wiz.o.items[i].stones.push({ type: 'diamond', shape: 'Round', size: '', ct: '', pcs: 1, quality: '', setting: '', charge: '' }); wizItems(); }
+function addStone(i, type) { wiz.o.items[i].stones.push({ type: type || 'diamond', gem: type === 'precious' ? '' : '', shape: 'Round', size: '', ct: '', pcs: 1, wtg: '', quality: '', colour: '', setting: '', unit: stoneUnitDefault(type || 'diamond'), rate: '', charge: '' }); wizItems(); }
 function delStone(i, j) { wiz.o.items[i].stones.splice(j, 1); wizItems(); }
 function addItemPhoto(i, cam) { pickPhoto((ref) => { wiz.o.items[i].photos.push(ref); keepDraft(); if (cur.view === 'vNew' && wiz.step === 1) wizItems(); }, cam); }
 function delItemPhoto(i, k) { wiz.o.items[i].photos.splice(k, 1); wizItems(); }
 const opt = (list, val) => list.map((x) => Array.isArray(x) ? `<option value="${x[0]}" ${x[0] === val ? 'selected' : ''}>${esc(x[1])}</option>` : `<option ${x === val ? 'selected' : ''}>${esc(x)}</option>`).join('');
+const COLOUR_SW = { Yellow: '#e2b44c', Rose: '#e7a58f', White: '#e6e6e6', 'Two-tone': 'linear-gradient(90deg,#e2b44c 50%,#e6e6e6 50%)' };
+const sizeLabel = (c) => ({ Ring: 'Ring size', Bangle: 'Bangle size', Bracelet: 'Length (in)', Chain: 'Length (in)', Necklace: 'Length (in)', Anklet: 'Length (in)', Mangalsutra: 'Length (in)' })[c] || 'Size / length';
 
+function stoneEditor(i, j, s) {
+  const t = s.type, unit = s.unit || stoneUnitDefault(t);
+  const qtyField = unit === 'ct' ? ['ct', 'Total carat (ct)'] : unit === 'pc' ? ['pcs', 'Pieces'] : ['wtg', 'Weight (g)'];
+  return `<div class="stone">
+    <div class="itemHead" style="margin-bottom:6px"><b>${esc(stoneLabel(t))}${s.gem ? ' · ' + esc(s.gem) : ''}</b><button class="btn small danger" onclick="delStone(${i},${j})">Remove</button></div>
+    <div class="choiceRow" style="margin-bottom:10px">${STONE_TYPES.map(([k, l, u]) => `<button class="chip ${t === k ? 'active' : ''}" onclick="setSt(${i},${j},'type','${k}');setSt(${i},${j},'unit','${u}');wizItems()">${l}</button>`).join('')}</div>
+    ${t === 'precious' || t === 'synthetic' ? `<details class="sec" ${s.gem ? '' : 'open'}><summary>Stone: ${esc(s.gem || 'choose')}</summary><div class="in">${gemCards(s.gem, pk('g' + i + '_' + j, (n) => { setSt(i, j, 'gem', n); const g = gems().find((x) => x.name === n); if (g && !s.colour) setSt(i, j, 'colour', n); wizItems(); }))}</div></details>` : ''}
+    <details class="sec" ${s.shape && s.shape !== 'Round' ? 'open' : ''}><summary>Shape: ${esc(s.shape || '—')}</summary><div class="in">${picCards(SHAPES, s.shape, pk('sh' + i + '_' + j, (n) => { setSt(i, j, 'shape', n); wizItems(); }))}</div></details>
+    <div class="three"><div class="field"><label>Size (mm)</label><input value="${esc(s.size)}" oninput="setSt(${i},${j},'size',this.value)"></div>
+      <div class="field"><label>Total ct</label><input inputmode="decimal" value="${esc(s.ct)}" oninput="setSt(${i},${j},'ct',this.value)"></div>
+      <div class="field"><label>Pieces</label><input inputmode="numeric" value="${esc(s.pcs)}" oninput="setSt(${i},${j},'pcs',this.value)"></div></div>
+    <div class="two"><div class="field"><label>${t === 'diamond' || t === 'labgrown' ? 'Quality (clarity)' : 'Quality / grade'}</label><input value="${esc(s.quality)}" oninput="setSt(${i},${j},'quality',this.value)" placeholder="${t === 'diamond' || t === 'labgrown' ? 'VVS, VS1, SI…' : 'AAA, AA…'}"></div>
+      <div class="field"><label>${t === 'diamond' || t === 'labgrown' ? 'Colour grade' : 'Stone colour'}</label><input value="${esc(s.colour)}" oninput="setSt(${i},${j},'colour',this.value)" placeholder="${t === 'diamond' || t === 'labgrown' ? 'D–F, G–H, I–J' : 'Red, blue…'}"></div></div>
+    <div class="field"><label>Setting</label><div class="choiceRow">${['Prong', 'Bezel', 'Pavé', 'Channel', 'Invisible', 'Flush'].map((x) => `<button class="chip ${s.setting === x ? 'active' : ''}" onclick="setSt(${i},${j},'setting','${x}');wizItems()">${x}</button>`).join('')}</div></div>
+    <div class="two"><div class="field"><label>Priced</label><select onchange="setSt(${i},${j},'unit',this.value);wizItems()">${opt(t === 'synthetic' ? [['pc', 'Per piece'], ['g', 'Per gram']] : [['ct', 'Per carat'], ['pc', 'Per piece']], unit)}</select></div>
+      ${unit === 'g' ? `<div class="field"><label>Weight (g)</label><input inputmode="decimal" value="${esc(s.wtg)}" oninput="setSt(${i},${j},'wtg',this.value)"></div>` : ''}
+      <div class="field"><label>Rate ₹ ${UNIT_LABEL[unit]}</label><input inputmode="decimal" value="${esc(s.rate)}" oninput="setSt(${i},${j},'rate',this.value)"></div></div>
+    <p class="hint">Stone charge per piece of jewellery: <b id="stc${i}_${j}">${rupee(stoneCharge(s))}</b> (${esc(qtyField[1])} × rate)</p>
+  </div>`;
+}
+
+function itemEditor(it, i) {
+  const prods = PRODUCTS[it.cat] || [];
+  const spec = SPEC[it.cat] || [];
+  const sp = it.spec || {};
+  return `<div class="item">
+    <div class="itemHead"><b>Item ${i + 1}${it.rev > 1 ? ` <span class="badge">rev ${it.rev}</span>` : ''}</b>
+      <span><button class="btn small soft" onclick="dupItem(${i})">Duplicate</button> <button class="btn small danger" onclick="delItem(${i})">Remove</button></span></div>
+    <div class="field"><label>1. Category</label><div class="choiceRow">${CATS2.map((c) => `<button class="chip ${it.cat === c ? 'active' : ''}" onclick="setIt(${i},'cat','${c}');wizItems()">${c}</button>`).join('')}</div></div>
+    <div class="field"><label>2. Product / item <i class="req">*</i></label>
+      ${prods.length ? `<div class="choiceRow" style="margin-bottom:8px">${prods.map((p) => `<button class="chip ${it.product === p ? 'active' : ''}" onclick='setIt(${i},"product",${esc(JSON.stringify(p))});wizItems()'>${esc(p)}</button>`).join('')}</div>` : ''}
+      <input value="${esc(it.product)}" oninput="setIt(${i},'product',this.value)" placeholder="${prods.length ? 'Or type the product' : 'e.g. Solitaire ring'}"></div>
+    <div class="two">
+      <div class="field"><label>3. Purity</label><select onchange="setIt(${i},'purity',this.value)">${opt(PURITIES.map((p) => [p[0], p[1]]), it.purity)}</select></div>
+      <div class="field"><label>Quantity</label><input inputmode="numeric" value="${esc(it.qty)}" oninput="setIt(${i},'qty',Math.max(1,parseInt(this.value)||1))"></div>
+    </div>
+    <div class="field"><label>4. Colour</label><div class="choiceRow">${COLOURS.map((c) => `<button class="chip ${it.colour === c ? 'active' : ''}" onclick="setIt(${i},'colour','${c}');wizItems()"><i style="display:inline-block;width:11px;height:11px;border-radius:6px;margin-right:6px;vertical-align:-1px;background:${COLOUR_SW[c]}"></i>${c}</button>`).join('')}</div></div>
+    <div class="wtRow"><div class="field"><label>5. Approx. gross weight (g)</label><input inputmode="decimal" value="${esc(it.gwt)}" oninput="setIt(${i},'gwt',this.value)"></div><button class="btn small soft" onclick="showKaratWeights(${i},'gwt')">Karat-wise</button></div>
+    <div class="wtRow"><div class="field"><label>6. Approx. net weight (g) <i class="req">*</i></label><input inputmode="decimal" value="${esc(it.wt)}" oninput="setIt(${i},'wt',this.value)"></div><button class="btn small soft" onclick="showKaratWeights(${i},'wt')">Karat-wise</button></div>
+    <div class="field"><label>7. ${sizeLabel(it.cat)}</label><input value="${esc(it.size)}" oninput="setIt(${i},'size',this.value)" placeholder="${it.cat === 'Ring' ? 'e.g. IN 12' : it.cat === 'Bangle' ? 'e.g. 2-6' : 'e.g. 18'}"></div>
+    <details class="sec" ${Object.keys(sp).length ? 'open' : ''}><summary>8. ${esc(it.cat || 'Item')} details${specText(it) ? ' · ' + esc(specText(it)) : ''}</summary><div class="in">
+      ${spec.length ? spec.map(([k, l, type, data]) => type === 'num' ? `<div class="field"><label>${l}</label><input inputmode="decimal" value="${esc(sp[k] || '')}" oninput="setSpec(${i},'${k}',this.value)"></div>`
+        : type === 'chips' ? `<div class="field"><label>${l}</label><div class="choiceRow">${data.map((x) => `<button class="chip ${sp[k] === x ? 'active' : ''}" onclick='setSpec(${i},"${k}",${esc(JSON.stringify(x))});wizItems()'>${esc(x)}</button>`).join('')}</div></div>`
+        : `<div class="field"><label>${l}${sp[k] ? ': <b>' + esc(sp[k]) + '</b>' : ''}</label>${picCards(data, sp[k], pk('sp' + i + k, (n) => { setSpec(i, k, sp[k] === n ? '' : n); wizItems(); }))}</div>`).join('') : '<p class="hint">Choose a category with specific options (Ring, Earrings…), or write details below.</p>'}
+      <div class="field"><label>Width / thickness / other</label><input value="${esc(it.dims)}" oninput="setIt(${i},'dims',this.value)"></div>
+    </div></details>
+    <details class="sec" ${it.stones.length ? 'open' : ''}><summary>9. Stones${it.stones.length ? ' · ' + it.stones.map((s) => esc(s.gem || stoneLabel(s.type))).join(', ') : ''}</summary><div class="in">
+      ${it.stones.map((s, j) => stoneEditor(i, j, s)).join('')}
+      <div class="choiceRow">${STONE_TYPES.map(([k, l]) => `<button class="btn small soft" onclick="addStone(${i},'${k}')">+ ${l}</button>`).join('')}</div>
+    </div></details>
+    <div class="field"><label>10. Design</label><div class="choiceRow">
+      <button class="chip ${it.design === 'ours' ? 'active' : ''}" onclick="setIt(${i},'design','ours');wizItems()">Our design</button>
+      <button class="chip ${it.design === 'custom' ? 'active' : ''}" onclick="setIt(${i},'design','custom');wizItems()">Customised</button></div></div>
+    <div class="wtRow"><div class="field"><label>11. ${it.design === 'ours' ? 'Design number / label (Price Check)' : 'Reference design no.'}</label><input id="dn${i}" value="${esc(it.designNo)}" oninput="setIt(${i},'designNo',this.value)" placeholder="e.g. YR1042 or tag label"></div>
+      <button class="btn small soft" onclick="pcFind(${i})">Find</button></div>
+    <div class="two"><div class="field"><label>Model number</label><input value="${esc(it.model)}" oninput="setIt(${i},'model',this.value)"></div>
+      <div class="field"><label>Preferred vendor</label><select onchange="setIt(${i},'vendor',this.value)"><option value="">Decide later</option>${opt(vendors.filter((v) => v.active !== false).map((v) => v.name), it.vendor)}</select></div></div>
+    <div class="field"><label>Design details</label><textarea oninput="setIt(${i},'details',this.value)" placeholder="Style, finish, anything special…">${esc(it.details)}</textarea></div>
+    ${it.design === 'custom' ? `<div class="field"><label>Customisation as per customer</label><textarea oninput="setIt(${i},'custom',this.value)">${esc(it.custom)}</textarea></div>` : ''}
+    <div class="field"><label>12–13. Images${it.pcImgs ? ' · ' + it.pcImgs + ' in Price Check' : ''}</label><div class="thumbs">${(it.photos || []).map((p, k) => `<div class="th"><img src="${esc(imgUrl(p))}" alt=""><button onclick="delItemPhoto(${i},${k})">✕</button></div>`).join('')}
+      ${it.designNo ? `<button class="addPh" onclick="pcPhotos(${i})">🗂<span>From Price Check</span></button>` : ''}
+      <button class="addPh" onclick="addItemPhoto(${i},true)">📷<span>Camera</span></button><button class="addPh" onclick="addItemPhoto(${i},false)">🖼<span>Gallery</span></button></div></div>
+    <div class="field"><label>Production notes (internal, for the vendor)</label><input value="${esc(it.prodNotes)}" oninput="setIt(${i},'prodNotes',this.value)"></div>
+  </div>`;
+}
 function wizItems() {
-  const o = wiz.o;
-  $('wizBody').innerHTML = o.items.map((it, i) => `
-    <div class="item">
-      <div class="itemHead"><b>Item ${i + 1}${it.rev > 1 ? ` <span class="badge">rev ${it.rev}</span>` : ''}</b>
-        <span><button class="btn small soft" onclick="dupItem(${i})">Duplicate</button> <button class="btn small danger" onclick="delItem(${i})">Remove</button></span></div>
-      <div class="two">
-        <div class="field"><label>Category</label><select onchange="setIt(${i},'cat',this.value)"><option value="">—</option>${opt(CATS, it.cat)}</select></div>
-        <div class="field"><label>Quantity</label><input inputmode="numeric" value="${esc(it.qty)}" oninput="setIt(${i},'qty',Math.max(1,parseInt(this.value)||1))"></div>
-      </div>
-      <div class="field"><label>Product / item <i class="req">*</i></label><input value="${esc(it.product)}" oninput="setIt(${i},'product',this.value)" placeholder="e.g. Solitaire ring"></div>
-      <div class="field"><label>Design</label><div class="choiceRow">
-        <button class="chip ${it.design === 'ours' ? 'active' : ''}" onclick="setIt(${i},'design','ours');wizItems()">Our design</button>
-        <button class="chip ${it.design === 'custom' ? 'active' : ''}" onclick="setIt(${i},'design','custom');wizItems()">Customised</button></div></div>
-      <div class="two">
-        <div class="field"><label>${it.design === 'ours' ? 'Design number' : 'Reference design no.'}</label><input value="${esc(it.designNo)}" oninput="setIt(${i},'designNo',this.value)"></div>
-        <div class="field"><label>Model number</label><input value="${esc(it.model)}" oninput="setIt(${i},'model',this.value)"></div>
-      </div>
-      <div class="field"><label>Design details</label><textarea oninput="setIt(${i},'details',this.value)" placeholder="Style, finish, setting…">${esc(it.details)}</textarea></div>
-      ${it.design === 'custom' ? `<div class="field"><label>Customisation as per customer</label><textarea oninput="setIt(${i},'custom',this.value)">${esc(it.custom)}</textarea></div>` : ''}
-      <div class="field"><label>Images</label><div class="thumbs">${(it.photos || []).map((p, k) => `<div class="th"><img src="${esc(imgUrl(p))}" alt=""><button onclick="delItemPhoto(${i},${k})">✕</button></div>`).join('')}
-        <button class="addPh" onclick="addItemPhoto(${i},true)">📷<span>Camera</span></button><button class="addPh" onclick="addItemPhoto(${i},false)">🖼<span>Gallery</span></button></div></div>
-      <div class="two">
-        <div class="field"><label>Purity</label><select onchange="setIt(${i},'purity',this.value)">${opt(PURITIES.map((p) => [p[0], p[1]]), it.purity)}</select></div>
-        <div class="field"><label>Metal colour</label><select onchange="setIt(${i},'colour',this.value)">${opt(COLOURS, it.colour)}</select></div>
-      </div>
-      <div class="two">
-        <div class="field"><label>Approx. net weight (g) <i class="req">*</i></label><input inputmode="decimal" value="${esc(it.wt)}" oninput="setIt(${i},'wt',this.value)"></div>
-        <div class="field"><label>Gross weight (g)</label><input inputmode="decimal" value="${esc(it.gwt)}" oninput="setIt(${i},'gwt',this.value)"></div>
-      </div>
-      <div class="two">
-        <div class="field"><label>Size / length</label><input value="${esc(it.size)}" oninput="setIt(${i},'size',this.value)" placeholder="Ring size, 18 in…"></div>
-        <div class="field"><label>Width / thickness</label><input value="${esc(it.dims)}" oninput="setIt(${i},'dims',this.value)"></div>
-      </div>
-      <div class="field"><label>Diamonds / precious stones / lab-grown</label>
-        ${it.stones.map((s, j) => `<div class="stone">
-          <div class="two"><div class="field"><label>Type</label><select onchange="setSt(${i},${j},'type',this.value)">${opt(STONES, s.type)}</select></div>
-            <div class="field"><label>Shape</label><input value="${esc(s.shape)}" oninput="setSt(${i},${j},'shape',this.value)"></div></div>
-          <div class="three"><div class="field"><label>Size</label><input value="${esc(s.size)}" oninput="setSt(${i},${j},'size',this.value)"></div>
-            <div class="field"><label>Total ct</label><input inputmode="decimal" value="${esc(s.ct)}" oninput="setSt(${i},${j},'ct',this.value)"></div>
-            <div class="field"><label>Pieces</label><input inputmode="numeric" value="${esc(s.pcs)}" oninput="setSt(${i},${j},'pcs',this.value)"></div></div>
-          <div class="two"><div class="field"><label>Quality / grade</label><input value="${esc(s.quality)}" oninput="setSt(${i},${j},'quality',this.value)" placeholder="VS1 F, SI GH…"></div>
-            <div class="field"><label>Setting</label><input value="${esc(s.setting)}" oninput="setSt(${i},${j},'setting',this.value)"></div></div>
-          <div class="two"><div class="field"><label>Stone charge ₹ (per piece of jewellery)</label><input inputmode="decimal" value="${esc(s.charge)}" oninput="setSt(${i},${j},'charge',this.value)"></div>
-            <div class="field" style="display:flex;align-items:flex-end"><button class="btn small danger" onclick="delStone(${i},${j})">Remove stone</button></div></div>
-        </div>`).join('')}
-        <button class="btn small soft" onclick="addStone(${i})">+ Add stone</button></div>
-      <div class="two">
-        <div class="field"><label>Preferred vendor</label><select onchange="setIt(${i},'vendor',this.value)"><option value="">Decide later</option>${opt(vendors.filter((v) => v.active !== false).map((v) => v.name), it.vendor)}</select></div>
-        <div class="field"><label>Production notes (internal)</label><input value="${esc(it.prodNotes)}" oninput="setIt(${i},'prodNotes',this.value)"></div>
-      </div>
-    </div>`).join('') + `<button class="btn soft block" onclick="addItem()">+ Add another item</button>`;
+  const y = window.scrollY;
+  $('wizBody').innerHTML = wiz.o.items.map(itemEditor).join('') + `<button class="btn soft block" onclick="addItem()">+ Add another item</button>`;
+  window.scrollTo(0, y);
+}
+
+// ---------------- Price Check link ----------------
+const PC_PUR = (c) => { const s = String(c || '').toUpperCase(); if (/PT|PLAT|950/.test(s)) return 'pt'; if (/925|SIL/.test(s)) return 'ag'; if (/22|916/.test(s)) return '22k'; if (/18|750/.test(s)) return '18k'; if (/14|585/.test(s)) return '14k'; if (/\b9|375/.test(s)) return '9k'; return ''; };
+async function pcFind(i) {
+  const q = (wiz.o.items[i].designNo || '').trim();
+  if (q.length < 2) return toast('Type the design number or tag label first');
+  toast('Searching Price Check…');
+  let d;
+  try { d = await api('pc/find?q=' + encodeURIComponent(q)); } catch (e) { return toast(isNet(e) ? 'No internet' : e.message); }
+  if (!d.rows.length) return toast('Not found in Price Check stock');
+  window._pcRows = d.rows;
+  openSheet(`<h2>Price Check · ${esc(q)}</h2><p class="sub">${d.rows.length} match${d.rows.length > 1 ? 'es' : ''}. Stock as of ${dtt(d.at)}.</p>
+    ${d.rows.map((r, k) => `<div class="pcRes">${r.thumb ? `<img src="${esc(r.thumb)}" alt="">` : '<img alt="">'}<div style="flex:1;min-width:0"><b>${esc(r.label)}</b> · ${esc(r.name || r.item || '')}<br>
+      <small class="hint" style="margin:0">${esc([r.category, r.carat, r.gw ? 'GW ' + r.gw : '', r.nw ? 'NW ' + r.nw : '', r.dw ? 'Dia ' + r.dw + ' ct' : '', r.imgs ? r.imgs + ' photo(s)' : ''].filter(Boolean).join(' · '))}</small></div>
+      <button class="btn small" onclick="pcUse(${i},${k})">Use</button></div>`).join('')}`);
+}
+function pcUse(i, k) {
+  const r = window._pcRows[k], it = wiz.o.items[i];
+  it.designNo = r.label; it.design = 'ours';
+  if (r.name || r.item) it.product = r.name || r.item;
+  const p = PC_PUR(r.carat); if (p) it.purity = p;
+  if (num(r.gw)) it.gwt = r.gw; if (num(r.nw)) it.wt = r.nw;
+  const cat = CATS2.find((c) => (r.category || '').toLowerCase().includes(c.toLowerCase().replace(/s$/, '')) || (r.item || '').toLowerCase().includes(c.toLowerCase().replace(/s$/, '')));
+  if (cat) it.cat = cat;
+  if (num(r.dw) && !it.stones.some((s) => s.type === 'diamond')) it.stones.push({ type: 'diamond', shape: 'Round', size: '', ct: r.dw, pcs: r.dq || 1, quality: '', colour: '', setting: '', unit: 'ct', rate: '', charge: num(r.sa) || '' });
+  if (r.attrs) { if (r.attrs.size && !it.size) it.size = r.attrs.size; if (r.attrs.mc) { const c = COLOURS.find((x) => String(r.attrs.mc).toLowerCase().includes(x.toLowerCase().split('-')[0])); if (c) it.colour = c; } if (r.attrs.jt && !it.details) it.details = r.attrs.jt; }
+  it.pcImgs = r.imgs || 0;
+  keepDraft(); closeSheet(); wizItems();
+  if (r.imgs) pcPhotos(i);
+}
+async function pcPhotos(i) {
+  const it = wiz.o.items[i];
+  if (!it.designNo) return toast('Enter the design number first');
+  toast('Copying photos from Price Check…');
+  try {
+    const d = await api('pc/photos', { k: it.designNo });
+    if (!d.keys.length) return toast('No photos for ' + it.designNo + ' in Price Check');
+    d.keys.forEach((k) => { if (!it.photos.includes('img:' + k)) it.photos.push('img:' + k); });
+    keepDraft(); wizItems(); toast(d.keys.length + ' photo(s) added');
+  } catch (e) { toast(isNet(e) ? 'No internet' : e.message); }
 }
 
 // ---------------- 3. price ----------------

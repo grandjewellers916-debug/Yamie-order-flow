@@ -8,6 +8,7 @@ function renderMore() {
     ['rates', 'Gold rates', S.rates.at ? `${S.rates.src === 'kiosk' ? 'From kiosk' : 'Typed in'} · ${ago(S.rates.at)}` : 'Not set yet', can('rates')],
     ['vendors', 'Vendors', `${vendors.length} vendor(s)`, can('vendors') || can('vendor')],
     ['policy', 'Pricing & policy', `GST ${S.gst}% · advance ${S.minAdv}% · ${S.leadDays} working days`, can('settings')],
+    ['gems', 'Precious stones list', `${gems().length} stones with picture cards`, can('settings')],
     ['users', 'Staff logins', `${users.filter((u) => u.active).length} active`, me.role === 'admin'],
     ['perms', 'Role permissions', 'What managers and staff can do', me.role === 'admin'],
     ['backup', 'Backup & restore', 'One file with every order, photo and setting', me.role === 'admin'],
@@ -20,7 +21,7 @@ function renderMore() {
 }
 function renderSub() {
   const back = '<button class="btn small secondary" onclick="go(\'vMore\')" style="margin-bottom:12px">‹ More</button>';
-  const fn = { rates: subRates, vendors: subVendors, policy: subPolicy, users: subUsers, perms: subPerms, backup: subBackup, links: subLinks, pin: subPin }[sub];
+  const fn = { gems: subGems, rates: subRates, vendors: subVendors, policy: subPolicy, users: subUsers, perms: subPerms, backup: subBackup, links: subLinks, pin: subPin }[sub];
   $('vSub').innerHTML = back + '<div id="subBody"></div>';
   if (fn) fn();
 }
@@ -70,7 +71,8 @@ function subPolicy() {
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   window._off = (s.weeklyOff || []).slice(); window._hol = (s.holidays || []).slice();
   $('subBody').innerHTML = `
-    <div class="card"><h3>Pricing</h3><div class="two">${inp('gst', 'GST %')}${inp('roundTo', 'Round final price up to ₹')}</div>
+    <div class="card"><h3>Pricing</h3><div class="field">${inp('gst', 'GST %')}</div>
+      <div class="two">${['roundTo', 'finalRoundTo'].map((k) => `<div class="field"><label>${k === 'roundTo' ? 'Estimates: round up to next ₹' : 'Final price: round up to next ₹'}</label><select id="po_${k}">${[1, 10, 50, 100, 500].map((v) => `<option value="${v}" ${num(s[k] || (k === 'finalRoundTo' ? 100 : 50)) === v ? 'selected' : ''}>${v === 1 ? 'No rounding' : '₹' + v}</option>`).join('')}</select></div>`).join('')}</div>
       <label class="check"><input type="checkbox" id="po_mkOnStone" ${s.mkOnStone ? 'checked' : ''}><span>VA / making % applies to metal + stone (Price Check / Yamie workbook). Untick for metal only.</span></label>
       <div class="two">${inp('discLimit', 'Sales discount limit % (above needs manager)')}${inp('tol', 'Final price tolerance ±%')}</div>
       <p class="hint">Karat reference weights (same design in each karat; from the Karat Converter bangle):</p>
@@ -90,7 +92,7 @@ function subPolicy() {
 function holList() { $('holL').innerHTML = _hol.map((h) => `<button class="chip" onclick="_hol=_hol.filter(x=>x!=='${h}');holList()">${dshort(h)} ✕</button>`).join('') || '<span class="hint">None</span>'; }
 function savePolicy() {
   const st = clone(S);
-  ['gst', 'roundTo', 'discLimit', 'tol', 'minAdv', 'leadDays', 'estValid', 'qcBuffer', 'approveDays', 'etdWarnDays', 'collectDays', 'autoLock'].forEach((k) => { st[k] = num($('po_' + k).value); });
+  ['gst', 'roundTo', 'finalRoundTo', 'discLimit', 'tol', 'minAdv', 'leadDays', 'estValid', 'qcBuffer', 'approveDays', 'etdWarnDays', 'collectDays', 'autoLock'].forEach((k) => { st[k] = num($('po_' + k).value); });
   ['shop', 'shopPhone', 'gstin', 'shopAddr', 'priceCheckUrl', 'repairUrl'].forEach((k) => { st[k] = $('po_' + k).value.trim(); });
   st.mkOnStone = $('po_mkOnStone').checked; st.karatRef22Weighed = $('po_k22w').checked;
   ['k22', 'k18', 'k14', 'k9'].forEach((k) => { st.karatRef[k] = num($('kr_' + k).value) || st.karatRef[k]; });
@@ -99,6 +101,22 @@ function savePolicy() {
   cfgCall('settings', { settings: st }, 'Settings saved');
 }
 
+function subGems() {
+  window._gm = clone(gems());
+  $('subBody').innerHTML = `<div class="card"><h3>Precious stones</h3><p class="sub">Shown as picture cards when adding a precious or synthetic stone to an item. Pick a colour, or add a photo of the real stone.</p><div id="gmList"></div>
+    <button class="btn soft block" onclick="_gm.push({name:'',color:'#b3122e'});gmList()">+ Add stone</button>
+    <div class="actions"><button class="btn secondary" onclick="if(confirm('Go back to the starting list?')){_gm=clone(DEF_GEMS);gmList()}">Reset list</button><button class="btn" onclick="saveGems()">Save list</button></div></div>`;
+  gmList();
+}
+function gmList() {
+  $('gmList').innerHTML = _gm.map((g, i) => `<div class="pay"><div style="display:flex;gap:10px;align-items:center;flex:1">
+      <div class="pic" style="min-height:0;width:66px;padding:4px">${g.img ? `<img src="${esc(imgUrl(g.img))}" alt="">` : gemSvg(g.color)}</div>
+      <div style="flex:1"><input class="search" style="margin:0 0 6px" value="${esc(g.name)}" placeholder="Stone name" oninput="_gm[${i}].name=this.value">
+      <div class="choiceRow"><input type="color" value="${esc(g.color || '#b3122e')}" oninput="_gm[${i}].color=this.value;_gm[${i}].img='';gmList()" style="width:44px;height:34px;border:0;background:none">
+        <button class="btn small soft" onclick="pickPhoto((r)=>{_gm[${i}].img=r;gmList()},false)">Photo</button>
+        <button class="btn small danger" onclick="_gm.splice(${i},1);gmList()">✕</button></div></div></div></div>`).join('');
+}
+function saveGems() { const st = clone(S); st.gems = _gm.filter((g) => g.name.trim()).map((g) => ({ name: g.name.trim(), color: g.color || '#999999', img: g.img || '' })); cfgCall('settings', { settings: st }, 'Stone list saved'); }
 function subUsers() {
   $('subBody').innerHTML = `<div class="card"><h3>Staff logins</h3>${users.map((u) => `<div class="pay"><div><b>${esc(u.name)}</b> · ${esc(u.role)}${u.active ? '' : ' · <span class="overdue">disabled</span>'}<small>${esc(u.phone || '')}</small></div>
     <button class="btn small soft" onclick="userSheet('${u.id}')">Edit</button></div>`).join('')}
@@ -180,7 +198,7 @@ async function bkRun() {
   const bk = bkPicked; if (!bk || bkBusy) return; if (me.role !== 'admin') return toast('Admin only');
   bkBusy = true; $('bkRs').innerHTML = '';
   try {
-    const r = await YBK.restore({ call: bkCall, progress: bkProg, replace: bkMode === 'replace', skip: (k) => k.startsWith('chg/') || k.startsWith('lock/') || k === 'meta/secret', last: (k) => k === 'cfg/users' }, bk);
+    const r = await YBK.restore({ call: bkCall, progress: bkProg, replace: bkMode === 'replace', skip: (k) => k.startsWith('chg/') || k.startsWith('lock/') || k === 'meta/secret' || k === 'pc/cache', last: (k) => k === 'cfg/users' }, bk);
     bkProg(`Restored ${r.records} records. Every device reloads now.`, 1);
     bkPicked = null; await pullAll(); toast('Backup restored');
   } catch (e) { bkProg('Restore stopped: ' + YBK.errText(e) + ' Run the restore again to finish it.', 0); }

@@ -35,6 +35,16 @@ python3 test/ui_flow.py                   # full walkthrough, screenshots in /tm
 ```
 The page talks to `localStorage.yod_api` when set (tests set it to the local server).
 
+## V1.3 (22-11-2026)
+- Items page: category chips → popular products, purity, colour, approx. gross & net weight with a karat-wise pop-up, size/length, item details (ring: shank width/depth, setting & shank style; earrings: type & screw/back — picture cards), stones (diamond / lab-grown / precious priced per carat, synthetic per piece or gram; precious-stone list with picture cards editable in Settings; shape picture cards), design ours/customised, design number linked to Price Check with its photos, upload images.
+- Price Check link: server reads the Yamie Price Check database (`/api/pc/find`, `/api/pc/photos`). Needs Netlify env **PC_SHOP_KEY** (Yamie Price Check shop key); optional `PC_URL`.
+- Rounding: estimates and final price each round up to next ₹1/10/50/100/500 (Settings; final default ₹100).
+- WhatsApp: APK sends the card straight to the customer's chat; web uses the phone's share sheet, or on a computer copies the card and opens the chat.
+- Permission "See vendor phone numbers" (managers yes, staff no) — the server removes vendor phones for others.
+- Work order card: item, quantity, purity, colour, size, design no., target gross/net, details, stones (type, shape, size, ct, pcs, quality, colour), extra vendor photos. No prices.
+- Receive in store: vendor, date, vendor invoice no., per item purity / gross / net, photos.
+- Final price: discount (above the sales limit is approved with the final price), customer OK recorded before a manager approves (server-enforced).
+
 ## Not done yet
 - Gold rates come from the Grand Jewellers kiosk feed (grandjewellers.com/api/kiosk-rates) automatically every 10 min, or by the button in More → Gold rates; rates typed in by hand win for that day.
 - Repair Desk / Price Check data: linked by buttons only; they keep their own logins and databases.

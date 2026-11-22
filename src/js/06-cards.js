@@ -27,14 +27,14 @@ async function drawCard(spec) {
   const W = 1080, P = 64, F = '-apple-system,"Segoe UI",Roboto,Arial,sans-serif';
   const c = document.createElement('canvas'), x = c.getContext('2d');
   c.width = W; c.height = 10;
-  const [mk, wd, ...phs] = await Promise.all([loadImg(LOGO.markW), loadImg(LOGO.wordW)].concat((spec.photos || []).slice(0, 3).map((p) => loadImg(imgUrl(p)))));
+  const [mk, wd, ...phs] = await Promise.all([loadImg(LOGO.markW), loadImg(LOGO.wordW)].concat((spec.photos || []).slice(0, 6).map((p) => loadImg(imgUrl(p)))));
   const photos = phs.filter(Boolean);
   const KW = 400, VW = W - 2 * P - KW - 20;
   x.font = `500 31px ${F}`;
   const secs = (spec.sections || []).map(([t, rows]) => [t, rows.map(([k, v, b]) => ({ k: wrapT(x, k, KW), v: wrapT(x, v, VW), b }))]);
   x.font = `400 27px ${F}`;
   const foot = (spec.foot || []).map((t) => wrapT(x, '• ' + t, W - 2 * P));
-  const headH = 300, phH = photos.length ? 330 : 0, bigH = spec.big ? 150 : 0;
+  const headH = 300, phRows = Math.ceil(photos.length / 3), phH = photos.length ? (photos.length === 1 ? 330 : phRows * 320 + 10) : 0, bigH = spec.big ? 150 : 0;
   const secH = secs.reduce((s, [, rows]) => s + 80 + rows.reduce((t, r) => t + Math.max(r.k.length, r.v.length) * 42 + 16, 0), 0);
   const footH = foot.reduce((t, l) => t + l.length * 37 + 8, 0) + 40;
   const H = headH + 40 + phH + bigH + secH + footH + 120;
@@ -51,10 +51,10 @@ async function drawCard(spec) {
   x.textAlign = 'right'; x.font = `700 34px ${F}`; x.fillStyle = '#fff'; x.fillText(spec.ref || '', W - P, 92); x.textAlign = 'left';
   let y = headH + 40;
   if (photos.length) {
-    const n = photos.length, gap = 20, sz = Math.min(300, (W - 2 * P - gap * (n - 1)) / n);
+    const n = Math.min(3, photos.length), gap = 20, sz = Math.min(300, (W - 2 * P - gap * (n - 1)) / n);
     photos.forEach((im, i) => {
-      const s = Math.min(im.width, im.height), sx = (im.width - s) / 2, sy = (im.height - s) / 2, px = P + i * (sz + gap);
-      x.save(); x.beginPath(); x.roundRect ? x.roundRect(px, y, sz, sz, 22) : x.rect(px, y, sz, sz); x.clip(); x.drawImage(im, sx, sy, s, s, px, y, sz, sz); x.restore();
+      const s = Math.min(im.width, im.height), sx = (im.width - s) / 2, sy = (im.height - s) / 2, px = P + (i % 3) * (sz + gap), py = y + Math.floor(i / 3) * (sz + 20);
+      x.save(); x.beginPath(); x.roundRect ? x.roundRect(px, py, sz, sz, 22) : x.rect(px, py, sz, sz); x.clip(); x.drawImage(im, sx, sy, s, s, px, py, sz, sz); x.restore();
     });
     y += phH;
   }
@@ -93,9 +93,10 @@ function itemRows(it, withPrice, line) {
   if (it.details) rows.push(['Details', it.details]);
   if (it.custom) rows.push(['Customisation', it.custom]);
   rows.push(['Metal', purLabel(it.purity) + ' · ' + it.colour]);
-  if (it.size) rows.push(['Size / length', it.size]);
+  if (it.size) rows.push([sizeLabel(it.cat), it.size]);
   if (it.dims) rows.push(['Width / thickness', it.dims]);
-  (it.stones || []).forEach((s) => rows.push([stoneLabel(s.type), [s.shape, s.size, s.ct ? s.ct + ' ct' : '', s.pcs ? s.pcs + ' pc' : '', s.quality, s.setting].filter(Boolean).join(' · ')]));
+  const spx = specText(it); if (spx) rows.push(['Details', spx]);
+  (it.stones || []).forEach((s) => rows.push([stoneLabel(s.type) + (s.gem ? ' · ' + s.gem : ''), [s.shape, s.size ? s.size + ' mm' : '', s.ct ? s.ct + ' ct' : '', s.pcs ? s.pcs + ' pc' : '', s.quality, s.colour, s.setting].filter(Boolean).join(' · ')]));
   rows.push([withPrice ? 'Approx. net weight' : 'Target net weight', g3(line ? line.wt : it.wt)]);
   if (withPrice && line) {
     rows.push(['Gold value', rupee(line.metal) + ' @ ' + rupee(line.rate) + '/g']);
@@ -103,6 +104,21 @@ function itemRows(it, withPrice, line) {
     if (line.making + line.va) rows.push(['Making / VA', rupee(line.making + line.va)]);
     if (line.other) rows.push(['Other', rupee(line.other)]);
   } else if (!withPrice && it.prodNotes) rows.push(['Production notes', it.prodNotes]);
+  return rows;
+}
+function vendorRows(it) {
+  const rows = [['Item', [it.cat, it.product].filter(Boolean).join(' · ')], ['Quantity', String(it.qty || 1)], ['Purity', purLabel(it.purity)], ['Colour', it.colour]];
+  if (it.size) rows.push([sizeLabel(it.cat), it.size]);
+  rows.push(['Design no.', (it.designNo || '—') + (it.design === 'custom' ? ' (customised)' : '') + ' · rev ' + (it.rev || 1)]);
+  if (it.model) rows.push(['Model no.', it.model]);
+  rows.push(['Gross wt (target)', g3(it.gwt)], ['Net wt (target)', g3(it.wt)]);
+  const sp = specText(it); if (sp) rows.push(['Details', sp]);
+  if (it.dims) rows.push(['Width / other', it.dims]);
+  if (it.details) rows.push(['Design details', it.details]);
+  if (it.custom) rows.push(['Customisation', it.custom]);
+  (it.stones || []).forEach((s, k) => rows.push([`Stone ${k + 1} · ${stoneLabel(s.type)}${s.gem ? ' · ' + s.gem : ''}`,
+    [s.shape, s.size ? s.size + ' mm' : '', s.ct ? s.ct + ' ct' : '', s.pcs ? s.pcs + ' pc' : '', s.wtg ? s.wtg + ' g' : '', s.quality, s.colour ? 'colour ' + s.colour : '', s.setting].filter(Boolean).join(' · ')]));
+  if (it.prodNotes) rows.push(['Production notes', it.prodNotes]);
   return rows;
 }
 const qtyName = (it, i) => `Item ${i + 1} · ${num(it.qty) > 1 ? it.qty + ' × ' : ''}${it.product || it.cat || 'Item'}`;
@@ -115,23 +131,35 @@ async function shareCard(o, spec, phone, caption, label, after) {
   if (NATIVE && NATIVE.shareWhatsApp) {
     try { NATIVE.shareWhatsApp(waDigits(phone), caption, JSON.stringify([url])); } catch (e) { NATIVE.shareWhatsApp(waDigits(phone), caption, '[]'); }
   } else {
-    openSheet(`<h2>${esc(label)}</h2><p class="sub">Download or copy the card, then send it in WhatsApp with the message.</p>
+    window._cardUrl = url; window._cardCap = caption; window._cardPhone = phone;
+    const fileName = (spec.ref || 'card').replace(/\s+/g, '_') + '.jpg';
+    openSheet(`<h2>${esc(label)}</h2>
       <img src="${url}" style="width:100%;border-radius:12px;border:1px solid var(--line)" alt="">
-      <div class="actions"><a class="btn secondary" href="${url}" download="${esc((spec.ref || 'card').replace(/\s+/g, '_'))}.jpg" style="text-align:center;text-decoration:none">Download</a>
-      <button class="btn secondary" onclick="copyImg()">Copy image</button>
-      <button class="btn" onclick="openWa(${esc(JSON.stringify(phone))}, ${esc(JSON.stringify(caption))})">Open WhatsApp</button></div>`);
-    window._cardUrl = url;
+      <div class="actions"><button class="btn ok" onclick="waSendCard(${esc(JSON.stringify(fileName))})">Send on WhatsApp</button>
+      <a class="btn secondary" href="${url}" download="${esc(fileName)}" style="text-align:center;text-decoration:none">Download</a></div>
+      <p class="hint">On a phone the card goes straight into WhatsApp. On a computer the card is copied and the customer's WhatsApp chat opens: press Ctrl+V to paste it.</p>`);
   }
   const r = await step(o.id, (x) => { if (after) after(x); }, 'Shared · ' + label + ' → ' + phone);
   return r;
 }
-async function copyImg() {
+async function waSendCard(fileName) {
+  const url = window._cardUrl, cap = window._cardCap, phone = window._cardPhone;
+  try {
+    const blob = await (await fetch(url)).blob(), file = new File([blob], fileName, { type: 'image/jpeg' });
+    if (navigator.canShare && navigator.canShare({ files: [file] }) && /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)) { await navigator.share({ files: [file], text: cap }); return; }
+  } catch (e) { if (e && e.name === 'AbortError') return; }
+  const ok = await copyImg(true);
+  openWa(phone, cap);
+  if (ok) toast('Card copied — press Ctrl+V in the chat');
+}
+async function copyImg(quiet) {
   try {
     const blob = await (await fetch(window._cardUrl)).blob();
     const png = await new Promise((res) => { const im = new Image(); im.onload = () => { const c = document.createElement('canvas'); c.width = im.width; c.height = im.height; c.getContext('2d').drawImage(im, 0, 0); c.toBlob(res, 'image/png'); }; im.src = URL.createObjectURL(blob); });
     await navigator.clipboard.write([new ClipboardItem({ 'image/png': png })]);
-    toast('Card copied — paste it in WhatsApp Web');
-  } catch (e) { toast('Copy is not allowed here — use Download'); }
+    if (!quiet) toast('Card copied — paste it in WhatsApp Web');
+    return true;
+  } catch (e) { if (!quiet) toast('Copy is not allowed here — use Download'); return false; }
 }
 
 function estimateSpec(o, est) {
@@ -158,8 +186,8 @@ function sendEstimate(id, v) {
 function sendWorkOrder(id) {
   const o = orders.find((x) => x.id === id), v = o.vendor;
   const spec = {
-    title: 'Work order', ref: o.ono || '', sub: `To ${v.name} · ETD ${dt(v.etd)}`, dark: true, photos: allPhotos(o.items),
-    sections: o.items.map((it, i) => [qtyName(it, i), itemRows(it, false)]),
+    title: 'Work order', ref: o.ono || '', sub: `To ${v.name} · ETD ${dt(v.etd)}`, dark: true, photos: allPhotos(o.items).concat(v.photos || []),
+    sections: o.items.map((it, i) => [qtyName(it, i), vendorRows(it)]),
     foot: ['BIS hallmark with HUID required.', 'Tell us about any weight or stone difference before dispatch.', `Quote ${o.ono} on the delivery challan.`],
   };
   shareCard(o, spec, vendorPhone(v.name) || '', `Yamie work order ${o.ono} · ETD ${dt(v.etd)}`, 'Work order to ' + v.name, (x) => { if (!x.vendor.sentAt) x.vendor.sentAt = Date.now(); });
@@ -171,8 +199,8 @@ function sendFinal(id) {
   sum.push([`GST ${fin.gstPct}%`, rupee(fin.gst)], ['Final price', rupee(fin.total), true], ['Paid', rupee(verified(o))], ['Balance', rupee(Math.max(0, fin.total - verified(o))), true]);
   const spec = { title: 'Final price', ref: o.ono, sub: o.cust.name + ' · ' + dt(Date.now()), big: ['Final price incl. GST', rupee(fin.total)],
     sections: fin.items.map((it, i) => [qtyName(it, i), itemRows(it, true, fin.lines[i])]).concat([['Summary', sum]]),
-    foot: [fin.basis + '.', `Estimate was ${rupee(fin.estTotal)} (${fin.var >= 0 ? '+' : ''}${fin.varPct}%) — the difference comes from the actual weight${o.lock === 'full' ? '' : ' and today\'s gold rate'}.`] };
-  shareCard(o, spec, o.cust.phone, `Dear ${o.cust.name}, the final price of your order ${o.ono} is ${rupee(fin.total)} incl. GST. Please confirm. — ${S.shop}`, 'Final price');
+    foot: ['Please reply OK on WhatsApp to confirm this price.', fin.basis + '.', `Estimate was ${rupee(fin.estTotal)} (${fin.var >= 0 ? '+' : ''}${fin.varPct}%) — the difference comes from the actual weight${o.lock === 'full' ? '' : ' and today\'s gold rate'}.`] };
+  shareCard(o, spec, o.cust.phone, `Dear ${o.cust.name}, the final price of your Yamie order ${o.ono} is ${rupee(fin.total)} incl. GST (balance ${rupee(Math.max(0, fin.total - verified(o)))}). Please reply OK to confirm. — ${S.shop}`, 'Final price (asked for OK)');
 }
 function sendReady(id, again) {
   const o = orders.find((x) => x.id === id), fin = lastOf(o.finals);

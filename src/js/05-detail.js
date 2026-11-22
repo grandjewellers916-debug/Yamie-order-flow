@@ -28,7 +28,7 @@ function nextActions(o) {
   }
   if (s === 'confirmed') add('vendor', 'Assign vendor & ETD', 'shVendor()', 'main');
   if (s === 'vendor') {
-    add('', 'Send work order to vendor', `sendWorkOrder('${o.id}')`, o.vendor.sentAt ? '' : 'main');
+    add('', 'Send work order to vendor', 'shWorkOrder()', o.vendor.sentAt ? '' : 'main');
     add('production', 'Vendor acknowledged · in production', 'shAck()', o.vendor.sentAt ? 'main' : '');
     add('vendor', 'Change vendor / ETD', 'shVendor()');
   }
@@ -41,7 +41,12 @@ function nextActions(o) {
   if (s === 'received') add('qc', 'QC inspection', 'shQC()', 'main');
   if (s === 'qc_fail') add('production', 'Send for rework', 'shRework()', 'main');
   if (s === 'qc_ok') add('finalprice', 'Calculate final price', 'shFinal()', 'main');
-  if (s === 'final') { add('approvefinal', 'Approve final price', 'shApproveFinal()', 'main'); add('', 'Send final price to customer', `sendFinal('${o.id}')`); add('finalprice', 'Recalculate', 'shFinal()'); }
+  if (s === 'final') {
+    const fin = lastOf(o.finals);
+    if (!fin.cust) { add('', 'Send final price card (ask for OK)', `sendFinal('${o.id}')`, 'main'); add('finalprice', 'Customer replied OK', 'shCustOk()'); }
+    add('approvefinal', 'Approve final price', 'shApproveFinal()', fin.cust ? 'main' : '');
+    add('finalprice', 'Recalculate / discount', 'shFinal()');
+  }
   if (s === 'final_ok') add('ready', 'Tell customer: order ready', `sendReady('${o.id}')`, 'main');
   if (s === 'ready') {
     if (!o.inv) add('advance', 'Link ERP invoice', 'shInvoice()', 'main');
@@ -134,7 +139,10 @@ function tabVendor(o) {
     ${can('viewcost') ? `<div class="kv"><span>Vendor cost (restricted)</span><span>${v.cost ? rupee(v.cost) : '—'}</span></div>` : ''}
     ${vendorPhone(v.name) ? `<div class="actions"><button class="btn small soft" onclick="callNo('${esc(vendorPhone(v.name))}')">Call vendor</button></div>` : ''}</div>` : '<div class="empty">No vendor assigned yet.</div>';
   if ((o.fu || []).length) h += `<div class="card"><h3>Follow-ups</h3><div class="log">${o.fu.slice().reverse().map((f) => `<div><b>${esc(f.note)}</b><small>${dtt(f.at)} · ${esc(f.ch)} · ${esc(f.by)}${f.next ? ' · next ' + dshort(f.next) : ''}</small></div>`).join('')}</div></div>`;
-  (o.recv || []).forEach((r, k) => { h += `<div class="card"><h3>Received ${k ? '(after rework)' : ''} <span class="badge">${dshort(r.at)}</span></h3>${o.items.map((it, i) => `<div class="kv"><span>Item ${i + 1} actual net</span><span>${g3(r.wts && r.wts[it.id])} <small>(est. ${g3(it.wt)})</small></span></div>`).join('')}
+  (o.recv || []).forEach((r, k) => { h += `<div class="card"><h3>Received ${k ? '(after rework)' : ''} <span class="badge">${r.date ? dshort(r.date) : dshort(r.at)}</span></h3>
+    ${r.vendor || r.vinv ? `<div class="kv"><span>Vendor · invoice</span><span>${esc(r.vendor || '')} · ${esc(r.vinv || '—')}</span></div>` : ''}
+    ${o.items.map((it, i) => `<div class="kv"><span>Item ${i + 1} ${r.purs ? purShort(r.purs[it.id]) : ''} G / N</span><span>${g3(r.gwts && r.gwts[it.id])} / ${g3(r.wts && r.wts[it.id])} <small>(est. ${g3(it.wt)})</small></span></div>`).join('')}
+    ${(r.photos || []).length ? `<div class="thumbs" style="margin:8px 0">${r.photos.map((p) => `<div class="th"><img src="${esc(imgUrl(p))}" onclick="window.open(this.src)" alt=""></div>`).join('')}</div>` : ''}
     <div class="kv"><span>Pieces · by</span><span>${r.pcs} · ${esc(r.by || '')}</span></div>${r.dev ? `<div class="kv"><span>Deviations</span><span>${esc(r.dev)}</span></div>` : ''}</div>`; });
   if ((o.qc || []).length) h += `<div class="card"><h3>QC</h3><div class="log">${o.qc.map((q) => `<div><b style="color:${q.ok ? 'var(--ok)' : 'var(--bad)'}">${q.ok ? '✓ Approved' : '✕ Rejected'}</b>${q.note ? ' · ' + esc(q.note) : ''}<small>${dtt(q.at)} · ${esc(q.by || '')}</small></div>`).join('')}</div></div>`;
   $('dTab').innerHTML = h;
@@ -242,6 +250,27 @@ function doVendor() {
     o.status = o.status === 'confirmed' ? 'vendor' : o.status;
   }, 'Vendor: ' + name + ' · ETD ' + dshort(etd), 'Saved').then((r) => r && closeSheet());
 }
+function shWorkOrder() {
+  const o = getO(), v = o.vendor;
+  window._woPh = (v.photos || []).slice();
+  openSheet(`<h2>Work order · ${esc(v.name)}</h2><p class="sub">The card shows item, purity, colour, size, quantity, design no., weights and stones — no prices, advances or customer details.</p>
+    <div class="field"><label>Extra photos for the vendor (sketch, CAD, reference)</label><div class="thumbs" id="woPh"></div></div>
+    <div class="actions"><button class="btn" onclick="saveWoPhotos(true)">Send card on WhatsApp</button>${v.sentAt ? '' : '<button class="btn secondary" onclick="saveWoPhotos(false,true)">Mark as sent</button>'}</div>`);
+  woPhotos();
+}
+function woPhotos() {
+  $('woPh').innerHTML = _woPh.map((p, k) => `<div class="th"><img src="${esc(imgUrl(p))}" alt=""><button onclick="_woPh.splice(${k},1);woPhotos()">✕</button></div>`).join('') +
+    '<button class="addPh" onclick="pickPhoto((r)=>{_woPh.push(r);woPhotos()},true)">📷<span>Camera</span></button><button class="addPh" onclick="pickPhoto((r)=>{_woPh.push(r);woPhotos()},false)">🖼<span>Gallery</span></button>';
+}
+async function saveWoPhotos(send, markOnly) {
+  const o = getO();
+  if (JSON.stringify(_woPh) !== JSON.stringify(o.vendor.photos || []) || markOnly) {
+    const r = await step(o.id, (x) => { x.vendor.photos = _woPh.slice(); if (markOnly && !x.vendor.sentAt) x.vendor.sentAt = Date.now(); }, markOnly ? 'Work order marked as sent' : 'Vendor photos updated');
+    if (!r) return;
+  }
+  closeSheet();
+  if (send) sendWorkOrder(o.id);
+}
 function shAck() {
   openSheet(`<h2>Vendor acknowledged</h2><div class="field"><label>Vendor job / reference no.</label><input id="akRef"></div><button class="btn block" onclick="doAck()">Mark in production</button>`);
 }
@@ -269,17 +298,37 @@ function doEtd() {
   step(cur.id, (o) => { o.vendor.etd = e; }, `ETD changed to ${dshort(e)} · ${f('etReason')}`, 'ETD changed — consider updating the customer').then((r) => r && closeSheet());
 }
 function shReceive() {
-  const o = getO();
-  openSheet(`<h2>Receive in store</h2>${o.items.map((it, i) => `<div class="field"><label>Item ${i + 1}: ${esc(it.product)} · actual net weight (est. ${g3(it.wt)})</label><input id="rcW${i}" inputmode="decimal"></div>`).join('')}
-    <div class="two"><div class="field"><label>Pieces received</label><input id="rcPcs" inputmode="numeric" value="${o.items.reduce((t, it) => t + Math.max(1, num(it.qty)), 0)}"></div>
-    <div class="field"><label>Vendor challan / ref</label><input id="rcRef" value="${esc((o.vendor || {}).ref || '')}"></div></div>
+  const o = getO(), v = o.vendor || {};
+  window._rcPh = [];
+  openSheet(`<h2>Receive in store</h2>
+    <div class="two"><div class="field"><label>Vendor</label><select id="rcVen">${opt(vendors.map((x) => x.name).concat(vendors.some((x) => x.name === v.name) ? [] : [v.name || '']).filter(Boolean), v.name)}</select></div>
+    <div class="field"><label>Date</label><input type="date" id="rcDate" value="${today()}"></div></div>
+    <div class="two"><div class="field"><label>Vendor invoice / challan no.</label><input id="rcInv" value="${esc(v.ref || '')}"></div>
+    <div class="field"><label>Pieces received</label><input id="rcPcs" inputmode="numeric" value="${o.items.reduce((t, it) => t + Math.max(1, num(it.qty)), 0)}"></div></div>
+    ${o.items.map((it, i) => `<div class="stone"><b>Item ${i + 1}: ${esc([it.cat, it.product].filter(Boolean).join(' · '))}</b> <span class="hint">ordered ${purShort(it.purity)} · G ${g3(it.gwt)} · N ${g3(it.wt)}</span>
+      <div class="three" style="margin-top:8px"><div class="field"><label>Purity</label><select id="rcP${i}">${opt(PURITIES.map((p) => [p[0], purShort(p[0])]), it.purity)}</select></div>
+      <div class="field"><label>Gross wt (g)</label><input id="rcG${i}" inputmode="decimal"></div>
+      <div class="field"><label>Net wt (g) *</label><input id="rcW${i}" inputmode="decimal"></div></div></div>`).join('')}
+    <div class="field"><label>Photos of the piece as received</label><div class="thumbs" id="rcPh"></div></div>
     <div class="field"><label>Deviations from the order</label><textarea id="rcDev"></textarea></div>
     <button class="btn block" onclick="doReceive()">Receive & send to QC</button>`);
+  rcPhotos();
+}
+function rcPhotos() {
+  $('rcPh').innerHTML = _rcPh.map((p, k) => `<div class="th"><img src="${esc(imgUrl(p))}" alt=""><button onclick="_rcPh.splice(${k},1);rcPhotos()">✕</button></div>`).join('') +
+    '<button class="addPh" onclick="pickPhoto((r)=>{_rcPh.push(r);rcPhotos()},true)">📷<span>Camera</span></button><button class="addPh" onclick="pickPhoto((r)=>{_rcPh.push(r);rcPhotos()},false)">🖼<span>Gallery</span></button>';
 }
 function doReceive() {
-  const o = getO(), wts = {};
-  for (let i = 0; i < o.items.length; i++) { const w = num(f('rcW' + i)); if (!(w > 0)) return toast('Enter the actual weight of item ' + (i + 1)); wts[o.items[i].id] = w; }
-  step(cur.id, (x) => { x.recv = (x.recv || []).concat([{ wts, pcs: num(f('rcPcs')), ref: f('rcRef'), dev: f('rcDev') }]); x.status = 'received'; }, 'Received in store · QC pending', 'Received — QC pending').then((r) => r && closeSheet());
+  const o = getO(), wts = {}, gwts = {}, purs = {}, dev = [];
+  for (let i = 0; i < o.items.length; i++) {
+    const it = o.items[i], w = num(f('rcW' + i));
+    if (!(w > 0)) return toast('Enter the net weight of item ' + (i + 1));
+    wts[it.id] = w; gwts[it.id] = num(f('rcG' + i)) || null; purs[it.id] = $('rcP' + i).value;
+    if (purs[it.id] !== it.purity) dev.push(`Item ${i + 1} received in ${purShort(purs[it.id])}, ordered ${purShort(it.purity)}`);
+  }
+  const note = [f('rcDev')].concat(dev).filter(Boolean).join('; ');
+  step(cur.id, (x) => { x.recv = (x.recv || []).concat([{ vendor: f('rcVen'), date: f('rcDate'), vinv: f('rcInv'), ref: f('rcInv'), wts, gwts, purs, photos: _rcPh.slice(), pcs: num(f('rcPcs')), dev: note }]); x.status = 'received'; },
+    'Received in store' + (f('rcInv') ? ' · vendor invoice ' + f('rcInv') : '') + ' · QC pending', 'Received — QC pending').then((r) => r && closeSheet());
 }
 function shQC() {
   openSheet(`<h2>QC inspection</h2>${QC_CHECKS.map((c, i) => `<label class="check"><input type="checkbox" id="qc${i}" onchange="qcState()"><span>${esc(c)}</span></label>`).join('')}
@@ -302,43 +351,58 @@ function doRework() {
   const e = f('rwEtd');
   step(cur.id, (o) => { o.status = 'rework'; o.vendor.dispAt = null; if (e) o.vendor.etd = e; }, 'Sent for rework · ' + f('rwNote'), 'Sent for rework').then((r) => r && closeSheet());
 }
-function finalCalc(o, extra) {
+function finalCalc(o, extra, disc) {
   const lock = o.lock === 'full', rates = lock ? o.lockRates : S.rates;
-  const wts = (lastOf(o.recv) || {}).wts || {};
-  const b = priceOrder(o.items, rates, o.disc, extra, wts);
+  const rc = lastOf(o.recv) || {}, wts = rc.wts || {}, purs = rc.purs || {};
+  const items = o.items.map((it) => Object.assign({}, it, { wt: wts[it.id] || it.wt, gwt: (rc.gwts || {})[it.id] || it.gwt, purity: purs[it.id] || it.purity }));
+  const dsc = disc == null ? num(o.disc) : num(disc);
+  const b = priceOrder(items, rates, dsc, extra, null, num(S.finalRoundTo) || 100);
   const est = lastOf(o.ests), v = b.total - num(est.total), pct = est.total ? Math.round(v * 10000 / est.total) / 100 : 0;
-  return Object.assign(b, { rates: clone(rates), items: o.items.map((it) => Object.assign({}, it, { wt: wts[it.id] || it.wt })), basis: lock ? 'Gold rate locked at confirmation' : "Today's rate · " + dtt(S.rates.at),
+  const discPct = b.sub ? b.disc * 100 / b.sub : 0;
+  return Object.assign(b, { rates: clone(rates), items, discIn: dsc, discNeedsOk: b.disc > 0 && discPct > num(S.discLimit), basis: lock ? 'Gold rate locked at confirmation' : "Today's rate · " + dtt(S.rates.at),
     estTotal: est.total, var: v, varPct: pct, needCust: Math.abs(pct) > num(S.tol) });
 }
 function shFinal() {
-  const o = getO(); const b = finalCalc(o, 0);
-  openSheet(`<h2>Final price</h2><p class="sub">${esc(b.basis)} · actual weights from the receipt.</p>
-    <div class="field"><label>Additional approved charges ₹</label><input id="fnEx" inputmode="decimal" oninput="fnLive()"></div><div id="fnBox"></div>
+  const o = getO(), last = lastOf(o.finals);
+  openSheet(`<h2>Final price</h2><p class="sub">${esc(finalCalc(o, 0).basis)} · actual weights${(lastOf(o.recv) || {}).purs ? ' and purity' : ''} from the receipt · rounded up to ₹${S.finalRoundTo || 100}.</p>
+    <div class="two"><div class="field"><label>Additional approved charges ₹</label><input id="fnEx" inputmode="decimal" value="${last ? last.extra || '' : ''}" oninput="fnLive()"></div>
+    <div class="field"><label>Discount ₹</label><input id="fnDisc" inputmode="decimal" value="${last ? last.discIn || '' : num(o.disc) || ''}" oninput="fnLive()"></div></div>
+    <div id="fnBox"></div>
     <button class="btn block" onclick="doFinal()">Save final price</button>`);
   fnLive();
 }
 function fnLive() {
-  const b = finalCalc(getO(), num(f('fnEx')));
+  const b = finalCalc(getO(), num(f('fnEx')), f('fnDisc'));
   $('fnBox').innerHTML = breakdownHtml(b, b.items, { label: 'Final price' }) + `<div class="kv"><span>Estimate</span><span>${rupee(b.estTotal)}</span></div>
     <div class="kv"><span>Difference</span><span class="${b.needCust ? 'overdue' : ''}">${b.var >= 0 ? '+' : ''}${rupee(b.var)} (${b.varPct}%)</span></div>
-    ${b.needCust ? `<div class="warnBox">More than ±${S.tol}% from the estimate: the customer must agree before approval.</div>` : ''}`;
+    ${b.discNeedsOk ? `<div class="warnBox">Discount is above the ${S.discLimit}% sales limit — the manager approves it with the final price.</div>` : ''}
+    <div class="okBox">Next: send the final price card and ask the customer to reply <b>OK</b>.</div>`;
 }
 function doFinal() {
-  step(cur.id, (o) => { const b = finalCalc(o, num(f('fnEx'))); b.v = (o.finals || []).length + 1; o.finals = (o.finals || []).concat([b]); o.status = 'final'; },
-    'Final price calculated', 'Final price saved — needs approval').then((r) => r && closeSheet());
+  step(cur.id, (o) => { const b = finalCalc(o, num(f('fnEx')), f('fnDisc')); b.v = (o.finals || []).length + 1; o.finals = (o.finals || []).concat([b]); o.status = 'final'; },
+    'Final price calculated', 'Final price saved — send it to the customer').then((r) => r && closeSheet());
+}
+function shCustOk() {
+  const o = getO(), fin = lastOf(o.finals);
+  openSheet(`<h2>Customer's OK</h2><p class="sub">Final price ${rupee(fin.total)} for ${esc(o.cust.name)}.</p>
+    <div class="field"><label>How did they confirm? <i class="req">*</i></label><textarea id="coEv" placeholder="e.g. Replied 'OK' on WhatsApp at 11:20"></textarea></div>
+    <button class="btn block" onclick="doCustOk()">Record OK</button>`);
+}
+function doCustOk() {
+  if (!f('coEv')) return toast('Note how the customer confirmed');
+  step(cur.id, (o) => { lastOf(o.finals).cust = { ev: f('coEv') }; }, 'Customer OK on final price · ' + f('coEv'), 'Customer OK recorded').then((r) => r && closeSheet());
 }
 function shApproveFinal() {
   const o = getO(), fin = lastOf(o.finals);
   openSheet(`<h2>Approve final price</h2>${breakdownHtml(fin, fin.items, { label: 'Final price' })}
     <div class="kv"><span>Estimate · difference</span><span>${rupee(fin.estTotal)} · ${fin.var >= 0 ? '+' : ''}${fin.varPct}%</span></div>
     <div class="kv"><span>Verified paid · balance</span><span>${rupee(verified(o))} · ${rupee(Math.max(0, fin.total - verified(o)))}</span></div>
-    ${fin.needCust ? `<div class="warnBox">Outside ±${S.tol}%: the customer must agree.</div>` : ''}
-    <label class="check"><input type="checkbox" id="fnCust"><span>Customer has agreed to this final price</span></label>
-    <div class="actions"><button class="btn secondary" onclick="sendFinal('${o.id}')">Ask customer</button><button class="btn" onclick="doApproveFinal()">Approve</button></div>`);
+    ${fin.discNeedsOk ? `<div class="warnBox">Includes a discount of ${rupee(fin.disc)} above the ${S.discLimit}% sales limit — approving also approves the discount.</div>` : ''}
+    ${fin.cust ? `<div class="okBox">Customer OK: ${esc(fin.cust.ev)} · ${esc(fin.cust.by || '')} ${dtt(fin.cust.at)}</div>` : `<div class="badBox">No customer OK yet. Send the final price card and record their reply first.</div>`}
+    <div class="actions"><button class="btn secondary" onclick="sendFinal('${o.id}')">Send card</button><button class="btn" ${fin.cust ? '' : 'disabled'} onclick="doApproveFinal()">Approve</button></div>`);
 }
 function doApproveFinal() {
-  const cu = $('fnCust').checked;
-  step(cur.id, (o) => { const fin = lastOf(o.finals); if (fin.needCust && !cu) return toast('Tick the customer agreement first'), false; fin.cust = cu; o.status = 'final_ok'; }, 'Final price approved' + (cu ? ' · customer agreed' : ''), 'Final price approved').then((r) => r && closeSheet());
+  step(cur.id, (o) => { o.status = 'final_ok'; }, 'Final price approved' + (lastOf(getO().finals).discNeedsOk ? ' (with discount)' : ''), 'Final price approved').then((r) => r && closeSheet());
 }
 function shInvoice() {
   const o = getO();
