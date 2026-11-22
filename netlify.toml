@@ -14,3 +14,13 @@
   [headers.values]
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "same-origin"
+
+[[redirects]]
+  from = "/new"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/.well-known/assetlinks.json"
+  [headers.values]
+    Content-Type = "application/json"

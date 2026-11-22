@@ -193,25 +193,35 @@ async function pcFind(i) {
       <button class="btn small" onclick="pcUse(${i},${k})">Use</button></div>`).join('')}`);
 }
 // Search list of designs available in Price Check (photos, category filter, paging).
-const PCB = { i: 0, q: '', cat: '', off: 0, rows: [], total: 0, cats: [], t: 0, thumbs: {} };
+const PCB = { i: 0, q: '', cat: '', off: 0, rows: [], total: 0, cats: [], t: 0, thumbs: {}, f: { pur: '', wmin: '', wmax: '', st: '', ph: '', sort: '' } };
 function pcBrowse(i) {
   const it = wiz.o.items[i];
   Object.assign(PCB, { i, q: (it.designNo || '').trim(), cat: '', off: 0, rows: [], total: 0 });
   openSheet(`<h2>Designs in Price Check</h2><p class="sub" id="pcbSub">Search by design number, tag, model or name. Tap a design to use it.</p>
     <input class="search" id="pcbQ" value="${esc(PCB.q)}" placeholder="e.g. YR1042, solitaire, bangle" oninput="clearTimeout(PCB.t);PCB.t=setTimeout(()=>{PCB.q=this.value.trim();PCB.off=0;pcbLoad()},350)">
+    <details class="sec" id="pcbF"><summary>Filters <span id="pcbFn"></span></summary><div class="in">
+      <div class="field"><label>Purity</label><div class="choiceRow">${[['', 'Any']].concat(PURITIES.map((p) => [p[0], purShort(p[0])])).map(([k, l]) => `<button class="chip ${PCB.f.pur === k ? 'active' : ''}" onclick="pcbSet('pur','${k}',this)">${esc(l)}</button>`).join('')}</div></div>
+      <div class="field"><label>Stones</label><div class="choiceRow">${[['', 'Any'], ['diamond', 'Diamond'], ['colour', 'Colour stone'], ['plain', 'Plain gold']].map(([k, l]) => `<button class="chip ${PCB.f.st === k ? 'active' : ''}" onclick="pcbSet('st','${k}',this)">${l}</button>`).join('')}</div></div>
+      <div class="field"><label>Weight (g) from – to</label><div class="two" style="gap:6px"><input id="pcbW1" inputmode="decimal" placeholder="0" value="${esc(PCB.f.wmin)}" oninput="clearTimeout(PCB.t);PCB.t=setTimeout(()=>{PCB.f.wmin=$('pcbW1').value;PCB.f.wmax=$('pcbW2').value;PCB.off=0;pcbLoad()},450)"><input id="pcbW2" inputmode="decimal" placeholder="no limit" value="${esc(PCB.f.wmax)}" oninput="clearTimeout(PCB.t);PCB.t=setTimeout(()=>{PCB.f.wmin=$('pcbW1').value;PCB.f.wmax=$('pcbW2').value;PCB.off=0;pcbLoad()},450)"></div></div>
+      <div class="two"><div class="field"><label>Sort</label><select onchange="PCB.f.sort=this.value;PCB.off=0;pcbLoad()">${opt([['', 'With photo first'], ['wlo', 'Weight: low to high'], ['whi', 'Weight: high to low'], ['label', 'Design number']], PCB.f.sort)}</select></div>
+        <label class="check" style="align-self:end"><input type="checkbox" ${PCB.f.ph ? 'checked' : ''} onchange="PCB.f.ph=this.checked?'1':'';PCB.off=0;pcbLoad()"><span>Only with photos</span></label></div>
+      <button class="btn small secondary" onclick="PCB.f={pur:'',wmin:'',wmax:'',st:'',ph:'',sort:''};PCB.cat='';closeSheet();pcBrowse(PCB.i)">Clear filters</button></div></details>
     <div class="choiceRow" id="pcbCats" style="margin:8px 0"></div><div id="pcbList"><p class="hint">Loading…</p></div>`);
   pcbLoad();
 }
 async function pcbLoad(more) {
   let d;
-  try { d = await api(`pc/list?q=${encodeURIComponent(PCB.q)}&cat=${encodeURIComponent(PCB.cat)}&off=${PCB.off}`); }
+  const fq = Object.entries(PCB.f).filter(([, v]) => v).map(([k, v]) => `&${k}=${encodeURIComponent(v)}`).join('');
+  const nf = Object.values(PCB.f).filter((v) => v && v !== '').length - (PCB.f.sort ? 1 : 0);
+  if ($('pcbFn')) $('pcbFn').textContent = nf ? `· ${nf} on` : '';
+  try { d = await api(`pc/list?q=${encodeURIComponent(PCB.q)}&cat=${encodeURIComponent(PCB.cat)}&off=${PCB.off}${fq}`); }
   catch (e) { if ($('pcbList')) $('pcbList').innerHTML = `<div class="badBox">${esc(isNet(e) ? 'No internet' : e.message)}</div>`; return; }
   if (!$('pcbList')) return;
   PCB.rows = more ? PCB.rows.concat(d.rows) : d.rows; PCB.total = d.total; PCB.cats = d.cats;
   $('pcbSub').textContent = `${d.total} design${d.total === 1 ? '' : 's'} available · stock as of ${dtt(d.at)}`;
   $('pcbCats').innerHTML = [['', 'All']].concat(d.cats.slice(0, 14).map((c) => [c.name, `${c.name} (${c.n})`])).map(([k, l]) => `<button class="chip ${PCB.cat === k ? 'active' : ''}" onclick='PCB.cat=${esc(JSON.stringify(k))};PCB.off=0;pcbLoad()'>${esc(l)}</button>`).join('');
   $('pcbList').innerHTML = PCB.rows.length ? `<div class="pcGrid">${PCB.rows.map((r, k) => `<button class="pcCard" onclick="pcbUse(${k})"><span class="pcImg" id="pcb_${esc(r.k)}">${PCB.thumbs[r.k] ? `<img src="${esc(PCB.thumbs[r.k])}" alt="">` : r.imgs ? '<i>…</i>' : '<i>No photo</i>'}</span>
-      <b>${esc(r.label)}</b><small>${esc([r.name || r.item, r.carat, r.nw ? 'NW ' + r.nw + ' g' : r.gw ? 'GW ' + r.gw + ' g' : '', r.dw ? 'Dia ' + r.dw + ' ct' : '', r.stock > 1 ? r.stock + ' in stock' : ''].filter(Boolean).join(' · '))}</small></button>`).join('')}</div>
+      <b>${esc(r.label)}</b><small>${esc([r.name || r.item, r.model ? 'Model ' + r.model : '', r.carat, r.nw ? 'NW ' + r.nw + ' g' : r.gw ? 'GW ' + r.gw + ' g' : '', r.dw ? 'Dia ' + r.dw + ' ct' : '', r.stock > 1 ? r.stock + ' in stock' : ''].filter(Boolean).join(' · '))}</small></button>`).join('')}</div>
     ${PCB.rows.length < PCB.total ? '<button class="btn secondary block" style="margin-top:10px" onclick="PCB.off=PCB.rows.length;pcbLoad(true)">Show more</button>' : ''}` : '<p class="hint">No designs match.</p>';
   pcbThumbs();
 }
@@ -224,10 +234,12 @@ async function pcbThumbs() {
     if (!$('pcbList')) return;
   }
 }
+function pcbSet(k, v, el) { PCB.f[k] = v; PCB.off = 0; el.parentNode.querySelectorAll('.chip').forEach((c) => c.classList.toggle('active', c === el)); pcbLoad(); }
 function pcbUse(k) { window._pcRows = PCB.rows; pcUse(PCB.i, k); }
 function pcUse(i, k) {
   const r = window._pcRows[k], it = wiz.o.items[i];
   it.designNo = r.label; it.design = 'ours';
+  if (r.model) it.model = r.model;
   if (r.name || r.item) it.product = r.name || r.item;
   const p = PC_PUR(r.carat); if (p) it.purity = p;
   if (num(r.gw)) it.gwt = r.gw; if (num(r.nw)) it.wt = r.nw;

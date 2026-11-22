@@ -3,6 +3,7 @@
 // ======================================================================
 // [key, label, unit ('days' | 'hours' | ''), default number, default on, old settings key]
 const REMS = [
+  ['fromPc', 'New enquiry sent from Price Check', '', 0, true],
   ['review', 'Review request waiting — reviewer reminder (red after)', 'hours', 4, true],
   ['reviewAns', 'Review answered — tell the person who asked', '', 0, true],
   ['estFollow', 'Follow up estimate with no reply after', 'days', 2, true, 'approveDays'],
@@ -52,6 +53,7 @@ const openReviews = (o) => (o.reviews || []).filter((r) => !r.ans);
 
 function reviewTasks(o) {
   const t = [], now = Date.now();
+  if (o.fromPc && !o.fromPc.seen && o.status === 'enquiry' && remOn('fromPc')) t.push([`New from Price Check (${o.fromPc.by}) · check items & price`, 'g', o.fromPc.at]);
   (o.reviews || []).forEach((rv) => {
     if (!rv.ans) {
       if (remOn('review') && onDesk(rv.desk)) t.push([`Review for ${rv.desk}: ${rv.topics.join(', ')}${rv.note ? ' — ' + rv.note.slice(0, 60) : ''}`, now - rv.at > remN('review') * 36e5 ? 'r' : 'w', rv.at]);

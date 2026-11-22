@@ -164,10 +164,25 @@ class MainActivity : ComponentActivity() {
 
     // Notification tapped: open that order
     private fun takeIntent(i: Intent?) {
+        val d = i?.data
+        if (d != null && d.host == "yamie-order-desk.netlify.app" && (d.path ?: "").startsWith("/new")) {
+            pendingNew = d.encodedQuery ?: ""
+            setIntent(Intent(this, MainActivity::class.java))
+            web.postDelayed({ deliverNew() }, 700)
+            return
+        }
         val id = i?.getStringExtra(Reminders.EXTRA_OPEN) ?: return
         if (id.isEmpty()) return
         pendingOpen = id
         web.postDelayed({ deliverOpen() }, 700)
+    }
+
+    private var pendingNew: String? = null
+    private fun deliverNew() {
+        val q = pendingNew ?: return
+        web.evaluateJavascript("(function(){if(window.onNativeNew){window.onNativeNew(${JSONObject.quote(q)});return 1}return 0})()") { r ->
+            if (r == "1") pendingNew = null else web.postDelayed({ deliverNew() }, 800)
+        }
     }
 
     private fun deliverOpen() {

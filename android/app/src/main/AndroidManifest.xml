@@ -48,6 +48,13 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- "Order" from Yamie Price Check: https://yamie-order-desk.netlify.app/new?pc=… opens here -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="yamie-order-desk.netlify.app" android:pathPrefix="/new" />
+            </intent-filter>
         </activity>
 
         <provider

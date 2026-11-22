@@ -14,7 +14,7 @@ http.createServer(async (req, res) => {
     const r = await handler(new Request('http://x' + req.url, { method: req.method, headers: req.headers, body: ['GET', 'HEAD', 'OPTIONS'].includes(req.method) ? undefined : Buffer.concat(chunks) }));
     res.writeHead(r.status, Object.fromEntries(r.headers)); res.end(Buffer.from(await r.arrayBuffer())); return;
   }
-  let p = root + '/web' + (req.url.split('?')[0] === '/' ? '/index.html' : req.url.split('?')[0]);
+  let p = root + '/web' + (['/', '/new'].includes(req.url.split('?')[0]) ? '/index.html' : req.url.split('?')[0]);
   if (!existsSync(p)) { res.writeHead(404); res.end(); return; }
   res.writeHead(200, { 'content-type': types[path.extname(p)] || 'application/octet-stream' }); res.end(readFileSync(p));
 }).listen(process.env.PORT || 8788, () => console.log('test server on', process.env.PORT || 8788));

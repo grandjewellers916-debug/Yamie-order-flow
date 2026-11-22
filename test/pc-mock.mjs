@@ -3,7 +3,7 @@ import http from 'node:http';
 import { readFileSync } from 'node:fs';
 const img = 'data:image/jpeg;base64,' + readFileSync('/tmp/pc1.jpg').toString('base64');
 const rows = [
-  { key: 'YR1042', barcode: 'YR1042', label: 'YR1042', item: 'Ring', category: 'Diamond ring', carat: '18KT', gw: 3.42, nw: 3.2, dw: 0.32, dq: 12, sa: 28000, size: '12', mcol: 'White gold', pname: '' },
+  { key: 'YR1042', barcode: 'YR1042', label: 'YR1042', item: 'Ring', category: 'Diamond ring', carat: '18KT', gw: 3.42, nw: 3.2, dw: 0.32, dq: 12, sa: 28000, size: '12', mcol: 'White gold', pname: '', model: 'SR-6P' },
   { key: 'STD2201', barcode: 'STD2201', label: 'STD2201', item: 'Stud', category: 'Earrings', carat: '14K', gw: 2.1, nw: 1.9 },
 ];
 http.createServer((q, r) => {

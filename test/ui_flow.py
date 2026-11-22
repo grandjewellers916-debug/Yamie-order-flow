@@ -56,11 +56,13 @@ with sync_playwright() as p:
     btn(pg, 'Next: Items')
     pick(pg, 'Category', 'Ring'); pick(pg, 'Item type', 'Solitaire ring'); shot(pg, '03b-item-type-picker-after')
     pg.fill('#dn0', 'yr1042'); btn(pg, 'Search designs'); pg.wait_for_timeout(2500); shot(pg, '04a-pc-search')
+    pg.click('#pcbF summary'); pg.locator('#pcbF .chip:has-text("Diamond")').click(); pg.wait_for_timeout(1500); print('filter diamond:', pg.inner_text('#pcbSub')); shot(pg, '04a2-pc-filters')
+    pg.locator('#pcbF .chip:has-text("Any")').nth(1).click(); pg.wait_for_timeout(1000)
     pg.fill('#pcbQ', ''); pg.wait_for_timeout(2000); print('design list (all):', pg.locator('#sheet .pcCard').count(), '|', pg.inner_text('#pcbSub'))
     pg.fill('#pcbQ', 'yr1042'); pg.wait_for_timeout(2000)
     pg.locator('#sheet .pcCard').first.click(); pg.wait_for_timeout(2500)
     print('after PC use: product=', pg.input_value('#wizBody .field:has(label:has-text("Product")) input'), '| photos=', pg.locator('#wizBody .thumbs .th').count())
-    pg.locator('#wizBody .field:has(label:has-text("Model number")) input').fill('SR-6P')
+    print('model from Price Check:', pg.locator('#wizBody .field:has(label:has-text("Model number")) input').input_value())
     btn(pg, 'White')
     pg.locator('#wizBody .field:has(label:has-text("Ring size")) input').fill('IN 12')
     pg.locator('.wtRow:has-text("net weight") button').click(); pg.wait_for_timeout(400); shot(pg, '04b-karatwise'); pg.click('#sheet .x'); pg.wait_for_timeout(300)
@@ -129,6 +131,12 @@ with sync_playwright() as p:
     pg.click('.nav button[data-v="vReports"]'); pg.wait_for_timeout(500); shot(pg, '17-reports')
     pg.click('#meBtn'); pg.wait_for_timeout(300); btn(pg, 'Reminders'); shot(pg, '18-reminders'); pg.locator('#rm_n_review').fill('2'); btn(pg, 'Save reminders')
     btn(pg, '‹ More'); btn(pg, 'Review desks'); shot(pg, '19-review-desks'); btn(pg, 'Save')
+    import json, urllib.request
+    rq = urllib.request.Request('http://localhost:8789/api/pc-order', data=json.dumps({'by': 'Anu', 'cust': {'name': 'Meera', 'phone': '9847000011'}, 'custom': True, 'note': 'Size 13', 'items': [{'key': 'YR1042'}, {'key': 'STD2201'}]}).encode(), headers={'content-type': 'application/json', 'x-shop-key': 'testkey'})
+    oid = json.loads(urllib.request.urlopen(rq).read())['id']
+    pg.goto(BASE + 'new?o=' + oid); pg.wait_for_timeout(2500); shot(pg, '19b-from-pc')
+    print('from PC open:', pg.locator('#vDetail').inner_text().count('Sent from Price Check'), '| model:', pg.locator('#vDetail').inner_text().count('SR-6P'))
+    btn(pg, 'Take it up'); pg.wait_for_timeout(800)
     b.close()
     # desktop
     b, pg = run(p, 1366, 768, 'desk', False)

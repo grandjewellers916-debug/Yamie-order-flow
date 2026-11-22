@@ -139,7 +139,7 @@ function openLink(k) {
 
 // ---------------- list ----------------
 const FILTERS = [['all', 'All open'], ['enq', 'Enquiries'], ['estimate', 'Awaiting approval'], ['approved', 'Advance / confirm'], ['ord', 'In progress'],
-  ['vendorq', 'With vendor'], ['qcq', 'QC & final price'], ['ready', 'Ready'], ['overdue', 'Overdue'], ['mine', 'Mine'], ['closed', 'Closed'], ['lost', 'Lost / hold']];
+  ['vendorq', 'With vendor'], ['qcq', 'QC & final price'], ['ready', 'Ready'], ['overdue', 'Overdue'], ['mine', 'Mine'], ['pc', 'From Price Check'], ['closed', 'Closed'], ['lost', 'Lost / hold']];
 function passFilter(o, f) {
   const s = stage(o);
   switch (f) {
@@ -152,6 +152,7 @@ function passFilter(o, f) {
     case 'qcq': return ['received', 'qc_fail', 'qc_ok', 'final', 'final_ok'].includes(o.status);
     case 'ready': return s === 'ready';
     case 'overdue': return isOverdue(o);
+    case 'pc': return !!o.fromPc && s !== 'closed' && s !== 'lost';
     case 'mine': return o.createdBy === me.name && s !== 'closed' && s !== 'lost';
     case 'closed': return s === 'closed';
     case 'lost': return s === 'lost' || o.status === 'hold';

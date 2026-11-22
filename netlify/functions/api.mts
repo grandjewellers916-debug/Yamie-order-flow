@@ -32,7 +32,7 @@ const DEF_SETTINGS: any = {
   priceCheckUrl: 'https://yamie-price-check.netlify.app', repairUrl: 'https://yamie-repair-desk.netlify.app',
 };
 
-const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers': 'content-type, authorization', 'access-control-allow-methods': 'GET, POST, OPTIONS', 'access-control-max-age': '86400' };
+const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers': 'content-type, authorization, x-shop-key', 'access-control-allow-methods': 'GET, POST, OPTIONS', 'access-control-max-age': '86400' };
 const J = (data: any, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store', ...CORS } });
 const err = (msg: string, status = 400, extra: any = {}) => J({ error: msg, ...extra }, status);
 const store = () => getStore({ name: 'yamie-order', consistency: 'strong' });
@@ -418,7 +418,9 @@ async function pcFind(s: any, q: string) {
   return { at: c.at, rows };
 }
 // Browse list of designs in Price Check stock (grouped by design / label), for the design search pop-up.
-async function pcList(s: any, q: string, cat: string, off: number) {
+const pcPur = (c: any) => { const x = String(c || '').toUpperCase(); if (/PT|PLAT|950/.test(x)) return 'pt'; if (/925|SIL/.test(x)) return 'ag'; if (/22|916/.test(x)) return '22k'; if (/18|750/.test(x)) return '18k'; if (/14|585/.test(x)) return '14k'; if (/\b9|375/.test(x)) return '9k'; return ''; };
+const pcStone = (r: any) => (num(r.dw) > 0 || /DIA|CVD|LAB/i.test(String(r.stype || '') + ' ' + String(r.stoneName || '')) ? 'diamond' : (num(r.sw) > 0 || r.stype || r.stoneName) ? 'colour' : 'plain');
+async function pcList(s: any, q: string, cat: string, off: number, fl: any = {}) {
   const c = await pcLoad(s), nq = normK(q), nc = String(cat || '').toLowerCase();
   const groups = new Map<string, any>();
   for (const r of c.rows) {
@@ -431,11 +433,21 @@ async function pcList(s: any, q: string, cat: string, off: number) {
   const text = (r: any, k: string) => [r.key, r.barcode, r.label, r.design, r.model, r.item, r.category, r.pname, c.names[k]].map((v) => String(v || '')).join(' ').toUpperCase();
   let list = [...groups.values()].filter(({ r }) => {
     if (nc && String(r.category || r.item || 'Other').trim().toLowerCase() !== nc) return false;
+    if (fl.pur && pcPur(r.carat) !== fl.pur) return false;
+    const w = num(r.nw) || num(r.gw);
+    if (num(fl.wmin) && w < num(fl.wmin)) return false;
+    if (num(fl.wmax) && w > num(fl.wmax)) return false;
+    if (fl.st && pcStone(r) !== fl.st) return false;
+    if (fl.ph && !pcImgCount(c, normK(r.key))) return false;
     if (!nq) return true;
     const k = normK(r.key), t = text(r, k);
     return String(q).toUpperCase().split(/\s+/).filter(Boolean).every((w) => t.includes(w) || normK(t).includes(normK(w)));
   });
-  list.sort((a: any, b: any) => (pcImgCount(c, normK(b.r.key)) ? 1 : 0) - (pcImgCount(c, normK(a.r.key)) ? 1 : 0) || String(a.r.label || '').localeCompare(String(b.r.label || '')));
+  const wOf = (x: any) => num(x.r.nw) || num(x.r.gw);
+  if (fl.sort === 'wlo') list.sort((a: any, b: any) => wOf(a) - wOf(b));
+  else if (fl.sort === 'whi') list.sort((a: any, b: any) => wOf(b) - wOf(a));
+  else if (fl.sort === 'label') list.sort((a: any, b: any) => String(a.r.design || a.r.label || '').localeCompare(String(b.r.design || b.r.label || '')));
+  else list.sort((a: any, b: any) => (pcImgCount(c, normK(b.r.key)) ? 1 : 0) - (pcImgCount(c, normK(a.r.key)) ? 1 : 0) || String(a.r.label || '').localeCompare(String(b.r.label || '')));
   const total = list.length;
   const rows = list.slice(off, off + 30).map(({ r, n }: any) => {
     const k = normK(r.key);
@@ -461,6 +473,50 @@ async function pcPhotos(s: any, q: string) {
   }
   await s.setJSON(`pc/imgmap/${k}`, { keys, v: c.v.imgs });
   return { keys };
+}
+
+// Build an enquiry from Price Check stock labels (or typed details) sent by the Price Check app.
+const PC_CODE_CAT: any = { FRG: 'Ring', RNG: 'Ring', BRS: 'Ring', JWL: 'Ring', STD: 'Earrings', NSP: 'Nose pin', PND: 'Pendant', LKT: 'Pendant', CHN: 'Chain', NLC: 'Necklace', NCL: 'Necklace', BGL: 'Bangle', BRC: 'Bracelet', BCL: 'Bracelet', RST: 'Set', DSS: 'Set', TLY: 'Mangalsutra', MMP: 'Ring', DIA: 'Ring' };
+const OD_CATS = ['Ring', 'Earrings', 'Nose pin', 'Pendant', 'Chain', 'Necklace', 'Bangle', 'Bracelet', 'Mangalsutra', 'Set', 'Anklet'];
+function pcCat(r: any) {
+  const t = `${r.category || ''} ${r.item || ''} ${r.pname || ''}`.toLowerCase();
+  const hit = OD_CATS.find((c) => t.includes(c.toLowerCase().replace(/s$/, '')) || (c === 'Earrings' && /stud|earring|jhumk|hoop/.test(t)) || (c === 'Nose pin' && /nose/.test(t)));
+  if (hit) return hit;
+  const code = String(r.barcode || r.label || r.key || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3);
+  return PC_CODE_CAT[code] || 'Other';
+}
+const clip = (v: any, n: number) => String(v == null ? '' : v).trim().slice(0, n);
+async function pcOrder(s: any, b: any) {
+  const by = clip(b.by, 60) || 'Price Check';
+  const cust = { name: clip(b.cust?.name, 80), phone: clip(b.cust?.phone, 20), src: 'Price Check', notes: clip(b.note, 500) };
+  if (!cust.name) throw new HttpError('Customer name is needed', 400);
+  const list = (Array.isArray(b.items) ? b.items : []).slice(0, 10);
+  if (!list.length) throw new HttpError('No items sent', 400);
+  let c: any = null; try { c = await pcLoad(s); } catch (e) { /* use what was sent */ }
+  const items: any[] = [];
+  for (const x of list) {
+    const nk = normK(x.key || x.label);
+    const r = (c && c.rows.find((y: any) => normK(y.key) === nk || normK(y.barcode) === nk || normK(y.label) === nk)) || {};
+    const k = normK(r.key || nk), at = (c && c.attrs[k]) || {};
+    const it: any = { id: rid().slice(0, 10), cat: pcCat({ ...x, ...r }), product: clip((c && c.names[k]) || r.pname || x.name || r.item || x.item || '', 80), qty: Math.max(1, Math.round(num(x.qty) || 1)),
+      design: b.custom ? 'custom' : 'ours', designNo: clip(r.design || r.label || x.label || r.barcode || r.key, 40), model: clip(r.model, 40), details: clip(at.jt || '', 200), custom: clip(x.custom || (b.custom ? b.note : ''), 300),
+      purity: pcPur(r.carat || x.carat) || '18k', colour: 'Yellow', wt: num(r.nw || x.nw) || '', gwt: num(r.gw || x.gw) || '', size: clip(x.size || r.size || at.size, 20), dims: '', spec: {}, stones: [],
+      mkMode: 'pct', mk: 14, mkPg: 0, other: 0, vendor: '', prodNotes: '', photos: [], rev: 1, pcKey: k, pcPrice: num(x.price) || 0 };
+    if (!it.product) it.product = it.cat;
+    if (num(r.dw)) it.stones.push({ type: 'diamond', shape: 'Round', size: '', ct: r.dw, pcs: r.dq || 1, quality: '', colour: '', unit: 'ct', rate: '', charge: num(r.sa) || '' });
+    const mc = String(r.mcol || at.mc || '').toLowerCase(); if (/rose|pink/.test(mc)) it.colour = 'Rose'; else if (/white/.test(mc)) it.colour = 'White'; else if (/two|dual/.test(mc)) it.colour = 'Two-tone';
+    if (c && k) { try { it.photos = (await pcPhotos(s, k)).keys.slice(0, 4).map((id: string) => 'img:' + id); } catch (e) { /* no photos */ } }
+    items.push(it);
+  }
+  const o: any = cleanOrder({ cust, items, disc: 0, owner: by, reviews: [] });
+  o.id = 'Q' + now().toString(36).toUpperCase() + rid().slice(0, 3).toUpperCase();
+  o.status = 'enquiry'; o.createdAt = now(); o.createdBy = by + ' (Price Check)';
+  o.pays = []; o.ests = []; o.rev = 1; o.updatedAt = now(); o.updatedBy = by;
+  o.fromPc = { by, at: now(), seen: false };
+  o.log = [{ t: now(), by, a: 'Sent from Price Check', d: `${items.length} item(s)${b.custom ? ' · customise' : ''}${cust.notes ? ' · ' + cust.notes : ''}` }];
+  await s.setJSON(`orders/${o.id}`, o, { onlyIfNew: true });
+  await logChange(s, o.id);
+  return o;
 }
 
 // ---------- handler ----------
@@ -494,6 +550,15 @@ export default async (req: Request) => {
       }
       await s.delete(`lock/${u.id}`);
       return J({ token: await sign(s, { uid: u.id, exp: now() + 30 * 864e5 }), user: pubUser(u) });
+    }
+
+    // ----- orders sent from the Price Check app (authorised by the Price Check shop key) -----
+    if (path === 'pc-order' && method === 'POST') {
+      const key = Netlify.env.get('PC_SHOP_KEY') || '';
+      const got = req.headers.get('x-shop-key') || '';
+      if (!key || got.length !== key.length || !crypto.timingSafeEqual(Buffer.from(got), Buffer.from(key))) return err('Shop key not accepted by Order Desk', 401);
+      const o = await pcOrder(s, body);
+      return J({ ok: true, id: o.id, items: o.items.length });
     }
 
     // ----- logged in -----
@@ -620,7 +685,7 @@ export default async (req: Request) => {
       return J(await cfgOut());
     }
     if (path === 'pc/find') { need('enquiry'); return J(await pcFind(s, url.searchParams.get('q') || '')); }
-    if (path === 'pc/list') { need('enquiry'); return J(await pcList(s, url.searchParams.get('q') || '', url.searchParams.get('cat') || '', Math.max(0, Math.round(num(url.searchParams.get('off')))))); }
+    if (path === 'pc/list') { need('enquiry'); const g = (k: string) => url.searchParams.get(k) || ''; return J(await pcList(s, g('q'), g('cat'), Math.max(0, Math.round(num(g('off')))), { pur: g('pur'), wmin: g('wmin'), wmax: g('wmax'), st: g('st'), ph: g('ph') === '1', sort: g('sort') })); }
     if (path === 'pc/thumb') {
       need('enquiry');
       const k = normK(url.searchParams.get('k') || '');

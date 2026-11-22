@@ -17,6 +17,14 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && $('sheetBg').classList.contains('on')) closeSheet();
 });
 
+// Link from Price Check: /new?o=<order id> opens that enquiry (web, or the APK via app link)
+function takeNewQuery(q) {
+  const id = new URLSearchParams(q || '').get('o'); if (!id) return;
+  if (!me) { pendingOpen = id; return; }
+  pullChanges().then(() => { if (orders.find((o) => o.id === id)) openOrder(id); else { pendingOpen = id; toast('Opening the enquiry from Price Check…'); } });
+}
+window.onNativeNew = function (q) { takeNewQuery(q); return true; };
+if (/^\/new/.test(location.pathname)) { takeNewQuery(location.search); try { history.replaceState(null, '', '/'); } catch (e) { /* ignore */ } }
 (function boot() {
   if (!token) return showLock();
   api('changes?since=' + (lastPull || 0) + '&cfgv=' + encodeURIComponent(cfgv)).then(async (d) => {

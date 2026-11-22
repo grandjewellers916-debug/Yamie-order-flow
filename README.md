@@ -68,3 +68,9 @@ The page talks to `localStorage.yod_api` when set (tests set it to the local ser
 - Design search list: GET /api/pc/list?q=&cat=&off= (grouped by design, category chips, 30 per page) and /api/pc/thumb?k= (cached in pc/thumb/).
 - Stone "Setting" chips removed (setting style lives in ring details).
 
+## V1.6 (22-11-2026)
+- Price Check → Order Desk: POST /api/pc-order (header x-shop-key = PC_SHOP_KEY, no login) builds an enquiry from stock labels: category, product name, design no., model, purity, weights, size, diamonds, colour and up to 4 photos; o.fromPc {by, at, seen}; reminder 'fromPc'; list filter "From Price Check"; "Take it up" on the order.
+- Link https://yamie-order-desk.netlify.app/new?o=<id> opens that enquiry (web; APK via verified app link — web/.well-known/assetlinks.json with the signing SHA-256).
+- Design search filters: purity, stones (diamond / colour / plain), weight range, photos only, sort (pc/list pur, st, wmin, wmax, ph, sort).
+- Model number taken from the Price Check stock list.
+
