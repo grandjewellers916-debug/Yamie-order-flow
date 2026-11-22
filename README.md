@@ -582,3 +582,10 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 - **Restore from a backup…** shows what the file holds (date, who made it, records, photos, size), then: tick *Shared database* and/or *This phone's data*, choose **Replace everything** (the shared database becomes exactly the backup) or **Add & update only** (keeps anything added later), type RESTORE. Every phone downloads the restored data on its next sync. A Grand backup cannot be restored into Yamie and the other way round.
 - How it works: `/api/sync?op=bk_list|bk_get|bk_put|bk_del|bk_done` (admin login; `netlify/lib/backup.mts`) moves records 2.5 MB at a time, so any size works within Netlify's request limits. The zip is built in the app (`web/ybk.js`, shared with Repair Desk and Yamie SOP). Android: `fileBegin/fileAppend/fileEnd` save big files in pieces; the file picker accepts `.zip`.
 - Restored records are byte-identical (tested: 14,300-item stock, 40 photos; backup → changes → restore → every record matches).
+
+## V 1.8.28 — Send to Yamie Order Desk (22 Nov 2026)
+- Yamie only (`BRAND.orderDesk` in brand.js; Grand has none, so the buttons stay hidden).
+- **Order** on the product card sends that item; **Order Desk** in the quote tools sends every item in the quote.
+- A pop-up asks for the customer name, phone, "customer wants changes" and a note, then POSTs to `https://yamie-order-desk.netlify.app/api/pc-order` with the shared-database shop key (`x-shop-key`). Order Desk builds the enquiry from the stock list (design, model, weights, photos).
+- After sending, **Open Order Desk** opens `/new?o=<id>` (the Order Desk app if installed, else the web page).
+- sw.js cache `ypc-v112`.

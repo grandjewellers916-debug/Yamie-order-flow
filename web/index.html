@@ -2132,7 +2132,7 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
     <div class="grand" id="pdGrandRow"><span>Grand Total</span><strong id="pdGrand">—</strong></div>
     <button class="btn fva-ask" type="button" id="pdFvaAsk" hidden aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.3"/></svg>Fair Value</button>
     <div class="fva-box" id="pdFva" hidden><div class="fv-r"><span>Fair value price <small id="pdFvaL"></small></span><b id="pdFvaV"></b></div><div class="fv-m"><span>Making charges collected <small id="pdFvaML"></small></span><b id="pdFvaM"></b></div><div class="fv-s"><span>Discount · You save</span><b id="pdFvaS"></b></div><button type="button" class="fv-t" id="pdFvaHide">Hide ▴</button></div>
-    <div class="prod-acts"><button class="btn" type="button" id="pdDel">Clear</button><span class="pd-check" id="pdCheck" hidden>Price check only · not saved</span><button class="btn primary" type="button" id="pdClose" hidden>Close</button><button class="btn primary" type="button" id="pdSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>Save to Quote</button></div>
+    <div class="prod-acts"><button class="btn" type="button" id="pdDel">Clear</button><button class="btn" type="button" id="pdOrd" hidden title="Make an order for this design in Yamie Order Desk">Order</button><span class="pd-check" id="pdCheck" hidden>Price check only · not saved</span><button class="btn primary" type="button" id="pdClose" hidden>Close</button><button class="btn primary" type="button" id="pdSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>Save to Quote</button></div>
     <div class="pd-hid" id="pdHidW" hidden><button class="linkbtn" type="button" id="pdHidT" aria-expanded="false">Show hidden details</button><dl class="specs specs-more" id="pdHidL" hidden></dl></div>
     <div class="pd-links"><button class="linkbtn" type="button" id="pdDb" hidden>Edit in database</button><button class="linkbtn" type="button" id="pdMk" hidden>Update making</button><button class="linkbtn pd-edit" type="button" id="pdEdit">Edit details</button></div>
   </section>
@@ -2238,6 +2238,7 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
       <button type="button" class="qt" id="qtScan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M7.5 8v8M10.5 8v8M13.5 8v8M16.5 8v8"/></svg><span>Scan Product</span></button>
       <button type="button" class="qt" id="qtManual"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><span>Add Manually</span></button>
       <button type="button" class="qt" id="qtEdit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></svg><span>Edit</span></button>
+      <button type="button" class="qt" id="qtOrd" hidden title="Send these items and the customer to Yamie Order Desk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4h6l1 2h3v15H5V6h3z"/><path d="M9 12h6M9 16h4"/></svg><span>Order Desk</span></button>
       <button type="button" class="qt" id="qtDel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg><span>Delete</span></button>
       <button type="button" class="qt" id="qtUrd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg><span>URD</span></button>
       <button type="button" class="qt" id="qtSr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-5l-2 2M4 13a8 8 0 0 0 14 5l2-2"/><path d="M4 4v4h4M20 20v-4h-4"/></svg><span>SR</span></button>
@@ -4100,6 +4101,43 @@ const _oldEdit=notClosed(()=>{
   if(!bill.items.length){toast('Add items first');return}
   withManager('A manager must log in to change making after discount.',()=>{mgrMode=true;renderBill();toast('Enter making after discount for each item')});
 });
+// Send items + customer to Yamie Order Desk: creates an enquiry there (authorised by the shop key), then can open it
+function sendToOrderDesk(list){
+  list=list.filter(t=>t&&t.sku);
+  const seen=new Set();list=list.filter(t=>{const k=keyOf(t.sku);if(seen.has(k))return false;seen.add(k);return true}).slice(0,10);
+  if(!BRAND.orderDesk)return;
+  if(!list.length){toast('Add an item first',null,true);return}
+  if(!sync.key){toast('Connect the shared database first (Admin settings → Shared database)',null,true);return}
+  const c=bill&&bill.cust||{};
+  $('modalTitle').textContent='Send to Order Desk';$('modalTitle').classList.remove('price-pop');
+  $('modalBody').innerHTML=`<p class="note">${list.length} item${list.length>1?'s':''}: ${list.map(t=>esc(keyOf(t.sku))).join(', ')}. Order Desk makes a new enquiry with the design, model number, weights and photos from the stock list.</p>
+    <div class="lead-f"><label for="odN">Customer name</label><input id="odN" autocomplete="off" maxlength="60" value="${esc(c.name||'')}"></div>
+    <div class="lead-f"><label for="odP">Phone / WhatsApp</label><input id="odP" type="tel" inputmode="tel" maxlength="16" value="${esc(c.phone||'')}"></div>
+    <label class="ap-opt"><input type="checkbox" id="odC"> Customer wants changes (customise the design)</label>
+    <div class="lead-f"><label for="odT">Note for Order Desk</label><input id="odT" autocomplete="off" maxlength="300" placeholder="Size, colour, changes, delivery date…"></div>`;
+  const a=$('modalActs');a.innerHTML='';const mk=(t,cl,f)=>{const el=document.createElement('button');el.type='button';el.className='btn '+cl;el.textContent=t;el.onclick=f;a.appendChild(el);return el};
+  const go=mk('Send','primary',async()=>{
+    const name=$('odN').value.trim(),phone=$('odP').value.trim();
+    if(!name){toast('Enter the customer name',null,true);$('odN').focus();return}
+    go.disabled=true;go.textContent='Sending…';
+    try{
+      const r=await fetch(BRAND.orderDesk.replace(/\/$/,'')+'/api/pc-order',{method:'POST',headers:{'content-type':'application/json','x-shop-key':sync.key},
+        body:JSON.stringify({by:meName(),cust:{name,phone},custom:$('odC').checked,note:[$('odT').value.trim(),bill&&(bill.no||bill.pno)?'Price Check quote '+quoteLabel(bill):''].filter(Boolean).join(' · '),
+          items:list.map(t=>({key:keyOf(t.sku),label:t.sku,name:t.item||'',size:t.size||'',qty:1}))})});
+      const d=await r.json().catch(()=>({}));
+      if(!r.ok)throw new Error(d.error||('Order Desk answered '+r.status));
+      if(c&&!c.name&&bill){bill.cust.name=name;bill.cust.phone=phone;saveBill()}
+      $('modalTitle').textContent='Sent to Order Desk';
+      $('modalBody').innerHTML=`<p>New enquiry for <b>${esc(name)}</b> with ${d.items} item${d.items>1?'s':''}. Order Desk staff get a reminder to check the price and send the estimate.</p>`;
+      a.innerHTML='';mk('Open Order Desk','primary',()=>{closeModal();const u=BRAND.orderDesk.replace(/\/$/,'')+'/new?o='+encodeURIComponent(d.id);if(NATIVE&&NATIVE.openUrl)NATIVE.openUrl(u);else window.open(u,'_blank','noopener')});mk('Done','ghost',closeModal);
+    }catch(e){go.disabled=false;go.textContent='Send';toast(navigator.onLine?(e.message||'Could not send'):'No internet',null,true)}
+  });
+  mk('Cancel','ghost',closeModal);
+  $('modal').hidden=false;setTimeout(()=>$('odN').focus(),40);
+}
+$('pdOrd').onclick=()=>sendToOrderDesk([cur]);
+$('qtOrd').onclick=()=>sendToOrderDesk(bill.items);
+$('qtOrd').hidden=!BRAND.orderDesk;
 $('qtDel').onclick=()=>{
   if(billIsEmpty()){toast('Nothing to delete');return}
   const del=async()=>{const id=bill.id,wasShared=!!bill.no&&sync.key;
@@ -4731,6 +4769,7 @@ function paintProduct(){
   $('pdSave').hidden=chk;$('pdCheck').hidden=!chk;$('pdClose').hidden=!chk;$('pdDel').hidden=chk;
   $('pdEdit').hidden=!editingId&&sm!=='store';
   $('pdMk').hidden=!p.hasMk;
+  $('pdOrd').hidden=!(BRAND.orderDesk&&cur.sku);
   $('pdDb').hidden=!cur.stockKey||!stockMap.has(cur.stockKey)||!can('stockEdit');
   try{paintSheet(p,ok,g,st)}catch(e){}
 }
@@ -7748,7 +7787,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.8.27',APP_BUILD='__BUILD__';
+const APP_VERSION='1.8.28',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------
