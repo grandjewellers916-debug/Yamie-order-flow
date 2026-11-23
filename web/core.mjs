@@ -18,6 +18,8 @@ export const DEFAULT_SETTINGS = {
   erpCatMap: { Diamond: 'G-Diamond Jewellery', 'Lab-grown': 'Tanih - CVD Jewellery' },
   erpTanih: 'Tanih - CVD Jewellery', erpSilver: 'Silver Jewellery', erpPlatinum: 'YFJ - PLATINUM MM',   // ERP ornament for all Platinum jewellery
   // Location model (v1.8)
+  // v1.37 ERP label code per item: barcode = code + label number (e.g. Bangle 14368 → BGL14368)
+  labelCodes: [['Bangle', 'BGL'], ['Birthstone Ring', 'BRS'], ['Bracelet', 'BCL'], ['Chain', 'CHN'], ['Designer Set', 'DSS'], ['Diamond Ornament', 'DIA'], ['Hooks & Findings', 'ACC'], ['Locket', 'LKT'], ['Navaratna Ring', 'JWL'], ['Necklace', 'NCL'], ['Nosepins (18K)', 'NSP'], ['Ring', 'RNG'], ['Stud', 'STD'], ['Thali', 'TLY']].map(([item, code]) => ({ item, code })),
   // v1.29 main locations → sub locations; kind = counter / tray / box (how it is counted; weight for boxes only)
   mainLocs: [
     { name: 'Counter Display', kind: 'counter', subs: [{ name: 'Counter' }, { name: 'Shelves' }] },
@@ -49,6 +51,7 @@ export const PERMS = {
   share: 'Share & download reports (Excel, PDF, WhatsApp)',
   docsShare: 'Share business documents (WhatsApp, print, download, copy)',
   special: 'Bullion boxes & Grand-Yamie stock (view, receipts, issues)',
+  grandBul: 'Grand staff — Grand bullion at Grand (entries, day-end balance)',
 };
 // v1.17 Cash closing
 export const CASH_DENOMS = [500, 200, 100, 50, 20, 10];

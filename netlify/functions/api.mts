@@ -56,6 +56,9 @@ async function getUsers(s: any) {
     await s.setJSON('cfg/users', u, { onlyIfNew: true });
     u = await s.get('cfg/users', { type: 'json' });
   }
+  if (!u.grand37) {   // v1.37 admin keeps everything; Grand staff permission is given per user
+    u.grand37 = true; await s.setJSON('cfg/users', u);
+  }
   if (!u.special36) {   // v1.36 bullion / Grand-Yamie boxes: admin + managers
     for (const x of u.users) if (x.role === 'manager' || x.role === 'admin') x.perms = [...new Set([...(x.perms || []), 'special'])];
     u.special36 = true; await s.setJSON('cfg/users', u);
@@ -249,8 +252,9 @@ export default async (req: Request) => {
       const days = await dayKeys(s);
       const [sessions, erp] = await Promise.all([listJSON(s, `ss/${date}/`), s.get(`erp/${date}`, { type: 'json' })]);
       const rpSent = can('share') ? await listJSON(s, `rps/${today}/`) : [];
+      const grandDE = can('special') || can('grandBul') ? ((await s.get(`sxd/gbul/${today}`, { type: 'json' })) || false) : null;   // v1.37 Grand bullion day-end received?
       const shopLocs = (await listJSON(s, 'doc/')).filter((x: any) => x.type === 'Shop Location' && x.place).map((x: any) => ({ id: x.id, title: x.title, type: x.type, place: x.place }));   // v1.33 everyone can share the shop location
-      return J({ today, date, day: d.day, mvs: d.mvs, counts: d.allCounts, sessions, erp, locs, settings, me: pubUser(me), alerts, days, rpSent, shopLocs, userNames: Object.fromEntries(users.map((u) => [u.id, u.name])) });
+      return J({ today, date, day: d.day, mvs: d.mvs, counts: d.allCounts, sessions, erp, locs, settings, me: pubUser(me), alerts, days, rpSent, shopLocs, grandDE, userNames: Object.fromEntries(users.map((u) => [u.id, u.name])) });
     }
 
     // helpers needing an open day
@@ -599,42 +603,58 @@ export default async (req: Request) => {
     }
     // ================= v1.36 separate group (not part of stock): bullion boxes (999 / 995) + Grand-Yamie label stock =================
     if (path.startsWith('sx')) {
-      need('special');
+      const full = can('special'), gOnly = !full && can('grandBul');   // v1.37 Grand staff see only the Grand bullion box
+      if (!full && !gOnly) need('special');
+      const sideOk = (b: any, side: string) => side === 'grand' ? (me.role === 'admin' || can('grandBul')) : full;
       const T = (v: any, n = 80) => String(v ?? '').trim().slice(0, n);
       const W = (v: any) => { const n = Math.round(+v * 1000) / 1000; return Number.isFinite(n) ? n : NaN; };
       const D = (v: any) => /^\d{4}-\d{2}-\d{2}$/.test(String(v)) ? String(v) : today;
       const SX_DEFAULT = [
-        { id: 'gbul', kind: 'bullion', name: 'Grand Bullion Box', purities: ['999', '995'], boxWt: 0, opening: {} },
+        { id: 'gbul', kind: 'bullion', name: 'Grand Bullion', purities: ['999', '995'], sides: ['yamie', 'grand'], boxWt: 0, opening: {}, openingG: {} },
         { id: 'ybul', kind: 'bullion', name: 'Yamie Bullion Box', purities: ['999', '995'], boxWt: 0, opening: {} },
         { id: 'gys', kind: 'labels', name: 'Grand-Yamie Stock', note: 'Grand stock held at Yamie', boxWt: 0, opening: {} },
       ];
       const boxes: any[] = (await s.get('sx/boxes', { type: 'json' })) || SX_DEFAULT;
+      { const g = boxes.find((b) => b.id === 'gbul'); if (g && !g.sides) { g.sides = ['yamie', 'grand']; g.openingG ||= {}; if (g.name === 'Grand Bullion Box') g.name = 'Grand Bullion'; } }   // v1.37 split: at Yamie + at Grand
       const box = (id: any) => boxes.find((b) => b.id === id);
       if (path === 'sx' && method === 'GET') {
-        const [entries, labels, issues] = await Promise.all([listJSON(s, 'sxe/'), listJSON(s, 'sxl/'), listJSON(s, 'sxi/')]);
-        return J({ boxes, entries: entries.sort((a: any, b: any) => a.date.localeCompare(b.date) || a.at - b.at), labels, issues: issues.sort((a: any, b: any) => b.at - a.at), userNames: Object.fromEntries((await getUsers(s)).map((x: any) => [x.id, x.name])) });
+        const [entries, labels, issues, dayEnd] = await Promise.all([listJSON(s, 'sxe/'), gOnly ? [] : listJSON(s, 'sxl/'), gOnly ? [] : listJSON(s, 'sxi/'), listJSON(s, 'sxd/')]);
+        if (gOnly) return J({ boxes: boxes.filter((b) => b.id === 'gbul'), gOnly: true, dayEnd: dayEnd.sort((a: any, b: any) => b.date.localeCompare(a.date)).slice(0, 60), entries: entries.filter((e: any) => e.boxId === 'gbul').sort((a: any, b: any) => a.date.localeCompare(b.date) || a.at - b.at), labels: [], issues: [], userNames: Object.fromEntries((await getUsers(s)).map((x: any) => [x.id, x.name])) });
+        return J({ boxes, dayEnd: dayEnd.sort((a: any, b: any) => b.date.localeCompare(a.date)).slice(0, 60), entries: entries.sort((a: any, b: any) => a.date.localeCompare(b.date) || a.at - b.at), labels, issues: issues.sort((a: any, b: any) => b.at - a.at), userNames: Object.fromEntries((await getUsers(s)).map((x: any) => [x.id, x.name])) });
       }
       if (path === 'sx/box' && method === 'POST') {   // name, box weight, opening (admin / setup)
         const b = box(body.id); if (!b) return err('Box not found');
         if (body.name !== undefined) b.name = T(body.name, 50) || b.name;
+        if (body.boxWt !== undefined && !full) return err('No permission', 403);
         if (body.boxWt !== undefined) { const w = W(body.boxWt); if (!(w >= 0)) return err('Enter the box weight'); b.boxWt = w; b.boxWtAt = now(); b.boxWtBy = me.id; }
-        if (body.opening && typeof body.opening === 'object') { need('setup'); for (const [k, v] of Object.entries(body.opening as any)) { if (!b.purities?.includes(k)) continue; const w = W((v as any).wt); if (!(w >= 0)) return err(`Opening ${k}: enter the weight`); b.opening[k] = { wt: w, date: D((v as any).date), by: me.id, at: now() }; } }
+        if (body.opening && typeof body.opening === 'object') { need('setup'); const key = body.side === 'grand' && b.sides ? 'openingG' : 'opening'; b[key] ||= {};
+          for (const [k, v] of Object.entries(body.opening as any)) { if (!b.purities?.includes(k)) continue; const w = W((v as any).wt); if (!(w >= 0)) return err(`Opening ${k}: enter the weight`); b[key][k] = { wt: w, date: D((v as any).date), by: me.id, at: now() }; } }
         await s.setJSON('sx/boxes', boxes); return J({ ok: true, box: b });
       }
       if (path === 'sx/entry' && method === 'POST') {   // bullion receipt / issue
         const b = box(body.boxId); if (!b || b.kind !== 'bullion') return err('Box not found');
         const dir = body.dir === 'out' ? 'out' : 'in'; const pur = T(body.purity, 10); if (!b.purities.includes(pur)) return err('Pick 999 or 995');
+        const side = b.sides && body.side === 'grand' ? 'grand' : 'yamie'; if (!sideOk(b, side)) return err(side === 'grand' ? 'Bullion at Grand is entered by Grand staff' : 'Bullion at Yamie is entered by Yamie', 403);
         const wt = W(body.wt); if (!(wt > 0)) return err('Enter the weight');
-        if (dir === 'out') { const ents = await listJSON(s, `sxe/${b.id}/`); const bal = (b.opening[pur]?.wt || 0) + ents.filter((e: any) => !e.void && e.purity === pur).reduce((a: number, e: any) => a + (e.dir === 'in' ? e.wt : -e.wt), 0);
+        if (dir === 'out') { const ents = (await listJSON(s, `sxe/${b.id}/`)).filter((e: any) => (e.side || 'yamie') === side); const bal = ((side === 'grand' ? b.openingG : b.opening)?.[pur]?.wt || 0) + ents.filter((e: any) => !e.void && e.purity === pur).reduce((a: number, e: any) => a + (e.dir === 'in' ? e.wt : -e.wt), 0);
           if (wt > Math.round(bal * 1000) / 1000 + 1e-9) return err(`Only ${bal.toFixed(3)} g of ${pur} in the box`); }
-        const at = now(); const e = { id: `${at}-${rid().slice(0, 6)}`, boxId: b.id, dir, purity: pur, wt, date: D(body.date), party: T(body.party), ref: T(body.ref, 60), mode: T(body.mode, 20), note: T(body.note, 200), by: me.id, at };
+        const at = now(); const e = { id: `${at}-${rid().slice(0, 6)}`, boxId: b.id, ...(b.sides ? { side } : {}), dir, purity: pur, wt, date: D(body.date), party: T(body.party), smith: T(body.smith), ref: T(body.ref, 60), mode: T(body.mode, 20), note: T(body.note, 200), by: me.id, at };
         await s.setJSON(`sxe/${b.id}/${e.id}`, e); return J({ ok: true, entry: e });
+      }
+      if (path === 'sx/dayend' && method === 'POST') {   // v1.37 Grand staff report the Grand-side bullion balance at day end
+        const b = box('gbul'); if (!b) return err('Box not found'); if (!sideOk(b, 'grand')) return err('Only Grand staff can send the Grand balance', 403);
+        const bal: any = {}; for (const p of b.purities) { const w = W(body.bal?.[p]); if (!(w >= 0)) return err(`Enter the ${p} balance`); bal[p] = w; }
+        const ents = (await listJSON(s, 'sxe/gbul/')).filter((e: any) => e.side === 'grand' && !e.void); const date = D(body.date);
+        const book: any = {}; for (const p of b.purities) book[p] = Math.round((((b.openingG || {})[p]?.wt || 0) + ents.filter((e: any) => e.purity === p && e.date <= date).reduce((a: number, e: any) => a + (e.dir === 'in' ? e.wt : -e.wt), 0)) * 1000) / 1000;
+        const rec = { date, bal, book, note: T(body.note, 200), by: me.id, byName: me.name, at: now() };
+        await s.setJSON(`sxd/gbul/${date}`, rec); return J({ ok: true, rec });
       }
       if (path === 'sx/void' && method === 'POST') {   // cancel a wrong entry (admin), kept for audit
         if (me.role !== 'admin') return err('Only admin can cancel an entry', 403);
         const k = `sxe/${T(body.boxId, 20)}/${T(body.id, 40)}`; const e = await s.get(k, { type: 'json' }); if (!e) return err('Entry not found');
         e.void = { by: me.id, at: now(), reason: T(body.reason, 120) || 'Cancelled' }; await s.setJSON(k, e); return J({ ok: true });
       }
+      if (gOnly && /^sx\/(receive|label|issue)$/.test(path)) return err('No permission', 403);
       if (path === 'sx/receive' && method === 'POST') {   // Grand-Yamie: receipt of labelled pieces
         const b = box(body.boxId); if (!b || b.kind !== 'labels') return err('Box not found');
         const rows = (Array.isArray(body.rows) ? body.rows : []).slice(0, 500); if (!rows.length) return err('Nothing to receive');
@@ -642,7 +662,8 @@ export default async (req: Request) => {
         for (const r of rows) { const label = T(r.label, 30).toUpperCase(); if (!label) return err('Every row needs a label number'); if (seen.has(label)) return err(`${label} is listed twice`); seen.add(label);
           const wt = W(r.wt); if (!(wt > 0)) return err(`${label}: enter the weight`); if (!T(r.item)) return err(`${label}: pick the item`);
           const old = await s.get(`sxl/${b.id}/${label}`, { type: 'json' }); if (old && old.status === 'in') return err(`${label} is already in the box`);
-          out.push({ boxId: b.id, label, item: T(r.item, 40), purity: T(r.purity, 12), wt, party: T(r.party || body.party), rdate: date, rby: me.id, rat: at, rref: T(body.ref, 60), status: 'in', history: old ? [...(old.history || []), { rdate: old.rdate, idate: old.idate, to: old.to }].slice(-10) : [] }); }
+          const net = r.net === '' || r.net == null ? null : W(r.net);
+          out.push({ boxId: b.id, label, code: T(r.code, 6), item: T(r.item, 40), purity: T(r.purity, 12), wt, net: Number.isFinite(net) ? net : null, docNo: T(r.docNo || body.docNo, 40), docDate: T(r.docDate || body.docDate, 12), src: T(body.src, 20), party: T(r.party || body.party), rdate: date, rby: me.id, rat: at, rref: T(body.ref, 60), status: 'in', history: old ? [...(old.history || []), { rdate: old.rdate, idate: old.idate, to: old.to }].slice(-10) : [] }); }
         await Promise.all(out.map((x) => s.setJSON(`sxl/${b.id}/${x.label}`, x))); return J({ ok: true, count: out.length, wt: out.reduce((a, x) => a + x.wt, 0) });
       }
       if (path === 'sx/label' && method === 'POST') {   // fix item / purity / weight / party of a piece in the box
@@ -651,6 +672,7 @@ export default async (req: Request) => {
         if (x.status !== 'in') return err('Already issued — cannot edit');
         if (body.item !== undefined) x.item = T(body.item, 40) || x.item; if (body.purity !== undefined) x.purity = T(body.purity, 12); if (body.party !== undefined) x.party = T(body.party);
         if (body.wt !== undefined) { const w = W(body.wt); if (!(w > 0)) return err('Enter the weight'); x.wt = w; }
+        if (body.net !== undefined) { const w = body.net === '' ? null : W(body.net); x.net = Number.isFinite(w as any) ? w : null; } if (body.docNo !== undefined) x.docNo = T(body.docNo, 40); if (body.docDate !== undefined) x.docDate = T(body.docDate, 12);
         x.eby = me.id; x.eat = now(); await s.setJSON(k, x); return J({ ok: true, label: x });
       }
       if (path === 'sx/issue' && method === 'POST') {   // Grand-Yamie: issue labels back to Grand (by hand / courier)
@@ -660,8 +682,9 @@ export default async (req: Request) => {
         const xs = await Promise.all(list.map((l) => s.get(`sxl/${b.id}/${l}`, { type: 'json' })));
         const bad = list.filter((l, i) => !xs[i] || xs[i].status !== 'in'); if (bad.length) return err(`Not in the box: ${bad.slice(0, 8).join(', ')}${bad.length > 8 ? '…' : ''}`);
         const at = now(); const id = `${at}-${rid().slice(0, 6)}`; const date = D(body.date);
-        const iss = { id, boxId: b.id, date, mode, to, ref: T(body.ref, 60), note: T(body.note, 200), labels: list, qty: list.length, wt: Math.round(xs.reduce((a: number, x: any) => a + x.wt, 0) * 1000) / 1000, by: me.id, at,
-          items: Object.values(xs.reduce((m: any, x: any) => { const k = `${x.item}|${x.purity}`; (m[k] ||= { item: x.item, purity: x.purity, qty: 0, wt: 0 }); m[k].qty++; m[k].wt = Math.round((m[k].wt + x.wt) * 1000) / 1000; return m; }, {})) };
+        const r3 = (v: number) => Math.round(v * 1000) / 1000;
+        const iss = { id, boxId: b.id, date, mode, to, ref: T(body.ref, 60), note: T(body.note, 200), labels: list, qty: list.length, wt: r3(xs.reduce((a: number, x: any) => a + x.wt, 0)), net: r3(xs.reduce((a: number, x: any) => a + (x.net || 0), 0)), by: me.id, at,
+          items: Object.values(xs.reduce((m: any, x: any) => { const k = `${x.item}|${x.purity}`; (m[k] ||= { item: x.item, purity: x.purity, qty: 0, wt: 0, net: 0 }); m[k].qty++; m[k].wt = r3(m[k].wt + x.wt); m[k].net = r3(m[k].net + (x.net || 0)); return m; }, {})) };
         await Promise.all(xs.map((x: any) => s.setJSON(`sxl/${b.id}/${x.label}`, { ...x, status: 'out', idate: date, iby: me.id, iat: at, issueId: id, mode, to, iref: iss.ref })));
         await s.setJSON(`sxi/${b.id}/${id}`, iss); return J({ ok: true, issue: iss });
       }
@@ -697,6 +720,7 @@ export default async (req: Request) => {
       if (b.wtTol != null) next.wtTol = Math.max(0, r3(b.wtTol));
       if (b.blind != null) next.blind = !!b.blind;
       if (b.reqPhotos != null) next.reqPhotos = !!b.reqPhotos;
+      if (Array.isArray(b.labelCodes)) next.labelCodes = b.labelCodes.slice(0, 60).map((x: any) => ({ item: String(x.item || '').trim().slice(0, 40), code: String(x.code || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6) })).filter((x: any) => x.item && x.code);
       // v1.32 holidays, report recipients, daily report
       if (b.holidays && typeof b.holidays === 'object') next.holidays = { sunday: b.holidays.sunday !== false,
         dates: (Array.isArray(b.holidays.dates) ? b.holidays.dates : []).filter((x: any) => /^\d{4}-\d{2}-\d{2}$/.test(x?.date)).map((x: any) => ({ date: x.date, name: String(x.name || 'Holiday').trim().slice(0, 40) })).sort((a: any, c: any) => a.date.localeCompare(c.date)).slice(-200) };
@@ -748,7 +772,7 @@ export default async (req: Request) => {
     }
     // ----- restore from backup (admin only) -----
     // Only these record types can be written by a restore; meta/secret and meta/* are never touched.
-    const RESTORABLE = /^(cfg\/(locs|users|settings)|day\/\d{4}-\d{2}-\d{2}|(mv|ct|ss|al)\/\d{4}-\d{2}-\d{2}\/[\w@#.\/-]+|erp\/\d{4}-\d{2}-\d{2}|seen\/[\w-]+|cash\/\d{4}-\d{2}-\d{2}\/[\w-]+|doc\/[\w-]+|sx\/boxes|sx[eli]\/[\w-]+\/[\w.@#-]+|rv\/\d{4}-\d{2}\/[\w-]+|rps\/\d{4}-\d{2}-\d{2}\/[\w-]+)$/;
+    const RESTORABLE = /^(cfg\/(locs|users|settings)|day\/\d{4}-\d{2}-\d{2}|(mv|ct|ss|al)\/\d{4}-\d{2}-\d{2}\/[\w@#.\/-]+|erp\/\d{4}-\d{2}-\d{2}|seen\/[\w-]+|cash\/\d{4}-\d{2}-\d{2}\/[\w-]+|doc\/[\w-]+|sx\/boxes|sx[elid]\/[\w-]+\/[\w.@#-]+|rv\/\d{4}-\d{2}\/[\w-]+|rps\/\d{4}-\d{2}-\d{2}\/[\w-]+)$/;
     if (path.startsWith('restore/') && me.role !== 'admin') return err('Only admin can restore the database', 403);
     if (path === 'restore/put' && method === 'POST') {
       const items = body.items || {}; let n = 0; const skipped: string[] = [];
