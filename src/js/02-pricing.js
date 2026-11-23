@@ -55,7 +55,11 @@ function priceLine(it, rates, wt) {
 }
 
 /** Whole-order price. `wts` = actual weights by item id (final price); `ship` = delivery charges. */
-function priceOrder(items, rates, disc, extra, wts, roundTo, ship) {
+/** Round a total to a ₹ step: up, nearest or down. */
+function roundBy(v, step, mode) { const s = num(step) || 1, x = v / s; return (mode === 'down' ? Math.floor(x + 1e-9) : mode === 'nearest' ? Math.round(x) : Math.ceil(x - 1e-9)) * s; }
+const ROUND_MODES = [['up', 'Round up'], ['nearest', 'Round to nearest'], ['down', 'Round down']];
+const roundTxt = (step, mode) => (num(step) > 1 ? `${mode === 'down' ? 'rounded down' : mode === 'nearest' ? 'rounded to the nearest' : 'rounded up'} to ₹${step}` : 'not rounded');
+function priceOrder(items, rates, disc, extra, wts, roundTo, ship, rmode) {
   const lines = items.map((it) => priceLine(it, rates, wts ? wts[it.id] : null));
   const shipAmt = r2(num(ship));
   const sub = r2(lines.reduce((t, l) => t + l.sub, 0) + num(extra) + shipAmt);
@@ -64,12 +68,12 @@ function priceOrder(items, rates, disc, extra, wts, roundTo, ship) {
   const gst = r2(pre * num(S.gst) / 100);
   const raw = r2(pre + gst);
   const step = num(roundTo != null ? roundTo : S.roundTo) || 1;
-  const total = Math.ceil(raw / step - 1e-9) * step;
+  const mode = rmode || S.roundMode || 'up', total = roundBy(raw, step, mode);
   const metal = r2(lines.reduce((t, l) => t + l.metal, 0));
   const mkSave = r2(lines.reduce((t, l) => t + (l.mkSave || 0), 0));
   const huid = r2(lines.reduce((t, l) => t + (l.huid || 0), 0));
-  return { lines, extra: r2(num(extra)), ship: shipAmt, sub, disc: d, mkSave, huid, pre, gstPct: num(S.gst), gst, raw, round: r2(total - raw), roundTo: step, total,
-    metal, minAdv: Math.ceil(total * num(S.minAdv) / 100), lock: Math.ceil(metal) };
+  return { lines, extra: r2(num(extra)), ship: shipAmt, sub, disc: d, mkSave, huid, pre, gstPct: num(S.gst), gst, raw, round: r2(total - raw), roundTo: step, roundMode: mode, total,
+    metal, minAdv: roundBy(Math.ceil(total * num(S.minAdv) / 100), num(S.advRound) || 1, 'up'), lock: Math.ceil(metal) };
 }
 
 /** The same item quoted in every gold karat, with weight scaled by the karat reference weights. */
@@ -110,7 +114,7 @@ function breakdownHtml(b, items, opt = {}) {
   rows.push(['Value before tax', rupee2(b.sub)]);
   if (b.disc) rows.push([`Discount${b.discOk ? '' : opt.discNote || ''}`, '−' + rupee2(b.disc)]);
   rows.push([`GST ${b.gstPct}%`, rupee2(b.gst)]);
-  if (b.round) rows.push([`Rounded up to ₹${b.roundTo || S.roundTo}`, '+' + rupee2(b.round)]);
+  if (b.round) rows.push([`Rounding (${roundTxt(b.roundTo || S.roundTo, b.roundMode || 'up').replace('rounded ', '')})`, (b.round > 0 ? '+' : '−') + rupee2(Math.abs(b.round))]);
   const sv = saveOfB(b);
   return rows.map((r) => `<div class="kv"><span>${esc(r[0])}</span><span>${r[1]}</span></div>`).join('') +
     `<div class="kv tot"><span>${opt.label || 'Estimated total'}</span><span>${rupee(b.total)}</span></div>` +

@@ -19,6 +19,7 @@ const REMS = [
   ['qc', 'QC inspection pending', '', 0, true],
   ['finalCalc', 'Calculate / approve final price', '', 0, true],
   ['ready', 'Send the order-ready card with the final price', '', 0, true],
+  ['finalExpiry', 'Final price validity ends within (balance unpaid)', 'days', 1, true],
   ['collect', 'Not collected warning after', 'days', 7, true, 'collectDays'],
   ['promise', 'Promised delivery date passed', '', 0, true],
 ];

@@ -227,7 +227,7 @@ function sendReady(id, again) {
   const o = orders.find((x) => x.id === id), fin = lastOf(o.finals);
   const spec = { ref: o.ono || 'Order-ready', draw: () => cardReady(o) };
   const sv = savingOf(fin), sh = (fin && fin.shipInfo) || o.ship;
-  const cap = `Dear ${o.cust.name}, your Yamie order ${o.ono} is ready. Final price ${rupee(fin.total)} incl. GST${sv ? ' (you save ' + rupee(sv) + ')' : ''}. Balance ${rupee(balance(o))}.${sh ? ' We will ship it by ' + sh.by + ' once the balance is paid.' : ' Please visit us to collect it.'} — ${S.shop}, ${S.shopPhone2 || S.shopPhone}`;
+  const cap = `Dear ${o.cust.name}, your Yamie order ${o.ono} is ready. Final price ${rupee(fin.total)} incl. GST${sv ? ' (you save ' + rupee(sv) + ')' : ''}. Balance ${rupee(balance(o))}.${fin.valid ? ' Price valid till ' + dshort(fin.valid) + '.' : ''}${sh ? ' We will ship it by ' + sh.by + ' once the balance is paid.' : ' Please visit us to collect it.'} — ${S.shop}, ${S.shopPhone2 || S.shopPhone}`;
   shareCard(o, spec, o.cust.phone, cap, 'Order ready', again ? null : (x) => { if (x.status === 'final_ok') x.status = 'ready'; });
 }
 

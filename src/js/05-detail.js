@@ -94,10 +94,10 @@ function renderDetail() {
 function tabOverview(o) {
   const est = lastOf(o.ests), fin = lastOf(o.finals);
   let h = reviewCard(o);
-  if (fin) h += `<div class="card"><h3>Final price v${fin.v} <span class="badge">${fin.ok ? 'approved' : 'to approve'}</span></h3>${breakdownHtml(fin, fin.items || o.items, { label: 'Final price' })}
+  if (fin) h += `<div class="card"><h3>Final price v${fin.v} <span class="badge">${fin.ok ? 'approved' : 'to approve'}${fin.valid ? ' · valid till ' + dshort(fin.valid) : ''}</span>${canValid() && fin.ok && ['final_ok', 'ready'].includes(o.status) ? ` <button class="btn small soft" onclick="shValid('finals')">Change validity</button>` : ''}</h3>${breakdownHtml(fin, fin.items || o.items, { label: 'Final price' })}
     <div class="kv"><span>Basis</span><span>${esc(fin.basis)}</span></div>
     <div class="kv"><span>Difference from estimate</span><span class="${fin.needCust ? 'overdue' : ''}">${fin.var >= 0 ? '+' : ''}${rupee(fin.var)} (${fin.varPct}%)</span></div></div>`;
-  if (est) h += `<div class="card"><h3>Estimate ${esc(est.no || '')}${est.v > 1 ? ' v' + est.v : ''} <span class="badge">${dshort(est.at)}${est.valid ? ' · valid till ' + dshort(est.valid) : ''}</span></h3>${breakdownHtml(est, est.items)}
+  if (est) h += `<div class="card"><h3>Estimate ${esc(est.no || '')}${est.v > 1 ? ' v' + est.v : ''} <span class="badge">${dshort(est.at)}${est.valid ? ' · valid till ' + dshort(est.valid) : ''}</span>${canValid() && ['estimate', 'approved'].includes(o.status) ? ` <button class="btn small soft" onclick="shValid('ests')">Change validity</button>` : ''}</h3>${breakdownHtml(est, est.items)}
     <div class="kv"><span>Booking advance (min ${S.minAdv}%)</span><span>${rupee(est.minAdv)}</span></div>
     <div class="kv"><span>Advance to lock the gold rate</span><span>${rupee(est.lock)}</span></div></div>`;
   else if (o.items.length) { const b = priceOrder(o.items, S.rates, o.disc); h += `<div class="card"><h3>Draft price <span class="badge">today's rates</span></h3>${breakdownHtml(b, o.items)}</div>`; }
@@ -361,7 +361,7 @@ function finalCalc(o, extra, disc, ship) {
   const items = o.items.map((it) => Object.assign({}, it, { wt: wts[it.id] || it.wt, gwt: (rc.gwts || {})[it.id] || it.gwt, purity: purs[it.id] || it.purity }));
   const dsc = disc == null ? num(o.disc) : num(disc);
   const sh = ship === undefined ? ((lastOf(o.finals) || {}).shipInfo || null) : ship;
-  const b = priceOrder(items, rates, dsc, extra, null, num(S.finalRoundTo) || 100, sh ? sh.rate : 0);
+  const b = priceOrder(items, rates, dsc, extra, null, num(S.finalRoundTo) || 100, sh ? sh.rate : 0, S.finalRoundMode || 'up');
   if (sh) { b.shipInfo = sh; b.shipBy = sh.by; }
   const est = lastOf(o.ests), v = b.total - num(est.total), pct = est.total ? Math.round(v * 10000 / est.total) / 100 : 0;
   const discPct = b.sub ? b.disc * 100 / b.sub : 0;
@@ -371,7 +371,7 @@ function finalCalc(o, extra, disc, ship) {
 }
 function shFinal() {
   const o = getO(), last = lastOf(o.finals);
-  openSheet(`<h2>Final price</h2><p class="sub">${esc(finalCalc(o, 0).basis)} · actual weights${(lastOf(o.recv) || {}).purs ? ' and purity' : ''} from the receipt · rounded up to ₹${S.finalRoundTo || 100}.</p>
+  openSheet(`<h2>Final price</h2><p class="sub">${esc(finalCalc(o, 0).basis)} · actual weights${(lastOf(o.recv) || {}).purs ? ' and purity' : ''} from the receipt · ${roundTxt(S.finalRoundTo || 100, S.finalRoundMode)}.</p>
     <div class="two"><div class="field"><label>Additional approved charges ₹</label><input id="fnEx" inputmode="decimal" value="${last ? last.extra || '' : ''}" oninput="fnLive()"></div>
  <div class="field"><label>Extra discount ₹</label><input id="fnDisc" inputmode="decimal" value="${last ? last.discIn || '' : num(o.disc) || ''}" oninput="fnLive()"></div></div>
     <label class="check"><input type="checkbox" id="fnShip" ${(last && last.shipInfo) || o.ship ? 'checked' : ''} onchange="$('fnShipBox').hidden=!this.checked;fnLive()"> Customer wants the item shipped (delivery charges added)</label>

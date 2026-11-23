@@ -351,6 +351,7 @@ async function cardReady(o) {
   // info box: collect, or shipping address
   const sh = (fin && fin.shipInfo) || o.ship;
   const info = sh ? [`We will ship it by ${sh.by} to: ${sh.addr}.`, 'Pay the balance before dispatch. We will share the tracking number.'] : [`Please visit us to collect it: ${S.shopAddr}.`, 'Bring this message and your advance receipt.'];
+  if (fin && fin.valid) info.push(`This final price is valid till ${dshort(fin.valid)}.`);
   const il = info.map((t) => k.wrap(t, W - 330, 24, 400));
   const ih = Math.max(150, il.reduce((t, l) => t + l.length * 32 + 6, 0) + 48);
   k.box(32, y, W - 64, ih, 24, T.soft, null);

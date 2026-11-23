@@ -15,7 +15,7 @@ import { backupOp } from '../lib/backup.mts';
 
 export const config = { path: '/api/*' };
 
-const SERVER_VERSION = '2.0';
+const SERVER_VERSION = '2.1';
 const PERM_KEYS = ['enquiry', 'estimate', 'approve', 'advance', 'verify', 'discount', 'confirm', 'vendor', 'production', 'receive', 'qc',
   'finalprice', 'approvefinal', 'ready', 'close', 'cancel', 'rates', 'vendors', 'vendorcontact', 'review', 'viewcost', 'reports', 'delete', 'settings'];
 const DEF_ROLE_PERMS: Record<string, string[]> = {
@@ -28,7 +28,7 @@ const DEF_SETTINGS: any = {
   rates: { k22: 0, k18: 0, k14: 0, k9: 0, pt: 0, ag: 0, at: 0, by: '', src: '', kioskAt: '' },
   kioskAuto: true, kioskUrl: 'https://grandjewellers.com/api/kiosk-rates',
   gst: 3, minAdv: 20, roundTo: 50, finalRoundTo: 100, gems: null, lists: null, mkRules: [], mkShow: 'type', verifyPay: true, huidRate: 80, shipRates: [{ name: 'Courier (Kerala)', rate: 150 }, { name: 'Courier (rest of India)', rate: 300 }, { name: 'India Post (insured)', rate: 400 }], shopPhone2: '', shopLandline: '', woPhone: '', rem: {}, reviewDesks: [{ name: 'Owner / Admin', users: [] }, { name: 'Design desk', users: [] }], reviewTopics: ['Pricing', 'Making charge', 'Design style', 'Stones', 'Size / weight', 'Other'], mkOnStone: true, leadDays: 20, qcBuffer: 2, weeklyOff: [0], holidays: [],
-  estValid: 7, tol: 2, discLimit: 0, karatRef: { k22: 32.6, k18: 28.4, k14: 24.3, k9: 18.7 },
+  estValid: 7, validCount: 'cal', estExpired: 'block', finalValid: 0, roundMode: 'up', finalRoundMode: 'up', advRound: 1, tol: 2, discLimit: 0, karatRef: { k22: 32.6, k18: 28.4, k14: 24.3, k9: 18.7 },
   approveDays: 2, etdWarnDays: 2, collectDays: 7, autoLock: 20,
   priceCheckUrl: 'https://yamie-price-check.netlify.app', repairUrl: 'https://yamie-repair-desk.netlify.app',
 };
@@ -175,7 +175,9 @@ const num = (v: any) => (Number.isFinite(+v) ? +v : 0);
 const lastOf = (a: any) => (Array.isArray(a) && a.length ? a[a.length - 1] : null);
 const verifiedNet = (o: any, kind?: string) => (o.pays || []).filter((p: any) => p.ok && (!kind || p.kind === kind))
   .reduce((t: number, p: any) => t + (p.kind === 'refund' ? -num(p.amt) : num(p.amt)), 0);
-const minAdvance = (est: any, st: any) => Math.ceil(num(est?.total) * num(st.minAdv) / 100);
+const minAdvance = (est: any, st: any) => { const r = num(st.advRound) || 1; return Math.ceil(Math.ceil(num(est?.total) * num(st.minAdv) / 100) / r) * r; };
+/** Last valid date: N calendar or working days from today (0 = today only). */
+const validTill = (n: any, st: any) => (st.validCount === 'work' ? addWorkDays(istDate(now()), num(n), st) : istDate(now() + num(n) * 864e5));
 
 function checkOrder(o: any, old: any, me: any, can: (p: string) => boolean, st: any, notes: string[]) {
   const need = (p: string, what: string) => { if (!can(p)) throw new HttpError(`Your role cannot ${what}`, 403); };
@@ -227,6 +229,15 @@ function checkOrder(o: any, old: any, me: any, can: (p: string) => boolean, st: 
   if (num(o.disc) !== num(old?.disc) || num(lastOf(o.ests)?.mkSave) !== num(lastOf(old?.ests || [])?.mkSave)) o.discOk = null;
   if (o.discOk && !old?.discOk) { need('discount', 'approve discounts'); o.discOk = { by: me.name, at: now() }; }
 
+  // --- validity dates: only an admin (or Settings permission) can extend them ---
+  for (const [arr, lbl] of [['ests', 'Estimate'], ['finals', 'Final price']] as const) {
+    const a = lastOf((o as any)[arr]), b = lastOf((old as any)?.[arr] || []);
+    if (a && b && a.v === b.v && (a.valid || '') !== (b.valid || '')) {
+      if (me.role !== 'admin' && !can('settings')) a.valid = b.valid;
+      else notes.push(`${lbl} validity ${b.valid || 'none'} → ${a.valid || 'none'} (by ${me.name})`);
+    }
+  }
+
   // --- ETD moved: keep the customer promise realistic ---
   if (o.vendor?.etd && old?.vendor?.etd && o.vendor.etd !== old.vendor.etd && o.promise) {
     const needBy = addWorkDays(o.vendor.etd, num(st.qcBuffer), st);
@@ -251,11 +262,15 @@ function checkOrder(o: any, old: any, me: any, can: (p: string) => boolean, st: 
     const sub = num(est.sub);
     const dv = num(est.disc) + num(est.mkSave), full = sub + num(est.mkSave);
     if (dv > 0 && !o.discOk && !can('discount') && full > 0 && (dv * 100) / full > num(st.discLimit)) throw new HttpError('This discount needs manager approval', 403);
-    est.at = now(); est.by = me.name; est.valid = istDate(now() + num(st.estValid) * 864e5);
+    est.at = now(); est.by = me.name; est.valid = validTill(st.estValid, st);
   }
   if (to === 'approved') {
     if (!o.approval || o.approval.v !== est?.v || !String(o.approval.ev || '').trim()) throw new HttpError('Record the customer approval for the latest estimate', 400);
-    if (est?.valid && istDate(now()) > est.valid) throw new HttpError(`Estimate expired on ${est.valid}. Issue it again at today's rates.`, 400);
+    if (est?.valid && istDate(now()) > est.valid) {
+      const how = st.estExpired || 'block';
+      if (how === 'block' || (how === 'manager' && me.role !== 'admin' && !can('discount'))) throw new HttpError(`Estimate expired on ${est.valid}. ${how === 'manager' ? 'A manager can approve it, or i' : 'I'}ssue it again at today's rates.`, 400);
+      notes.push(`Approved after the estimate expired on ${est.valid} (by ${me.name})`);
+    }
     o.approval.at = now(); o.approval.by = me.name;
   }
   if (to === 'confirmed') {
@@ -296,6 +311,7 @@ function checkOrder(o: any, old: any, me: any, can: (p: string) => boolean, st: 
     const f = lastOf(o.finals);
     if (!f) throw new HttpError('Final price missing', 400);
     f.ok = { by: me.name, at: now() };
+    f.valid = num(st.finalValid) > 0 ? validTill(st.finalValid, st) : '';
   }
   if (to === 'ready') {
     if (!lastOf(o.qc)?.ok) throw new HttpError('QC approval is required before the order is ready', 400);
@@ -790,6 +806,11 @@ export default async (req: Request) => {
         st.lists = L;
       } else st.lists = cur.lists || null;
       if (!Array.isArray(st.mkRules)) st.mkRules = cur.mkRules || [];
+      for (const k of ['estValid', 'finalValid']) st[k] = Math.min(365, Math.max(0, Math.round(num(st[k]))));
+      for (const k of ['roundTo', 'finalRoundTo', 'advRound']) st[k] = [1, 10, 50, 100, 500, 1000].includes(num(st[k])) ? num(st[k]) : (DEF_SETTINGS as any)[k];
+      for (const k of ['roundMode', 'finalRoundMode']) if (!['up', 'nearest', 'down'].includes(st[k])) st[k] = 'up';
+      if (!['cal', 'work'].includes(st.validCount)) st.validCount = 'cal';
+      if (!['block', 'manager', 'allow'].includes(st.estExpired)) st.estExpired = 'block';
       st.weeklyOff = (Array.isArray(st.weeklyOff) ? st.weeklyOff : [0]).map((x: any) => Math.round(num(x))).filter((x: number) => x >= 0 && x <= 6).slice(0, 6);
       st.holidays = (Array.isArray(st.holidays) ? st.holidays : []).filter((x: any) => /^\d{4}-\d\d-\d\d$/.test(x)).slice(0, 200);
       await s.setJSON('cfg/settings', st);

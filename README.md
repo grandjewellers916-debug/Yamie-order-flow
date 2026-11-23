@@ -90,6 +90,14 @@ The page talks to `localStorage.yod_api` when set (tests set it to the local ser
 - Final price → manager approves → "Order ready: send card with final price". Customer-OK step and final price card removed (server no longer needs finals[].cust).
 - Phones on cards: shopPhone (estimate), shopPhone2 + shopLandline (ready), woPhone (work order).
 
+## V2.1 (23-11-2026)
+- More → Validity & rounding (admin / Settings permission):
+  - Estimate valid for N days (0 = today only), counted as calendar or working days (skips weekly off and holidays).
+  - Expired estimate approved: block, only a manager / admin, or allow with a history note.
+  - Final price valid for N days after approval (0 = no date): shown on the order screen, the order-ready card and its WhatsApp text; reminder when the balance is unpaid near / after the date.
+  - Admins can change the valid-till date of one estimate or final price on the order screen (logged in history; others cannot).
+  - Rounding: step (none, ₹10–₹1000) and direction (up, nearest, down) separately for estimates and the final price; minimum advance rounded up to a step.
+
 ## V2.0 (23-11-2026)
 - Design search (Price Check database) has more filters: item type, metal colour, stone / stone colour, size, supplier (staff with vendor or cost access only), location / counter, net weight range, diamond carat range, budget range (approximate price at today's Order Desk rates), and "only with photos / model number / HUID".
 - Drop-downs list only the values that exist in Price Check stock, with counts.

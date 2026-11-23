@@ -7,6 +7,7 @@ function renderMore() {
   const items = [
     ['rates', 'Gold rates', S.rates.at ? `${S.rates.src === 'kiosk' ? 'From kiosk' : 'Typed in'} · ${ago(S.rates.at)}` : 'Not set yet', can('rates')],
     ['vendors', 'Vendors', `${vendors.length} vendor(s)`, can('vendors') || can('vendor')],
+    ['validity', 'Validity & rounding', `Estimate valid ${S.estValid} ${S.validCount === 'work' ? 'working ' : ''}day(s) · ${roundTxt(S.roundTo, S.roundMode)}`, can('settings')],
     ['policy', 'Pricing & policy', `GST ${S.gst}% · advance ${S.minAdv}% · ${S.leadDays} working days`, can('settings')],
     ['lists', 'Picture lists', 'Categories, item types, settings, shanks, finishes, stones, shapes — with real photos', can('settings')],
     ['mk', 'Making charge helper', `${(S.mkRules || []).length} default rule(s) by vendor, purity and weight`, can('rates') || can('settings')],
@@ -24,7 +25,7 @@ function renderMore() {
 }
 function renderSub() {
   const back = '<button class="btn small secondary" onclick="go(\'vMore\')" style="margin-bottom:12px">‹ More</button>';
-  const fn = { gems: subLists, lists: subLists, mk: subMk, rem: subRem, review: subReviewCfg, rates: subRates, vendors: subVendors, policy: subPolicy, users: subUsers, perms: subPerms, backup: subBackup, links: subLinks, pin: subPin }[sub];
+  const fn = { gems: subLists, lists: subLists, mk: subMk, rem: subRem, review: subReviewCfg, rates: subRates, vendors: subVendors, policy: subPolicy, validity: subValidity, users: subUsers, perms: subPerms, backup: subBackup, links: subLinks, pin: subPin }[sub];
   $('vSub').innerHTML = back + '<div id="subBody"></div>';
   if (fn) fn();
 }
@@ -75,7 +76,6 @@ function subPolicy() {
   window._off = (s.weeklyOff || []).slice(); window._hol = (s.holidays || []).slice();
   $('subBody').innerHTML = `
     <div class="card"><h3>Pricing</h3><div class="field">${inp('gst', 'GST %')}</div>
-      <div class="two">${['roundTo', 'finalRoundTo'].map((k) => `<div class="field"><label>${k === 'roundTo' ? 'Estimates: round up to next ₹' : 'Final price: round up to next ₹'}</label><select id="po_${k}">${[1, 10, 50, 100, 500].map((v) => `<option value="${v}" ${num(s[k] || (k === 'finalRoundTo' ? 100 : 50)) === v ? 'selected' : ''}>${v === 1 ? 'No rounding' : '₹' + v}</option>`).join('')}</select></div>`).join('')}</div>
       <div class="field"><label>Making charge on customer cards & print (default)</label>
         <label class="check" style="margin:4px 0"><input type="checkbox" id="po_mkT" ${mkShowFlags(s.mkShow || 'type').type ? 'checked' : ''}><span>Show the making type (VA % / ₹ per gram)</span></label>
         <label class="check" style="margin:4px 0"><input type="checkbox" id="po_mkA" ${mkShowFlags(s.mkShow || 'type').amt ? 'checked' : ''}><span>Show the making amount (otherwise it is included in the gold value)</span></label>
@@ -87,7 +87,7 @@ function subPolicy() {
       <div class="two">${['k22', 'k18', 'k14', 'k9'].map((k) => `<div class="field"><label>${k.slice(1).toUpperCase()}K grams</label><input id="kr_${k}" inputmode="decimal" value="${s.karatRef[k]}"></div>`).join('')}</div>
       <label class="check"><input type="checkbox" id="po_k22w" ${s.karatRef22Weighed ? 'checked' : ''}><span>The 22K weight above is a real weighed reference (removes the * note)</span></label></div>
     <div class="card"><h3>Orders</h3><div class="two">${inp('minAdv', 'Minimum advance %')}${inp('leadDays', 'Minimum lead time (working days)')}</div>
-      <div class="two">${inp('estValid', 'Estimate valid (days)')}${inp('qcBuffer', 'Receiving + QC days after ETD')}</div>
+      <div class="two">${inp('qcBuffer', 'Receiving + QC days after ETD')}</div>
       <div class="field"><label>Weekly off</label><div class="choiceRow">${days.map((d, i) => `<button class="chip ${_off.includes(i) ? 'active' : ''}" onclick="this.classList.toggle('active');_off=_off.includes(${i})?_off.filter(x=>x!==${i}):_off.concat(${i})">${d}</button>`).join('')}</div></div>
       <div class="field"><label>Holidays</label><div class="choiceRow" id="holL"></div><div class="two" style="margin-top:8px"><input type="date" id="holD" class="search" style="margin:0"><button class="btn small soft" onclick="if($('holD').value&&!_hol.includes($('holD').value)){_hol.push($('holD').value);_hol.sort();holList()}">Add holiday</button></div></div></div>
     <div class="card"><h3>Delivery charges</h3><p class="sub">Rates you pay the courier / post office. Staff pick one when the customer wants the item shipped; the charge is added to the final price.</p><div id="shipL"></div>
@@ -106,7 +106,7 @@ function shipList() {
 function holList() { $('holL').innerHTML = _hol.map((h) => `<button class="chip" onclick="_hol=_hol.filter(x=>x!=='${h}');holList()">${dshort(h)} ✕</button>`).join('') || '<span class="hint">None</span>'; }
 function savePolicy() {
   const st = clone(S);
-  ['gst', 'roundTo', 'finalRoundTo', 'discLimit', 'tol', 'minAdv', 'leadDays', 'estValid', 'qcBuffer', 'autoLock', 'huidRate'].forEach((k) => { st[k] = num($('po_' + k).value); });
+  ['gst', 'discLimit', 'tol', 'minAdv', 'leadDays', 'qcBuffer', 'autoLock', 'huidRate'].forEach((k) => { st[k] = num($('po_' + k).value); });
   SHOP_KEYS.forEach((k) => { st[k] = $('po_' + k).value.trim(); });
   const mT = $('po_mkT').checked, mA = $('po_mkA').checked;
   st.mkOnStone = $('po_mkOnStone').checked; st.mkShow = mT && mA ? 'type' : mA ? 'amount' : mT ? 'typeonly' : 'hide'; st.verifyPay = $('po_verifyPay').checked;
@@ -256,4 +256,48 @@ async function bkRun() {
     bkPicked = null; await pullAll(); toast('Backup restored');
   } catch (e) { bkProg('Restore stopped: ' + YBK.errText(e) + ' Run the restore again to finish it.', 0); }
   finally { bkBusy = false; }
+}
+
+// Validity & rounding (admin / Settings permission)
+const canValid = () => !!me && (me.role === 'admin' || can('settings'));
+function subValidity() {
+  const s = S, inp = (k, l, h) => `<div class="field"><label>${l}</label><input id="vr_${k}" inputmode="numeric" value="${esc(s[k] != null ? s[k] : '')}">${h ? `<p class="hint">${h}</p>` : ''}</div>`;
+  const steps = (k, def) => `<select id="vr_${k}">${[1, 10, 50, 100, 500, 1000].map((v) => `<option value="${v}" ${num(s[k] || def) === v ? 'selected' : ''}>${v === 1 ? 'No rounding (whole ₹)' : '₹' + v}</option>`).join('')}</select>`;
+  const modes = (k) => `<select id="vr_${k}">${opt(ROUND_MODES, s[k] || 'up')}</select>`;
+  $('subBody').innerHTML = `
+    <div class="card"><h3>Validity dates</h3>
+      <div class="two">${inp('estValid', 'Estimate valid for (days)', '0 = valid today only')}
+        <div class="field"><label>Count the days as</label><select id="vr_validCount">${opt([['cal', 'Calendar days'], ['work', 'Working days']], s.validCount || 'cal')}</select></div></div>
+      <div class="field"><label>When a customer approves after the estimate expired</label><select id="vr_estExpired">${opt([['block', 'Block — issue a new estimate at today\'s rates'], ['manager', 'Only a manager / admin can approve it'], ['allow', 'Allow, and note it in the history']], s.estExpired || 'block')}</select></div>
+      ${inp('finalValid', 'Final price valid for (days after approval)', '0 = no date. When set, the date is printed on the order-ready card and a reminder shows if the balance is still unpaid.')}
+      <p class="hint">Working days skip the weekly off and holidays set in Pricing & policy. Admins can change the date on a single estimate or final price from the order screen.</p></div>
+    <div class="card"><h3>Rounding off</h3>
+      <div class="two"><div class="field"><label>Estimates: round to</label>${steps('roundTo', 50)}</div><div class="field"><label>Estimates: direction</label>${modes('roundMode')}</div></div>
+      <div class="two"><div class="field"><label>Final price: round to</label>${steps('finalRoundTo', 100)}</div><div class="field"><label>Final price: direction</label>${modes('finalRoundMode')}</div></div>
+      <div class="field"><label>Minimum booking advance: round up to</label>${steps('advRound', 1)}</div>
+      <p class="hint" id="vrEx"></p></div>
+    <button class="btn block" onclick="saveValidity()">Save validity & rounding</button>`;
+  const ex = () => { const r = 123456.4; $('vrEx').textContent = `Example: ₹1,23,456.40 → estimate ${rupee(roundBy(r, $('vr_roundTo').value, $('vr_roundMode').value))} · final price ${rupee(roundBy(r, $('vr_finalRoundTo').value, $('vr_finalRoundMode').value))}`; };
+  ['roundTo', 'roundMode', 'finalRoundTo', 'finalRoundMode'].forEach((k) => { $('vr_' + k).onchange = ex; }); ex();
+}
+function saveValidity() {
+  const st = clone(S);
+  ['estValid', 'finalValid', 'roundTo', 'finalRoundTo', 'advRound'].forEach((k) => { st[k] = Math.max(0, Math.round(num($('vr_' + k).value))); });
+  ['validCount', 'estExpired', 'roundMode', 'finalRoundMode'].forEach((k) => { st[k] = $('vr_' + k).value; });
+  cfgCall('settings', { settings: st }, 'Validity & rounding saved');
+}
+// change the valid-till date of the latest estimate or final price on one order
+function shValid(arr) {
+  const o = getO(), x = o && lastOf(o[arr]); if (!x || !canValid()) return;
+  const lbl = arr === 'ests' ? 'estimate' : 'final price';
+  openSheet(`<h2>Change ${lbl} validity</h2><p class="sub">${esc(refOf(o))} · now ${x.valid ? 'valid till ' + dt(x.valid) : 'no date'}</p>
+    <div class="field"><label>Valid till</label><input type="date" id="vlD" value="${esc(x.valid || today())}" min="${today()}"></div>
+    <div class="choiceRow" style="margin:-4px 0 12px">${[1, 3, 7, 15].map((d) => `<button class="chip" onclick="$('vlD').value=addDaysYmd('${x.valid && x.valid > today() ? x.valid : today()}',${d})">+${d} day${d > 1 ? 's' : ''}</button>`).join('')}</div>
+    <button class="btn block" onclick="doValid('${arr}')">Save</button>`);
+}
+const addDaysYmd = (ymd, n) => { const d = new Date(ymd + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+function doValid(arr) {
+  const v = $('vlD').value; if (!v) return toast('Pick a date');
+  step(cur.id, (o) => { lastOf(o[arr]).valid = v; }, `${arr === 'ests' ? 'Estimate' : 'Final price'} validity changed to ${v}`);
+  closeSheet();
 }

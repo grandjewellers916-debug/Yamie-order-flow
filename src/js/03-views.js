@@ -71,6 +71,7 @@ function tasksFor(o) {
   const on = remOn, n = remN;
   if (o.status === 'estimate' && est && on('estFollow') && now - est.at > n('estFollow') * dayMs) t.push(['Follow up estimate · no reply in ' + Math.floor((now - est.at) / dayMs) + ' days', 'w', est.at + n('estFollow') * dayMs]);
   if (['estimate', 'approved'].includes(o.status) && est && est.valid && on('estExpiry')) { const v = new Date(est.valid + 'T18:00:00').getTime(); if (today() > est.valid) t.push(['Estimate expired ' + dshort(est.valid) + ' · re-issue at today\'s rates', 'r', v]); else if (v - now < n('estExpiry') * dayMs) t.push(['Estimate valid till ' + dshort(est.valid), 'w', v - n('estExpiry') * dayMs]); }
+  if (['final_ok', 'ready'].includes(o.status) && fin && fin.valid && on('finalExpiry') && balance(o) > 0) { const v = new Date(fin.valid + 'T18:00:00').getTime(); if (today() > fin.valid) t.push(['Final price expired ' + dshort(fin.valid) + ' · balance unpaid', 'r', v]); else if (v - now < n('finalExpiry') * dayMs) t.push(['Final price valid till ' + dshort(fin.valid), 'w', v - n('finalExpiry') * dayMs]); }
   const apAt = o.approval ? o.approval.at : now;
   if (o.status === 'approved' && on('advance') && verified(o, 'advance') < num(est && est.minAdv) && now >= apAt + n('advance') * dayMs) t.push(['Take advance (min ' + rupee(est && est.minAdv) + ')', 'w', apAt + n('advance') * dayMs]);
   if (on('verify') && can('verify') && (o.pays || []).some((p) => !p.ok)) t.push(['Verify payment', 'r', now]);

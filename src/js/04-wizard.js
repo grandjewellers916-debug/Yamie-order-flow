@@ -356,7 +356,7 @@ function wizReview() {
       <div class="kv"><span>Images</span><span>${(it.photos || []).length}</span></div></div>`).join('')}
     <div class="card"><h3>Estimate</h3>${breakdownHtml(b, o.items)}
       <div class="kv"><span>Booking advance (min ${S.minAdv}%)</span><span>${rupee(b.minAdv)}</span></div>
-      <p class="hint">Delivery: at least ${S.leadDays} working days from order confirmation (about ${dt(promise)} if confirmed today). Estimate valid ${S.estValid} days.</p></div>
+      <p class="hint">Delivery: at least ${S.leadDays} working days from order confirmation (about ${dt(promise)} if confirmed today). Estimate valid ${num(S.estValid) ? S.estValid + (S.validCount === 'work' ? ' working' : '') + ' day(s)' : 'today only'}.</p></div>
     <div class="actions">
       <button class="btn secondary" onclick="wizSave(false)">Save as draft</button>
       <button class="btn soft" onclick="wizSave('review')">Not sure? Save & ask for review</button>
