@@ -110,6 +110,14 @@ async function getLocs(s: any) {
     for (const x of l.locs) { const p = placeLoc29(x, st); if (p) { x.area = p.area; x.sub = p.sub; if (p.spot) x.spot = p.spot; } }
     l.mig29 = true; await s.setJSON('cfg/locs', l);
   }
+  // v1.42: mixed boxes get their own sub location "Buffer Boxes › Mixed" so the item-count table shows them as a column
+  if (!l.mig42) {
+    const raw = (await s.get('cfg/settings', { type: 'json' })) || {}; const st = await getSettings(s); const ml = JSON.parse(JSON.stringify(st.mainLocs));
+    const bb = ml.find((m: any) => m.name === 'Buffer Boxes'); let n = 0;
+    if (bb) { bb.subs ||= []; if (!bb.subs.some((x: any) => x.name === 'Mixed')) { const gi = bb.subs.findIndex((x: any) => x.name === 'Gold boxes'); bb.subs.splice(gi + 1, 0, { name: 'Mixed' }); await s.setJSON('cfg/settings', { ...raw, mainLocs: ml }); }
+      for (const x of l.locs) if (x.sec === 'box' && x.area === 'Buffer Boxes' && (String(x.boxNo || '').toUpperCase() === 'MIX' || /\bmix(ed)?\b/i.test(x.name || ''))) { x.sub = 'Mixed'; n++; } }
+    l.mig42 = true; await s.setJSON('cfg/locs', l);
+  }
   // v1.8: Main location / Sub display / Jewellery type — fill in once for older locations
   if (l.locs.some((x: any) => x.jtype === undefined)) {
     for (const x of l.locs) if (x.jtype === undefined) Object.assign(x, deriveLocMeta(x));

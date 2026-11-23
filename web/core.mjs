@@ -24,7 +24,7 @@ export const DEFAULT_SETTINGS = {
   mainLocs: [
     { name: 'Counter Display', kind: 'counter', subs: [{ name: 'Counter' }, { name: 'Shelves' }] },
     { name: 'Buffer Tray', kind: 'tray', subs: [] },
-    { name: 'Buffer Boxes', kind: 'box', subs: [{ name: 'Gold boxes' }, { name: 'Sales Return' }, { name: 'Samples/Repairs' }, { name: 'Partner Drawings' }, { name: 'Photoshoot items' }] },
+    { name: 'Buffer Boxes', kind: 'box', subs: [{ name: 'Gold boxes' }, { name: 'Mixed' }, { name: 'Sales Return' }, { name: 'Samples/Repairs' }, { name: 'Partner Drawings' }, { name: 'Photoshoot items' }] },
     { name: 'Grand Jewellers', kind: 'box', subs: [{ name: 'Mixed items' }, { name: 'Trays', kind: 'tray' }] },
   ],
   areas: ['Counter Display', 'Buffer Tray', 'Buffer Boxes', 'Grand Jewellers'],
@@ -333,7 +333,7 @@ export function placeLoc29(l, st) {
   let p;
   if (/grand/.test(g)) p = find(new RegExp(l.sec === 'tray' ? 'grand.*tray' : 'grand.*mixed', 'i'), l.sec) || find(/grand/i);
   if (!p && l.sec === 'counter') p = /wall|shel/.test(`${l.sub || ''} ${g}`.toLowerCase()) ? find(/shel/i, 'counter') : find(/counter display.*counter$/i, 'counter');
-  if (!p && l.sec === 'box') p = /return/.test(g) ? find(/return/i, 'box') : /sample|repair/.test(g) ? find(/sample|repair/i, 'box') : /partner/.test(g) ? find(/partner/i, 'box') : /photo/.test(g) ? find(/photo/i, 'box') : find(/gold box/i, 'box');
+  if (!p && l.sec === 'box') p = /\bmix/.test(g) ? find(/buffer boxes › mixed$|buffer boxes mixed$/i, 'box') || find(/gold box/i, 'box') : /return/.test(g) ? find(/return/i, 'box') : /sample|repair/.test(g) ? find(/sample|repair/i, 'box') : /partner/.test(g) ? find(/partner/i, 'box') : /photo/.test(g) ? find(/photo/i, 'box') : find(/gold box/i, 'box');
   p ||= defaultPlace(st, l.sec);
   return { area: p.area, sub: p.sub, spot };
 }
