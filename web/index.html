@@ -389,7 +389,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.40';
+const VERSION = '1.41';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -3222,9 +3222,14 @@ const LCOLS = [
 function colCfg() { let c; try { c = JSON.parse(localStorage.ysc_cols || 'null'); } catch {} c ||= {}; c.order = [...(c.order || []).filter((k) => LCOLS.some((x) => x.k === k)), ...LCOLS.map((x) => x.k).filter((k) => !(c.order || []).includes(k))];
   c.hidden ||= LCOLS.filter((x) => x.off).map((x) => x.k); c.names ||= {}; return c; }
 const saveCols = (c) => { try { localStorage.ysc_cols = JSON.stringify(c); } catch {} };
+const itemColsOn = () => { try { return localStorage.getItem('ysc_itemcols') !== '0'; } catch { return true; } };
 function locTable(sec, ls, lineF, matchPcs) {
-  const cfg = colCfg(); const cols = cfg.order.map((k) => LCOLS.find((x) => x.k === k)).filter((c) => !cfg.hidden.includes(c.k) && (!c.secs || c.secs.includes(sec)));
-  const so = (S.lsort ||= {})[sec]; const col = so && LCOLS.find((x) => x.k === so.k);
+  const cfg = colCfg(); let cols = cfg.order.map((k) => LCOLS.find((x) => x.k === k)).filter((c) => !cfg.hidden.includes(c.k) && (!c.secs || c.secs.includes(sec)));
+  // v1.41 items split into one column per item type (same as the Location list report)
+  if (itemColsOn() && cols.some((c) => c.k === 'items')) { const cnt = (l, it) => heldOf(l).filter(([k]) => itemOf(k) === it && (!lineF || lineF(l, k))).reduce((a, [, n]) => a + n, 0);
+    const its = rdOrder('item', [...new Set(ls.flatMap((l) => heldOf(l).filter(([k]) => !lineF || lineF(l, k)).map(([k]) => itemOf(k))))]);
+    const ix = cols.findIndex((c) => c.k === 'items'); cols = [...cols.slice(0, ix), ...its.map((it) => ({ k: 'it:' + it, t: it, num: true, icol: true, v: (l) => cnt(l, it) })), ...cols.slice(ix + 1)]; }
+  const so = (S.lsort ||= {})[sec]; const col = so && cols.find((x) => x.k === so.k);
   const rows = col ? [...ls].sort((a, b) => { const x = col.k === 'pcs' && lineF ? matchPcs(a) : col.v(a), y = col.k === 'pcs' && lineF ? matchPcs(b) : col.v(b);
     return (col.num ? x - y : String(x).localeCompare(String(y), undefined, { numeric: true, sensitivity: 'base' })) * (so.dir || 1); }) : ls;
   const cell = (c, l) => { const e = expOf(l.id);
@@ -3232,14 +3237,15 @@ function locTable(sec, ls, lineF, matchPcs) {
       case 'name': return `<td class="b" data-loc="${l.id}" style="cursor:pointer;text-decoration:underline dotted;text-align:left">${esc(l.name)}${l.boxNo && !cols.some((x) => x.k === 'boxNo') ? ` <span class="chip m">${esc(l.boxNo)}</span>` : ''}</td>`;
       case 'jt': return `<td style="text-align:left">${jtChips(l) || '—'}</td>`;
       case 'items': return `<td style="text-align:left" class="sm">${esc(c.v(l) || '—')}</td>`;
+      default: if (c.icol) { const n = c.v(l); return `<td class="${n ? '' : 'mut'}">${n ? fmt(n) : '—'}</td>`; }
       case 'pcs': return `<td>${lineF ? `<b>${fmt(matchPcs(l))}</b> <span class="mut sm">/ ${fmt(sumLines(e.lines))}</span>` : fmt(sumLines(e.lines))}</td>`;
       case 'trays': return `<td>${+l.qty ? `<b>${fmt(+l.qty)}</b>` : '—'}</td>`;
       case 'slots': return `<td>${+l.insert ? fmt(+l.insert) + (+l.qty ? ` <span class="mut sm">= ${fmt(l.insert * l.qty)}</span>` : '') : '—'}</td>`;
       case 'wt': return `<td class="${e.wt || sec !== 'box' ? '' : 'neg'}">${e.wt ? g3(e.wt) : sec === 'box' ? 'not set' : '—'}${can('setup') && editable() ? ` <button class="lnk" data-wtl="${l.id}">${e.wt ? 'edit' : 'add'}</button>` : ''}</td>`;
       case 'status': { const st = S.sum.status[l.id]?.state; return `<td style="text-align:left"><span class="st ${st}">${STLBL[st] || ''}</span></td>`; }
-      default: return `<td style="text-align:left">${esc(c.v(l) || '—')}</td>`; } };
+        return `<td style="text-align:left">${esc(c.v(l) || '—')}</td>`; } };
   const th = (c) => `<th class="sortable ${so?.k === c.k ? 'on' : ''}" data-sort="${sec}:${c.k}" style="${c.num ? '' : 'text-align:left'}">${esc(cfg.names[c.k] || c.t)}<span class="sarr">${so?.k === c.k ? (so.dir > 0 ? '▲' : '▼') : '↕'}</span></th>`;
-  const tot = (k) => rows.reduce((a, l) => a + (k === 'pcs' && lineF ? matchPcs(l) : LCOLS.find((x) => x.k === k).v(l)), 0);
+  const tot = (k) => rows.reduce((a, l) => a + (k === 'pcs' && lineF ? matchPcs(l) : cols.find((x) => x.k === k).v(l)), 0);
   return `<div class="tw"><table class="ltab"><tr>${cols.map(th).join('')}<th></th></tr>${rows.map((l) => `<tr>${cols.map((c) => cell(c, l)).join('')}
       <td style="white-space:nowrap">${can('setup') && editable() ? `<button class="btn sm ghost" data-edit="${l.id}">✎ Edit</button> <button class="btn sm ghost" data-delloc="${l.id}" style="color:var(--bad)">🗑</button>` : ''}</td></tr>`).join('')}
     ${rows.length > 1 ? `<tr class="tot">${cols.map((c, i) => i === 0 ? `<td style="text-align:left">Total · ${rows.length}</td>` : c.num ? `<td>${c.k === 'wt' ? (tot('wt') ? g3(tot('wt')) : '—') : c.k === 'slots' ? '' : fmt(tot(c.k))}</td>` : '<td></td>').join('')}<td></td></tr>` : ''}</table></div>`;
@@ -3342,15 +3348,16 @@ function admLocs() {
       ${sel('area', 'Main location', O.area)}${sel('sub', 'Sub location', O.sub)}${sel('group', F.sec === 'tray' ? 'Item group' : F.sec === 'counter' ? 'Counter' : 'Group', O.group)}
       ${sel('jt', 'Jewellery type', O.jt, (j) => JF_LBL[j] || j)}${sel('item', 'Item', O.item)}${sel('pur', 'Purity', O.pur)}
       <div class="grow"><label class="f">Search</label><input type="search" id="afQ" value="${esc(F.q)}" placeholder="Name, box no., tag…"></div></div>
-    <div class="row sp" style="margin-top:8px;gap:8px;flex-wrap:wrap"><span class="mut sm">Showing <b>${shown.length}</b> of ${activeLocs().length} · ${lineF ? `<b>${fmt(shown.reduce((a, l) => a + matchPcs(l), 0))}</b> matching pcs (${fmt(shown.reduce((a, l) => a + sumLines(expOf(l.id).lines), 0))} in these locations)` : `${fmt(shown.reduce((a, l) => a + sumLines(expOf(l.id).lines), 0))} pcs`}</span><span class="row" style="gap:6px">${active ? '<button class="btn sm ghost" id="afClr">✕ Clear filters</button>' : ''}<button class="btn sm ghost" id="colBtn">⚙ Columns</button>${can('reports') ? '<button class="btn sm" id="rpBtn">📊 Report · Excel / PDF</button>' : ''}</span></div></div>`;
+    <div class="row sp" style="margin-top:8px;gap:8px;flex-wrap:wrap"><span class="mut sm">Showing <b>${shown.length}</b> of ${activeLocs().length} · ${lineF ? `<b>${fmt(shown.reduce((a, l) => a + matchPcs(l), 0))}</b> matching pcs (${fmt(shown.reduce((a, l) => a + sumLines(expOf(l.id).lines), 0))} in these locations)` : `${fmt(shown.reduce((a, l) => a + sumLines(expOf(l.id).lines), 0))} pcs`}</span><span class="row" style="gap:6px">${active ? '<button class="btn sm ghost" id="afClr">✕ Clear filters</button>' : ''}<button class="btn sm ghost" id="colBtn">⚙ Columns</button><button class="btn sm ghost" id="icBtn" title="Items as one column per item type">${itemColsOn() ? '▦ Items: columns' : '☰ Items: one column'}</button>${can('reports') ? '<button class="btn sm" id="rpBtn">📊 Report · Excel / PDF</button>' : ''}</span></div></div>`;
   const filtered = active > 0;
   const addBar = can('setup') && editable() ? `<div class="addbar"><button class="btn" data-addn="counter">＋ Counter tray</button><button class="btn" data-addn="tray">＋ Buffer tray</button><button class="btn" data-addn="box">＋ Box</button></div>` : '';
   $('#adm').innerHTML = `<div class="mut sm" style="margin-bottom:10px">Add, edit or delete counters, trays and boxes. Tap a name to open it (photos, stock). ${editable() ? '' : '<b>Day is closed — reopen today’s day to add or change locations.</b>'}</div>` + addBar + bar + SECTIONS.filter((s) => F.sec === 'all' || F.sec === s.key).filter((s) => !filtered || shown.some((l) => l.sec === s.key) || F.sec === s.key).map((s) => `<div class="grp"><span>${s.label} (${filtered ? `${shown.filter((l) => l.sec === s.key).length} of ` : ''}${activeLocs(s.key).length})</span>${editable() ? `<button class="btn sm sec" data-add="${s.key}">＋ Add ${s.key === 'counter' ? 'counter tray' : s.key === 'tray' ? 'tray' : 'box'}</button>` : ''}</div>
-    ${locTable(s.key, shown.filter((l) => l.sec === s.key), lineF, matchPcs)}`).join('');
+    ${locTable(s.key, shown.filter((l) => l.sec === s.key), lineF ? (l, k) => (!F.item || itemOf(k) === F.item) && (!F.pur || (purOfLine(l, k) || 'Not set') === F.pur) && (!F.jt || jtOfLine(l, k) === F.jt) : null, matchPcs)}`).join('');
   $('#colBtn').onclick = colPicker;
+  $('#icBtn') && ($('#icBtn').onclick = () => { try { localStorage.setItem('ysc_itemcols', itemColsOn() ? '0' : '1'); } catch {} admLocs(); });
   $('#rpBtn') && ($('#rpBtn').onclick = () => { const P = rpState(); P.type = 'locs'; P.sec = F.sec; P.cols = null; P.group = true;
     P.f = { jt: F.jt ? [F.jt] : [], a: F.area && F.area !== '—' ? [F.area] : [], pl: F.area && F.sub && F.sub !== '—' ? [`${F.area} › ${F.sub}`] : [], i: F.item ? [F.item] : [], p: F.pur ? [F.pur] : [] }; go('reports'); });
-  $('#adm').querySelectorAll('[data-sort]').forEach((h) => h.onclick = () => { const [sec, k] = h.dataset.sort.split(':'); const cur = (S.lsort ||= {})[sec]; S.lsort[sec] = cur?.k === k ? (cur.dir > 0 ? { k, dir: -1 } : null) : { k, dir: 1 }; admLocs(); });
+  $('#adm').querySelectorAll('[data-sort]').forEach((h) => h.onclick = () => { const ds = h.dataset.sort; const sec = ds.slice(0, ds.indexOf(':')), k = ds.slice(ds.indexOf(':') + 1); const cur = (S.lsort ||= {})[sec]; S.lsort[sec] = cur?.k === k ? (cur.dir > 0 ? { k, dir: -1 } : null) : { k, dir: 1 }; admLocs(); });
   $('#adm').querySelectorAll('[data-afs]').forEach((b) => b.onclick = () => { F.sec = b.dataset.afs;  admLocs(); });
   $('#adm').querySelectorAll('[data-af]').forEach((el) => el.onchange = () => { F[el.dataset.af] = el.value; admLocs(); });
   $('#afQ').oninput = () => { F.q = $('#afQ').value; const pos = $('#afQ').selectionStart; admLocs(); const q = $('#afQ'); q.focus(); q.setSelectionRange(pos, pos); };
