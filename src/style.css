@@ -174,3 +174,9 @@ details.sec .in{padding:0 12px 12px}
 .gModel b{font-size:12.5px}.gModel input{padding:6px;font-size:13px}.gmPh{border:0;background:none;padding:0;cursor:pointer}
 .gLine.urg{border:2px solid #c0262d}
 .badge.r{background:#fde4e4;color:#b3261e}.badge.g{background:#e3f4ea;color:#287b56}.badge.b{background:#e8eefb;color:#2f4f9c}
+
+.gmSel{display:flex;gap:8px;align-items:center}.gmSel img{width:46px;height:46px;border-radius:10px;object-fit:cover;border:1px solid var(--line)}.gmSel select{flex:1}
+.gmBrowse{margin-top:8px}.gcM{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)}.gcM .gmPh{width:64px;flex:none}.gcM .gmPh img,.gcM .gmPh i{width:64px;height:64px;border-radius:10px;object-fit:cover;display:grid;place-items:center;background:#f3eefe;font-size:11px;color:var(--mute)}
+.gcVn{margin-top:6px;gap:6px}.gcVn .chip{padding:5px 10px;font-size:12.5px}
+.gAsk{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-top:10px;padding:10px 12px;border-radius:12px;background:#f3eefe;border:1px solid #e2d8f7;font-size:14px}.gAsk span:last-child{display:flex;gap:6px}
+.gLine.gSub{margin-top:-6px;margin-left:14px;border-left:4px solid #8b5cf6}.gLine.gSub h3{font-size:15px}

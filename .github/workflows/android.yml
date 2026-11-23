@@ -44,7 +44,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: order-desk-v${{ github.run_number }}
-          name: Yamie Order Desk v2.2.${{ github.run_number }}
+          name: Yamie Order Desk v2.3.${{ github.run_number }}
           target_commitish: ${{ github.sha }}
           files: Yamie-Order-Desk-v*.apk
-          body: "Yamie Order Desk V2.2: Grand module (permission needed) - Grand vendor orders for regular stock or customised items with vendor, staff, purity, item, model with photo, weight, length or size, quantity, line and total weight, emergency marking with delivery date; violet order card in table format with item photos (show or hide), sent to the vendor with a copy to Grand order staff. Includes everything in V2.1. Installs over the old version."
+          body: "Yamie Order Desk V2.3: Grand module - model drop-down sorted A to Z with photo browser folded away; Grand lists - models A to Z, copy models from another item, assign designs to vendors; after item, model, weight and quantity the app asks for more of the same design in other weights or lengths and groups them on the order card. Includes everything in V2.2. Installs over the old version."

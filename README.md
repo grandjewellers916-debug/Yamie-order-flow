@@ -90,6 +90,11 @@ The page talks to `localStorage.yod_api` when set (tests set it to the local ser
 - Final price → manager approves → "Order ready: send card with final price". Customer-OK step and final price card removed (server no longer needs finals[].cust).
 - Phones on cards: shopPhone (estimate), shopPhone2 + shopLandline (ready), woPhone (work order).
 
+## V2.3 (23-11-2026)
+- Grand order form: model is a drop-down sorted A–Z (the selected vendor's designs first); photos are in a folded "Browse models with photos".
+- Grand lists: models folded per item and sorted A–Z; "Copy models from…" another item (e.g. chain designs into Anklet, Waist Chain); tap vendors under a model to assign that design to them.
+- When item, model, weight and quantity are filled, the app asks "More <item · model> in another weight, length or quantity?" — Yes adds a short row (weight, length, qty, emergency, note) under the same design. The card groups those rows under one item / model.
+
 ## V2.2 (23-11-2026)
 - Grand module (Orders tab → Grand orders). Needs the "Grand module" permission (admin has it; give it to other roles in Permissions). "Edit Grand module lists" controls More → Grand lists.
 - New Grand order: order type (regular stock / customised with reference photos), vendor, order sent by (staff list), purity (standard ★, locked for the whole document or per item), item (list), model with photo (list per item, or type one), weight per piece, length / size (standard list per item + custom text, e.g. "8 pidi"), quantity, line weight and order total weight, emergency marking with delivery date per item, photo of the item (camera / gallery), notes.

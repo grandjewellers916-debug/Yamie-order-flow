@@ -15,7 +15,7 @@ import { backupOp } from '../lib/backup.mts';
 
 export const config = { path: '/api/*' };
 
-const SERVER_VERSION = '2.2';
+const SERVER_VERSION = '2.3';
 const PERM_KEYS = ['enquiry', 'estimate', 'approve', 'advance', 'verify', 'discount', 'confirm', 'vendor', 'production', 'receive', 'qc',
   'finalprice', 'approvefinal', 'ready', 'close', 'cancel', 'rates', 'vendors', 'vendorcontact', 'review', 'viewcost', 'reports', 'delete', 'settings', 'grand', 'grandcfg'];
 const DEF_ROLE_PERMS: Record<string, string[]> = {
@@ -754,7 +754,7 @@ export default async (req: Request) => {
       const g = body.o || {}, old: any = g.id ? await s.get('grand/o/' + String(g.id).replace(/[^A-Z0-9]/gi, ''), { type: 'json' }) : null;
       const lines = (Array.isArray(g.lines) ? g.lines : []).slice(0, 60).map((l: any) => ({
         item: clip(l.item, 60), model: clip(l.model, 80), img: clip(l.img, 200), purity: clip(l.purity, 30), wt: Math.max(0, num(l.wt)), size: clip(l.size, 60),
-        qty: Math.max(1, Math.min(9999, Math.round(num(l.qty) || 1))), urgent: !!l.urgent, due: clip(l.due, 10), note: clip(l.note, 200),
+        qty: Math.max(1, Math.min(9999, Math.round(num(l.qty) || 1))), urgent: !!l.urgent, due: clip(l.due, 10), note: clip(l.note, 200), sub: !!l.sub,
       })).filter((l: any) => l.item);
       if (!lines.length) return err('Add at least one item');
       if (!clip(g.vendor, 80)) return err('Select the vendor');

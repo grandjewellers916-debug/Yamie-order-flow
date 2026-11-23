@@ -77,32 +77,75 @@ function gForm() {
     <div class="card gTot"><div class="kv"><span>Items</span><span>${t.n}</span></div><div class="kv"><span>Total quantity</span><span>${t.qty} pc</span></div><div class="kv tot"><span>Total weight</span><span>${fmtN(t.wt)} g</span></div></div>
     <div class="actions"><button class="btn secondary" onclick="GF=null;renderGrand()">Cancel</button><button class="btn" onclick="gSave()">${GF.id ? 'Save & make card' : 'Create order & make card'}</button></div>`;
 }
+const gIsSub = (i) => i > 0 && GF.lines[i].sub && GF.lines[i - 1].item === GF.lines[i].item && GF.lines[i - 1].model === GF.lines[i].model;
+const gGroupEnd = (i) => { let j = i; while (j + 1 < GF.lines.length && gIsSub(j + 1)) j++; return j; };
+// after item, model, weight and quantity are filled: ask for more of the same design in other weights / lengths
+function gAskHtml(i) {
+  const l = GF.lines[i]; if (!l || gGroupEnd(i) !== i || l._noMore || !l.item || !l.model || !(num(l.wt) > 0) || !(num(l.qty) > 0)) return '';
+  return `<div class="gAsk"><span>More <b>${esc(l.item)} · ${esc(l.model)}</b> in another weight, length or quantity?</span><span><button class="btn small" onclick="gAddVariant(${i})">Yes, add</button><button class="btn small secondary" onclick="GF.lines[${i}]._noMore=1;gAsk(${i})">No</button></span></div>`;
+}
+function gAsk(i) { const el = $('gAsk' + i); if (el) el.innerHTML = gAskHtml(i); }
+function gAddVariant(i) {
+  const l = GF.lines[i], n = Object.assign(gBlankLine(), { item: l.item, model: l.model, img: l.ownImg ? '' : l.img, purity: l.purity, sub: 1 });
+  GF.lines.splice(i + 1, 0, n); gForm();
+  setTimeout(() => { const el = document.querySelectorAll('.gLine')[i + 1]; if (el) { el.scrollIntoView({ block: 'center' }); const w = el.querySelector('input'); if (w) w.focus(); } }, 50);
+}
+function gSyncSubs(i) { const l = GF.lines[i]; for (let j = i + 1; j < GF.lines.length && GF.lines[j].sub; j++) Object.assign(GF.lines[j], { item: l.item, model: l.model, purity: l.purity }, GF.lines[j].ownImg ? {} : { img: l.ownImg ? '' : l.img }); }
 function gLineHtml(l, i, c) {
   const it = gItem(l.item), models = it.models || [];
-  const sizes = (it.sizes || []), custom = l.size && !sizes.includes(l.size);
-  return `<div class="card gLine ${l.urgent ? 'urg' : ''}"><h3>Item ${i + 1}${GF.lines.length > 1 ? ` <button class="btn small secondary" style="float:right" onclick="GF.lines.splice(${i},1);gForm()">Remove</button>` : ''}</h3>
-    <div class="field"><label>d. Item <i class="req">*</i></label><div class="choiceRow">${c.items.map((x) => `<button class="chip ${l.item === x.name ? 'active' : ''}" onclick="gL(${i},'item',${esc(JSON.stringify(x.name))});GF.lines[${i}].model='';GF.lines[${i}].img='';GF.lines[${i}].size='';gForm()">${esc(x.name)}</button>`).join('')}</div></div>
-    ${l.item ? `<div class="field"><label>e. Model</label>${models.length ? `<div class="gModels">${models.map((m) => `<button class="gModel ${l.model === m.name ? 'on' : ''}" onclick="GF.lines[${i}].model=${esc(JSON.stringify(m.name))};GF.lines[${i}].img=${esc(JSON.stringify(m.img || ''))};gForm()">${m.img ? `<img src="${esc(imgUrl(m.img))}" alt="" loading="lazy">` : '<i>No photo</i>'}<b>${esc(m.name)}</b></button>`).join('')}</div>` : ''}
-      <input value="${esc(models.some((m) => m.name === l.model) ? '' : l.model)}" placeholder="${models.length ? 'Or type another model no.' : 'Model no. / name'}" oninput="GF.lines[${i}].model=this.value;GF.lines[${i}].img=''"></div>` : ''}
-    <div class="two"><div class="field"><label>f. Weight per piece (g)</label><input inputmode="decimal" value="${esc(l.wt)}" oninput="gL(${i},'wt',this.value);gLineTot(${i})"></div>
-      <div class="field"><label>h. Quantity</label><input inputmode="numeric" value="${esc(l.qty)}" oninput="gL(${i},'qty',this.value);gLineTot(${i})"></div></div>
+  const sizes = (it.sizes || []), custom = l.size && !sizes.includes(l.size), sub = gIsSub(i);
+  const wq = `<div class="two"><div class="field"><label>f. Weight per piece (g)</label><input inputmode="decimal" value="${esc(l.wt)}" oninput="gL(${i},'wt',this.value);gLineTot(${i});gAsk(${i})"></div>
+      <div class="field"><label>h. Quantity</label><input inputmode="numeric" value="${esc(l.qty)}" oninput="gL(${i},'qty',this.value);gLineTot(${i});gAsk(${i})"></div></div>`;
+  const rmB = GF.lines.length > 1 ? ` <button class="btn small secondary" style="float:right" onclick="GF.lines.splice(${i},${sub ? 1 : gGroupEnd(i) - i + 1});gForm()">Remove</button>` : '';
+  if (sub) return `<div class="card gLine gSub ${l.urgent ? 'urg' : ''}"><h3>↳ ${esc(l.item)} · ${esc(l.model)} <small class="hint">same design, another weight / length</small>${rmB}</h3>${wq}
+    <div class="field"><label>g. Length / size</label><div class="choiceRow">${sizes.map((s) => `<button class="chip ${l.size === s ? 'active' : ''}" onclick="gL(${i},'size',${esc(JSON.stringify(s))});gForm()">${esc(s)}</button>`).join('')}<button class="chip ${custom ? 'active' : ''}" onclick="GF.lines[${i}]._cs=1;gForm()">Custom length / size</button></div>
+      ${custom || l._cs ? `<input style="margin-top:6px" value="${esc(custom ? l.size : '')}" placeholder="e.g. 8 pidi, first length 15 inches" oninput="gL(${i},'size',this.value)">` : ''}</div>
+    <div class="kv tot"><span>i. Line weight</span><span id="gLt${i}">${fmtN(gLineWt(l))} g</span></div>
+    <label class="check" style="margin-top:8px"><input type="checkbox" ${l.urgent ? 'checked' : ''} onchange="gL(${i},'urgent',this.checked);gForm()"><span>j. 🚨 Emergency order</span></label>
+    ${l.urgent ? `<div class="field"><label>Delivery date <i class="req">*</i></label><input type="date" value="${esc(l.due)}" min="${today()}" onchange="gL(${i},'due',this.value)"></div>` : ''}
+    <div class="field"><label>Note</label><input value="${esc(l.note)}" oninput="gL(${i},'note',this.value)" placeholder="Optional"></div>
+    <div id="gAsk${i}">${gAskHtml(i)}</div></div>`;
+  return `<div class="card gLine ${l.urgent ? 'urg' : ''}"><h3>Item ${GF.lines.slice(0, i + 1).filter((x, j) => !gIsSub(j)).length}${rmB}</h3>
+    <div class="field"><label>d. Item <i class="req">*</i></label><div class="choiceRow">${c.items.map((x) => `<button class="chip ${l.item === x.name ? 'active' : ''}" onclick="gL(${i},'item',${esc(JSON.stringify(x.name))});GF.lines[${i}].model='';GF.lines[${i}].img='';GF.lines[${i}].size='';gSyncSubs(${i});gForm()">${esc(x.name)}</button>`).join('')}</div></div>
+    ${l.item ? gModelField(l, i, models) : ''}
+    ${wq}
     <div class="field"><label>g. Length / size</label><div class="choiceRow">${sizes.map((s) => `<button class="chip ${l.size === s ? 'active' : ''}" onclick="gL(${i},'size',${esc(JSON.stringify(s))});gForm()">${esc(s)}</button>`).join('')}<button class="chip ${custom ? 'active' : ''}" onclick="GF.lines[${i}]._cs=1;gForm()">Custom length / size</button></div>
       ${custom || l._cs ? `<input style="margin-top:6px" value="${esc(custom ? l.size : '')}" placeholder="e.g. 8 pidi, first length 15 inches" oninput="gL(${i},'size',this.value)">` : ''}</div>
     ${GF.lockPur ? '' : `<div class="field"><label>Purity for this item</label><select onchange="gL(${i},'purity',this.value)">${opt(c.purities.map((p) => [p.name, p.name]), l.purity || GF.purity)}</select></div>`}
     <div class="kv tot"><span>i. Line weight (${fmtN(l.wt) || 0} g × ${Math.max(1, num(l.qty) || 1)})</span><span id="gLt${i}">${fmtN(gLineWt(l))} g</span></div>
     <label class="check" style="margin-top:8px"><input type="checkbox" ${l.urgent ? 'checked' : ''} onchange="gL(${i},'urgent',this.checked);gForm()"><span>j. 🚨 Emergency order</span></label>
     ${l.urgent ? `<div class="field"><label>Delivery date <i class="req">*</i></label><input type="date" value="${esc(l.due)}" min="${today()}" onchange="gL(${i},'due',this.value)"></div>` : ''}
-    <div class="field"><label>Photo of item</label><div class="phRow">${l.img ? `<span class="ph"><img src="${esc(imgUrl(l.img))}" alt=""><button onclick="gL(${i},'img','');gForm()">✕</button></span>` : ''}<button class="addPh" onclick="pickPhoto((r)=>{gL(${i},'img',r);gForm()},true)">📷 Camera</button><button class="addPh" onclick="pickPhoto((r)=>{gL(${i},'img',r);gForm()})">＋ Gallery</button></div></div>
+    <div class="field"><label>Photo of item</label><div class="phRow">${l.img ? `<span class="ph"><img src="${esc(imgUrl(l.img))}" alt=""><button onclick="gL(${i},'img','');gL(${i},'ownImg',0);gForm()">✕</button></span>` : ''}<button class="addPh" onclick="pickPhoto((r)=>{gL(${i},'img',r);gL(${i},'ownImg',1);gForm()},true)">📷 Camera</button><button class="addPh" onclick="pickPhoto((r)=>{gL(${i},'img',r);gL(${i},'ownImg',1);gForm()})">＋ Gallery</button></div></div>
     <div class="field"><label>Note</label><input value="${esc(l.note)}" oninput="gL(${i},'note',this.value)" placeholder="Optional"></div>
+    <div id="gAsk${i}">${gAskHtml(i)}</div>
   </div>`;
 }
 function gL(i, k, v) { GF.lines[i][k] = v; }
+const gSortM = (a) => a.slice().sort((x, y) => String(x.name).localeCompare(String(y.name), 'en', { numeric: true, sensitivity: 'base' }));
+// Model: drop-down (A–Z, the selected vendor's designs first), photo browser folded away
+function gModelField(l, i, models) {
+  const ms = gSortM(models.filter((m) => m.name)), v = GF.vendor, mine = v ? ms.filter((m) => (m.vendors || []).includes(v)) : [], rest = ms.filter((m) => !mine.includes(m));
+  const o = (m) => `<option value="${esc(m.name)}" ${l.model === m.name ? 'selected' : ''}>${esc(m.name)}${(m.vendors || []).length && !mine.includes(m) ? ' · ' + esc(m.vendors.join(', ')) : ''}</option>`;
+  const known = ms.find((m) => m.name === l.model), pic = known && known.img;
+  return `<div class="field"><label>e. Model</label>
+    ${ms.length ? `<div class="gmSel">${pic ? `<img src="${esc(imgUrl(pic))}" alt="">` : ''}<select onchange="gPickModel(${i},this.value)"><option value="">Select model (${ms.length})</option>${mine.length ? `<optgroup label="${esc(v)} designs">${mine.map(o).join('')}</optgroup><optgroup label="Other designs">${rest.map(o).join('')}</optgroup>` : ms.map(o).join('')}<option value="__other" ${l.model && !known ? 'selected' : ''}>Other — type below</option></select></div>
+    <details class="sec gmBrowse"><summary>Browse models with photos</summary><div class="in"><div class="gModels">${(mine.length ? mine.concat(rest) : ms).map((m) => `<button class="gModel ${l.model === m.name ? 'on' : ''}" onclick='gPickModel(${i},${esc(JSON.stringify(m.name))})'>${m.img ? `<img src="${esc(imgUrl(m.img))}" alt="" loading="lazy">` : '<i>No photo</i>'}<b>${esc(m.name)}</b></button>`).join('')}</div></div></details>` : ''}
+    ${!ms.length || (l.model && !known) || l._om ? `<input style="margin-top:6px" value="${esc(known ? '' : l.model)}" placeholder="Model no. / name" oninput="GF.lines[${i}].model=this.value;GF.lines[${i}].img=GF.lines[${i}].ownImg?GF.lines[${i}].img:'';gSyncSubs(${i});gAsk(${i})">` : ''}</div>`;
+}
+function gPickModel(i, name) {
+  const l = GF.lines[i];
+  if (name === '__other') { l.model = ''; l._om = 1; if (!l.ownImg) l.img = ''; return gForm(); }
+  const m = (gItem(l.item).models || []).find((x) => x.name === name);
+  l.model = name; l._om = 0; if (!l.ownImg) l.img = m && m.img ? m.img : '';
+  gSyncSubs(i);
+  if (m && !GF.vendor && (m.vendors || []).length === 1) gSetVendor(m.vendors[0]); else gForm();
+}
 function gLineTot(i) { const el = $('gLt' + i); if (el) el.textContent = fmtN(gLineWt(GF.lines[i])) + ' g'; const t = gTotals(), tt = document.querySelector('.gTot'); if (tt) tt.innerHTML = `<div class="kv"><span>Items</span><span>${t.n}</span></div><div class="kv"><span>Total quantity</span><span>${t.qty} pc</span></div><div class="kv tot"><span>Total weight</span><span>${fmtN(t.wt)} g</span></div>`; }
 function gSetVendor(n) { const v = gVendors().find((x) => x.name === n); GF.vendor = n; GF.vphone = v ? v.phone || '' : ''; gForm(); }
 function gSetPur(p) { GF.purity = p; gForm(); }
 async function gSave() {
   const g = clone(GF);
-  g.lines = g.lines.filter((l) => l.item).map((l) => { delete l._cs; if (GF.lockPur || !l.purity) l.purity = g.purity; return l; });
+  g.lines = g.lines.filter((l) => l.item).map((l) => { delete l._cs; delete l._om; delete l.ownImg; delete l._noMore; if (GF.lockPur || !l.purity) l.purity = g.purity; return l; });
   if (!g.vendor) return toast('Select the vendor');
   if (!g.by) return toast('Select who is sending the order');
   if (!g.lines.length) return toast('Add at least one item');
@@ -184,14 +227,19 @@ async function gCard(o) {
   cols.forEach((c, i) => cell(i, c[0], y + 37, 20, 700, '#fff')); y += 58;
   const ims = showPh ? await Promise.all(lines.map((l) => loadImg(l.img ? imgUrl(l.img) : ''))) : [];
   const ti = showPh ? 1 : 0;
+  let grp = -1;
   lines.forEach((l, r) => {
+    const same = r > 0 && lines[r - 1].item === l.item && lines[r - 1].model === l.model;
+    if (!same) grp++;
     const wrapC = (i, txt, wt) => k.wrap(String(txt || '—'), cols[i][1] - 2 * pad, 24, wt);
-    const it = wrapC(ti, l.item, 700), md = wrapC(ti + 1, l.model, 500), sz = wrapC(ti + 3, l.size, 500);
+    const it = same ? [] : wrapC(ti, l.item, 700), md = same ? [] : wrapC(ti + 1, l.model, 500), sz = wrapC(ti + 3, l.size, 500);
     const extra = (l.urgent ? 1 : 0) + (l.note ? 1 : 0);
-    let h = Math.max(it.length, md.length, sz.length) * 32 + 30 + extra * 28; if (showPh) h = Math.max(h, 116);
-    x.fillStyle = r % 2 ? T.soft2 : '#fff'; x.fillRect(P, y, W - 2 * P, h);
+    const pic = ims[r] && !(same && lines[r - 1].img === l.img) ? ims[r] : null;
+    let h = Math.max(it.length, md.length, sz.length, 1) * 32 + 30 + extra * 28; if (pic) h = Math.max(h, 116);
+    x.fillStyle = grp % 2 ? T.soft2 : '#fff'; x.fillRect(P, y, W - 2 * P, h);
+    if (same) { x.fillStyle = T.line; x.fillRect(cx[ti] + pad, y - 1, W - P - cx[ti] - pad, 1); k.t('↳', cx[ti] + pad, y + 40, 24, 600, T.mute); }
     if (l.urgent) { x.fillStyle = T.red; x.fillRect(P, y, 6, h); }
-    if (showPh && ims[r]) { k.box(cx[0] + 10, y + 10, cols[0][1] - 20, 96, 10, T.soft); k.contain(ims[r], cx[0] + 10, y + 10, cols[0][1] - 20, 96, 2); }
+    if (showPh && pic) { k.box(cx[0] + 10, y + 10, cols[0][1] - 20, 96, 10, T.soft); k.contain(pic, cx[0] + 10, y + 10, cols[0][1] - 20, 96, 2); }
     const ty = y + 40;
     it.forEach((ln, j) => cell(ti, ln, ty + j * 32, 24, 700, T.txt));
     md.forEach((ln, j) => cell(ti + 1, ln, ty + j * 32, 24, 500, T.txt));
@@ -199,10 +247,11 @@ async function gCard(o) {
     sz.forEach((ln, j) => cell(ti + 3, ln, ty + j * 32, 24, 500, T.txt));
     cell(ti + 4, String(l.qty), ty, 24, 600, T.txt);
     cell(ti + 5, fmtN(Math.round(l.wt * l.qty * 1000) / 1000), ty, 24, 800, T.ink);
-    let ny = y + Math.max(it.length, md.length, sz.length) * 32 + 34;
+    let ny = y + Math.max(it.length, md.length, sz.length, 1) * 32 + 34;
     if (l.urgent) { k.t(`🚨 Emergency · by ${dshort(l.due)}`, cx[ti] + pad, ny, 20, 800, T.red); ny += 28; }
     if (l.note) k.t(('Note: ' + l.note).slice(0, 70), cx[ti] + pad, ny, 20, 400, T.mute);
-    y += h; x.fillStyle = T.line; x.fillRect(P, y - 1, W - 2 * P, 1);
+    y += h; const nx = lines[r + 1], nsame = nx && nx.item === l.item && nx.model === l.model;
+    if (!nsame) { x.fillStyle = T.line; x.fillRect(P, y - 1, W - 2 * P, 1); }
   });
   // total row
   k.box(P, y, W - 2 * P, 70, [0, 0, 16, 16], T.soft);
@@ -243,17 +292,32 @@ function gcPaint() {
   const pr = (list, key) => list.map((r, i) => `<div class="two" style="margin-bottom:6px"><input value="${esc(r.name)}" placeholder="Name" oninput="_gc.${key}[${i}].name=this.value"><div class="wtRow" style="margin:0"><input value="${esc(r.phone)}" placeholder="WhatsApp" inputmode="tel" oninput="_gc.${key}[${i}].phone=this.value">${canPickContact() ? `<button class="btn small soft" onclick="pickContact((n,p)=>{_gc.${key}[${i}].name=_gc.${key}[${i}].name||n;_gc.${key}[${i}].phone=p;gcPaint()})">📇</button>` : ''}<button class="btn small secondary" ${rm(`_gc.${key}.splice(${i},1)`)}>✕</button></div></div>`).join('');
   $('gcCopy').innerHTML = pr(c.copyTo, 'copyTo'); $('gcVend').innerHTML = pr(c.vendors, 'vendors');
   $('gcPur').innerHTML = c.purities.map((p, i) => `<div class="kv"><span><button class="btn small ${p.std ? '' : 'soft'}" ${rm(`_gc.purities.forEach((x,j)=>x.std=j===${i})`)}>${p.std ? '★ Standard' : '☆'}</button> ${esc(p.name)}</span><button class="btn small secondary" ${rm(`_gc.purities.splice(${i},1)`)}>✕</button></div>`).join('');
-  $('gcItems').innerHTML = c.items.map((it, i) => `<details class="sec"><summary>${esc(it.name)} <span class="hint">· ${(it.sizes || []).length} sizes · ${(it.models || []).length} models</span></summary><div class="in">
+  c.items.forEach((it) => { const ms = it.models || []; it.models = gSortM(ms.filter((m) => m.name)).concat(ms.filter((m) => !m.name)); });
+  const vn = (c.vendors.filter((v) => v.name).length ? c.vendors.filter((v) => v.name) : vendors.filter((v) => v.active !== false)).map((v) => v.name);
+  const openK = new Set([...document.querySelectorAll('#gcItems details[open]')].map((d) => d.dataset.k));
+  $('gcItems').innerHTML = c.items.map((it, i) => `<details class="sec" data-k="i${i}"><summary>${esc(it.name)} <span class="hint">· ${(it.sizes || []).length} sizes · ${(it.models || []).length} models</span></summary><div class="in">
     <div class="two"><input value="${esc(it.name)}" oninput="_gc.items[${i}].name=this.value"><button class="btn small secondary" ${rm(`_gc.items.splice(${i},1)`)}>Remove item</button></div>
     <div class="field"><label>Standard sizes / lengths (comma separated)</label><input value="${esc((it.sizes || []).join(', '))}" oninput="_gc.items[${i}].sizes=this.value.split(',').map(s=>s.trim()).filter(Boolean)"></div>
-    <div class="field"><label>Models (with photo)</label><div class="gModels">${(it.models || []).map((m, j) => `<div class="gModel"><button class="gmPh" onclick="pickPhoto((r)=>{_gc.items[${i}].models[${j}].img=r;gcPaint()})">${m.img ? `<img src="${esc(imgUrl(m.img))}" alt="">` : '<i>＋ Photo</i>'}</button><input value="${esc(m.name)}" placeholder="Model no." oninput="_gc.items[${i}].models[${j}].name=this.value"><button class="btn small secondary" ${rm(`_gc.items[${i}].models.splice(${j},1)`)}>✕</button></div>`).join('')}</div>
-      <button class="btn small soft" style="margin-top:6px" onclick="(_gc.items[${i}].models=_gc.items[${i}].models||[]).push({name:'',img:''});gcPaint();this.closest('details').open=true">+ Add model</button></div></div></details>`).join('');
-  document.querySelectorAll('#gcItems details').forEach((d, i) => { d.ontoggle = () => { window._gcOpen = d.open ? i : window._gcOpen === i ? -1 : window._gcOpen; }; if (window._gcOpen === i) d.open = true; });
+    <details class="sec gcModels" data-k="m${i}"><summary>Models (${(it.models || []).length}) — A to Z</summary><div class="in">
+      ${(it.models || []).map((m, j) => `<div class="gcM"><button class="gmPh" onclick="pickPhoto((r)=>{_gc.items[${i}].models[${j}].img=r;gcPaint()})">${m.img ? `<img src="${esc(imgUrl(m.img))}" alt="">` : '<i>＋ Photo</i>'}</button>
+        <div style="flex:1;min-width:0"><div class="wtRow" style="margin:0"><input value="${esc(m.name)}" placeholder="Model no. / name" onchange="_gc.items[${i}].models[${j}].name=this.value.trim();gcPaint()"><button class="btn small secondary" ${rm(`_gc.items[${i}].models.splice(${j},1)`)}>✕</button></div>
+        ${vn.length ? `<div class="choiceRow gcVn">${vn.map((v) => `<button class="chip ${(m.vendors || []).includes(v) ? 'active' : ''}" onclick='gcVend(${i},${j},${esc(JSON.stringify(v))})'>${esc(v)}</button>`).join('')}</div>` : ''}</div></div>`).join('') || '<p class="hint">No models yet.</p>'}
+      <div class="two" style="margin-top:8px"><button class="btn small soft" onclick="(_gc.items[${i}].models=_gc.items[${i}].models||[]).push({name:'',img:'',vendors:[]});window._gcNew=${i};gcPaint()">+ Add model</button>
+        ${c.items.length > 1 ? `<select onchange="gcCopy(${i},this.value)"><option value="">Copy models from…</option>${c.items.map((x, n) => n === i || !(x.models || []).length ? '' : `<option value="${n}">${esc(x.name)} (${x.models.length})</option>`).join('')}</select>` : ''}</div>
+      ${vn.length ? '<p class="hint">Tap a vendor under a model to assign that design to the vendor. Assigned designs show first when that vendor is selected.</p>' : ''}</div></details></div></div></details>`).join('');
+  if (window._gcNew != null) { openK.add('i' + window._gcNew); openK.add('m' + window._gcNew); window._gcNew = null; }
+  document.querySelectorAll('#gcItems details').forEach((d) => { if (openK.has(d.dataset.k)) d.open = true; });
+}
+function gcVend(i, j, v) { const m = _gc.items[i].models[j], a = m.vendors = m.vendors || []; if (a.includes(v)) a.splice(a.indexOf(v), 1); else a.push(v); gcPaint(); }
+function gcCopy(i, from) {
+  if (from === '') return; const src = _gc.items[num(from)], dst = _gc.items[i], have = new Set((dst.models || []).map((m) => m.name.toLowerCase()));
+  const add = (src.models || []).filter((m) => m.name && !have.has(m.name.toLowerCase())).map((m) => clone(m));
+  dst.models = (dst.models || []).concat(add); window._gcNew = i; gcPaint(); toast(add.length ? `${add.length} model(s) copied from ${src.name}` : 'All those models are already here');
 }
 async function gcSave() {
   const c = clone(_gc);
   c.staff = c.staff.filter(Boolean); c.copyTo = c.copyTo.filter((x) => x.phone); c.vendors = c.vendors.filter((x) => x.name);
-  c.items = c.items.filter((x) => x.name).map((x) => ({ name: x.name, sizes: x.sizes || [], models: (x.models || []).filter((m) => m.name || m.img) }));
+  c.items = c.items.filter((x) => x.name).map((x) => ({ name: x.name, sizes: x.sizes || [], models: gSortM((x.models || []).filter((m) => m.name)).map((m) => ({ name: m.name, img: m.img || '', vendors: (m.vendors || []).filter(Boolean) })) }));
   if (!c.purities.some((p) => p.std) && c.purities[0]) c.purities[0].std = true;
   try { await api('grand/cfg', { grand: c }); S.grand = c; toast('Grand lists saved'); } catch (e) { toast(e.message); }
 }
