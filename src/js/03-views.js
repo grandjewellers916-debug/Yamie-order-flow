@@ -33,14 +33,14 @@ function go(v) {
   const split = desk && (v === 'vOrders' || v === 'vDetail');
   $('main').classList.toggle('split', split);
   document.querySelectorAll('.view').forEach((el) => el.classList.toggle('active', el.id === v));
-  document.querySelectorAll('.nav button').forEach((b) => b.classList.toggle('on', b.dataset.v === v || (v === 'vDetail' && b.dataset.v === 'vOrders') || (v === 'vSub' && b.dataset.v === 'vMore')));
+  document.querySelectorAll('.nav button').forEach((b) => b.classList.toggle('on', b.dataset.v === v || ((v === 'vDetail' || v === 'vGrand') && b.dataset.v === 'vOrders') || (v === 'vSub' && b.dataset.v === 'vMore')));
   render(v);
   if (split) render(v === 'vOrders' ? 'vDetail' : 'vOrders');
   window.scrollTo(0, 0);
 }
 function render(v) {
   if (!me) return;
-  ({ vHome: renderHome, vOrders: renderList, vDetail: renderDetail, vNew: renderWizard, vReports: renderReports, vMore: renderMore, vSub: renderSub })[v]();
+  ({ vHome: renderHome, vOrders: renderList, vDetail: renderDetail, vNew: renderWizard, vReports: renderReports, vMore: renderMore, vSub: renderSub, vGrand: renderGrand })[v]();
   updateBell();
 }
 function refresh() {
@@ -173,7 +173,7 @@ function renderList() {
     .concat((o.items || []).map((it) => it.designNo + ' ' + it.model)).join(' ').toLowerCase().includes(q));
   if (cur.filter === 'ord' || cur.filter === 'overdue') list.sort((a, b) => (a.promise || '9') < (b.promise || '9') ? -1 : 1);
   const count = (f) => orders.filter((o) => passFilter(o, f)).length;
-  $('vOrders').innerHTML = `
+  $('vOrders').innerHTML = `${can('grand') ? `<button class="gEntry" onclick="openGrand()"><img src="${LOGO.gMarkK}" alt=""><span><b>Grand orders</b><small>Vendor orders for Grand Jewellers</small></span>›</button>` : ''}
     <input class="search" id="q" placeholder="Search name, phone, EST / YOR no., design no." value="${esc(cur.q)}" oninput="cur.q=this.value;renderListBody()">
     <div class="filters">${FILTERS.map(([k, l]) => `<button class="chip ${cur.filter === k ? 'active' : ''}" onclick="cur.filter='${k}';renderList()">${l}<em>${count(k)}</em></button>`).join('')}</div>
     <div id="listBody"></div>`;

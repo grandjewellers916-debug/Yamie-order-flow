@@ -8,6 +8,7 @@ function renderMore() {
     ['rates', 'Gold rates', S.rates.at ? `${S.rates.src === 'kiosk' ? 'From kiosk' : 'Typed in'} · ${ago(S.rates.at)}` : 'Not set yet', can('rates')],
     ['vendors', 'Vendors', `${vendors.length} vendor(s)`, can('vendors') || can('vendor')],
     ['validity', 'Validity & rounding', `Estimate valid ${S.estValid} ${S.validCount === 'work' ? 'working ' : ''}day(s) · ${roundTxt(S.roundTo, S.roundMode)}`, can('settings')],
+    ['grand', 'Grand lists', `Grand module: ${(GC().staff || []).length} staff · ${GC().items.length} items · ${GC().items.reduce((t, i) => t + (i.models || []).length, 0)} models`, can('grandcfg') || can('settings')],
     ['policy', 'Pricing & policy', `GST ${S.gst}% · advance ${S.minAdv}% · ${S.leadDays} working days`, can('settings')],
     ['lists', 'Picture lists', 'Categories, item types, settings, shanks, finishes, stones, shapes — with real photos', can('settings')],
     ['mk', 'Making charge helper', `${(S.mkRules || []).length} default rule(s) by vendor, purity and weight`, can('rates') || can('settings')],
@@ -25,7 +26,7 @@ function renderMore() {
 }
 function renderSub() {
   const back = '<button class="btn small secondary" onclick="go(\'vMore\')" style="margin-bottom:12px">‹ More</button>';
-  const fn = { gems: subLists, lists: subLists, mk: subMk, rem: subRem, review: subReviewCfg, rates: subRates, vendors: subVendors, policy: subPolicy, validity: subValidity, users: subUsers, perms: subPerms, backup: subBackup, links: subLinks, pin: subPin }[sub];
+  const fn = { gems: subLists, lists: subLists, mk: subMk, rem: subRem, review: subReviewCfg, rates: subRates, vendors: subVendors, grand: subGrand, policy: subPolicy, validity: subValidity, users: subUsers, perms: subPerms, backup: subBackup, links: subLinks, pin: subPin }[sub];
   $('vSub').innerHTML = back + '<div id="subBody"></div>';
   if (fn) fn();
 }

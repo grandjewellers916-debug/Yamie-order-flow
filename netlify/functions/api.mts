@@ -15,11 +15,11 @@ import { backupOp } from '../lib/backup.mts';
 
 export const config = { path: '/api/*' };
 
-const SERVER_VERSION = '2.1';
+const SERVER_VERSION = '2.2';
 const PERM_KEYS = ['enquiry', 'estimate', 'approve', 'advance', 'verify', 'discount', 'confirm', 'vendor', 'production', 'receive', 'qc',
-  'finalprice', 'approvefinal', 'ready', 'close', 'cancel', 'rates', 'vendors', 'vendorcontact', 'review', 'viewcost', 'reports', 'delete', 'settings'];
+  'finalprice', 'approvefinal', 'ready', 'close', 'cancel', 'rates', 'vendors', 'vendorcontact', 'review', 'viewcost', 'reports', 'delete', 'settings', 'grand', 'grandcfg'];
 const DEF_ROLE_PERMS: Record<string, string[]> = {
-  manager: PERM_KEYS.filter((k) => k !== 'settings'),
+  manager: PERM_KEYS.filter((k) => !['settings', 'grand', 'grandcfg'].includes(k)),
   staff: ['enquiry', 'estimate', 'approve', 'advance', 'confirm', 'production', 'receive', 'finalprice', 'ready', 'close'],
 };
 const DEF_SETTINGS: any = {
@@ -739,6 +739,57 @@ export default async (req: Request) => {
       await s.delete(`orders/${body.id}`); await s.delete(`pcidx/${body.id}`);
       await logChange(s, body.id, true);
       return J({ ok: true });
+    }
+
+    // ----- Grand module: vendor orders for Grand Jewellers -----
+    if (path === 'grand/list') {
+      need('grand');
+      const { blobs } = await s.list({ prefix: 'grand/o/' });
+      const list = (await Promise.all(blobs.map((b: any) => s.get(b.key, { type: 'json' })))).filter(Boolean);
+      list.sort((a: any, b: any) => b.at - a.at);
+      return J({ orders: list.slice(0, 1000) });
+    }
+    if (path === 'grand/save' && method === 'POST') {
+      need('grand');
+      const g = body.o || {}, old: any = g.id ? await s.get('grand/o/' + String(g.id).replace(/[^A-Z0-9]/gi, ''), { type: 'json' }) : null;
+      const lines = (Array.isArray(g.lines) ? g.lines : []).slice(0, 60).map((l: any) => ({
+        item: clip(l.item, 60), model: clip(l.model, 80), img: clip(l.img, 200), purity: clip(l.purity, 30), wt: Math.max(0, num(l.wt)), size: clip(l.size, 60),
+        qty: Math.max(1, Math.min(9999, Math.round(num(l.qty) || 1))), urgent: !!l.urgent, due: clip(l.due, 10), note: clip(l.note, 200),
+      })).filter((l: any) => l.item);
+      if (!lines.length) return err('Add at least one item');
+      if (!clip(g.vendor, 80)) return err('Select the vendor');
+      if (!clip(g.by, 60)) return err('Select who is sending the order');
+      if (lines.some((l: any) => l.urgent && !l.due)) return err('Give the delivery date for each emergency item');
+      const o: any = {
+        type: g.type === 'custom' ? 'custom' : 'stock', vendor: clip(g.vendor, 80), vphone: clip(g.vphone, 20), by: clip(g.by, 60), purity: clip(g.purity, 30), lockPur: g.lockPur !== false,
+        due: clip(g.due, 10), note: clip(g.note, 500), photos: g.photos !== false, refs: (Array.isArray(g.refs) ? g.refs : []).slice(0, 6).map((r: any) => clip(r, 200)), lines,
+        status: ['sent', 'received', 'cancelled'].includes(g.status) ? g.status : 'sent',
+      };
+      o.qty = lines.reduce((t: number, l: any) => t + l.qty, 0); o.wt = Math.round(lines.reduce((t: number, l: any) => t + l.wt * l.qty, 0) * 1000) / 1000;
+      if (old) {
+        if (old.rev !== g.rev) return err('Someone else changed this order. Reload and try again.', 409);
+        Object.assign(old, o); old.log = (old.log || []).concat({ at: now(), by: me.name, t: clip(body.log || 'Edited', 200) }).slice(-80); old.rev = (old.rev || 0) + 1; old.upd = now();
+        await s.setJSON('grand/o/' + old.id, old); return J({ o: old });
+      }
+      const seq = num(await s.get('grand/seq')) + 1; await s.set('grand/seq', String(seq));
+      const n: any = { ...o, id: crypto.randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase(), no: 'GJO-' + String(seq).padStart(4, '0'), at: now(), upd: now(), user: me.name, rev: 1, log: [{ at: now(), by: me.name, t: 'Created' }] };
+      await s.setJSON('grand/o/' + n.id, n); return J({ o: n });
+    }
+    if (path === 'grand/log' && method === 'POST') {
+      need('grand');
+      const k = 'grand/o/' + String(body.id || '').replace(/[^A-Z0-9]/gi, ''), o: any = await s.get(k, { type: 'json' });
+      if (!o) return err('Order not found', 404);
+      o.log = (o.log || []).concat({ at: now(), by: me.name, t: clip(body.t, 200) }).slice(-80); o.upd = now(); await s.setJSON(k, o); return J({ o });
+    }
+    if (path === 'grand/delete' && method === 'POST') {
+      if (me.role !== 'admin' && !can('delete')) throw new HttpError('Your role cannot delete', 403);
+      await s.delete('grand/o/' + String(body.id || '').replace(/[^A-Z0-9]/gi, '')); return J({ ok: true });
+    }
+    if (path === 'grand/cfg' && method === 'POST') {
+      if (!can('grandcfg') && !can('settings')) throw new HttpError('Your role cannot change the Grand lists', 403);
+      const st = await getSettings(s); st.grand = body.grand && typeof body.grand === 'object' ? body.grand : {};
+      if (JSON.stringify(st.grand).length > 400000) return err('Too much data');
+      await s.setJSON('cfg/settings', st); await bumpCfg(s); return J({ ok: true });
     }
 
     if (path === 'vendors' && method === 'POST') {

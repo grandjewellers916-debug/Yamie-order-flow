@@ -165,3 +165,12 @@ details.sec .in{padding:0 12px 12px}
 .verWarn{background:#fdecc8;color:#7a4b00;font-size:12.5px;padding:8px 16px;border-bottom:1px solid #f0d49a}
 .lockVer{color:rgba(255,255,255,.75);font-size:12px;font-weight:600;margin:-8px 0 14px;text-align:center}
 .pcPrice{font-style:normal;font-weight:800;color:var(--wine);padding:4px 9px 0;font-size:13.5px}
+.gHead{display:flex;align-items:center;gap:12px;margin-bottom:8px}.gHead img{width:46px;height:50px;object-fit:contain}
+.gEntry{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:linear-gradient(110deg,#3d0f63,#8f34bd);color:#fff;border:0;border-radius:16px;padding:12px 16px;margin-bottom:12px;font:inherit;cursor:pointer}
+.gEntry img{width:38px;height:40px;object-fit:contain;filter:invert(1)}.gEntry span{flex:1}.gEntry b{display:block;font-size:16px}.gEntry small{color:#ecdcff}
+.gModels{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
+.gModel{display:flex;flex-direction:column;gap:4px;border:1.5px solid var(--line);border-radius:12px;background:#fff;padding:6px;font:inherit;text-align:center;cursor:pointer}
+.gModel.on{border-color:#4b1676;box-shadow:0 0 0 2px #8f34bd}.gModel img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px}.gModel i{display:grid;place-items:center;aspect-ratio:1;color:var(--mute);font-size:12px;background:#f5f1e8;border-radius:8px}
+.gModel b{font-size:12.5px}.gModel input{padding:6px;font-size:13px}.gmPh{border:0;background:none;padding:0;cursor:pointer}
+.gLine.urg{border:2px solid #c0262d}
+.badge.r{background:#fde4e4;color:#b3261e}.badge.g{background:#e3f4ea;color:#287b56}.badge.b{background:#e8eefb;color:#2f4f9c}

@@ -90,6 +90,11 @@ The page talks to `localStorage.yod_api` when set (tests set it to the local ser
 - Final price → manager approves → "Order ready: send card with final price". Customer-OK step and final price card removed (server no longer needs finals[].cust).
 - Phones on cards: shopPhone (estimate), shopPhone2 + shopLandline (ready), woPhone (work order).
 
+## V2.2 (23-11-2026)
+- Grand module (Orders tab → Grand orders). Needs the "Grand module" permission (admin has it; give it to other roles in Permissions). "Edit Grand module lists" controls More → Grand lists.
+- New Grand order: order type (regular stock / customised with reference photos), vendor, order sent by (staff list), purity (standard ★, locked for the whole document or per item), item (list), model with photo (list per item, or type one), weight per piece, length / size (standard list per item + custom text, e.g. "8 pidi"), quantity, line weight and order total weight, emergency marking with delivery date per item, photo of the item (camera / gallery), notes.
+- Order card: violet gradient, small Grand logo, items in a table (Item, Model, Weight, Length / size, Qty, Total), item photos shown or hidden with one tick. Send to the vendor on WhatsApp, then "Copy to" each Grand order staff number. Status: sent / received / cancelled; history log. Numbers GJO-0001…
+
 ## V2.1 (23-11-2026)
 - More → Validity & rounding (admin / Settings permission):
   - Estimate valid for N days (0 = today only), counted as calendar or working days (skips weekly off and holidays).
