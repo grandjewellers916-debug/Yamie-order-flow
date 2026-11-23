@@ -502,6 +502,7 @@ body{padding-top:0}
 .pt-s{font-size:12.5px;color:var(--muted)}
 .prod-total.incomplete .pt-v{font-size:18px;color:var(--warn)}
 .prod-acts{display:grid;grid-template-columns:1fr 2fr;gap:8px}
+.prod-acts:has(#pdOrd:not([hidden])){grid-template-columns:1fr 1fr 2fr}
 .prod-acts .btn{min-height:46px;border-radius:12px;font-weight:600}
 @media (max-width:370px){.prod-body{grid-template-columns:92px minmax(0,1fr)}.wm-name{font-size:28px}.hero-h{font-size:18px}}
 /* bottom tabs; bill bar sits above them */
