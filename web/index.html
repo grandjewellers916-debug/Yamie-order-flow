@@ -80,6 +80,7 @@ label.ck{display:flex;gap:6px;align-items:center;font-size:14px;min-height:44px;
 .bgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}.bcard h3{margin:0 0 6px}.bk{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-top:1px solid var(--ln);font-size:14px}.bk span{color:var(--mut)}.bk.in b{color:var(--ok)}.bk.out b{color:var(--bad)}.bk.cl b{font-size:17px;color:var(--m)}
 tr.voided td{opacity:.5;text-decoration:line-through}tr.voided td:nth-child(8){text-decoration:none;opacity:1}.rrow select,.rrow input{min-height:36px;padding:4px 6px}
 @media (max-width:700px){.bcard[style*="span 2"]{grid-column:auto!important}}
+.mixflag{margin-top:6px;font-size:12px;color:#8A5A00;background:#FFF4CF;border-radius:8px;padding:4px 8px}.mixrow td{background:#FFF8E1}.spg{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;margin-top:8px}.spg label{display:flex;align-items:center;gap:6px;font-size:13px}.spg label span{flex:1}.spg input{width:70px;min-height:36px;padding:4px 6px}
 .isum{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:6px;font-size:12px;color:var(--mut)}.isum b{color:var(--ink);font-weight:600}.isum .on{color:var(--m)}.isum .on b{color:var(--m)}.isum .off{opacity:.55}
 .wtl{margin-top:4px;font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap}.wtl.none{font-weight:400;color:var(--warn);font-size:11px}
 details.msel{position:relative}details.msel>summary{list-style:none;cursor:pointer;border:1px solid var(--ln);border-radius:10px;background:#fff;min-height:44px;padding:10px 30px 10px 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative}
@@ -388,7 +389,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.38';
+const VERSION = '1.39';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -775,7 +776,8 @@ function vSection(sec) {
 function cardPcs(l) { const e = expOf(l.id); const c = S.sum.last[l.id]; const F = S.cardF;
   const sumM = (lines) => Object.entries(lines || {}).reduce((a, [k, n]) => a + (!F || F.l(l, k) ? +n || 0 : 0), 0);
   return { exp: sumM(e.lines), all: sumLines(e.lines), cnt: c && c.lines ? sumM(c.lines) : null }; }
-function itemSummary(l) { const e = expOf(l.id).lines; const F = S.cardF; const m = new Map();
+function itemSummary(l) { const mx = mixedLines(l).reduce((a, [, n]) => a + n, 0); return itemSummary0(l) + (mx ? `<div class="mixflag">⚠ ${fmt(mx)} pcs saved as “Mixed” — <span class="lnk" role="button" data-splitl="${l.id}">split into items ›</span></div>` : ''); }
+function itemSummary0(l) { const e = expOf(l.id).lines; const F = S.cardF; const m = new Map();
   for (const [k, n] of Object.entries(e)) { if (!n) continue; const nm = keyText(l, k).replace(/^Gold /, ''); const on = !F || F.l(l, k); const x = m.get(nm) || { n: 0, on: false }; x.n += n; x.on ||= on; m.set(nm, x); }
   const arr = [...m.entries()].sort((a, b) => (b[1].on - a[1].on) || b[1].n - a[1].n);
   return arr.length ? `<div class="isum">${arr.slice(0, 8).map(([nm, x]) => `<span class="${F ? (x.on ? 'on' : 'off') : ''}">${esc(nm)} <b>${fmt(x.n)}</b></span>`).join('')}${arr.length > 8 ? `<span class="off">+${arr.length - 8} more</span>` : ''}</div>` : ''; }
@@ -798,7 +800,9 @@ function locCard(l) {
       return hideExp() ? wtL : `<div class="v">${fmt(ex)}</div><div class="mut sm">${F ? `of ${fmt(P.all)} pcs` : 'pcs'}</div>${wtL}`; })()}</div></button>`;
 }
 // v1.15: a location opened from a list remembers the list, so after its review the next one opens by itself
-function bindLocCards() { const ids = [...new Set([...$('#main').querySelectorAll('.locs [data-loc], .locs[data-loc]')].map((b) => b.dataset.loc))];
+function bindLocCards() { $('#main').querySelectorAll('[data-splitl]').forEach((x) => x.onclick = (e) => { e.stopPropagation(); e.preventDefault(); splitMixed(S.locById[x.dataset.splitl]); });
+  return bindLocCards0(); }
+function bindLocCards0() { const ids = [...new Set([...$('#main').querySelectorAll('.locs [data-loc], .locs[data-loc]')].map((b) => b.dataset.loc))];
   $('#main').querySelectorAll('[data-loc]').forEach((b) => b.onclick = () => { S.listNav = ids.includes(b.dataset.loc) ? ids : [...new Set([...$('#main').querySelectorAll('[data-loc]')].map((x) => x.dataset.loc))]; locSheet(b.dataset.loc, { list: true }); }); }
 function nextInList(id, pendingOnly = true) {
   const o = S.listNav || []; const i = o.indexOf(id); if (i < 0) return null;
@@ -1855,7 +1859,7 @@ function vTotal() {
     : `<tr><th style="text-align:left">Item</th><th style="text-align:left">Purity</th>${colV.map((c) => `<th>${esc(c)}</th>`).join('')}<th>Total</th></tr>`;
   const placeTbl = `<div class="seg noprint" style="margin-bottom:8px;max-width:360px">${[['place', 'By sub location'], ['area', 'By main location']].map(([k, t]) => `<button data-pcol="${k}" class="${S.pcol === k ? 'on' : ''}">${t}</button>`).join('')}</div>
     <div class="tw"><table class="ptbl">${pHead}
-    ${types.filter((t) => PX[t + '|*']).map((t) => { const purs = rdOrder('purity', Object.keys(PX).filter((k) => k.startsWith(t + '|') && !k.endsWith('|*')).map((k) => k.slice(t.length + 1))); const open = S.pexp[t];
+    ${types.filter((t) => PX[t + '|*']).map((t) => { if (/^mixed$/i.test(t)) return pRow(`⚠ Mixed — not split <button class="lnk" data-split>split ›</button>`, 'Mixed', PX[t + '|*'], 'mixrow'); const purs = rdOrder('purity', Object.keys(PX).filter((k) => k.startsWith(t + '|') && !k.endsWith('|*')).map((k) => k.slice(t.length + 1))); const open = S.pexp[t];
       return pRow(`${purs.length > 1 ? `<span class="caret">${open ? '▾' : '▸'}</span> ` : ''}${esc(t)}`, purs.length > 1 ? 'All' : purs[0], PX[t + '|*'], purs.length > 1 ? 'pclick' : '', purs.length > 1 ? `data-pexp="${esc(t)}"` : '') + (open && purs.length > 1 ? purs.map((p) => pRow(esc(t), p, PX[t + '|' + p], 'sub')).join('') : ''); }).join('')}
     ${PX['*'] ? pRow('Total', '', PX['*'], 'tot') : `<tr><td colspan="${colV.length + 3}" class="mut">No stock</td></tr>`}</table></div>
     <div class="mut sm" style="margin-top:6px">Expected pieces. ${S.pcol === 'place' ? 'Columns are main locations and their sub locations (Admin → Lists).' : 'Columns are the main locations.'} Tap an item to see each purity.</div>`;
@@ -1896,6 +1900,7 @@ function vTotal() {
   $('#cfClr') && ($('#cfClr').onclick = () => { S.jfs = []; S.cf = { a: [], pl: [], i: [], p: [] }; vTotal(); });
   $('#main').querySelectorAll('[data-pcol]').forEach((b) => b.onclick = () => { S.pcol = b.dataset.pcol; vTotal(); });
   $('#main').querySelectorAll('[data-pexp]').forEach((r) => r.onclick = () => { const t = r.dataset.pexp; S.pexp[t] = !S.pexp[t]; vTotal(); });
+  $('#main').querySelectorAll('[data-split]').forEach((b) => b.onclick = (e) => { e.stopPropagation(); pickMixed(); });
   bindReports(L, jfName);
   $('#prt') && ($('#prt').onclick = () => { $('#main').querySelectorAll('details.cz').forEach((d) => { d.open = true; }); print(); });
   $('#wa') && ($('#wa').onclick = () => open(`https://wa.me/${S.D.settings.waNumber}?text=${encodeURIComponent(summaryText())}`, '_blank'));
@@ -3252,6 +3257,27 @@ function colPicker() {
 }
 // v1.22 Admin → Locations filters: section, main location, sub display, group, jewellery type, item, purity, search
 const heldOf = (l) => Object.entries(expOf(l.id).lines).filter(([, n]) => n);
+// v1.39 pieces saved as item "Mixed" → split them into real item types (pcs stay the same; logged as a count set)
+const mixedLines = (l) => heldOf(l).filter(([k]) => /^mixed$/i.test(itemOf(k)));
+const mixedLocs = () => activeLocs().filter((l) => mixedLines(l).length);
+function splitMixed(l, after) {
+  const ML = mixedLines(l); if (!ML.length) return toast('Nothing to split');
+  if (!editable() || !(can('move') || can('setup'))) return toast('Splitting changes book stock — needs today open and Movement / Setup permission', 4000);
+  const items = S.D.settings.itemTypes.filter((x) => !/^mixed$/i.test(x));
+  modal(`Split mixed items · ${esc(l.name)}`, 'Enter how many of each item — the total must match', ML.map(([k, n], g) => `<div class="card" style="margin-bottom:10px"><div class="row sp"><b>${jtB(jtOfLine(l, k))} ${esc(purOfLine(l, k) || '')} · ${fmt(n)} pcs saved as “Mixed”</b><span class="b" data-left="${g}">${fmt(n)} left</span></div>
+    <div class="spg">${items.map((it) => `<label><span>${esc(it)}</span><input type="number" min="0" inputmode="numeric" data-g="${g}" data-it="${esc(it)}" placeholder="0"></label>`).join('')}</div></div>`).join('') + '<button class="btn" id="spS" style="width:100%">Save split</button>', () => {
+    const left = (g) => ML[g][1] - [...document.querySelectorAll(`[data-g="${g}"]`)].reduce((a, x) => a + (+x.value || 0), 0);
+    const upd = () => ML.forEach((_, g) => { const v = left(g); const e = document.querySelector(`[data-left="${g}"]`); e.textContent = v === 0 ? '✓ matches' : v > 0 ? `${fmt(v)} left` : `${fmt(-v)} too many`; e.style.color = v === 0 ? 'var(--ok)' : 'var(--bad)'; });
+    document.querySelectorAll('[data-g]').forEach((x) => x.oninput = upd);
+    $('#spS').onclick = async () => { const bad = ML.map((_, g) => left(g)).findIndex((v) => v !== 0); if (bad >= 0) return toast('The split must add up to the pieces saved as Mixed');
+      const lines = { ...expOf(l.id).lines };
+      ML.forEach(([k], g) => { delete lines[k]; document.querySelectorAll(`[data-g="${g}"]`).forEach((x) => { const n = +x.value || 0; if (!n) return; const nk = k.replace(/^[^@#]+/, x.dataset.it); lines[nk] = (lines[nk] || 0) + n; }); });
+      try { await api('move', { kind: 'set', date: S.D.date, locId: l.id, lines, wt: null, note: 'Mixed items split into item types', reason: 'Count set' }); closeModal(); toast('✓ Split saved'); await load(); after ? after() : render(); } catch (e) { fail(e); } }; });
+}
+function pickMixed() { const ls = mixedLocs(); if (!ls.length) return toast('No pieces saved as Mixed');
+  if (ls.length === 1) return splitMixed(ls[0]);
+  modal('Pieces saved as “Mixed”', 'Pick the location to split', ls.map((l) => `<button class="shb" data-mx="${l.id}" style="width:100%;margin-bottom:8px"><b>${esc(l.name)}</b><span>${esc(placeOf(l))} · ${fmt(mixedLines(l).reduce((a, [, n]) => a + n, 0))} pcs Mixed</span></button>`).join(''), () => {
+    document.querySelectorAll('[data-mx]').forEach((b) => b.onclick = () => { closeModal(); splitMixed(S.locById[b.dataset.mx]); }); }); }
 // v1.38 "Pendant 21 · Set 4 · Bracelet 16" — pieces per item type (mixed boxes), largest first
 const itemCounts = (l) => { const m = new Map(); for (const [k, n] of heldOf(l)) m.set(itemOf(k), (m.get(itemOf(k)) || 0) + n); return [...m.entries()].sort((a, b) => b[1] - a[1]).map(([it, n]) => `${it} ${fmt(n)}`).join(' · '); };
 const locItems = (l) => [...new Set([...heldOf(l).map(([k]) => itemOf(k)), ...(l.itemType ? [l.itemType] : [])])];
