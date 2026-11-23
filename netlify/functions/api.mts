@@ -578,6 +578,17 @@ export default async (req: Request) => {
     }
     if (path === 'alerts/seen' && method === 'POST') { await s.set(`seen/${me.id}`, String(now())); return J({ ok: true }); }
 
+    // v1.34 Google review requests: log who was asked (any signed-in user), list recent
+    if (path === 'review/log' && method === 'POST') {
+      const t = (v: any, n = 60) => String(v ?? '').trim().slice(0, n); const at = now(); const ph = t(body.phone, 20).replace(/[^0-9]/g, '');
+      const rec = { id: `${at}-${rid().slice(0, 6)}`, at, date: today, by: me.id, byName: me.name, name: t(body.name), phone: ph, shop: t(body.shop, 80), via: t(body.via, 20), lang: t(body.lang, 10) };
+      await s.setJSON(`rv/${today.slice(0, 7)}/${rec.id}`, rec); return J({ ok: true, rec });
+    }
+    if (path === 'review/log' && method === 'GET') {
+      const m = today.slice(0, 7); const d = new Date(today + 'T00:00:00Z'); d.setUTCMonth(d.getUTCMonth() - 1); const pm = d.toISOString().slice(0, 7);
+      const all = [...await listJSON(s, `rv/${pm}/`), ...await listJSON(s, `rv/${m}/`)].sort((a: any, b: any) => b.at - a.at);
+      return J({ list: all.slice(0, 200), month: all.filter((x: any) => x.date.startsWith(m)).length, today: all.filter((x: any) => x.date === today).length });
+    }
     if (path === 'rpsent' && method === 'POST') {   // v1.32: a report was shared (WhatsApp / email / file) — log it; clears the daily report reminder
       need('share'); const t = (v: any, n = 80) => String(v ?? '').slice(0, n); const at = now();
       const rec = { id: `${at}-${rid().slice(0, 6)}`, date: today, at, by: me.id, title: t(body.title, 120), via: t(body.via, 20), to: t(body.to), daily: !!body.daily };
@@ -757,7 +768,7 @@ export default async (req: Request) => {
       const doc: any = { id, type: str(D.type, 40) || 'Other', title: str(D.title, 80), number: str(D.number, 60), vehicle: str(D.vehicle, 20).toUpperCase().replace(/\s+/g, ' '), vehicleName: str(D.vehicleName, 60), remind: Math.max(1, Math.min(365, +D.remind || 30)), remindOff: !!D.remindOff, issuedBy: str(D.issuedBy, 80), issueDate: str(D.issueDate, 10), expiry: str(D.expiry, 10), notes: str(D.notes, 1000),
         bank: D.bank ? { holder: str(D.bank.holder, 80), bank: str(D.bank.bank, 60), account: str(D.bank.account, 30), ifsc: str(D.bank.ifsc, 15).toUpperCase(), branch: str(D.bank.branch, 80), kind: str(D.bank.kind, 30) } : null,
         upi: D.upi ? { id: str(D.upi.id, 80), name: str(D.upi.name, 80), gen: !!D.upi.gen } : null,
-        place: D.place ? { name: str(D.place.name, 80), address: str(D.place.address, 300), mapUrl: /^https?:\/\//i.test(str(D.place.mapUrl, 500)) ? str(D.place.mapUrl, 500) : '', lat: Number.isFinite(+D.place.lat) && D.place.lat !== '' ? +(+D.place.lat).toFixed(6) : null, lng: Number.isFinite(+D.place.lng) && D.place.lng !== '' ? +(+D.place.lng).toFixed(6) : null, phone: str(D.place.phone, 40), hours: str(D.place.hours, 120), landmark: str(D.place.landmark, 120) } : null,
+        place: D.place ? { name: str(D.place.name, 80), address: str(D.place.address, 300), mapUrl: /^https?:\/\//i.test(str(D.place.mapUrl, 500)) ? str(D.place.mapUrl, 500) : '', lat: Number.isFinite(+D.place.lat) && D.place.lat !== '' ? +(+D.place.lat).toFixed(6) : null, lng: Number.isFinite(+D.place.lng) && D.place.lng !== '' ? +(+D.place.lng).toFixed(6) : null, phone: str(D.place.phone, 40), hours: str(D.place.hours, 120), landmark: str(D.place.landmark, 120), reviewUrl: /^https?:\/\//i.test(str(D.place.reviewUrl, 300)) ? str(D.place.reviewUrl, 300) : '' } : null,
         files: (Array.isArray(D.files) ? D.files : []).slice(0, 12).map((f: any) => ({ key: String(f.key || '').replace(/[^a-z0-9-]/gi, ''), mime: str(f.mime, 40), label: str(f.label, 60) })).filter((f: any) => f.key),
         order: D.order ?? old?.order, createdAt: old?.createdAt || now(), createdBy: old?.createdBy || me.id, updatedAt: now(), updatedBy: me.id, updatedByName: me.name };
       if (!doc.title) doc.title = doc.vehicle ? `${doc.type.replace('Vehicle ', '')} · ${doc.vehicle}` : doc.type;

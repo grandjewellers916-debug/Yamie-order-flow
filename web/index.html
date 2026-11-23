@@ -73,6 +73,8 @@ label.ck{display:flex;gap:6px;align-items:center;font-size:14px;min-height:44px;
 @media (max-width:600px){.rphl{grid-template-columns:1fr}}.shrec .lrow{gap:6px}.holchip{background:#FFF4CF;color:#7A5A00;border-radius:99px;padding:2px 9px;font-size:12px;font-weight:600}
 .holcard{display:block;width:100%;text-align:left;background:#FFF4CF;border-color:#E8C766;color:#3A2A00;margin-top:10px;font:inherit}.holcard.due{cursor:pointer;background:#FBF1EF;border-color:var(--m);color:var(--m)}
 .plc{background:#FFF8E7;border-color:#E8C766}.plc a.btn{text-decoration:none}
+.rvprev{display:grid;grid-template-columns:150px 1fr;gap:10px;margin-top:10px;align-items:start}.rvprev img{width:100%;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.12);background:#eee;min-height:180px}.rvprev pre{white-space:pre-wrap;font-family:inherit;font-size:13px;line-height:1.45;margin:0;background:#E7F6E1;border-radius:10px;padding:10px;max-height:240px;overflow:auto}
+@media (max-width:500px){.rvprev{grid-template-columns:110px 1fr}}
 .isum{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:6px;font-size:12px;color:var(--mut)}.isum b{color:var(--ink);font-weight:600}.isum .on{color:var(--m)}.isum .on b{color:var(--m)}.isum .off{opacity:.55}
 .wtl{margin-top:4px;font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap}.wtl.none{font-weight:400;color:var(--warn);font-size:11px}
 details.msel{position:relative}details.msel>summary{list-style:none;cursor:pointer;border:1px solid var(--ln);border-radius:10px;background:#fff;min-height:44px;padding:10px 30px 10px 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative}
@@ -381,7 +383,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.33';
+const VERSION = '1.34';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -2047,6 +2049,7 @@ function vHub() {
       <div class="stats" id="hubCash"><div><b>…</b><span>today</span></div></div>
       <div class="go">Open cash ›</div></button>
   </div>
+  ${(S.D.shopLocs || []).some((d) => d.place?.reviewUrl) ? `<button class="card holcard" id="hubRv" style="background:#FFF8E1;border-color:#F4B400;color:#6B4E00">⭐ <b>Ask for a Google review</b> — thank-you card with QR on WhatsApp ›</button>` : ''}
   ${(S.D.shopLocs || []).length ? `<button class="card holcard" id="hubLoc" style="background:#EEF7EF;border-color:#9CCB9F;color:#1F5E2A">📍 <b>Share shop location</b> — address + Google Maps link on WhatsApp ›</button>` : ''}
   ${hubNotes()}
   <div id="hubRem"></div>
@@ -2054,6 +2057,7 @@ function vHub() {
     ${[['eod', 'total', 'End-of-day entries', can('move')], ['total', 'total', 'Consolidated', can('reports')], ['reports', 'rep', 'Reports · Excel / PDF', can('reports')], ['docs', 'doc', 'Documents', can('docs') || can('docsEdit')], ['alerts', 'bell', 'Alerts', can('alerts')], ['more', 'more', 'More & settings', true]].filter((x) => x[3]).map(([k, i, t]) => `<button data-go="${k}">${svg(i)}<span>${t}</span></button>`).join('')}
   </div>`;
   $('#main').querySelectorAll('[data-go]').forEach((b) => b.onclick = () => go(b.dataset.go));
+  $('#hubRv') && ($('#hubRv').onclick = () => reviewAsk());
   $('#hubLoc') && ($('#hubLoc').onclick = () => pickShareLoc(S.D.shopLocs));
   $('#rpDue') && ($('#rpDue').onclick = () => { const P = rpState(); P.type = S.D.settings.rpDaily.type || 'place'; P.sec = 'all'; P.f = { jt: [], a: [], pl: [], i: [], p: [] }; S.rpAuto = true; go('reports'); });
   if (can('docs') || can('docsEdit')) api('docs').then((j) => { S.docs = j; const due = j.docs.filter((d) => docWatch(d, S.D.today)).sort((a, b) => docDaysLeft(a, S.D.today) - docDaysLeft(b, S.D.today)); const el = $('#hubRem'); if (!el || !due.length) return;
@@ -2379,7 +2383,7 @@ async function docView(id) {
   const qr = docQrUri(d) ? await qrPng(docQrUri(d), 560) : '';
   const html = `${docExpiry(d) ? `<div style="margin-bottom:10px">${docExpiry(d)}</div>` : ''}
     ${d.type === 'Shop Location' && d.place ? `<div class="card plc"><div class="b" style="font-size:17px">📍 ${esc(d.place.name || d.title)}</div>${d.place.address ? `<div style="white-space:pre-wrap;margin-top:4px">${esc(d.place.address)}</div>` : ''}${d.place.landmark ? `<div class="mut sm" style="margin-top:2px">Landmark: ${esc(d.place.landmark)}</div>` : ''}
-      <div class="row wrap" style="gap:6px;margin-top:10px">${mapUrlOf(d.place) ? `<a class="btn sm" href="${esc(mapUrlOf(d.place))}" target="_blank" rel="noopener">🗺 Open in Maps</a>` : ''}${d.place.lat != null ? `<a class="btn sm sec" href="https://www.google.com/maps/dir/?api=1&destination=${d.place.lat},${d.place.lng}" target="_blank" rel="noopener">🧭 Directions</a>` : ''}<button class="btn sm ok" id="plWa">🟢 WhatsApp location</button></div></div>` : ''}
+      <div class="row wrap" style="gap:6px;margin-top:10px">${mapUrlOf(d.place) ? `<a class="btn sm" href="${esc(mapUrlOf(d.place))}" target="_blank" rel="noopener">🗺 Open in Maps</a>` : ''}${d.place.lat != null ? `<a class="btn sm sec" href="https://www.google.com/maps/dir/?api=1&destination=${d.place.lat},${d.place.lng}" target="_blank" rel="noopener">🧭 Directions</a>` : ''}<button class="btn sm ok" id="plWa">🟢 WhatsApp location</button>${d.place.reviewUrl ? '<button class="btn sm sec" id="plRv">⭐ Ask for review</button>' : ''}</div></div>` : ''}
     ${qr ? `<div class="dqr"><img src="${qr}" alt="QR"><div class="b">${esc(d.type === 'Shop Location' ? (d.place?.name || d.title) : d.upi.name || d.title)}</div><div class="mut sm">${d.type === 'Shop Location' ? 'Scan to open in Google Maps' : esc(d.upi.id)}</div></div>` : ''}
     ${(d.files || []).map((f, i) => f.mime === 'application/pdf' ? `<div class="dpdf"><span class="pdf">PDF</span><div class="grow"><div class="b">${esc(f.label || d.title + '.pdf')}</div><div class="mut sm">PDF document</div></div><button class="btn sm" data-open="${i}">View</button></div>` : `<img class="dimg" src="${docFile(f.key)}" data-big="${i}" alt="">`).join('')}
     <div class="card" style="margin-top:10px;padding:6px 12px">
@@ -2387,7 +2391,7 @@ async function docView(id) {
       ${row(numLabel(d.type), d.number, true)}
       ${d.bank ? row('Account name', d.bank.holder, true) + row('Bank', d.bank.bank) + row('Branch', d.bank.branch) + row('Account no.', d.bank.account, true, true) + row('IFSC', d.bank.ifsc, true) + row('Account type', d.bank.kind) : ''}
       ${d.upi ? row('UPI ID', d.upi.id, true) + row('Payee name', d.upi.name) : ''}
-      ${d.place ? row('Address', d.place.address, true) + row('Phone', d.place.phone, true) + row('Hours', d.place.hours) + row('Map link', mapUrlOf(d.place), true) + (d.place.lat != null ? row('GPS', `${d.place.lat}, ${d.place.lng}`, true) : '') : ''}
+      ${d.place ? row('Address', d.place.address, true) + row('Phone', d.place.phone, true) + row('Hours', d.place.hours) + row('Map link', mapUrlOf(d.place), true) + row('Review link', d.place.reviewUrl, true) + (d.place.lat != null ? row('GPS', `${d.place.lat}, ${d.place.lng}`, true) : '') : ''}
       ${row('Issued by', d.issuedBy)}${row('Issue date', d.issueDate && dt(d.issueDate))}${row('Valid till', d.expiry && dt(d.expiry))}
       ${d.expiry ? row('Reminders', d.remindOff ? 'Off' : `${+d.remind || DOC_REMIND_DEFAULT}, 15, 7, 3, 1 days before and on the day`) : ''}
       ${d.notes ? `<div class="dfrow"><span class="mut">Notes</span><span style="white-space:pre-wrap">${esc(d.notes)}</span><span></span></div>` : ''}
@@ -2407,6 +2411,7 @@ async function docView(id) {
     $('#dShare').onclick = () => docShare(d, qr);
     $('#dText').onclick = () => shareText(docText(d), d.title);
     $('#plWa') && ($('#plWa').onclick = () => shareLocation(d));
+    $('#plRv') && ($('#plRv').onclick = () => { closeModal(); reviewAsk(d.id); });
     $('#dPrint').onclick = () => docPrint(d, qr);
     $('#dCal') && ($('#dCal').onclick = () => docCalendar([d], `renew-${(d.title || 'document').replace(/[^\w-]+/g, '_')}.ics`));
     $('#dEdit') && ($('#dEdit').onclick = () => docEdit(JSON.parse(JSON.stringify(d))));
@@ -2421,6 +2426,84 @@ async function docOpenFile(f, d, view) {
   } catch (e) { fail(e); }
 }
 // v1.33 share the shop location: message with address + Google Maps link (WhatsApp shows the map preview), QR image when sharing as a file
+// ================= v1.34 Google review requests: image card with QR + link, sent on WhatsApp to the customer =================
+const RV_MSG = {
+  en: (n, shop, u) => `Hi${n ? ' ' + n : ''}, thank you for choosing *${shop}* 💛\nWe'd love to hear about your experience. Could you leave us a quick Google review? It takes less than a minute:\n${u}\n\n⭐⭐⭐⭐⭐ Thank you!`,
+  ml: (n, shop, u) => `നമസ്കാരം${n ? ' ' + n : ''}, *${shop}* തിരഞ്ഞെടുത്തതിന് നന്ദി 💛\nനിങ്ങളുടെ അനുഭവം Google-ൽ ഒരു റിവ്യൂ ആയി പങ്കുവെക്കാമോ? ഒരു മിനിറ്റ് മതി:\n${u}\n\n⭐⭐⭐⭐⭐ നന്ദി!`,
+};
+const rvText = (lang, n, shop, u) => lang === 'both' ? `${RV_MSG.en(n, shop, u)}\n\n${RV_MSG.ml(n, shop, u).replace(`\n${u}`, '')}` : RV_MSG[lang](n, shop, u);
+async function reviewCard(place, name, fmtK = 'post') {
+  try { await Promise.all(['700 64px "Cormorant Garamond"', '600 30px "Jost"'].map((f) => document.fonts?.load(f))); } catch {}
+  const W = 1080, H = fmtK === 'print' ? 1528 : 1350; const c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+  const serif = '"Cormorant Garamond", Georgia, serif', sans = 'Jost, "Segoe UI", Roboto, Arial, sans-serif';
+  const maroon = '#7A1518', gold = '#C9A24A', ivory = '#FBF6EE';
+  g.fillStyle = ivory; g.fillRect(0, 0, W, H);
+  const top = 430; const grd = g.createLinearGradient(0, 0, W, top); grd.addColorStop(0, '#8E1B1E'); grd.addColorStop(1, '#5E0F12'); g.fillStyle = grd; g.fillRect(0, 0, W, top);
+  g.strokeStyle = gold; g.lineWidth = 3; g.strokeRect(28, 28, W - 56, H - 56);
+  g.textAlign = 'center'; g.fillStyle = '#F3E3BF'; g.font = `700 92px ${serif}`; g.fillText('YAMIE', W / 2, 150);
+  g.font = `500 26px ${sans}`; g.fillStyle = gold; g.fillText('F I N E   J E W E L L E R Y', W / 2, 192);
+  g.fillStyle = '#fff'; g.font = `600 54px ${serif}`; g.fillText(name ? `Thank you, ${name}!` : 'Thank you for choosing us!', W / 2, 290, W - 140);
+  g.font = `400 30px ${sans}`; g.fillStyle = '#F3E3BF'; g.fillText('Loved your jewellery? Tell others on Google', W / 2, 345, W - 140);
+  // stars
+  const star = (cx, cy, r) => { g.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.45 : r; g.lineTo(cx + rr * Math.cos(a), cy + rr * Math.sin(a)); } g.closePath(); g.fill(); };
+  g.fillStyle = '#F4B400'; for (let i = 0; i < 5; i++) star(W / 2 + (i - 2) * 74, 392, 28);
+  // QR panel
+  const qs = 470, qx = (W - qs) / 2, qy = top + 70; g.fillStyle = '#fff'; g.shadowColor = 'rgba(90,40,10,.18)'; g.shadowBlur = 30; g.beginPath(); g.roundRect(qx - 36, qy - 36, qs + 72, qs + 72, 28); g.fill(); g.shadowBlur = 0;
+  const qr = new Image(); qr.src = await qrPng(place.reviewUrl, qs); await new Promise((ok) => { qr.onload = ok; qr.onerror = ok; }); g.drawImage(qr, qx, qy, qs, qs);
+  // G badge in the middle of the QR
+  g.fillStyle = '#fff'; g.beginPath(); g.arc(W / 2, qy + qs / 2, 46, 0, 7); g.fill(); g.font = `700 60px ${sans}`; g.fillStyle = '#4285F4'; g.textBaseline = 'middle'; g.fillText('G', W / 2, qy + qs / 2 + 3); g.textBaseline = 'alphabetic';
+  let y = qy + qs + 100; g.fillStyle = maroon; g.font = `600 40px ${serif}`; g.fillText('Scan to review us on Google', W / 2, y);
+  y += 48; g.fillStyle = '#6B5A4A'; g.font = `400 26px ${sans}`; g.fillText('or tap the link in the message', W / 2, y);
+  y += 44; g.font = `500 24px ${sans}`; g.fillStyle = '#9A7B3F'; const short = place.reviewUrl.replace(/^https?:\/\//, ''); g.fillText(short.length > 60 ? short.slice(0, 57) + '…' : short, W / 2, y);
+  g.fillStyle = gold; g.fillRect(W / 2 - 60, H - 150, 120, 2);
+  g.fillStyle = '#4A3B2E'; g.font = `500 26px ${sans}`; g.fillText(place.name || 'Yamie Fine Jewellery', W / 2, H - 105, W - 120);
+  g.fillStyle = '#7C6B5B'; g.font = `400 22px ${sans}`; g.fillText([(place.address || '').split('\n')[0].slice(0, 70), place.phone].filter(Boolean).join('  ·  '), W / 2, H - 70, W - 120);
+  return new Promise((ok) => c.toBlob((b) => b.arrayBuffer().then((a) => ok(new Uint8Array(a))), 'image/png'));
+}
+async function reviewAsk(docId) {
+  const shops = (S.D.shopLocs || []).filter((d) => d.place?.reviewUrl);
+  if (!shops.length) return toast(can('docsEdit') ? 'Add the Google review link to the Shop Location document first (Documents)' : 'Ask the admin to add the Google review link in Documents → Shop Location', 5000);
+  let si = Math.max(0, shops.findIndex((d) => d.id === docId)); S.rvLang ||= 'en';
+  let log = { list: [], month: 0, today: 0 }; try { log = await api('review/log'); } catch {}
+  modal('⭐ Ask for a Google review', 'Sends a thank-you card with QR + review link on WhatsApp', `
+    ${shops.length > 1 ? `<label class="f" style="margin-top:0">Shop</label><select id="rvShop">${shops.map((d, i) => `<option value="${i}" ${i === si ? 'selected' : ''}>${esc(d.place.name || d.title)}</option>`).join('')}</select>` : ''}
+    <div class="g2"><div><label class="f" style="margin-top:0">Customer name</label><input id="rvN" placeholder="e.g. Anjali" autocomplete="off"></div><div><label class="f" style="margin-top:0">WhatsApp number</label><input id="rvP" type="tel" inputmode="tel" placeholder="98XXXXXXXX"></div></div>
+    <div id="rvWarn" class="mut sm"></div>
+    <label class="f">Message</label><div class="seg" id="rvL">${[['en', 'English'], ['ml', 'മലയാളം'], ['both', 'Both']].map(([k, t]) => `<button data-lang="${k}" class="${S.rvLang === k ? 'on' : ''}">${t}</button>`).join('')}</div>
+    <div class="rvprev"><img id="rvImg" alt="Review card"><pre id="rvTxt"></pre></div>
+    <button class="btn ok" id="rvSend" style="width:100%;margin-top:10px">🟢 Send on WhatsApp</button>
+    <div class="cact" style="margin-top:8px"><button class="btn ghost" id="rvShare">📤 Share card</button><button class="btn ghost" id="rvPrint">🖨 Print counter card</button></div>
+    <div class="mut sm" style="margin-top:10px">Sent ${log.today} today · ${log.month} this month${log.list.length ? ` · last: ${esc(log.list[0].name || '+' + log.list[0].phone)} by ${esc(log.list[0].byName || '')}` : ''}</div>
+    ${log.list.length ? `<details style="margin-top:6px"><summary class="mut sm">Recent requests</summary>${log.list.slice(0, 30).map((x) => `<div class="lrow"><span class="grow">${esc(x.name || '—')}${x.phone ? ` <span class="mut sm">+${esc(x.phone)}</span>` : ''}</span><span class="mut sm">${dt(x.date)} · ${esc(x.byName || '')}</span></div>`).join('')}</details>` : ''}`, () => {
+    let png = null, timer = 0;
+    const cur = () => { const d = shops[si]; return { d, p: d.place, name: $('#rvN').value.trim(), phone: $('#rvP').value.replace(/[^0-9]/g, '') }; };
+    const num = (ph) => ph.length === 10 ? '91' + ph : ph;
+    const redraw = async () => { const { p, name, phone } = cur(); $('#rvTxt').textContent = rvText(S.rvLang, name, p.name || S.D.settings.shopName || 'Yamie Fine Jewellery', p.reviewUrl);
+      png = await reviewCard(p, name); const u = URL.createObjectURL(new Blob([png], { type: 'image/png' })); const im = $('#rvImg'); if (!im) return; const old = im.src; im.src = u; if (old.startsWith('blob:')) URL.revokeObjectURL(old);
+      const prev = phone ? log.list.find((x) => x.phone === num(phone) && Date.now() - x.at < 30 * 864e5) : null;
+      $('#rvWarn').innerHTML = prev ? `⚠ Already asked on ${dt(prev.date)} by ${esc(prev.byName || '')}` : ''; };
+    const soon = () => { clearTimeout(timer); timer = setTimeout(redraw, 300); };
+    ['#rvN', '#rvP'].forEach((x) => $(x).addEventListener('input', soon));
+    $('#rvShop') && ($('#rvShop').onchange = () => { si = +$('#rvShop').value; redraw(); });
+    document.querySelectorAll('[data-lang]').forEach((b) => b.onclick = () => { S.rvLang = b.dataset.lang; document.querySelectorAll('[data-lang]').forEach((x) => x.classList.toggle('on', x === b)); redraw(); });
+    const logIt = (via) => { const { p, name, phone } = cur(); api('review/log', { name, phone: phone ? num(phone) : '', shop: p.name, via, lang: S.rvLang }).catch(() => {}); };
+    const fileName = () => `Yamie-review-${(cur().name || 'card').replace(/[^\w-]+/g, '_')}.png`;
+    $('#rvSend').onclick = async () => { const { p, name, phone } = cur(); if (phone && phone.length < 10) return toast('Check the WhatsApp number');
+      const text = rvText(S.rvLang, name, p.name || S.D.settings.shopName || 'Yamie Fine Jewellery', p.reviewUrl); const win = !window.YamieStock && !navigator.canShare ? open('', '_blank') : null;
+      try { if (!png) await redraw();
+        if (window.YamieStock?.shareTo) window.YamieStock.shareTo('wa', phone ? num(phone) : '', 'Google review', text, fileName(), 'image/png', b64of(png));
+        else { const f = new File([png], fileName(), { type: 'image/png' }); let done = false;
+          if (navigator.canShare?.({ files: [f] })) { try { await navigator.share({ files: [f], text }); done = true; } catch (e) { if (e.name === 'AbortError') return; } }
+          if (!done) { saveBin(fileName(), 'image/png', png); const u = `https://wa.me/${phone ? num(phone) : ''}?text=${encodeURIComponent(text)}`; if (win) win.location.href = u; else open(u, '_blank'); toast('Card downloaded — attach it in the WhatsApp chat', 5000); } }
+        logIt('whatsapp'); closeModal(); toast(`✓ Review request sent${name ? ' to ' + name : ''}`); } catch (e) { fail(e); } };
+    $('#rvShare').onclick = async () => { if (!png) await redraw(); const { p, name } = cur(); await shareBin(fileName(), 'image/png', png, 'Google review'); logIt('share'); };
+    $('#rvPrint').onclick = async () => { const { p } = cur(); const card = await reviewCard(p, '', 'print'); const u = URL.createObjectURL(new Blob([card], { type: 'image/png' }));
+      let pa = $('#printArea'); if (!pa) { pa = document.createElement('div'); pa.id = 'printArea'; document.body.appendChild(pa); }
+      if (window.YamieStock?.shareData) return window.YamieStock.shareData('Yamie-review-counter-card.png', 'image/png', b64of(card), true);
+      pa.innerHTML = `<img src="${u}" style="width:100%;max-width:120mm;display:block;margin:0 auto">`; const im = pa.querySelector('img'); im.onload = () => { document.body.classList.add('printing'); setTimeout(() => { print(); setTimeout(() => document.body.classList.remove('printing'), 500); }, 50); }; };
+    redraw(); setTimeout(() => $('#rvN')?.focus(), 50);
+  });
+}
 function pickShareLoc(list) {
   if (!list.length) return toast('No shop location saved yet — admin adds it in Documents');
   if (list.length === 1) return qrPng(mapUrlOf(list[0].place), 700).then((q) => shareLocation(list[0], q));
@@ -2482,6 +2565,7 @@ function docEdit(d) {
         <label class="f">Shop name on the location</label><input id="pN" value="${esc(d.place.name)}">
         <label class="f">Address *</label><textarea id="pA" rows="3" placeholder="Building, street, area, city, PIN">${esc(d.place.address)}</textarea>
         <label class="f">Landmark</label><input id="pL" value="${esc(d.place.landmark || '')}" placeholder="e.g. Opposite … / near …">
+ <label class="f">⭐ Google review link</label><input id="pR" value="${esc(d.place.reviewUrl || '')}" placeholder="Google Business Profile → Ask for reviews → copy link (g.page/r/…/review)">
         <label class="f">Google Maps link</label><input id="pU" value="${esc(d.place.mapUrl || '')}" placeholder="Paste from Google Maps → Share → Copy link">
         <div class="row wrap" style="gap:6px;margin-top:8px"><button type="button" class="btn sm sec" id="pGps">📡 Use my current location</button><span class="mut sm" id="pGpsT">${d.place.lat != null ? `GPS ${d.place.lat}, ${d.place.lng}` : 'Stand inside the shop and tap — or paste the Maps link'}</span></div>
         <div class="g2"><div><label class="f">Phone</label><input id="pP" type="tel" value="${esc(d.place.phone || '')}"></div><div><label class="f">Opening hours</label><input id="pH" value="${esc(d.place.hours || '')}" placeholder="e.g. Mon–Sat 10 am – 8 pm"></div></div>
@@ -2503,7 +2587,7 @@ function docEdit(d) {
         d.remind = +$('#xRem').value; d.remindOff = $('#xRemOff').checked;
         if ($('#xHold')) d.bank = { holder: $('#xHold').value.trim(), bank: $('#xBank').value.trim(), account: $('#xAc').value.replace(/\s/g, ''), ifsc: $('#xIfsc').value.trim().toUpperCase(), branch: $('#xBr').value.trim(), kind: $('#xKind').value };
         if ($('#xUpi')) d.upi = { id: $('#xUpi').value.trim(), name: $('#xUpn').value.trim(), gen: $('#xGen').checked }; else if (d.type !== 'UPI QR Code' && d.type !== 'Bank Account') d.upi = null;
-        if ($('#pA')) d.place = { ...d.place, name: $('#pN').value.trim(), address: $('#pA').value.trim(), landmark: $('#pL').value.trim(), mapUrl: $('#pU').value.trim(), phone: $('#pP').value.trim(), hours: $('#pH').value.trim() }; else if (d.type !== 'Shop Location') d.place = null;
+        if ($('#pA')) d.place = { ...d.place, name: $('#pN').value.trim(), address: $('#pA').value.trim(), landmark: $('#pL').value.trim(), mapUrl: $('#pU').value.trim(), reviewUrl: $('#pR').value.trim(), phone: $('#pP').value.trim(), hours: $('#pH').value.trim() }; else if (d.type !== 'Shop Location') d.place = null;
         if (d.type !== 'Bank Account') d.bank = null; d.issueDate = $('#xIss').value; d.expiry = $('#xExp').value; d.notes = $('#xNotes').value; };
       const qrPrev = async () => { const box = $('#xQr'); if (!box) return; const u = { id: $('#xUpi').value.trim(), name: $('#xUpn').value.trim() }; box.innerHTML = $('#xGen').checked && /.+@.+/.test(u.id) ? `<img src="${await qrPng(upiUri(u), 360)}" style="width:150px;margin-top:8px"><div class="mut sm">Test-scan before printing</div>` : ''; };
       if ($('#xUpi')) { ['#xUpi', '#xUpn', '#xGen'].forEach((x) => $(x).addEventListener('input', qrPrev)); $('#xGen').addEventListener('change', qrPrev); qrPrev(); }
@@ -2528,6 +2612,7 @@ function docEdit(d) {
         if (d.type === 'UPI QR Code' && !d.upi?.id && !d.files.length) return toast('Enter the UPI ID or upload the QR image');
         if (d.type === 'Shop Location' && !d.place?.address && !d.place?.mapUrl && d.place?.lat == null) return toast('Enter the address or the Google Maps link');
         if (d.type === 'Shop Location' && d.place?.mapUrl && !/^https?:\/\//i.test(d.place.mapUrl)) return toast('The Maps link should start with https://');
+        if (d.type === 'Shop Location' && d.place?.reviewUrl && !/^https?:\/\//i.test(d.place.reviewUrl)) return toast('The review link should start with https://');
         try { const r = await api('docs/save', { doc: d }); const i = S.docs.docs.findIndex((x) => x.id === r.doc.id); if (i >= 0) S.docs.docs[i] = r.doc; else S.docs.docs.push(r.doc); closeModal(); toast('Saved'); if (S.view === 'docs') drawDocs(); docView(r.doc.id); } catch (e) { fail(e); } };
       $('#xDel') && ($('#xDel').onclick = async () => { if (!confirm(`Delete “${d.title}” and its files? This cannot be undone.`)) return; try { await api('docs/delete', { id: d.id }); S.docs.docs = S.docs.docs.filter((x) => x.id !== d.id); closeModal(); toast('Deleted'); drawDocs(); } catch (e) { fail(e); } });
     });
