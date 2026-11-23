@@ -87,8 +87,6 @@ r = await save(St, { ...o, status: 'received', recv: o.recv.concat([{ wts: { i1:
 r = await save(M, { ...o, status: 'qc_ok', qc: o.qc.concat([{ ok: true, checks: { a: true, b: true } }]) }); ok(r.s === 200, 'QC approved');
 r = await save(St, { ...o, status: 'final', finals: [{ v: 1, total: 90000, needCust: true, varPct: 5.1 }] }); ok(r.s === 200, 'final price saved');
 r = await save(St, { ...o, status: 'final_ok' }); ok(r.s === 403, 'staff cannot approve final price');
-r = await save(M, { ...o, status: 'final_ok' }); ok(r.s === 400 && /OK/.test(r.d.error), 'final approval needs the customer OK');
-r = await save(St, { ...o, finals: [{ ...o.finals[0], cust: { ev: 'Replied OK' } }] }); ok(r.s === 200 && o.finals[0].cust.by === 'Anu', 'staff records customer OK (stamped)');
 r = await save(M, { ...o, status: 'final_ok' }); ok(r.s === 200 && o.finals[0].ok.by === 'Meera', 'final approved');
 r = await save(St, { ...o, status: 'ready' }); ok(r.s === 200 && o.readyAt, 'ready');
 r = await save(St, { ...o, status: 'closed', handover: { to: 'Test' } });

@@ -94,11 +94,11 @@ async function drawCard(spec) {
 }
 
 // How making is shown to the customer: 'type' (amount + VA %/₹ per g), 'amount' (amount only), 'hide' (inside the gold value).
-const MK_SHOW = [['type', 'Show amount and type (VA % / ₹ per g)'], ['amount', 'Show amount only'], ['hide', 'Hide (include in the gold value)']];
+const MK_SHOW = [['type', 'Show making type and amount'], ['amount', 'Show making amount only'], ['typeonly', 'Show making type only (amount in gold value)'], ['hide', 'Hide making (included in the gold value)']];
 const mkShowOf = (o) => (o && o.mkShow) || S.mkShow || 'type';
 const mkLabel = (it) => (it.mkMode === 'pg' ? `₹${num(it.mkPg)}/g` : it.mkMode === 'combo' ? `₹${num(it.mkPg)}/g + ${num(it.mk)}%` : it.mkMode === 'flat' ? `₹${num(it.mk)} flat` : `VA ${num(it.mk)}%`);
 /** Customer saving from a discount (discount + the GST on it). */
-const savingOf = (b) => (num(b && b.disc) ? Math.round(num(b.disc) * (1 + num(b.gstPct) / 100)) : 0);
+const savingOf = (b) => saveOfB(b);
 function itemRows(it, withPrice, line, mkShow) {
   const rows = [
     ['Design', (it.design === 'ours' ? 'Yamie design' : 'Customised') + (it.designNo ? ' #' + it.designNo : '') + ' · rev ' + (it.rev || 1)],
@@ -114,10 +114,12 @@ function itemRows(it, withPrice, line, mkShow) {
   rows.push([withPrice ? 'Approx. net weight' : 'Target net weight', g3(line ? line.wt : it.wt)]);
   if (withPrice && line) {
     const mk = line.making + line.va, ms = mkShow || 'type';
-    if (ms === 'hide') rows.push(['Gold value incl. making', rupee(line.metal + mk)]);
+    const fl = mkShowFlags(ms);
+    if (!fl.amt) rows.push([fl.type ? `Gold value incl. making (${mkLabel(it)})` : 'Gold value incl. making', rupee(line.metal + mk)]);
     else rows.push(['Gold value', rupee(line.metal) + ' @ ' + rupee(line.rate) + '/g']);
     if (line.stone) rows.push(['Stones', rupee(line.stone)]);
-    if (mk && ms !== 'hide') rows.push([ms === 'type' ? `Making (${mkLabel(it)})` : 'Making charges', rupee(mk)]);
+    if (mk && fl.amt) rows.push([fl.type ? `Making (${mkLabel(it)})` : 'Making charges', rupee(mk)]);
+    if (line.huid) rows.push([`HUID (${line.huidN} × ₹${num(S.huidRate)})`, rupee(line.huid)]);
     if (line.other) rows.push(['Other', rupee(line.other)]);
   } else if (!withPrice && it.prodNotes) rows.push(['Production notes', it.prodNotes]);
   return rows;
@@ -143,7 +145,7 @@ const allPhotos = (items) => items.reduce((a, it) => a.concat(it.photos || [], i
 async function shareCard(o, spec, phone, caption, label, after) {
   toast('Making the card…');
   let url;
-  try { url = await drawCard(spec); } catch (e) { return toast('Could not draw the card'); }
+  try { url = spec.draw ? await spec.draw() : await drawCard(spec); } catch (e) { console.error(e); return toast('Could not draw the card'); }
   if (NATIVE && NATIVE.shareWhatsApp) {
     try { NATIVE.shareWhatsApp(waDigits(phone), caption, JSON.stringify([url])); } catch (e) { NATIVE.shareWhatsApp(waDigits(phone), caption, '[]'); }
   } else {
@@ -201,15 +203,11 @@ function sendEstimate(id, v) {
   const o = orders.find((x) => x.id === id), est = v ? o.ests.find((e) => e.v === v) : lastOf(o.ests);
   const sv = savingOf(est);
   const cap = `Dear ${o.cust.name}, here is your Yamie estimate ${est.no || ''}: ${rupee(est.total)} incl. GST${sv ? ' (you save ' + rupee(sv) + ')' : ''}. Booking advance ${rupee(est.minAdv)}. Valid till ${dshort(est.valid)}. — ${S.shop}`;
-  shareCard(o, estimateSpec(o, est), o.cust.phone, cap, 'Estimate ' + (est.no || ''));
+  shareCard(o, { ref: est.no || 'Estimate', draw: () => cardEstimate(o, est) }, o.cust.phone, cap, 'Estimate ' + (est.no || ''));
 }
 function sendWorkOrder(id) {
   const o = orders.find((x) => x.id === id), v = o.vendor;
-  const spec = {
-    title: 'Work order', ref: o.ono || '', sub: `To ${v.name} · ETD ${dt(v.etd)}`, dark: true, photos: allPhotos(o.items).concat(v.photos || []),
-    sections: o.items.map((it, i) => [qtyName(it, i), vendorRows(it)]),
-    foot: ['BIS hallmark with HUID required.', 'Tell us about any weight or stone difference before dispatch.', `Quote ${o.ono} on the delivery challan.`],
-  };
+  const spec = { ref: o.ono || 'Work-order', draw: () => cardWork(o) };
   shareCard(o, spec, vendorPhone(v.name) || '', `Yamie work order ${o.ono} · ETD ${dt(v.etd)}`, 'Work order to ' + v.name, (x) => { if (!x.vendor.sentAt) x.vendor.sentAt = Date.now(); });
 }
 function sendFinal(id) {
@@ -227,18 +225,17 @@ function sendFinal(id) {
 }
 function sendReady(id, again) {
   const o = orders.find((x) => x.id === id), fin = lastOf(o.finals);
-  const spec = { title: 'Your order is ready', ref: o.ono, sub: o.cust.name, photos: allPhotos(o.items),
-    sections: [['Order', o.items.map((it, i) => [qtyName(it, i), purShort(it.purity) + ' · ' + it.colour])], ['Payment', [['Final price', rupee(fin.total)], ['Paid', rupee(verified(o))], ['Balance to pay', rupee(balance(o)), true]]]],
-    foot: [`Please visit us to collect it: ${S.shopAddr}.`, 'Bring this message and your advance receipt.'] };
-  const cap = `Dear ${o.cust.name}, your Yamie order ${o.ono} is ready for pickup. Balance ${rupee(balance(o))}. — ${S.shop}, ${S.shopPhone}`;
+  const spec = { ref: o.ono || 'Order-ready', draw: () => cardReady(o) };
+  const sv = savingOf(fin), sh = (fin && fin.shipInfo) || o.ship;
+  const cap = `Dear ${o.cust.name}, your Yamie order ${o.ono} is ready. Final price ${rupee(fin.total)} incl. GST${sv ? ' (you save ' + rupee(sv) + ')' : ''}. Balance ${rupee(balance(o))}.${sh ? ' We will ship it by ' + sh.by + ' once the balance is paid.' : ' Please visit us to collect it.'} — ${S.shop}, ${S.shopPhone2 || S.shopPhone}`;
   shareCard(o, spec, o.cust.phone, cap, 'Order ready', again ? null : (x) => { if (x.status === 'final_ok') x.status = 'ready'; });
 }
 
 function printEstimate(id) {
   const o = orders.find((x) => x.id === id), est = lastOf(o.ests);
-  const ms = mkShowOf(o), hideMk = ms === 'hide', save = savingOf(est);
+  const ms = mkShowOf(o), hideMk = !mkShowFlags(ms).amt, save = savingOf(est);
   const rows = est.items.map((it, i) => { const l = est.lines[i]; return `<tr><td>${i + 1}</td><td><b>${esc(it.product)}</b>${it.designNo ? ' #' + esc(it.designNo) : ''}<br>${esc(it.details || '')}${it.custom ? '<br>' + esc(it.custom) : ''}${(it.stones || []).map((s) => '<br>' + esc(stoneLabel(s.type) + ' ' + [s.shape, s.size, s.ct ? s.ct + ' ct' : '', s.quality].filter(Boolean).join(' '))).join('')}</td>
-    <td>${purShort(it.purity)} ${esc(it.colour)}</td><td class="r">${it.qty}</td><td class="r">${fmtN(l.wt)}</td><td class="r">${rupee(l.rate)}</td><td class="r">${rupee2(hideMk ? l.metal + l.making + l.va : l.metal)}</td><td class="r">${rupee2(l.stone)}</td>${hideMk ? '' : `<td class="r">${rupee2(l.making + l.va)}${ms === 'type' ? '<br><small>' + esc(mkLabel(it)) + '</small>' : ''}</td>`}<td class="r">${rupee2(l.sub)}</td></tr>`; }).join('');
+    <td>${purShort(it.purity)} ${esc(it.colour)}</td><td class="r">${it.qty}</td><td class="r">${fmtN(l.wt)}</td><td class="r">${rupee(l.rate)}</td><td class="r">${rupee2(hideMk ? l.metal + l.making + l.va : l.metal)}</td><td class="r">${rupee2(l.stone)}</td>${hideMk ? '' : `<td class="r">${rupee2(l.making + l.va)}${mkShowFlags(ms).type ? '<br><small>' + esc(mkLabel(it)) + '</small>' : ''}${l.mkSave ? '<br><small>was ' + rupee2(l.mkFull) + '</small>' : ''}</td>`}<td class="r">${rupee2(l.sub)}</td></tr>`; }).join('');
   const h = `<div class="pdoc"><table style="border:0"><tr><td style="border:0"><h1>${esc(S.shop)}</h1>${esc(S.shopAddr)}<br>${esc(S.shopPhone)} · GSTIN ${esc(S.gstin)}</td>
     <td style="border:0;text-align:right"><h1>Provisional estimate</h1><b>${esc(est.no || '')}${est.v > 1 ? ' v' + est.v : ''}</b><br>${dt(est.at)} · valid till ${dt(est.valid)}</td></tr></table>
     <p><b>Customer:</b> ${esc(o.cust.name)} · ${esc(o.cust.phone)}</p>

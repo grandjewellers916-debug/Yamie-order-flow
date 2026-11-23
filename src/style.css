@@ -160,3 +160,4 @@ details.sec .in{padding:0 12px 12px}
 .pcImg{display:flex;align-items:center;justify-content:center;height:150px;background:var(--blush);color:var(--muted);font-size:12px}
 .pcImg img{width:100%;height:100%;object-fit:cover}
 .designBox{background:var(--blush);border-radius:14px;padding:12px 12px 4px;margin-bottom:14px}
+.mkDisc{background:var(--blush);border-radius:12px;padding:10px 12px 2px;margin:4px 0 12px}.mkDisc>b{display:block;font-size:13px;margin-bottom:2px}

@@ -18,8 +18,7 @@ const REMS = [
   ['vendorFollow', 'Vendor follow-up due', '', 0, true],
   ['qc', 'QC inspection pending', '', 0, true],
   ['finalCalc', 'Calculate / approve final price', '', 0, true],
-  ['custOk', 'No customer OK on final price after', 'days', 1, true],
-  ['ready', 'Tell the customer the order is ready', '', 0, true],
+  ['ready', 'Send the order-ready card with the final price', '', 0, true],
   ['collect', 'Not collected warning after', 'days', 7, true, 'collectDays'],
   ['promise', 'Promised delivery date passed', '', 0, true],
 ];

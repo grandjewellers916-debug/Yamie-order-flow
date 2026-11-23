@@ -80,3 +80,13 @@ The page talks to `localStorage.yod_api` when set (tests set it to the local ser
 - /api/pc-order: per-item design 'custom' with cat, name, modelRef, purity, wt, size, custom, refs (data URLs, ≤4) ; help + helpNote → review to the design desk; index pcidx/<id>.
 - GET /api/pc-orders (x-shop-key): Price Check orders with status, totals, promise, help state — for the Orders section in Price Check.
 
+## V1.8 (23-11-2026)
+- New cards (src/js/12-cardsv2.js): cardEstimate (maroon), cardWork (purple, no prices), cardReady (light, with final price breakdown, savings, delivery). shareCard accepts {ref, draw}.
+- settings.verifyPay (default on): off = payments count at once (server stamps ok.auto).
+- Making on cards: mkShow 'type' | 'amount' | 'typeonly' | 'hide' (two ticks in Pricing & policy).
+- Making after discount: it.mkD (VA %) / it.mkPgD (₹/g); priceLine gives mkFull, mkSave; savings = (mkSave + discount) × (1 + GST). Discount limit counts mkSave.
+- HUID: it.huid pieces × settings.huidRate (₹80).
+- Delivery: settings.shipRates [{name, rate}]; final price sheet ships → fin.shipInfo {by, rate, addr}, o.ship; added before GST.
+- Final price → manager approves → "Order ready: send card with final price". Customer-OK step and final price card removed (server no longer needs finals[].cust).
+- Phones on cards: shopPhone (estimate), shopPhone2 + shopLandline (ready), woPhone (work order).
+

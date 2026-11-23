@@ -85,9 +85,8 @@ function tasksFor(o) {
   const fu = lastOf(o.fu);
   if (on('vendorFollow') && fu && fu.next && fu.next <= today() && stage(o) === 'ord' && ['vendor', 'production', 'rework'].includes(o.status)) t.push(['Vendor follow-up due', 'w', new Date(fu.next + 'T10:00:00').getTime()]);
   if (on('qc')) { if (o.status === 'received') t.push(['QC inspection pending', 'w', now]); if (o.status === 'qc_fail') t.push(['QC rejected · send for rework', 'r', now]); }
-  if (on('finalCalc')) { if (o.status === 'qc_ok') t.push(['Calculate final price', 'w', now]); if (o.status === 'final' && fin && fin.cust) t.push(['Final price to approve', 'w', now]); }
-  if (on('custOk') && o.status === 'final' && fin && !fin.cust) { const at = (fin.at || now) + n('custOk') * dayMs; t.push([now >= at ? 'No customer OK on final price · follow up' : 'Waiting for customer OK on final price', now >= at ? 'r' : 'w', at]); }
-  if (on('ready') && o.status === 'final_ok') t.push(['Tell the customer: ready', 'g', now]);
+  if (on('finalCalc')) { if (o.status === 'qc_ok') t.push(['Calculate final price', 'w', now]); if (o.status === 'final' && fin && can('approvefinal')) t.push(['Final price to approve', 'w', now]); }
+  if (on('ready') && o.status === 'final_ok') t.push(['Send the order-ready card with the final price', 'g', now]);
   if (on('collect') && o.status === 'ready' && o.readyAt && now - o.readyAt > n('collect') * dayMs) t.push(['Not collected for ' + Math.floor((now - o.readyAt) / dayMs) + ' days', 'r', o.readyAt + n('collect') * dayMs]);
   if (on('promise') && o.promise && stage(o) === 'ord' && today() > o.promise) t.push(['Promised delivery passed (' + dshort(o.promise) + ')', 'r', new Date(o.promise + 'T10:00:00').getTime()]);
   return t;

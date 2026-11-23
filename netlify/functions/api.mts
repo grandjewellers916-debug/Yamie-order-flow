@@ -26,7 +26,7 @@ const DEF_SETTINGS: any = {
   shopAddr: '63/322Aa Ground Level, Grand Business Center, K K Road, Kadavanthra, Ernakulam, Kerala 682020',
   rates: { k22: 0, k18: 0, k14: 0, k9: 0, pt: 0, ag: 0, at: 0, by: '', src: '', kioskAt: '' },
   kioskAuto: true, kioskUrl: 'https://grandjewellers.com/api/kiosk-rates',
-  gst: 3, minAdv: 20, roundTo: 50, finalRoundTo: 100, gems: null, lists: null, mkRules: [], mkShow: 'type', rem: {}, reviewDesks: [{ name: 'Owner / Admin', users: [] }, { name: 'Design desk', users: [] }], reviewTopics: ['Pricing', 'Making charge', 'Design style', 'Stones', 'Size / weight', 'Other'], mkOnStone: true, leadDays: 20, qcBuffer: 2, weeklyOff: [0], holidays: [],
+  gst: 3, minAdv: 20, roundTo: 50, finalRoundTo: 100, gems: null, lists: null, mkRules: [], mkShow: 'type', verifyPay: true, huidRate: 80, shipRates: [{ name: 'Courier (Kerala)', rate: 150 }, { name: 'Courier (rest of India)', rate: 300 }, { name: 'India Post (insured)', rate: 400 }], shopPhone2: '', shopLandline: '', woPhone: '', rem: {}, reviewDesks: [{ name: 'Owner / Admin', users: [] }, { name: 'Design desk', users: [] }], reviewTopics: ['Pricing', 'Making charge', 'Design style', 'Stones', 'Size / weight', 'Other'], mkOnStone: true, leadDays: 20, qcBuffer: 2, weeklyOff: [0], holidays: [],
   estValid: 7, tol: 2, discLimit: 0, karatRef: { k22: 32.6, k18: 28.4, k14: 24.3, k9: 18.7 },
   approveDays: 2, etdWarnDays: 2, collectDays: 7, autoLock: 20,
   priceCheckUrl: 'https://yamie-price-check.netlify.app', repairUrl: 'https://yamie-repair-desk.netlify.app',
@@ -200,7 +200,8 @@ function checkOrder(o: any, old: any, me: any, can: (p: string) => boolean, st: 
       if (!(num(p.amt) > 0)) throw new HttpError('Payment amount must be more than zero', 400);
       if (p.ref && (o.pays || []).some((q: any) => q !== p && q.kind === p.kind && q.ref && String(q.ref).toLowerCase() === String(p.ref).toLowerCase())) throw new HttpError(`A payment with reference "${p.ref}" is already recorded`, 400);
       p.by = me.name; p.at = now();
-      if (p.ok) { if (can('verify')) p.ok = { by: me.name, at: now() }; else p.ok = null; }
+      if (st.verifyPay === false) p.ok = { by: me.name, at: now(), auto: true };
+      else if (p.ok) { if (can('verify')) p.ok = { by: me.name, at: now() }; else p.ok = null; }
       continue;
     }
     if (!was.ok && p.ok) { need('verify', 'verify payments'); p.ok = { by: me.name, at: now() }; }
@@ -222,7 +223,7 @@ function checkOrder(o: any, old: any, me: any, can: (p: string) => boolean, st: 
   if (o.vendor && !can('viewcost')) o.vendor.cost = old?.vendor?.cost ?? null;
 
   // --- discount approval ---
-  if (num(o.disc) !== num(old?.disc)) o.discOk = null;
+  if (num(o.disc) !== num(old?.disc) || num(lastOf(o.ests)?.mkSave) !== num(lastOf(old?.ests || [])?.mkSave)) o.discOk = null;
   if (o.discOk && !old?.discOk) { need('discount', 'approve discounts'); o.discOk = { by: me.name, at: now() }; }
 
   // --- ETD moved: keep the customer promise realistic ---
@@ -247,7 +248,8 @@ function checkOrder(o: any, old: any, me: any, can: (p: string) => boolean, st: 
     });
     if (!est || !(num(est.total) > 0)) throw new HttpError('Estimate total missing', 400);
     const sub = num(est.sub);
-    if (num(o.disc) > 0 && !o.discOk && !can('discount') && sub > 0 && (num(o.disc) * 100) / sub > num(st.discLimit)) throw new HttpError('This discount needs manager approval', 403);
+    const dv = num(est.disc) + num(est.mkSave), full = sub + num(est.mkSave);
+    if (dv > 0 && !o.discOk && !can('discount') && full > 0 && (dv * 100) / full > num(st.discLimit)) throw new HttpError('This discount needs manager approval', 403);
     est.at = now(); est.by = me.name; est.valid = istDate(now() + num(st.estValid) * 864e5);
   }
   if (to === 'approved') {
@@ -292,7 +294,6 @@ function checkOrder(o: any, old: any, me: any, can: (p: string) => boolean, st: 
   if (to === 'final_ok') {
     const f = lastOf(o.finals);
     if (!f) throw new HttpError('Final price missing', 400);
-    if (!f.cust) throw new HttpError('Record the customer\'s OK on the final price first', 400);
     f.ok = { by: me.name, at: now() };
   }
   if (to === 'ready') {

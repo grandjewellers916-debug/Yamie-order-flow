@@ -44,11 +44,10 @@ function nextActions(o) {
   if (s === 'qc_ok') add('finalprice', 'Calculate final price', 'shFinal()', 'main');
   if (s === 'final') {
     const fin = lastOf(o.finals);
-    if (!fin.cust) { add('', 'Send final price card (ask for OK)', `sendFinal('${o.id}')`, 'main'); add('finalprice', 'Customer replied OK', 'shCustOk()'); }
-    add('approvefinal', 'Approve final price', 'shApproveFinal()', fin.cust ? 'main' : '');
+    add('approvefinal', 'Approve final price', 'shApproveFinal()', 'main');
     add('finalprice', 'Recalculate / discount', 'shFinal()');
   }
-  if (s === 'final_ok') add('ready', 'Tell customer: order ready', `sendReady('${o.id}')`, 'main');
+  if (s === 'final_ok') add('ready', 'Order ready: send card with final price', `sendReady('${o.id}')`, 'main');
   if (s === 'ready') {
     if (!o.inv) add('advance', 'Link ERP invoice', 'shInvoice()', 'main');
     if (o.inv && balance(o) > 1) add('advance', 'Record balance payment', "shPay('balance')", 'main');
@@ -158,7 +157,6 @@ function tabDocs(o) {
     ${(o.ests || []).slice().reverse().map((e) => `<button class="btn secondary" onclick="sendEstimate('${o.id}',${e.v})">Estimate ${esc(e.no || '')}${e.v > 1 ? ' v' + e.v : ''} · ${rupee(e.total)} — share</button>`).join('')}
     ${o.ests && o.ests.length ? `<button class="btn secondary" onclick="printEstimate('${o.id}')">Print / PDF estimate</button>` : ''}
     ${o.vendor ? `<button class="btn secondary" onclick="sendWorkOrder('${o.id}')">Vendor work order card (no prices)</button>` : ''}
-    ${lastOf(o.finals) ? `<button class="btn secondary" onclick="sendFinal('${o.id}')">Final price card</button>` : ''}
     ${['ready', 'closed'].includes(o.status) ? `<button class="btn secondary" onclick="sendReady('${o.id}',true)">Order ready card</button>` : ''}
   </div></div>
   <div class="card"><h3>Shared</h3><div class="log">${(o.log || []).filter((l) => /^Shared/.test(l.a)).reverse().map((l) => `<div><b>${esc(l.a)}</b><small>${dtt(l.t)} · ${esc(l.by)} · share opened, delivery not confirmed</small></div>`).join('') || '<p class="hint">Nothing shared yet.</p>'}</div></div>`;
@@ -203,10 +201,11 @@ function shPay(kind) {
     ${kind === 'advance' && est ? `<div class="choiceRow" style="margin:-4px 0 12px"><button class="chip" onclick="$('pyAmt').value=${Math.max(0, est.minAdv - verified(o, 'advance'))}">Minimum ${rupee(est.minAdv)}</button><button class="chip" onclick="$('pyAmt').value=${Math.max(0, est.lock - verified(o, 'advance'))}">Lock rate ${rupee(est.lock)}</button></div>` : ''}
     <div class="two"><div class="field"><label>Mode</label><select id="pyMode">${opt(['UPI', 'Cash', 'Card', 'Bank transfer', 'Old gold', 'Other'], 'UPI')}</select></div>
     <div class="field"><label>Receipt / UTR no.</label><input id="pyRef"></div></div>
-    <p class="hint">${can('verify') ? 'You can verify it at once.' : 'A manager verifies the payment before it counts toward the advance.'}</p>
-    <div class="actions"><button class="btn" onclick="doPay('${kind}',false)">Record</button>${can('verify') ? `<button class="btn ok" onclick="doPay('${kind}',true)">Record & verify</button>` : ''}</div>`);
+    ${S.verifyPay === false ? `<p class="hint">Payment verification is switched off: the payment counts at once.</p><button class="btn block" onclick="doPay('${kind}',true)">Record payment</button>` : `<p class="hint">${can('verify') ? 'You can verify it at once.' : 'A manager verifies the payment before it counts toward the advance.'}</p>
+    <div class="actions"><button class="btn" onclick="doPay('${kind}',false)">Record</button>${can('verify') ? `<button class="btn ok" onclick="doPay('${kind}',true)">Record & verify</button>` : ''}</div>`}`);
 }
 function doPay(kind, ok) {
+  if (S.verifyPay === false) ok = true;
   const amt = num(f('pyAmt')); if (!(amt > 0)) return toast('Enter the amount');
   step(cur.id, (o) => { o.pays = (o.pays || []).concat([{ id: uid(), kind, amt, mode: f('pyMode'), ref: f('pyRef'), ok: ok ? { by: me.name } : null }]); },
     `Payment recorded · ${kind} ${rupee2(amt)} ${f('pyMode')}${ok ? ' · verified' : ''}`, 'Payment recorded').then((r) => r && closeSheet());
@@ -356,47 +355,48 @@ function doRework() {
   const e = f('rwEtd');
   step(cur.id, (o) => { o.status = 'rework'; o.vendor.dispAt = null; if (e) o.vendor.etd = e; }, 'Sent for rework · ' + f('rwNote'), 'Sent for rework').then((r) => r && closeSheet());
 }
-function finalCalc(o, extra, disc) {
+function finalCalc(o, extra, disc, ship) {
   const lock = o.lock === 'full', rates = lock ? o.lockRates : S.rates;
   const rc = lastOf(o.recv) || {}, wts = rc.wts || {}, purs = rc.purs || {};
   const items = o.items.map((it) => Object.assign({}, it, { wt: wts[it.id] || it.wt, gwt: (rc.gwts || {})[it.id] || it.gwt, purity: purs[it.id] || it.purity }));
   const dsc = disc == null ? num(o.disc) : num(disc);
-  const b = priceOrder(items, rates, dsc, extra, null, num(S.finalRoundTo) || 100);
+  const sh = ship === undefined ? ((lastOf(o.finals) || {}).shipInfo || null) : ship;
+  const b = priceOrder(items, rates, dsc, extra, null, num(S.finalRoundTo) || 100, sh ? sh.rate : 0);
+  if (sh) { b.shipInfo = sh; b.shipBy = sh.by; }
   const est = lastOf(o.ests), v = b.total - num(est.total), pct = est.total ? Math.round(v * 10000 / est.total) / 100 : 0;
   const discPct = b.sub ? b.disc * 100 / b.sub : 0;
-  return Object.assign(b, { rates: clone(rates), items, discIn: dsc, discNeedsOk: b.disc > 0 && discPct > num(S.discLimit), basis: lock ? 'Gold rate locked at confirmation' : "Today's rate · " + dtt(S.rates.at),
+  const dv = b.disc + b.mkSave, dPct = (b.sub + b.mkSave) ? dv * 100 / (b.sub + b.mkSave) : 0;
+  return Object.assign(b, { rates: clone(rates), items, discIn: dsc, discNeedsOk: dv > 0 && dPct > num(S.discLimit), basis: lock ? 'Gold rate locked at confirmation' : "Today's rate · " + dtt(S.rates.at),
     estTotal: est.total, var: v, varPct: pct, needCust: Math.abs(pct) > num(S.tol) });
 }
 function shFinal() {
   const o = getO(), last = lastOf(o.finals);
   openSheet(`<h2>Final price</h2><p class="sub">${esc(finalCalc(o, 0).basis)} · actual weights${(lastOf(o.recv) || {}).purs ? ' and purity' : ''} from the receipt · rounded up to ₹${S.finalRoundTo || 100}.</p>
     <div class="two"><div class="field"><label>Additional approved charges ₹</label><input id="fnEx" inputmode="decimal" value="${last ? last.extra || '' : ''}" oninput="fnLive()"></div>
-    <div class="field"><label>Discount ₹</label><input id="fnDisc" inputmode="decimal" value="${last ? last.discIn || '' : num(o.disc) || ''}" oninput="fnLive()"></div></div>
+ <div class="field"><label>Extra discount ₹</label><input id="fnDisc" inputmode="decimal" value="${last ? last.discIn || '' : num(o.disc) || ''}" oninput="fnLive()"></div></div>
+    <label class="check"><input type="checkbox" id="fnShip" ${(last && last.shipInfo) || o.ship ? 'checked' : ''} onchange="$('fnShipBox').hidden=!this.checked;fnLive()"> Customer wants the item shipped (delivery charges added)</label>
+    <div id="fnShipBox" ${(last && last.shipInfo) || o.ship ? '' : 'hidden'}>
+      <div class="two"><div class="field"><label>Delivery by</label><select id="fnShipBy" onchange="const r=(S.shipRates||[]).find(x=>x.name===this.value);if(r)$('fnShipRate').value=r.rate;fnLive()">${opt((S.shipRates || []).map((r) => [r.name, r.name + ' · ₹' + r.rate]), ((last && last.shipInfo) || {}).by || ((S.shipRates || [])[0] || {}).name)}</select></div>
+        <div class="field"><label>Delivery charges ₹</label><input id="fnShipRate" inputmode="decimal" value="${((last && last.shipInfo) || {}).rate != null ? last.shipInfo.rate : ((S.shipRates || [])[0] || {}).rate || 0}" oninput="fnLive()"></div></div>
+      <div class="field"><label>Delivery address</label><textarea id="fnShipAddr" placeholder="Full address with PIN code">${esc(((last && last.shipInfo) || {}).addr || (o.cust || {}).addr || '')}</textarea></div></div>
     <div class="field"><label>Making charge on the customer card</label><select id="fnMk"><option value="">Default (${esc((MK_SHOW.find((m) => m[0] === (S.mkShow || 'type')) || [])[1] || '')})</option>${opt(MK_SHOW, o.mkShow || '')}</select></div>
     <div id="fnBox"></div>
     <button class="btn block" onclick="doFinal()">Save final price</button>`);
   fnLive();
 }
+const fnShipVal = () => ($('fnShip') && $('fnShip').checked ? { by: $('fnShipBy').value, rate: num($('fnShipRate').value), addr: f('fnShipAddr') } : null);
 function fnLive() {
-  const b = finalCalc(getO(), num(f('fnEx')), f('fnDisc'));
+  const b = finalCalc(getO(), num(f('fnEx')), f('fnDisc'), fnShipVal());
   $('fnBox').innerHTML = breakdownHtml(b, b.items, { label: 'Final price' }) + `<div class="kv"><span>Estimate</span><span>${rupee(b.estTotal)}</span></div>
     <div class="kv"><span>Difference</span><span class="${b.needCust ? 'overdue' : ''}">${b.var >= 0 ? '+' : ''}${rupee(b.var)} (${b.varPct}%)</span></div>
     ${b.discNeedsOk ? `<div class="warnBox">Discount is above the ${S.discLimit}% sales limit — the manager approves it with the final price.</div>` : ''}
-    <div class="okBox">Next: send the final price card and ask the customer to reply <b>OK</b>.</div>`;
+    <div class="okBox">Next: a manager approves the final price, then the "order ready" card with the final price goes to the customer.</div>`;
 }
 function doFinal() {
-  step(cur.id, (o) => { const b = finalCalc(o, num(f('fnEx')), f('fnDisc')); b.v = (o.finals || []).length + 1; b.at = Date.now(); o.finals = (o.finals || []).concat([b]); o.status = 'final'; o.mkShow = $('fnMk').value; },
-    'Final price calculated', 'Final price saved — send it to the customer').then((r) => r && closeSheet());
-}
-function shCustOk() {
-  const o = getO(), fin = lastOf(o.finals);
-  openSheet(`<h2>Customer's OK</h2><p class="sub">Final price ${rupee(fin.total)} for ${esc(o.cust.name)}.</p>
-    <div class="field"><label>How did they confirm? <i class="req">*</i></label><textarea id="coEv" placeholder="e.g. Replied 'OK' on WhatsApp at 11:20"></textarea></div>
-    <button class="btn block" onclick="doCustOk()">Record OK</button>`);
-}
-function doCustOk() {
-  if (!f('coEv')) return toast('Note how the customer confirmed');
-  step(cur.id, (o) => { lastOf(o.finals).cust = { ev: f('coEv') }; }, 'Customer OK on final price · ' + f('coEv'), 'Customer OK recorded').then((r) => r && closeSheet());
+  const sh = fnShipVal();
+  if (sh && !sh.addr) return toast('Enter the delivery address');
+  step(cur.id, (o) => { const b = finalCalc(o, num(f('fnEx')), f('fnDisc'), sh); o.ship = sh; b.v = (o.finals || []).length + 1; b.at = Date.now(); o.finals = (o.finals || []).concat([b]); o.status = 'final'; o.mkShow = $('fnMk').value; },
+    'Final price calculated' + (sh ? ' · delivery ' + sh.by + ' ₹' + sh.rate : ''), 'Final price saved').then((r) => r && closeSheet());
 }
 function shApproveFinal() {
   const o = getO(), fin = lastOf(o.finals);
@@ -404,8 +404,8 @@ function shApproveFinal() {
     <div class="kv"><span>Estimate · difference</span><span>${rupee(fin.estTotal)} · ${fin.var >= 0 ? '+' : ''}${fin.varPct}%</span></div>
     <div class="kv"><span>Verified paid · balance</span><span>${rupee(verified(o))} · ${rupee(Math.max(0, fin.total - verified(o)))}</span></div>
     ${fin.discNeedsOk ? `<div class="warnBox">Includes a discount of ${rupee(fin.disc)} above the ${S.discLimit}% sales limit — approving also approves the discount.</div>` : ''}
-    ${fin.cust ? `<div class="okBox">Customer OK: ${esc(fin.cust.ev)} · ${esc(fin.cust.by || '')} ${dtt(fin.cust.at)}</div>` : `<div class="badBox">No customer OK yet. Send the final price card and record their reply first.</div>`}
-    <div class="actions"><button class="btn secondary" onclick="sendFinal('${o.id}')">Send card</button><button class="btn" ${fin.cust ? '' : 'disabled'} onclick="doApproveFinal()">Approve</button></div>`);
+    ${fin.shipInfo ? `<div class="kv"><span>Ship to</span><span style="text-align:right">${esc(fin.shipInfo.addr)}</span></div>` : ''}
+    <button class="btn block" onclick="doApproveFinal()">Approve final price</button>`);
 }
 function doApproveFinal() {
   step(cur.id, (o) => { o.status = 'final_ok'; }, 'Final price approved' + (lastOf(getO().finals).discNeedsOk ? ' (with discount)' : ''), 'Final price approved').then((r) => r && closeSheet());

@@ -304,23 +304,30 @@ function wizPrice() {
       </div>
       <div class="actions" style="margin:-4px 0 10px"><button class="btn small soft" onclick="showMkHelper(${i})">Making charge helper${mkMatches(it).length ? ' (' + mkMatches(it).length + ')' : ''}</button>
         ${it.mkRule && !it.mkManual ? `<span class="hint" style="align-self:center;margin:0">Default from rule: ${esc(it.mkRule)}</span>` : it.mkManual && mkMatches(it)[0] ? `<button class="btn small secondary" onclick="wiz.o.items[${i}].mkManual=false;wizPrice()">Back to default</button>` : ''}</div>
-      <div class="field"><label>Other approved charges ₹ (this item)</label><input inputmode="decimal" value="${esc(it.other)}" oninput="setIt(${i},'other',this.value);priceLive()"></div>
+      <div class="mkDisc"><b>Discount on making</b><span class="hint" style="margin:0">Type the making after discount; the difference is shown to the customer as savings.</span>
+        <div class="two">${it.mkMode === 'pct' || it.mkMode === 'combo' ? `<div class="field"><label>VA % after discount</label><input inputmode="decimal" placeholder="${esc(it.mk)}" value="${esc(it.mkD == null ? '' : it.mkD)}" oninput="setIt(${i},'mkD',this.value);priceLive()"></div>` : ''}
+        ${it.mkMode === 'flat' ? `<div class="field"><label>₹ per piece after discount</label><input inputmode="decimal" placeholder="${esc(it.mk)}" value="${esc(it.mkD == null ? '' : it.mkD)}" oninput="setIt(${i},'mkD',this.value);priceLive()"></div>` : ''}
+        ${it.mkMode === 'pg' || it.mkMode === 'combo' ? `<div class="field"><label>₹ per gram after discount</label><input inputmode="decimal" placeholder="${esc(it.mkPg)}" value="${esc(it.mkPgD == null ? '' : it.mkPgD)}" oninput="setIt(${i},'mkPgD',this.value);priceLive()"></div>` : ''}</div>
+        <div id="mkSv${i}" class="hint" style="margin:0"></div></div>
+      <div class="two"><div class="field"><label>HUID charges (₹${num(S.huidRate)} per piece)</label><div class="wtRow" style="margin:0"><input inputmode="numeric" placeholder="0 pieces" value="${esc(it.huid || '')}" oninput="setIt(${i},'huid',this.value);priceLive()"><button class="btn small soft" onclick="setIt(${i},'huid',${Math.max(1, num(it.qty) || 1)});wizPrice()">${Math.max(1, num(it.qty) || 1)} pc</button></div></div>
+        <div class="field"><label>Other approved charges ₹</label><input inputmode="decimal" value="${esc(it.other)}" oninput="setIt(${i},'other',this.value);priceLive()"></div></div>
       <div id="kq${i}"></div>
     </div>`).join('')}
     <div class="card"><h3>Estimate</h3>
-      <div class="field"><label>Discount ₹</label><input inputmode="decimal" value="${esc(o.disc || '')}" oninput="wiz.o.disc=this.value;keepDraft();priceLive()"></div>
+      <div class="field"><label>Extra discount ₹ (on top of the making discount)</label><input inputmode="decimal" value="${esc(o.disc || '')}" oninput="wiz.o.disc=this.value;keepDraft();priceLive()"></div>
       <div class="field"><label>Making charge on the customer card</label><select onchange="wiz.o.mkShow=this.value;keepDraft()"><option value="">Default (${esc((MK_SHOW.find((m) => m[0] === (S.mkShow || 'type')) || [])[1] || '')})</option>${opt(MK_SHOW, o.mkShow || '')}</select></div>
       <div id="pTot"></div></div>`;
   priceLive();
 }
 function priceLive() {
   const o = wiz.o, b = priceOrder(o.items, S.rates, o.disc);
-  o.items.forEach((it, i) => { const el = $('kq' + i); if (el) el.innerHTML = karatTable(it, S.rates); });
-  const pct = b.sub ? num(o.disc) * 100 / b.sub : 0;
+  o.items.forEach((it, i) => { const el = $('kq' + i); if (el) el.innerHTML = karatTable(it, S.rates); const l = b.lines[i], sv = $('mkSv' + i);
+    if (sv) sv.innerHTML = l.mkSave ? `Making <s>${rupee(l.mkFull)}</s> → <b>${rupee(l.making + l.va)}</b> · customer saves <b style="color:var(--ok)">${rupee(Math.round(l.mkSave * (1 + num(S.gst) / 100)))}</b> incl. GST` : ''; });
+  const pct = (b.sub + b.mkSave) ? (num(o.disc) + b.mkSave) * 100 / (b.sub + b.mkSave) : 0;
   $('pTot').innerHTML = breakdownHtml(b, o.items) +
     `<div class="kv"><span>Booking advance (min ${S.minAdv}%)</span><span>${rupee(b.minAdv)}</span></div>
      <div class="kv"><span>Advance to lock the gold rate (metal value)</span><span>${rupee(b.lock)}</span></div>` +
-    (num(o.disc) > 0 && pct > num(S.discLimit) && !can('discount') ? '<div class="warnBox">This discount is above the sales limit. A manager must approve it before the estimate can be issued.</div>' : '');
+    ((num(o.disc) > 0 || b.mkSave > 0) && pct > num(S.discLimit) && !can('discount') ? '<div class="warnBox">This discount is above the sales limit. A manager must approve it before the estimate can be issued.</div>' : '');
 }
 
 // ---------------- 4. review ----------------

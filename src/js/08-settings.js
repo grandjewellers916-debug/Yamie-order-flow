@@ -76,7 +76,11 @@ function subPolicy() {
   $('subBody').innerHTML = `
     <div class="card"><h3>Pricing</h3><div class="field">${inp('gst', 'GST %')}</div>
       <div class="two">${['roundTo', 'finalRoundTo'].map((k) => `<div class="field"><label>${k === 'roundTo' ? 'Estimates: round up to next ₹' : 'Final price: round up to next ₹'}</label><select id="po_${k}">${[1, 10, 50, 100, 500].map((v) => `<option value="${v}" ${num(s[k] || (k === 'finalRoundTo' ? 100 : 50)) === v ? 'selected' : ''}>${v === 1 ? 'No rounding' : '₹' + v}</option>`).join('')}</select></div>`).join('')}</div>
-      <div class="field"><label>Making charge on customer cards & print (default)</label><select id="po_mkShow">${opt(MK_SHOW, s.mkShow || 'type')}</select><p class="hint">Staff can change it for each estimate / final price.</p></div>
+      <div class="field"><label>Making charge on customer cards & print (default)</label>
+        <label class="check" style="margin:4px 0"><input type="checkbox" id="po_mkT" ${mkShowFlags(s.mkShow || 'type').type ? 'checked' : ''}><span>Show the making type (VA % / ₹ per gram)</span></label>
+        <label class="check" style="margin:4px 0"><input type="checkbox" id="po_mkA" ${mkShowFlags(s.mkShow || 'type').amt ? 'checked' : ''}><span>Show the making amount (otherwise it is included in the gold value)</span></label>
+        <p class="hint">Staff can change it for each estimate / final price.</p></div>
+      <div class="two">${inp('huidRate', 'HUID charge ₹ per piece')}<div class="field"><label>Payments</label><label class="check" style="margin:6px 0"><input type="checkbox" id="po_verifyPay" ${s.verifyPay !== false ? 'checked' : ''}><span>Manager must verify each payment</span></label></div></div>
       <label class="check"><input type="checkbox" id="po_mkOnStone" ${s.mkOnStone ? 'checked' : ''}><span>VA / making % applies to metal + stone (Price Check / Yamie workbook). Untick for metal only.</span></label>
       <div class="two">${inp('discLimit', 'Sales discount limit % (above needs manager)')}${inp('tol', 'Final price tolerance ±%')}</div>
       <p class="hint">Karat reference weights (same design in each karat; from the Karat Converter bangle):</p>
@@ -86,18 +90,27 @@ function subPolicy() {
       <div class="two">${inp('estValid', 'Estimate valid (days)')}${inp('qcBuffer', 'Receiving + QC days after ETD')}</div>
       <div class="field"><label>Weekly off</label><div class="choiceRow">${days.map((d, i) => `<button class="chip ${_off.includes(i) ? 'active' : ''}" onclick="this.classList.toggle('active');_off=_off.includes(${i})?_off.filter(x=>x!==${i}):_off.concat(${i})">${d}</button>`).join('')}</div></div>
       <div class="field"><label>Holidays</label><div class="choiceRow" id="holL"></div><div class="two" style="margin-top:8px"><input type="date" id="holD" class="search" style="margin:0"><button class="btn small soft" onclick="if($('holD').value&&!_hol.includes($('holD').value)){_hol.push($('holD').value);_hol.sort();holList()}">Add holiday</button></div></div></div>
+    <div class="card"><h3>Delivery charges</h3><p class="sub">Rates you pay the courier / post office. Staff pick one when the customer wants the item shipped; the charge is added to the final price.</p><div id="shipL"></div>
+      <button class="btn small soft" onclick="_ship.push({name:'',rate:''});shipList()">+ Add provider / rate</button></div>
     <div class="card"><h3>Security</h3><div class="two">${inp('autoLock', 'Auto-lock after (minutes, 0 = off)')}</div><p class="hint">Reminder timings are in More → Reminders.</p></div>
     <div class="card"><h3>Shop details (on cards & print)</h3>
-      ${['shop', 'shopPhone', 'gstin', 'shopAddr', 'priceCheckUrl', 'repairUrl'].map((k) => `<div class="field"><label>${({ shop: 'Shop name', shopPhone: 'Phone', gstin: 'GSTIN', shopAddr: 'Address', priceCheckUrl: 'Price Check link', repairUrl: 'Repair Desk link' })[k]}</label><input id="po_${k}" value="${esc(s[k])}"></div>`).join('')}</div>
+      ${SHOP_KEYS.map((k) => `<div class="field"><label>${SHOP_LBL[k]}</label><input id="po_${k}" value="${esc(s[k] || '')}"></div>`).join('')}</div>
     <button class="btn block" onclick="savePolicy()">Save settings</button>`;
-  holList();
+  holList(); window._ship = clone(s.shipRates || []); shipList();
+}
+const SHOP_KEYS = ['shop', 'shopPhone', 'shopPhone2', 'shopLandline', 'woPhone', 'gstin', 'shopAddr', 'priceCheckUrl', 'repairUrl'];
+const SHOP_LBL = { shop: 'Shop name', shopPhone: 'WhatsApp on estimate cards', shopPhone2: 'WhatsApp on "order ready" cards (two numbers: separate with  | )', shopLandline: 'Landline on "order ready" cards', woPhone: 'Phone on vendor work orders', gstin: 'GSTIN', shopAddr: 'Address', priceCheckUrl: 'Price Check link', repairUrl: 'Repair Desk link' };
+function shipList() {
+  $('shipL').innerHTML = _ship.map((r, i) => `<div class="two" style="margin-bottom:8px"><input value="${esc(r.name)}" placeholder="Provider / zone, e.g. DTDC Kerala" oninput="_ship[${i}].name=this.value"><div class="wtRow" style="margin:0"><input inputmode="decimal" value="${esc(r.rate)}" placeholder="₹" oninput="_ship[${i}].rate=this.value"><button class="btn small danger" onclick="_ship.splice(${i},1);shipList()">✕</button></div></div>`).join('') || '<p class="hint">No delivery rates yet.</p>';
 }
 function holList() { $('holL').innerHTML = _hol.map((h) => `<button class="chip" onclick="_hol=_hol.filter(x=>x!=='${h}');holList()">${dshort(h)} ✕</button>`).join('') || '<span class="hint">None</span>'; }
 function savePolicy() {
   const st = clone(S);
-  ['gst', 'roundTo', 'finalRoundTo', 'discLimit', 'tol', 'minAdv', 'leadDays', 'estValid', 'qcBuffer', 'autoLock'].forEach((k) => { st[k] = num($('po_' + k).value); });
-  ['shop', 'shopPhone', 'gstin', 'shopAddr', 'priceCheckUrl', 'repairUrl'].forEach((k) => { st[k] = $('po_' + k).value.trim(); });
-  st.mkOnStone = $('po_mkOnStone').checked; st.mkShow = $('po_mkShow').value; st.karatRef22Weighed = $('po_k22w').checked;
+  ['gst', 'roundTo', 'finalRoundTo', 'discLimit', 'tol', 'minAdv', 'leadDays', 'estValid', 'qcBuffer', 'autoLock', 'huidRate'].forEach((k) => { st[k] = num($('po_' + k).value); });
+  SHOP_KEYS.forEach((k) => { st[k] = $('po_' + k).value.trim(); });
+  const mT = $('po_mkT').checked, mA = $('po_mkA').checked;
+  st.mkOnStone = $('po_mkOnStone').checked; st.mkShow = mT && mA ? 'type' : mA ? 'amount' : mT ? 'typeonly' : 'hide'; st.verifyPay = $('po_verifyPay').checked;
+  st.shipRates = _ship.filter((r) => String(r.name).trim()).map((r) => ({ name: String(r.name).trim(), rate: num(r.rate) })); st.karatRef22Weighed = $('po_k22w').checked;
   ['k22', 'k18', 'k14', 'k9'].forEach((k) => { st.karatRef[k] = num($('kr_' + k).value) || st.karatRef[k]; });
   if (_off.length >= 7) return toast('Keep at least one working day');
   st.weeklyOff = _off; st.holidays = _hol;
