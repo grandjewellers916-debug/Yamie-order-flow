@@ -389,7 +389,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.39';
+const VERSION = '1.40';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -1567,8 +1567,12 @@ function rpBuild(P) {
   const L = rpLines(P); const T = (title, cols, rows) => ({ title, cols, rows });
   if (P.type === 'locs') {
     const all = LCOLS.filter((c) => !c.secs || P.sec === 'all' || c.secs.includes(P.sec)); const keys = P.cols || colCfg().order.filter((k) => !colCfg().hidden.includes(k));
-    const cols = keys.map((k) => all.find((c) => c.k === k)).filter(Boolean); const lineOn = P.f.jt.length || P.f.i.length || P.f.p.length;
+    let cols = keys.map((k) => all.find((c) => c.k === k)).filter(Boolean); const lineOn = P.f.jt.length || P.f.i.length || P.f.p.length;
     const pcs = (l) => lineOn ? L.filter((r) => r.locId === l.id).reduce((a, r) => a + r.exp, 0) : sumLines(expOf(l.id).lines);
+    // v1.40 items split into one column per item type (count in each location); turn off with "Items in one column"
+    if (P.itemCols !== false && cols.some((c) => c.k === 'items')) { const LL = rpLocs(P); const cnt = (l, it) => lineOn ? L.filter((r) => r.locId === l.id && r.item === it).reduce((a, r) => a + r.exp, 0) : heldOf(l).filter(([k]) => itemOf(k) === it).reduce((a, [, n]) => a + n, 0);
+      const its = rdOrder('item', [...new Set(LL.flatMap((l) => lineOn ? L.filter((r) => r.locId === l.id && r.exp).map((r) => r.item) : heldOf(l).map(([k]) => itemOf(k))))]);
+      const ic = its.map((it) => ({ k: 'it:' + it, t: it, num: true, v: (l) => cnt(l, it) })); const ix = cols.findIndex((c) => c.k === 'items'); cols = [...cols.slice(0, ix), ...ic, ...cols.slice(ix + 1)]; }
     const val = (c, l) => c.k === 'pcs' ? pcs(l) : c.k === 'name' && l.boxNo && !keys.includes('boxNo') && !l.name.includes(l.boxNo) ? `${l.name} (${l.boxNo})` : c.v(l);
     const locs = rpLocs(P).sort(byPlace); const rows = [];
     const sumRow = (lab, ls, cls) => ({ cls, cells: cols.map((c, i) => i === 0 ? lab : c.num ? ls.reduce((a, l) => a + (+val(c, l) || 0), 0) : '') });
@@ -1620,7 +1624,7 @@ function vReports() {
     ${msel('pl', 'Sub location', opts((r) => placeOf(S.locById[r.locId]), (v) => rdOrder('place', v)), F.pl, 'All sub locations')}
     ${msel('i', 'Item', opts((r) => r.item, (v) => rdOrder('item', v)), F.i, 'All items')}
     ${msel('p', 'Purity', opts((r) => r.purity || 'Not set', (v) => rdOrder('purity', v)), F.p, 'All purities')}
-    ${P.type === 'locs' ? `<div class="grow" data-fk="cols"><label class="f" style="margin-top:0">Columns</label>${colsBox}</div><label class="ck" data-fk="grp" style="align-self:flex-end"><input type="checkbox" id="rpGrp" ${P.group ? 'checked' : ''}> Group by main location</label>` : ''}
+    ${P.type === 'locs' ? `<div class="grow" data-fk="cols"><label class="f" style="margin-top:0">Columns</label>${colsBox}</div><label class="ck" data-fk="grp" style="align-self:flex-end"><input type="checkbox" id="rpGrp" ${P.group ? 'checked' : ''}> Group by main location</label><label class="ck" data-fk="icol" style="align-self:flex-end"><input type="checkbox" id="rpIc" ${P.itemCols !== false ? 'checked' : ''}> Items as columns</label>` : ''}
     ${P.type === 'place' ? `<div class="grow" data-fk="pcol"><label class="f" style="margin-top:0">Columns</label><select id="rpPcol"><option value="place" ${P.pcol === 'place' ? 'selected' : ''}>Sub locations</option><option value="area" ${P.pcol === 'area' ? 'selected' : ''}>Main locations</option></select></div><label class="ck" data-fk="purs" style="align-self:flex-end"><input type="checkbox" id="rpPurs" ${P.purs ? 'checked' : ''}> Purity rows</label>` : ''}
     ${P.type === 'custom' ? `<div class="grow" data-fk="saved"><label class="f" style="margin-top:0">Saved report</label><select id="rpSaved"><option value="">— build below —</option>${saved.map((r, i) => `<option value="${i}" ${P.saved === String(i) ? 'selected' : ''}>★ ${esc(r.name)}</option>`).join('')}</select></div>
       ${P.saved === '' ? ['r', 'r2', 'c'].map((k) => `<div class="grow" data-fk="${k}"><label class="f" style="margin-top:0">${{ r: 'Rows', r2: 'Then by', c: 'Columns' }[k]}</label><select data-cr="${k}">${k !== 'r' ? '<option value="">— none —</option>' : ''}${Object.entries(RDIM).map(([d, n]) => `<option value="${d}" ${P.cr[k] === d ? 'selected' : ''}>${n}</option>`).join('')}</select></div>`).join('') + `<div class="grow" data-fk="m"><label class="f" style="margin-top:0">Show</label><select data-cr="m">${Object.entries(RMEAS).map(([d, n]) => `<option value="${d}" ${P.cr.m === d ? 'selected' : ''}>${n}</option>`).join('')}</select></div><div data-fk="sv" style="align-self:flex-end"><button class="btn ghost" id="rpSave">★ Save</button></div>` : `<div data-fk="del" style="align-self:flex-end"><button class="btn ghost" id="rpDel" style="color:var(--bad)">🗑 Delete</button></div>`}` : ''}
@@ -1637,6 +1641,7 @@ function vReports() {
   bindMsel($('#main'), (k) => k === 'cols' ? (P.cols || colCfg().order.filter((x) => !colCfg().hidden.includes(x))) : F[k], (k, v) => { if (k === 'cols') P.cols = ['name', ...v.filter((x) => x !== 'name')]; else F[k] = v; re(); });
   $('#rpSec') && ($('#rpSec').onchange = () => { P.sec = $('#rpSec').value; re(); });
   $('#rpGrp') && ($('#rpGrp').onchange = () => { P.group = $('#rpGrp').checked; re(); });
+  $('#rpIc') && ($('#rpIc').onchange = () => { P.itemCols = $('#rpIc').checked; re(); });
   $('#rpPcol') && ($('#rpPcol').onchange = () => { P.pcol = $('#rpPcol').value; re(); });
   $('#rpPurs') && ($('#rpPurs').onchange = () => { P.purs = $('#rpPurs').checked; re(); });
   $('#rpSaved') && ($('#rpSaved').onchange = () => { P.saved = $('#rpSaved').value; re(); });
