@@ -2,7 +2,7 @@
 // Grand module — vendor orders for Grand Jewellers (permission: grand; lists: grandcfg)
 // ======================================================================
 const GDEF = {
-  staff: [], copyTo: [], vendors: [],
+  staff: [], recvStaff: [], qcStaff: [], markStaff: [], labelStaff: [], packStaff: [], copyTo: [], vendors: [],
   purities: [{ name: '22K (916)', std: true }, { name: '18K (750)' }, { name: '14K (585)' }],
   items: [
     { name: 'Ring', sizes: ['8', '10', '12', '14', '16', '18', '20'], models: [] },
@@ -20,7 +20,7 @@ const GC = () => Object.assign(clone(GDEF), S.grand || {});
 const gItem = (name) => GC().items.find((i) => i.name === name) || { name, sizes: [], models: [] };
 const gVendors = () => { const v = GC().vendors.filter((x) => x.name); return v.length ? v : vendors.filter((x) => x.active !== false).map((x) => ({ name: x.name, phone: x.phone })); };
 const gStdPur = () => { const p = GC().purities; return (p.find((x) => x.std) || p[0] || { name: '' }).name; };
-const G_ST = { sent: ['Sent', 'b'], received: ['Received', 'g'], cancelled: ['Cancelled', 'r'] };
+const G_ST = { sent: ['Sent to vendor', 'b'], partial: ['Incomplete · items pending', 'w'], received: ['Received · in work', 'v'], closed: ['Closed', 'g'], cancelled: ['Cancelled', 'r'] };
 let gOrders = [], gLoaded = 0, GF = null, gQ = '', gFil = '';
 
 async function gLoad(force) {
@@ -35,16 +35,16 @@ function renderGrand() {
   if (!can('grand')) { $('vGrand').innerHTML = '<p class="hint">Your role does not have the Grand module.</p>'; return; }
   if (GF) return gForm();
   const q = gQ.toLowerCase();
-  const pass = (o) => (!gFil || (gFil === 'urgent' ? gUrgent(o) && o.status === 'sent' : o.status === gFil)) &&
+  const pass = (o) => (!gFil || (gFil === 'urgent' ? gUrgent(o) && ['sent', 'partial'].includes(o.status) : o.status === gFil)) &&
     (!q || [o.no, o.vendor, o.by, o.type === 'custom' ? 'customised' : 'stock'].concat((o.lines || []).map((l) => l.item + ' ' + l.model)).join(' ').toLowerCase().includes(q));
-  const list = gOrders.filter(pass), cnt = (f) => gOrders.filter((o) => !f || (f === 'urgent' ? gUrgent(o) && o.status === 'sent' : o.status === f)).length;
+  const list = gOrders.filter(pass), cnt = (f) => gOrders.filter((o) => !f || (f === 'urgent' ? gUrgent(o) && ['sent', 'partial'].includes(o.status) : o.status === f)).length;
   $('vGrand').innerHTML = `<div class="gHead"><img src="${LOGO.gMarkK}" alt=""><div><p class="kicker" style="margin:0">Order management</p><h1 class="h1" style="margin:0">Grand orders</h1></div></div>
     <p class="sub">Vendor orders for Grand Jewellers. Each order makes an image card for the vendor, with a copy to the Grand order staff.</p>
     <div class="actions" style="margin:0 0 10px"><button class="btn" onclick="gNew()">+ New Grand order</button>${can('grandcfg') || can('settings') ? '<button class="btn secondary" onclick="openSub(\'grand\')">Grand lists</button>' : ''}</div>
     <input class="search" placeholder="Search GJO no., vendor, item, model" value="${esc(gQ)}" oninput="gQ=this.value;renderGrand();const e=$('vGrand').querySelector('.search');e.focus();e.setSelectionRange(e.value.length,e.value.length)">
-    <div class="filters">${[['', 'All'], ['urgent', '🚨 Emergency'], ['sent', 'Sent'], ['received', 'Received'], ['cancelled', 'Cancelled']].map(([k, l]) => `<button class="chip ${gFil === k ? 'active' : ''}" onclick="gFil='${k}';renderGrand()">${l}<em>${cnt(k)}</em></button>`).join('')}</div>
-    ${list.length ? list.map((o) => `<button class="row" onclick="gShow('${o.id}')"><span style="flex:1;min-width:0"><b>${esc(o.no)} · ${esc(o.vendor)}</b>${gUrgent(o) && o.status === 'sent' ? ' <span class="badge r">EMERGENCY</span>' : ''}<br>
-      <small class="hint" style="margin:0">${o.type === 'custom' ? 'Customised' : 'Regular stock'} · ${o.qty} pc · ${fmtN(o.wt)} g · ${esc(o.purity || '')} · by ${esc(o.by)} · ${dshort(o.at)}${gDue(o) ? ' · due ' + dshort(gDue(o)) : ''}</small></span>
+    <div class="filters">${[['', 'All'], ['urgent', '🚨 Emergency'], ['sent', 'Sent'], ['partial', 'Incomplete'], ['received', 'In work'], ['closed', 'Closed'], ['cancelled', 'Cancelled']].map(([k, l]) => `<button class="chip ${gFil === k ? 'active' : ''}" onclick="gFil='${k}';renderGrand()">${l}<em>${cnt(k)}</em></button>`).join('')}</div>
+    ${list.length ? list.map((o) => `<button class="row" onclick="gShow('${o.id}')"><span style="flex:1;min-width:0"><b>${esc(o.no)} · ${esc(o.vendor)}</b>${gUrgent(o) && ['sent', 'partial'].includes(o.status) ? ' <span class="badge r">EMERGENCY</span>' : ''}<br>
+      <small class="hint" style="margin:0">${o.type === 'custom' ? 'Customised' : 'Regular stock'} · ${o.qty} pc · ${fmtN(o.wt)} g · ${esc(o.purity || '')} · by ${esc(o.by)} · ${dshort(o.at)}${gDue(o) ? ' · due ' + dshort(gDue(o)) : ''}${o.status === 'partial' ? ' · <b>' + gPendAll(o) + ' pc pending</b>' : ''}${(o.batches || []).some((b) => !['sent', 'failed'].includes(b.stage)) ? ' · ' + esc(G_STAGE[(o.batches || []).find((b) => !['sent', 'failed'].includes(b.stage)).stage]) : ''}</small></span>
       <span class="badge ${G_ST[o.status][1]}">${G_ST[o.status][0]}</span></button>`).join('') : `<div class="empty"><b>∅</b>${gLoaded ? 'No Grand orders yet.' : 'Loading…'}</div>`}`;
 }
 
@@ -161,11 +161,13 @@ async function gSave() {
 async function gShow(id, send) {
   const o = gOrders.find((x) => x.id === id); if (!o) return;
   openSheet(`<h2>${esc(o.no)} <span class="badge ${G_ST[o.status][1]}">${G_ST[o.status][0]}</span></h2><p class="sub">${esc(o.vendor)} · ${o.qty} pc · ${fmtN(o.wt)} g · by ${esc(o.by)} · ${dt(o.at)}</p>
+    ${o.status !== 'cancelled' ? gWorkHtml(o) : ''}
+    <details class="sec" ${(o.batches || []).length ? '' : 'open'}><summary>Order card</summary><div class="in">
     <label class="check" style="margin:0 0 8px"><input type="checkbox" ${o.photos !== false ? 'checked' : ''} onchange="gPhotos('${id}',this.checked)"><span>Show item photos on the card</span></label>
     <div id="gCardBox"><p class="hint">Making the card…</p></div>
     <div class="actions" style="flex-wrap:wrap">${o.vphone ? `<button class="btn ok" onclick="gSend('${id}','vendor')">Send to vendor · ${esc(o.vendor)}</button>` : `<p class="hint">No WhatsApp number for ${esc(o.vendor)} — add it in Grand lists or Vendors. You can still download the card.</p>`}
-      ${GC().copyTo.filter((x) => x.phone).map((x, k) => `<button class="btn secondary" onclick="gSend('${id}',${k})">Copy to ${esc(x.name || x.phone)}</button>`).join('')}</div>
-    <div class="actions" style="flex-wrap:wrap">${o.status === 'sent' ? `<button class="btn small soft" onclick="gEdit('${id}')">Edit</button><button class="btn small soft" onclick="gStatus('${id}','received')">Mark received</button><button class="btn small secondary" onclick="gStatus('${id}','cancelled')">Cancel order</button>` : `<button class="btn small soft" onclick="gStatus('${id}','sent')">Re-open</button>`}
+      ${GC().copyTo.filter((x) => x.phone).map((x, k) => `<button class="btn secondary" onclick="gSend('${id}',${k})">Copy to ${esc(x.name || x.phone)}</button>`).join('')}</div></div></details>
+    <div class="actions" style="flex-wrap:wrap">${o.status === 'sent' && !(o.batches || []).length ? `<button class="btn small soft" onclick="gEdit('${id}')">Edit</button>` : ''}${['sent', 'partial'].includes(o.status) && !(o.batches || []).length ? `<button class="btn small secondary" onclick="gStatus('${id}','cancelled')">Cancel order</button>` : ''}${o.status === 'cancelled' ? `<button class="btn small soft" onclick="gStatus('${id}','sent')">Re-open</button>` : ''}
       ${me.role === 'admin' || can('delete') ? `<button class="btn small danger" onclick="gDelete('${id}')">Delete</button>` : ''}</div>
     <details class="sec"><summary>History</summary><div class="in">${(o.log || []).slice().reverse().map((l) => `<div class="kv"><span>${esc(l.t)}</span><span>${esc(l.by)} · ${dshort(l.at)}</span></div>`).join('')}</div></details>`);
   try { window._gCard = { id, url: await gCard(o) }; if ($('gCardBox')) $('gCardBox').innerHTML = `<img src="${window._gCard.url}" style="width:100%;border-radius:12px;border:1px solid var(--line)" alt=""><a class="btn small secondary" style="margin-top:8px;display:inline-block;text-decoration:none" href="${window._gCard.url}" download="${esc(o.no)}.jpg">Download card</a>`; }
@@ -191,7 +193,7 @@ async function gPhotos(id, on) {
 async function gStatus(id, st) {
   const o = gOrders.find((x) => x.id === id); if (!o) return;
   if (st === 'cancelled' && !confirm('Cancel ' + o.no + '?')) return;
-  try { const d = await api('grand/save', { o: Object.assign(clone(o), { status: st }), log: 'Status: ' + G_ST[st][0] }); gOrders = gOrders.map((x) => (x.id === id ? d.o : x)); closeSheet(); renderGrand(); toast(G_ST[st][0]); } catch (e) { toast(e.message); }
+  try { const d = await api('grand/save', { o: Object.assign(clone(o), { status: st }), log: st === 'cancelled' ? 'Cancelled' : 'Re-opened' }); gOrders = gOrders.map((x) => (x.id === id ? d.o : x)); closeSheet(); renderGrand(); toast(G_ST[st][0]); } catch (e) { toast(e.message); }
 }
 async function gDelete(id) {
   const o = gOrders.find((x) => x.id === id); if (!o || !confirm('Delete ' + o.no + ' for good?')) return;
@@ -279,6 +281,7 @@ function subGrand() {
   $('subBody').innerHTML = `<div class="gHead"><img src="${LOGO.gMarkK}" alt=""><h1 class="h1" style="margin:0">Grand lists</h1></div>
     ${edit ? '' : '<div class="warnBox">Only roles with "Edit Grand module lists" can change these.</div>'}
     <div class="card"><h3>Order sent by — staff names</h3>${arr('staff', 'Staff name')}</div>
+    <div class="card"><h3>Work staff (after the vendor delivers)</h3><p class="sub">The first name in each list is the main person and is picked by default.</p>${G_ROLES.map(([k, l]) => `<div class="field"><label>${l}</label>${arr(k, 'Staff name')}</div>`).join('')}</div>
     <div class="card"><h3>Copy to Grand order staff (WhatsApp)</h3><p class="sub">Each order card gets a "Copy to" button for these numbers.</p><div id="gcCopy"></div><button class="btn small soft" onclick="_gc.copyTo.push({name:'',phone:''});gcPaint()">+ Add number</button></div>
     <div class="card"><h3>Grand vendors</h3><p class="sub">Leave empty to use the Order Desk vendor list.</p><div id="gcVend"></div><button class="btn small soft" onclick="_gc.vendors.push({name:'',phone:''});gcPaint()">+ Add vendor</button></div>
     <div class="card"><h3>Purities</h3><p class="sub">Tap ★ to set the standard purity (selected by default).</p><div id="gcPur"></div><div class="two" style="margin-top:6px"><input id="gci_pur" placeholder="e.g. 22K (916)"><button class="btn small soft" onclick="const v=$('gci_pur').value.trim();if(v){_gc.purities.push({name:v});$('gci_pur').value='';gcPaint()}">Add</button></div></div>
@@ -288,7 +291,7 @@ function subGrand() {
 }
 function gcPaint() {
   const c = _gc, rm = (expr) => `onclick="${expr};gcPaint()"`;
-  $('gcl_staff').innerHTML = c.staff.map((n, i) => `<button class="chip" ${rm(`_gc.staff.splice(${i},1)`)}>${esc(n)} ✕</button>`).join('') || '<span class="hint">None yet</span>';
+  ['staff'].concat(G_ROLES.map((r) => r[0])).forEach((key) => { c[key] = c[key] || []; $('gcl_' + key).innerHTML = c[key].map((n, i) => `<button class="chip" ${rm(`_gc.${key}.splice(${i},1)`)}>${i === 0 && key !== 'staff' ? '★ ' : ''}${esc(n)} ✕</button>`).join('') || '<span class="hint">None yet</span>'; });
   const pr = (list, key) => list.map((r, i) => `<div class="two" style="margin-bottom:6px"><input value="${esc(r.name)}" placeholder="Name" oninput="_gc.${key}[${i}].name=this.value"><div class="wtRow" style="margin:0"><input value="${esc(r.phone)}" placeholder="WhatsApp" inputmode="tel" oninput="_gc.${key}[${i}].phone=this.value">${canPickContact() ? `<button class="btn small soft" onclick="pickContact((n,p)=>{_gc.${key}[${i}].name=_gc.${key}[${i}].name||n;_gc.${key}[${i}].phone=p;gcPaint()})">📇</button>` : ''}<button class="btn small secondary" ${rm(`_gc.${key}.splice(${i},1)`)}>✕</button></div></div>`).join('');
   $('gcCopy').innerHTML = pr(c.copyTo, 'copyTo'); $('gcVend').innerHTML = pr(c.vendors, 'vendors');
   $('gcPur').innerHTML = c.purities.map((p, i) => `<div class="kv"><span><button class="btn small ${p.std ? '' : 'soft'}" ${rm(`_gc.purities.forEach((x,j)=>x.std=j===${i})`)}>${p.std ? '★ Standard' : '☆'}</button> ${esc(p.name)}</span><button class="btn small secondary" ${rm(`_gc.purities.splice(${i},1)`)}>✕</button></div>`).join('');
@@ -316,8 +319,136 @@ function gcCopy(i, from) {
 }
 async function gcSave() {
   const c = clone(_gc);
-  c.staff = c.staff.filter(Boolean); c.copyTo = c.copyTo.filter((x) => x.phone); c.vendors = c.vendors.filter((x) => x.name);
+  c.staff = c.staff.filter(Boolean); G_ROLES.forEach(([k]) => { c[k] = (c[k] || []).filter(Boolean); }); c.copyTo = c.copyTo.filter((x) => x.phone); c.vendors = c.vendors.filter((x) => x.name);
   c.items = c.items.filter((x) => x.name).map((x) => ({ name: x.name, sizes: x.sizes || [], models: gSortM((x.models || []).filter((m) => m.name)).map((m) => ({ name: m.name, img: m.img || '', vendors: (m.vendors || []).filter(Boolean) })) }));
   if (!c.purities.some((p) => p.std) && c.purities[0]) c.purities[0].std = true;
   try { await api('grand/cfg', { grand: c }); S.grand = c; toast('Grand lists saved'); } catch (e) { toast(e.message); }
+}
+
+// ======================================================================
+// Grand work flow: receive from vendor → QC → laser marking → labelling → box with report → sent to Grand
+// ======================================================================
+const G_ROLES = [['recvStaff', 'Receiving (checks the vendor delivery)'], ['qcStaff', 'QC'], ['markStaff', 'Laser marking'], ['labelStaff', 'Labelling'], ['packStaff', 'Boxing & sending to Grand']];
+const G_STAGE = { qc: 'Waiting for QC', mark: 'Waiting for laser marking', label: 'Waiting for labelling', ready: 'Labelled · box it with the report', packed: 'Boxed · send to Grand', sent: 'Sent to Grand', failed: 'QC failed · back to vendor' };
+const gPend = (l) => Math.max(0, num(l.qty) - num(l.rq));
+const gPendAll = (o) => (o.lines || []).reduce((t, l) => t + gPend(l), 0);
+const gW3 = (v) => Math.round(num(v) * 1000) / 1000;
+function gStaffSel(role, id) {
+  const list = (GC()[role] || []).filter(Boolean), mine = list.includes(me.name) ? me.name : list[0] || '';
+  return list.length ? `<select id="${id}">${list.map((n, i) => `<option ${n === mine ? 'selected' : ''}>${esc(n)}${i === 0 ? ' (main)' : ''}</option>`).join('')}</select>` : `<input id="${id}" value="${esc(me.name)}" placeholder="Staff name">`;
+}
+const gStaffVal = (id) => { const e = $(id); return e ? e.value.replace(/ \(main\)$/, '').trim() : ''; };
+async function gStep(id, act, data, msg) {
+  const o = gOrders.find((x) => x.id === id); if (!o) return false;
+  try { const d = await api('grand/step', { id, rev: o.rev, act, data }); gOrders = gOrders.map((x) => (x.id === id ? d.o : x)); toast(msg || 'Saved'); closeSheet(); gShow(id); return true; }
+  catch (e) { toast(isNet(e) ? 'No internet — not saved' : e.message); if (e.status === 409) gLoad(true); return false; }
+}
+function gWorkHtml(o) {
+  const L = o.lines || [], pend = gPendAll(o), open = !['closed', 'cancelled'].includes(o.status);
+  const rows = L.map((l, i) => { const p = gPend(l), done = !p; return `<tr class="${l.nr && p ? 'nr' : ''}"><td><b>${esc(l.item)}</b>${l.model ? ' · ' + esc(l.model) : ''}${l.size ? '<br><small>' + esc(l.size) + '</small>' : ''}</td>
+      <td class="r">${l.qty}<br><small>${fmtN(gW3(l.wt * l.qty))} g</small></td><td class="r">${num(l.rq)}<br><small>${fmtN(num(l.rw))} g</small></td>
+      <td class="r">${done ? '<span class="ok">✓</span>' : `<b>${p}</b>${l.nr ? '<br><small class="bad">not received</small>' : ''}`}</td></tr>`; }).join('');
+  const bs = (o.batches || []).map((b) => gBatchHtml(o, b)).join('');
+  return `<div class="card gWork"><h3>Receipt & work <span class="badge ${G_ST[o.status][1]}">${G_ST[o.status][0]}</span></h3>
+    <table class="gTbl"><tr><th>Item</th><th class="r">Ordered</th><th class="r">Received</th><th class="r">Pending</th></tr>${rows}</table>
+    ${o.closedShort ? `<div class="warnBox">Closed with items short by ${esc(o.closedShort.by)} · ${dshort(o.closedShort.at)}${o.closedShort.note ? ': ' + esc(o.closedShort.note) : ''}</div>` : ''}
+    <div class="actions" style="flex-wrap:wrap">${open && pend ? `<button class="btn" onclick="gRecv('${o.id}')">Receive from vendor${(o.batches || []).length ? ' (pending ' + pend + ' pc)' : ''}</button>` : ''}
+      ${(o.batches || []).length ? `<button class="btn secondary" onclick="gReport('${o.id}')">🖨 Print report</button>` : ''}
+      ${open && pend && (o.batches || []).length ? `<button class="btn small secondary" onclick="gCloseShort('${o.id}')">Close with items short</button>` : ''}
+      ${o.status === 'closed' && o.closedShort ? `<button class="btn small soft" onclick="gStep('${o.id}','reopen',{},'Re-opened')">Re-open</button>` : ''}</div></div>${bs}`;
+}
+function gBatchHtml(o, b) {
+  const L = o.lines || [], steps = [['recv', 'Received'], ['qc', 'QC'], ['mark', 'Laser marking'], ['label', 'Labelling'], ['pack', 'Boxed'], ['dispatch', 'Sent to Grand']];
+  const items = b.items.map((it) => { const l = L[it.i] || {}, dw = gW3(it.wt - it.exp), pc = it.exp ? Math.round((dw / it.exp) * 1000) / 10 : 0;
+    return `<div class="gBi"><span><b>${esc(l.item)}${l.model ? ' · ' + esc(l.model) : ''}</b>${l.size ? ' · ' + esc(l.size) : ''} — ${it.qty} pc${it.qc === 'fail' ? ' <span class="badge r">QC failed</span>' : it.qc === 'pass' ? ' <span class="badge g">QC ✓</span>' : ''}${it.note || it.qcNote ? `<br><small class="hint" style="margin:0">${esc([it.note, it.qcNote].filter(Boolean).join(' · '))}</small>` : ''}</span>
+      <span>${fmtN(it.wt)} g${dw ? `<br><small class="${Math.abs(pc) > 2 ? 'bad' : 'hint'}" style="margin:0">${dw > 0 ? '+' : ''}${fmtN(dw)} g (${dw > 0 ? '+' : ''}${pc}%) vs ${fmtN(it.exp)}</small>` : '<br><small class="hint" style="margin:0">as ordered</small>'}</span></div>`; }).join('');
+  const nxt = { qc: ['QC check', `gQc('${o.id}',${b.n})`], mark: ['Laser marking done', `gDo('${o.id}',${b.n},'mark')`], label: ['Labelling done', `gDo('${o.id}',${b.n},'label')`], ready: ['Box it with the printed report', `gDo('${o.id}',${b.n},'pack')`], packed: ['Sent to Grand', `gDo('${o.id}',${b.n},'dispatch')`] }[b.stage];
+  return `<div class="card gBatch"><h3>Receipt ${b.n} <span class="badge ${b.stage === 'sent' ? 'g' : b.stage === 'failed' ? 'r' : 'w'}">${esc(G_STAGE[b.stage])}</span></h3>${items}
+    <div class="gSteps">${steps.map(([k, l]) => { const s = b[k]; return `<span class="${s ? 'on' : ''}"><b>${l}</b>${s ? `<small>${esc(s.by)} · ${dshort(s.at)}</small>` : '<small>—</small>'}</span>`; }).join('')}</div>
+    ${nxt && !['closed', 'cancelled'].includes(o.status) ? `<button class="btn block" style="margin-top:10px" onclick="${nxt[1]}">${nxt[0]}</button>` : ''}
+    ${['ready', 'packed'].includes(b.stage) ? `<button class="btn small secondary" style="margin-top:8px" onclick="gReport('${o.id}',${b.n})">🖨 Print box report for receipt ${b.n}</button>` : ''}</div>`;
+}
+// 1. receive the vendor delivery against the order, item by item
+function gRecv(id) {
+  const o = gOrders.find((x) => x.id === id); if (!o) return;
+  window._gr = (o.lines || []).map((l, i) => ({ i, qty: gPend(l), wt: '', note: '', nr: false })).filter((r) => r.qty > 0);
+  openSheet(`<h2>Receive · ${esc(o.no)}</h2><p class="sub">${esc(o.vendor)}. Check each item against the order. Enter what actually came, and mark items that did not come as <b>Not received</b> — they stay pending on the order.</p>
+    <div id="grRows"></div>
+    <div class="field"><label>Checked by</label>${gStaffSel('recvStaff', 'grBy')}</div>
+    <div class="field"><label>Note</label><input id="grNote" placeholder="e.g. Vendor bill no., packet seal OK"></div>
+    <div id="grSum"></div>
+    <button class="btn block" onclick="gRecvSave('${id}')">Approve receipt</button>`);
+  gRecvPaint(o);
+}
+function gRecvPaint(o) {
+  const L = o.lines; let tq = 0, tw = 0, te = 0, nr = 0;
+  $('grRows').innerHTML = _gr.map((r, k) => { const l = L[r.i], exp = gW3(num(l.wt) * num(r.qty)), dw = r.wt !== '' ? gW3(num(r.wt) - exp) : null, pc = exp && dw != null ? Math.round((dw / exp) * 1000) / 10 : 0;
+    if (r.nr) nr++; else { tq += num(r.qty); tw += num(r.wt); te += exp; }
+    return `<div class="card gRcv ${r.nr ? 'nr' : ''}"><h3>${esc(l.item)}${l.model ? ' · ' + esc(l.model) : ''}${l.size ? ' · ' + esc(l.size) : ''}${l.urgent ? ' <span class="badge r">🚨</span>' : ''}</h3>
+      <p class="hint" style="margin:0 0 8px">Ordered ${l.qty} pc × ${fmtN(l.wt)} g${num(l.rq) ? ` · already received ${l.rq}` : ''} · pending <b>${gPend(l)}</b></p>
+      <div class="choiceRow" style="margin-bottom:8px"><button class="chip ${r.nr ? '' : 'active'}" onclick="_gr[${k}].nr=false;gRecvPaint(gOrders.find(x=>x.id==='${o.id}'))">✓ Received</button><button class="chip ${r.nr ? 'active' : ''}" onclick="_gr[${k}].nr=true;gRecvPaint(gOrders.find(x=>x.id==='${o.id}'))">✗ Not received</button></div>
+      ${r.nr ? '' : `<div class="two"><div class="field"><label>Qty received</label><input inputmode="numeric" value="${esc(r.qty)}" onchange="_gr[${k}].qty=this.value;gRecvPaint(gOrders.find(x=>x.id==='${o.id}'))"></div>
+        <div class="field"><label>Weight received (g, total)</label><input inputmode="decimal" value="${esc(r.wt)}" placeholder="expected ${fmtN(exp)}" onchange="_gr[${k}].wt=this.value;gRecvPaint(gOrders.find(x=>x.id==='${o.id}'))"></div></div>
+        ${num(r.qty) > gPend(l) ? `<div class="warnBox">More than ordered (pending ${gPend(l)})</div>` : ''}
+        ${dw != null ? `<div class="kv"><span>Discrepancy</span><span class="${Math.abs(pc) > 2 ? 'bad' : dw ? '' : 'ok'}">${dw ? `${dw > 0 ? '+' : ''}${fmtN(dw)} g (${dw > 0 ? '+' : ''}${pc}%)` : 'None ✓'}</span></div>` : ''}`}
+      <div class="field" style="margin:8px 0 0"><input value="${esc(r.note)}" placeholder="${r.nr ? 'Reason / when expected' : 'Note (optional)'}" onchange="_gr[${k}].note=this.value"></div></div>`; }).join('');
+  $('grSum').innerHTML = `<div class="card"><div class="kv"><span>Receiving now</span><span>${tq} pc · ${fmtN(gW3(tw))} g</span></div><div class="kv"><span>Expected for these</span><span>${fmtN(gW3(te))} g</span></div>${tw ? `<div class="kv tot"><span>Difference</span><span>${gW3(tw - te) > 0 ? '+' : ''}${fmtN(gW3(tw - te))} g</span></div>` : ''}${nr ? `<div class="kv"><span>Not received</span><span>${nr} item(s) stay pending</span></div>` : ''}</div>`;
+}
+function gRecvSave(id) {
+  const by = gStaffVal('grBy'); if (!by) return toast('Who checked the receipt?');
+  const miss = _gr.find((r) => !r.nr && num(r.qty) > 0 && !(num(r.wt) > 0)); if (miss) return toast('Enter the weight received for each item (or mark it not received)');
+  const lines = _gr.map((r) => ({ i: r.i, qty: r.nr ? 0 : num(r.qty), wt: num(r.wt), note: r.note, nr: r.nr }));
+  if (!lines.some((r) => r.qty > 0 || r.nr)) return toast('Nothing to receive');
+  gStep(id, 'receive', { by, note: f('grNote'), lines }, 'Receipt approved');
+}
+// 2. QC, item by item
+function gQc(id, n) {
+  const o = gOrders.find((x) => x.id === id), b = o && o.batches.find((x) => x.n === n); if (!b) return;
+  window._gq = b.items.map((it) => ({ i: it.i, ok: true, note: '' }));
+  openSheet(`<h2>QC · Receipt ${n}</h2><p class="sub">${esc(o.no)} · ${esc(o.vendor)}. Failed items go back to the vendor and stay pending on the order.</p>
+    ${b.items.map((it, k) => { const l = o.lines[it.i]; return `<div class="card"><h3>${esc(l.item)}${l.model ? ' · ' + esc(l.model) : ''}${l.size ? ' · ' + esc(l.size) : ''} <small class="hint">${it.qty} pc · ${fmtN(it.wt)} g</small></h3>
+      <div class="choiceRow"><button class="chip active" onclick="_gq[${k}].ok=true;this.classList.add('active');this.nextElementSibling.classList.remove('active')">✓ QC passed</button><button class="chip" onclick="_gq[${k}].ok=false;this.classList.add('active');this.previousElementSibling.classList.remove('active')">✗ QC failed</button></div>
+      <div class="field" style="margin:8px 0 0"><input placeholder="QC note / reason if failed" onchange="_gq[${k}].note=this.value"></div></div>`; }).join('')}
+    <div class="field"><label>QC done by</label>${gStaffSel('qcStaff', 'gqBy')}</div>
+    <button class="btn block" onclick="gQcSave('${id}',${n})">Save QC · send passed items to laser marking</button>`);
+}
+function gQcSave(id, n) {
+  const by = gStaffVal('gqBy'); if (!by) return toast('Who did the QC?');
+  const bad = _gq.find((x) => !x.ok && !x.note.trim()); if (bad) return toast('Give the reason for each failed item');
+  gStep(id, 'qc', { b: n, by, items: _gq }, 'QC saved');
+}
+// 3–6. marking, labelling, boxing, sent to Grand
+function gDo(id, n, act) {
+  const o = gOrders.find((x) => x.id === id); if (!o) return;
+  const meta = { mark: ['Laser marking done', 'markStaff', 'Marked by', 'Sent to labelling'], label: ['Labelling done', 'labelStaff', 'Labelled by', 'Ready to box'], pack: ['Box with the printed report', 'packStaff', 'Boxed by', 'Boxed'], dispatch: ['Sent to Grand', 'packStaff', 'Sent by', 'Sent to Grand'] }[act];
+  openSheet(`<h2>${meta[0]} · Receipt ${n}</h2><p class="sub">${esc(o.no)} · ${esc(o.vendor)}</p>
+    ${act === 'pack' ? `<div class="warnBox">Print the report and keep it in the box with the items.</div><button class="btn secondary block" style="margin-bottom:10px" onclick="gReport('${id}',${n})">🖨 Print box report</button>` : ''}
+    ${act === 'dispatch' && gPendAll(o) ? `<div class="warnBox">${gPendAll(o)} pc are still pending from the vendor — the order stays open after this box is sent.</div>` : ''}
+    <div class="field"><label>${meta[2]}</label>${gStaffSel(meta[1], 'gdBy')}</div>
+    <button class="btn block" onclick="const b=gStaffVal('gdBy');if(!b)return toast('Pick the staff name');gStep('${id}','${act}',{b:${n},by:b},'${meta[3]}')">Confirm</button>`);
+}
+function gCloseShort(id) {
+  const o = gOrders.find((x) => x.id === id); if (!o) return;
+  openSheet(`<h2>Close ${esc(o.no)} with items short</h2><p class="sub">${gPendAll(o)} pc never came from ${esc(o.vendor)}. The order is closed; the short items are listed on the report.</p>
+    <div class="field"><label>Closed by</label>${gStaffSel('packStaff', 'gsBy')}</div>
+    <div class="field"><label>Reason</label><input id="gsNote" placeholder="e.g. Vendor discontinued the model"></div>
+    <button class="btn danger block" onclick="if(!f('gsNote'))return toast('Give the reason');gStep('${id}','closeShort',{by:gStaffVal('gsBy'),note:f('gsNote')},'Closed')">Close order</button>`);
+}
+// printed report (kept in the box going to Grand)
+function gReport(id, n) {
+  const o = gOrders.find((x) => x.id === id); if (!o) return;
+  const L = o.lines || [], bs = (o.batches || []).filter((b) => n == null || b.n === n), dd = (s) => (s ? `${esc(s.by)}<br><small>${dt(s.at)} ${new Date(s.at).toTimeString().slice(0, 5)}</small>` : '—');
+  const h = `<div class="pdoc gRep"><table style="border:0"><tr><td style="border:0"><img src="${LOGO.gMarkK}" style="height:54px"></td><td style="border:0"><h1 style="margin:0">Grand Jewellers · Order report</h1>${esc(o.no)} · ${o.type === 'custom' ? 'Customised' : 'Regular stock'} · ${esc(o.purity)}${n != null ? ' · Box for receipt ' + n : ''}</td>
+    <td style="border:0;text-align:right">Vendor <b>${esc(o.vendor)}</b><br>Ordered ${dt(o.at)} by ${esc(o.by)}<br>Status: <b>${G_ST[o.status][0]}</b></td></tr></table>
+    <h3>Items</h3><table><tr><th>#</th><th>Item / model</th><th>Length / size</th><th class="r">Ordered</th><th class="r">Exp. wt (g)</th><th class="r">Received</th><th class="r">Recd wt (g)</th><th class="r">Pending</th></tr>
+    ${L.map((l, i) => `<tr><td>${i + 1}</td><td>${esc(l.item)}${l.model ? ' · ' + esc(l.model) : ''}${l.urgent ? ' 🚨' : ''}</td><td>${esc(l.size || '')}</td><td class="r">${l.qty}</td><td class="r">${fmtN(gW3(l.wt * l.qty))}</td><td class="r">${num(l.rq)}</td><td class="r">${fmtN(num(l.rw))}</td><td class="r">${gPend(l) ? '<b>' + gPend(l) + '</b>' + (l.nr ? ' (not recd)' : '') : '✓'}</td></tr>`).join('')}
+    <tr><th colspan="3">Total</th><th class="r">${o.qty}</th><th class="r">${fmtN(o.wt)}</th><th class="r">${L.reduce((t, l) => t + num(l.rq), 0)}</th><th class="r">${fmtN(gW3(L.reduce((t, l) => t + num(l.rw), 0)))}</th><th class="r">${gPendAll(o)}</th></tr></table>
+    ${bs.map((b) => `<h3>Receipt ${b.n} · ${dt(b.at)}${b.note ? ' · ' + esc(b.note) : ''}</h3><table><tr><th>Item</th><th class="r">Qty</th><th class="r">Expected (g)</th><th class="r">Received (g)</th><th class="r">Difference</th><th>QC</th><th>Note</th></tr>
+      ${b.items.map((it) => { const l = L[it.i] || {}, dw = gW3(it.wt - it.exp); return `<tr><td>${esc(l.item)}${l.model ? ' · ' + esc(l.model) : ''}${l.size ? ' · ' + esc(l.size) : ''}</td><td class="r">${it.qty}</td><td class="r">${fmtN(it.exp)}</td><td class="r">${fmtN(it.wt)}</td><td class="r">${dw ? (dw > 0 ? '+' : '') + fmtN(dw) : '—'}</td><td>${it.qc === 'fail' ? 'FAILED' : it.qc === 'pass' ? 'Passed' : '—'}</td><td>${esc([it.note, it.qcNote].filter(Boolean).join(' · '))}</td></tr>`; }).join('')}</table>
+      <table><tr><th>Received / checked</th><th>QC</th><th>Laser marking</th><th>Labelling</th><th>Boxed</th><th>Sent to Grand</th></tr><tr><td>${dd(b.recv)}</td><td>${dd(b.qc)}</td><td>${dd(b.mark)}</td><td>${dd(b.label)}</td><td>${dd(b.pack)}</td><td>${dd(b.dispatch)}</td></tr>
+      <tr><td style="height:40px">Sign</td><td></td><td></td><td></td><td></td><td></td></tr></table>`).join('')}
+    ${o.closedShort ? `<p><b>Closed with items short</b> by ${esc(o.closedShort.by)} on ${dt(o.closedShort.at)}: ${esc(o.closedShort.note || '')}</p>` : ''}
+    <p style="font-size:11px;color:#555">Printed ${dt(Date.now())} by ${esc(me.name)} · Order Desk ${APP_VERSION}</p></div>`;
+  if (NATIVE && NATIVE.printHtml) { NATIVE.printHtml('<!doctype html><html><head><meta charset="utf-8"><style>' + document.querySelector('style').textContent + ' #printArea{display:block}</style></head><body><div id="printArea">' + h + '</div></body></html>', 'Grand ' + o.no); return; }
+  $('printArea').innerHTML = h; window.print(); setTimeout(() => { $('printArea').innerHTML = ''; }, 800);
 }

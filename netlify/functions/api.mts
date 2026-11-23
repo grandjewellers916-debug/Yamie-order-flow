@@ -15,7 +15,7 @@ import { backupOp } from '../lib/backup.mts';
 
 export const config = { path: '/api/*' };
 
-const SERVER_VERSION = '2.3';
+const SERVER_VERSION = '2.4';
 const PERM_KEYS = ['enquiry', 'estimate', 'approve', 'advance', 'verify', 'discount', 'confirm', 'vendor', 'production', 'receive', 'qc',
   'finalprice', 'approvefinal', 'ready', 'close', 'cancel', 'rates', 'vendors', 'vendorcontact', 'review', 'viewcost', 'reports', 'delete', 'settings', 'grand', 'grandcfg'];
 const DEF_ROLE_PERMS: Record<string, string[]> = {
@@ -417,6 +417,14 @@ async function pcLoad(s: any) {
   await s.setJSON('pc/cache', c);
   return c;
 }
+/** Grand order status from its items and receipts. */
+function gStatusOf(o: any) {
+  const pend = (o.lines || []).reduce((t: number, l: any) => t + Math.max(0, num(l.qty) - num(l.rq)), 0);
+  const bs = (o.batches || []).filter((b: any) => b.stage !== 'failed');
+  if (!bs.length) return pend < (o.lines || []).reduce((t: number, l: any) => t + num(l.qty), 0) ? 'partial' : 'sent';
+  if (!pend && bs.every((b: any) => b.stage === 'sent')) return 'closed';
+  return pend ? 'partial' : 'received';
+}
 const pcImgCount = (c: any, k: string) => (c.idx && c.idx[k] ? Math.max(1, num(c.n && c.n[k]) || 1) : 0);
 async function pcFind(s: any, q: string) {
   const c = await pcLoad(s), nq = normK(q);
@@ -763,17 +771,73 @@ export default async (req: Request) => {
       const o: any = {
         type: g.type === 'custom' ? 'custom' : 'stock', vendor: clip(g.vendor, 80), vphone: clip(g.vphone, 20), by: clip(g.by, 60), purity: clip(g.purity, 30), lockPur: g.lockPur !== false,
         due: clip(g.due, 10), note: clip(g.note, 500), photos: g.photos !== false, refs: (Array.isArray(g.refs) ? g.refs : []).slice(0, 6).map((r: any) => clip(r, 200)), lines,
-        status: ['sent', 'received', 'cancelled'].includes(g.status) ? g.status : 'sent',
+        status: g.status === 'cancelled' ? 'cancelled' : 'sent',
       };
       o.qty = lines.reduce((t: number, l: any) => t + l.qty, 0); o.wt = Math.round(lines.reduce((t: number, l: any) => t + l.wt * l.qty, 0) * 1000) / 1000;
       if (old) {
         if (old.rev !== g.rev) return err('Someone else changed this order. Reload and try again.', 409);
-        Object.assign(old, o); old.log = (old.log || []).concat({ at: now(), by: me.name, t: clip(body.log || 'Edited', 200) }).slice(-80); old.rev = (old.rev || 0) + 1; old.upd = now();
+        if ((old.batches || []).length || ['closed'].includes(old.status)) {
+          // goods already received: the items are fixed; only photos / note / cancel-reopen
+          old.photos = o.photos; old.note = o.note;
+          if (g.status === 'cancelled' && old.status !== 'closed') old.status = 'cancelled';
+          else if (old.status === 'cancelled' && g.status !== 'cancelled') old.status = gStatusOf(old);
+        } else {
+          for (const l of o.lines) { l.rq = 0; l.rw = 0; l.nr = false; }
+          Object.assign(old, o);
+        }
+        old.log = (old.log || []).concat({ at: now(), by: me.name, t: clip(body.log || 'Edited', 200) }).slice(-80); old.rev = (old.rev || 0) + 1; old.upd = now();
         await s.setJSON('grand/o/' + old.id, old); return J({ o: old });
       }
       const seq = num(await s.get('grand/seq')) + 1; await s.set('grand/seq', String(seq));
       const n: any = { ...o, id: crypto.randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase(), no: 'GJO-' + String(seq).padStart(4, '0'), at: now(), upd: now(), user: me.name, rev: 1, log: [{ at: now(), by: me.name, t: 'Created' }] };
       await s.setJSON('grand/o/' + n.id, n); return J({ o: n });
+    }
+    if (path === 'grand/step' && method === 'POST') {
+      need('grand');
+      const k = 'grand/o/' + String(body.id || '').replace(/[^A-Z0-9]/gi, ''), o: any = await s.get(k, { type: 'json' });
+      if (!o) return err('Order not found', 404);
+      if (num(body.rev) !== num(o.rev)) return err('Someone else changed this order. Reload and try again.', 409);
+      if (['cancelled', 'closed'].includes(o.status) && body.act !== 'reopen') return err('This order is ' + o.status, 400);
+      const d = body.data || {}, who = clip(d.by, 60) || me.name, t = now();
+      o.batches = o.batches || [];
+      const log = (x: string) => { o.log = (o.log || []).concat({ at: t, by: me.name, t: clip(x, 300) }).slice(-120); };
+      const bt = () => { const b = o.batches.find((x: any) => x.n === num(d.b)); if (!b) throw new HttpError('Receipt not found', 404); return b; };
+      if (body.act === 'receive') {
+        const items: any[] = [];
+        for (const r of Array.isArray(d.lines) ? d.lines : []) {
+          const l = o.lines[num(r.i)]; if (!l) continue;
+          if (r.nr) { l.nr = true; l.nrNote = clip(r.note, 200); continue; }
+          const q = Math.max(0, Math.round(num(r.qty))), w = Math.max(0, Math.round(num(r.wt) * 1000) / 1000);
+          if (!q) continue;
+          l.rq = num(l.rq) + q; l.rw = Math.round((num(l.rw) + w) * 1000) / 1000; l.nr = false;
+          items.push({ i: num(r.i), qty: q, wt: w, exp: Math.round(num(l.wt) * q * 1000) / 1000, note: clip(r.note, 200) });
+        }
+        if (!items.length && !(d.lines || []).some((r: any) => r.nr)) return err('Enter the quantity received for at least one item', 400);
+        if (items.length) { const n = o.batches.length + 1; o.batches.push({ n, at: t, recv: { by: who, at: t, user: me.name }, items, stage: 'qc', note: clip(d.note, 300) });
+          log(`Receipt ${n} by ${who}: ${items.reduce((a, x) => a + x.qty, 0)} pc, ${Math.round(items.reduce((a, x) => a + x.wt, 0) * 1000) / 1000} g`); }
+        const nr = (d.lines || []).filter((r: any) => r.nr).length; if (nr) log(`${nr} item(s) marked not received by ${who}`);
+      } else if (body.act === 'qc') {
+        const b = bt(); if (b.stage !== 'qc') return err('Not waiting for QC', 400);
+        let fail = 0;
+        for (const it of b.items) {
+          const r = (d.items || []).find((x: any) => num(x.i) === it.i) || {};
+          it.qc = r.ok === false ? 'fail' : 'pass'; it.qcNote = clip(r.note, 200);
+          if (it.qc === 'fail') { fail++; const l = o.lines[it.i]; l.rq = Math.max(0, num(l.rq) - it.qty); l.rw = Math.max(0, Math.round((num(l.rw) - it.wt) * 1000) / 1000); }
+        }
+        b.qc = { by: who, at: t, user: me.name }; b.stage = b.items.some((x: any) => x.qc === 'pass') ? 'mark' : 'failed';
+        log(`Receipt ${b.n} QC by ${who}: ${b.items.length - fail} passed${fail ? `, ${fail} failed (back to vendor, still pending)` : ''}`);
+      } else if (['mark', 'label', 'pack', 'dispatch'].includes(body.act)) {
+        const b = bt(), flow: any = { mark: ['mark', 'label', 'Laser marking'], label: ['label', 'ready', 'Labelling'], pack: ['ready', 'packed', 'Boxed with report'], dispatch: ['packed', 'sent', 'Sent to Grand'] }, [from, to, lbl] = flow[body.act];
+        if (b.stage !== from && !(body.act === 'dispatch' && b.stage === 'ready')) return err('Wrong step for this receipt', 400);
+        b[body.act] = { by: who, at: t, user: me.name }; b.stage = to; log(`Receipt ${b.n}: ${lbl} done by ${who}`);
+      } else if (body.act === 'closeShort') {
+        o.status = 'closed'; o.closedShort = { by: who, at: t, note: clip(d.note, 300) }; log(`Closed with items short by ${who}${d.note ? ': ' + clip(d.note, 200) : ''}`);
+      } else if (body.act === 'reopen') {
+        o.closedShort = null; o.status = 'sent'; log('Re-opened');
+      } else return err('Unknown step', 400);
+      if (!['closed', 'cancelled'].includes(o.status) || body.act === 'reopen') o.status = gStatusOf(o);
+      o.rev = num(o.rev) + 1; o.upd = t;
+      await s.setJSON(k, o); return J({ o });
     }
     if (path === 'grand/log' && method === 'POST') {
       need('grand');

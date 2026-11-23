@@ -90,6 +90,16 @@ The page talks to `localStorage.yod_api` when set (tests set it to the local ser
 - Final price → manager approves → "Order ready: send card with final price". Customer-OK step and final price card removed (server no longer needs finals[].cust).
 - Phones on cards: shopPhone (estimate), shopPhone2 + shopLandline (ready), woPhone (work order).
 
+## V2.4 (23-11-2026)
+- Grand orders work flow (open an order → Receipt & work):
+  - **Receive from vendor**: item by item against the order — qty and actual weight received, discrepancy vs expected weight (red above 2%), or mark **Not received**. Checked by (receiving staff).
+  - Fully received → "Received · in work"; otherwise "Incomplete · items pending" and the order stays open for the next delivery.
+  - Each delivery becomes a receipt that moves: **QC** (pass / fail per item; failed items go back to pending) → **Laser marking** → **Labelling** → **Box with printed report** → **Sent to Grand**, each with the staff name and time.
+  - When every item is received and every receipt is sent to Grand, the order closes. "Close with items short" closes it with a reason if the vendor never sends the rest.
+  - **Print report**: order items (ordered / received / pending), each receipt with weights, differences, QC, and the staff who did each step, with sign boxes — keep it in the box.
+- Grand lists: staff lists for receiving, QC, laser marking, labelling and boxing / sending (first name = main person, picked by default).
+- Orders received cannot be edited or cancelled any more; the list has filters for Incomplete, In work and Closed.
+
 ## V2.3 (23-11-2026)
 - Grand order form: model is a drop-down sorted A–Z (the selected vendor's designs first); photos are in a folded "Browse models with photos".
 - Grand lists: models folded per item and sorted A–Z; "Copy models from…" another item (e.g. chain designs into Anklet, Waist Chain); tap vendors under a model to assign that design to them.

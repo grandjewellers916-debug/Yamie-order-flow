@@ -1,7 +1,7 @@
 // ======================================================================
 // Yamie Order Desk — core: helpers, server calls, sync, login
 // ======================================================================
-const APP_VERSION = '2.3';
+const APP_VERSION = '2.4';
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s != null ? s : '').replace(/[&<>"']/g, (x) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[x]);
 const num = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(/[,₹\s]/g, '')); return isFinite(n) ? n : 0; };
