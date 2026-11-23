@@ -11,6 +11,13 @@ with sync_playwright() as p:
     if pg.locator('#fsName').count(): pg.fill('#fsName','Praveen'); pg.fill('#fsPin','4321'); pg.click('button:has-text("Save & continue")'); pg.wait_for_timeout(2000)
     pg.evaluate("""(()=>{const g=GC();g.staff=['Anu'];g.recvStaff=['Biju','Anu'];g.qcStaff=['Suresh'];g.markStaff=['Rafi'];g.labelStaff=['Meera'];g.packStaff=['Anu'];g.vendors=[{name:'Thrissur Chains',phone:'9847000099'}];
       return api('grand/cfg',{grand:g}).then(()=>pullAll())})()"""); pg.wait_for_timeout(1200)
+    def dispatch():
+        pg.click('#sheet button:has-text("Confirm")'); pg.wait_for_timeout(500); print('no carrier toast:', pg.locator('.toast').last.inner_text() if pg.locator('.toast').count() else '')
+        pg.fill('#gdCar','DTDC Courier'); pg.fill('#gdRb','Shaji'); pg.fill('#gdRp','+972559177958')
+        bx=pg.locator('#gSig').bounding_box(); pg.mouse.move(bx['x']+20,bx['y']+100); pg.mouse.down()
+        for i in range(30): pg.mouse.move(bx['x']+20+i*10,bx['y']+100+ (25 if i%4<2 else -25))
+        pg.mouse.up(); pg.wait_for_timeout(200)
+        pg.screenshot(path='/tmp/man/g-dispatch.png')
     pg.evaluate("window.print=()=>{window._printed=document.getElementById('printArea').innerHTML}")
     o=pg.evaluate("""api('grand/save',{o:{type:'stock',vendor:'Thrissur Chains',vphone:'9847000099',by:'Anu',purity:'22K (916)',lockPur:true,lines:[
       {item:'Chain',model:'Ganguly',wt:8,qty:1,size:'8 pidi'},{item:'Chain',model:'Ganguly',wt:10,qty:2,size:'20 in',sub:1},{item:'Anklet',model:'Sachin',wt:16,qty:2,size:'10.5 in'}]}}).then(d=>{gOrders=[d.o];return d.o.id})""")
@@ -29,9 +36,10 @@ with sync_playwright() as p:
     pg.click('#sheet button:has-text("QC check")'); pg.wait_for_timeout(400)
     pg.locator('#sheet .card').nth(1).locator('.chip:has-text("QC failed")').click(); pg.locator('#sheet .card').nth(1).locator('input').fill('Solder joint weak'); pg.locator('#sheet .card').nth(1).locator('input').dispatch_event('change')
     pg.click('#sheet button:has-text("Save QC")'); pg.wait_for_timeout(1500); print('after QC:', st())
-    for btn in ['Laser marking done','Labelling done','Box it with the printed report','Sent to Grand']:
+    for btn in ['Laser marking done','Labelling done','Pack with printed packing list','Mark as sent to Grand']:
         pg.click(f'#sheet .gBatch button:has-text("{btn}")'); pg.wait_for_timeout(400)
-        if btn.startswith('Box'): pg.click('#sheet button:has-text("Print box report")'); pg.wait_for_timeout(300)
+        if btn.startswith('Pack'): pg.click('#sheet button:has-text("Print packing list")'); pg.wait_for_timeout(300)
+        if btn.startswith('Mark as'): dispatch()
         pg.click('#sheet button:has-text("Confirm")'); pg.wait_for_timeout(1300); print(btn, '->', st())
     pg.screenshot(path='/tmp/man/g-work.png', full_page=True)
     # second receipt: rest
@@ -42,10 +50,31 @@ with sync_playwright() as p:
         exp=w.get_attribute('placeholder').split()[-1]; w.fill(exp); w.dispatch_event('change'); pg.wait_for_timeout(200)
     pg.click('#sheet button:has-text("Approve receipt")'); pg.wait_for_timeout(1500); print('receipt 2:', st())
     pg.click('#sheet button:has-text("QC check")'); pg.wait_for_timeout(400); pg.click('#sheet button:has-text("Save QC")'); pg.wait_for_timeout(1500)
-    for btn in ['Laser marking done','Labelling done','Box it with the printed report','Sent to Grand']:
-        pg.click(f'#sheet .gBatch button:has-text("{btn}")'); pg.wait_for_timeout(400); pg.click('#sheet button:has-text("Confirm")'); pg.wait_for_timeout(1300)
+    for btn in ['Laser marking done','Labelling done','Pack with printed packing list','Mark as sent to Grand']:
+        pg.click(f'#sheet .gBatch button:has-text("{btn}")'); pg.wait_for_timeout(400)
+        if btn.startswith('Mark as'): dispatch()
+        pg.click('#sheet button:has-text("Confirm")'); pg.wait_for_timeout(1300)
     print('final:', st())
     pg.evaluate(f"gReport('{o}')"); pg.wait_for_timeout(300)
     html=pg.evaluate("window._printed"); open('/tmp/man/g-report.html','w').write('<html><head><meta charset=utf-8><style>'+pg.evaluate("document.querySelector('style').textContent")+' #printArea{display:block}</style></head><body><div id=printArea>'+html+'</div></body></html>')
     pg.evaluate("openGrand()"); pg.wait_for_timeout(1000); pg.screenshot(path='/tmp/man/g-list3.png')
+    # staff role with only QC: buttons and server checks
+    pg.evaluate("api('roleperms',{rolePerms:Object.assign(clone(rolePerms),{staff:['grand','grandQc']})})"); pg.wait_for_timeout(800)
+    print(pg.evaluate("api('user',{user:{name:'Suresh',role:'staff',pin:'5555'}}).then(()=>'ok').catch(e=>e.message)")); pg.wait_for_timeout(500)
+    o2=pg.evaluate("""api('grand/save',{o:{type:'stock',vendor:'Thrissur Chains',vphone:'9847000099',by:'Anu',purity:'22K (916)',lockPur:true,lines:[{item:'Chain',model:'Box',wt:5,qty:1}]}}).then(d=>d.o.id)""")
+    o2r=pg.evaluate(f"api('grand/list').then(d=>d.orders.find(x=>x.id==='{o2}').rev)")
+    pg.evaluate(f"api('grand/step',{{id:'{o2}',rev:{o2r},act:'receive',data:{{by:'Biju',lines:[{{i:0,qty:1,wt:5}}]}}}})"); pg.wait_for_timeout(500)
+    pg.evaluate("logout && logout()"); pg.wait_for_timeout(800)
+    pg.goto('http://localhost:8789/'); pg.wait_for_timeout(800)
+    pg.click('.users button:has-text("Suresh")')
+    for d in '5555': pg.click(f'.pad button:has-text("{d}")')
+    pg.wait_for_timeout(1500)
+    if pg.locator('#fsPin').count(): pg.fill('#fsPin','5556'); pg.click('button:has-text("Save & continue")'); pg.wait_for_timeout(1500)
+    pg.evaluate("openGrand()"); pg.wait_for_timeout(1200)
+    print('new btn:', pg.locator('button:has-text("New Grand order")').count())
+    pg.evaluate(f"gShow('{o2}')"); pg.wait_for_timeout(1200)
+    print('send btn:', pg.locator('#sheet button:has-text("Send to vendor")').count(), 'receive btn:', pg.locator('#sheet button:has-text("Receive from vendor")').count(), 'qc btn:', pg.locator('#sheet button:has-text("QC check")').count())
+    print('server receive as QC staff:', pg.evaluate(f"api('grand/step',{{id:'{o2}',rev:gOrders.find(x=>x.id==='{o2}').rev,act:'mark',data:{{b:1,by:'x'}}}}).then(()=>'ALLOWED').catch(e=>e.message)"))
+    pg.click('#sheet button:has-text("QC check")'); pg.wait_for_timeout(400); pg.click('#sheet button:has-text("Save QC")'); pg.wait_for_timeout(1500)
+    print('after QC by staff:', pg.evaluate(f"gOrders.find(x=>x.id==='{o2}').batches[0].stage"), '| hint:', pg.locator('#sheet .gBatch .hint').last.inner_text())
     b.close(); print(errs)

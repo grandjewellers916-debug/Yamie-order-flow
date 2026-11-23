@@ -195,7 +195,7 @@ function subPerms() {
   const rpL = clone(rolePerms);
   window._rp = rpL;
   $('subBody').innerHTML = `<div class="card"><h3>Role permissions</h3><p class="sub">Admins can do everything. The server checks these on every step.</p>
-    <table class="perm"><tr><th></th><th>Manager</th><th>Staff</th></tr>${PERMS.map(([k, l]) => `<tr><td>${esc(l)}</td>${['manager', 'staff'].map((r) => `<td><input type="checkbox" ${(rpL[r] || []).includes(k) ? 'checked' : ''} onchange="_rp['${r}']=this.checked?(_rp['${r}']||[]).concat('${k}'):(_rp['${r}']||[]).filter(x=>x!=='${k}')"></td>`).join('')}</tr>`).join('')}</table>
+    <table class="perm"><tr><th></th><th>Manager</th><th>Staff</th></tr>${PERMS.map(([k, l]) => `${k === 'grand' ? '<tr class="permHead"><td colspan="3">Grand module</td></tr>' : k === 'settings' ? '<tr class="permHead"><td colspan="3">Admin</td></tr>' : ''}<tr class="${k.startsWith('grand') && k !== 'grand' ? 'permSub' : ''}"><td>${esc(l)}</td>${['manager', 'staff'].map((r) => `<td><input type="checkbox" ${(rpL[r] || []).includes(k) ? 'checked' : ''} onchange="_rp['${r}']=this.checked?(_rp['${r}']||[]).concat('${k}'):(_rp['${r}']||[]).filter(x=>x!=='${k}')"></td>`).join('')}</tr>`).join('')}</table>
     <button class="btn block" style="margin-top:12px" onclick="cfgCall('roleperms',{rolePerms:_rp},'Permissions saved')">Save permissions</button></div>`;
 }
 function subLinks() {

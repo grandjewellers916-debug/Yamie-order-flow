@@ -90,6 +90,11 @@ The page talks to `localStorage.yod_api` when set (tests set it to the local ser
 - Final price → manager approves → "Order ready: send card with final price". Customer-OK step and final price card removed (server no longer needs finals[].cust).
 - Phones on cards: shopPhone (estimate), shopPhone2 + shopLandline (ready), woPhone (work order).
 
+## V2.5 (23-11-2026)
+- Phone numbers: international numbers (+972…, +971…, 00…) can be typed or picked from the phone's contacts; Indian numbers still save as +91 and 10 digits.
+- Grand module permissions (Settings → Permissions, grouped under "Grand module"): open/view; 01 order creation; 02 order sending; 03 order receipt; 04 QC; 05 labelling; 06 laser marking; 07 packing with printed packing list; 08 mark as sent to Grand; edit Grand lists / re-open. Each step's button shows only for roles that have it, and the server checks it too.
+- Mark as sent to Grand asks for the name of the carrier (list in Grand lists → Carriers, plus past carriers), the carrier person's name / phone, and a finger signature. The signature and carrier are on the receipt and the printed packing list.
+
 ## V2.4 (23-11-2026)
 - Grand orders work flow (open an order → Receipt & work):
   - **Receive from vendor**: item by item against the order — qty and actual weight received, discrepancy vs expected weight (red above 2%), or mark **Not received**. Checked by (receiving staff).

@@ -1,7 +1,7 @@
 // ======================================================================
 // Yamie Order Desk — core: helpers, server calls, sync, login
 // ======================================================================
-const APP_VERSION = '2.4';
+const APP_VERSION = '2.5';
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s != null ? s : '').replace(/[&<>"']/g, (x) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[x]);
 const num = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(/[,₹\s]/g, '')); return isFinite(n) ? n : 0; };
@@ -30,10 +30,11 @@ const PERMS = [
   ['vendor', 'Assign vendor / change ETD'], ['production', 'Vendor follow-up & production'], ['receive', 'Receive in store'],
   ['qc', 'QC approve / reject'], ['finalprice', 'Calculate final price'], ['approvefinal', 'Approve final price'],
   ['ready', 'Notify ready'], ['close', 'Invoice & close'], ['cancel', 'Hold / cancel confirmed orders'], ['rates', 'Update gold rates'],
-  ['vendors', 'Edit vendor list'], ['vendorcontact', 'See vendor phone numbers'], ['review', 'Answer review requests (pricing / design)'], ['viewcost', 'See vendor cost'], ['reports', 'Reports'], ['delete', 'Delete enquiries'], ['grand', 'Grand module: create & send Grand orders'], ['grandcfg', 'Edit Grand module lists (staff, items, models, sizes)'], ['settings', 'Settings'],
+  ['vendors', 'Edit vendor list'], ['vendorcontact', 'See vendor phone numbers'], ['review', 'Answer review requests (pricing / design)'], ['viewcost', 'See vendor cost'], ['reports', 'Reports'], ['delete', 'Delete enquiries'], ['grand', 'Grand module: open and view Grand orders'], ['grandCreate', '01. Order creation (new / edit / cancel)'], ['grandSend', '02. Order sending (WhatsApp to vendor & copies)'], ['grandRecv', '03. Order receipt (check against order, not received, close short)'],
+  ['grandQc', '04. QC'], ['grandLabel', '05. Labelling'], ['grandMark', '06. Laser marking'], ['grandPack', '07. Packing with printed packing list'], ['grandDispatch', '08. Mark as sent to Grand (carrier & signature)'], ['grandcfg', 'Edit Grand module lists; re-open closed orders'], ['settings', 'Settings'],
 ];
 const DEF_ROLE_PERMS = {
-  manager: PERMS.map((p) => p[0]).filter((k) => !['settings', 'grand', 'grandcfg'].includes(k)),
+  manager: PERMS.map((p) => p[0]).filter((k) => k !== 'settings' && !k.startsWith('grand')),
   staff: ['enquiry', 'estimate', 'approve', 'advance', 'confirm', 'production', 'receive', 'finalprice', 'ready', 'close'],
 };
 const DEF_SETTINGS = {

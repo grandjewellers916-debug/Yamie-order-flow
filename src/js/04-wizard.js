@@ -30,7 +30,7 @@ function wizCheck(stp) {
   const o = wiz.o;
   if (stp === 0) {
     if (!o.cust.name.trim()) return 'Enter the customer name';
-    if (!/^[6-9]\d{9}$/.test(normPhone(o.cust.phone))) return 'Enter a valid 10-digit WhatsApp number';
+    if (!phoneOk(o.cust.phone)) return 'Enter a valid WhatsApp number — 10-digit Indian mobile, or + country code for other countries';
   }
   if (stp === 1) {
     for (let i = 0; i < o.items.length; i++) {
@@ -42,8 +42,11 @@ function wizCheck(stp) {
   }
   return '';
 }
-function normPhone(p) { let d = String(p || '').replace(/\D/g, ''); if (d.length === 12 && d.startsWith('91')) d = d.slice(2); if (d.length === 11 && d[0] === '0') d = d.slice(1); return d; }
+/** Indian mobile → 10 digits; international (+972…, 00971…) → country code + number, digits only. */
+function normPhone(p) { let d = String(p || '').replace(/\D/g, ''); if (d.startsWith('00')) d = d.slice(2); if (d.length === 12 && d.startsWith('91')) d = d.slice(2); if (d.length === 11 && d[0] === '0') d = d.slice(1); return d; }
 const waDigits = (p) => { const d = normPhone(p); return d.length === 10 ? '91' + d : d; };
+const phoneOk = (p) => { const d = normPhone(p); return /^[6-9]\d{9}$/.test(d) || /^[1-9]\d{10,14}$/.test(d); };
+const fmtPhone = (p) => { const d = normPhone(p); return d.length === 10 ? '+91 ' + d : '+' + d; };
 
 function renderWizard() {
   const o = wiz.o; if (!o) return go('vHome');
@@ -73,7 +76,7 @@ function wizCustomer() {
     <div class="card"><h3>Customer</h3>
       ${canPickContact() ? `<button class="btn soft block" style="margin-bottom:12px" onclick="pickContact((c)=>{wiz.o.cust.name=c.name||wiz.o.cust.name;wiz.o.cust.phone=c.phone||wiz.o.cust.phone;keepDraft();wizGo(0)})">📇 Pick from phone contacts</button>` : ''}
       <div class="field"><label>Full name <i class="req">*</i></label><input id="cName" value="${esc(c.name)}" oninput="wiz.o.cust.name=this.value;custSuggest()" autocomplete="off"></div>
-      <div class="field"><label>WhatsApp number <i class="req">*</i></label><input id="cPhone" inputmode="tel" value="${esc(c.phone)}" oninput="wiz.o.cust.phone=this.value;custSuggest()" placeholder="10-digit mobile"></div>
+      <div class="field"><label>WhatsApp number <i class="req">*</i></label><input id="cPhone" inputmode="tel" value="${esc(c.phone)}" oninput="wiz.o.cust.phone=this.value;custSuggest()" placeholder="10-digit mobile, or +country code"></div>
       <div id="custSug"></div>
     </div>
     <div class="card"><h3>Enquiry</h3>
@@ -87,7 +90,7 @@ function wizCustomer() {
 function custSuggest() {
   const c = wiz.o.cust, q = c.name.trim().toLowerCase(), p = normPhone(c.phone), el = $('custSug'); if (!el) return;
   const all = knownCustomers();
-  const same = p.length === 10 ? all.find((x) => normPhone(x.phone) === p) : null;
+  const same = p.length >= 10 ? all.find((x) => normPhone(x.phone) === p) : null;
   const m = same ? [] : all.filter((x) => (q.length >= 2 && (x.name || '').toLowerCase().includes(q)) || (p.length >= 4 && normPhone(x.phone).includes(p))).slice(0, 5);
   el.innerHTML = (same ? `<div class="okBox">Existing customer: <b>${esc(same.name)}</b> · ${same.n} earlier enquiry/order${same.n > 1 ? 's' : ''}.${same.name !== c.name ? ` <a href="#" onclick="wiz.o.cust.name=${esc(JSON.stringify(same.name))};wizCustomer();return false">Use this name</a>` : ''}</div>` : '') +
     (m.length ? `<p class="hint">Earlier customers:</p><div class="choiceRow">${m.map((x) => `<button class="chip" onclick='wiz.o.cust.name=${esc(JSON.stringify(x.name))};wiz.o.cust.phone=${esc(JSON.stringify(x.phone))};wizCustomer()'>${esc(x.name)} · ${esc(x.phone)}</button>`).join('')}</div>` : '') +
@@ -372,7 +375,7 @@ function makeEstimate(o) {
 async function wizSave(issue) {
   for (const s of (issue === 'help' || issue === 'review') ? [0] : [0, 1]) { const e = wizCheck(s); if (e) { wizGo(s); return toast(e); } }
   const o = clone(wiz.o);
-  o.cust.phone = '+91 ' + normPhone(o.cust.phone);
+  o.cust.phone = fmtPhone(o.cust.phone);
   let saved;
   if (!wiz.id) {
     try {

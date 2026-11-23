@@ -15,11 +15,11 @@ import { backupOp } from '../lib/backup.mts';
 
 export const config = { path: '/api/*' };
 
-const SERVER_VERSION = '2.4';
+const SERVER_VERSION = '2.5';
 const PERM_KEYS = ['enquiry', 'estimate', 'approve', 'advance', 'verify', 'discount', 'confirm', 'vendor', 'production', 'receive', 'qc',
-  'finalprice', 'approvefinal', 'ready', 'close', 'cancel', 'rates', 'vendors', 'vendorcontact', 'review', 'viewcost', 'reports', 'delete', 'settings', 'grand', 'grandcfg'];
+  'finalprice', 'approvefinal', 'ready', 'close', 'cancel', 'rates', 'vendors', 'vendorcontact', 'review', 'viewcost', 'reports', 'delete', 'settings', 'grand', 'grandCreate', 'grandSend', 'grandRecv', 'grandQc', 'grandLabel', 'grandMark', 'grandPack', 'grandDispatch', 'grandcfg'];
 const DEF_ROLE_PERMS: Record<string, string[]> = {
-  manager: PERM_KEYS.filter((k) => !['settings', 'grand', 'grandcfg'].includes(k)),
+  manager: PERM_KEYS.filter((k) => k !== 'settings' && !k.startsWith('grand')),
   staff: ['enquiry', 'estimate', 'approve', 'advance', 'confirm', 'production', 'receive', 'finalprice', 'ready', 'close'],
 };
 const DEF_SETTINGS: any = {
@@ -764,6 +764,9 @@ export default async (req: Request) => {
         item: clip(l.item, 60), model: clip(l.model, 80), img: clip(l.img, 200), purity: clip(l.purity, 30), wt: Math.max(0, num(l.wt)), size: clip(l.size, 60),
         qty: Math.max(1, Math.min(9999, Math.round(num(l.qty) || 1))), urgent: !!l.urgent, due: clip(l.due, 10), note: clip(l.note, 200), sub: !!l.sub,
       })).filter((l: any) => l.item);
+      // photo show/hide on the card: creator or sender; anything else (new, edit, cancel, re-open): order creation
+      if (old && /^Photos (shown|hidden) on card$/.test(String(body.log || ''))) { if (!can('grandCreate') && !can('grandSend')) need('grandCreate'); }
+      else need('grandCreate');
       if (!lines.length) return err('Add at least one item');
       if (!clip(g.vendor, 80)) return err('Select the vendor');
       if (!clip(g.by, 60)) return err('Select who is sending the order');
@@ -798,6 +801,8 @@ export default async (req: Request) => {
       if (!o) return err('Order not found', 404);
       if (num(body.rev) !== num(o.rev)) return err('Someone else changed this order. Reload and try again.', 409);
       if (['cancelled', 'closed'].includes(o.status) && body.act !== 'reopen') return err('This order is ' + o.status, 400);
+      const stepPerm: any = { receive: 'grandRecv', closeShort: 'grandRecv', qc: 'grandQc', mark: 'grandMark', label: 'grandLabel', pack: 'grandPack', dispatch: 'grandDispatch', reopen: 'grandcfg' };
+      if (stepPerm[body.act]) need(stepPerm[body.act]);
       const d = body.data || {}, who = clip(d.by, 60) || me.name, t = now();
       o.batches = o.batches || [];
       const log = (x: string) => { o.log = (o.log || []).concat({ at: t, by: me.name, t: clip(x, 300) }).slice(-120); };
@@ -827,9 +832,16 @@ export default async (req: Request) => {
         b.qc = { by: who, at: t, user: me.name }; b.stage = b.items.some((x: any) => x.qc === 'pass') ? 'mark' : 'failed';
         log(`Receipt ${b.n} QC by ${who}: ${b.items.length - fail} passed${fail ? `, ${fail} failed (back to vendor, still pending)` : ''}`);
       } else if (['mark', 'label', 'pack', 'dispatch'].includes(body.act)) {
-        const b = bt(), flow: any = { mark: ['mark', 'label', 'Laser marking'], label: ['label', 'ready', 'Labelling'], pack: ['ready', 'packed', 'Boxed with report'], dispatch: ['packed', 'sent', 'Sent to Grand'] }, [from, to, lbl] = flow[body.act];
+        const b = bt(), flow: any = { mark: ['mark', 'label', 'Laser marking'], label: ['label', 'ready', 'Labelling'], pack: ['ready', 'packed', 'Packed with printed packing list'], dispatch: ['packed', 'sent', 'Sent to Grand'] }, [from, to, lbl] = flow[body.act];
         if (b.stage !== from && !(body.act === 'dispatch' && b.stage === 'ready')) return err('Wrong step for this receipt', 400);
-        b[body.act] = { by: who, at: t, user: me.name }; b.stage = to; log(`Receipt ${b.n}: ${lbl} done by ${who}`);
+        b[body.act] = { by: who, at: t, user: me.name };
+        if (body.act === 'dispatch') {
+          const carrier = clip(d.carrier, 80), sign = String(d.sign || '');
+          if (!carrier) return err('Enter the carrier name', 400);
+          if (!/^data:image\/(png|jpeg);base64,/.test(sign) || sign.length > 120000) return err('Take the receiver signature', 400);
+          Object.assign(b.dispatch, { carrier, recvBy: clip(d.recvBy, 80), recvPhone: clip(d.recvPhone, 20), sign });
+        }
+        b.stage = to; log(`Receipt ${b.n}: ${lbl} done by ${who}${body.act === 'dispatch' ? ` · carrier ${clip(d.carrier, 80)}${d.recvBy ? ' (' + clip(d.recvBy, 80) + ')' : ''} · signed` : ''}`);
       } else if (body.act === 'closeShort') {
         o.status = 'closed'; o.closedShort = { by: who, at: t, note: clip(d.note, 300) }; log(`Closed with items short by ${who}${d.note ? ': ' + clip(d.note, 200) : ''}`);
       } else if (body.act === 'reopen') {
@@ -840,7 +852,7 @@ export default async (req: Request) => {
       await s.setJSON(k, o); return J({ o });
     }
     if (path === 'grand/log' && method === 'POST') {
-      need('grand');
+      need('grandSend');
       const k = 'grand/o/' + String(body.id || '').replace(/[^A-Z0-9]/gi, ''), o: any = await s.get(k, { type: 'json' });
       if (!o) return err('Order not found', 404);
       o.log = (o.log || []).concat({ at: now(), by: me.name, t: clip(body.t, 200) }).slice(-80); o.upd = now(); await s.setJSON(k, o); return J({ o });
