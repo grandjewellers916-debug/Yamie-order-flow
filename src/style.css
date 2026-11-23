@@ -164,3 +164,4 @@ details.sec .in{padding:0 12px 12px}
 .verTag{display:block;font-style:normal;font-size:10.5px;color:var(--muted);font-weight:600;letter-spacing:.02em;margin-top:1px}
 .verWarn{background:#fdecc8;color:#7a4b00;font-size:12.5px;padding:8px 16px;border-bottom:1px solid #f0d49a}
 .lockVer{color:rgba(255,255,255,.75);font-size:12px;font-weight:600;margin:-8px 0 14px;text-align:center}
+.pcPrice{font-style:normal;font-weight:800;color:var(--wine);padding:4px 9px 0;font-size:13.5px}

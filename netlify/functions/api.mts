@@ -15,7 +15,7 @@ import { backupOp } from '../lib/backup.mts';
 
 export const config = { path: '/api/*' };
 
-const SERVER_VERSION = '1.9';
+const SERVER_VERSION = '2.0';
 const PERM_KEYS = ['enquiry', 'estimate', 'approve', 'advance', 'verify', 'discount', 'confirm', 'vendor', 'production', 'receive', 'qc',
   'finalprice', 'approvefinal', 'ready', 'close', 'cancel', 'rates', 'vendors', 'vendorcontact', 'review', 'viewcost', 'reports', 'delete', 'settings'];
 const DEF_ROLE_PERMS: Record<string, string[]> = {
@@ -368,7 +368,7 @@ const hideCost = (o: any) => (o?.vendor && 'cost' in o.vendor ? { ...o, vendor: 
 
 // ---------- link to Yamie Price Check (design numbers & photos) ----------
 // Reads the Price Check shared database with its shop key (env PC_SHOP_KEY; site PC_URL).
-const PC_FIELDS = ['key', 'barcode', 'label', 'item', 'category', 'carat', 'gw', 'nw', 'sw', 'dw', 'dq', 'sa', 'pname', 'design', 'model', 'size', 'mcol', 'scol', 'stype', 'stoneName', 'supplier'];
+const PC_FIELDS = ['key', 'barcode', 'label', 'item', 'category', 'carat', 'gw', 'nw', 'sw', 'dw', 'dq', 'sa', 'pname', 'design', 'model', 'size', 'mcol', 'scol', 'stype', 'stoneName', 'supplier', 'location', 'mk', 'mkType', 'huidNo'];
 const normK = (v: any) => String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
 async function pcGet(op: string, extra = '') {
   const key = Netlify.env.get('PC_SHOP_KEY');
@@ -389,7 +389,8 @@ async function pcLoad(s: any) {
   const meta: any = await pcGet('meta');
   const v = { stock: meta.stock || 0, imgs: meta.imgs || 0, pattrs: meta.pattrs || 0, pnames: meta.pnames || 0 };
   c = c || { v: {}, rows: [], idx: {}, n: {}, attrs: {}, names: {} };
-  if (c.v.stock !== v.stock || !c.rows.length) {
+  if (c.v.stock !== v.stock || !c.rows.length || c.fv !== 3) {
+    c.fv = 3;
     const d: any = await pcGet('stock');
     c.rows = (d.rows || []).map((r: any) => { const o: any = {}; for (const f of PC_FIELDS) if (r[f] != null && r[f] !== '') o[f] = r[f]; return o; });
   }
@@ -422,40 +423,79 @@ async function pcFind(s: any, q: string) {
 // Browse list of designs in Price Check stock (grouped by design / label), for the design search pop-up.
 const pcPur = (c: any) => { const x = String(c || '').toUpperCase(); if (/PT|PLAT|950/.test(x)) return 'pt'; if (/925|SIL/.test(x)) return 'ag'; if (/22|916/.test(x)) return '22k'; if (/18|750/.test(x)) return '18k'; if (/14|585/.test(x)) return '14k'; if (/\b9|375/.test(x)) return '9k'; return ''; };
 const pcStone = (r: any) => (num(r.dw) > 0 || /DIA|CVD|LAB/i.test(String(r.stype || '') + ' ' + String(r.stoneName || '')) ? 'diamond' : (num(r.sw) > 0 || r.stype || r.stoneName) ? 'colour' : 'plain');
+/** Approximate price today (metal at Order Desk rates + VA % + stone value + 3% GST) — for budget filtering only. */
+function pcApprox(r: any, rates: any) {
+  const p = pcPur(r.carat), rk = p === 'pt' ? 'pt' : p === 'ag' ? 'ag' : p ? 'k' + p.replace('k', '') : '';
+  const rate = num(rates && rates[rk]); if (!rate) return 0;
+  const w = num(r.nw) || num(r.gw), metal = w * rate;
+  const mk = String(r.mkType || '').toLowerCase().startsWith('pg') ? num(r.mk) * w : metal * num(r.mk) / 100;
+  return Math.round((metal + mk + num(r.sa)) * 1.03);
+}
+const pcTxt = (v: any) => String(v == null ? '' : v).trim();
 async function pcList(s: any, q: string, cat: string, off: number, fl: any = {}) {
   const c = await pcLoad(s), nq = normK(q), nc = String(cat || '').toLowerCase();
+  const st = await getSettings(s), rates = st.rates || {};
   const groups = new Map<string, any>();
   for (const r of c.rows) {
     const g = normK(r.design || r.label || r.key); if (!g) continue;
     const x = groups.get(g); if (x) { x.n++; continue; }
-    groups.set(g, { r, n: 1 });
+    groups.set(g, { r, n: 1, price: pcApprox(r, rates) });
   }
   const cats = new Map<string, number>();
   for (const { r } of groups.values()) { const k = String(r.category || r.item || 'Other').trim() || 'Other'; cats.set(k, (cats.get(k) || 0) + 1); }
   const text = (r: any, k: string) => [r.key, r.barcode, r.label, r.design, r.model, r.item, r.category, r.pname, c.names[k]].map((v) => String(v || '')).join(' ').toUpperCase();
-  let list = [...groups.values()].filter(({ r }) => {
+  const eq = (a: any, b: any) => pcTxt(a).toLowerCase() === pcTxt(b).toLowerCase();
+  const ok1 = (v: any) => v && v !== '0';
+  const pass = (g: any, skip = '') => {
+    const r = g.r;
     if (nc && String(r.category || r.item || 'Other').trim().toLowerCase() !== nc) return false;
     if (fl.pur && pcPur(r.carat) !== fl.pur) return false;
     const w = num(r.nw) || num(r.gw);
     if (num(fl.wmin) && w < num(fl.wmin)) return false;
     if (num(fl.wmax) && w > num(fl.wmax)) return false;
+    if (num(fl.dmin) && num(r.dw) < num(fl.dmin)) return false;
+    if (num(fl.dmax) && num(r.dw) > num(fl.dmax)) return false;
+    if (num(fl.pmin) && g.price < num(fl.pmin)) return false;
+    if (num(fl.pmax) && (!g.price || g.price > num(fl.pmax))) return false;
     if (fl.st && pcStone(r) !== fl.st) return false;
-    if (fl.ph && !pcImgCount(c, normK(r.key))) return false;
+    if (skip !== 'item' && fl.item && !eq(r.item, fl.item)) return false;
+    if (skip !== 'mcol' && fl.mcol && !eq(r.mcol, fl.mcol)) return false;
+    if (skip !== 'scol' && fl.scol && !eq(r.scol || r.stoneName, fl.scol)) return false;
+    if (skip !== 'size' && fl.size && !eq(r.size, fl.size)) return false;
+    if (skip !== 'sup' && fl.sup && !eq(r.supplier, fl.sup)) return false;
+    if (skip !== 'loc' && fl.loc && !eq(r.location, fl.loc)) return false;
+    if (ok1(fl.model) && !pcTxt(r.model)) return false;
+    if (ok1(fl.huid) && !pcTxt(r.huidNo)) return false;
+    if (ok1(fl.ph) && fl.ph !== 'false' && !pcImgCount(c, normK(r.key))) return false;
     if (!nq) return true;
     const k = normK(r.key), t = text(r, k);
     return String(q).toUpperCase().split(/\s+/).filter(Boolean).every((w) => t.includes(w) || normK(t).includes(normK(w)));
-  });
+  };
+  const all = [...groups.values()];
+  const list = all.filter((g) => pass(g));
+  // choice lists for the drop-downs, each counted with the other filters applied
+  const facet = (key: string, get: (r: any) => any) => {
+    const m = new Map<string, number>();
+    for (const g of all) { if (!pass(g, key)) continue; const v = pcTxt(get(g.r)); if (v) m.set(v, (m.get(v) || 0) + 1); }
+    return [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, 40).map(([name, n]) => ({ name, n }));
+  };
+  const facets = { item: facet('item', (r) => r.item), mcol: facet('mcol', (r) => r.mcol), scol: facet('scol', (r) => r.scol || r.stoneName), size: facet('size', (r) => r.size), sup: facet('sup', (r) => r.supplier), loc: facet('loc', (r) => r.location) };
   const wOf = (x: any) => num(x.r.nw) || num(x.r.gw);
-  if (fl.sort === 'wlo') list.sort((a: any, b: any) => wOf(a) - wOf(b));
-  else if (fl.sort === 'whi') list.sort((a: any, b: any) => wOf(b) - wOf(a));
-  else if (fl.sort === 'label') list.sort((a: any, b: any) => String(a.r.design || a.r.label || '').localeCompare(String(b.r.design || b.r.label || '')));
-  else list.sort((a: any, b: any) => (pcImgCount(c, normK(b.r.key)) ? 1 : 0) - (pcImgCount(c, normK(a.r.key)) ? 1 : 0) || String(a.r.label || '').localeCompare(String(b.r.label || '')));
+  const byLbl = (a: any, b: any) => String(a.r.design || a.r.label || '').localeCompare(String(b.r.design || b.r.label || ''), 'en', { numeric: true });
+  const sorts: any = {
+    wlo: (a: any, b: any) => wOf(a) - wOf(b), whi: (a: any, b: any) => wOf(b) - wOf(a),
+    plo: (a: any, b: any) => (a.price || 1e12) - (b.price || 1e12), phi: (a: any, b: any) => b.price - a.price,
+    dhi: (a: any, b: any) => num(b.r.dw) - num(a.r.dw), stock: (a: any, b: any) => b.n - a.n || byLbl(a, b), label: byLbl,
+  };
+  list.sort(sorts[fl.sort] || ((a: any, b: any) => (pcImgCount(c, normK(b.r.key)) ? 1 : 0) - (pcImgCount(c, normK(a.r.key)) ? 1 : 0) || byLbl(a, b)));
   const total = list.length;
-  const rows = list.slice(off, off + 30).map(({ r, n }: any) => {
+  const rows = list.slice(off, off + 30).map(({ r, n, price }: any) => {
     const k = normK(r.key);
-    return { ...r, k, label: r.design || r.label || r.barcode || r.key, name: c.names[k] || r.pname || '', attrs: { ...(c.attrs[k] || {}), size: r.size, mc: r.mcol }, imgs: pcImgCount(c, k), stock: n };
+    const o: any = { ...r, k, label: r.design || r.label || r.barcode || r.key, name: c.names[k] || r.pname || '', attrs: { ...(c.attrs[k] || {}), size: r.size, mc: r.mcol }, imgs: pcImgCount(c, k), stock: n, price };
+    delete o.mk; delete o.mkType; delete o.sa;
+    return o;
   });
-  return { at: c.at, total, off, rows, cats: [...cats.entries()].sort((a, b) => b[1] - a[1]).map(([name, n]) => ({ name, n })) };
+  return { at: c.at, total, off, rows, cats: [...cats.entries()].sort((a, b) => b[1] - a[1]).map(([name, n]) => ({ name, n })), facets };
 }
 async function pcPhotos(s: any, q: string) {
   const c = await pcLoad(s), nq = normK(q);
@@ -725,7 +765,7 @@ export default async (req: Request) => {
       return J(await cfgOut());
     }
     if (path === 'pc/find') { need('enquiry'); return J(await pcFind(s, url.searchParams.get('q') || '')); }
-    if (path === 'pc/list') { need('enquiry'); const g = (k: string) => url.searchParams.get(k) || ''; return J(await pcList(s, g('q'), g('cat'), Math.max(0, Math.round(num(g('off')))), { pur: g('pur'), wmin: g('wmin'), wmax: g('wmax'), st: g('st'), ph: g('ph') === '1', sort: g('sort') })); }
+    if (path === 'pc/list') { need('enquiry'); const g = (k: string) => url.searchParams.get(k) || ''; return J(await pcList(s, g('q'), g('cat'), Math.max(0, Math.round(num(g('off')))), Object.fromEntries(['pur', 'st', 'wmin', 'wmax', 'ph', 'sort', 'dmin', 'dmax', 'pmin', 'pmax', 'item', 'mcol', 'scol', 'size', 'sup', 'loc', 'model', 'huid'].map((k) => [k, g(k)])))); }
     if (path === 'pc/thumb') {
       need('enquiry');
       const k = normK(url.searchParams.get('k') || '');

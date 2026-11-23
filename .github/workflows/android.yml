@@ -44,7 +44,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: order-desk-v${{ github.run_number }}
-          name: Yamie Order Desk v1.9.${{ github.run_number }}
+          name: Yamie Order Desk v2.0.${{ github.run_number }}
           target_commitish: ${{ github.sha }}
           files: Yamie-Order-Desk-v*.apk
-          body: "Yamie Order Desk V1.9: version shown on the top bar and login screen (app, web and server); pick customers and vendors from phone contacts; save customers and vendors to phone contacts. Includes everything in V1.8. Installs over the old version."
+          body: "Yamie Order Desk V2.0: more filters in the Price Check design search - item type, metal colour, stone, size, supplier, location, diamond carat range, budget at todays rate, only with photos, model number or HUID, and more sort options (price, diamond, stock). Includes everything in V1.9. Installs over the old version."
