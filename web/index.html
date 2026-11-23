@@ -80,7 +80,7 @@ label.ck{display:flex;gap:6px;align-items:center;font-size:14px;min-height:44px;
 .bgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}.bcard h3{margin:0 0 6px}.bk{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-top:1px solid var(--ln);font-size:14px}.bk span{color:var(--mut)}.bk.in b{color:var(--ok)}.bk.out b{color:var(--bad)}.bk.cl b{font-size:17px;color:var(--m)}
 tr.voided td{opacity:.5;text-decoration:line-through}tr.voided td:nth-child(8){text-decoration:none;opacity:1}.rrow select,.rrow input{min-height:36px;padding:4px 6px}
 @media (max-width:700px){.bcard[style*="span 2"]{grid-column:auto!important}}
-.mixflag{margin-top:6px;font-size:12px;color:#8A5A00;background:#FFF4CF;border-radius:8px;padding:4px 8px}.mixrow td{background:#FFF8E1}.spg{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;margin-top:8px}.spg label{display:flex;align-items:center;gap:6px;font-size:13px}.spg label span{flex:1}.spg input{width:70px;min-height:36px;padding:4px 6px}
+.ptbl tr.jhead td{background:#F3ECF8;font-weight:700}.mixflag{margin-top:6px;font-size:12px;color:#8A5A00;background:#FFF4CF;border-radius:8px;padding:4px 8px}.mixrow td{background:#FFF8E1}.spg{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;margin-top:8px}.spg label{display:flex;align-items:center;gap:6px;font-size:13px}.spg label span{flex:1}.spg input{width:70px;min-height:36px;padding:4px 6px}
 .isum{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:6px;font-size:12px;color:var(--mut)}.isum b{color:var(--ink);font-weight:600}.isum .on{color:var(--m)}.isum .on b{color:var(--m)}.isum .off{opacity:.55}
 .wtl{margin-top:4px;font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap}.wtl.none{font-weight:400;color:var(--warn);font-size:11px}
 details.msel{position:relative}details.msel>summary{list-style:none;cursor:pointer;border:1px solid var(--ln);border-radius:10px;background:#fff;min-height:44px;padding:10px 30px 10px 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative}
@@ -389,7 +389,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.42';
+const VERSION = '1.43';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -1585,8 +1585,11 @@ function rpBuild(P) {
     const live = L.filter((r) => r.exp); const colOf = (r) => P.pcol === 'place' ? placeOf(S.locById[r.locId]) : S.locById[r.locId].area || 'Not set';
     const cv = rdOrder(P.pcol === 'place' ? 'place' : 'area', [...new Set(live.map(colOf))]); const items = rdOrder('item', [...new Set(live.map((r) => r.item))]);
     const line = (lab, pur, rs, cls) => ({ cls, cells: [lab, pur, ...cv.map((c) => rs.filter((r) => colOf(r) === c).reduce((a, r) => a + r.exp, 0)), rs.reduce((a, r) => a + r.exp, 0)] });
-    const rows = []; for (const it of items) { const rs = live.filter((r) => r.item === it); const purs = rdOrder('purity', [...new Set(rs.map((r) => r.purity || 'Not set'))]);
-      rows.push(line(it, purs.length > 1 ? 'All' : purs[0], rs, P.purs && purs.length > 1 ? 'rgrp' : '')); if (P.purs && purs.length > 1) purs.forEach((p) => rows.push(line('   ' + it, p, rs.filter((r) => (r.purity || 'Not set') === p), 'sub'))); }
+    const rows = []; const js = P.jsep !== false; const groups = js ? LINE_JTYPES.filter((j) => live.some((r) => r.jt === j)) : [''];
+    for (const g of groups) { const gl = g ? live.filter((r) => r.jt === g) : live; const nm = (it) => g && g !== 'Plain Gold Jewellery' ? `${JT_SHORT[g]} ${it}` : it;
+      if (js && groups.length > 1) rows.push(line(JT_LABEL[g], '', gl, 'tot'));
+      for (const it of items) { const rs = gl.filter((r) => r.item === it); if (!rs.length) continue; const purs = rdOrder('purity', [...new Set(rs.map((r) => r.purity || 'Not set'))]);
+        rows.push(line(nm(it), purs.length > 1 ? 'All' : purs[0], rs, P.purs && purs.length > 1 ? 'rgrp' : '')); if (P.purs && purs.length > 1) purs.forEach((p) => rows.push(line('   ' + nm(it), p, rs.filter((r) => (r.purity || 'Not set') === p), 'sub'))); } }
     rows.push(line('Total', '', live, 'tot'));
     return T('Item count by ' + (P.pcol === 'place' ? 'sub location' : 'main location'), [{ t: 'Item' }, { t: 'Purity' }, ...cv.map((c) => ({ t: c, num: true })), { t: 'Total', num: true }], rows);
   }
@@ -1625,7 +1628,7 @@ function vReports() {
     ${msel('i', 'Item', opts((r) => r.item, (v) => rdOrder('item', v)), F.i, 'All items')}
     ${msel('p', 'Purity', opts((r) => r.purity || 'Not set', (v) => rdOrder('purity', v)), F.p, 'All purities')}
     ${P.type === 'locs' ? `<div class="grow" data-fk="cols"><label class="f" style="margin-top:0">Columns</label>${colsBox}</div><label class="ck" data-fk="grp" style="align-self:flex-end"><input type="checkbox" id="rpGrp" ${P.group ? 'checked' : ''}> Group by main location</label><label class="ck" data-fk="icol" style="align-self:flex-end"><input type="checkbox" id="rpIc" ${P.itemCols !== false ? 'checked' : ''}> Items as columns</label>` : ''}
-    ${P.type === 'place' ? `<div class="grow" data-fk="pcol"><label class="f" style="margin-top:0">Columns</label><select id="rpPcol"><option value="place" ${P.pcol === 'place' ? 'selected' : ''}>Sub locations</option><option value="area" ${P.pcol === 'area' ? 'selected' : ''}>Main locations</option></select></div><label class="ck" data-fk="purs" style="align-self:flex-end"><input type="checkbox" id="rpPurs" ${P.purs ? 'checked' : ''}> Purity rows</label>` : ''}
+    ${P.type === 'place' ? `<div class="grow" data-fk="pcol"><label class="f" style="margin-top:0">Columns</label><select id="rpPcol"><option value="place" ${P.pcol === 'place' ? 'selected' : ''}>Sub locations</option><option value="area" ${P.pcol === 'area' ? 'selected' : ''}>Main locations</option></select></div><label class="ck" data-fk="purs" style="align-self:flex-end"><input type="checkbox" id="rpPurs" ${P.purs ? 'checked' : ''}> Purity rows</label><label class="ck" data-fk="jsep" style="align-self:flex-end"><input type="checkbox" id="rpJs" ${P.jsep !== false ? 'checked' : ''}> Gold / Diamond separate</label>` : ''}
     ${P.type === 'custom' ? `<div class="grow" data-fk="saved"><label class="f" style="margin-top:0">Saved report</label><select id="rpSaved"><option value="">— build below —</option>${saved.map((r, i) => `<option value="${i}" ${P.saved === String(i) ? 'selected' : ''}>★ ${esc(r.name)}</option>`).join('')}</select></div>
       ${P.saved === '' ? ['r', 'r2', 'c'].map((k) => `<div class="grow" data-fk="${k}"><label class="f" style="margin-top:0">${{ r: 'Rows', r2: 'Then by', c: 'Columns' }[k]}</label><select data-cr="${k}">${k !== 'r' ? '<option value="">— none —</option>' : ''}${Object.entries(RDIM).map(([d, n]) => `<option value="${d}" ${P.cr[k] === d ? 'selected' : ''}>${n}</option>`).join('')}</select></div>`).join('') + `<div class="grow" data-fk="m"><label class="f" style="margin-top:0">Show</label><select data-cr="m">${Object.entries(RMEAS).map(([d, n]) => `<option value="${d}" ${P.cr.m === d ? 'selected' : ''}>${n}</option>`).join('')}</select></div><div data-fk="sv" style="align-self:flex-end"><button class="btn ghost" id="rpSave">★ Save</button></div>` : `<div data-fk="del" style="align-self:flex-end"><button class="btn ghost" id="rpDel" style="color:var(--bad)">🗑 Delete</button></div>`}` : ''}
     <div data-fk="clr" style="align-self:flex-end"><button class="btn ghost" id="rpClr">Clear</button></div></div>
@@ -1644,6 +1647,7 @@ function vReports() {
   $('#rpIc') && ($('#rpIc').onchange = () => { P.itemCols = $('#rpIc').checked; re(); });
   $('#rpPcol') && ($('#rpPcol').onchange = () => { P.pcol = $('#rpPcol').value; re(); });
   $('#rpPurs') && ($('#rpPurs').onchange = () => { P.purs = $('#rpPurs').checked; re(); });
+  $('#rpJs') && ($('#rpJs').onchange = () => { P.jsep = $('#rpJs').checked; re(); });
   $('#rpSaved') && ($('#rpSaved').onchange = () => { P.saved = $('#rpSaved').value; re(); });
   $('#main').querySelectorAll('[data-cr]').forEach((el) => el.onchange = () => { P.cr[el.dataset.cr] = el.value; if (P.cr.r2 === P.cr.r) P.cr.r2 = ''; if (P.cr.c === P.cr.r || P.cr.c === P.cr.r2) P.cr.c = ''; re(); });
   $('#rpSave') && ($('#rpSave').onclick = () => { const n = (prompt('Report name', R.title) || '').trim(); if (!n) return; const a = repsGet(); a.push({ ...P.cr, name: n }); repsSet(a); P.saved = String(a.length - 1); toast('✓ Saved'); re(); });
@@ -1855,17 +1859,23 @@ function vTotal() {
   S.pcol ||= 'place';
   const colV = S.pcol === 'place' ? rdOrder('place', [...new Set(L.filter((r) => r.exp).map((r) => placeOf(S.locById[r.locId])))]) : rdOrder('area', [...new Set(L.filter((r) => r.exp).map((r) => S.locById[r.locId].area || 'Not set'))]);
   const colOf = (r) => S.pcol === 'place' ? placeOf(S.locById[r.locId]) : S.locById[r.locId].area || 'Not set';
-  const PX = {}; for (const r of L) { if (!r.exp) continue; const pu = r.purity || 'Not set'; for (const k of [r.item + '|*', r.item + '|' + pu]) { const x = (PX[k] ||= { t: 0 }); x[colOf(r)] = (x[colOf(r)] || 0) + r.exp; x.t += r.exp; } const x = (PX['*'] ||= { t: 0 }); x[colOf(r)] = (x[colOf(r)] || 0) + r.exp; x.t += r.exp; }
+  // v1.43 jewellery types as separate sections (Gold, Diamond Jewellery, Lab Grown …) — Diamond Ring, Diamond Stud … apart from gold
+  const jsep = S.jsep !== false; const gOf = (r) => jsep ? r.jt : '';
+  const PX = {}; for (const r of L) { if (!r.exp) continue; const pu = r.purity || 'Not set'; const g = gOf(r) + '§'; for (const k of [g + r.item + '|*', g + r.item + '|' + pu, g + '*']) { const x = (PX[k] ||= { t: 0 }); x[colOf(r)] = (x[colOf(r)] || 0) + r.exp; x.t += r.exp; } const x = (PX['*'] ||= { t: 0 }); x[colOf(r)] = (x[colOf(r)] || 0) + r.exp; x.t += r.exp; }
   S.pexp ||= {};
   const pRow = (lab, pur, X, cls, attr = '') => `<tr class="${cls}" ${attr}><td style="text-align:left" class="${cls === 'sub' ? 'ind' : 'b'}">${lab}</td><td style="text-align:left">${esc(pur)}</td>${colV.map((c) => `<td>${X[c] ? fmt(X[c]) : '—'}</td>`).join('')}<td class="b">${fmt(X.t)}</td></tr>`;
   const grpC = []; for (const c of colV) { const [m, sb] = S.pcol === 'place' ? c.split(' › ') : [c]; const last = grpC[grpC.length - 1]; if (last && last.m === m) last.subs.push(sb); else grpC.push({ m, subs: [sb] }); }
   const two = S.pcol === 'place' && grpC.some((g) => g.subs.some(Boolean));
   const pHead = two ? `<tr><th rowspan="2" style="text-align:left">Item</th><th rowspan="2" style="text-align:left">Purity</th>${grpC.map((g) => g.subs.length === 1 && !g.subs[0] ? `<th rowspan="2">${esc(g.m)}</th>` : `<th colspan="${g.subs.length}" class="mlh">${esc(g.m)}</th>`).join('')}<th rowspan="2">Total</th></tr><tr>${grpC.flatMap((g) => g.subs.length === 1 && !g.subs[0] ? [] : g.subs.map((x) => `<th>${esc(x)}</th>`)).join('')}</tr>`
     : `<tr><th style="text-align:left">Item</th><th style="text-align:left">Purity</th>${colV.map((c) => `<th>${esc(c)}</th>`).join('')}<th>Total</th></tr>`;
-  const placeTbl = `<div class="seg noprint" style="margin-bottom:8px;max-width:360px">${[['place', 'By sub location'], ['area', 'By main location']].map(([k, t]) => `<button data-pcol="${k}" class="${S.pcol === k ? 'on' : ''}">${t}</button>`).join('')}</div>
+  const placeTbl = `<div class="row wrap noprint" style="gap:8px;margin-bottom:8px"><div class="seg" style="max-width:360px">${[['place', 'By sub location'], ['area', 'By main location']].map(([k, t]) => `<button data-pcol="${k}" class="${S.pcol === k ? 'on' : ''}">${t}</button>`).join('')}</div>
+    <div class="seg" style="max-width:360px">${[[1, 'Gold / Diamond separate'], [0, 'All together']].map(([k, t]) => `<button data-jsep="${k}" class="${jsep === !!k ? 'on' : ''}">${t}</button>`).join('')}</div></div>
     <div class="tw"><table class="ptbl">${pHead}
-    ${types.filter((t) => PX[t + '|*']).map((t) => { if (/^mixed$/i.test(t)) return pRow(`⚠ Mixed — not split <button class="lnk" data-split>split ›</button>`, 'Mixed', PX[t + '|*'], 'mixrow'); const purs = rdOrder('purity', Object.keys(PX).filter((k) => k.startsWith(t + '|') && !k.endsWith('|*')).map((k) => k.slice(t.length + 1))); const open = S.pexp[t];
-      return pRow(`${purs.length > 1 ? `<span class="caret">${open ? '▾' : '▸'}</span> ` : ''}${esc(t)}`, purs.length > 1 ? 'All' : purs[0], PX[t + '|*'], purs.length > 1 ? 'pclick' : '', purs.length > 1 ? `data-pexp="${esc(t)}"` : '') + (open && purs.length > 1 ? purs.map((p) => pRow(esc(t), p, PX[t + '|' + p], 'sub')).join('') : ''); }).join('')}
+    ${(jsep ? LINE_JTYPES.filter((j) => PX[j + '§*']) : ['']).map((g) => { const G = g + '§'; const nm = (t) => g && g !== 'Plain Gold Jewellery' ? `${JT_SHORT[g]} ${t}` : t;
+      const head = jsep && (LINE_JTYPES.filter((j) => PX[j + '§*']).length > 1) ? pRow(`${g === 'Diamond Jewellery' ? '💎 ' : ''}${esc(JT_LABEL[g])} — total`, '', PX[G + '*'], 'rgrp jhead') : '';
+      return head + types.filter((t) => PX[G + t + '|*']).map((t) => { if (/^mixed$/i.test(t)) return pRow(`⚠ ${esc(nm('Mixed'))} — not split <button class="lnk" data-split>split ›</button>`, 'Mixed', PX[G + t + '|*'], 'mixrow');
+        const purs = rdOrder('purity', Object.keys(PX).filter((k) => k.startsWith(G + t + '|') && !k.endsWith('|*')).map((k) => k.slice((G + t).length + 1))); const open = S.pexp[G + t];
+        return pRow(`${purs.length > 1 ? `<span class="caret">${open ? '▾' : '▸'}</span> ` : ''}${esc(nm(t))}`, purs.length > 1 ? 'All' : purs[0], PX[G + t + '|*'], purs.length > 1 ? 'pclick' : '', purs.length > 1 ? `data-pexp="${esc(G + t)}"` : '') + (open && purs.length > 1 ? purs.map((p) => pRow(esc(nm(t)), p, PX[G + t + '|' + p], 'sub')).join('') : ''); }).join(''); }).join('')}
     ${PX['*'] ? pRow('Total', '', PX['*'], 'tot') : `<tr><td colspan="${colV.length + 3}" class="mut">No stock</td></tr>`}</table></div>
     <div class="mut sm" style="margin-top:6px">Expected pieces. ${S.pcol === 'place' ? 'Columns are main locations and their sub locations (Admin → Lists).' : 'Columns are the main locations.'} Tap an item to see each purity.</div>`;
   const secTbl = `<div class="tw"><table><tr><th>Section</th><th>Opening</th><th>In</th><th>Out</th><th>Expected</th><th>Checked</th><th>Counted</th><th>Variance</th></tr>
@@ -1904,6 +1914,7 @@ function vTotal() {
   bindMsel($('#main'), (k) => k === 'jt' ? S.jfs : CF[k], (k, v) => { if (k === 'jt') S.jfs = v; else CF[k] = v; vTotal(); });
   $('#cfClr') && ($('#cfClr').onclick = () => { S.jfs = []; S.cf = { a: [], pl: [], i: [], p: [] }; vTotal(); });
   $('#main').querySelectorAll('[data-pcol]').forEach((b) => b.onclick = () => { S.pcol = b.dataset.pcol; vTotal(); });
+  $('#main').querySelectorAll('[data-jsep]').forEach((b) => b.onclick = () => { S.jsep = b.dataset.jsep === '1'; vTotal(); });
   $('#main').querySelectorAll('[data-pexp]').forEach((r) => r.onclick = () => { const t = r.dataset.pexp; S.pexp[t] = !S.pexp[t]; vTotal(); });
   $('#main').querySelectorAll('[data-split]').forEach((b) => b.onclick = (e) => { e.stopPropagation(); pickMixed(); });
   bindReports(L, jfName);
