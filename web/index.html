@@ -389,7 +389,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.45';
+const VERSION = '1.46';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -1550,7 +1550,7 @@ new MutationObserver(() => { const m = $('#main'); if (m) fbScan(m); }).observe(
 const RP_TYPES = [['locs', 'Location list', 'Counters, trays and boxes with the columns you choose'], ['place', 'Item count by location', 'Item × main / sub location'], ['pur', 'Purity-wise', 'Purity with items underneath'],
   ['item', 'Item-wise', 'Item split by purity'], ['loc', 'Location-wise', 'Main location → each counter / tray / box'], ['jt', 'Jewellery type', 'Type and metal totals'], ['boxwt', 'Box weight', 'Opening, inward, outward, closing, cover, net'],
   ['var', 'Variances', 'Locations not matching'], ['custom', 'Custom', 'Rows × columns you pick']];
-function rpState() { return (S.rp ||= { type: 'locs', sec: 'all', f: { jt: [], a: [], pl: [], i: [], p: [] }, cols: null, pcol: 'place', purs: true, group: true, cr: { r: 'item', r2: '', c: 'area', m: 'exp' }, saved: '' }); }
+function rpState() { return (S.rp ||= { type: 'locs', sec: 'all', f: { jt: [], a: [], pl: [], i: [], p: [] }, cols: null, pcol: 'place', purs: false, group: true, cr: { r: 'item', r2: '', c: 'area', m: 'exp' }, saved: '' }); }
 // filtered summary lines + location test (same item line must match type / item / purity)
 function rpLines(P) { const F = P.f; return S.sum.lines.filter((r) => { const l = S.locById[r.locId]; if (!l) return false;
   return (P.sec === 'all' || l.sec === P.sec) && (!F.jt.length || F.jt.includes(r.jt)) && (!F.a.length || F.a.includes(l.area || 'Not set')) && (!F.pl.length || F.pl.includes(placeOf(l))) && (!F.i.length || F.i.includes(r.item)) && (!F.p.length || F.p.includes(r.purity || 'Not set')); }); }
@@ -1591,7 +1591,9 @@ function rpBuild(P) {
       if (js && groups.length > 1) rows.push({ ...line(`${shut ? '▸' : '▾'} ${/jewellery$/i.test(JT_LABEL[g]) ? JT_LABEL[g] : JT_LABEL[g] + ' Jewellery'} — ${fmt(gl.reduce((a, r) => a + r.exp, 0))} pcs`, '', gl, 'tot'), jg: g });
       if (shut) continue;
       for (const it of items) { const rs = gl.filter((r) => r.item === it); if (!rs.length) continue; const purs = rdOrder('purity', [...new Set(rs.map((r) => r.purity || 'Not set'))]);
-        rows.push(line(nm(it), purs.length > 1 ? 'All' : purs[0], rs, P.purs && purs.length > 1 ? 'rgrp' : '')); if (P.purs && purs.length > 1) purs.forEach((p) => rows.push(line('   ' + nm(it), p, rs.filter((r) => (r.purity || 'Not set') === p), 'sub'))); } }
+        const ik = g + '§' + it; const op = purs.length > 1 && (P.purs === true || (P.iopen || []).includes(ik));   // v1.46 items collapsed; tap to see purities
+        rows.push({ ...line(`${purs.length > 1 ? (op ? '▾ ' : '▸ ') : ''}${nm(it)}`, purs.length > 1 ? 'All' : purs[0], rs, op ? 'rgrp' : ''), ...(purs.length > 1 ? { ik } : {}) });
+        if (op) purs.forEach((p) => rows.push(line('   ' + nm(it), p, rs.filter((r) => (r.purity || 'Not set') === p), 'sub'))); } }
     rows.push(line('Total', '', live, 'tot'));
     return T('Item count by ' + (P.pcol === 'place' ? 'sub location' : 'main location') + (js && groups.length > 1 && groups.every((g) => (P.jcol || []).includes(g)) ? ' — summary' : ''), [{ t: 'Item' }, { t: 'Purity' }, ...cv.map((c) => ({ t: c, num: true })), { t: 'Total', num: true }], rows);
   }
@@ -1630,7 +1632,7 @@ function vReports() {
     ${msel('i', 'Item', opts((r) => r.item, (v) => rdOrder('item', v)), F.i, 'All items')}
     ${msel('p', 'Purity', opts((r) => r.purity || 'Not set', (v) => rdOrder('purity', v)), F.p, 'All purities')}
     ${P.type === 'locs' ? `<div class="grow" data-fk="cols"><label class="f" style="margin-top:0">Columns</label>${colsBox}</div><label class="ck" data-fk="grp" style="align-self:flex-end"><input type="checkbox" id="rpGrp" ${P.group ? 'checked' : ''}> Group by main location</label><label class="ck" data-fk="icol" style="align-self:flex-end"><input type="checkbox" id="rpIc" ${P.itemCols !== false ? 'checked' : ''}> Items as columns</label>` : ''}
-    ${P.type === 'place' ? `<div class="grow" data-fk="pcol"><label class="f" style="margin-top:0">Columns</label><select id="rpPcol"><option value="place" ${P.pcol === 'place' ? 'selected' : ''}>Sub locations</option><option value="area" ${P.pcol === 'area' ? 'selected' : ''}>Main locations</option></select></div><label class="ck" data-fk="purs" style="align-self:flex-end"><input type="checkbox" id="rpPurs" ${P.purs ? 'checked' : ''}> Purity rows</label><label class="ck" data-fk="jsep" style="align-self:flex-end"><input type="checkbox" id="rpJs" ${P.jsep !== false ? 'checked' : ''}> Gold / Diamond separate</label>${P.jsep !== false ? `<label class="ck" data-fk="jcol" style="align-self:flex-end"><input type="checkbox" id="rpJc" ${(P.jcol || []).length ? 'checked' : ''}> Collapsed (section totals)</label>` : ''}` : ''}
+    ${P.type === 'place' ? `<div class="grow" data-fk="pcol"><label class="f" style="margin-top:0">Columns</label><select id="rpPcol"><option value="place" ${P.pcol === 'place' ? 'selected' : ''}>Sub locations</option><option value="area" ${P.pcol === 'area' ? 'selected' : ''}>Main locations</option></select></div><label class="ck" data-fk="purs" style="align-self:flex-end"><input type="checkbox" id="rpPurs" ${P.purs === true ? 'checked' : ''}> Show all purities</label><label class="ck" data-fk="jsep" style="align-self:flex-end"><input type="checkbox" id="rpJs" ${P.jsep !== false ? 'checked' : ''}> Gold / Diamond separate</label>${P.jsep !== false ? `<label class="ck" data-fk="jcol" style="align-self:flex-end"><input type="checkbox" id="rpJc" ${(P.jcol || []).length ? 'checked' : ''}> Collapsed (section totals)</label>` : ''}` : ''}
     ${P.type === 'custom' ? `<div class="grow" data-fk="saved"><label class="f" style="margin-top:0">Saved report</label><select id="rpSaved"><option value="">— build below —</option>${saved.map((r, i) => `<option value="${i}" ${P.saved === String(i) ? 'selected' : ''}>★ ${esc(r.name)}</option>`).join('')}</select></div>
       ${P.saved === '' ? ['r', 'r2', 'c'].map((k) => `<div class="grow" data-fk="${k}"><label class="f" style="margin-top:0">${{ r: 'Rows', r2: 'Then by', c: 'Columns' }[k]}</label><select data-cr="${k}">${k !== 'r' ? '<option value="">— none —</option>' : ''}${Object.entries(RDIM).map(([d, n]) => `<option value="${d}" ${P.cr[k] === d ? 'selected' : ''}>${n}</option>`).join('')}</select></div>`).join('') + `<div class="grow" data-fk="m"><label class="f" style="margin-top:0">Show</label><select data-cr="m">${Object.entries(RMEAS).map(([d, n]) => `<option value="${d}" ${P.cr.m === d ? 'selected' : ''}>${n}</option>`).join('')}</select></div><div data-fk="sv" style="align-self:flex-end"><button class="btn ghost" id="rpSave">★ Save</button></div>` : `<div data-fk="del" style="align-self:flex-end"><button class="btn ghost" id="rpDel" style="color:var(--bad)">🗑 Delete</button></div>`}` : ''}
     <div data-fk="clr" style="align-self:flex-end"><button class="btn ghost" id="rpClr">Clear</button></div></div>
@@ -1638,7 +1640,7 @@ function vReports() {
   <div class="rphl"><div><span>📦 Product</span><b>${esc(rpProd(P))}</b></div><div><span>📍 Location</span><b>${esc(rpLocTxt(P))}</b></div></div>
   ${(S.D.rpSent || []).length ? `<div class="mut sm" style="margin-top:6px">📤 Sent today: ${S.D.rpSent.slice(-5).map((x) => `${esc(x.title)} → ${esc(x.to || x.via)} (${new Date(x.at).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })})`).join(' · ')}</div>` : ''}
   <div class="tw" style="margin-top:10px"><table class="rep"><tr>${R.cols.map((c) => `<th${c.num ? '' : ' style="text-align:left"'}>${esc(c.t)}</th>`).join('')}</tr>
-  ${R.rows.map((r) => `<tr class="${r.cls || ''}${r.jg != null ? ' pclick' : ''}"${r.jg != null ? ` data-rjcol="${esc(r.jg)}" title="Tap to collapse / expand"` : ''}>${r.cells.map((v, i) => `<td${R.cols[i].num ? '' : ` style="text-align:left" class="${i === 0 && r.cls === 'sub' ? 'ind' : i === 0 ? 'b' : ''}"`}>${typeof v === 'string' && i === 0 ? esc(v.trim()) : rpFmt(v, R.cols[i])}</td>`).join('')}</tr>`).join('') || `<tr><td colspan="${R.cols.length}" class="mut">Nothing to show</td></tr>`}</table></div></div>
+  ${R.rows.map((r) => `<tr class="${r.cls || ''}${r.jg != null || r.ik ? ' pclick' : ''}"${r.jg != null ? ` data-rjcol="${esc(r.jg)}" title="Tap to collapse / expand"` : r.ik ? ` data-riexp="${esc(r.ik)}" title="Tap to see each purity"` : ''}>${r.cells.map((v, i) => `<td${R.cols[i].num ? '' : ` style="text-align:left" class="${i === 0 && r.cls === 'sub' ? 'ind' : i === 0 ? 'b' : ''}"`}>${typeof v === 'string' && i === 0 ? esc(v.trim()) : rpFmt(v, R.cols[i])}</td>`).join('')}</tr>`).join('') || `<tr><td colspan="${R.cols.length}" class="mut">Nothing to show</td></tr>`}</table></div></div>
   <div class="mut sm" style="margin-top:6px">Excel opens in Excel / Google Sheets with numbers as numbers; PDF is ready to print or send on WhatsApp. Filters apply to every report.</div>`;
   bindBanner();
   const re = () => vReports();
@@ -1648,7 +1650,8 @@ function vReports() {
   $('#rpGrp') && ($('#rpGrp').onchange = () => { P.group = $('#rpGrp').checked; re(); });
   $('#rpIc') && ($('#rpIc').onchange = () => { P.itemCols = $('#rpIc').checked; re(); });
   $('#rpPcol') && ($('#rpPcol').onchange = () => { P.pcol = $('#rpPcol').value; re(); });
-  $('#rpPurs') && ($('#rpPurs').onchange = () => { P.purs = $('#rpPurs').checked; re(); });
+  $('#rpPurs') && ($('#rpPurs').onchange = () => { P.purs = $('#rpPurs').checked; P.iopen = []; re(); });
+  $('#main').querySelectorAll('[data-riexp]').forEach((r) => r.onclick = () => { const k = r.dataset.riexp; const a = P.iopen || []; if (P.purs === true) { P.purs = false; P.iopen = []; } else P.iopen = a.includes(k) ? a.filter((x) => x !== k) : [...a, k]; re(); });
   $('#rpJs') && ($('#rpJs').onchange = () => { P.jsep = $('#rpJs').checked; re(); });
   $('#rpJc') && ($('#rpJc').onchange = () => { P.jcol = $('#rpJc').checked ? [...LINE_JTYPES] : []; re(); });
   $('#main').querySelectorAll('[data-rjcol]').forEach((r) => r.onclick = () => { const g = r.dataset.rjcol; const a = P.jcol || []; P.jcol = a.includes(g) ? a.filter((x) => x !== g) : [...a, g]; re(); });
