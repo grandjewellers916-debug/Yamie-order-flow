@@ -34,6 +34,14 @@ class MainActivity : ComponentActivity() {
     private var cameraUri: Uri? = null
     private val appHost by lazy { Uri.parse(BuildConfig.APP_URL).host }
 
+    // v1.33 shop location: "Use my current location" asks for GPS permission once
+    private var geoCb: android.webkit.GeolocationPermissions.Callback? = null
+    private var geoOrigin: String? = null
+    private val geoPerm = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { res ->
+        val ok = res.values.any { it }
+        geoCb?.invoke(geoOrigin, ok, false); geoCb = null; geoOrigin = null
+    }
+
     private val chooser = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
         val cb = fileCallback; fileCallback = null
         if (cb == null) return@registerForActivityResult
@@ -68,6 +76,7 @@ class MainActivity : ComponentActivity() {
         setContentView(root)
         web.settings.apply {
             javaScriptEnabled = true
+            setGeolocationEnabled(true)
             domStorageEnabled = true
             databaseEnabled = true
             allowFileAccess = false
@@ -97,6 +106,13 @@ class MainActivity : ComponentActivity() {
         }
 
         web.webChromeClient = object : WebChromeClient() {
+            override fun onGeolocationPermissionsShowPrompt(origin: String, callback: android.webkit.GeolocationPermissions.Callback) {
+                val has = androidx.core.content.ContextCompat.checkSelfPermission(this@MainActivity, android.Manifest.permission.ACCESS_FINE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED ||
+                    androidx.core.content.ContextCompat.checkSelfPermission(this@MainActivity, android.Manifest.permission.ACCESS_COARSE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED
+                if (has) { callback.invoke(origin, true, false); return }
+                geoCb = callback; geoOrigin = origin
+                geoPerm.launch(arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION))
+            }
             override fun onShowFileChooser(view: WebView, callback: ValueCallback<Array<Uri>>, params: FileChooserParams): Boolean {
                 fileCallback?.onReceiveValue(null)
                 fileCallback = callback

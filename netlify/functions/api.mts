@@ -241,7 +241,8 @@ export default async (req: Request) => {
       const days = await dayKeys(s);
       const [sessions, erp] = await Promise.all([listJSON(s, `ss/${date}/`), s.get(`erp/${date}`, { type: 'json' })]);
       const rpSent = can('share') ? await listJSON(s, `rps/${today}/`) : [];
-      return J({ today, date, day: d.day, mvs: d.mvs, counts: d.allCounts, sessions, erp, locs, settings, me: pubUser(me), alerts, days, rpSent, userNames: Object.fromEntries(users.map((u) => [u.id, u.name])) });
+      const shopLocs = (await listJSON(s, 'doc/')).filter((x: any) => x.type === 'Shop Location' && x.place).map((x: any) => ({ id: x.id, title: x.title, type: x.type, place: x.place }));   // v1.33 everyone can share the shop location
+      return J({ today, date, day: d.day, mvs: d.mvs, counts: d.allCounts, sessions, erp, locs, settings, me: pubUser(me), alerts, days, rpSent, shopLocs, userNames: Object.fromEntries(users.map((u) => [u.id, u.name])) });
     }
 
     // helpers needing an open day
@@ -756,6 +757,7 @@ export default async (req: Request) => {
       const doc: any = { id, type: str(D.type, 40) || 'Other', title: str(D.title, 80), number: str(D.number, 60), vehicle: str(D.vehicle, 20).toUpperCase().replace(/\s+/g, ' '), vehicleName: str(D.vehicleName, 60), remind: Math.max(1, Math.min(365, +D.remind || 30)), remindOff: !!D.remindOff, issuedBy: str(D.issuedBy, 80), issueDate: str(D.issueDate, 10), expiry: str(D.expiry, 10), notes: str(D.notes, 1000),
         bank: D.bank ? { holder: str(D.bank.holder, 80), bank: str(D.bank.bank, 60), account: str(D.bank.account, 30), ifsc: str(D.bank.ifsc, 15).toUpperCase(), branch: str(D.bank.branch, 80), kind: str(D.bank.kind, 30) } : null,
         upi: D.upi ? { id: str(D.upi.id, 80), name: str(D.upi.name, 80), gen: !!D.upi.gen } : null,
+        place: D.place ? { name: str(D.place.name, 80), address: str(D.place.address, 300), mapUrl: /^https?:\/\//i.test(str(D.place.mapUrl, 500)) ? str(D.place.mapUrl, 500) : '', lat: Number.isFinite(+D.place.lat) && D.place.lat !== '' ? +(+D.place.lat).toFixed(6) : null, lng: Number.isFinite(+D.place.lng) && D.place.lng !== '' ? +(+D.place.lng).toFixed(6) : null, phone: str(D.place.phone, 40), hours: str(D.place.hours, 120), landmark: str(D.place.landmark, 120) } : null,
         files: (Array.isArray(D.files) ? D.files : []).slice(0, 12).map((f: any) => ({ key: String(f.key || '').replace(/[^a-z0-9-]/gi, ''), mime: str(f.mime, 40), label: str(f.label, 60) })).filter((f: any) => f.key),
         order: D.order ?? old?.order, createdAt: old?.createdAt || now(), createdBy: old?.createdBy || me.id, updatedAt: now(), updatedBy: me.id, updatedByName: me.name };
       if (!doc.title) doc.title = doc.vehicle ? `${doc.type.replace('Vehicle ', '')} · ${doc.vehicle}` : doc.type;

@@ -74,7 +74,7 @@ export const cashNotes = (r, d) => { const x = (r?.denoms || []).find((y) => +y.
 // v1.19 Business documents (credentials vault)
 // v1.20 motor vehicle documents (grouped by vehicle number)
 export const VEHICLE_DOC_TYPES = ['Vehicle RC', 'Vehicle Insurance', 'Vehicle PUC', 'Vehicle Road Tax', 'Vehicle Permit / Fitness', 'Driving Licence'];
-export const DOC_TYPES = ['GST Certificate', 'Trade Licence', 'Shop & Establishment', 'BIS Hallmarking', 'PAN Card', 'Udyam / MSME', 'Insurance', 'Bank Account', 'UPI QR Code', ...VEHICLE_DOC_TYPES, 'Other'];
+export const DOC_TYPES = ['Shop Location', 'GST Certificate', 'Trade Licence', 'Shop & Establishment', 'BIS Hallmarking', 'PAN Card', 'Udyam / MSME', 'Insurance', 'Bank Account', 'UPI QR Code', ...VEHICLE_DOC_TYPES, 'Other'];
 export const isVehicleDoc = (d) => VEHICLE_DOC_TYPES.includes(d?.type);
 /** Expiry reminders (v1.20). remind = days before expiry for the first reminder (default 30).
  *  Reminder days: remind, 15, 7, 3, 1, 0 (expiry day), then every 7 days while expired. */

@@ -72,6 +72,7 @@ label.ck{display:flex;gap:6px;align-items:center;font-size:14px;min-height:44px;
 .rphl{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;background:#FFF4CF;border:1px solid #E8C766;border-radius:12px;padding:10px 12px}.rphl>div{display:flex;flex-direction:column;gap:2px;min-width:0}.rphl span{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#7A5A00}.rphl b{font-size:14px;color:#3A2A00;overflow-wrap:anywhere}
 @media (max-width:600px){.rphl{grid-template-columns:1fr}}.shrec .lrow{gap:6px}.holchip{background:#FFF4CF;color:#7A5A00;border-radius:99px;padding:2px 9px;font-size:12px;font-weight:600}
 .holcard{display:block;width:100%;text-align:left;background:#FFF4CF;border-color:#E8C766;color:#3A2A00;margin-top:10px;font:inherit}.holcard.due{cursor:pointer;background:#FBF1EF;border-color:var(--m);color:var(--m)}
+.plc{background:#FFF8E7;border-color:#E8C766}.plc a.btn{text-decoration:none}
 .isum{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:6px;font-size:12px;color:var(--mut)}.isum b{color:var(--ink);font-weight:600}.isum .on{color:var(--m)}.isum .on b{color:var(--m)}.isum .off{opacity:.55}
 .wtl{margin-top:4px;font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap}.wtl.none{font-weight:400;color:var(--warn);font-size:11px}
 details.msel{position:relative}details.msel>summary{list-style:none;cursor:pointer;border:1px solid var(--ln);border-radius:10px;background:#fff;min-height:44px;padding:10px 30px 10px 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative}
@@ -380,7 +381,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.32';
+const VERSION = '1.33';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -2046,12 +2047,14 @@ function vHub() {
       <div class="stats" id="hubCash"><div><b>…</b><span>today</span></div></div>
       <div class="go">Open cash ›</div></button>
   </div>
+  ${(S.D.shopLocs || []).length ? `<button class="card holcard" id="hubLoc" style="background:#EEF7EF;border-color:#9CCB9F;color:#1F5E2A">📍 <b>Share shop location</b> — address + Google Maps link on WhatsApp ›</button>` : ''}
   ${hubNotes()}
   <div id="hubRem"></div>
   <div class="qk">
     ${[['eod', 'total', 'End-of-day entries', can('move')], ['total', 'total', 'Consolidated', can('reports')], ['reports', 'rep', 'Reports · Excel / PDF', can('reports')], ['docs', 'doc', 'Documents', can('docs') || can('docsEdit')], ['alerts', 'bell', 'Alerts', can('alerts')], ['more', 'more', 'More & settings', true]].filter((x) => x[3]).map(([k, i, t]) => `<button data-go="${k}">${svg(i)}<span>${t}</span></button>`).join('')}
   </div>`;
   $('#main').querySelectorAll('[data-go]').forEach((b) => b.onclick = () => go(b.dataset.go));
+  $('#hubLoc') && ($('#hubLoc').onclick = () => pickShareLoc(S.D.shopLocs));
   $('#rpDue') && ($('#rpDue').onclick = () => { const P = rpState(); P.type = S.D.settings.rpDaily.type || 'place'; P.sec = 'all'; P.f = { jt: [], a: [], pl: [], i: [], p: [] }; S.rpAuto = true; go('reports'); });
   if (can('docs') || can('docsEdit')) api('docs').then((j) => { S.docs = j; const due = j.docs.filter((d) => docWatch(d, S.D.today)).sort((a, b) => docDaysLeft(a, S.D.today) - docDaysLeft(b, S.D.today)); const el = $('#hubRem'); if (!el || !due.length) return;
     el.innerHTML = `<div class="card hrem"><div class="row sp"><div class="b">⏰ Renewals due</div><button class="lnk" data-go2="docs">All documents ›</button></div>${due.slice(0, 6).map((d) => { const n = docDaysLeft(d, S.D.today); return `<button class="hrow" data-doc="${esc(d.id)}"><span>${DOC_IC[d.type] || '📄'}</span><span class="grow"><b>${esc(d.title)}</b>${d.vehicle && !d.title.includes(d.vehicle) ? ` <span class="mut sm">${esc(d.vehicle)}</span>` : ''}<br><span class="mut sm">${esc(d.type)} · valid till ${dt(d.expiry)}</span></span><span class="cst ${n <= 7 ? 'bad' : 'warn'}">${n < 0 ? 'Expired' : n === 0 ? 'Today' : n + ' days'}</span></button>`; }).join('')}${due.length > 6 ? `<div class="mut sm">+${due.length - 6} more</div>` : ''}</div>`;
@@ -2217,13 +2220,17 @@ function printChit(c) {
   document.body.classList.add('printing'); setTimeout(() => { print(); setTimeout(() => document.body.classList.remove('printing'), 500); }, 50);
 }
 // ---------------- v1.19 Business documents (credentials vault) ----------------
-const DOC_IC = { 'Vehicle RC': '🚗', 'Vehicle Insurance': '🛡️', 'Vehicle PUC': '🌫️', 'Vehicle Road Tax': '🧾', 'Vehicle Permit / Fitness': '📋', 'Driving Licence': '🪪', 'GST Certificate': '🧾', 'Trade Licence': '📜', 'Shop & Establishment': '🏪', 'BIS Hallmarking': '🔖', 'PAN Card': '🪪', 'Udyam / MSME': '🏭', Insurance: '🛡️', 'Bank Account': '🏦', 'UPI QR Code': '📱', Other: '📄' };
+const DOC_IC = { 'Shop Location': '📍', 'Vehicle RC': '🚗', 'Vehicle Insurance': '🛡️', 'Vehicle PUC': '🌫️', 'Vehicle Road Tax': '🧾', 'Vehicle Permit / Fitness': '📋', 'Driving Licence': '🪪', 'GST Certificate': '🧾', 'Trade Licence': '📜', 'Shop & Establishment': '🏪', 'BIS Hallmarking': '🔖', 'PAN Card': '🪪', 'Udyam / MSME': '🏭', Insurance: '🛡️', 'Bank Account': '🏦', 'UPI QR Code': '📱', Other: '📄' };
 const docFile = (k) => `/api/img/${k}?t=${encodeURIComponent(S.token)}`;
 const maskAc = (a) => (a && a.length > 4 ? '•••• ' + a.slice(-4) : a || '');
 function docExpiry(d) { if (!d.expiry) return ''; const days = docDaysLeft(d, S.D.today);
   return days < 0 ? `<span class="cst bad">Expired ${dt(d.expiry)}</span>` : days === 0 ? '<span class="cst bad">Expires today</span>' : days <= (+d.remind || DOC_REMIND_DEFAULT) ? `<span class="cst warn">Expires in ${days} day${days === 1 ? '' : 's'}</span>` : `<span class="cst ok">Valid till ${dt(d.expiry)}</span>`; }
 let qrLib = null;
 function loadQr() { return qrLib ||= new Promise((ok, no) => { if (window.qrcode) return ok(window.qrcode); const sc = document.createElement('script'); sc.src = 'vendor/qrcode.js'; sc.onload = () => ok(window.qrcode); sc.onerror = no; document.head.appendChild(sc); }); }
+// v1.33 shop location: Google Maps link (pasted, or from GPS / address) + QR to open it
+const mapUrlOf = (p) => !p ? '' : p.mapUrl || (p.lat != null && p.lng != null ? `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}` : p.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([p.name, p.address].filter(Boolean).join(', '))}` : '');
+const docQrUri = (d) => d.type === 'Shop Location' ? mapUrlOf(d.place) : d.upi?.gen && d.upi?.id ? upiUri(d.upi) : '';
+const placeText = (d) => { const p = d.place || {}; return [`📍 *${p.name || d.title}*`, p.address, p.landmark ? `Landmark: ${p.landmark}` : '', p.hours ? `🕘 ${p.hours}` : '', p.phone ? `📞 ${p.phone}` : '', mapUrlOf(p) ? `Google Maps: ${mapUrlOf(p)}` : ''].filter(Boolean).join('\n'); };
 const upiUri = (u) => `upi://pay?pa=${encodeURIComponent(u.id)}${u.name ? `&pn=${encodeURIComponent(u.name)}` : ''}&cu=INR`;
 async function qrPng(text, px = 640) { const q = (await loadQr())(0, 'M'); q.addData(text); q.make(); const n = q.getModuleCount(); const m = 4; const cell = Math.floor(px / (n + m * 2));
   const c = document.createElement('canvas'); c.width = c.height = cell * (n + m * 2); const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.fillStyle = '#000';
@@ -2240,22 +2247,23 @@ function drawDocs() {
   const soon = docs.filter((d) => docWatch(d, S.D.today)).sort((a, b) => docDaysLeft(a, S.D.today) - docDaysLeft(b, S.D.today));
   const veh = docs.filter(isVehicleDoc);
   const list = (S.dt === 'soon' ? soon : docs.filter((d) => S.dt === 'all' || (S.dt === 'veh' ? isVehicleDoc(d) : d.type === S.dt)))
-    .filter((d) => !q || `${d.title} ${d.type} ${d.number} ${d.issuedBy} ${d.vehicle || ''} ${d.vehicleName || ''} ${d.bank?.bank || ''} ${d.bank?.holder || ''} ${d.upi?.id || ''}`.toLowerCase().includes(q))
+    .filter((d) => !q || `${d.title} ${d.type} ${d.number} ${d.issuedBy} ${d.vehicle || ''} ${d.vehicleName || ''} ${d.bank?.bank || ''} ${d.bank?.holder || ''} ${d.upi?.id || ''} ${d.place?.address || ''}`.toLowerCase().includes(q))
     .sort((a, b) => S.dt === 'veh' ? (a.vehicle || '').localeCompare(b.vehicle || '') || VEHICLE_DOC_TYPES.indexOf(a.type) - VEHICLE_DOC_TYPES.indexOf(b.type) : 0);
-  $('#main').innerHTML = `<div class="row sp wrap" style="margin-bottom:10px"><div><h1>Business documents</h1><div class="mut">Licences · GST · bank accounts · UPI QR — shared, admin-managed</div></div>${canEdit ? '<button class="btn sm" id="dAdd">＋ Add document</button>' : ''}</div>
+  $('#main').innerHTML = `<div class="row sp wrap" style="margin-bottom:10px"><div><h1>Business documents</h1><div class="mut">Shop location · licences · GST · bank accounts · UPI QR — shared, admin-managed</div></div>${docs.some((d) => d.type === 'Shop Location') ? '<button class="btn sm ok" id="dLoc">📍 Share shop location</button>' : ''}${canEdit ? '<button class="btn sm" id="dAdd">＋ Add document</button>' : ''}</div>
   ${soon.length ? `<div class="banner">⏰ ${soon.length} document${soon.length > 1 ? 's' : ''} to renew: ${soon.map((d) => { const n = docDaysLeft(d, S.D.today); return `${esc(d.title)}${d.vehicle && !d.title.includes(d.vehicle) ? ' (' + esc(d.vehicle) + ')' : ''} — ${n < 0 ? 'expired' : n === 0 ? 'today' : n + ' d'}`; }).join(' · ')}</div>` : ''}
   <div class="row wrap noprint" style="gap:8px;margin-bottom:10px"><button class="btn sm ghost" id="dCalAll">📅 All expiry reminders → phone calendar</button></div>
   <input type="search" id="dq" placeholder="Search name, number, bank, UPI…" value="${esc(S.dq)}">
   <div class="filters" style="margin-top:10px">${[['all', 'All', docs.length], ['soon', '⏰ To renew', soon.length], ['veh', '🚗 Vehicles', veh.length], ...types.map((t) => [t, t, docs.filter((d) => d.type === t).length])].map(([k, t, n]) => `<button data-dt="${esc(k)}" class="${S.dt === k ? 'on' : ''}">${esc(t)} · ${n}</button>`).join('')}</div>
   <div class="dgrid">${list.map((d) => { const f = (d.files || []).find((x) => x.mime?.startsWith('image/'));
-    const sub = isVehicleDoc(d) ? `${esc(d.vehicle || '')}${d.vehicleName ? ' · ' + esc(d.vehicleName) : ''}${d.number ? ' · ' + esc(d.number) : ''}` : d.type === 'Bank Account' && d.bank ? `${esc(d.bank.bank)} · ${esc(maskAc(d.bank.account))}${d.bank.ifsc ? ' · ' + esc(d.bank.ifsc) : ''}` : d.type === 'UPI QR Code' && d.upi ? esc(d.upi.id) : esc(d.number || d.issuedBy || '');
+    const sub = d.type === 'Shop Location' && d.place ? esc((d.place.address || '').split('\n')[0].slice(0, 60)) : isVehicleDoc(d) ? `${esc(d.vehicle || '')}${d.vehicleName ? ' · ' + esc(d.vehicleName) : ''}${d.number ? ' · ' + esc(d.number) : ''}` : d.type === 'Bank Account' && d.bank ? `${esc(d.bank.bank)} · ${esc(maskAc(d.bank.account))}${d.bank.ifsc ? ' · ' + esc(d.bank.ifsc) : ''}` : d.type === 'UPI QR Code' && d.upi ? esc(d.upi.id) : esc(d.number || d.issuedBy || '');
     const nV = (d.files || []).length + (d.upi?.gen && d.upi?.id ? 1 : 0);
-    return `<div class="dcw"><button class="dcard" data-doc="${esc(d.id)}"><div class="dth">${f ? `<img src="${docFile(f.key)}" loading="lazy" alt="">` : (d.files || []).length ? '<span class="pdf">PDF</span>' : d.upi?.gen && d.upi?.id ? `<span class="pdf">${svg('qr', 30)}</span>` : `<span style="font-size:30px">${DOC_IC[d.type] || '📄'}</span>`}</div>
+    return `<div class="dcw"><button class="dcard" data-doc="${esc(d.id)}"><div class="dth">${f ? `<img src="${docFile(f.key)}" loading="lazy" alt="">` : (d.files || []).length ? '<span class="pdf">PDF</span>' : d.type === 'Shop Location' ? '<span style="font-size:30px">📍</span>' : d.upi?.gen && d.upi?.id ? `<span class="pdf">${svg('qr', 30)}</span>` : `<span style="font-size:30px">${DOC_IC[d.type] || '📄'}</span>`}</div>
       <div class="dbody"><div class="mut sm">${DOC_IC[d.type] || '📄'} ${esc(d.type)}</div><div class="b">${esc(d.title)}</div><div class="sm mut">${sub}</div>${docExpiry(d) ? `<div style="margin-top:4px">${docExpiry(d)}</div>` : ''}</div></button>${nV ? `<button class="dqv" data-qv="${esc(d.id)}" title="View">👁 View</button>` : ''}</div>`; }).join('') || `<div class="card mut" style="text-align:center;grid-column:1/-1">${docs.length ? 'Nothing matches' : canEdit ? 'No documents yet — tap “＋ Add document” to add your GST certificate, licences, bank accounts and UPI QR.' : 'No documents yet.'}</div>`}</div>`;
   $('#dq').oninput = () => { S.dq = $('#dq').value; const pos = $('#dq').selectionStart; drawDocs(); const el = $('#dq'); el.focus(); el.setSelectionRange(pos, pos); };
   $('#main').querySelectorAll('[data-dt]').forEach((b) => b.onclick = () => { S.dt = b.dataset.dt; drawDocs(); });
   $('#main').querySelectorAll('[data-doc]').forEach((b) => b.onclick = () => docView(b.dataset.doc));
   $('#main').querySelectorAll('[data-qv]').forEach((b) => b.onclick = (e) => { e.stopPropagation(); docViewer(S.docs.docs.find((x) => x.id === b.dataset.qv), 0); });
+  $('#dLoc') && ($('#dLoc').onclick = () => pickShareLoc(docs.filter((d) => d.type === 'Shop Location')));
   $('#dAdd') && ($('#dAdd').onclick = () => docEdit({ type: S.dt === 'veh' ? 'Vehicle Insurance' : S.dt !== 'all' && S.dt !== 'soon' ? S.dt : 'GST Certificate', files: [] }));
   $('#dCalAll').onclick = () => docCalendar(docs.filter((d) => d.expiry && !d.remindOff), 'yamie-document-reminders.ics');
 }
@@ -2277,8 +2285,8 @@ function docCalendar(list, name) {
 }
 // ---------------- v1.21 document viewer: full screen, pinch-zoom / pan, PDF pages inside the app, swipe between files ----------------
 async function docViewer(d, start = 0) {
-  const qr = d.upi?.gen && d.upi?.id ? await qrPng(upiUri(d.upi), 900) : '';
-  const items = [...(qr ? [{ kind: 'img', src: qr, mime: 'image/png', name: `${(d.title || 'UPI').replace(/[^\w-]+/g, '_')}_QR.png`, label: 'UPI QR' }] : []),
+  const qr = docQrUri(d) ? await qrPng(docQrUri(d), 900) : '';
+  const items = [...(qr ? [{ kind: 'img', src: qr, mime: 'image/png', name: `${(d.title || 'UPI').replace(/[^\w-]+/g, '_')}_QR.png`, label: d.type === 'Shop Location' ? 'Scan to open in Google Maps' : 'UPI QR' }] : []),
     ...(d.files || []).map((f, i) => ({ kind: f.mime === 'application/pdf' ? 'pdf' : 'img', src: docFile(f.key), mime: f.mime, name: fname(d, f, i), label: f.label || '' }))];
   if (!items.length) return toast('No photo or PDF in this document');
   let idx = Math.max(0, Math.min(start + (qr && start >= 0 ? 0 : 0), items.length - 1));
@@ -2361,21 +2369,25 @@ function docText(d) {
   if (d.number) L.push(`${numLabel(d.type)}: ${d.number}`);
   if (d.bank) { const b = d.bank; if (b.holder) L.push(`Account name: ${b.holder}`); if (b.bank) L.push(`Bank: ${b.bank}${b.branch ? ', ' + b.branch : ''}`); if (b.account) L.push(`A/c no: ${b.account}`); if (b.ifsc) L.push(`IFSC: ${b.ifsc}`); if (b.kind) L.push(`Type: ${b.kind}`); }
   if (d.upi?.id) L.push(`UPI: ${d.upi.id}${d.upi.name ? ` (${d.upi.name})` : ''}`);
+  if (d.type === 'Shop Location' && d.place) return placeText(d);
   if (d.issuedBy) L.push(`Issued by: ${d.issuedBy}`); if (d.issueDate) L.push(`Issued: ${dt(d.issueDate)}`); if (d.expiry) L.push(`Valid till: ${dt(d.expiry)}`);
   return L.join('\n');
 }
 async function docView(id) {
   const d = S.docs.docs.find((x) => x.id === id); if (!d) return; const canEdit = S.docs.canEdit;
   const row = (l, v, copy, mask) => v ? `<div class="dfrow"><span class="mut">${l}</span><span class="b">${mask ? `<span data-mask="${esc(v)}">${esc(maskAc(v))}</span> <button class="lnk" data-show>Show</button>` : esc(v)}</span>${copy ? `<button class="cpy" data-copy="${esc(v)}" title="Copy">${svg('copy', 16)}</button>` : '<span></span>'}</div>` : '';
-  const qr = d.upi?.gen && d.upi?.id ? await qrPng(upiUri(d.upi), 560) : '';
+  const qr = docQrUri(d) ? await qrPng(docQrUri(d), 560) : '';
   const html = `${docExpiry(d) ? `<div style="margin-bottom:10px">${docExpiry(d)}</div>` : ''}
-    ${qr ? `<div class="dqr"><img src="${qr}" alt="UPI QR"><div class="b">${esc(d.upi.name || d.title)}</div><div class="mut sm">${esc(d.upi.id)}</div></div>` : ''}
+    ${d.type === 'Shop Location' && d.place ? `<div class="card plc"><div class="b" style="font-size:17px">📍 ${esc(d.place.name || d.title)}</div>${d.place.address ? `<div style="white-space:pre-wrap;margin-top:4px">${esc(d.place.address)}</div>` : ''}${d.place.landmark ? `<div class="mut sm" style="margin-top:2px">Landmark: ${esc(d.place.landmark)}</div>` : ''}
+      <div class="row wrap" style="gap:6px;margin-top:10px">${mapUrlOf(d.place) ? `<a class="btn sm" href="${esc(mapUrlOf(d.place))}" target="_blank" rel="noopener">🗺 Open in Maps</a>` : ''}${d.place.lat != null ? `<a class="btn sm sec" href="https://www.google.com/maps/dir/?api=1&destination=${d.place.lat},${d.place.lng}" target="_blank" rel="noopener">🧭 Directions</a>` : ''}<button class="btn sm ok" id="plWa">🟢 WhatsApp location</button></div></div>` : ''}
+    ${qr ? `<div class="dqr"><img src="${qr}" alt="QR"><div class="b">${esc(d.type === 'Shop Location' ? (d.place?.name || d.title) : d.upi.name || d.title)}</div><div class="mut sm">${d.type === 'Shop Location' ? 'Scan to open in Google Maps' : esc(d.upi.id)}</div></div>` : ''}
     ${(d.files || []).map((f, i) => f.mime === 'application/pdf' ? `<div class="dpdf"><span class="pdf">PDF</span><div class="grow"><div class="b">${esc(f.label || d.title + '.pdf')}</div><div class="mut sm">PDF document</div></div><button class="btn sm" data-open="${i}">View</button></div>` : `<img class="dimg" src="${docFile(f.key)}" data-big="${i}" alt="">`).join('')}
     <div class="card" style="margin-top:10px;padding:6px 12px">
       ${row('Vehicle', d.vehicle ? d.vehicle + (d.vehicleName ? ' · ' + d.vehicleName : '') : '', !!d.vehicle)}
       ${row(numLabel(d.type), d.number, true)}
       ${d.bank ? row('Account name', d.bank.holder, true) + row('Bank', d.bank.bank) + row('Branch', d.bank.branch) + row('Account no.', d.bank.account, true, true) + row('IFSC', d.bank.ifsc, true) + row('Account type', d.bank.kind) : ''}
       ${d.upi ? row('UPI ID', d.upi.id, true) + row('Payee name', d.upi.name) : ''}
+      ${d.place ? row('Address', d.place.address, true) + row('Phone', d.place.phone, true) + row('Hours', d.place.hours) + row('Map link', mapUrlOf(d.place), true) + (d.place.lat != null ? row('GPS', `${d.place.lat}, ${d.place.lng}`, true) : '') : ''}
       ${row('Issued by', d.issuedBy)}${row('Issue date', d.issueDate && dt(d.issueDate))}${row('Valid till', d.expiry && dt(d.expiry))}
       ${d.expiry ? row('Reminders', d.remindOff ? 'Off' : `${+d.remind || DOC_REMIND_DEFAULT}, 15, 7, 3, 1 days before and on the day`) : ''}
       ${d.notes ? `<div class="dfrow"><span class="mut">Notes</span><span style="white-space:pre-wrap">${esc(d.notes)}</span><span></span></div>` : ''}
@@ -2394,6 +2406,7 @@ async function docView(id) {
     $('#dView') && ($('#dView').onclick = () => docViewer(d, 0));
     $('#dShare').onclick = () => docShare(d, qr);
     $('#dText').onclick = () => shareText(docText(d), d.title);
+    $('#plWa') && ($('#plWa').onclick = () => shareLocation(d));
     $('#dPrint').onclick = () => docPrint(d, qr);
     $('#dCal') && ($('#dCal').onclick = () => docCalendar([d], `renew-${(d.title || 'document').replace(/[^\w-]+/g, '_')}.ics`));
     $('#dEdit') && ($('#dEdit').onclick = () => docEdit(JSON.parse(JSON.stringify(d))));
@@ -2407,9 +2420,26 @@ async function docOpenFile(f, d, view) {
     const u = URL.createObjectURL(blob); if (view) open(u, '_blank'); else { const a = document.createElement('a'); a.href = u; a.download = fname(d, f, 0); a.click(); } setTimeout(() => URL.revokeObjectURL(u), 60000);
   } catch (e) { fail(e); }
 }
+// v1.33 share the shop location: message with address + Google Maps link (WhatsApp shows the map preview), QR image when sharing as a file
+function pickShareLoc(list) {
+  if (!list.length) return toast('No shop location saved yet — admin adds it in Documents');
+  if (list.length === 1) return qrPng(mapUrlOf(list[0].place), 700).then((q) => shareLocation(list[0], q));
+  modal('📍 Share location', 'Pick the shop', list.map((d, i) => `<button class="shb" data-pl="${i}" style="width:100%;margin-bottom:8px"><b>${esc(d.place.name || d.title)}</b><span>${esc((d.place.address || '').split('\n')[0])}</span></button>`).join(''), () => {
+    document.querySelectorAll('[data-pl]').forEach((b) => b.onclick = async () => { const d = list[+b.dataset.pl]; closeModal(); shareLocation(d, await qrPng(mapUrlOf(d.place), 700)); }); });
+}
+async function shareLocation(d, qr) {
+  const text = placeText(d);
+  try {
+    if (qr && window.YamieStock?.shareTo) { const b = await (await fetch(qr)).arrayBuffer(); return window.YamieStock.shareTo('wa', '', d.title, text, `${(d.title || 'location').replace(/[^\w-]+/g, '_')}_QR.png`, 'image/png', b64of(new Uint8Array(b))); }
+    if (window.YamieStock?.shareText) return window.YamieStock.shareText(text);
+    if (navigator.share) { try { return await navigator.share({ title: d.title, text }); } catch (e) { if (e.name === 'AbortError') return; } }
+    open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+  } catch (e) { fail(e); }
+}
 async function docShare(d, qr) {
   try {
     const items = (d.files || []).map((f, i) => ({ url: docFile(f.key), mime: f.mime, name: fname(d, f, i) }));
+    if (d.type === 'Shop Location') return shareLocation(d, qr);
     if (qr) items.unshift({ url: qr, mime: 'image/png', name: `${(d.title || 'UPI').replace(/[^\w-]+/g, '_')}_QR.png` });
     if (!items.length) return shareText(docText(d), d.title);
     if (window.YamieStock?.shareData) { const it = items[0]; const { b64 } = await fileB64(it.url); window.YamieStock.shareData(it.name, it.mime, b64, false); if (items.length > 1) toast(`Shared the first file — ${items.length} files in this document`); return; }
@@ -2429,7 +2459,7 @@ function docPrint(d, qr) {
   const imgs = (d.files || []).filter((f) => f.mime?.startsWith('image/'));
   pa.innerHTML = `<div class="pchit pdoc"><div class="ph"><div><div class="pl">YAMIE</div><div class="ps">FINE JEWELLERY · ${esc(d.type.toUpperCase())}</div></div><div style="text-align:right"><b>${esc(d.title)}</b></div></div>
     <pre class="ptxt">${esc(docText(d).replace(/^\*|\*$/gm, ''))}</pre>
-    ${qr ? `<div style="text-align:center;margin:10px 0"><img src="${qr}" style="width:260px"><div><b>${esc(d.upi.name || d.title)}</b> · ${esc(d.upi.id)}</div><div style="font-size:11px">Scan with any UPI app</div></div>` : ''}
+    ${qr ? `<div style="text-align:center;margin:10px 0"><img src="${qr}" style="width:260px">${d.type === 'Shop Location' ? `<div><b>${esc(d.place?.name || d.title)}</b></div><div style="font-size:11px">Scan to open in Google Maps</div>` : `<div><b>${esc(d.upi.name || d.title)}</b> · ${esc(d.upi.id)}</div><div style="font-size:11px">Scan with any UPI app</div>`}</div>` : ''}
     ${imgs.map((f) => `<img src="${docFile(f.key)}" class="pimg">`).join('')}
     ${(d.files || []).some((f) => f.mime === 'application/pdf') ? '<div class="pf">PDF attachments are printed from the PDF itself (Open → Print).</div>' : ''}</div>`;
   const ims = [...pa.querySelectorAll('img')]; Promise.all(ims.map((im) => im.complete ? 1 : new Promise((ok) => { im.onload = im.onerror = ok; }))).then(() => { document.body.classList.add('printing'); setTimeout(() => { print(); setTimeout(() => document.body.classList.remove('printing'), 500); }, 50); });
@@ -2440,6 +2470,7 @@ function docEdit(d) {
     const bank = d.type === 'Bank Account'; const upi = d.type === 'UPI QR Code' || d.type === 'Bank Account';
     if (bank && !d.bank) d.bank = { holder: S.D.settings.shopName || '', bank: '', account: '', ifsc: '', branch: '', kind: 'Current' };
     if (d.type === 'UPI QR Code' && !d.upi) d.upi = { id: '', name: S.D.settings.shopName || '', gen: true };
+    if (d.type === 'Shop Location' && !d.place) { d.place = { name: S.D.settings.shopName || 'Yamie Fine Jewellery', address: '', mapUrl: '', lat: null, lng: null, phone: '', hours: '', landmark: '' }; if (!d.title) d.title = `${S.D.settings.shopName || 'Yamie'} — location`; }
     const html = `<label class="f">Document type</label><select id="xType">${DOC_TYPES.map((t) => `<option ${d.type === t ? 'selected' : ''}>${t}</option>`).join('')}</select>
       <label class="f">Name / title *</label><input id="xTitle" value="${esc(d.title || '')}" placeholder="${isVehicleDoc(d) ? 'auto: e.g. Insurance · KL 07 AB 1234' : bank ? 'e.g. HDFC Current Account' : d.type === 'UPI QR Code' ? 'e.g. Shop UPI' : 'e.g. GST Certificate – Yamie'}">
       ${bank ? `<div class="g2"><div><label class="f">Account holder name</label><input id="xHold" value="${esc(d.bank.holder)}"></div><div><label class="f">Bank</label><input id="xBank" value="${esc(d.bank.bank)}" placeholder="e.g. HDFC Bank"></div>
@@ -2447,6 +2478,14 @@ function docEdit(d) {
         <div><label class="f">Branch</label><input id="xBr" value="${esc(d.bank.branch)}"></div><div><label class="f">Account type</label><select id="xKind">${['Current', 'Savings', 'OD / CC', 'Other'].map((k) => `<option ${d.bank.kind === k ? 'selected' : ''}>${k}</option>`).join('')}</select></div></div>`
       : `${isVehicleDoc(d) ? `<div class="g2"><div><label class="f">Vehicle number *</label><input id="xVeh" list="vehL" value="${esc(d.vehicle || '')}" placeholder="KL 07 AB 1234" style="text-transform:uppercase"><datalist id="vehL">${[...new Set(S.docs.docs.map((x) => x.vehicle).filter(Boolean))].map((v) => `<option value="${esc(v)}">`).join('')}</datalist></div><div><label class="f">Vehicle (make / model)</label><input id="xVehN" value="${esc(d.vehicleName || '')}" placeholder="e.g. Maruti Ciaz"></div></div>` : ''}
         <div class="g2"><div><label class="f">${d.type === 'UPI QR Code' ? 'Reference (optional)' : numLabel(d.type)}</label><input id="xNum" value="${esc(d.number || '')}"></div><div><label class="f">${d.type === 'Vehicle Insurance' ? 'Insurer' : 'Issued by'}</label><input id="xBy" value="${esc(d.issuedBy || '')}"></div></div>`}
+      ${d.type === 'Shop Location' ? `<div class="card" style="margin-top:10px;background:var(--iv)"><div class="b" style="margin-bottom:4px">📍 Location to share</div>
+        <label class="f">Shop name on the location</label><input id="pN" value="${esc(d.place.name)}">
+        <label class="f">Address *</label><textarea id="pA" rows="3" placeholder="Building, street, area, city, PIN">${esc(d.place.address)}</textarea>
+        <label class="f">Landmark</label><input id="pL" value="${esc(d.place.landmark || '')}" placeholder="e.g. Opposite … / near …">
+        <label class="f">Google Maps link</label><input id="pU" value="${esc(d.place.mapUrl || '')}" placeholder="Paste from Google Maps → Share → Copy link">
+        <div class="row wrap" style="gap:6px;margin-top:8px"><button type="button" class="btn sm sec" id="pGps">📡 Use my current location</button><span class="mut sm" id="pGpsT">${d.place.lat != null ? `GPS ${d.place.lat}, ${d.place.lng}` : 'Stand inside the shop and tap — or paste the Maps link'}</span></div>
+        <div class="g2"><div><label class="f">Phone</label><input id="pP" type="tel" value="${esc(d.place.phone || '')}"></div><div><label class="f">Opening hours</label><input id="pH" value="${esc(d.place.hours || '')}" placeholder="e.g. Mon–Sat 10 am – 8 pm"></div></div>
+        <div id="pQr" style="text-align:center;margin-top:8px"></div></div>` : ''}
       ${upi ? `<div class="card" style="margin-top:10px;background:var(--iv)"><div class="b" style="margin-bottom:4px">${svg('qr', 18)} UPI QR</div><div class="g2"><div><label class="f">UPI ID</label><input id="xUpi" value="${esc(d.upi?.id || '')}" placeholder="name@bank"></div><div><label class="f">Payee name</label><input id="xUpn" value="${esc(d.upi?.name || '')}"></div></div>
         <label class="chk" style="margin-top:8px"><input type="checkbox" id="xGen" ${d.upi?.gen ?? true ? 'checked' : ''}> Make a QR code from this UPI ID (or upload the bank's QR image below)</label><div id="xQr" style="text-align:center"></div></div>` : ''}
       <div class="g2"><div><label class="f">Issue date</label><input type="date" id="xIss" value="${esc(d.issueDate || '')}"></div><div><label class="f">Valid till / expiry</label><input type="date" id="xExp" value="${esc(d.expiry || '')}"></div></div>
@@ -2464,10 +2503,16 @@ function docEdit(d) {
         d.remind = +$('#xRem').value; d.remindOff = $('#xRemOff').checked;
         if ($('#xHold')) d.bank = { holder: $('#xHold').value.trim(), bank: $('#xBank').value.trim(), account: $('#xAc').value.replace(/\s/g, ''), ifsc: $('#xIfsc').value.trim().toUpperCase(), branch: $('#xBr').value.trim(), kind: $('#xKind').value };
         if ($('#xUpi')) d.upi = { id: $('#xUpi').value.trim(), name: $('#xUpn').value.trim(), gen: $('#xGen').checked }; else if (d.type !== 'UPI QR Code' && d.type !== 'Bank Account') d.upi = null;
+        if ($('#pA')) d.place = { ...d.place, name: $('#pN').value.trim(), address: $('#pA').value.trim(), landmark: $('#pL').value.trim(), mapUrl: $('#pU').value.trim(), phone: $('#pP').value.trim(), hours: $('#pH').value.trim() }; else if (d.type !== 'Shop Location') d.place = null;
         if (d.type !== 'Bank Account') d.bank = null; d.issueDate = $('#xIss').value; d.expiry = $('#xExp').value; d.notes = $('#xNotes').value; };
       const qrPrev = async () => { const box = $('#xQr'); if (!box) return; const u = { id: $('#xUpi').value.trim(), name: $('#xUpn').value.trim() }; box.innerHTML = $('#xGen').checked && /.+@.+/.test(u.id) ? `<img src="${await qrPng(upiUri(u), 360)}" style="width:150px;margin-top:8px"><div class="mut sm">Test-scan before printing</div>` : ''; };
       if ($('#xUpi')) { ['#xUpi', '#xUpn', '#xGen'].forEach((x) => $(x).addEventListener('input', qrPrev)); $('#xGen').addEventListener('change', qrPrev); qrPrev(); }
       $('#xType').onchange = () => { read(); draw(); };
+      const pQr = async () => { const box = $('#pQr'); if (!box) return; read(); const u = mapUrlOf(d.place); box.innerHTML = u ? `<img src="${await qrPng(u, 320)}" style="width:150px"><div class="mut sm">QR opens this location in Google Maps</div>` : ''; };
+      if ($('#pA')) { ['#pA', '#pU', '#pN'].forEach((x) => $(x).addEventListener('change', pQr)); pQr();
+        $('#pGps').onclick = () => { if (!navigator.geolocation) return toast('Location not available on this device — paste the Maps link'); $('#pGpsT').textContent = 'Finding location…';
+          navigator.geolocation.getCurrentPosition((pos) => { d.place.lat = +pos.coords.latitude.toFixed(6); d.place.lng = +pos.coords.longitude.toFixed(6); $('#pGpsT').textContent = `GPS ${d.place.lat}, ${d.place.lng} (±${Math.round(pos.coords.accuracy)} m)`; pQr(); },
+            (e) => { $('#pGpsT').textContent = 'Could not get location — allow location, or paste the Google Maps link'; }, { enableHighAccuracy: true, timeout: 15000 }); }; }
       ov.querySelectorAll('[data-rm]').forEach((b) => b.onclick = () => { read(); d.files.splice(+b.dataset.rm, 1); draw(); });
       const up = async (files, pdf) => { read(); const msg = $('#xUp');
         for (const [i, file] of [...files].entries()) { msg.textContent = `Uploading ${i + 1} / ${files.length}…`;
@@ -2481,6 +2526,8 @@ function docEdit(d) {
         if (isVehicleDoc(d) && d.type !== 'Driving Licence' && !d.vehicle) return toast('Enter the vehicle number');
         if (d.type === 'Bank Account' && !d.bank?.account) return toast('Enter the account number');
         if (d.type === 'UPI QR Code' && !d.upi?.id && !d.files.length) return toast('Enter the UPI ID or upload the QR image');
+        if (d.type === 'Shop Location' && !d.place?.address && !d.place?.mapUrl && d.place?.lat == null) return toast('Enter the address or the Google Maps link');
+        if (d.type === 'Shop Location' && d.place?.mapUrl && !/^https?:\/\//i.test(d.place.mapUrl)) return toast('The Maps link should start with https://');
         try { const r = await api('docs/save', { doc: d }); const i = S.docs.docs.findIndex((x) => x.id === r.doc.id); if (i >= 0) S.docs.docs[i] = r.doc; else S.docs.docs.push(r.doc); closeModal(); toast('Saved'); if (S.view === 'docs') drawDocs(); docView(r.doc.id); } catch (e) { fail(e); } };
       $('#xDel') && ($('#xDel').onclick = async () => { if (!confirm(`Delete “${d.title}” and its files? This cannot be undone.`)) return; try { await api('docs/delete', { id: d.id }); S.docs.docs = S.docs.docs.filter((x) => x.id !== d.id); closeModal(); toast('Deleted'); drawDocs(); } catch (e) { fail(e); } });
     });
