@@ -304,7 +304,7 @@ export const lineKey = (loc, item, jt, pur) => {
   if (pur !== undefined && (pur || '') !== defaultPur(loc)) k += `#${pur || '-'}`;
   return k;
 };
-export const keyText = (loc, k) => { const p = purOfLine(loc, k); return `${JT_SHORT[jtOfLine(loc, k)]}${p ? ' ' + p : ''} ${itemOf(k)}`; };
+export const keyText = (loc, k) => { const p = purOfLine(loc, k); return `${JT_SHORT[jtOfLine(loc, k)]}${p && !/^mixed$/i.test(p) ? ' ' + p : ''} ${itemOf(k)}`; };   // v1.38: 'Mixed' purity is not an item name
 export const lineMetal = (loc, k) => jtMetal(jtOfLine(loc, k));
 export const metalOf = (loc) => (loc?.jtype ? jtMetal(loc.jtype) : loc?.cat === 'Platinum' ? 'Platinum' : loc?.cat === 'Silver' ? 'Silver' : 'Gold');
 export const erpMetal = (name) => (/platinum/i.test(name || '') ? 'Platinum' : /silver/i.test(name || '') ? 'Silver' : 'Gold');
