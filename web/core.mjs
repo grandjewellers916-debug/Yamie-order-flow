@@ -47,6 +47,7 @@ export const PERMS = {
   docs: 'View business documents & bank details',
   docsEdit: 'Add / edit business documents',
   share: 'Share & download reports (Excel, PDF, WhatsApp)',
+  docsShare: 'Share business documents (WhatsApp, print, download, copy)',
 };
 // v1.17 Cash closing
 export const CASH_DENOMS = [500, 200, 100, 50, 20, 10];
@@ -89,7 +90,7 @@ export function docReminderDue(d, today) {
 export const docWatch = (d, today) => { const n = docDaysLeft(d, today); return n != null && !d.remindOff && n <= (+d.remind || DOC_REMIND_DEFAULT); };
 export const ROLE_PERMS = {
   admin: Object.keys(PERMS),
-  manager: ['count', 'move', 'setup', 'accept', 'close', 'reports', 'alerts', 'erp', 'verifyAll', 'cash', 'cashVerify', 'docs', 'share'],
+  manager: ['count', 'move', 'setup', 'accept', 'close', 'reports', 'alerts', 'erp', 'verifyAll', 'cash', 'cashVerify', 'docs', 'docsShare', 'share'],
   staff: ['count', 'cash'],
 };
 // End-of-day transaction types. dir +1 = stock in, −1 = stock out. admin: only admin may enter.

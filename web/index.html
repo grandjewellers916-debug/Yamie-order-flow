@@ -75,6 +75,7 @@ label.ck{display:flex;gap:6px;align-items:center;font-size:14px;min-height:44px;
 .plc{background:#FFF8E7;border-color:#E8C766}.plc a.btn{text-decoration:none}
 .rvprev{display:grid;grid-template-columns:150px 1fr;gap:10px;margin-top:10px;align-items:start}.rvprev img{width:100%;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.12);background:#eee;min-height:180px}.rvprev pre{white-space:pre-wrap;font-family:inherit;font-size:13px;line-height:1.45;margin:0;background:#E7F6E1;border-radius:10px;padding:10px;max-height:240px;overflow:auto}
 @media (max-width:500px){.rvprev{grid-template-columns:110px 1fr}}
+.pbk{min-width:46px;padding:0 10px}.chips{display:flex;flex-wrap:wrap;gap:6px}.chipb{border:1px solid var(--ln);background:#fff;border-radius:99px;padding:5px 11px;font:inherit;font-size:13px;cursor:pointer}
 .isum{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:6px;font-size:12px;color:var(--mut)}.isum b{color:var(--ink);font-weight:600}.isum .on{color:var(--m)}.isum .on b{color:var(--m)}.isum .off{opacity:.55}
 .wtl{margin-top:4px;font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap}.wtl.none{font-weight:400;color:var(--warn);font-size:11px}
 details.msel{position:relative}details.msel>summary{list-style:none;cursor:pointer;border:1px solid var(--ln);border-radius:10px;background:#fff;min-height:44px;padding:10px 30px 10px 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative}
@@ -383,7 +384,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.34';
+const VERSION = '1.35';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -2314,9 +2315,10 @@ async function docViewer(d, start = 0) {
     ov.querySelector('#dvX').onclick = close;
     ov.querySelector('#dvP') && (ov.querySelector('#dvP').onclick = () => nav(-1)); ov.querySelector('#dvN') && (ov.querySelector('#dvN').onclick = () => nav(1));
     ov.querySelector('#dvZi').onclick = () => zoomTo(st.z * 1.5); ov.querySelector('#dvZo').onclick = () => zoomTo(st.z / 1.5); ov.querySelector('#dvFit').onclick = () => zoomTo(1);
-    ov.querySelector('#dvSh').onclick = () => viewerShare(it);
-    ov.querySelector('#dvDl').onclick = () => viewerSave(it);
-    ov.querySelector('#dvPr').onclick = () => viewerPrint(d, it);
+    if (!can('docsShare')) ['#dvSh', '#dvPr', '#dvDl'].forEach((x) => ov.querySelector(x)?.remove());
+    ov.querySelector('#dvSh') && (ov.querySelector('#dvSh').onclick = () => viewerShare(it));
+    ov.querySelector('#dvDl') && (ov.querySelector('#dvDl').onclick = () => viewerSave(it));
+    ov.querySelector('#dvPr') && (ov.querySelector('#dvPr').onclick = () => viewerPrint(d, it));
     bindGestures(ov.querySelector('.dvs'));
     if (it.kind === 'pdf') {
       try { const pdfjs = await loadPdfjs(); const { blob } = await fileB64(it.src); const doc = await pdfjs.getDocument({ data: new Uint8Array(await blob.arrayBuffer()) }).promise;
@@ -2397,9 +2399,9 @@ async function docView(id) {
       ${d.notes ? `<div class="dfrow"><span class="mut">Notes</span><span style="white-space:pre-wrap">${esc(d.notes)}</span><span></span></div>` : ''}
     </div><div class="mut sm" style="margin-top:6px">Updated ${new Date(d.updatedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} by ${esc(d.updatedByName || '')}</div>
     ${(d.files || []).length || qr ? `<button class="btn" id="dView" style="width:100%;margin-top:12px">👁 View${(d.files || []).length + (qr ? 1 : 0) > 1 ? ` all (${(d.files || []).length + (qr ? 1 : 0)})` : ''} full screen</button>` : ''}
-    <div class="cact" style="margin-top:8px"><button class="btn ${(d.files || []).length || qr ? 'ghost' : ''}" id="dShare">${svg('share', 18)} Share</button><button class="btn ghost" id="dPrint">${svg('print', 18)} Print</button></div>
+    ${can('docsShare') ? `<div class="cact" style="margin-top:8px"><button class="btn ${(d.files || []).length || qr ? 'ghost' : ''}" id="dShare">${svg('share', 18)} Share</button><button class="btn ghost" id="dPrint">${svg('print', 18)} Print</button></div>` : '<div class="mut sm" style="margin-top:8px">🔒 Sharing, printing and copying need the “Share business documents” permission — ask the admin.</div>'}
     ${d.expiry ? '<button class="btn ghost" id="dCal" style="width:100%;margin-top:8px">📅 Add expiry reminder to phone calendar</button>' : ''}
-    <div class="cact" style="margin-top:8px"><button class="btn ghost" id="dText">Share details (text)</button>${canEdit ? '<button class="btn sec" id="dEdit">Edit</button>' : '<span></span>'}</div>`;
+    <div class="cact" style="margin-top:8px">${can('docsShare') ? '<button class="btn ghost" id="dText">Share details (text)</button>' : '<span></span>'}${canEdit ? '<button class="btn sec" id="dEdit">Edit</button>' : '<span></span>'}</div>`;
   modal(`${DOC_IC[d.type] || '📄'} ${esc(d.title)}`, esc(d.type), html, (ov) => {
     ov.querySelectorAll('[data-copy]').forEach((b) => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.copy); toast('Copied'); } catch { prompt('Copy:', b.dataset.copy); } });
     ov.querySelectorAll('[data-show]').forEach((b) => b.onclick = () => { const sp = b.previousElementSibling; sp.textContent = sp.dataset.mask; b.remove(); });
@@ -2408,11 +2410,12 @@ async function docView(id) {
     ov.querySelectorAll('[data-open]').forEach((b) => b.onclick = () => docViewer(d, +b.dataset.open + qOff));
     ov.querySelector('.dqr img') && (ov.querySelector('.dqr img').onclick = () => docViewer(d, 0));
     $('#dView') && ($('#dView').onclick = () => docViewer(d, 0));
-    $('#dShare').onclick = () => docShare(d, qr);
-    $('#dText').onclick = () => shareText(docText(d), d.title);
+    $('#dShare') && ($('#dShare').onclick = () => docShare(d, qr));
+    $('#dText') && ($('#dText').onclick = () => sendToContact({ title: 'Share details', sub: esc(d.title), text: docText(d), file: null }));
+    if (!can('docsShare')) ov.querySelectorAll('[data-copy]').forEach((b) => b.remove());
     $('#plWa') && ($('#plWa').onclick = () => shareLocation(d));
     $('#plRv') && ($('#plRv').onclick = () => { closeModal(); reviewAsk(d.id); });
-    $('#dPrint').onclick = () => docPrint(d, qr);
+    $('#dPrint') && ($('#dPrint').onclick = () => docPrint(d, qr));
     $('#dCal') && ($('#dCal').onclick = () => docCalendar([d], `renew-${(d.title || 'document').replace(/[^\w-]+/g, '_')}.ics`));
     $('#dEdit') && ($('#dEdit').onclick = () => docEdit(JSON.parse(JSON.stringify(d))));
   });
@@ -2426,6 +2429,54 @@ async function docOpenFile(f, d, view) {
   } catch (e) { fail(e); }
 }
 // v1.33 share the shop location: message with address + Google Maps link (WhatsApp shows the map preview), QR image when sharing as a file
+// ================= v1.35 phonebook: pick a contact's number (APK system picker / Chrome Contact Picker) and send to that WhatsApp =================
+const normPhone = (raw) => { let p = String(raw || '').replace(/[^0-9+]/g, ''); const plus = p.startsWith('+'); p = p.replace(/\D/g, ''); if (!plus && p.length === 11 && p.startsWith('0')) p = p.slice(1); if (p.length === 10) p = '91' + p; return p; };
+const canPick = () => !!(window.YamieStock?.pickContact || ('contacts' in navigator && 'ContactsManager' in window));
+function pickContact() {
+  return new Promise((ok, no) => {
+    if (window.YamieStock?.pickContact) { window.__yamieContact = (c) => { window.__yamieContact = null; c && c.phone ? ok({ name: c.name || '', phone: c.phone }) : no(new Error('')); }; return window.YamieStock.pickContact(); }
+    if ('contacts' in navigator && navigator.contacts.select) return navigator.contacts.select(['name', 'tel'], { multiple: false }).then((a) => { const c = a && a[0]; if (!c || !(c.tel || [])[0]) return no(new Error('')); ok({ name: (c.name || [])[0] || '', phone: c.tel[0] }); }).catch(() => no(new Error('')));
+    no(new Error('Phonebook works in the Yamie Core phone app — type the number here'));
+  });
+}
+const recentGet = () => { try { return JSON.parse(localStorage.getItem('ysc_recent_ct') || '[]'); } catch { return []; } };
+const recentAdd = (c) => { if (!c.phone) return; const a = [c, ...recentGet().filter((x) => x.phone !== c.phone)].slice(0, 8); try { localStorage.setItem('ysc_recent_ct', JSON.stringify(a)); } catch {} };
+// phone field with 📇 button; fills name too when a name field id is given
+const phoneField = (id, nameId, val = '') => `<div class="row" style="gap:6px"><input id="${id}" type="tel" inputmode="tel" placeholder="98XXXXXXXX" value="${esc(val)}" class="grow"><button type="button" class="btn sec pbk" data-pick="${id}|${nameId || ''}" title="Pick from phonebook">📇</button></div>`;
+function bindPick(root, after) {
+  root.querySelectorAll('[data-pick]').forEach((b) => b.onclick = async () => { const [pid, nid] = b.dataset.pick.split('|');
+    try { const c = await pickContact(); $('#' + pid).value = c.phone; if (nid && $('#' + nid) && !$('#' + nid).value.trim()) $('#' + nid).value = c.name; ['input', 'change'].forEach((e) => $('#' + pid).dispatchEvent(new Event(e))); after && after(c); }
+    catch (e) { if (e.message) toast(e.message, 4000); } });
+}
+/** Send a file + message to a contact on WhatsApp (or any app). file = {name, mime, bytes} or null */
+function sendToContact({ title, sub, text, file, onSent, onAny }) {
+  const rec = recentGet();
+  modal(`📤 ${esc(title)}`, sub || 'Pick a contact or type the number', `
+    <div class="g2"><div><label class="f" style="margin-top:0">Name (optional)</label><input id="stN" autocomplete="off"></div><div><label class="f" style="margin-top:0">WhatsApp number</label>${phoneField('stP', 'stN')}</div></div>
+    ${rec.length ? `<div class="chips" style="margin-top:8px">${rec.map((c, i) => `<button class="chipb" data-rc="${i}">${esc(c.name || '+' + c.phone)}</button>`).join('')}</div>` : ''}
+    ${file ? `<div class="mut sm" style="margin-top:8px">📎 ${esc(file.name)}</div>` : ''}
+    <button class="btn ok" id="stWa" style="width:100%;margin-top:12px">🟢 Send on WhatsApp</button>
+    <div class="cact" style="margin-top:8px"><button class="btn ghost" id="stPick">WhatsApp — choose chat</button><button class="btn ghost" id="stAny">📤 Other apps</button></div>
+    ${!canPick() ? '<div class="mut sm" style="margin-top:8px">📇 Phonebook picking works in the Yamie Core phone app (and Chrome on Android).</div>' : ''}`, (ov) => {
+    bindPick(ov);
+    ov.querySelectorAll('[data-rc]').forEach((b) => b.onclick = () => { const c = rec[+b.dataset.rc]; $('#stP').value = c.phone; $('#stN').value = c.name || ''; });
+    const go2 = async (mode) => { const phone = normPhone($('#stP').value), name = $('#stN').value.trim();
+      if (mode === 'num' && phone.length < 11) return toast('Enter or pick the WhatsApp number');
+      const win = !window.YamieStock && mode !== 'any' && !(file && navigator.canShare) ? open('', '_blank') : null;
+      try {
+        const Y = window.YamieStock; const to = mode === 'num' ? phone : '';
+        if (mode === 'any' && onAny) { closeModal(); return onAny(); }
+        if (mode === 'any') { if (file) await shareBin(file.name, file.mime, file.bytes, title); else await shareText(text, title); }
+        else if (Y?.shareTo) Y.shareTo('wa', to, title, text, file ? file.name : '', file ? file.mime : '', file ? b64of(file.bytes) : '');
+        else { let done = false; if (file && navigator.canShare) { const f = new File([file.bytes], file.name, { type: file.mime }); if (navigator.canShare({ files: [f] })) { try { await navigator.share({ files: [f], text }); done = true; } catch (e) { if (e.name === 'AbortError') return; } } }
+          if (!done) { if (file) { saveBin(file.name, file.mime, file.bytes); toast('File downloaded — attach it in the chat', 4000); } const u = `https://wa.me/${to}?text=${encodeURIComponent(text)}`; if (win) win.location.href = u; else open(u, '_blank'); } }
+        if (mode === 'num') recentAdd({ name, phone });
+        onSent && onSent({ name, phone: mode === 'num' ? phone : '', via: mode }); closeModal();
+      } catch (e) { fail(e); } };
+    $('#stWa').onclick = () => go2('num'); $('#stPick').onclick = () => go2('chat'); $('#stAny').onclick = () => go2('any');
+    setTimeout(() => $('#stP')?.focus(), 50);
+  });
+}
 // ================= v1.34 Google review requests: image card with QR + link, sent on WhatsApp to the customer =================
 const RV_MSG = {
   en: (n, shop, u) => `Hi${n ? ' ' + n : ''}, thank you for choosing *${shop}* 💛\nWe'd love to hear about your experience. Could you leave us a quick Google review? It takes less than a minute:\n${u}\n\n⭐⭐⭐⭐⭐ Thank you!`,
@@ -2467,7 +2518,7 @@ async function reviewAsk(docId) {
   let log = { list: [], month: 0, today: 0 }; try { log = await api('review/log'); } catch {}
   modal('⭐ Ask for a Google review', 'Sends a thank-you card with QR + review link on WhatsApp', `
     ${shops.length > 1 ? `<label class="f" style="margin-top:0">Shop</label><select id="rvShop">${shops.map((d, i) => `<option value="${i}" ${i === si ? 'selected' : ''}>${esc(d.place.name || d.title)}</option>`).join('')}</select>` : ''}
-    <div class="g2"><div><label class="f" style="margin-top:0">Customer name</label><input id="rvN" placeholder="e.g. Anjali" autocomplete="off"></div><div><label class="f" style="margin-top:0">WhatsApp number</label><input id="rvP" type="tel" inputmode="tel" placeholder="98XXXXXXXX"></div></div>
+    <div class="g2"><div><label class="f" style="margin-top:0">Customer name</label><input id="rvN" placeholder="e.g. Anjali" autocomplete="off"></div><div><label class="f" style="margin-top:0">WhatsApp number</label>${phoneField('rvP', 'rvN')}</div></div>
     <div id="rvWarn" class="mut sm"></div>
     <label class="f">Message</label><div class="seg" id="rvL">${[['en', 'English'], ['ml', 'മലയാളം'], ['both', 'Both']].map(([k, t]) => `<button data-lang="${k}" class="${S.rvLang === k ? 'on' : ''}">${t}</button>`).join('')}</div>
     <div class="rvprev"><img id="rvImg" alt="Review card"><pre id="rvTxt"></pre></div>
@@ -2477,18 +2528,18 @@ async function reviewAsk(docId) {
     ${log.list.length ? `<details style="margin-top:6px"><summary class="mut sm">Recent requests</summary>${log.list.slice(0, 30).map((x) => `<div class="lrow"><span class="grow">${esc(x.name || '—')}${x.phone ? ` <span class="mut sm">+${esc(x.phone)}</span>` : ''}</span><span class="mut sm">${dt(x.date)} · ${esc(x.byName || '')}</span></div>`).join('')}</details>` : ''}`, () => {
     let png = null, timer = 0;
     const cur = () => { const d = shops[si]; return { d, p: d.place, name: $('#rvN').value.trim(), phone: $('#rvP').value.replace(/[^0-9]/g, '') }; };
-    const num = (ph) => ph.length === 10 ? '91' + ph : ph;
+    const num = (ph) => normPhone(ph);
     const redraw = async () => { const { p, name, phone } = cur(); $('#rvTxt').textContent = rvText(S.rvLang, name, p.name || S.D.settings.shopName || 'Yamie Fine Jewellery', p.reviewUrl);
       png = await reviewCard(p, name); const u = URL.createObjectURL(new Blob([png], { type: 'image/png' })); const im = $('#rvImg'); if (!im) return; const old = im.src; im.src = u; if (old.startsWith('blob:')) URL.revokeObjectURL(old);
       const prev = phone ? log.list.find((x) => x.phone === num(phone) && Date.now() - x.at < 30 * 864e5) : null;
       $('#rvWarn').innerHTML = prev ? `⚠ Already asked on ${dt(prev.date)} by ${esc(prev.byName || '')}` : ''; };
     const soon = () => { clearTimeout(timer); timer = setTimeout(redraw, 300); };
-    ['#rvN', '#rvP'].forEach((x) => $(x).addEventListener('input', soon));
+    ['#rvN', '#rvP'].forEach((x) => $(x).addEventListener('input', soon)); bindPick(document.querySelector('.ov:last-of-type') || document, () => redraw());
     $('#rvShop') && ($('#rvShop').onchange = () => { si = +$('#rvShop').value; redraw(); });
     document.querySelectorAll('[data-lang]').forEach((b) => b.onclick = () => { S.rvLang = b.dataset.lang; document.querySelectorAll('[data-lang]').forEach((x) => x.classList.toggle('on', x === b)); redraw(); });
     const logIt = (via) => { const { p, name, phone } = cur(); api('review/log', { name, phone: phone ? num(phone) : '', shop: p.name, via, lang: S.rvLang }).catch(() => {}); };
     const fileName = () => `Yamie-review-${(cur().name || 'card').replace(/[^\w-]+/g, '_')}.png`;
-    $('#rvSend').onclick = async () => { const { p, name, phone } = cur(); if (phone && phone.length < 10) return toast('Check the WhatsApp number');
+    $('#rvSend').onclick = async () => { const { p, name, phone } = cur(); if (phone && normPhone(phone).length < 11) return toast('Check the WhatsApp number'); if (phone) recentAdd({ name, phone: normPhone(phone) });
       const text = rvText(S.rvLang, name, p.name || S.D.settings.shopName || 'Yamie Fine Jewellery', p.reviewUrl); const win = !window.YamieStock && !navigator.canShare ? open('', '_blank') : null;
       try { if (!png) await redraw();
         if (window.YamieStock?.shareTo) window.YamieStock.shareTo('wa', phone ? num(phone) : '', 'Google review', text, fileName(), 'image/png', b64of(png));
@@ -2511,15 +2562,18 @@ function pickShareLoc(list) {
     document.querySelectorAll('[data-pl]').forEach((b) => b.onclick = async () => { const d = list[+b.dataset.pl]; closeModal(); shareLocation(d, await qrPng(mapUrlOf(d.place), 700)); }); });
 }
 async function shareLocation(d, qr) {
-  const text = placeText(d);
-  try {
-    if (qr && window.YamieStock?.shareTo) { const b = await (await fetch(qr)).arrayBuffer(); return window.YamieStock.shareTo('wa', '', d.title, text, `${(d.title || 'location').replace(/[^\w-]+/g, '_')}_QR.png`, 'image/png', b64of(new Uint8Array(b))); }
-    if (window.YamieStock?.shareText) return window.YamieStock.shareText(text);
-    if (navigator.share) { try { return await navigator.share({ title: d.title, text }); } catch (e) { if (e.name === 'AbortError') return; } }
-    open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
-  } catch (e) { fail(e); }
+  try { qr ||= mapUrlOf(d.place) ? await qrPng(mapUrlOf(d.place), 700) : ''; } catch {}
+  const bytes = qr ? new Uint8Array(await (await fetch(qr)).arrayBuffer()) : null;
+  sendToContact({ title: 'Share location', sub: esc(d.place?.name || d.title), text: placeText(d), file: bytes ? { name: `${(d.place?.name || d.title || 'location').replace(/[^\w-]+/g, '_')}_location.png`, mime: 'image/png', bytes } : null });
 }
-async function docShare(d, qr) {
+async function docShare(d, qr, any) {
+  if (!can('docsShare')) return toast('Sharing documents needs the “Share business documents” permission');
+  if (!any && d.type !== 'Shop Location') {   // v1.35: pick a contact → WhatsApp with the main file + details
+    const n = (d.files || []).length + (qr ? 1 : 0); let file = null;
+    try { if (qr) file = { name: `${(d.title || 'QR').replace(/[^\w-]+/g, '_')}_QR.png`, mime: 'image/png', bytes: new Uint8Array(await (await fetch(qr)).arrayBuffer()) };
+      else if (d.files?.length) { const f = d.files[0]; const r = await fetch(docFile(f.key)); file = { name: fname(d, f, 0), mime: f.mime, bytes: new Uint8Array(await r.arrayBuffer()) }; } } catch {}
+    return sendToContact({ title: 'Share document', sub: `${esc(d.title)}${n > 1 ? ` · sends the first of ${n} files — use “Other apps” for all` : ''}`, text: docText(d), file, onAny: () => docShare(d, qr, true) });
+  }
   try {
     const items = (d.files || []).map((f, i) => ({ url: docFile(f.key), mime: f.mime, name: fname(d, f, i) }));
     if (d.type === 'Shop Location') return shareLocation(d, qr);

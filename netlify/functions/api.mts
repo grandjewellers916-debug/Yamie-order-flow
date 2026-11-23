@@ -56,6 +56,10 @@ async function getUsers(s: any) {
     await s.setJSON('cfg/users', u, { onlyIfNew: true });
     u = await s.get('cfg/users', { type: 'json' });
   }
+  if (!u.docsShare35) {   // v1.35: sharing documents is its own permission — everyone who could see documents keeps sharing
+    for (const x of u.users) if ((x.perms || []).includes('docs') || x.role === 'admin') x.perms = [...new Set([...(x.perms || []), 'docsShare'])];
+    u.docsShare35 = true; await s.setJSON('cfg/users', u);
+  }
   if (!u.share30) {   // v1.31: sharing / downloading reports is a permission — admin and managers keep it
     for (const x of u.users) if (x.role === 'manager' || x.role === 'admin') x.perms = [...new Set([...(x.perms || []), 'share'])];
     u.share30 = true; await s.setJSON('cfg/users', u);

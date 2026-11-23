@@ -34,6 +34,19 @@ class MainActivity : ComponentActivity() {
     private var cameraUri: Uri? = null
     private val appHost by lazy { Uri.parse(BuildConfig.APP_URL).host }
 
+    // v1.35 pick a phone number from the phonebook (system picker — no contacts permission needed)
+    private val contactPick = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
+        var name = ""; var phone = ""
+        try {
+            val uri = if (res.resultCode == RESULT_OK) res.data?.data else null
+            if (uri != null) contentResolver.query(uri, arrayOf(android.provider.ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, android.provider.ContactsContract.CommonDataKinds.Phone.NUMBER), null, null, null)?.use { c ->
+                if (c.moveToFirst()) { name = c.getString(0) ?: ""; phone = c.getString(1) ?: "" }
+            }
+        } catch (e: Exception) { }
+        val js = org.json.JSONObject().put("name", name).put("phone", phone).toString()
+        web.evaluateJavascript("window.__yamieContact && window.__yamieContact($js)", null)
+    }
+
     // v1.33 shop location: "Use my current location" asks for GPS permission once
     private var geoCb: android.webkit.GeolocationPermissions.Callback? = null
     private var geoOrigin: String? = null
@@ -231,6 +244,7 @@ class MainActivity : ComponentActivity() {
                 try { startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text), "Share")) } catch (e: Exception) { }
             }
         }
+        @JavascriptInterface fun pickContact() { runOnUiThread { try { contactPick.launch(Intent(Intent.ACTION_PICK, android.provider.ContactsContract.CommonDataKinds.Phone.CONTENT_URI)) } catch (e: Exception) { web.evaluateJavascript("window.__yamieContact && window.__yamieContact({name:'',phone:''})", null) } } }
         @JavascriptInterface fun version(): String = BuildConfig.VERSION_NAME
         @JavascriptInterface fun reload() { runOnUiThread { web.loadUrl(BuildConfig.APP_URL) } }
     }
