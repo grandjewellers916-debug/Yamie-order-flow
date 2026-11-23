@@ -76,6 +76,9 @@ label.ck{display:flex;gap:6px;align-items:center;font-size:14px;min-height:44px;
 .rvprev{display:grid;grid-template-columns:150px 1fr;gap:10px;margin-top:10px;align-items:start}.rvprev img{width:100%;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.12);background:#eee;min-height:180px}.rvprev pre{white-space:pre-wrap;font-family:inherit;font-size:13px;line-height:1.45;margin:0;background:#E7F6E1;border-radius:10px;padding:10px;max-height:240px;overflow:auto}
 @media (max-width:500px){.rvprev{grid-template-columns:110px 1fr}}
 .pbk{min-width:46px;padding:0 10px}.chips{display:flex;flex-wrap:wrap;gap:6px}.chipb{border:1px solid var(--ln);background:#fff;border-radius:99px;padding:5px 11px;font:inherit;font-size:13px;cursor:pointer}
+.selbar .seg button{white-space:nowrap}.bgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}.bcard h3{margin:0 0 6px}.bk{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-top:1px solid var(--ln);font-size:14px}.bk span{color:var(--mut)}.bk.in b{color:var(--ok)}.bk.out b{color:var(--bad)}.bk.cl b{font-size:17px;color:var(--m)}
+tr.voided td{opacity:.5;text-decoration:line-through}tr.voided td:nth-child(8){text-decoration:none;opacity:1}.rrow select,.rrow input{min-height:36px;padding:4px 6px}
+@media (max-width:700px){.bcard[style*="span 2"]{grid-column:auto!important}}
 .isum{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:6px;font-size:12px;color:var(--mut)}.isum b{color:var(--ink);font-weight:600}.isum .on{color:var(--m)}.isum .on b{color:var(--m)}.isum .off{opacity:.55}
 .wtl{margin-top:4px;font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap}.wtl.none{font-weight:400;color:var(--warn);font-size:11px}
 details.msel{position:relative}details.msel>summary{list-style:none;cursor:pointer;border:1px solid var(--ln);border-radius:10px;background:#fff;min-height:44px;padding:10px 30px 10px 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative}
@@ -384,7 +387,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.35';
+const VERSION = '1.36';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -399,6 +402,7 @@ const ICON = {
   stock: '<path d="M12 3l8 4.5-8 4.5-8-4.5z"/><path d="M4 12l8 4.5 8-4.5M4 16.5L12 21l8-4.5"/>',
   print: '<path d="M7 9V3h10v6M7 17H4v-7h16v7h-3M7 14h10v7H7z"/>',
   doc: '<path d="M6 3h8l5 5v13H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/>',
+  gold: '<path d="M3 18l3-8h12l3 8z"/><path d="M8 10l2-5h4l2 5"/>',
   rep: '<path d="M4 3h16v18H4z"/><path d="M8 16v-4M12 16V8M16 16v-6"/>',
   share: '<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"/>',
   copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',
@@ -505,7 +509,7 @@ const diffTxt = (d, loc) => Object.entries(d || {}).map(([t, n]) => `${kT(t, loc
 
 // ---------------- shell ----------------
 // v1.17 Yamie Core: phone bottom bar = Home · Cash · Counter · Trays · Box; the computer sidebar also has Stock, Consolidated and More
-const NAV = [['home', 'Home', 'home'], ['stock', 'Stock', 'stock', 1], ['cash', 'Cash', 'cash'], ['counter', 'Counter', 'counter'], ['tray', 'Trays', 'tray'], ['box', 'Box', 'box'], ['total', 'Consolidated', 'total', 1], ['reports', 'Reports', 'rep', 1], ['docs', 'Documents', 'doc', 1], ['more', 'More', 'more', 1]];
+const NAV = [['home', 'Home', 'home'], ['stock', 'Stock', 'stock', 1], ['cash', 'Cash', 'cash'], ['counter', 'Counter', 'counter'], ['tray', 'Trays', 'tray'], ['box', 'Box', 'box'], ['total', 'Consolidated', 'total', 1], ['reports', 'Reports', 'rep', 1], ['sx', 'Bullion & Grand', 'gold', 1], ['docs', 'Documents', 'doc', 1], ['more', 'More', 'more', 1]];
 const MORE_VIEWS = ['more', 'alerts', 'log', 'admin', 'history', 'eod'];
 function render() {
   if (!S.me) return showLogin();
@@ -515,7 +519,7 @@ function render() {
   $('#app').querySelectorAll('[data-nav]').forEach((b) => b.onclick = () => go(b.dataset.nav));
   renderTop();
   S.cardF = null;   // section filters only shape the cards on their own page
-  const v = { reports: vReports, home: vHub, stock: vHome, cash: vCash, docs: vDocs, boxwt: vBoxWt, counter: () => vSection('counter'), tray: () => vSection('tray'), box: () => vSection('box'), total: vTotal, more: vMore, alerts: vAlerts, log: vLog, eod: vEod, admin: vAdmin, history: vHistory }[S.view] || vHome;
+  const v = { sx: vSx, reports: vReports, home: vHub, stock: vHome, cash: vCash, docs: vDocs, boxwt: vBoxWt, counter: () => vSection('counter'), tray: () => vSection('tray'), box: () => vSection('box'), total: vTotal, more: vMore, alerts: vAlerts, log: vLog, eod: vEod, admin: vAdmin, history: vHistory }[S.view] || vHome;
   v();
 }
 // v1.16: version on screen — web app version, plus the APK version inside the Android app
@@ -1749,9 +1753,10 @@ async function pdfBuild(R, filt, P) {
   const hol = holidayOf(S.D.settings, S.D.date);
   doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(110); doc.text(clean(`${S.D.settings.shopName || 'Yamie'} · ${dt(S.D.date)}${hol ? ' · Holiday - ' + hol : ''}`), 14, 21);
   let y0 = 25;
-  if (P) { const W = doc.internal.pageSize.getWidth() - 20; doc.setFillColor(255, 233, 168); doc.setDrawColor(214, 170, 60); doc.roundedRect(10, 24, W, 13, 1.5, 1.5, 'FD');
-    doc.setTextColor(90, 60, 0); doc.setFontSize(7); doc.text('PRODUCT', 13, 28.5); doc.text('LOCATION', 13 + W / 2, 28.5);
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(30); doc.text(doc.splitTextToSize(clean(rpProd(P)), W / 2 - 6)[0], 13, 33.5); doc.text(doc.splitTextToSize(clean(rpLocTxt(P)), W / 2 - 6)[0], 13 + W / 2, 33.5); doc.setFont('helvetica', 'normal'); y0 = 40; }
+  const HL = R.hl || (P ? [['PRODUCT', rpProd(P)], ['LOCATION', rpLocTxt(P)]] : null);   // highlighted band (report header / challan details)
+  if (HL) { const W = doc.internal.pageSize.getWidth() - 20; const cw = W / HL.length; doc.setFillColor(255, 233, 168); doc.setDrawColor(214, 170, 60); doc.roundedRect(10, 24, W, 13, 1.5, 1.5, 'FD');
+    doc.setTextColor(90, 60, 0); doc.setFontSize(7); HL.forEach(([k], i) => doc.text(clean(k), 13 + cw * i, 28.5));
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(30); HL.forEach(([, v], i) => doc.text(doc.splitTextToSize(clean(v), cw - 6)[0] || '', 13 + cw * i, 33.5)); doc.setFont('helvetica', 'normal'); y0 = 40; }
   const body = R.rows.map((r) => r.cells.map((v, i) => { const c = R.cols[i]; return typeof v === 'number' ? (c.g3 ? (v ? g3(v) : '-') : v ? fmt(v) : '-') : clean(i === 0 && r.cls === 'sub' ? '   ' + String(v).trim() : v); }));
   doc.autoTable({ startY: y0, head: [R.cols.map((c) => clean(c.t))], body, theme: 'grid', margin: { left: 10, right: 10, bottom: 14 },
     styles: { font: 'helvetica', fontSize: R.cols.length > 10 ? 7 : 8, cellPadding: 1.6, lineColor: [229, 220, 207], lineWidth: 0.15, textColor: 30, overflow: 'linebreak' },
@@ -1759,6 +1764,8 @@ async function pdfBuild(R, filt, P) {
     columnStyles: Object.fromEntries(R.cols.map((c, i) => [i, c.num ? { halign: 'right' } : {}])),
     didParseCell: (d) => { if (d.section === 'head' && R.cols[d.column.index]?.num) d.cell.styles.halign = 'right'; if (d.section !== 'body') return; const r = R.rows[d.row.index]; if (r?.cls === 'tot' || r?.cls === 'rgrp') { d.cell.styles.fontStyle = 'bold'; d.cell.styles.fillColor = r.cls === 'tot' ? [242, 226, 222] : [247, 239, 227]; } },
     didDrawPage: () => { const n = doc.internal.getNumberOfPages(); const h = doc.internal.pageSize.getHeight(), w = doc.internal.pageSize.getWidth(); doc.setFontSize(7.5); doc.setTextColor(140); doc.text(clean(`Yamie Core v${VERSION} · printed ${new Date().toLocaleString('en-IN')} · ${S.me.name}`), 10, h - 6); doc.text(`Page ${n}`, w - 10, h - 6, { align: 'right' }); } });
+  if (R.sign) { let y = (doc.lastAutoTable?.finalY || y0) + 22; const h = doc.internal.pageSize.getHeight(), w = doc.internal.pageSize.getWidth(); if (y > h - 30) { doc.addPage(); y = 30; }
+    doc.setDrawColor(120); doc.setFontSize(9); doc.setTextColor(60); R.sign.forEach((t, i) => { const x = 14 + i * ((w - 28) / R.sign.length); doc.line(x, y, x + 60, y); doc.text(clean(t), x, y + 5); }); }
   return new Uint8Array(doc.output('arraybuffer'));
 }
 // v1.28 shared helpers: multi-select dropdown, collapsible sections
@@ -2055,7 +2062,7 @@ function vHub() {
   ${hubNotes()}
   <div id="hubRem"></div>
   <div class="qk">
-    ${[['eod', 'total', 'End-of-day entries', can('move')], ['total', 'total', 'Consolidated', can('reports')], ['reports', 'rep', 'Reports · Excel / PDF', can('reports')], ['docs', 'doc', 'Documents', can('docs') || can('docsEdit')], ['alerts', 'bell', 'Alerts', can('alerts')], ['more', 'more', 'More & settings', true]].filter((x) => x[3]).map(([k, i, t]) => `<button data-go="${k}">${svg(i)}<span>${t}</span></button>`).join('')}
+    ${[['eod', 'total', 'End-of-day entries', can('move')], ['total', 'total', 'Consolidated', can('reports')], ['reports', 'rep', 'Reports · Excel / PDF', can('reports')], ['sx', 'gold', 'Bullion & Grand-Yamie boxes', can('special')], ['docs', 'doc', 'Documents', can('docs') || can('docsEdit')], ['alerts', 'bell', 'Alerts', can('alerts')], ['more', 'more', 'More & settings', true]].filter((x) => x[3]).map(([k, i, t]) => `<button data-go="${k}">${svg(i)}<span>${t}</span></button>`).join('')}
   </div>`;
   $('#main').querySelectorAll('[data-go]').forEach((b) => b.onclick = () => go(b.dataset.go));
   $('#hubRv') && ($('#hubRv').onclick = () => reviewAsk());
@@ -2429,6 +2436,192 @@ async function docOpenFile(f, d, view) {
   } catch (e) { fail(e); }
 }
 // v1.33 share the shop location: message with address + Google Maps link (WhatsApp shows the map preview), QR image when sharing as a file
+// ================= v1.36 separate group — not part of stock: Grand / Yamie bullion boxes (999, 995) and Grand-Yamie label stock =================
+const g3s = (v) => (Math.round((+v || 0) * 1000) / 1000).toFixed(3);
+const BUL_IN = ['Purchase', 'From customer (old gold)', 'From Grand', 'From Yamie', 'Refinery return', 'Other'];
+const BUL_OUT = ['To smith / making', 'Sale', 'To Grand', 'To Yamie', 'To refinery', 'Other'];
+function bulCalc(b, ents) { const out = {}; for (const p of b.purities) { const E = ents.filter((e) => e.boxId === b.id && e.purity === p && !e.void); const op = b.opening[p]?.wt || 0; const inw = E.filter((e) => e.dir === 'in').reduce((a, e) => a + e.wt, 0); const ow = E.filter((e) => e.dir === 'out').reduce((a, e) => a + e.wt, 0); out[p] = { op, in: inw, out: ow, close: op + inw - ow, n: E.length }; } return out; }
+// label ranges: "GY1001" → "GY1020" keeps the prefix and zero padding
+function labelRange(a, b) {
+  const m1 = String(a).trim().toUpperCase().match(/^(.*?)(\d+)$/), m2 = String(b || a).trim().toUpperCase().match(/^(.*?)(\d+)$/);
+  if (!m1) return [String(a).trim().toUpperCase()].filter(Boolean); if (!m2 || m2[1] !== m1[1]) throw new Error('Start and end labels must have the same letters');
+  const s0 = +m1[2], e0 = +m2[2]; if (e0 < s0) throw new Error('End label is before the start'); if (e0 - s0 >= 500) throw new Error('Max 500 labels at a time'); const w = m1[2].length;
+  return Array.from({ length: e0 - s0 + 1 }, (_, i) => m1[1] + String(s0 + i).padStart(w, '0'));
+}
+// "GJ1001-GJ1010, GJ1015" → labels; a dash inside a label (GJ-1001) is kept
+function parseLabels(v) {
+  const out = []; for (const part of String(v).toUpperCase().replace(/\s*[–—]\s*/g, '-').replace(/\s+-\s+/g, '-').split(/[,\s]+/).filter(Boolean)) {
+    let done = false; const idx = [...part].map((c, i) => c === '-' ? i : -1).filter((i) => i > 0);
+    for (const i of idx) { const a2 = part.slice(0, i), b2 = part.slice(i + 1); if (/\d$/.test(a2) && /\d$/.test(b2)) { const m1 = a2.match(/^(.*?)(\d+)$/), m2 = b2.match(/^(.*?)(\d+)$/); if (m1[1] === m2[1] || m2[1] === '') { out.push(...labelRange(a2, m2[1] === '' ? m1[1] + b2 : b2)); done = true; break; } } }
+    if (!done) out.push(part); }
+  return [...new Set(out)];
+}
+async function vSx() {
+  if (!can('special')) return $('#main').innerHTML = '<div class="card">No access — ask the admin for “Bullion boxes & Grand-Yamie stock”.</div>';
+  $('#main').innerHTML = '<div class="card mut">Loading…</div>';
+  try { S.sx = await api('sx'); } catch (e) { $('#main').innerHTML = `<div class="card">${esc(e.message)}</div>`; return; }
+  drawSx();
+}
+function drawSx() {
+  const X = S.sx; S.sxBox ||= X.boxes[0].id; const b = X.boxes.find((x) => x.id === S.sxBox) || X.boxes[0];
+  const tabs = `<div class="tabs" data-fbar="sx-tabs" style="margin-bottom:12px">${X.boxes.map((x) => `<button class="tab ${x.id === b.id ? 'on' : ''}" data-sxb="${x.id}" data-fk="${x.id}">${x.kind === 'bullion' ? '🥇' : '🏷'} ${esc(x.name)}</button>`).join('')}</div>`;
+  const head = `<div class="row sp wrap" style="margin-bottom:10px"><div><h1>Bullion &amp; Grand</h1><div class="mut">Separate boxes — <b>not part of stock</b> counts, Consolidated or reports</div></div></div>`;
+  $('#main').innerHTML = head + tabs + (b.kind === 'bullion' ? sxBullionHtml(b) : sxLabelsHtml(b));
+  $('#main').querySelectorAll('[data-sxb]').forEach((x) => x.onclick = () => { S.sxBox = x.dataset.sxb; S.sxSel = new Set(); drawSx(); });
+  b.kind === 'bullion' ? bindBullion(b) : bindLabels(b);
+}
+// ---------- bullion box ----------
+function sxBullionHtml(b) {
+  const X = S.sx; const C = bulCalc(b, X.entries); S.sxMon ||= S.D.today.slice(0, 7);
+  const ents = X.entries.filter((e) => e.boxId === b.id); const run = {}; b.purities.forEach((p) => { run[p] = C[p].op; });
+  const rows = ents.map((e) => { if (!e.void) run[e.purity] += e.dir === 'in' ? e.wt : -e.wt; return { e, bal: run[e.purity] }; }).filter((r) => S.sxMon === 'all' || r.e.date.startsWith(S.sxMon)).reverse();
+  const mons = [...new Set([S.D.today.slice(0, 7), ...ents.map((e) => e.date.slice(0, 7))])].sort().reverse();
+  return `<div class="bgrid">${b.purities.map((p) => `<div class="card bcard"><div class="row sp"><h3>${p}</h3><span class="mut sm">${C[p].n} entries</span></div>
+      <div class="bk"><span>Opening</span><b>${g3s(C[p].op)} g</b></div><div class="bk in"><span>＋ Receipts</span><b>${g3s(C[p].in)} g</b></div><div class="bk out"><span>− Issues</span><b>${g3s(C[p].out)} g</b></div>
+      <div class="bk cl"><span>Closing balance</span><b>${g3s(C[p].close)} g</b></div>${b.opening[p]?.date ? `<div class="mut sm">Opening as on ${dt(b.opening[p].date)}</div>` : '<div class="mut sm">Opening not set</div>'}</div>`).join('')}
+    <div class="card bcard"><h3>Total</h3><div class="bk cl"><span>${b.purities.join(' + ')}</span><b>${g3s(b.purities.reduce((a, p) => a + C[p].close, 0))} g</b></div>
+      ${b.boxWt ? `<div class="bk"><span>Box weight</span><b>${g3s(b.boxWt)} g</b></div><div class="bk"><span>With box</span><b>${g3s(b.purities.reduce((a, p) => a + C[p].close, 0) + b.boxWt)} g</b></div>` : ''}</div></div>
+  <div class="row wrap" style="gap:8px;margin:12px 0"><button class="btn ok" id="buIn">＋ Add receipt</button><button class="btn" id="buOut">− Add issue</button><button class="btn ghost" id="sxBw">⚖ Box weight</button>${can('setup') ? '<button class="btn ghost" id="buOp">Set opening</button>' : ''}<span class="grow"></span>
+    <select id="sxMon" style="width:auto">${[...mons, 'all'].map((m) => `<option value="${m}" ${S.sxMon === m ? 'selected' : ''}>${m === 'all' ? 'All dates' : new Date(m + '-01T12:00').toLocaleString('en-IN', { month: 'long', year: 'numeric' })}</option>`).join('')}</select>${can('share') ? '<button class="btn sec" id="sxX">⬇ Excel</button><button class="btn sec" id="sxP">⬇ PDF</button>' : ''}</div>
+  <div class="tw"><table class="rep"><tr><th style="text-align:left">Date</th><th style="text-align:left">Type</th><th>Purity</th><th>Receipt g</th><th>Issue g</th><th>Balance g</th><th style="text-align:left">Party / to</th><th style="text-align:left">Reason · ref</th><th style="text-align:left">By</th><th></th></tr>
+  ${rows.map(({ e, bal }) => `<tr class="${e.void ? 'voided' : ''}"><td style="text-align:left">${dt(e.date)}</td><td style="text-align:left">${e.dir === 'in' ? '<span class="pos">Receipt</span>' : '<span class="neg">Issue</span>'}</td><td>${e.purity}</td><td>${e.dir === 'in' ? g3s(e.wt) : ''}</td><td>${e.dir === 'out' ? g3s(e.wt) : ''}</td><td class="b">${e.void ? '—' : g3s(bal)}</td>
+    <td style="text-align:left">${esc(e.party)}</td><td style="text-align:left">${esc([e.mode, e.ref, e.note].filter(Boolean).join(' · '))}${e.void ? `<div class="neg sm">Cancelled: ${esc(e.void.reason)}</div>` : ''}</td><td style="text-align:left" class="mut sm">${esc(X.userNames[e.by] || '')}</td>
+    <td>${S.me.role === 'admin' && !e.void ? `<button class="btn sm ghost" data-void="${e.id}" title="Cancel entry">✕</button>` : ''}</td></tr>`).join('') || '<tr><td colspan="10" class="mut">No entries</td></tr>'}</table></div>`;
+}
+function bullionReport(b) {
+  const X = S.sx; const C = bulCalc(b, X.entries); const run = {}; b.purities.forEach((p) => { run[p] = C[p].op; });
+  const rows = [...b.purities.map((p) => ({ cls: 'rgrp', cells: [b.opening[p]?.date || '', 'Opening', p, '', '', C[p].op, '', '', ''] }))];
+  X.entries.filter((e) => e.boxId === b.id && !e.void).forEach((e) => { run[e.purity] += e.dir === 'in' ? e.wt : -e.wt; if (S.sxMon === 'all' || e.date.startsWith(S.sxMon)) rows.push({ cells: [e.date, e.dir === 'in' ? 'Receipt' : 'Issue', e.purity, e.dir === 'in' ? e.wt : '', e.dir === 'out' ? e.wt : '', run[e.purity], e.party, [e.mode, e.ref, e.note].filter(Boolean).join(' · '), X.userNames[e.by] || ''] }); });
+  b.purities.forEach((p) => rows.push({ cls: 'tot', cells: ['', 'Closing', p, C[p].in, C[p].out, C[p].close, '', '', ''] }));
+  return { title: `${b.name} — ledger`, cols: [{ t: 'Date' }, { t: 'Type' }, { t: 'Purity' }, { t: 'Receipt g', num: true, g3: true }, { t: 'Issue g', num: true, g3: true }, { t: 'Balance g', num: true, g3: true }, { t: 'Party / to' }, { t: 'Reason · ref' }, { t: 'By' }], rows };
+}
+function bindBullion(b) {
+  const entry = (dir) => modal(`${dir === 'in' ? '＋ Receipt' : '− Issue'} · ${esc(b.name)}`, 'Weight in grams', `
+    <div class="g2"><div><label class="f" style="margin-top:0">Date</label><input type="date" id="beD" value="${S.D.today}"></div><div><label class="f" style="margin-top:0">Purity</label><div class="seg" id="beP">${b.purities.map((p, i) => `<button data-p="${p}" class="${i ? '' : 'on'}">${p}</button>`).join('')}</div></div></div>
+    <label class="f">Weight (g) *</label><input type="number" step="0.001" inputmode="decimal" id="beW" placeholder="0.000">
+    <label class="f">${dir === 'in' ? 'Received from' : 'Issued to'}</label><input id="beN" list="beNL"><datalist id="beNL">${[...new Set(S.sx.entries.map((e) => e.party).filter(Boolean))].map((x) => `<option value="${esc(x)}">`).join('')}</datalist>
+    <label class="f">Reason</label><select id="beR">${(dir === 'in' ? BUL_IN : BUL_OUT).map((r) => `<option>${r}</option>`).join('')}</select>
+    <div class="g2"><div><label class="f">Ref / bill no.</label><input id="beF"></div><div><label class="f">Note</label><input id="beT"></div></div>
+    <button class="btn ${dir === 'in' ? 'ok' : ''}" id="beS" style="width:100%;margin-top:14px">Save ${dir === 'in' ? 'receipt' : 'issue'}</button>`, () => {
+    let pur = b.purities[0]; document.querySelectorAll('#beP [data-p]').forEach((x) => x.onclick = () => { pur = x.dataset.p; document.querySelectorAll('#beP [data-p]').forEach((y) => y.classList.toggle('on', y === x)); });
+    $('#beS').onclick = async () => { try { await api('sx/entry', { boxId: b.id, dir, purity: pur, wt: $('#beW').value, date: $('#beD').value, party: $('#beN').value, mode: $('#beR').value, ref: $('#beF').value, note: $('#beT').value }); closeModal(); toast(`✓ ${dir === 'in' ? 'Receipt' : 'Issue'} saved`); vSx(); } catch (e) { fail(e); } };
+    setTimeout(() => $('#beW').focus(), 50); });
+  $('#buIn').onclick = () => entry('in'); $('#buOut').onclick = () => entry('out');
+  $('#buOp') && ($('#buOp').onclick = () => modal(`Opening · ${esc(b.name)}`, 'Balance carried into the app', b.purities.map((p) => `<div class="g2"><div><label class="f">${p} weight (g)</label><input type="number" step="0.001" data-ow="${p}" value="${b.opening[p]?.wt ?? ''}"></div><div><label class="f">As on</label><input type="date" data-od="${p}" value="${b.opening[p]?.date || S.D.today}"></div></div>`).join('') + '<button class="btn" id="opS" style="width:100%;margin-top:14px">Save opening</button>', () => {
+    $('#opS').onclick = async () => { const o = {}; b.purities.forEach((p) => { o[p] = { wt: document.querySelector(`[data-ow="${p}"]`).value || 0, date: document.querySelector(`[data-od="${p}"]`).value }; });
+      try { await api('sx/box', { id: b.id, opening: o }); closeModal(); toast('✓ Opening saved'); vSx(); } catch (e) { fail(e); } }; }));
+  bindSxCommon(b, () => bullionReport(b));
+  $('#main').querySelectorAll('[data-void]').forEach((x) => x.onclick = async () => { const r = prompt('Reason for cancelling this entry'); if (r === null) return; try { await api('sx/void', { boxId: b.id, id: x.dataset.void, reason: r }); toast('Entry cancelled'); vSx(); } catch (e) { fail(e); } });
+}
+function bindSxCommon(b, rep) {
+  $('#sxMon') && ($('#sxMon').onchange = () => { S.sxMon = $('#sxMon').value; drawSx(); });
+  $('#sxBw').onclick = () => modal(`⚖ Box weight · ${esc(b.name)}`, 'Empty box + packaging, weighed on the scale', `<label class="f" style="margin-top:0">Box weight (g)</label><input type="number" step="0.001" id="bwV" value="${b.boxWt || ''}">${b.boxWtAt ? `<div class="mut sm" style="margin-top:4px">Last set ${new Date(b.boxWtAt).toLocaleString('en-IN')}</div>` : ''}<button class="btn" id="bwS" style="width:100%;margin-top:14px">Save</button>`, () => {
+    $('#bwS').onclick = async () => { try { await api('sx/box', { id: b.id, boxWt: $('#bwV').value || 0 }); closeModal(); toast('✓ Box weight saved'); vSx(); } catch (e) { fail(e); } }; });
+  const fn = (ext) => `${b.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${S.D.today}.${ext}`;
+  $('#sxX') && ($('#sxX').onclick = () => saveBin(fn('xlsx'), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', xlsxBuild(rep(), 'Not part of stock')));
+  $('#sxP') && ($('#sxP').onclick = async () => { try { saveBin(fn('pdf'), 'application/pdf', await pdfBuild(rep(), 'Not part of stock'), true); } catch (e) { fail(e); } });
+}
+// ---------- Grand-Yamie label stock ----------
+function sxLabelsHtml(b) {
+  const L = S.sx.labels.filter((x) => x.boxId === b.id); const inn = L.filter((x) => x.status === 'in'); S.sxF ||= 'in'; S.sxQ ||= ''; S.sxSel ||= new Set();
+  const gw = inn.reduce((a, x) => a + x.wt, 0); const rec = L.length, recW = L.reduce((a, x) => a + x.wt, 0), out = L.filter((x) => x.status === 'out');
+  const byItem = {}; inn.forEach((x) => { const k = `${x.item}|${x.purity}`; (byItem[k] ||= { item: x.item, purity: x.purity, qty: 0, wt: 0 }); byItem[k].qty++; byItem[k].wt += x.wt; });
+  const items = Object.values(byItem).sort((a, c) => rdOrder('item', [a.item, c.item])[0] === a.item ? -1 : 1);
+  const q = S.sxQ.toLowerCase(); const shown = L.filter((x) => (S.sxF === 'all' || x.status === S.sxF) && (!q || `${x.label} ${x.item} ${x.party} ${x.purity}`.toLowerCase().includes(q))).sort((a, c) => a.label.localeCompare(c.label, undefined, { numeric: true }));
+  const selW = [...S.sxSel].reduce((a, l) => a + (inn.find((x) => x.label === l)?.wt || 0), 0);
+  return `<div class="bgrid">
+    <div class="card bcard"><h3>In the box now</h3><div class="bk cl"><span>Quantity</span><b>${inn.length} pcs</b></div><div class="bk cl"><span>Gross weight</span><b>${g3s(gw)} g</b></div>
+      <div class="bk"><span>Box weight</span><b>${b.boxWt ? g3s(b.boxWt) + ' g' : '<span class="mut">not set</span>'}</b></div><div class="bk"><span>Total with box</span><b>${g3s(gw + (b.boxWt || 0))} g</b></div></div>
+    <div class="card bcard"><h3>Movement</h3><div class="bk in"><span>Received</span><b>${rec} pcs · ${g3s(recW)} g</b></div><div class="bk out"><span>Issued to Grand</span><b>${out.length} pcs · ${g3s(out.reduce((a, x) => a + x.wt, 0))} g</b></div><div class="bk cl"><span>Closing</span><b>${inn.length} pcs · ${g3s(gw)} g</b></div></div>
+    <div class="card bcard" style="grid-column:span 2"><h3>Item-wise (in the box)</h3><div class="tw"><table class="rep"><tr><th style="text-align:left">Item</th><th style="text-align:left">Purity</th><th>Qty</th><th>Gross g</th></tr>${items.map((x) => `<tr><td style="text-align:left" class="b">${esc(x.item)}</td><td style="text-align:left">${esc(x.purity)}</td><td>${x.qty}</td><td>${g3s(x.wt)}</td></tr>`).join('')}<tr class="tot"><td style="text-align:left">Total</td><td></td><td>${inn.length}</td><td>${g3s(gw)}</td></tr></table></div></div></div>
+  <div class="row wrap" style="gap:8px;margin:12px 0"><button class="btn ok" id="lgIn">＋ Receipt (label range)</button><button class="btn" id="lgOut">↗ Issue to Grand${S.sxSel.size ? ` (${S.sxSel.size})` : ''}</button><button class="btn ghost" id="sxBw">⚖ Box weight</button><span class="grow"></span>${can('share') ? '<button class="btn sec" id="sxX">⬇ Excel</button><button class="btn sec" id="sxP">⬇ PDF</button>' : ''}</div>
+  <div class="selbar card" data-fbar="sx-lf"><div class="grow" data-fk="q"><label class="f" style="margin-top:0">Search</label><input id="lgQ" value="${esc(S.sxQ)}" placeholder="Label, item, supplier"></div>
+    <div data-fk="st"><label class="f" style="margin-top:0">Show</label><div class="seg">${[['in', 'In box'], ['out', 'Issued'], ['all', 'All']].map(([k, t]) => `<button data-lf="${k}" class="${S.sxF === k ? 'on' : ''}">${t}</button>`).join('')}</div></div></div>
+  ${S.sxSel.size ? `<div class="banner" style="margin:8px 0">${S.sxSel.size} selected · ${g3s(selW)} g — <button class="lnk" id="lgClr">clear</button></div>` : ''}
+  <div class="tw"><table class="rep"><tr>${S.sxF !== 'out' ? '<th><input type="checkbox" id="lgAll"></th>' : ''}<th style="text-align:left">Label</th><th style="text-align:left">Item</th><th style="text-align:left">Purity</th><th>Weight g</th><th style="text-align:left">Supplier</th><th style="text-align:left">Received</th><th style="text-align:left">Status</th><th></th></tr>
+  ${shown.slice(0, 400).map((x) => `<tr>${S.sxF !== 'out' ? `<td>${x.status === 'in' ? `<input type="checkbox" data-ls="${esc(x.label)}" ${S.sxSel.has(x.label) ? 'checked' : ''}>` : ''}</td>` : ''}<td style="text-align:left" class="b">${esc(x.label)}</td><td style="text-align:left">${esc(x.item)}</td><td style="text-align:left">${esc(x.purity)}</td><td>${g3s(x.wt)}</td><td style="text-align:left">${esc(x.party)}</td><td style="text-align:left" class="sm">${dt(x.rdate)}</td>
+    <td style="text-align:left" class="sm">${x.status === 'in' ? '<span class="pos">In box</span>' : `<span class="neg">Issued ${dt(x.idate)}</span><div class="mut">${x.mode === 'courier' ? '📦' : '🤝'} ${esc(x.to)}</div>`}</td><td>${x.status === 'in' ? `<button class="btn sm ghost" data-le="${esc(x.label)}">✎</button>` : ''}</td></tr>`).join('') || '<tr><td colspan="9" class="mut">Nothing here</td></tr>'}</table></div>
+  ${shown.length > 400 ? `<div class="mut sm">Showing 400 of ${shown.length} — search to narrow</div>` : ''}
+  ${S.sx.issues.filter((i) => i.boxId === b.id).length ? `<h3 style="margin:18px 0 8px">Issues to Grand</h3><div class="tw"><table class="rep"><tr><th style="text-align:left">Date</th><th style="text-align:left">How</th><th style="text-align:left">To · ref</th><th>Qty</th><th>Gross g</th><th style="text-align:left">By</th><th></th></tr>
+  ${S.sx.issues.filter((i) => i.boxId === b.id).map((i) => `<tr><td style="text-align:left">${dt(i.date)}</td><td style="text-align:left">${i.mode === 'courier' ? '📦 Courier' : '🤝 By hand'}</td><td style="text-align:left">${esc(i.to)}${i.ref ? ' · ' + esc(i.ref) : ''}</td><td>${i.qty}</td><td>${g3s(i.wt)}</td><td style="text-align:left" class="mut sm">${esc(S.sx.userNames[i.by] || '')}</td><td><button class="btn sm ghost" data-chal="${i.id}">📄 Challan</button></td></tr>`).join('')}</table></div>` : ''}`;
+}
+function labelsReport(b) {
+  const L = S.sx.labels.filter((x) => x.boxId === b.id && (S.sxF === 'all' || x.status === S.sxF)).sort((a, c) => a.label.localeCompare(c.label, undefined, { numeric: true }));
+  const rows = L.map((x) => ({ cells: [x.label, x.item, x.purity, 1, x.wt, x.party, x.rdate, x.status === 'in' ? 'In box' : `Issued ${x.idate} · ${x.mode === 'courier' ? 'courier' : 'by hand'} · ${x.to}`] }));
+  const inn = L.filter((x) => x.status === 'in'); rows.push({ cls: 'tot', cells: [`Total · ${L.length}`, '', '', L.length, L.reduce((a, x) => a + x.wt, 0), '', '', ''] });
+  if (b.boxWt && S.sxF !== 'out') rows.push({ cls: 'rgrp', cells: ['Box weight', '', '', '', b.boxWt, '', '', ''] }, { cls: 'tot', cells: ['Total with box', '', '', '', inn.reduce((a, x) => a + x.wt, 0) + b.boxWt, '', '', ''] });
+  return { title: `${b.name} — ${S.sxF === 'in' ? 'in the box' : S.sxF === 'out' ? 'issued' : 'all labels'}`, cols: [{ t: 'Label' }, { t: 'Item' }, { t: 'Purity' }, { t: 'Qty', num: true }, { t: 'Gross g', num: true, g3: true }, { t: 'Supplier' }, { t: 'Received' }, { t: 'Status' }], rows };
+}
+function challanReport(b, i) {
+  const L = S.sx.labels.filter((x) => x.boxId === b.id && i.labels.includes(x.label)).sort((a, c) => a.label.localeCompare(c.label, undefined, { numeric: true }));
+  const rows = [...i.items.map((x) => ({ cls: 'rgrp', cells: [x.item, x.purity, '', x.qty, x.wt] })), ...L.map((x) => ({ cls: 'sub', cells: ['   ' + x.label, x.purity, x.item, 1, x.wt] })), { cls: 'tot', cells: ['Total', '', '', i.qty, i.wt] }];
+  return { title: `Issue challan — ${b.name} to Grand`, hl: [['DATE', dt(i.date)], [i.mode === 'courier' ? 'COURIER' : 'BY HAND', i.to + (i.ref ? ' · ' + i.ref : '')], ['TOTAL', `${i.qty} pcs · ${g3s(i.wt)} g`]], sign: ['Issued by (Yamie)', i.mode === 'courier' ? 'Courier receipt' : 'Received by (Grand)'], cols: [{ t: 'Item / label' }, { t: 'Purity' }, { t: 'Item' }, { t: 'Qty', num: true }, { t: 'Gross g', num: true, g3: true }], rows };
+}
+function bindLabels(b) {
+  const inn = () => S.sx.labels.filter((x) => x.boxId === b.id && x.status === 'in');
+  $('#lgQ').oninput = () => { clearTimeout(S.sxT); S.sxT = setTimeout(() => { S.sxQ = $('#lgQ').value; drawSx(); const i = $('#lgQ'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }, 350); };
+  $('#main').querySelectorAll('[data-lf]').forEach((x) => x.onclick = () => { S.sxF = x.dataset.lf; drawSx(); });
+  $('#main').querySelectorAll('[data-ls]').forEach((x) => x.onchange = () => { x.checked ? S.sxSel.add(x.dataset.ls) : S.sxSel.delete(x.dataset.ls); drawSx(); });
+  $('#lgAll') && ($('#lgAll').onchange = () => { $('#main').querySelectorAll('[data-ls]').forEach((x) => S.sxSel.add(x.dataset.ls)); if (!$('#lgAll').checked) S.sxSel.clear(); drawSx(); });
+  $('#lgClr') && ($('#lgClr').onclick = () => { S.sxSel.clear(); drawSx(); });
+  const items = S.D.settings.itemTypes, purs = S.D.settings.purities.filter((p) => !['PT950', '925', 'Silver', 'Mixed'].includes(p));
+  const parties = [...new Set(S.sx.labels.map((x) => x.party).filter(Boolean))];
+  // 01 receipt by label range
+  $('#lgIn').onclick = () => modal(`＋ Receipt · ${esc(b.name)}`, 'Grand gold jewellery — enter labels as a range, then each piece', `
+    <div class="g2"><div><label class="f" style="margin-top:0">Start label *</label><input id="rS" placeholder="e.g. GJ1001" style="text-transform:uppercase"></div><div><label class="f" style="margin-top:0">End label</label><input id="rE" placeholder="e.g. GJ1020" style="text-transform:uppercase"></div></div>
+    <div class="g2"><div><label class="f">Item (all)</label><select id="rI">${items.map((x) => `<option>${esc(x)}</option>`).join('')}</select></div><div><label class="f">Purity (all)</label><select id="rP">${purs.map((x) => `<option ${x === '22K' ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></div></div>
+    <div class="g2"><div><label class="f">Supplier / party</label><input id="rN" list="rNL" value="${esc(parties[0] || 'Grand Jewellers')}"><datalist id="rNL">${parties.map((x) => `<option value="${esc(x)}">`).join('')}</datalist></div><div><label class="f">Date</label><input type="date" id="rD" value="${S.D.today}"></div></div>
+    <label class="f">Ref / delivery note</label><input id="rF">
+    <button class="btn sec" id="rGen" style="width:100%;margin-top:12px">Make the list →</button><div id="rRows"></div>`, () => {
+    $('#rGen').onclick = () => { let labs; try { labs = labelRange($('#rS').value, $('#rE').value || $('#rS').value); } catch (e) { return toast(e.message); } if (!labs.length) return toast('Enter the start label');
+      const have = new Set(inn().map((x) => x.label));
+      $('#rRows').innerHTML = `<div class="tw" style="margin-top:10px;max-height:46vh"><table class="rep rrow"><tr><th style="text-align:left">Label</th><th style="text-align:left">Item</th><th style="text-align:left">Purity</th><th>Weight g</th></tr>
+        ${labs.map((l, i) => `<tr><td style="text-align:left" class="b">${esc(l)}${have.has(l) ? ' <span class="neg sm">already in</span>' : ''}</td><td><select data-ri="${i}">${items.map((x) => `<option ${x === $('#rI').value ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></td><td><select data-rp="${i}">${purs.map((x) => `<option ${x === $('#rP').value ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></td><td><input type="number" step="0.001" inputmode="decimal" data-rw="${i}" style="width:110px"></td></tr>`).join('')}</table></div>
+        <div class="row sp" style="margin-top:8px"><span class="mut sm" id="rTot">${labs.length} pcs · 0.000 g</span></div><button class="btn ok" id="rSave" style="width:100%;margin-top:8px">Save receipt</button>`;
+      const tot = () => { const w = [...document.querySelectorAll('[data-rw]')].reduce((a, x) => a + (+x.value || 0), 0); $('#rTot').textContent = `${labs.length} pcs · ${g3s(w)} g`; };
+      document.querySelectorAll('[data-rw]').forEach((x, i, all) => { x.oninput = tot; x.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); (all[i + 1] || $('#rSave')).focus(); } }; });
+      document.querySelector('[data-rw]')?.focus();
+      $('#rSave').onclick = async () => { const rows = labs.map((l, i) => ({ label: l, item: document.querySelector(`[data-ri="${i}"]`).value, purity: document.querySelector(`[data-rp="${i}"]`).value, wt: document.querySelector(`[data-rw="${i}"]`).value }));
+        const miss = rows.filter((r) => !(+r.wt > 0)); if (miss.length) return toast(`Enter the weight for ${miss.slice(0, 5).map((r) => r.label).join(', ')}${miss.length > 5 ? '…' : ''}`, 4000);
+        try { const r = await api('sx/receive', { boxId: b.id, rows, party: $('#rN').value, date: $('#rD').value, ref: $('#rF').value }); closeModal(); toast(`✓ Received ${r.count} pcs · ${g3s(r.wt)} g`); vSx(); } catch (e) { fail(e); } }; };
+    setTimeout(() => $('#rS').focus(), 50); });
+  // 03 issue to Grand
+  $('#lgOut').onclick = () => { const pick = new Set(S.sxSel);
+    modal(`↗ Issue to Grand · ${esc(b.name)}`, 'Pick the labels — by hand or courier', `
+      <label class="f" style="margin-top:0">Add labels (range or list)</label><div class="row" style="gap:6px"><input id="iR" placeholder="GJ1001-GJ1010 or GJ1001, GJ1005" class="grow" style="text-transform:uppercase"><button class="btn sec" id="iAdd">Add</button></div>
+      <div id="iList" style="margin-top:8px"></div>
+      <label class="f">How</label><div class="seg" id="iM"><button data-m="hand" class="on">🤝 By hand</button><button data-m="courier">📦 Courier</button></div>
+      <div class="g2"><div><label class="f" id="iToL">Given to (name) *</label><input id="iTo"></div><div><label class="f" id="iRefL">Phone / ref</label><input id="iRef"></div></div>
+      <div class="g2"><div><label class="f">Date</label><input type="date" id="iD" value="${S.D.today}"></div><div><label class="f">Note</label><input id="iN"></div></div>
+      <button class="btn" id="iSave" style="width:100%;margin-top:14px">Issue</button>`, () => {
+      let mode = 'hand'; const IN = new Map(inn().map((x) => [x.label, x]));
+      const draw = () => { const a = [...pick].filter((l) => IN.has(l)); const w = a.reduce((s2, l) => s2 + IN.get(l).wt, 0);
+        $('#iList').innerHTML = a.length ? `<div class="chips">${a.sort((x, y) => x.localeCompare(y, undefined, { numeric: true })).map((l) => `<button class="chipb" data-rm="${esc(l)}">${esc(l)} · ${g3s(IN.get(l).wt)} ✕</button>`).join('')}</div><div class="b" style="margin-top:6px">${a.length} pcs · ${g3s(w)} g</div>` : '<div class="mut sm">No labels yet — tick them in the list or add a range here.</div>';
+        document.querySelectorAll('[data-rm]').forEach((x) => x.onclick = () => { pick.delete(x.dataset.rm); draw(); }); $('#iSave').textContent = `Issue ${a.length} pcs to Grand`; };
+      $('#iAdd').onclick = () => { const v = $('#iR').value.trim(); if (!v) return; let added = 0, miss = [];
+        let labs = []; try { labs = parseLabels(v); } catch (e) { return toast(e.message); }
+        for (const l of labs) { if (IN.has(l)) { pick.add(l); added++; } else miss.push(l); }
+        $('#iR').value = ''; if (miss.length) toast(`Not in the box: ${miss.slice(0, 6).join(', ')}${miss.length > 6 ? '…' : ''}`, 4000); draw(); };
+      $('#iR').onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); $('#iAdd').click(); } };
+      document.querySelectorAll('#iM [data-m]').forEach((x) => x.onclick = () => { mode = x.dataset.m; document.querySelectorAll('#iM [data-m]').forEach((y) => y.classList.toggle('on', y === x)); $('#iToL').textContent = mode === 'courier' ? 'Courier company *' : 'Given to (name) *'; $('#iRefL').textContent = mode === 'courier' ? 'Docket / AWB no.' : 'Phone / ref'; });
+      $('#iSave').onclick = async () => { const a = [...pick].filter((l) => IN.has(l)); if (!a.length) return toast('Add the labels to issue');
+        try { const r = await api('sx/issue', { boxId: b.id, labels: a, mode, to: $('#iTo').value, ref: $('#iRef').value, date: $('#iD').value, note: $('#iN').value }); closeModal(); S.sxSel.clear(); toast(`✓ Issued ${r.issue.qty} pcs · ${g3s(r.issue.wt)} g`); await vSx(); challan(b, r.issue); } catch (e) { fail(e); } };
+      draw(); }); };
+  const challan = (bx, i) => modal('📄 Issue challan', `${i.qty} pcs · ${g3s(i.wt)} g · ${i.mode === 'courier' ? 'Courier' : 'By hand'} — ${esc(i.to)}`, `${i.items.map((x) => `<div class="lrow"><span class="grow b">${esc(x.item)} <span class="mut sm">${esc(x.purity)}</span></span><span>${x.qty} pcs</span><span style="width:90px;text-align:right">${g3s(x.wt)} g</span></div>`).join('')}
+    <div class="lrow"><span class="grow b">Total</span><span class="b">${i.qty} pcs</span><span class="b" style="width:90px;text-align:right">${g3s(i.wt)} g</span></div><div class="mut sm" style="margin-top:6px">Labels: ${esc(i.labels.join(', '))}</div>
+    <div class="cact" style="margin-top:12px"><button class="btn" id="chP">⬇ PDF</button><button class="btn ok" id="chW">🟢 WhatsApp</button></div>`, () => {
+    const R2 = challanReport(bx, i); const nm = `grand-issue-${i.date}-${i.qty}pcs.pdf`;
+    $('#chP').onclick = async () => { try { saveBin(nm, 'application/pdf', await pdfBuild(R2, 'Not part of stock'), true); } catch (e) { fail(e); } };
+    $('#chW').onclick = async () => { try { const bytes = await pdfBuild(R2, 'Not part of stock'); closeModal(); sendToContact({ title: 'Issue challan', sub: `${i.qty} pcs · ${g3s(i.wt)} g`, text: `*${bx.name} → Grand*\n${dt(i.date)} · ${i.mode === 'courier' ? 'Courier: ' + i.to + (i.ref ? ' · ' + i.ref : '') : 'By hand: ' + i.to}\n${i.items.map((x) => `${x.item} ${x.purity}: ${x.qty} pcs · ${g3s(x.wt)} g`).join('\n')}\n*Total ${i.qty} pcs · ${g3s(i.wt)} g*`, file: { name: nm, mime: 'application/pdf', bytes } }); } catch (e) { fail(e); } }; });
+  $('#main').querySelectorAll('[data-chal]').forEach((x) => x.onclick = () => challan(b, S.sx.issues.find((i) => i.id === x.dataset.chal)));
+  $('#main').querySelectorAll('[data-le]').forEach((x) => x.onclick = () => { const l = S.sx.labels.find((y) => y.boxId === b.id && y.label === x.dataset.le);
+    modal(`✎ ${esc(l.label)}`, 'Fix a wrong entry', `<div class="g2"><div><label class="f" style="margin-top:0">Item</label><select id="leI">${items.map((v) => `<option ${v === l.item ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select></div><div><label class="f" style="margin-top:0">Purity</label><select id="leP">${purs.map((v) => `<option ${v === l.purity ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select></div></div>
+      <div class="g2"><div><label class="f">Weight g</label><input type="number" step="0.001" id="leW" value="${l.wt}"></div><div><label class="f">Supplier</label><input id="leN" value="${esc(l.party)}"></div></div>
+      <button class="btn" id="leS" style="width:100%;margin-top:14px">Save</button>${S.me.role === 'admin' ? '<button class="btn ghost" id="leD" style="width:100%;margin-top:8px;color:var(--bad)">🗑 Delete label</button>' : ''}`, () => {
+      $('#leS').onclick = async () => { try { await api('sx/label', { boxId: b.id, label: l.label, item: $('#leI').value, purity: $('#leP').value, wt: $('#leW').value, party: $('#leN').value }); closeModal(); toast('✓ Saved'); vSx(); } catch (e) { fail(e); } };
+      $('#leD') && ($('#leD').onclick = async () => { if (!confirm(`Delete ${l.label}?`)) return; try { await api('sx/label', { boxId: b.id, label: l.label, delete: true }); closeModal(); toast('Deleted'); vSx(); } catch (e) { fail(e); } }); }); });
+  bindSxCommon(b, () => labelsReport(b));
+}
 // ================= v1.35 phonebook: pick a contact's number (APK system picker / Chrome Contact Picker) and send to that WhatsApp =================
 const normPhone = (raw) => { let p = String(raw || '').replace(/[^0-9+]/g, ''); const plus = p.startsWith('+'); p = p.replace(/\D/g, ''); if (!plus && p.length === 11 && p.startsWith('0')) p = p.slice(1); if (p.length === 10) p = '91' + p; return p; };
 const canPick = () => !!(window.YamieStock?.pickContact || ('contacts' in navigator && 'ContactsManager' in window));

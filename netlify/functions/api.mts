@@ -56,6 +56,10 @@ async function getUsers(s: any) {
     await s.setJSON('cfg/users', u, { onlyIfNew: true });
     u = await s.get('cfg/users', { type: 'json' });
   }
+  if (!u.special36) {   // v1.36 bullion / Grand-Yamie boxes: admin + managers
+    for (const x of u.users) if (x.role === 'manager' || x.role === 'admin') x.perms = [...new Set([...(x.perms || []), 'special'])];
+    u.special36 = true; await s.setJSON('cfg/users', u);
+  }
   if (!u.docsShare35) {   // v1.35: sharing documents is its own permission — everyone who could see documents keeps sharing
     for (const x of u.users) if ((x.perms || []).includes('docs') || x.role === 'admin') x.perms = [...new Set([...(x.perms || []), 'docsShare'])];
     u.docsShare35 = true; await s.setJSON('cfg/users', u);
@@ -592,6 +596,76 @@ export default async (req: Request) => {
       const m = today.slice(0, 7); const d = new Date(today + 'T00:00:00Z'); d.setUTCMonth(d.getUTCMonth() - 1); const pm = d.toISOString().slice(0, 7);
       const all = [...await listJSON(s, `rv/${pm}/`), ...await listJSON(s, `rv/${m}/`)].sort((a: any, b: any) => b.at - a.at);
       return J({ list: all.slice(0, 200), month: all.filter((x: any) => x.date.startsWith(m)).length, today: all.filter((x: any) => x.date === today).length });
+    }
+    // ================= v1.36 separate group (not part of stock): bullion boxes (999 / 995) + Grand-Yamie label stock =================
+    if (path.startsWith('sx')) {
+      need('special');
+      const T = (v: any, n = 80) => String(v ?? '').trim().slice(0, n);
+      const W = (v: any) => { const n = Math.round(+v * 1000) / 1000; return Number.isFinite(n) ? n : NaN; };
+      const D = (v: any) => /^\d{4}-\d{2}-\d{2}$/.test(String(v)) ? String(v) : today;
+      const SX_DEFAULT = [
+        { id: 'gbul', kind: 'bullion', name: 'Grand Bullion Box', purities: ['999', '995'], boxWt: 0, opening: {} },
+        { id: 'ybul', kind: 'bullion', name: 'Yamie Bullion Box', purities: ['999', '995'], boxWt: 0, opening: {} },
+        { id: 'gys', kind: 'labels', name: 'Grand-Yamie Stock', note: 'Grand stock held at Yamie', boxWt: 0, opening: {} },
+      ];
+      const boxes: any[] = (await s.get('sx/boxes', { type: 'json' })) || SX_DEFAULT;
+      const box = (id: any) => boxes.find((b) => b.id === id);
+      if (path === 'sx' && method === 'GET') {
+        const [entries, labels, issues] = await Promise.all([listJSON(s, 'sxe/'), listJSON(s, 'sxl/'), listJSON(s, 'sxi/')]);
+        return J({ boxes, entries: entries.sort((a: any, b: any) => a.date.localeCompare(b.date) || a.at - b.at), labels, issues: issues.sort((a: any, b: any) => b.at - a.at), userNames: Object.fromEntries((await getUsers(s)).map((x: any) => [x.id, x.name])) });
+      }
+      if (path === 'sx/box' && method === 'POST') {   // name, box weight, opening (admin / setup)
+        const b = box(body.id); if (!b) return err('Box not found');
+        if (body.name !== undefined) b.name = T(body.name, 50) || b.name;
+        if (body.boxWt !== undefined) { const w = W(body.boxWt); if (!(w >= 0)) return err('Enter the box weight'); b.boxWt = w; b.boxWtAt = now(); b.boxWtBy = me.id; }
+        if (body.opening && typeof body.opening === 'object') { need('setup'); for (const [k, v] of Object.entries(body.opening as any)) { if (!b.purities?.includes(k)) continue; const w = W((v as any).wt); if (!(w >= 0)) return err(`Opening ${k}: enter the weight`); b.opening[k] = { wt: w, date: D((v as any).date), by: me.id, at: now() }; } }
+        await s.setJSON('sx/boxes', boxes); return J({ ok: true, box: b });
+      }
+      if (path === 'sx/entry' && method === 'POST') {   // bullion receipt / issue
+        const b = box(body.boxId); if (!b || b.kind !== 'bullion') return err('Box not found');
+        const dir = body.dir === 'out' ? 'out' : 'in'; const pur = T(body.purity, 10); if (!b.purities.includes(pur)) return err('Pick 999 or 995');
+        const wt = W(body.wt); if (!(wt > 0)) return err('Enter the weight');
+        if (dir === 'out') { const ents = await listJSON(s, `sxe/${b.id}/`); const bal = (b.opening[pur]?.wt || 0) + ents.filter((e: any) => !e.void && e.purity === pur).reduce((a: number, e: any) => a + (e.dir === 'in' ? e.wt : -e.wt), 0);
+          if (wt > Math.round(bal * 1000) / 1000 + 1e-9) return err(`Only ${bal.toFixed(3)} g of ${pur} in the box`); }
+        const at = now(); const e = { id: `${at}-${rid().slice(0, 6)}`, boxId: b.id, dir, purity: pur, wt, date: D(body.date), party: T(body.party), ref: T(body.ref, 60), mode: T(body.mode, 20), note: T(body.note, 200), by: me.id, at };
+        await s.setJSON(`sxe/${b.id}/${e.id}`, e); return J({ ok: true, entry: e });
+      }
+      if (path === 'sx/void' && method === 'POST') {   // cancel a wrong entry (admin), kept for audit
+        if (me.role !== 'admin') return err('Only admin can cancel an entry', 403);
+        const k = `sxe/${T(body.boxId, 20)}/${T(body.id, 40)}`; const e = await s.get(k, { type: 'json' }); if (!e) return err('Entry not found');
+        e.void = { by: me.id, at: now(), reason: T(body.reason, 120) || 'Cancelled' }; await s.setJSON(k, e); return J({ ok: true });
+      }
+      if (path === 'sx/receive' && method === 'POST') {   // Grand-Yamie: receipt of labelled pieces
+        const b = box(body.boxId); if (!b || b.kind !== 'labels') return err('Box not found');
+        const rows = (Array.isArray(body.rows) ? body.rows : []).slice(0, 500); if (!rows.length) return err('Nothing to receive');
+        const date = D(body.date); const at = now(); const out: any[] = []; const seen = new Set();
+        for (const r of rows) { const label = T(r.label, 30).toUpperCase(); if (!label) return err('Every row needs a label number'); if (seen.has(label)) return err(`${label} is listed twice`); seen.add(label);
+          const wt = W(r.wt); if (!(wt > 0)) return err(`${label}: enter the weight`); if (!T(r.item)) return err(`${label}: pick the item`);
+          const old = await s.get(`sxl/${b.id}/${label}`, { type: 'json' }); if (old && old.status === 'in') return err(`${label} is already in the box`);
+          out.push({ boxId: b.id, label, item: T(r.item, 40), purity: T(r.purity, 12), wt, party: T(r.party || body.party), rdate: date, rby: me.id, rat: at, rref: T(body.ref, 60), status: 'in', history: old ? [...(old.history || []), { rdate: old.rdate, idate: old.idate, to: old.to }].slice(-10) : [] }); }
+        await Promise.all(out.map((x) => s.setJSON(`sxl/${b.id}/${x.label}`, x))); return J({ ok: true, count: out.length, wt: out.reduce((a, x) => a + x.wt, 0) });
+      }
+      if (path === 'sx/label' && method === 'POST') {   // fix item / purity / weight / party of a piece in the box
+        const k = `sxl/${T(body.boxId, 20)}/${T(body.label, 30).toUpperCase()}`; const x = await s.get(k, { type: 'json' }); if (!x) return err('Label not found');
+        if (body.delete) { if (me.role !== 'admin') return err('Only admin can delete', 403); if (x.status !== 'in') return err('Issued pieces cannot be deleted'); await s.delete(k); return J({ ok: true }); }
+        if (x.status !== 'in') return err('Already issued — cannot edit');
+        if (body.item !== undefined) x.item = T(body.item, 40) || x.item; if (body.purity !== undefined) x.purity = T(body.purity, 12); if (body.party !== undefined) x.party = T(body.party);
+        if (body.wt !== undefined) { const w = W(body.wt); if (!(w > 0)) return err('Enter the weight'); x.wt = w; }
+        x.eby = me.id; x.eat = now(); await s.setJSON(k, x); return J({ ok: true, label: x });
+      }
+      if (path === 'sx/issue' && method === 'POST') {   // Grand-Yamie: issue labels back to Grand (by hand / courier)
+        const b = box(body.boxId); if (!b || b.kind !== 'labels') return err('Box not found');
+        const list = [...new Set((Array.isArray(body.labels) ? body.labels : []).map((x: any) => T(x, 30).toUpperCase()).filter(Boolean))].slice(0, 500);
+        if (!list.length) return err('Pick the labels to issue'); const mode = body.mode === 'courier' ? 'courier' : 'hand'; const to = T(body.to); if (!to) return err(mode === 'courier' ? 'Enter the courier name' : 'Enter who took it');
+        const xs = await Promise.all(list.map((l) => s.get(`sxl/${b.id}/${l}`, { type: 'json' })));
+        const bad = list.filter((l, i) => !xs[i] || xs[i].status !== 'in'); if (bad.length) return err(`Not in the box: ${bad.slice(0, 8).join(', ')}${bad.length > 8 ? '…' : ''}`);
+        const at = now(); const id = `${at}-${rid().slice(0, 6)}`; const date = D(body.date);
+        const iss = { id, boxId: b.id, date, mode, to, ref: T(body.ref, 60), note: T(body.note, 200), labels: list, qty: list.length, wt: Math.round(xs.reduce((a: number, x: any) => a + x.wt, 0) * 1000) / 1000, by: me.id, at,
+          items: Object.values(xs.reduce((m: any, x: any) => { const k = `${x.item}|${x.purity}`; (m[k] ||= { item: x.item, purity: x.purity, qty: 0, wt: 0 }); m[k].qty++; m[k].wt = Math.round((m[k].wt + x.wt) * 1000) / 1000; return m; }, {})) };
+        await Promise.all(xs.map((x: any) => s.setJSON(`sxl/${b.id}/${x.label}`, { ...x, status: 'out', idate: date, iby: me.id, iat: at, issueId: id, mode, to, iref: iss.ref })));
+        await s.setJSON(`sxi/${b.id}/${id}`, iss); return J({ ok: true, issue: iss });
+      }
+      return err('Not found', 404);
     }
     if (path === 'rpsent' && method === 'POST') {   // v1.32: a report was shared (WhatsApp / email / file) — log it; clears the daily report reminder
       need('share'); const t = (v: any, n = 80) => String(v ?? '').slice(0, n); const at = now();
