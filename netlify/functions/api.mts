@@ -748,7 +748,7 @@ export default async (req: Request) => {
     }
     // ----- restore from backup (admin only) -----
     // Only these record types can be written by a restore; meta/secret and meta/* are never touched.
-    const RESTORABLE = /^(cfg\/(locs|users|settings)|day\/\d{4}-\d{2}-\d{2}|(mv|ct|ss|al)\/\d{4}-\d{2}-\d{2}\/[\w@#.\/-]+|erp\/\d{4}-\d{2}-\d{2}|seen\/[\w-]+|cash\/\d{4}-\d{2}-\d{2}\/[\w-]+|doc\/[\w-]+)$/;
+    const RESTORABLE = /^(cfg\/(locs|users|settings)|day\/\d{4}-\d{2}-\d{2}|(mv|ct|ss|al)\/\d{4}-\d{2}-\d{2}\/[\w@#.\/-]+|erp\/\d{4}-\d{2}-\d{2}|seen\/[\w-]+|cash\/\d{4}-\d{2}-\d{2}\/[\w-]+|doc\/[\w-]+|sx\/boxes|sx[eli]\/[\w-]+\/[\w.@#-]+|rv\/\d{4}-\d{2}\/[\w-]+|rps\/\d{4}-\d{2}-\d{2}\/[\w-]+)$/;
     if (path.startsWith('restore/') && me.role !== 'admin') return err('Only admin can restore the database', 403);
     if (path === 'restore/put' && method === 'POST') {
       const items = body.items || {}; let n = 0; const skipped: string[] = [];
