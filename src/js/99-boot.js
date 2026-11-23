@@ -26,6 +26,9 @@ function takeNewQuery(q) {
 window.onNativeNew = function (q) { takeNewQuery(q); return true; };
 if (/^\/new/.test(location.pathname)) { takeNewQuery(location.search); try { history.replaceState(null, '', '/'); } catch (e) { /* ignore */ } }
 (function boot() {
+  try { const appV = NATIVE && NATIVE.version ? NATIVE.version() : ''; $('lockVer').textContent = appV ? 'App v' + appV : 'Web v' + APP_VERSION; } catch (e) { /* ignore */ }
+  showVersion();
+  api('ping').then((d) => { serverVer = d.ver || '1.7'; showVersion(); }).catch(() => {});
   if (!token) return showLock();
   api('changes?since=' + (lastPull || 0) + '&cfgv=' + encodeURIComponent(cfgv)).then(async (d) => {
     me = d.me;

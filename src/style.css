@@ -161,3 +161,6 @@ details.sec .in{padding:0 12px 12px}
 .pcImg img{width:100%;height:100%;object-fit:cover}
 .designBox{background:var(--blush);border-radius:14px;padding:12px 12px 4px;margin-bottom:14px}
 .mkDisc{background:var(--blush);border-radius:12px;padding:10px 12px 2px;margin:4px 0 12px}.mkDisc>b{display:block;font-size:13px;margin-bottom:2px}
+.verTag{display:block;font-style:normal;font-size:10.5px;color:var(--muted);font-weight:600;letter-spacing:.02em;margin-top:1px}
+.verWarn{background:#fdecc8;color:#7a4b00;font-size:12.5px;padding:8px 16px;border-bottom:1px solid #f0d49a}
+.lockVer{color:rgba(255,255,255,.75);font-size:12px;font-weight:600;margin:-8px 0 14px;text-align:center}

@@ -1,7 +1,7 @@
 // ======================================================================
 // Yamie Order Desk — core: helpers, server calls, sync, login
 // ======================================================================
-const APP_VERSION = '1.8';
+const APP_VERSION = '1.9';
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s != null ? s : '').replace(/[&<>"']/g, (x) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[x]);
 const num = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(/[,₹\s]/g, '')); return isFinite(n) ? n : 0; };
@@ -90,9 +90,17 @@ function applyCfg(d) {
 function mergeOrder(o) { const i = orders.findIndex((x) => x.id === o.id); if (i > -1) orders[i] = o; else orders.unshift(o); }
 const sortOrders = () => orders.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 
+let serverVer = '';
+/** Version on the top bar (app or web) and a warning when the server is older than this app. */
+function showVersion() {
+  const appV = NATIVE && NATIVE.version ? (() => { try { return NATIVE.version(); } catch (e) { return ''; } })() : '';
+  const el = $('verTag'); if (el) el.textContent = (appV ? 'App v' + appV : 'Web v' + APP_VERSION) + (serverVer && serverVer !== APP_VERSION ? ' · server v' + serverVer : '');
+  const w = $('verWarn'); if (w) w.hidden = !(serverVer && parseFloat(serverVer) < parseFloat(APP_VERSION));
+}
 async function pullAll() {
   const d = await api('state');
   orders = d.orders; applyCfg(d); lastPull = d.now; resetAt = d.resetAt || '';
+  serverVer = d.ver || '1.7'; showVersion();
   sortOrders(); cacheLocal(); setNet(true);
 }
 let pulling = false;
@@ -244,3 +252,28 @@ setInterval(() => { if (me && S.autoLock > 0 && Date.now() - lastAct > S.autoLoc
 setInterval(pullChanges, 15000);
 window.addEventListener('focus', pullChanges);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) pullChanges(); });
+
+// ---------------- phone contacts ----------------
+/** Can this device pick from the phone's contacts? (APK bridge, or Chrome's Contact Picker on Android) */
+const canPickContact = () => !!((NATIVE && NATIVE.pickContact) || (navigator.contacts && navigator.contacts.select));
+const cleanPhone = (p) => { const d = String(p || '').replace(/[^\d+]/g, ''); return d.replace(/^\+?91(?=\d{10}$)/, '').replace(/^0(?=\d{10}$)/, ''); };
+/** Opens the phone's contacts; calls done({name, phone}) with the chosen person. */
+async function pickContact(done) {
+  if (NATIVE && NATIVE.pickContact) {
+    window.onContactPicked = (r) => { window.onContactPicked = null; if (r && r.ok) done({ name: r.name || '', phone: cleanPhone(r.phone) }); else if (r && r.error) toast(r.error); };
+    NATIVE.pickContact(); return;
+  }
+  if (navigator.contacts && navigator.contacts.select) {
+    try { const [c] = await navigator.contacts.select(['name', 'tel'], { multiple: false }); if (c) done({ name: (c.name || [])[0] || '', phone: cleanPhone((c.tel || [])[0] || '') }); } catch (e) { /* cancelled */ }
+    return;
+  }
+  toast('Picking contacts works in the Order Desk app or Chrome on Android');
+}
+/** Adds a person to the phone's contacts (APK), or downloads a contact card (.vcf) elsewhere. */
+function saveToContacts(name, phone, note) {
+  const p = cleanPhone(phone), full = /^\d{10}$/.test(p) ? '+91' + p : phone;
+  if (NATIVE && NATIVE.saveContact) return NATIVE.saveContact(name, full, note || '');
+  const vcf = `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nTEL;TYPE=CELL:${full}\n${note ? 'NOTE:' + note + '\n' : ''}END:VCARD\n`;
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([vcf], { type: 'text/vcard' })); a.download = (name || 'contact').replace(/[^\w ]+/g, '') + '.vcf'; a.click();
+  toast('Contact card downloaded — open it to add to contacts');
+}

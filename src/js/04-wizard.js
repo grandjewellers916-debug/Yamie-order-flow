@@ -71,6 +71,7 @@ function wizCustomer() {
   const c = wiz.o.cust;
   $('wizBody').innerHTML = `
     <div class="card"><h3>Customer</h3>
+      ${canPickContact() ? `<button class="btn soft block" style="margin-bottom:12px" onclick="pickContact((c)=>{wiz.o.cust.name=c.name||wiz.o.cust.name;wiz.o.cust.phone=c.phone||wiz.o.cust.phone;keepDraft();wizGo(0)})">📇 Pick from phone contacts</button>` : ''}
       <div class="field"><label>Full name <i class="req">*</i></label><input id="cName" value="${esc(c.name)}" oninput="wiz.o.cust.name=this.value;custSuggest()" autocomplete="off"></div>
       <div class="field"><label>WhatsApp number <i class="req">*</i></label><input id="cPhone" inputmode="tel" value="${esc(c.phone)}" oninput="wiz.o.cust.phone=this.value;custSuggest()" placeholder="10-digit mobile"></div>
       <div id="custSug"></div>

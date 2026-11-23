@@ -15,6 +15,7 @@ import { backupOp } from '../lib/backup.mts';
 
 export const config = { path: '/api/*' };
 
+const SERVER_VERSION = '1.9';
 const PERM_KEYS = ['enquiry', 'estimate', 'approve', 'advance', 'verify', 'discount', 'confirm', 'vendor', 'production', 'receive', 'qc',
   'finalprice', 'approvefinal', 'ready', 'close', 'cancel', 'rates', 'vendors', 'vendorcontact', 'review', 'viewcost', 'reports', 'delete', 'settings'];
 const DEF_ROLE_PERMS: Record<string, string[]> = {
@@ -563,7 +564,7 @@ export default async (req: Request) => {
   if (method === 'POST') body = await req.json().catch(() => ({}));
 
   try {
-    if (path === 'ping') return J({ ok: true, now: now() });
+    if (path === 'ping') return J({ ok: true, now: now(), ver: SERVER_VERSION });
     if (path === 'login-list') {
       const users = await getUsers(s);
       const st = await getSettings(s);
@@ -633,7 +634,7 @@ export default async (req: Request) => {
     if (path === 'state' || path === 'changes') { try { await applyKiosk(s, 'Kiosk (auto)', true); } catch (e) { /* keep last rates */ } }
     if (path === 'state') {
       const [orders, cfg, resetAt] = await Promise.all([allOrders(s), cfgOut(), s.get('meta/resetAt')]);
-      return J({ now: now(), orders: orders.map(out), ...cfg, resetAt: resetAt || '', me: pubUser(me) });
+      return J({ now: now(), orders: orders.map(out), ...cfg, resetAt: resetAt || '', me: pubUser(me), ver: SERVER_VERSION });
     }
     if (path === 'changes') {
       const since = +(url.searchParams.get('since') || 0);

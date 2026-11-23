@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.ContactsContract
 import android.print.PrintAttributes
 import android.print.PrintManager
 import android.util.Base64
@@ -41,6 +42,21 @@ class MainActivity : ComponentActivity() {
         val cb = fileCallback
         fileCallback = null
         cb?.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(res.resultCode, res.data))
+    }
+
+    // Phone contacts: pick one number (no contacts permission needed for a picked entry)
+    private val pickContact = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
+        val uri = res.data?.data
+        var name = ""; var phone = ""
+        if (res.resultCode == RESULT_OK && uri != null) {
+            try {
+                contentResolver.query(uri, arrayOf(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NUMBER), null, null, null)?.use { c ->
+                    if (c.moveToFirst()) { name = c.getString(0) ?: ""; phone = c.getString(1) ?: "" }
+                }
+            } catch (e: Exception) { }
+        }
+        val o = JSONObject().put("name", name).put("phone", phone).put("ok", phone.isNotEmpty())
+        web.evaluateJavascript("window.onContactPicked&&window.onContactPicked(${o})", null)
     }
 
     // Camera for <input type="file" capture>
@@ -239,6 +255,31 @@ class MainActivity : ComponentActivity() {
                         try { startActivity(Intent(intent).setPackage(pkg)); true } catch (e: android.content.ActivityNotFoundException) { false }
                     }
                     if (!sent) startActivity(Intent.createChooser(intent, "Send picture card"))
+                } catch (e: Exception) { }
+            }
+        }
+
+        @JavascriptInterface
+        fun pickContact(): Boolean {
+            runOnUiThread {
+                try { pickContact.launch(Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI)) }
+                catch (e: Exception) { web.evaluateJavascript("window.onContactPicked&&window.onContactPicked({ok:false,error:'No contacts app'})", null) }
+            }
+            return true
+        }
+
+        @JavascriptInterface
+        fun saveContact(name: String, phone: String, note: String) {
+            runOnUiThread {
+                try {
+                    startActivity(Intent(ContactsContract.Intents.Insert.ACTION).apply {
+                        type = ContactsContract.RawContacts.CONTENT_TYPE
+                        putExtra(ContactsContract.Intents.Insert.NAME, name)
+                        putExtra(ContactsContract.Intents.Insert.PHONE, phone)
+                        putExtra(ContactsContract.Intents.Insert.PHONE_TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE)
+                        if (note.isNotEmpty()) putExtra(ContactsContract.Intents.Insert.NOTES, note)
+                        putExtra("finishActivityOnSaveCompleted", true)
+                    })
                 } catch (e: Exception) { }
             }
         }

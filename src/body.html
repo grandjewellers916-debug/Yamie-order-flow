@@ -1,17 +1,19 @@
 <div class="lock" id="lock">
   <img class="appIcon" src="%ICON%" alt="Yamie Order Desk">
+  <div class="lockVer" id="lockVer"></div>
   <div class="lockBox" id="lockBox"></div>
 </div>
 
 <div class="app" id="app" hidden>
   <header class="top">
-    <div class="lg"><img data-logo="markM" alt=""><div><span>Order Desk</span><b>YAMIE FINE JEWELLERY</b></div></div>
+    <div class="lg"><img data-logo="markM" alt=""><div><span>Order Desk</span><b>YAMIE FINE JEWELLERY</b><i id="verTag" class="verTag"></i></div></div>
     <div class="topR">
       <button class="iconBtn syncDot ok" id="syncBtn" onclick="pullNow()" title="Sync">✓</button>
       <button class="iconBtn" id="bellBtn" onclick="go('vHome')" title="Tasks">🔔<em id="bellN" hidden></em></button>
       <button class="iconBtn" id="meBtn" onclick="go('vMore')"></button>
     </div>
   </header>
+  <div id="verWarn" class="verWarn" hidden>The server is on an older version than this app. Some steps (final price approval) may fail until the website is updated.</div>
 
   <nav class="nav" id="nav">
     <button data-v="vHome" onclick="go('vHome')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg>Home</button>

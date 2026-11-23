@@ -44,7 +44,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: order-desk-v${{ github.run_number }}
-          name: Yamie Order Desk v1.8.${{ github.run_number }}
+          name: Yamie Order Desk v1.9.${{ github.run_number }}
           target_commitish: ${{ github.sha }}
           files: Yamie-Order-Desk-v*.apk
-          body: "Yamie Order Desk V1.8: new estimate, work order and order-ready cards; payment verification can be switched off; show or hide making type and amount; making after discount shown as savings; HUID charges; delivery charges by provider at the final price; the order-ready card carries the final price (separate final price card and customer OK step removed). Installs over the old version."
+          body: "Yamie Order Desk V1.9: version shown on the top bar and login screen (app, web and server); pick customers and vendors from phone contacts; save customers and vendors to phone contacts. Includes everything in V1.8. Installs over the old version."

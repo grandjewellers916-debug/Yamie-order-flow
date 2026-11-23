@@ -78,7 +78,7 @@ function renderDetail() {
       ${o.vendor && o.vendor.etd ? `<div class="kv"><span>Vendor ETD</span><span>${dt(o.vendor.etd)} · ${esc(o.vendor.name)}</span></div>` : ''}
       ${o.fromPc && !o.fromPc.seen ? `<div class="okBox">Sent from Price Check by ${esc(o.fromPc.by)} · ${dtt(o.fromPc.at)}${o.cust.notes ? ' · ' + esc(o.cust.notes) : ''}${can('enquiry') ? ` <button class="btn small" style="margin-left:8px" onclick="step(cur.id,(x)=>{x.fromPc.seen=true},'Taken up from Price Check','Taken up')">Take it up</button>` : ''}</div>` : ''}
       ${['hold', 'lost'].includes(o.status) && o.outcome ? `<div class="warnBox">${esc(stLabel(o.status))}: ${esc(o.outcome.reason)}</div>` : ''}
-      <div class="actions"><button class="btn small soft" onclick="waChat('${o.id}')">WhatsApp</button><button class="btn small soft" onclick="callCust('${o.id}')">Call</button>
+      <div class="actions"><button class="btn small soft" onclick="waChat('${o.id}')">WhatsApp</button><button class="btn small soft" onclick="callCust('${o.id}')">Call</button><button class="btn small soft" onclick="saveToContacts(getO().cust.name, getO().cust.phone, 'Yamie customer · ' + refOf(getO()))">Save to contacts</button>
         ${can('delete') && !o.ono && me.role !== 'admin' ? `<button class="btn small danger" onclick="delOrder('${o.id}')">Delete</button>` : ''}
         ${!['closed', 'lost'].includes(o.status) ? `<button class="btn small soft" onclick="shReview()">Ask for review${openReviews(o).length ? ' (' + openReviews(o).length + ' open)' : ''}</button>` : ''}
         ${me.role === 'admin' ? `<button class="btn small secondary" onclick="shAdmin()">Admin: edit / reset / delete</button>` : ''}</div>

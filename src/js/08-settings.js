@@ -62,7 +62,7 @@ function subVendors() {
 function vdList() {
   const edit = can('vendors');
   $('vdList').innerHTML = _vd.map((v, i) => `<div class="stone"><div class="two"><div class="field"><label>Name</label><input ${edit ? '' : 'disabled'} value="${esc(v.name)}" oninput="_vd[${i}].name=this.value"></div>
-    <div class="field"><label>WhatsApp / phone</label><input ${edit ? '' : 'disabled'} value="${esc(v.phone)}" oninput="_vd[${i}].phone=this.value"></div></div>
+    <div class="field"><label>WhatsApp / phone</label><div class="wtRow" style="margin:0"><input ${edit ? '' : 'disabled'} value="${esc(v.phone)}" oninput="_vd[${i}].phone=this.value">${edit && canPickContact() ? `<button class="btn small soft" title="Pick from phone contacts" onclick="pickContact((c)=>{_vd[${i}].phone=c.phone;if(!_vd[${i}].name)_vd[${i}].name=c.name;vdList()})">📇</button>` : ''}${v.phone ? `<button class="btn small soft" title="Save to phone contacts" onclick="saveToContacts(_vd[${i}].name,_vd[${i}].phone,'Yamie vendor')">＋</button>` : ''}</div></div></div>
     <div class="two"><div class="field"><label>Usual lead time (working days)</label><input ${edit ? '' : 'disabled'} inputmode="numeric" value="${v.lead}" oninput="_vd[${i}].lead=parseInt(this.value)||15"></div>
     <div class="field"><label>Speciality</label><input ${edit ? '' : 'disabled'} value="${esc(v.spec || '')}" oninput="_vd[${i}].spec=this.value"></div></div>
     <label class="check"><input type="checkbox" ${edit ? '' : 'disabled'} ${v.active !== false ? 'checked' : ''} onchange="_vd[${i}].active=this.checked"><span>Active</span></label></div>`).join('') || '<p class="hint">No vendors yet.</p>';

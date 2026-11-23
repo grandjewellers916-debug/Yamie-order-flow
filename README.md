@@ -90,3 +90,7 @@ The page talks to `localStorage.yod_api` when set (tests set it to the local ser
 - Final price → manager approves → "Order ready: send card with final price". Customer-OK step and final price card removed (server no longer needs finals[].cust).
 - Phones on cards: shopPhone (estimate), shopPhone2 + shopLandline (ready), woPhone (work order).
 
+## V1.9 (23-11-2026)
+- Version on the top bar (#verTag: "App v1.9.N" in the APK from YamieNative.version(), "Web v1.9" on the web) and on the lock screen; server version from /api/ping and /api/state (`ver`, SERVER_VERSION). #verWarn shows when the server is older than the app.
+- Phone contacts: YamieNative.pickContact() (ACTION_PICK on Phone, result via window.onContactPicked) and saveContact(name, phone, note) (contacts Insert screen). Web: Contact Picker API on Android Chrome; saving downloads a .vcf. Used in New enquiry (Pick from phone contacts), order header (Save to contacts) and Vendors (📇 pick, ＋ save).
+
