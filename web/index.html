@@ -389,7 +389,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.46';
+const VERSION = '1.47';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -1595,7 +1595,8 @@ function rpBuild(P) {
         rows.push({ ...line(`${purs.length > 1 ? (op ? '▾ ' : '▸ ') : ''}${nm(it)}`, purs.length > 1 ? 'All' : purs[0], rs, op ? 'rgrp' : ''), ...(purs.length > 1 ? { ik } : {}) });
         if (op) purs.forEach((p) => rows.push(line('   ' + nm(it), p, rs.filter((r) => (r.purity || 'Not set') === p), 'sub'))); } }
     rows.push(line('Total', '', live, 'tot'));
-    return T('Item count by ' + (P.pcol === 'place' ? 'sub location' : 'main location') + (js && groups.length > 1 && groups.every((g) => (P.jcol || []).includes(g)) ? ' — summary' : ''), [{ t: 'Item' }, { t: 'Purity' }, ...cv.map((c) => ({ t: c, num: true })), { t: 'Total', num: true }], rows);
+    const pcols = [{ t: 'Item' }, { t: 'Purity' }, ...cv.map((c) => ({ t: c, num: true })), { t: 'Total', num: true }];
+    return { ...T('Item count by ' + (P.pcol === 'place' ? 'sub location' : 'main location') + (js && groups.length > 1 && groups.every((g) => (P.jcol || []).includes(g)) ? ' — summary' : ''), pcols, rows), head: P.pcol === 'place' ? groupedHead(pcols, 2) : null };
   }
   if (['pur', 'item', 'loc'].includes(P.type)) { const t = repTables(L)[P.type]; return T(RP_TYPES.find((x) => x[0] === P.type)[1] + ' report', t.cols.map((c, i) => ({ t: c, num: i > 0 && t.rows.some((r) => typeof r.cells[i] === 'number') })), t.rows.map((r) => ({ cls: r.cls, cells: r.cells.map((v) => typeof v === 'string' ? v.replace(/^\s+/, (m) => r.cls === 'sub' ? '   ' : '') : v) }))); }
   if (P.type === 'jt') { const g = (k) => L.filter((r) => r.jt === k); const nums = (rs) => { const x = rs.reduce((a, r) => (a.op += r.op, a.in += r.in, a.out += r.out, a.exp += r.exp, a.cnt += r.cnt, a.ce += r.chkExp, a), { op: 0, in: 0, out: 0, exp: 0, cnt: 0, ce: 0 }); return [x.op, x.in, x.out, x.exp, x.cnt, x.cnt - x.ce]; };
@@ -1612,6 +1613,27 @@ function rpBuild(P) {
     return T('Variance report', [{ t: 'Location' }, { t: 'Main › sub' }, { t: 'Section' }, { t: 'Expected', num: true }, { t: 'Counted', num: true }, { t: 'Variance', num: true }, { t: 'Status' }, { t: 'Difference' }, { t: 'Checked by' }], rows); }
   const R = P.saved !== '' && repsGet()[+P.saved] ? repsGet()[+P.saved] : P.cr; const t = customTable(L, R);
   return T(R.name || `${RDIM[R.r]}${R.c ? ' × ' + RDIM[R.c] : ''} · ${RMEAS[R.m]}`, t.cols.map((c, i) => ({ t: c, num: i > 0 })), t.rows);
+}
+// v1.47 two-row PDF header: Main location over its sub locations (like the Consolidated table)
+function groupedHead(cols, lead) {
+  const G = []; cols.forEach((c, i) => { if (i < lead) return; const [m, sb] = String(c.t).split(' › '); const last = G[G.length - 1]; if (sb && last && last.m === m && last.sb) last.subs.push(sb); else G.push({ m, sb: !!sb, subs: sb ? [sb] : [] }); });
+  if (!G.some((g) => g.sb)) return null;
+  const r1 = [...cols.slice(0, lead).map((c) => ({ content: c.t, rowSpan: 2 })), ...G.map((g) => g.sb ? { content: g.m.toUpperCase(), colSpan: g.subs.length, styles: { halign: 'center' } } : { content: g.m, rowSpan: 2, styles: { halign: 'right' } })];
+  const r2 = G.filter((g) => g.sb).flatMap((g) => g.subs.map((x) => ({ content: x, styles: { halign: 'right' } })));
+  return [r1, r2];
+}
+// v1.47 print the Consolidated item-count table exactly as shown (sections / items open or closed)
+async function printPlaceTable() {
+  const tb = $('#main .ptbl'); if (!tb) return; const trs = [...tb.querySelectorAll('tr')].filter((r) => r.querySelector('td'));
+  const hdr = [...tb.querySelectorAll('tr')].filter((r) => r.querySelector('th'));
+  const leafs = []; if (hdr.length === 2) { const top = [...hdr[0].children], sub = [...hdr[1].children]; let k = 0; top.forEach((th) => { const cs = +th.colSpan || 1, rs = +th.rowSpan || 1; if (rs === 2) leafs.push(th.innerText.trim()); else for (let i = 0; i < cs; i++) leafs.push(`${th.innerText.trim()} › ${sub[k++].innerText.trim()}`); }); }
+  else [...hdr[0].children].forEach((th) => leafs.push(th.innerText.trim()));
+  const cols = leafs.map((t, i) => ({ t: i === 0 ? 'Item' : i === 1 ? 'Purity' : t.replace(/^(.)(.*)$/, (m, a, b) => a + b.toLowerCase()).replace(/ › (.)/, (m, a) => ' › ' + a.toUpperCase()), num: i > 1 }));
+  const num = (t) => { const x = String(t).replace(/,/g, '').trim(); return /^\d+$/.test(x) ? +x : ''; };
+  const rows = trs.map((tr) => { const td = [...tr.children]; const cls = tr.classList.contains('tot') ? 'tot' : tr.classList.contains('jhead') ? 'rgrp' : tr.classList.contains('sub') ? 'sub' : tr.classList.contains('mixrow') ? '' : '';
+    const lab = td[0].innerText.replace(/[▾▸]/g, '').replace(/split ›/, '').replace(/\s+/g, ' ').trim(); return { cls, cells: [lab, td[1]?.innerText.trim() || '', ...td.slice(2).map((x) => num(x.innerText))] }; });
+  const R = { title: `Item count by ${S.pcol === 'place' ? 'location' : 'main location'}`, cols, rows, head: groupedHead(cols, 2) };
+  try { toast('Making PDF…'); saveBin(`yamie-item-count-${S.D.date}.pdf`, 'application/pdf', await pdfBuild(R, '', { f: { jt: [...S.jfs], i: [...S.cf.i], p: [...S.cf.p], a: [...S.cf.a], pl: [...S.cf.pl] }, sec: 'all' }), true); } catch (e) { fail(e); }
 }
 const rpFmt = (v, c) => typeof v === 'number' ? (c.g3 ? (v ? g3(v) : '—') : v ? fmt(v) : '—') : esc(String(v ?? ''));
 function vReports() {
@@ -1779,11 +1801,11 @@ async function pdfBuild(R, filt, P) {
     doc.setTextColor(90, 60, 0); doc.setFontSize(7); HL.forEach(([k], i) => doc.text(clean(k), 13 + cw * i, 28.5));
     doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(30); HL.forEach(([, v], i) => doc.text(doc.splitTextToSize(clean(v), cw - 6)[0] || '', 13 + cw * i, 33.5)); doc.setFont('helvetica', 'normal'); y0 = 40; }
   const body = R.rows.map((r) => r.cells.map((v, i) => { const c = R.cols[i]; return typeof v === 'number' ? (c.g3 ? (v ? g3(v) : '-') : v ? fmt(v) : '-') : clean(i === 0 && r.cls === 'sub' ? '   ' + String(v).trim() : v); }));
-  doc.autoTable({ startY: y0, head: [R.cols.map((c) => clean(c.t))], body, theme: 'grid', margin: { left: 10, right: 10, bottom: 14 },
+  doc.autoTable({ startY: y0, head: R.head ? R.head.map((row) => row.map((h) => ({ ...h, content: clean(h.content) }))) : [R.cols.map((c) => clean(c.t))], body, theme: 'grid', margin: { left: 10, right: 10, bottom: 14 },
     styles: { font: 'helvetica', fontSize: R.cols.length > 10 ? 7 : 8, cellPadding: 1.6, lineColor: [229, 220, 207], lineWidth: 0.15, textColor: 30, overflow: 'linebreak' },
     headStyles: { fillColor: [142, 27, 30], textColor: 255, fontStyle: 'bold' },
     columnStyles: Object.fromEntries(R.cols.map((c, i) => [i, c.num ? { halign: 'right' } : {}])),
-    didParseCell: (d) => { if (d.section === 'head' && R.cols[d.column.index]?.num) d.cell.styles.halign = 'right'; if (d.section !== 'body') return; const r = R.rows[d.row.index]; if (r?.cls === 'tot' || r?.cls === 'rgrp') { d.cell.styles.fontStyle = 'bold'; d.cell.styles.fillColor = r.cls === 'tot' ? [242, 226, 222] : [247, 239, 227]; } },
+    didParseCell: (d) => { if (d.section === 'head' && R.cols[d.column.index]?.num && !d.cell.raw?.styles?.halign) d.cell.styles.halign = 'right'; if (d.section !== 'body') return; const r = R.rows[d.row.index]; if (r?.cls === 'tot' || r?.cls === 'rgrp') { d.cell.styles.fontStyle = 'bold'; d.cell.styles.fillColor = r.cls === 'tot' ? [242, 226, 222] : [247, 239, 227]; } },
     didDrawPage: () => { const n = doc.internal.getNumberOfPages(); const h = doc.internal.pageSize.getHeight(), w = doc.internal.pageSize.getWidth(); doc.setFontSize(7.5); doc.setTextColor(140); doc.text(clean(`Yamie Core v${VERSION} · printed ${new Date().toLocaleString('en-IN')} · ${S.me.name}`), 10, h - 6); doc.text(`Page ${n}`, w - 10, h - 6, { align: 'right' }); } });
   if (R.sign) { let y = (doc.lastAutoTable?.finalY || y0) + 22; const h = doc.internal.pageSize.getHeight(), w = doc.internal.pageSize.getWidth(); if (y > h - 30) { doc.addPage(); y = 30; }
     doc.setDrawColor(120); doc.setFontSize(9); doc.setTextColor(60); R.sign.forEach((t, i) => { const x = 14 + i * ((w - 28) / R.sign.length); doc.line(x, y, x + 60, y); doc.text(clean(t), x, y + 5); }); }
@@ -1877,7 +1899,7 @@ function vTotal() {
   const pHead = two ? `<tr><th rowspan="2" style="text-align:left">Item</th><th rowspan="2" style="text-align:left">Purity</th>${grpC.map((g) => g.subs.length === 1 && !g.subs[0] ? `<th rowspan="2">${esc(g.m)}</th>` : `<th colspan="${g.subs.length}" class="mlh">${esc(g.m)}</th>`).join('')}<th rowspan="2">Total</th></tr><tr>${grpC.flatMap((g) => g.subs.length === 1 && !g.subs[0] ? [] : g.subs.map((x) => `<th>${esc(x)}</th>`)).join('')}</tr>`
     : `<tr><th style="text-align:left">Item</th><th style="text-align:left">Purity</th>${colV.map((c) => `<th>${esc(c)}</th>`).join('')}<th>Total</th></tr>`;
   const placeTbl = `<div class="row wrap noprint" style="gap:8px;margin-bottom:8px"><div class="seg" style="max-width:360px">${[['place', 'By sub location'], ['area', 'By main location']].map(([k, t]) => `<button data-pcol="${k}" class="${S.pcol === k ? 'on' : ''}">${t}</button>`).join('')}</div>
-    ${jsep ? '<button class="btn sm ghost" data-jall="1">Expand all</button><button class="btn sm ghost" data-jall="0">Collapse all</button>' : ''}
+    ${jsep ? '<button class="btn sm ghost" data-jall="1">Expand all</button><button class="btn sm ghost" data-jall="0">Collapse all</button>' : ''}${can('share') ? '<button class="btn sm sec" id="ptPrint">🖨 Print / PDF</button>' : ''}
     <div class="seg" style="max-width:360px">${[[1, 'Gold / Diamond separate'], [0, 'All together']].map(([k, t]) => `<button data-jsep="${k}" class="${jsep === !!k ? 'on' : ''}">${t}</button>`).join('')}</div></div>
     <div class="tw"><table class="ptbl">${pHead}
     ${(jsep ? LINE_JTYPES.filter((j) => PX[j + '§*']) : ['']).map((g) => { const G = g + '§'; const nm = (t) => g && g !== 'Plain Gold Jewellery' ? `${JT_SHORT[g]} ${t}` : t;
@@ -1928,6 +1950,7 @@ function vTotal() {
   $('#main').querySelectorAll('[data-pcol]').forEach((b) => b.onclick = () => { S.pcol = b.dataset.pcol; vTotal(); });
   $('#main').querySelectorAll('[data-jsep]').forEach((b) => b.onclick = () => { S.jsep = b.dataset.jsep === '1'; vTotal(); });
   $('#main').querySelectorAll('[data-jcol]').forEach((r) => r.onclick = () => { const g = r.dataset.jcol; const a = jcolGet(); jcolSet(a.includes(g) ? a.filter((x) => x !== g) : [...a, g]); vTotal(); });
+  $('#ptPrint') && ($('#ptPrint').onclick = printPlaceTable);
   $('#main').querySelectorAll('[data-jall]').forEach((b) => b.onclick = () => { jcolSet(b.dataset.jall === '1' ? [] : [...LINE_JTYPES]); vTotal(); });
   $('#main').querySelectorAll('[data-pexp]').forEach((r) => r.onclick = () => { const t = r.dataset.pexp; S.pexp[t] = !S.pexp[t]; vTotal(); });
   $('#main').querySelectorAll('[data-split]').forEach((b) => b.onclick = (e) => { e.stopPropagation(); pickMixed(); });
