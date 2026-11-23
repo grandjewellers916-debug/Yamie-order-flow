@@ -44,7 +44,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: order-desk-v${{ github.run_number }}
-          name: Yamie Order Desk v2.5.${{ github.run_number }}
+          name: Yamie Order Desk v2.6.${{ github.run_number }}
           target_commitish: ${{ github.sha }}
           files: Yamie-Order-Desk-v*.apk
-          body: "Yamie Order Desk V2.5: international phone numbers (for example +972...) can be typed or picked from contacts; Grand module permissions split by step - order creation, sending, receipt, QC, labelling, marking, packing with printed packing list, mark as sent to Grand with carrier name and receiver signature. Includes everything in V2.4. Installs over the old version."
+          body: "Yamie Order Desk V2.6: Grand orders - edit and delete by admin only (admin can edit after goods are received); bullion issue with alloy and total weight, received weight, optional internal document numbers for issue and receipt, current balance and mode of payment (RTGS, Bullion invoice, Balance pending) - new permission 09. Includes everything in V2.5. Installs over the old version."

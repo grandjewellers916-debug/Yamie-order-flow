@@ -90,6 +90,15 @@ The page talks to `localStorage.yod_api` when set (tests set it to the local ser
 - Final price → manager approves → "Order ready: send card with final price". Customer-OK step and final price card removed (server no longer needs finals[].cust).
 - Phones on cards: shopPhone (estimate), shopPhone2 + shopLandline (ready), woPhone (work order).
 
+## V2.6 (23-11-2026)
+- Grand orders: Edit and Delete are admin only. An admin can edit an order even after goods came in; lines already received keep their received qty / weight and cannot be removed.
+- Bullion & payment card on each Grand order (permission "09. Bullion issue, receipt doc. no., balance & payment"):
+  - Issue bullion: date, bullion weight, purity, alloy weight, total (auto = bullion + alloy, can be changed), optional internal doc. no., issued by; admin can remove an issue.
+  - Receipt doc. no.: optional field when receiving from the vendor, editable later per receipt.
+  - Received weight: filled from the receipts (QC-failed items left out), can be overwritten.
+  - Totals: issued vs received; current balance (g and / or ₹); mode of payment — RTGS / Bullion invoice / Balance pending; reference (UTR / invoice no.); note.
+  - All of it prints on the order report.
+
 ## V2.5 (23-11-2026)
 - Phone numbers: international numbers (+972…, +971…, 00…) can be typed or picked from the phone's contacts; Indian numbers still save as +91 and 10 digits.
 - Grand module permissions (Settings → Permissions, grouped under "Grand module"): open/view; 01 order creation; 02 order sending; 03 order receipt; 04 QC; 05 labelling; 06 laser marking; 07 packing with printed packing list; 08 mark as sent to Grand; edit Grand lists / re-open. Each step's button shows only for roles that have it, and the server checks it too.

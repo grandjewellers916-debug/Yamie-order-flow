@@ -96,7 +96,7 @@ function gLineHtml(l, i, c) {
   const sizes = (it.sizes || []), custom = l.size && !sizes.includes(l.size), sub = gIsSub(i);
   const wq = `<div class="two"><div class="field"><label>f. Weight per piece (g)</label><input inputmode="decimal" value="${esc(l.wt)}" oninput="gL(${i},'wt',this.value);gLineTot(${i});gAsk(${i})"></div>
       <div class="field"><label>h. Quantity</label><input inputmode="numeric" value="${esc(l.qty)}" oninput="gL(${i},'qty',this.value);gLineTot(${i});gAsk(${i})"></div></div>`;
-  const rmB = GF.lines.length > 1 ? ` <button class="btn small secondary" style="float:right" onclick="GF.lines.splice(${i},${sub ? 1 : gGroupEnd(i) - i + 1});gForm()">Remove</button>` : '';
+  const rmB = GF.lines.length > 1 && !num(l.rq) && !l.nr && !GF.lines.slice(i + 1, sub ? i + 1 : gGroupEnd(i) + 1).some((x) => num(x.rq) || x.nr) ? ` <button class="btn small secondary" style="float:right" onclick="GF.lines.splice(${i},${sub ? 1 : gGroupEnd(i) - i + 1});gForm()">Remove</button>` : '';
   if (sub) return `<div class="card gLine gSub ${l.urgent ? 'urg' : ''}"><h3>↳ ${esc(l.item)} · ${esc(l.model)} <small class="hint">same design, another weight / length</small>${rmB}</h3>${wq}
     <div class="field"><label>g. Length / size</label><div class="choiceRow">${sizes.map((s) => `<button class="chip ${l.size === s ? 'active' : ''}" onclick="gL(${i},'size',${esc(JSON.stringify(s))});gForm()">${esc(s)}</button>`).join('')}<button class="chip ${custom ? 'active' : ''}" onclick="GF.lines[${i}]._cs=1;gForm()">Custom length / size</button></div>
       ${custom || l._cs ? `<input style="margin-top:6px" value="${esc(custom ? l.size : '')}" placeholder="e.g. 8 pidi, first length 15 inches" oninput="gL(${i},'size',this.value)">` : ''}</div>
@@ -162,13 +162,14 @@ async function gShow(id, send) {
   const o = gOrders.find((x) => x.id === id); if (!o) return;
   openSheet(`<h2>${esc(o.no)} <span class="badge ${G_ST[o.status][1]}">${G_ST[o.status][0]}</span></h2><p class="sub">${esc(o.vendor)} · ${o.qty} pc · ${fmtN(o.wt)} g · by ${esc(o.by)} · ${dt(o.at)}</p>
     ${o.status !== 'cancelled' ? gWorkHtml(o) : ''}
+    ${o.status !== 'cancelled' ? gAcctHtml(o) : ''}
     <details class="sec" ${(o.batches || []).length ? '' : 'open'}><summary>Order card</summary><div class="in">
     <label class="check" style="margin:0 0 8px"><input type="checkbox" ${o.photos !== false ? 'checked' : ''} ${can('grandCreate') || can('grandSend') ? '' : 'disabled'} onchange="gPhotos('${id}',this.checked)"><span>Show item photos on the card</span></label>
     <div id="gCardBox"><p class="hint">Making the card…</p></div>
     <div class="actions" style="flex-wrap:wrap">${!can('grandSend') ? '<p class="hint">Sending the order needs the “Order sending” permission.</p>' : o.vphone ? `<button class="btn ok" onclick="gSend('${id}','vendor')">Send to vendor · ${esc(o.vendor)}</button>` : `<p class="hint">No WhatsApp number for ${esc(o.vendor)} — add it in Grand lists or Vendors. You can still download the card.</p>`}
       ${(can('grandSend') ? GC().copyTo : []).filter((x) => x.phone).map((x, k) => `<button class="btn secondary" onclick="gSend('${id}',${k})">Copy to ${esc(x.name || x.phone)}</button>`).join('')}</div></div></details>
-    <div class="actions" style="flex-wrap:wrap">${!can('grandCreate') ? '' : o.status === 'sent' && !(o.batches || []).length ? `<button class="btn small soft" onclick="gEdit('${id}')">Edit</button>` : ''}${can('grandCreate') && ['sent', 'partial'].includes(o.status) && !(o.batches || []).length ? `<button class="btn small secondary" onclick="gStatus('${id}','cancelled')">Cancel order</button>` : ''}${can('grandCreate') && o.status === 'cancelled' ? `<button class="btn small soft" onclick="gStatus('${id}','sent')">Re-open</button>` : ''}
-      ${me.role === 'admin' || can('delete') ? `<button class="btn small danger" onclick="gDelete('${id}')">Delete</button>` : ''}</div>
+    <div class="actions" style="flex-wrap:wrap">${me.role === 'admin' && o.status !== 'cancelled' ? `<button class="btn small soft" onclick="gEdit('${id}')">Edit</button>` : ''}${can('grandCreate') && ['sent', 'partial'].includes(o.status) && !(o.batches || []).length ? `<button class="btn small secondary" onclick="gStatus('${id}','cancelled')">Cancel order</button>` : ''}${can('grandCreate') && o.status === 'cancelled' ? `<button class="btn small soft" onclick="gStatus('${id}','sent')">Re-open</button>` : ''}
+      ${me.role === 'admin' ? `<button class="btn small danger" onclick="gDelete('${id}')">Delete</button>` : ''}</div>
     <details class="sec"><summary>History</summary><div class="in">${(o.log || []).slice().reverse().map((l) => `<div class="kv"><span>${esc(l.t)}</span><span>${esc(l.by)} · ${dshort(l.at)}</span></div>`).join('')}</div></details>`);
   try { window._gCard = { id, url: await gCard(o) }; if ($('gCardBox')) $('gCardBox').innerHTML = `<img src="${window._gCard.url}" style="width:100%;border-radius:12px;border:1px solid var(--line)" alt=""><a class="btn small secondary" style="margin-top:8px;display:inline-block;text-decoration:none" href="${window._gCard.url}" download="${esc(o.no)}.jpg">Download card</a>`; }
   catch (e) { console.error(e); if ($('gCardBox')) $('gCardBox').innerHTML = '<div class="badBox">Could not draw the card</div>'; }
@@ -378,6 +379,7 @@ function gRecv(id) {
   openSheet(`<h2>Receive · ${esc(o.no)}</h2><p class="sub">${esc(o.vendor)}. Check each item against the order. Enter what actually came, and mark items that did not come as <b>Not received</b> — they stay pending on the order.</p>
     <div id="grRows"></div>
     <div class="field"><label>Checked by</label>${gStaffSel('recvStaff', 'grBy')}</div>
+    <div class="field"><label>Internal doc. no. <small>(optional)</small></label><input id="grDoc" placeholder="Receipt voucher no."></div>
     <div class="field"><label>Note</label><input id="grNote" placeholder="e.g. Vendor bill no., packet seal OK"></div>
     <div id="grSum"></div>
     <button class="btn block" onclick="gRecvSave('${id}')">Approve receipt</button>`);
@@ -402,7 +404,7 @@ function gRecvSave(id) {
   const miss = _gr.find((r) => !r.nr && num(r.qty) > 0 && !(num(r.wt) > 0)); if (miss) return toast('Enter the weight received for each item (or mark it not received)');
   const lines = _gr.map((r) => ({ i: r.i, qty: r.nr ? 0 : num(r.qty), wt: num(r.wt), note: r.note, nr: r.nr }));
   if (!lines.some((r) => r.qty > 0 || r.nr)) return toast('Nothing to receive');
-  gStep(id, 'receive', { by, note: f('grNote'), lines }, 'Receipt approved');
+  gStep(id, 'receive', { by, note: f('grNote'), doc: f('grDoc'), lines }, 'Receipt approved');
 }
 // 2. QC, item by item
 function gQc(id, n) {
@@ -476,12 +478,74 @@ function gReport(id, n) {
     <h3>Items</h3><table><tr><th>#</th><th>Item / model</th><th>Length / size</th><th class="r">Ordered</th><th class="r">Exp. wt (g)</th><th class="r">Received</th><th class="r">Recd wt (g)</th><th class="r">Pending</th></tr>
     ${L.map((l, i) => `<tr><td>${i + 1}</td><td>${esc(l.item)}${l.model ? ' · ' + esc(l.model) : ''}${l.urgent ? ' 🚨' : ''}</td><td>${esc(l.size || '')}</td><td class="r">${l.qty}</td><td class="r">${fmtN(gW3(l.wt * l.qty))}</td><td class="r">${num(l.rq)}</td><td class="r">${fmtN(num(l.rw))}</td><td class="r">${gPend(l) ? '<b>' + gPend(l) + '</b>' + (l.nr ? ' (not recd)' : '') : '✓'}</td></tr>`).join('')}
     <tr><th colspan="3">Total</th><th class="r">${o.qty}</th><th class="r">${fmtN(o.wt)}</th><th class="r">${L.reduce((t, l) => t + num(l.rq), 0)}</th><th class="r">${fmtN(gW3(L.reduce((t, l) => t + num(l.rw), 0)))}</th><th class="r">${gPendAll(o)}</th></tr></table>
-    ${bs.map((b) => `<h3>Receipt ${b.n} · ${dt(b.at)}${b.note ? ' · ' + esc(b.note) : ''}</h3><table><tr><th>Item</th><th class="r">Qty</th><th class="r">Expected (g)</th><th class="r">Received (g)</th><th class="r">Difference</th><th>QC</th><th>Note</th></tr>
+    ${bs.map((b) => `<h3>Receipt ${b.n} · ${dt(b.at)}${b.doc ? ' · Doc ' + esc(b.doc) : ''}${b.note ? ' · ' + esc(b.note) : ''}</h3><table><tr><th>Item</th><th class="r">Qty</th><th class="r">Expected (g)</th><th class="r">Received (g)</th><th class="r">Difference</th><th>QC</th><th>Note</th></tr>
       ${b.items.map((it) => { const l = L[it.i] || {}, dw = gW3(it.wt - it.exp); return `<tr><td>${esc(l.item)}${l.model ? ' · ' + esc(l.model) : ''}${l.size ? ' · ' + esc(l.size) : ''}</td><td class="r">${it.qty}</td><td class="r">${fmtN(it.exp)}</td><td class="r">${fmtN(it.wt)}</td><td class="r">${dw ? (dw > 0 ? '+' : '') + fmtN(dw) : '—'}</td><td>${it.qc === 'fail' ? 'FAILED' : it.qc === 'pass' ? 'Passed' : '—'}</td><td>${esc([it.note, it.qcNote].filter(Boolean).join(' · '))}</td></tr>`; }).join('')}</table>
       <table><tr><th>Received / checked</th><th>QC</th><th>Laser marking</th><th>Labelling</th><th>Packed</th><th>Sent to Grand</th></tr><tr><td>${dd(b.recv)}</td><td>${dd(b.qc)}</td><td>${dd(b.mark)}</td><td>${dd(b.label)}</td><td>${dd(b.pack)}</td><td>${dd(b.dispatch)}${b.dispatch && b.dispatch.carrier ? `<br><small>Carrier: ${esc(b.dispatch.carrier)}${b.dispatch.recvBy ? ' · ' + esc(b.dispatch.recvBy) : ''}</small>` : ''}</td></tr>
       <tr><td style="height:40px">Sign</td><td></td><td></td><td></td><td></td><td>${b.dispatch && b.dispatch.sign ? `<img src="${b.dispatch.sign}" style="height:44px" alt="">` : ''}</td></tr></table>`).join('')}
+    ${n == null && ((o.issues || []).length || o.acct) ? `<h3>Bullion & payment</h3><table><tr><th>Date</th><th>Doc no.</th><th class="r">Bullion (g)</th><th>Purity</th><th class="r">Alloy (g)</th><th class="r">Total (g)</th></tr>${(o.issues || []).map((x) => `<tr><td>${dt(x.date)}</td><td>${esc(x.doc || '')}</td><td class="r">${fmtN(x.bullion)}</td><td>${esc(x.purity || '')}</td><td class="r">${fmtN(x.alloy)}</td><td class="r">${fmtN(x.total)}</td></tr>`).join('')}
+      <tr><th colspan="5">Total issued</th><th class="r">${fmtN(gIssued(o))}</th></tr><tr><th colspan="5">Received weight</th><th class="r">${fmtN(o.acct && o.acct.recvWt != null ? o.acct.recvWt : gRecvWt(o))}</th></tr>
+      ${o.acct ? `<tr><th colspan="5">Current balance</th><th class="r">${[o.acct.balWt != null ? fmtN(o.acct.balWt) + ' g' : '', o.acct.balAmt != null ? rupee(o.acct.balAmt) : ''].filter(Boolean).join(' · ') || '—'}</th></tr><tr><th colspan="5">Mode of payment</th><th class="r">${esc(o.acct.mode || '')}${o.acct.ref ? ' · ' + esc(o.acct.ref) : ''}</th></tr>` : ''}</table>` : ''}
     ${o.closedShort ? `<p><b>Closed with items short</b> by ${esc(o.closedShort.by)} on ${dt(o.closedShort.at)}: ${esc(o.closedShort.note || '')}</p>` : ''}
     <p style="font-size:11px;color:#555">Printed ${dt(Date.now())} by ${esc(me.name)} · Order Desk ${APP_VERSION}</p></div>`;
   if (NATIVE && NATIVE.printHtml) { NATIVE.printHtml('<!doctype html><html><head><meta charset="utf-8"><style>' + document.querySelector('style').textContent + ' #printArea{display:block}</style></head><body><div id="printArea">' + h + '</div></body></html>', 'Grand ' + o.no); return; }
   $('printArea').innerHTML = h; window.print(); setTimeout(() => { $('printArea').innerHTML = ''; }, 800);
+}
+
+// ======================================================================
+// Bullion issue & payment account (permission 09)
+// ======================================================================
+const G_MODES = ['RTGS', 'Bullion invoice', 'Balance pending'];
+const gIssued = (o) => gW3((o.issues || []).reduce((t, x) => t + num(x.total), 0));
+const gRecvWt = (o) => gW3((o.batches || []).reduce((t, b) => t + b.items.reduce((u, it) => u + (it.qc === 'fail' ? 0 : num(it.wt)), 0), 0));
+async function gAcct(id, act, data, msg) {
+  const o = gOrders.find((x) => x.id === id); if (!o) return;
+  try { const d = await api('grand/acct', { id, rev: o.rev, act, data }); gOrders = gOrders.map((x) => (x.id === id ? d.o : x)); toast(msg || 'Saved'); closeSheet(); gShow(id); }
+  catch (e) { toast(isNet(e) ? 'No internet — not saved' : e.message); if (e.status === 409) gLoad(true); }
+}
+function gAcctHtml(o) {
+  if (!can('grandAcct')) return '';
+  const a = o.acct || {}, iss = gIssued(o), rcv = a.recvWt != null ? a.recvWt : gRecvWt(o), diff = gW3(iss - rcv);
+  const issues = (o.issues || []).map((x) => `<tr><td>${dshort(x.date)}${x.doc ? '<br><small>' + esc(x.doc) + '</small>' : ''}</td><td class="r">${fmtN(x.bullion)}${x.purity ? '<br><small>' + esc(x.purity) + '</small>' : ''}</td><td class="r">${fmtN(x.alloy)}</td><td class="r"><b>${fmtN(x.total)}</b></td><td>${me.role === 'admin' ? `<button class="btn small soft" onclick="if(confirm('Remove this issue?'))gAcct('${o.id}','issueDel',{n:${x.n}},'Removed')">✕</button>` : ''}</td></tr>`).join('');
+  const recs = (o.batches || []).map((b) => `<tr><td>Receipt ${b.n} · ${dshort(b.at)}</td><td class="r">${fmtN(gW3(b.items.reduce((u, it) => u + (it.qc === 'fail' ? 0 : num(it.wt)), 0)))} g</td><td><button class="btn small soft" onclick="gRecvDoc('${o.id}',${b.n})">${b.doc ? esc(b.doc) : '+ Doc no.'}</button></td></tr>`).join('');
+  return `<div class="card gAcct"><h3>Bullion & payment ${a.mode ? `<span class="badge ${a.mode === 'Balance pending' ? 'w' : 'g'}">${esc(a.mode)}</span>` : ''}</h3>
+    <p class="sub" style="margin:0 0 6px">Bullion issued</p>
+    ${issues ? `<table class="gTbl"><tr><th>Date / doc</th><th class="r">Bullion g</th><th class="r">Alloy g</th><th class="r">Total g</th><th></th></tr>${issues}</table>` : '<p class="hint">No bullion issued yet.</p>'}
+    <button class="btn small secondary" style="margin:8px 0 12px" onclick="gIssue('${o.id}')">+ Issue bullion</button>
+    ${recs ? `<p class="sub" style="margin:0 0 6px">Received from vendor (QC-failed items left out)</p><table class="gTbl">${recs}</table>` : ''}
+    <div class="kv" style="margin-top:10px"><span>Total issued (bullion + alloy)</span><span>${fmtN(iss)} g</span></div>
+    <div class="kv"><span>Received weight${a.recvWt != null ? ' (entered)' : ''}</span><span>${fmtN(rcv)} g</span></div>
+    <div class="kv tot"><span>${diff >= 0 ? 'With vendor (issued − received)' : 'Received more than issued'}</span><span>${fmtN(Math.abs(diff))} g</span></div>
+    ${a.balWt != null || a.balAmt != null || a.ref ? `<div class="kv"><span>Current balance</span><span>${[a.balWt != null ? fmtN(a.balWt) + ' g' : '', a.balAmt != null ? rupee(a.balAmt) : ''].filter(Boolean).join(' · ')}</span></div>${a.ref ? `<div class="kv"><span>Reference</span><span>${esc(a.ref)}</span></div>` : ''}${a.note ? `<p class="hint">${esc(a.note)}</p>` : ''}` : ''}
+    <button class="btn block" style="margin-top:10px" onclick="gSettle('${o.id}')">${a.mode ? 'Update' : 'Enter'} received weight, balance & payment</button></div>`;
+}
+function gIssue(id) {
+  const o = gOrders.find((x) => x.id === id); if (!o) return;
+  openSheet(`<h2>Issue bullion · ${esc(o.no)}</h2><p class="sub">${esc(o.vendor)} · order ${fmtN(o.wt)} g, ${esc(o.purity)}</p>
+    <div class="two"><div class="field"><label>Date</label><input type="date" id="giD" value="${today()}"></div><div class="field"><label>Internal doc. no. <small>(optional)</small></label><input id="giDoc" placeholder="Issue voucher no."></div></div>
+    <div class="two"><div class="field"><label>Bullion weight issued (g) <i class="req">*</i></label><input id="giB" inputmode="decimal" oninput="gIssueTot()"></div><div class="field"><label>Bullion purity</label><input id="giP" value="999.9"></div></div>
+    <div class="two"><div class="field"><label>Alloy weight (g)</label><input id="giA" inputmode="decimal" oninput="gIssueTot()"></div><div class="field"><label>Total weight (g)</label><input id="giT" inputmode="decimal" oninput="this.dataset.man=1"></div></div>
+    <div class="field"><label>Issued by</label>${gStaffSel('recvStaff', 'giBy')}</div>
+    <div class="field"><label>Note</label><input id="giN" placeholder="Optional"></div>
+    <button class="btn block" onclick="gIssueSave('${id}')">Save issue</button>`);
+}
+function gIssueTot() { const t = $('giT'); if (t && !t.dataset.man) t.value = gW3(num(f('giB')) + num(f('giA'))) || ''; }
+function gIssueSave(id) {
+  if (!(num(f('giB')) > 0)) return toast('Enter the bullion weight issued');
+  gAcct(id, 'issue', { date: f('giD'), doc: f('giDoc'), bullion: f('giB'), purity: f('giP'), alloy: f('giA'), total: f('giT'), by: gStaffVal('giBy'), note: f('giN') }, 'Bullion issue saved');
+}
+function gRecvDoc(id, n) {
+  const o = gOrders.find((x) => x.id === id), b = o && (o.batches || []).find((x) => x.n === n); if (!b) return;
+  openSheet(`<h2>Receipt ${n} · document no.</h2><p class="sub">${esc(o.no)} · ${dt(b.at)}</p><div class="field"><label>Internal doc. no. for the receipt</label><input id="grdN" value="${esc(b.doc || '')}" placeholder="Receipt voucher no."></div>
+    <button class="btn block" onclick="gAcct('${id}','recvDoc',{b:${n},doc:f('grdN')},'Saved')">Save</button>`);
+}
+function gSettle(id) {
+  const o = gOrders.find((x) => x.id === id); if (!o) return; const a = o.acct || {};
+  window._gm = a.mode || '';
+  openSheet(`<h2>Balance & payment · ${esc(o.no)}</h2><p class="sub">${esc(o.vendor)} · issued ${fmtN(gIssued(o))} g · received in receipts ${fmtN(gRecvWt(o))} g</p>
+    <div class="field"><label>Received weight (g)</label><input id="gsR" inputmode="decimal" value="${esc(a.recvWt != null ? a.recvWt : gRecvWt(o) || '')}"><p class="hint">Filled from the receipts; change it if the vendor bill says otherwise.</p></div>
+    <div class="two"><div class="field"><label>Current balance (g)</label><input id="gsW" inputmode="decimal" value="${esc(a.balWt != null ? a.balWt : '')}" placeholder="metal"></div><div class="field"><label>Current balance (₹)</label><input id="gsA" inputmode="numeric" value="${esc(a.balAmt != null ? a.balAmt : '')}" placeholder="amount"></div></div>
+    <div class="field"><label>Mode of payment</label><div class="choiceRow" id="gsM">${G_MODES.map((m) => `<button class="chip ${a.mode === m ? 'active' : ''}" onclick="_gm='${m}';[...this.parentNode.children].forEach(c=>c.classList.toggle('active',c===this))">${m}</button>`).join('')}</div></div>
+    <div class="field"><label>Reference <small>(UTR / invoice no.)</small></label><input id="gsRef" value="${esc(a.ref || '')}"></div>
+    <div class="field"><label>Note</label><input id="gsNt" value="${esc(a.note || '')}"></div>
+    <button class="btn block" onclick="if(!_gm)return toast('Pick the mode of payment');gAcct('${id}','settle',{recvWt:f('gsR'),balWt:f('gsW'),balAmt:f('gsA'),mode:_gm,ref:f('gsRef'),note:f('gsNt')},'Saved')">Save</button>`);
 }

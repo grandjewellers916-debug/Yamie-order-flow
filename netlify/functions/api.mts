@@ -15,9 +15,9 @@ import { backupOp } from '../lib/backup.mts';
 
 export const config = { path: '/api/*' };
 
-const SERVER_VERSION = '2.5';
+const SERVER_VERSION = '2.6';
 const PERM_KEYS = ['enquiry', 'estimate', 'approve', 'advance', 'verify', 'discount', 'confirm', 'vendor', 'production', 'receive', 'qc',
-  'finalprice', 'approvefinal', 'ready', 'close', 'cancel', 'rates', 'vendors', 'vendorcontact', 'review', 'viewcost', 'reports', 'delete', 'settings', 'grand', 'grandCreate', 'grandSend', 'grandRecv', 'grandQc', 'grandLabel', 'grandMark', 'grandPack', 'grandDispatch', 'grandcfg'];
+  'finalprice', 'approvefinal', 'ready', 'close', 'cancel', 'rates', 'vendors', 'vendorcontact', 'review', 'viewcost', 'reports', 'delete', 'settings', 'grand', 'grandCreate', 'grandSend', 'grandRecv', 'grandQc', 'grandLabel', 'grandMark', 'grandPack', 'grandDispatch', 'grandAcct', 'grandcfg'];
 const DEF_ROLE_PERMS: Record<string, string[]> = {
   manager: PERM_KEYS.filter((k) => k !== 'settings' && !k.startsWith('grand')),
   staff: ['enquiry', 'estimate', 'approve', 'advance', 'confirm', 'production', 'receive', 'finalprice', 'ready', 'close'],
@@ -765,7 +765,9 @@ export default async (req: Request) => {
         qty: Math.max(1, Math.min(9999, Math.round(num(l.qty) || 1))), urgent: !!l.urgent, due: clip(l.due, 10), note: clip(l.note, 200), sub: !!l.sub,
       })).filter((l: any) => l.item);
       // photo show/hide on the card: creator or sender; anything else (new, edit, cancel, re-open): order creation
+      const isCancel = old && ((g.status === 'cancelled') !== (old.status === 'cancelled'));
       if (old && /^Photos (shown|hidden) on card$/.test(String(body.log || ''))) { if (!can('grandCreate') && !can('grandSend')) need('grandCreate'); }
+      else if (old && !isCancel) { if (me.role !== 'admin') throw new HttpError('Only an admin can edit a Grand order', 403); }
       else need('grandCreate');
       if (!lines.length) return err('Add at least one item');
       if (!clip(g.vendor, 80)) return err('Select the vendor');
@@ -779,8 +781,18 @@ export default async (req: Request) => {
       o.qty = lines.reduce((t: number, l: any) => t + l.qty, 0); o.wt = Math.round(lines.reduce((t: number, l: any) => t + l.wt * l.qty, 0) * 1000) / 1000;
       if (old) {
         if (old.rev !== g.rev) return err('Someone else changed this order. Reload and try again.', 409);
-        if ((old.batches || []).length || ['closed'].includes(old.status)) {
-          // goods already received: the items are fixed; only photos / note / cancel-reopen
+        const editing = me.role === 'admin' && !isCancel && !/^Photos /.test(String(body.log || ''));
+        if (editing && ((old.batches || []).length || (old.lines || []).some((l: any) => num(l.rq) || l.nr))) {
+          // admin edit after goods came: keep what was received on each existing line
+          for (const [i, ol] of (old.lines || []).entries()) {
+            if (!num(ol.rq) && !ol.nr) continue;
+            const nl = o.lines[i]; if (!nl || nl.item !== ol.item) return err(`Item ${i + 1} (${ol.item}) has goods received — it cannot be removed or changed to another item`, 400);
+            Object.assign(nl, { rq: ol.rq, rw: ol.rw, nr: ol.nr, nrNote: ol.nrNote });
+          }
+          const keep = { id: old.id, no: old.no, at: old.at, user: old.user, batches: old.batches, issues: old.issues, acct: old.acct, closedShort: old.closedShort, log: old.log, rev: old.rev };
+          const was = old.status; Object.assign(old, o, keep); old.status = was === 'cancelled' ? 'cancelled' : old.closedShort ? 'closed' : gStatusOf(old);
+        } else if ((old.batches || []).length || ['closed'].includes(old.status)) {
+          // goods already received: only photos / note / cancel-reopen
           old.photos = o.photos; old.note = o.note;
           if (g.status === 'cancelled' && old.status !== 'closed') old.status = 'cancelled';
           else if (old.status === 'cancelled' && g.status !== 'cancelled') old.status = gStatusOf(old);
@@ -818,7 +830,7 @@ export default async (req: Request) => {
           items.push({ i: num(r.i), qty: q, wt: w, exp: Math.round(num(l.wt) * q * 1000) / 1000, note: clip(r.note, 200) });
         }
         if (!items.length && !(d.lines || []).some((r: any) => r.nr)) return err('Enter the quantity received for at least one item', 400);
-        if (items.length) { const n = o.batches.length + 1; o.batches.push({ n, at: t, recv: { by: who, at: t, user: me.name }, items, stage: 'qc', note: clip(d.note, 300) });
+        if (items.length) { const n = o.batches.length + 1; o.batches.push({ n, at: t, recv: { by: who, at: t, user: me.name }, items, stage: 'qc', note: clip(d.note, 300), doc: clip(d.doc, 40) });
           log(`Receipt ${n} by ${who}: ${items.reduce((a, x) => a + x.qty, 0)} pc, ${Math.round(items.reduce((a, x) => a + x.wt, 0) * 1000) / 1000} g`); }
         const nr = (d.lines || []).filter((r: any) => r.nr).length; if (nr) log(`${nr} item(s) marked not received by ${who}`);
       } else if (body.act === 'qc') {
@@ -851,6 +863,35 @@ export default async (req: Request) => {
       o.rev = num(o.rev) + 1; o.upd = t;
       await s.setJSON(k, o); return J({ o });
     }
+    if (path === 'grand/acct' && method === 'POST') {
+      // bullion issue, receipt document numbers, balance & mode of payment
+      need('grandAcct');
+      const k = 'grand/o/' + String(body.id || '').replace(/[^A-Z0-9]/gi, ''), o: any = await s.get(k, { type: 'json' });
+      if (!o) return err('Order not found', 404);
+      if (num(body.rev) !== num(o.rev)) return err('Someone else changed this order. Reload and try again.', 409);
+      const d = body.data || {}, t = now(), w3 = (v: any) => Math.round(Math.max(0, num(v)) * 1000) / 1000;
+      const log = (x: string) => { o.log = (o.log || []).concat({ at: t, by: me.name, t: clip(x, 300) }).slice(-120); };
+      o.issues = o.issues || [];
+      if (body.act === 'issue') {
+        const bw = w3(d.bullion), aw = w3(d.alloy); if (!bw) return err('Enter the bullion weight issued', 400);
+        const tot = w3(d.total) || w3(bw + aw);
+        const it = { n: (o.issues.reduce((m: number, x: any) => Math.max(m, x.n), 0)) + 1, date: clip(d.date, 10) || istDate(t), bullion: bw, purity: clip(d.purity, 20), alloy: aw, total: tot, doc: clip(d.doc, 40), by: clip(d.by, 60) || me.name, note: clip(d.note, 200), at: t, user: me.name };
+        o.issues.push(it); log(`Bullion issued: ${bw} g + alloy ${aw} g = ${tot} g${it.doc ? ' · doc ' + it.doc : ''}`);
+      } else if (body.act === 'issueDel') {
+        if (me.role !== 'admin') throw new HttpError('Only an admin can remove an issue', 403);
+        const x = o.issues.find((i: any) => i.n === num(d.n)); if (!x) return err('Not found', 404);
+        o.issues = o.issues.filter((i: any) => i !== x); log(`Bullion issue removed: ${x.total} g${x.doc ? ' · doc ' + x.doc : ''}`);
+      } else if (body.act === 'recvDoc') {
+        const b = (o.batches || []).find((x: any) => x.n === num(d.b)); if (!b) return err('Receipt not found', 404);
+        b.doc = clip(d.doc, 40); log(`Receipt ${b.n} document no. ${b.doc || 'cleared'}`);
+      } else if (body.act === 'settle') {
+        const modes = ['RTGS', 'Bullion invoice', 'Balance pending'];
+        o.acct = { recvWt: d.recvWt === '' || d.recvWt == null ? null : w3(d.recvWt), balWt: d.balWt === '' || d.balWt == null ? null : Math.round(num(d.balWt) * 1000) / 1000,
+          balAmt: d.balAmt === '' || d.balAmt == null ? null : Math.round(num(d.balAmt)), mode: modes.includes(d.mode) ? d.mode : '', ref: clip(d.ref, 60), note: clip(d.note, 300), by: me.name, at: t };
+        log(`Account: ${o.acct.recvWt != null ? 'received ' + o.acct.recvWt + ' g · ' : ''}${o.acct.balWt != null ? 'balance ' + o.acct.balWt + ' g · ' : ''}${o.acct.balAmt != null ? 'balance ₹' + o.acct.balAmt + ' · ' : ''}${o.acct.mode || 'no mode'}${o.acct.ref ? ' · ' + o.acct.ref : ''}`);
+      } else return err('Unknown', 400);
+      o.rev = num(o.rev) + 1; o.upd = t; await s.setJSON(k, o); return J({ o });
+    }
     if (path === 'grand/log' && method === 'POST') {
       need('grandSend');
       const k = 'grand/o/' + String(body.id || '').replace(/[^A-Z0-9]/gi, ''), o: any = await s.get(k, { type: 'json' });
@@ -858,7 +899,7 @@ export default async (req: Request) => {
       o.log = (o.log || []).concat({ at: now(), by: me.name, t: clip(body.t, 200) }).slice(-80); o.upd = now(); await s.setJSON(k, o); return J({ o });
     }
     if (path === 'grand/delete' && method === 'POST') {
-      if (me.role !== 'admin' && !can('delete')) throw new HttpError('Your role cannot delete', 403);
+      if (me.role !== 'admin') throw new HttpError('Only an admin can delete a Grand order', 403);
       await s.delete('grand/o/' + String(body.id || '').replace(/[^A-Z0-9]/gi, '')); return J({ ok: true });
     }
     if (path === 'grand/cfg' && method === 'POST') {
