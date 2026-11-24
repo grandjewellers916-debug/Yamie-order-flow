@@ -414,7 +414,8 @@ main.ccmp{padding-bottom:20px;padding-top:8px}
 .tgl{display:inline-block;width:40px;height:22px;border-radius:11px;background:#D8CFC6;position:relative;transition:.15s}.tgl i{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:.15s}.tgl.on{background:var(--ok)}.tgl.on i{left:20px}
 .lcard{scroll-margin-top:84px}.lflash{box-shadow:0 0 0 3px var(--m)!important;transition:box-shadow .3s}
 /* v1.54 quantity summary tile */
-.qsum{margin:10px 0}.qsh0{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-bottom:10px}.qsh0 h3{margin:2px 0 0}
+.qsum{margin:10px 0}.qsh0{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-bottom:10px;width:100%;background:none;border:0;padding:0;font:inherit;color:inherit;cursor:pointer}.qsum.shut .qsh0{margin-bottom:8px}
+.qschips{display:flex;flex-wrap:wrap;gap:6px}.qchip{border:1px solid var(--ln);border-left:4px solid var(--qc);border-radius:9px;background:#fff;padding:5px 10px;font:inherit;font-size:13px;cursor:pointer;color:var(--ink)}.qchip b{margin-left:4px}.qsh0 h3{margin:2px 0 0}
 .qstot{font:700 26px/1 Jost,system-ui,sans-serif;color:var(--m)}.qstot span{font-size:13px;color:var(--mut);margin-left:4px;font-weight:500}
 .qsg{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
 .qsc{border:1px solid var(--ln);border-radius:12px;overflow:hidden;background:#fff;border-top:4px solid var(--qc,#B8860B);align-self:start}
@@ -449,7 +450,7 @@ const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 
   apply();
 })();
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.54';
+const VERSION = '1.55';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -833,14 +834,18 @@ function vSection(sec) {
     ${LV.map((lv, i) => lv[4] ? (lvOpts[i].length ? `<div class="grow"><label class="f" style="margin-top:0">${lv[1]}</label><details class="msel" data-ms="${lv[0]}"><summary>${SEL[lv[0]].length ? esc(SEL[lv[0]].map((v) => (lvOpts[i].find((o) => o[0] === v) || [v, v])[1]).join(', ')) : `All ${plural(lv[1])}`}</summary><div class="mslist">${lvOpts[i].map(([v, t]) => `<label><input type="checkbox" data-mv2="${esc(v)}" ${SEL[lv[0]].includes(v) ? 'checked' : ''}> ${esc(t)}</label>`).join('')}<div class="row" style="gap:6px;margin-top:6px"><button type="button" class="btn sm ghost" data-msall>All</button><button type="button" class="btn sm ghost" data-msnone>None</button><button type="button" class="btn sm" data-msok>Done</button></div></div></details></div>` : '') : lvOpts[i].length && !(['m', 'b', 's'].includes(lv[0]) && lvOpts[i].length <= 1 && !SEL[lv[0]]) ? `<div class="grow"><label class="f" style="margin-top:0">${lv[1]}</label><select data-lv="${lv[0]}"><option value="">All ${plural(lv[1])}</option>${lvOpts[i].map(([v, t]) => `<option value="${esc(v)}" ${SEL[lv[0]] === v ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></div>` : '').join('')}
     ${selOn ? `<div class="selgo"><div class="sm mut">${selIds.length} ${selIds.length === 1 ? unit : units} · ${selPend} to verify</div><div class="row">${can('count') && editable() && selIds.length ? `<button class="btn" id="selVerify">${selPend ? 'Verify selected ›' : 'View summary'}</button>` : ''}<button class="btn ghost" id="selClr">Clear</button></div></div>` : ''}</div>`;
   // v1.54 main location picked, no classification / product / purity filter yet → quantity summary tile (classification columns × products)
-  const oneMain = [...new Set(all.map((l) => l.area || '—'))]; const qSum = (SEL.m || oneMain.length === 1) && !lfOn && !hideExp() ? (() => { const by = new Map(); let tot = 0;
+  // v1.54 quantity summary tile (classification columns × products) — v1.55 always shown before any classification / product / purity filter; collapsible
+  const oneMain = [...new Set(all.map((l) => l.area || '—'))]; const qSum = !lfOn && !hideExp() ? (() => { const by = new Map(); let tot = 0;
     for (const l of all.filter(inSel)) for (const [k, n] of held(l)) { const j = jtOfLine(l, k), it = itemOf(k); if (!by.has(j)) by.set(j, new Map()); const m = by.get(j); m.set(it, (m.get(it) || 0) + n); tot += n; }
     const cols = LINE_JTYPES.filter((j) => by.has(j)); if (!cols.length) return '';
-    const T = S.D.settings.itemTypes;
-    return `<div class="card qsum"><div class="qsh0"><div><div class="mut sm" style="letter-spacing:1.4px;text-transform:uppercase">Quantity summary</div><h3>${esc(selName || oneMain[0])}</h3></div><div class="qstot">${fmt(tot)}<span>pcs</span></div></div>
-      <div class="qsg">${cols.map((j) => { const m = by.get(j); const its = [...T.filter((t) => m.has(t)), ...[...m.keys()].filter((t) => !T.includes(t))]; const t = [...m.values()].reduce((a, b) => a + b, 0);
-        return `<div class="qsc qs-${JT_CLS[j] || 'cu'}"><button class="qsch" data-qsj="${esc(j)}"><span>${esc(jtName(j))}</span><b>${fmt(t)}</b></button>${its.map((it) => `<button class="qsr" data-qs="${esc(j)}|${esc(it)}"><span>${esc(itemLbl(it))}</span><b>${fmt(m.get(it))}</b></button>`).join('')}</div>`; }).join('')}</div>
-      <div class="mut sm" style="margin-top:8px">Tap a classification or a product to filter.</div></div>`; })() : '';
+    const T = S.D.settings.itemTypes; const open = localStorage.ysc_qsum !== '0'; let shut = []; try { shut = JSON.parse(localStorage.ysc_qsc || '[]'); } catch {}
+    const tt = (j) => [...by.get(j).values()].reduce((a, b) => a + b, 0);
+    const title = selName || (oneMain.length === 1 ? oneMain[0] : `All ${secLabel(sec).toLowerCase()}`);
+    return `<div class="card qsum ${open ? '' : 'shut'}"><button class="qsh0" id="qsTog"><div style="text-align:left"><div class="mut sm" style="letter-spacing:1.4px;text-transform:uppercase">${open ? '▾' : '▸'} Quantity summary</div><h3>${esc(title)}</h3></div><div class="qstot">${fmt(tot)}<span>pcs</span></div></button>
+      ${open ? `<div class="qsg">${cols.map((j) => { const m = by.get(j); const its = [...T.filter((t) => m.has(t)), ...[...m.keys()].filter((t) => !T.includes(t))]; const c = shut.includes(j);
+        return `<div class="qsc qs-${JT_CLS[j] || 'cu'}"><button class="qsch" data-qsc="${esc(j)}" title="${c ? 'Show' : 'Hide'} products"><span>${c ? '▸' : '▾'} ${esc(jtName(j))}</span><b>${fmt(tt(j))}</b></button>${c ? '' : its.map((it) => `<button class="qsr" data-qs="${esc(j)}|${esc(it)}"><span>${esc(itemLbl(it))}</span><b>${fmt(m.get(it))}</b></button>`).join('')}</div>`; }).join('')}</div>
+      <div class="row sp wrap" style="margin-top:8px"><span class="mut sm">Tap a heading to collapse it · tap a product to filter.</span><span class="row" style="gap:6px"><button class="btn sm ghost" data-qsall="1">Expand all</button><button class="btn sm ghost" data-qsall="0">Collapse all</button></span></div>`
+      : `<div class="qschips">${cols.map((j) => `<button class="qchip qs-${JT_CLS[j] || 'cu'}" data-qsj="${esc(j)}">${esc(JT_SHORT[j])} <b>${fmt(tt(j))}</b></button>`).join('')}</div>`}</div>`; })() : '';
   const list = all.filter((l) => inSel(l) && (S.filter === 'all' || (S.filter === 'var' ? ['var', 'stale'].includes(st[l.id].state) : st[l.id].state === S.filter)) && (!q || `${l.name} ${l.group} ${l.purity} ${l.cat} ${l.itemType} ${l.boxNo || ''}`.toLowerCase().includes(q)));
   const groups = {}; list.forEach((l) => (groups[l.group || '—'] ||= []).push(l));
   $('#main').innerHTML = `${viewBanner()}
@@ -866,6 +871,9 @@ function vSection(sec) {
     d.addEventListener('toggle', () => { if (!d.open) apply(); else $('#main').querySelectorAll('details.msel').forEach((o) => { if (o !== d) o.open = false; }); }); });
   $('#main').querySelectorAll('[data-qs]').forEach((b) => b.onclick = () => { const [j, ...r] = b.dataset.qs.split('|'); SEL.j = [j]; SEL.i = [r.join('|')]; vSection(sec); });
   $('#main').querySelectorAll('[data-qsj]').forEach((b) => b.onclick = () => { SEL.j = [b.dataset.qsj]; vSection(sec); });
+  $('#qsTog') && ($('#qsTog').onclick = () => { localStorage.ysc_qsum = localStorage.ysc_qsum === '0' ? '1' : '0'; vSection(sec); });
+  $('#main').querySelectorAll('[data-qsc]').forEach((b) => b.onclick = () => { let a = []; try { a = JSON.parse(localStorage.ysc_qsc || '[]'); } catch {} const j = b.dataset.qsc; a = a.includes(j) ? a.filter((x) => x !== j) : [...a, j]; localStorage.ysc_qsc = JSON.stringify(a); vSection(sec); });
+  $('#main').querySelectorAll('[data-qsall]').forEach((b) => b.onclick = () => { localStorage.ysc_qsc = b.dataset.qsall === '1' ? '[]' : JSON.stringify(LINE_JTYPES); vSection(sec); });
   $('#selClr') && ($('#selClr').onclick = () => { for (const k of Object.keys(SEL)) SEL[k] = ['j', 'i', 'p'].includes(k) ? [] : ''; vSection(sec); });
   $('#selVerify') && ($('#selVerify').onclick = () => startCount(sec, selIds, `${secLabel(sec)} · ${selName}`));
   $('#bwBtn') && ($('#bwBtn').onclick = () => go('boxwt'));
