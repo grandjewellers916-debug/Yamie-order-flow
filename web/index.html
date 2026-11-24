@@ -985,6 +985,11 @@ body.stm .mr-img{width:52px;height:52px}body.stm .mr-t b{font-size:14.5px}body.s
 @media (max-width:600px){.pl-row{flex-wrap:wrap}.pl-n{flex-basis:60%}.pl-b{flex-basis:100%;justify-content:flex-start}}
 .bk-pd .bk-h{display:block;color:var(--muted);font-size:12px;margin-top:3px}.bk-m{border-top:1px solid var(--line,#EEE);padding-top:8px}.bk-m .at-f>label{display:block;font-weight:600;margin-bottom:6px}.bk-mm{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.bk-mm .stf-r{padding:5px 12px 5px 8px;font-size:13px}
 .pr-form .bk-mm .stf-r{display:inline-flex;margin:0;font-weight:400;color:inherit}.pr-form .bk-mm .stf-r.on{font-weight:600;color:var(--maroon,#702438)}.pr-form .bk-mm .stf-r input{width:18px!important;height:18px!important;min-height:0!important;min-width:0!important;padding:0!important;margin:0!important;border-radius:50%!important;box-shadow:none!important;flex:none}
+.bk-pills{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 10px}.bk-pill{position:relative}.bk-pill .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.bk-pill select{min-height:40px;border:1px solid var(--line,#E5DED6);border-radius:999px;padding:6px 32px 6px 14px;background-color:var(--surface,#fff);font:inherit;font-size:14px;font-weight:600;color:inherit;max-width:220px}.bk-pill.on select{border-color:var(--maroon,#702438);color:var(--maroon,#702438);background-color:var(--sunk,#F2E4DB)}
+.bk-rngs .bkf-g{margin-top:8px}
+.bu-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}.bu-h{margin:14px 0 6px;font-size:14px}.bu-row{display:flex;align-items:center;gap:8px;padding:5px 4px;border-bottom:1px solid var(--line,#EEE)}.bu-row label{flex:1;display:flex;gap:8px;align-items:center;cursor:pointer}.bu-row.off label{color:var(--muted)}.bu-top{display:flex;flex-wrap:wrap;gap:8px}
+@media (max-width:700px){.bu-cols{grid-template-columns:1fr}}
+:root.no-wtop{--wt:0px!important}:root.no-wtop:not(#_) .wtop{display:none!important}:root.no-wtop:not(#_) .dk-bell{display:inline-grid}
 .stf-ph{flex:1 1 100%;grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:2px}.stf-phl{font-size:13px;font-weight:600;color:var(--muted);margin-right:2px}
 .stf-r{display:inline-flex;align-items:center;gap:7px;padding:7px 14px 7px 10px;border:1px solid var(--line,#E5DED6);border-radius:99px;background:var(--surface,#fff);font-size:14px;cursor:pointer;user-select:none}
 .stf-r input{appearance:none;-webkit-appearance:none;width:18px;height:18px;margin:0;border:2px solid var(--muted,#999);border-radius:50%;display:grid;place-items:center;flex:none}
@@ -2723,6 +2728,14 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
       <div class="pl-tabs" id="plTabs" role="tablist"></div>
       <div id="plBody"></div>
       <div class="rs-acts"><span class="pl-st" id="plSt"></span><button class="btn" type="button" id="plReset">Default list</button><button class="btn primary" type="button" id="plSave">Save</button></div>
+  </details>
+  <details class="card datacard setcard" id="setBkUi" data-pane="settings" data-perm="plists">
+    <summary><span class="dc-t">Bulk update &amp; top bar</span><span class="dc-s" id="setBkUiMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
+      <p class="note" style="margin-block:4px 0">Choose which filters and fields Bulk update shows and their order (tick to show, ↑ ↓ to move). Shared with all staff.</p>
+      <div class="bu-cols"><div><h4 class="bu-h">Find items by</h4><div id="buF"></div></div><div><h4 class="bu-h">Fields to change</h4><div id="buC"></div></div></div>
+      <h4 class="bu-h">Top bar (computer)</h4>
+      <div class="bu-top" role="radiogroup" aria-label="Top bar"><label class="stf-r"><input type="radio" name="buTop" value="show"><span>Show the search bar</span></label><label class="stf-r"><input type="radio" name="buTop" value="hide"><span>Hide the top bar — page title moves up</span></label></div>
+      <div class="rs-acts"><span class="pl-st" id="buSt"></span><button class="btn" type="button" id="buReset">Default</button><button class="btn primary" type="button" id="buSave">Save</button></div>
   </details>
   <details class="card datacard setcard" id="setCoins" data-pane="settings" data-perm="coinSet">
     <summary><span class="dc-t">Gold coins · margin &amp; disclaimers</span><span class="dc-s" id="setCoinsMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
@@ -5067,6 +5080,26 @@ $('plSave').onclick=()=>withPerm('plists','Needs permission: Product property li
 },true);
 $('setPlists').addEventListener('toggle',()=>{if($('setPlists').open){if(!plDirty){plDraft=null;plRen=[]}paintPlists();pullPlists()}});
 setTimeout(()=>{try{paintPlistsMini()}catch(e){}},3200);
+// ---------- V1.9.8 Settings › Bulk update & top bar ----------
+let buDraft=null;
+function buMark(d){$('buSt').textContent=d?'Not saved':''}
+function paintBkUi(){
+  const u=uiCfg();if(!buDraft)buDraft={f:bkOrder(BKF_ALL,u.bkF,u.bkFoff),c:bkOrder(BKC_ALL(),u.bkC,u.bkCoff),top:u.top==='hide'?'hide':'show'};
+  $('setBkUiMini').textContent=`${buDraft.f.filter(x=>x.on).length} filters · ${buDraft.c.filter(x=>x.on).length} fields · top bar ${buDraft.top==='hide'?'hidden':'shown'}`;
+  const list=(id,L)=>{$(id).innerHTML=L.map((x,i)=>`<div class="bu-row${x.on?'':' off'}" data-i="${i}"><label><input type="checkbox"${x.on?' checked':''}> ${esc(x.l)}</label><span class="pl-b"><button type="button" class="pl-ic" data-mv="-1" aria-label="Move ${esc(x.l)} up">↑</button><button type="button" class="pl-ic" data-mv="1" aria-label="Move ${esc(x.l)} down">↓</button></span></div>`).join('');
+    $(id).querySelectorAll('.bu-row').forEach(r=>{const i=+r.dataset.i;r.querySelector('input').onchange=e=>{L[i].on=e.target.checked;buMark(true);paintBkUi()};
+      r.querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>{const j=i+ +b.dataset.mv;if(j<0||j>=L.length)return;[L[i],L[j]]=[L[j],L[i]];buMark(true);paintBkUi();const nb=$(id).querySelector(`.bu-row[data-i="${j}"] [data-mv="${b.dataset.mv}"]`);if(nb)nb.focus()})})};
+  list('buF',buDraft.f);list('buC',buDraft.c);
+  document.querySelectorAll('input[name="buTop"]').forEach(i=>{i.checked=i.value===buDraft.top;i.closest('.stf-r').classList.toggle('on',i.checked);i.onchange=()=>{buDraft.top=i.value;buMark(true);paintBkUi()}});
+}
+$('buReset').onclick=()=>{buDraft={f:bkOrder(BKF_ALL,[],[]),c:bkOrder(BKC_ALL(),[],[]),top:'show'};buMark(true);paintBkUi()};
+$('buSave').onclick=()=>withPerm('plists','Needs permission: Product property lists.',async()=>{
+  const ui={bkF:buDraft.f.map(x=>x.k),bkFoff:buDraft.f.filter(x=>!x.on).map(x=>x.k),bkC:buDraft.c.map(x=>x.k),bkCoff:buDraft.c.filter(x=>!x.on).map(x=>x.k),top:buDraft.top};
+  try{if(sync.key){const r=await syncApi('plists','POST',{lists:{ui},by:curUser?(curUser.name||curUser.username):''},adminCreds);plists=r.lists;sync.v.plists=r.v||sync.v.plists;saveSyncState()}else plists={...(plists||{}),ui};
+    store.set('plists',plists);applyPlists();buDraft=null;buMark(false);paintBkUi();toast('Saved · all staff have it')}
+  catch(e){toast(e&&e.status===403?'Needs permission: Product property lists':'Could not save — check the connection',null,true)}},true);
+$('setBkUi').addEventListener('toggle',()=>{if($('setBkUi').open){buDraft=null;buMark(false);paintBkUi()}});
+setTimeout(()=>{try{buDraft=null;paintBkUi()}catch(e){}},3300);
 $('setCoins').addEventListener('toggle',()=>{if($('setCoins').open){paintCoinSet();pullCoins()}});
 $('cnSetSave').onclick=()=>withPerm('coinSet','Only an admin can change the coin margin.',async()=>{
   const set={margin:num($('cnMargin').value)||0,round:num($('cnRound').value)||50,mode:$('cnMode').value==='near'?'near':'up',disc:$('cnDiscTx').value.split('\n').map(t=>t.trim()).filter(Boolean).slice(0,10),by:meName()};
@@ -6005,7 +6038,7 @@ function paintWtop(){
   const mb=$('wtMoreBtn');if(mb)mb.onclick=e=>{e.stopPropagation();const r=mb.getBoundingClientRect(),w=$('wtMore');w.style.left=Math.max(8,Math.min(r.left,innerWidth-260))+'px';w.hidden=!w.hidden};
   {const hs=$('tabHome').querySelector('span');if(hs)hs.textContent=DESK.matches?'Price Check':'Home'}
   const u=curUser,nm=u?(u.name||u.username):'';$('wtAv').textContent=(nm||'?').trim().charAt(0).toUpperCase();$('wtUn').textContent=nm||'Log in';$('wtRole').textContent=u?roleName(u.role):'';
-  const bell=$('dkBell');if(bell&&bell.parentElement!==$('wtBellSlot'))$('wtBellSlot').appendChild(bell);
+  const bell=$('dkBell');if(bell&&bell.parentElement!==$('wtBellSlot')&&!document.documentElement.classList.contains('no-wtop'))$('wtBellSlot').appendChild(bell);
 }
 document.addEventListener('click',e=>{if(!e.target.closest('#wtMore,#wtMoreBtn'))$('wtMore').hidden=true});
 function goType(c){findType=findType===c&&document.body.dataset.view==='search'?'':c;stPage=1;$('findQ').value='';setView('search');runFind();paintWtop()}
@@ -6073,7 +6106,7 @@ const SET_GICO={gen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
   more:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg>'};
 const SET_GROUPS=[['General',SET_GICO.gen,['setTheme','setText','setFoot','setDevice','setPromo','setReports']],
   ['Pricing & Rates',SET_GICO.price,['setRules','setConv','setRates','setCharges','setMk','setCoins']],
-  ['Products & Inventory',SET_GICO.prod,['setPlists','setPd','setImg','setCodes','dataCard','soldCard','setExport','setBackup','setSup']],
+  ['Products & Inventory',SET_GICO.prod,['setPlists','setBkUi','setPd','setImg','setCodes','dataCard','soldCard','setExport','setBackup','setSup']],
   ['Users & Access',SET_GICO.users,['adminCard','setRoles','setAppr','setSync']]];
 function paintSetGrid(){
   if(!DESK.matches)return;let gd=$('setGrid');
@@ -6139,10 +6172,12 @@ let pattrs=store.get('pattrs',{})||{};
 let CL_LIST=[];
 const PL_DEF={jt:JT_GROUPS,sc:SC_LIST,st:STT_LIST,sh:SHP_LIST,ss:SST_LIST,mc:MC_LIST,cl:[]};
 let plists=store.get('plists',null),plDirty=false;
-function applyPlists(){const L=plists||{},A=k=>Array.isArray(L[k])?L[k]:PL_DEF[k];JT_GROUPS=A('jt');SC_LIST=A('sc');STT_LIST=A('st');SHP_LIST=A('sh');SST_LIST=A('ss');MC_LIST=A('mc');CL_LIST=A('cl')}
+function applyUi(){const hide=((plists&&plists.ui)||{}).top==='hide';document.documentElement.classList.toggle('no-wtop',hide);const b=$('dkBell'),acts=document.querySelector('#dkHead .dk-acts');if(b&&acts){if(hide&&b.parentElement!==acts)acts.prepend(b);else if(!hide&&DESK.matches&&$('wtBellSlot')&&b.parentElement!==$('wtBellSlot'))$('wtBellSlot').appendChild(b)}}
+function applyPlists(){const L=plists||{},A=k=>Array.isArray(L[k])?L[k]:PL_DEF[k];JT_GROUPS=A('jt');try{applyUi()}catch(e){}SC_LIST=A('sc');STT_LIST=A('st');SHP_LIST=A('sh');SST_LIST=A('ss');MC_LIST=A('mc');CL_LIST=A('cl')}
 applyPlists();
 async function pullPlists(){if(!sync.key||!navigator.onLine)return;try{const r=await syncApi('plists');plists=r&&r.lists||null;store.set('plists',plists);sync.v.plists=r&&r.v||0;saveSyncState();applyPlists();if($('setPlists')&&$('setPlists').open&&!plDirty)paintPlists()}catch(e){}}
 setTimeout(()=>pullPlists(),2900);
+setTimeout(()=>{try{applyUi()}catch(e){}},0);addEventListener('load',()=>{try{applyUi()}catch(e){}});
 const scSplit=v=>(Array.isArray(v)?v:String(v||'').split(/[,/;|+&]+/)).map(x=>String(x).trim()).filter(Boolean).map(x=>{const h=SC_LIST.find(c=>c[0].toLowerCase()===x.toLowerCase());return h?h[0]:x.replace(/\b\w/g,m=>m.toUpperCase())}).slice(0,SC_MAX);
 function attrOf(r){if(!r)return {jt:'',sc:[],mc:'',st:[],sk:'',sh:[],ss:[],cl:''};const k=r.key||keyOf(r.barcode||''),a=(k&&pattrs[k])||{};return {jt:String(a.jt||r.design||'').trim(),sc:a.sc&&a.sc.length?a.sc.slice(0,SC_MAX):scSplit(r.scol),mc:String(a.mc||r.mcol||'').trim(),st:a.st&&a.st.length?a.st.slice(0,STT_MAX):sttGuess(r),sk:String(a.sk||'').trim(),sh:Array.isArray(a.sh)?a.sh.slice(0,SHP_MAX):[],ss:Array.isArray(a.ss)?a.ss.slice(0,SST_MAX):[],cl:String(a.cl||'').trim()}}
 function scSw(c){const h=SC_LIST.find(x=>x[0]===c);return `<i class="sc-sw" style="background:${h?h[1]:'#bbb'}" aria-hidden="true"></i>`}
@@ -6498,7 +6533,7 @@ const RP_ICO={
   lay:'M12 3l9 5-9 5-9-5z|M3 13l9 5 9-5|M3 17l9 5 9-5'
 };
 const rpSvg=i=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${(RP_ICO[i]||RP_ICO.nm).split('|').map(d=>`<path d="${d}"/>`).join('')}</svg>`;
-const RP_F=[['img','Photo','ph'],['key','SKU / label no.','tag'],['pname','Product name','nm'],['item','Item name','nm'],['category','Item type','cat'],['jt','Design','dsg'],['carat','Purity','pur'],['mc','Metal colour','mtl'],['size','Ring / bangle size','sz'],['sk','Shank (W×T)','shk'],['stoneName','Diamond / stone','dia'],['stone','Diamond ct · pcs','dia'],['stt','Stone type','stn'],['scol','Stone colour','col'],['gw','Gr. Wt','wt'],['nw','Nt. Wt','wt'],['sw','St. Wt','wt'],['model','Model','nm'],['huidNo','HUID no.','huid'],['location','Location','loc'],['mk','Making','mk'],['price','Label price','rs'],['fv','Fair value','fv'],['save','Savings','sv'],['supplier','Supplier','sup'],['nlc','NLC','rs'],['shop','Shopify link','lnk']];
+const RP_F=[['img','Photo','ph'],['key','SKU / label no.','tag'],['pname','Product name','nm'],['item','Item name','nm'],['category','Item type','cat'],['cl','Collection','dsg'],['jt','Design','dsg'],['shp','Shape','dsg'],['sst','Stone shape','stn'],['carat','Purity','pur'],['mc','Metal colour','mtl'],['size','Ring / bangle size','sz'],['sk','Shank (W×T)','shk'],['stoneName','Diamond / stone','dia'],['stone','Diamond ct · pcs','dia'],['stt','Stone type','stn'],['scol','Stone colour','col'],['gw','Gr. Wt','wt'],['nw','Nt. Wt','wt'],['sw','St. Wt','wt'],['model','Model','nm'],['huidNo','HUID no.','huid'],['location','Location','loc'],['mk','Making','mk'],['price','Label price','rs'],['fv','Fair value','fv'],['save','Savings','sv'],['supplier','Supplier','sup'],['nlc','NLC','rs'],['shop','Shopify link','lnk']];
 const RP_DEF=['img','key','pname','carat','size','sk','stoneName','gw','nw'];
 const RP_MAX=120;
 function rpFieldsOk(){return RP_F.filter(([k])=>(k!=='shop'||shopOn())&&(!['fv','save'].includes(k)||(can('fva')&&can('shareFv')))&&(k!=='mk'||can('shareCost'))&&(!['supplier','nlc'].includes(k)||(can('pdHidden')&&can('shareCost'))))}
@@ -6528,8 +6563,9 @@ const rpRows=(r,f)=>f.filter(k=>k!=='img'&&k!=='key'&&k!==rpHead(r,f).nmK).map(k
 // the heading, sub-heading, category and collection of the report, guessed from the items
 function rpMeta(list){
   const top=g=>{const m=new Map();list.forEach(r=>{const v=String(g(r)||'').trim();if(v)m.set(v,(m.get(v)||0)+1)});let b='',n=0;m.forEach((c,k)=>{if(c>n){b=k;n=c}});return n>=Math.max(1,list.length*0.6)?b:''};
-  const cat=top(r=>r.category),col=top(r=>attrOf(r).jt);
-  return {t:'Design Report',s:[cat?cat+' Collection':'',col?col+' Designs':''].filter(Boolean).join(' – '),cat,col,tot:true,date:new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})};
+  const cat=top(r=>r.category),cl=top(r=>attrOf(r).cl),dz=top(r=>attrOf(r).jt),col=cl||dz;   // V1.9.8 the items' own collection first
+  const clT=cl?(/collection/i.test(cl)?cl:cl+' Collection'):'';
+  return {t:'Design Report',s:[clT||(cat?cat+' Collection':''),dz?dz+' Designs':''].filter(Boolean).join(' – '),cat,col,tot:true,date:new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})};
 }
 // ---- the report on screen: one card per design, readable on a phone, two columns on a computer ----
 function rpCardHtml(r,f,u){
@@ -8004,7 +8040,7 @@ let bulkAdd=null;
 // V1.8.18 find by: purity, weight range (gross / net), supplier, imported. With no labels or words, the finders pick from all stock
 // V1.8.19 also item type, item name, wastage %, making (fixed ₹ / ₹ per g), FVA. Making and FVA are what the price uses (pricing rules included)
 const BKF_K=['wMin','wMax','waEq','waMin','waMax','mkMin','mkMax','fvEq','fvMin','fvMax'];
-function bulkFindN(f){return f?['pur','sup','imp','cat','item','mkT','fv','mc','stt','cl','jt','sh','ss'].filter(k=>f[k]).length+BKF_K.filter(k=>f[k]!=='').length:0}
+function bulkFindN(f){return f?['pur','sup','imp','cat','item','mkT','fv','mc','stt','cl','jt','sh','ss','sc','loc'].filter(k=>f[k]).length+BKF_K.filter(k=>f[k]!=='').length:0}
 function bulkFindOn(f){return bulkFindN(f)>0}
 const lcT=x=>String(x||'').trim().toLowerCase();
 function bulkFindPass(r,f){
@@ -8013,7 +8049,8 @@ function bulkFindPass(r,f){
   if(f.mc){const m=lcT(attrOf(r).mc);if(f.mc==='__none'?!!m:m!==f.mc)return false}
   if(f.cl){const m=lcT(attrOf(r).cl);if(f.cl==='__none'?!!m:m!==f.cl)return false}   // V1.9.7
   if(f.jt){const m=lcT(attrOf(r).jt);if(f.jt==='__none'?!!m:m!==f.jt)return false}
-  for(const k of ['sh','ss'])if(f[k]){const a=attrOf(r)[k].map(lcT);if(f[k]==='__none'?a.length>0:!a.includes(f[k]))return false}
+  if(f.loc){const m=lcT(r.location);if(f.loc==='__none'?!!m:m!==f.loc)return false}
+  for(const k of ['sh','ss','sc'])if(f[k]){const a=attrOf(r)[k].map(lcT);if(f[k]==='__none'?a.length>0:!a.includes(f[k]))return false}
   if(f.item&&lcT(r.item)!==f.item)return false;
   const inR=(v,a,b)=>!(isNaN(v)||(a!==''&&v<num(a))||(b!==''&&v>num(b)));
   if(f.waEq!==''||f.waMin!==''||f.waMax!==''||f.mkT||f.mkMin!==''||f.mkMax!==''||f.fv||f.fvEq!==''||f.fvMin!==''||f.fvMax!==''){
@@ -8044,6 +8081,27 @@ function bulkPick(labels,q,f){
   if(bulkFindOn(f)){const base=out.size||labels.trim()||q?[...out.values()]:[...stockMap.values()];return {list:base.filter(r=>bulkFindPass(r,f)),miss}}
   return {list:[...out.values()],miss};
 }
+// V1.9.8 Bulk update layout (Settings › Bulk update & top bar): which filters / fields show and their order, shared
+const BKF_ALL=[['item','Item name','bkfItem'],['cat','Item type','bkfCat'],['cl','Collection','bkfCl'],['jt','Design','bkfJt'],['mc','Metal colour','bkfMc'],['stt','Stone type','bkfStt'],['sh','Shape','bkfSh'],['ss','Stone shape','bkfSs'],['sc','Stone colour','bkfSc'],['pur','Purity','bkfPur'],['sup','Supplier','bkfSup'],['loc','Location','bkfLoc'],['imp','Imported','bkfImp'],['wt','Weight range','bkfWBy'],['wa','Wastage %','bkfWaEq'],['mk','Making','bkfMkT'],['fv','FVA','bkfFv']];
+const BKC_ALL=()=>[['cl','Collection'],['jt','Design'],...BF.filter(x=>x[0]==='mc').map(x=>[x[0],x[1]]),['st','Stone type'],['sh','Shape'],['ss','Stone shape'],['sc','Stone colour'],...BF.filter(x=>x[0]!=='mc').map(x=>[x[0],x[1]])];
+const uiCfg=()=>(plists&&plists.ui)||{};
+function bkOrder(all,saved,off){const keys=all.map(x=>x[0]),o=[...(saved||[]).filter(k=>keys.includes(k)),...keys.filter(k=>!(saved||[]).includes(k))];return o.map(k=>({k,l:all.find(x=>x[0]===k)[1],on:!(off||[]).includes(k)}))}
+function bkArrange(){
+  const u=uiCfg(),fo=bkOrder(BKF_ALL,u.bkF,u.bkFoff),co=bkOrder(BKC_ALL(),u.bkC,u.bkCoff);
+  // filters: pills in the chosen order, ranges after them
+  const fd=$('bkFind');if(fd){const pills=document.createElement('div');pills.className='bk-pills';const rng=document.createElement('div');rng.className='bk-rngs';
+    fo.forEach(({k,l,on})=>{const id=BKF_ALL.find(x=>x[0]===k)[2],el=$(id);if(!el)return;
+      const box=el.closest('.bkf-g')&&['wt','wa','mk','fv'].includes(k)?el.closest('.bkf-g'):el.parentElement;
+      if(!on){box.remove();return}
+      if(['wt','wa','mk','fv'].includes(k))rng.appendChild(box);
+      else{box.className='bk-pill';const lb=box.querySelector('label');if(lb)lb.classList.add('sr');const o0=el.querySelector('option[value=""]');if(o0)o0.textContent=l;el.title=l;const on2=()=>box.classList.toggle('on',!!el.value);el.addEventListener('change',on2);on2();pills.appendChild(box)}});
+    const g1=fd.querySelector('.bkf-g');fd.querySelectorAll('.bkf-g').forEach(g=>g.remove());const n=fd.querySelector('.bkf-n');n.before(pills);n.before(rng)}
+  // fields to change: one list in the chosen order
+  const f1=document.querySelector('#modalBody .pr-form:not(.bk-pd)'),pd=document.querySelector('#modalBody .bk-pd');if(!f1||!pd)return;
+  const node=k=>{const m=$('bkM'+k);if(['st','sh','ss','sc'].includes(k))return m?m.closest('.bk-m'):null;const i=$('bk_'+k);return i?i.closest('.pr-form>div'):null};
+  co.forEach(({k,on})=>{const el=node(k);if(!el)return;if(!on)el.remove();else f1.appendChild(el)});
+  pd.remove();const h=[...document.querySelectorAll('#modalBody .bk-ch')].find(x=>/Product details/.test(x.textContent));if(h)h.remove();
+}
 // V1.9.7 product details that bulk update can change: tick chips + add / replace / clear
 const BK_MULTI=[['st','Stone type',()=>STT_LIST,STT_MAX],['sh','Shape',()=>SHP_LIST,SHP_MAX],['ss','Stone shape',()=>SST_LIST,SST_MAX],['sc','Stone colour',()=>SC_LIST.map(x=>x[0]),SC_MAX]];
 function bulkForm(pre){
@@ -8061,7 +8119,7 @@ function bulkForm(pre){
         <div><label for="bkfSup">Supplier</label><select id="bkfSup"><option value="">Any</option>${(()=>{const m=new Map();for(const r of stockMap.values()){const v=String(r.supplier||'').trim();if(v&&!m.has(v.toLowerCase()))m.set(v.toLowerCase(),v)}return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1],'en',{numeric:true})).map(([k,v])=>`<option value="${esc(k)}">${esc(v)}${(()=>{const x=supList().find(s=>s.name.toLowerCase()===k);return x&&x.full?' · '+esc(x.full):''})()}</option>`).join('')})()}</select></div>
         <div><label for="bkfMc">Metal colour</label><select id="bkfMc"><option value="">Any</option>${(()=>{const m=new Map();for(const r of stockMap.values()){const v=attrOf(r).mc;if(v)m.set(v.toLowerCase(),v)}return [...m.entries()].map(([k,v])=>`<option value="${esc(k)}">${esc(v)}</option>`).join('')})()}<option value="__none">Not set</option></select></div>
         <div><label for="bkfStt">Stone type</label><select id="bkfStt"><option value="">Any</option>${(()=>{const m=new Map();for(const r of stockMap.values())attrOf(r).st.forEach(v=>m.set(v.toLowerCase(),v));return [...m.entries()].map(([k,v])=>`<option value="${esc(k)}">${esc(v)}</option>`).join('')})()}<option value="__none">Not set</option></select></div>
-        ${[['Cl','Collection',r=>[attrOf(r).cl]],['Jt','Design',r=>[attrOf(r).jt]],['Sh','Shape',r=>attrOf(r).sh],['Ss','Stone shape',r=>attrOf(r).ss]].map(([id,l,fn])=>{const m=new Map();for(const r of stockMap.values())fn(r).forEach(v=>{if(v)m.set(v.toLowerCase(),v)});return `<div><label for="bkf${id}">${l}</label><select id="bkf${id}"><option value="">Any</option>${[...m.entries()].sort((a,b)=>a[1].localeCompare(b[1])).map(([k,v])=>`<option value="${esc(k)}">${esc(v)}</option>`).join('')}<option value="__none">Not set</option></select></div>`}).join('')}
+        ${[['Cl','Collection',r=>[attrOf(r).cl]],['Jt','Design',r=>[attrOf(r).jt]],['Sh','Shape',r=>attrOf(r).sh],['Ss','Stone shape',r=>attrOf(r).ss],['Sc','Stone colour',r=>attrOf(r).sc],['Loc','Location',r=>[r.location]]].map(([id,l,fn])=>{const m=new Map();for(const r of stockMap.values())fn(r).forEach(v=>{if(v)m.set(v.toLowerCase(),v)});return `<div><label for="bkf${id}">${l}</label><select id="bkf${id}"><option value="">Any</option>${[...m.entries()].sort((a,b)=>a[1].localeCompare(b[1])).map(([k,v])=>`<option value="${esc(k)}">${esc(v)}</option>`).join('')}<option value="__none">Not set</option></select></div>`}).join('')}
         <div><label for="bkfImp">Imported</label><select id="bkfImp"><option value="">Any</option><option value="yes">Imported only</option><option value="no">Not imported</option></select></div>
       </div></div>
       <div class="bkf-g"><b>Weight</b><div class="bkf-r3">
@@ -8102,12 +8160,13 @@ function bulkForm(pre){
       <div><label for="bk_jt">Design</label><select id="bk_jt"><option value="">Keep</option>${JT_GROUPS.map(([g,l])=>`<optgroup label="${esc(g)}">${l.map(v=>`<option>${esc(v)}</option>`).join('')}</optgroup>`).join('')}<option value="__none">Clear design</option></select></div>
       ${BK_MULTI.map(([k,l,L,max])=>`<div class="full bk-m">${attrMulti('bkM',k,l,'Type a new one',L(),[])}<div class="bk-mm" role="radiogroup" aria-label="${l}: how to change">${[['add','Add the ticked'],['set','Replace with the ticked'],['clear','Clear all']].map(([v,t],i)=>`<label class="stf-r${i?'':' on'}"><input type="radio" name="bkMode_${k}" value="${v}"${i?'':' checked'}><span>${t}</span></label>`).join('')}</div></div>`).join('')}
     </div>`;
-  BK_MULTI.forEach(([k,,,max])=>{wireMulti('bkM',k,max);document.querySelectorAll(`input[name="bkMode_${k}"]`).forEach(i=>i.onchange=()=>i.closest('.bk-mm').querySelectorAll('.stf-r').forEach(l=>l.classList.toggle('on',l.contains(i)&&i.checked)))});
-  $('bk_supplier').addEventListener('change',()=>{$('bk_supplier_new').hidden=$('bk_supplier').value!=='__new';if(!$('bk_supplier_new').hidden)$('bk_supplier_new').focus()});
-  const MK=['mkPct','mkFix','mkPg'];MK.forEach(k=>$('bk_'+k).addEventListener('input',e=>{if(e.target.value.trim())MK.filter(x=>x!==k).forEach(x=>$('bk_'+x).value='')}));
+  bkArrange();
+  BK_MULTI.forEach(([k,,,max])=>{if(!$('bkM'+k))return;wireMulti('bkM',k,max);document.querySelectorAll(`input[name="bkMode_${k}"]`).forEach(i=>i.onchange=()=>i.closest('.bk-mm').querySelectorAll('.stf-r').forEach(l=>l.classList.toggle('on',l.contains(i)&&i.checked)))});
+  if($('bk_supplier'))$('bk_supplier').addEventListener('change',()=>{$('bk_supplier_new').hidden=$('bk_supplier').value!=='__new';if(!$('bk_supplier_new').hidden)$('bk_supplier_new').focus()});
+  const MK=['mkPct','mkFix','mkPg'];MK.forEach(k=>$('bk_'+k)&&$('bk_'+k).addEventListener('input',e=>{if(e.target.value.trim())MK.filter(x=>x!==k).forEach(x=>{if($('bk_'+x))$('bk_'+x).value=''})}));
   let pick={list:[],miss:[]};
-  const V=id=>$(id).value.trim();
-  const bkF=()=>({stt:V('bkfStt'),mc:V('bkfMc'),cl:V('bkfCl'),jt:V('bkfJt'),sh:V('bkfSh'),ss:V('bkfSs'),cat:V('bkfCat'),item:V('bkfItem'),waEq:V('bkfWaEq'),fvEq:V('bkfFvEq'),waMin:V('bkfWaMin'),waMax:V('bkfWaMax'),mkT:V('bkfMkT'),mkMin:V('bkfMkMin'),mkMax:V('bkfMkMax'),fv:V('bkfFv'),fvMin:V('bkfFvMin'),fvMax:V('bkfFvMax'),pur:$('bkfPur').value,sup:$('bkfSup').value,imp:$('bkfImp').value,wBy:$('bkfWBy').value,wMin:$('bkfWMin').value.trim(),wMax:$('bkfWMax').value.trim()});
+  const V=id=>$(id)?$(id).value.trim():'';
+  const bkF=()=>({stt:V('bkfStt'),mc:V('bkfMc'),cl:V('bkfCl'),jt:V('bkfJt'),sh:V('bkfSh'),ss:V('bkfSs'),sc:V('bkfSc'),loc:V('bkfLoc'),cat:V('bkfCat'),item:V('bkfItem'),waEq:V('bkfWaEq'),fvEq:V('bkfFvEq'),waMin:V('bkfWaMin'),waMax:V('bkfWaMax'),mkT:V('bkfMkT'),mkMin:V('bkfMkMin'),mkMax:V('bkfMkMax'),fv:V('bkfFv'),fvMin:V('bkfFvMin'),fvMax:V('bkfFvMax'),pur:V('bkfPur'),sup:V('bkfSup'),imp:V('bkfImp'),wBy:V('bkfWBy'),wMin:V('bkfWMin'),wMax:V('bkfWMax')});
   const upd=()=>{const ff=bkF(),nf=bulkFindN(ff);$('bkfOn').textContent=nf?`${nf} on`:'';pick=bulkPick($('bkLabels').value,$('bkQ').value,ff);const n=pick.list.length;
     const nr=pick.list.filter(r=>ruleFor(r)).length;
     $('bkCount').innerHTML=(n?`<b>${n} item${n>1?'s':''} picked</b>: ${esc(pick.list.slice(0,8).map(r=>r.barcode||r.key).join(', '))}${n>8?' …':''}${nr?`<br><small>${nr} of them match a pricing rule; making or FVA typed here will be used instead of the rule.</small>`:''}`:'No items picked.')+(pick.miss.length?`<br><span class="bad-t">Not in stock: ${esc(pick.miss.slice(0,8).join(', '))}</span>`:'')};
@@ -8118,7 +8177,7 @@ function bulkForm(pre){
   // item types follow the item name picked
   $('bkfItem').addEventListener('change',()=>{const it=$('bkfItem').value,was=$('bkfCat').value,m=new Map();for(const r of stockMap.values()){if(it&&lcT(r.item)!==it)continue;const v=String(r.category||'').trim();if(v&&!m.has(v.toLowerCase()))m.set(v.toLowerCase(),v)}
     $('bkfCat').innerHTML='<option value="">Any</option>'+[...m.entries()].sort((a,b)=>a[1].localeCompare(b[1],'en',{numeric:true})).map(([k,v])=>`<option value="${esc(k)}"${k===was?' selected':''}>${esc(v)}</option>`).join('');if(was&&!m.has(was))$('bkfCat').value=''});
-  ['bkfStt','bkfMc','bkfCl','bkfJt','bkfSh','bkfSs','bkfWaEq','bkfFvEq','bkfCat','bkfItem','bkfWaMin','bkfWaMax','bkfMkT','bkfMkMin','bkfMkMax','bkfFv','bkfFvMin','bkfFvMax','bkfPur','bkfSup','bkfImp','bkfWBy','bkfWMin','bkfWMax'].forEach(id=>{$(id).addEventListener('input',upd);$(id).addEventListener('change',upd)});
+  ['bkfStt','bkfMc','bkfCl','bkfJt','bkfSh','bkfSs','bkfSc','bkfLoc','bkfWaEq','bkfFvEq','bkfCat','bkfItem','bkfWaMin','bkfWaMax','bkfMkT','bkfMkMin','bkfMkMax','bkfFv','bkfFvMin','bkfFvMax','bkfPur','bkfSup','bkfImp','bkfWBy','bkfWMin','bkfWMax'].forEach(id=>{if(!$(id))return;$(id).addEventListener('input',upd);$(id).addEventListener('change',upd)});
   bulkAdd=code=>{const k=keyOf(code);if(!k)return;const r=findStock(k),ta=$('bkLabels');if(!ta)return;
     const have=new Set(ta.value.split(/[\s,;]+/).map(keyOf).filter(Boolean));
     try{navigator.vibrate&&navigator.vibrate(r?50:[60,60,60])}catch(e){}
@@ -8131,7 +8190,7 @@ function bulkForm(pre){
     else{scanTarget='';$('bkLabels').focus();toast('No camera here. Use a handheld scanner into the box, or type.')}};
   const a=$('modalActs');a.innerHTML='';const mk=(t,c,f)=>{const b=document.createElement('button');b.type='button';b.className='btn '+c;b.textContent=t;b.onclick=f;a.appendChild(b);return b};
   const sv=mk('Update items','primary',async()=>{
-    const g=k=>(k==='supplier'&&$('bk_supplier').value==='__new'?$('bk_supplier_new').value:$('bk_'+k).value).trim(),n=k=>{const x=num(g(k));return g(k)===''||isNaN(x)?null:x};
+    const g=k=>{const el=$('bk_'+k);if(!el)return '';return (k==='supplier'&&el.value==='__new'?$('bk_supplier_new').value:el.value).trim()},n=k=>{const x=num(g(k));return g(k)===''||isNaN(x)?null:x};
     if(!pick.list.length){toast('Pick the items first',null,true);return}
     const ch={},what=[];
     const mkP=n('mkPg')!=null?['pergram',n('mkPg')]:n('mkFix')!=null?['fixed',n('mkFix')]:n('mkPct')!=null?['pct',n('mkPct')]:null;
@@ -8143,8 +8202,8 @@ function bulkForm(pre){
     if(g('imp')){ch.imp=g('imp')==='Yes'?'Yes':'';what.push(g('imp')==='Yes'?'imported':'not imported')}
     // metal colour lives with the product details (not the stock row), so it does not touch making / rules
     const mcNew=g('mc').replace(/\s+/g,' ');const mcCanon=mcNew&&(MC_LIST.find(x=>x[0].toLowerCase()===mcNew.toLowerCase())||[mcNew])[0];if(mcCanon)what.push('metal colour '+mcCanon);
-    const clRaw=$('bk_cl').value.replace(/\s+/g,' ').trim(),clNew=clRaw?(/^(none|clear|-)$/i.test(clRaw)?'':clRaw):null;if(clNew!=null)what.push(clNew?'collection '+clNew:'clear collection');
-    const jtRaw=$('bk_jt').value,jtNew=jtRaw?(jtRaw==='__none'?'':jtRaw):null;if(jtNew!=null)what.push(jtNew?'design '+jtNew:'clear design');
+    const clRaw=($('bk_cl')?$('bk_cl').value:'').replace(/\s+/g,' ').trim(),clNew=clRaw?(/^(none|clear|-)$/i.test(clRaw)?'':clRaw):null;if(clNew!=null)what.push(clNew?'collection '+clNew:'clear collection');
+    const jtRaw=$('bk_jt')?$('bk_jt').value:'',jtNew=jtRaw?(jtRaw==='__none'?'':jtRaw):null;if(jtNew!=null)what.push(jtNew?'design '+jtNew:'clear design');
     const mops={};BK_MULTI.forEach(([k,l,,max])=>{const mode=(document.querySelector(`input[name="bkMode_${k}"]:checked`)||{}).value||'add',t=readMulti('bkM',k,max);
       if(mode==='clear'){mops[k]={mode,t:[]};what.push('clear '+l.toLowerCase())}else if(t.length){mops[k]={mode,t,max};what.push((mode==='set'?l.toLowerCase()+' = ':'add '+l.toLowerCase()+' ')+t.join(', '))}});
     const pdOn=!!mcCanon||clNew!=null||jtNew!=null||Object.keys(mops).length>0;
@@ -8480,7 +8539,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.9.7',APP_BUILD='__BUILD__';
+const APP_VERSION='1.9.8',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('sbVer'))$('sbVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------

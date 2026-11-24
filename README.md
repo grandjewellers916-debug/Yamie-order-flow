@@ -653,3 +653,9 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 ## 1.9.7 — Bulk update: product details
 - Bulk update › **Product details**: Collection (type **none** to clear), Design (or Clear design), and tick chips for Stone type, Shape, Stone shape and Stone colour, each with **Add the ticked** / **Replace with the ticked** / **Clear all**. Metal colour stays in the list above. The confirm line lists every change.
 - **Find items by** now also has Collection, Design, Shape and Stone shape (or "Not set").
+
+## 1.9.8 — Bulk update filters as pills; Settings › Bulk update & top bar; Collection on reports
+- Bulk update › Find items by: pill filters like Search — Item name, Item type, **Collection**, Design, Metal colour, Stone type, Shape, Stone shape, **Stone colour**, Purity, Supplier, **Location**, Imported — then Weight, Wastage %, Making and FVA ranges.
+- Bulk update › Change for the picked items: one list — Collection, Design, Metal colour, Stone type, Shape, Stone shape, Stone colour, then the label fields.
+- Settings › Products & Inventory › **Bulk update & top bar** (permission Product property lists): tick which filters and fields Bulk update shows, ↑ ↓ to order them, and **show or hide the top bar** on computers (hidden: the page title moves to the top, the bell sits beside it). Shared with all staff (`plists.ui`).
+- Product report: Collection, Shape and Stone shape can be shown on each card; the report heading's Collection and sub-heading use the items' collection.

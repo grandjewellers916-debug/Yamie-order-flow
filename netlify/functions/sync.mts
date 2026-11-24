@@ -763,6 +763,10 @@ export default async (req: Request) => {
       const out: any = { by: cleanStr(body?.by, 40), at: Date.now() }
       for (const k of ["cl", "sh", "ss", "st"]) if (k in L) out[k] = names(L[k])
       for (const k of ["sc", "mc"]) if (k in L) out[k] = swatch(L[k])
+      if ("ui" in L && L.ui && typeof L.ui === "object") {   // V1.9.8 bulk update filters / fields (order + hidden) and the top bar
+        const keys = (a: any) => [...new Set((Array.isArray(a) ? a : []).map((x: any) => String(x || "")).filter((x: string) => /^[A-Za-z]{1,20}$/.test(x)))].slice(0, 80)
+        out.ui = { bkF: keys(L.ui.bkF), bkFoff: keys(L.ui.bkFoff), bkC: keys(L.ui.bkC), bkCoff: keys(L.ui.bkCoff), top: L.ui.top === "hide" ? "hide" : "show" }
+      }
       if ("jt" in L) out.jt = uniq((Array.isArray(L.jt) ? L.jt : []).map((g: any) => [str(Array.isArray(g) ? g[0] : "", 40), names(Array.isArray(g) ? g[1] : [])]), (g) => g[0]).filter((g: any) => g[0]).slice(0, 30)
       const prev: any = (await st.get("plists", { type: "json" })) || {}
       const next = { ...prev, ...out }
