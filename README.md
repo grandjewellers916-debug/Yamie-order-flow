@@ -632,3 +632,6 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 - New properties (several per product, "+ Other…" adds your own): **Shape** (Infinity, Heart, Round, Oval, Drop, Flower, Butterfly, Evil eye…; up to 4) and **Stone shape** (Round, Oval, Pear, Marquise, Princess, Emerald, Cushion, Heart, Baguette…; up to 6). Stored with the other product properties (`pattrs`: `sh`, `ss`); older forms and Bulk update keep them.
 - Search filters, text search, table columns, Excel export and share-card fields include Shape and Stone shape.
 - Who can edit: users allowed to add photos, edit, add or bulk-update stock (product name needs the photos permission).
+
+## 1.9.3 — Side bar header
+- Web side bar: the app-icon tile is replaced by the brand logo (Yamie red / Grand black), **PRICE CHECKER** and the version (e.g. v1.9.3).
