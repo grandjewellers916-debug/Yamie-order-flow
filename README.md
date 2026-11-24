@@ -617,3 +617,12 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 - Rate card uses the supplied logos on a light header (`brand/yamie/logo-2026.png` red, `brand/grand/logo-black.png` black), with a burgundy (Yamie) or charcoal (Grand) title band.
 - Each coin shows its making charge under the price (₹ and %); the WhatsApp text lists it too.
 - Coin rounding setting: amount (₹1/5/10/50/100) and **Up to the next** (default, ₹50) or **To the nearest**.
+
+## V 1.9.0 — New look (24 Nov 2026)
+- **Computer:** soft blush pages with raised white cards; light top bar (search, bell, user); the app icon sits at the top of the side bar; selected side-bar item as a raised pink pill.
+- **Price Check:** rate tiles raised, the item's purity filled in burgundy; the scan band is one line ("Scan Barcode or Enter Label Number" + label box); Gross Amount highlighted in nude; Grand Total as a burgundy pill.
+- **Search / Quote:** pill buttons and filters, table in a raised card.
+- **Settings:** cards grouped under General · Pricing & Rates · Products & Inventory · Users & Access (anything else under More).
+- **Sign in:** light page, app icon with "Price · Quote · Value" on the left, sign-in card on the right (stacked on phones).
+- **New Yamie app icon** (`web/brand/yamie/app-icon.png`, web icons and Android launcher).
+- Applies to the default style (Theme → iOS brand). Dark mode keeps dark cards. Grand uses the same look in its own colours. Phone screens keep their layout.

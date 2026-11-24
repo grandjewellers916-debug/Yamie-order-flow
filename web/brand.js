@@ -13,7 +13,7 @@
       address:['YAMIE FINE JEWELLERY','63/322 Aa, Level G','Grand Business Center','K K Road, Kadavanthra','Kochi, Kerala - 682020','Contact: +91 8714122750','Website: www.yamie.in','GSTIN 32AACFY4685K1ZR'],
       // Quote image and WhatsApp text: firm name, then the address in 2 lines
       addr2:['63/322 Aa, Level G, Grand Business Center, K K Road, Kadavanthra, Kochi, Kerala - 682020','Contact: +91 8714122750 · www.yamie.in · GSTIN 32AACFY4685K1ZR'],
-      logoHeaderColor:'brand/yamie/header-red.png',markColor:'brand/yamie/mark-red.png',
+      logoHeaderColor:'brand/yamie/header-red.png',markColor:'brand/yamie/mark-red.png',appIcon:'brand/yamie/app-icon.png',
       // Yamie primary palette (Nov 2026): Signature Burgundy, Rose Gold, Signature Nude, Cashmere Silk, Porcelain Ivory; SF Pro
       light:{'--maroon':'#702438','--band':'#491525','--gold':'#C99583','--acc':'#C99583','--acc-ink':'#491525',
         '--bg':'#FAF7F3','--surface':'#FFFFFF','--sunk':'#F2E4DB','--fg':'#1D1D1F','--muted':'#795B4D','--line':'#EADCD2',
@@ -34,7 +34,7 @@
     grand:{
       id:'grand',name:'Grand',full:'Grand Jewellers',erp:'Acme',wm:'GRAND',wsub:'JEWELLERS',app:'Grand Price Check',short:'Grand Price',
       site:'https://grand-price-check.netlify.app',
-      manifest:'manifest-grand.webmanifest',icon:'icons/grand-192.png',touch:'icons/grand-180.png',
+      manifest:'manifest-grand.webmanifest',icon:'icons/grand-192.png',appIcon:'icons/grand-192.png',touch:'icons/grand-180.png',
       theme:'#8C0D24',
       light:{'--maroon':'#C41230','--band':'#8C0D24','--gold':'#B08A4E','--bg':'#FBF8F2','--sunk':'#F1EAE0','--fg':'#17130F'},
       dark:{'--maroon':'#E2475F','--band':'#5C0817','--gold':'#D9C39A'},
