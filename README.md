@@ -635,3 +635,8 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 
 ## 1.9.3 — Side bar header
 - Web side bar: the app-icon tile is replaced by the brand logo (Yamie red / Grand black), **PRICE CHECKER** and the version (e.g. v1.9.3).
+
+## 1.9.4 — Item sheet save fix, Collection, Photo filter as tick buttons
+- Fix: on the phone app, after it was reopened, saving in the item sheet stayed "Not saved" (and Save & next did not move) because the user's PIN is not kept in memory. Saving now asks for the PIN once, then saves and moves on; later saves go straight through.
+- New property **Collection** (one per product, e.g. Infinity Collection, Bridal, Daily wear; pick an existing one or type a new one) — in Edit details, item forms, Search filter, text search, table column, Excel export and share card (`pattrs.cl`).
+- Search: the Photo filter is now tick buttons on top — All · With photo · No photo.
