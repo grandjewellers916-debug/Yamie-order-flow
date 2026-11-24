@@ -427,7 +427,7 @@ const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 
   apply();
 })();
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.51';
+const VERSION = '1.52';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -3164,18 +3164,18 @@ function drawCoins() {
   const edit = can('coins'), st = cnSet(), feed = cnFeed22(), m = $('#main');
   m.innerHTML = `<div class="row sp wrap" style="margin-bottom:10px"><div><h1>Gold coins</h1><div class="mut">22K coin prices · benchmark Bhima Ernakulam</div></div></div>
   <div class="cnwrap">
+    <div class="card cn"><div class="cnhd"><div><h3>Our price</h3><div class="mut sm" id="cnOurNote"></div></div></div>
+      <div class="cntw"><table class="cn-t" id="cnOut"><thead><tr><th>Coin</th><th class="r cnx">Gold value</th><th class="r cnx">GST ${COIN_GST}%</th><th class="r cnfin">Our price</th><th class="r">vs Bhima</th></tr></thead><tbody></tbody></table></div>
+      <ul class="cndisc">${(st.disc || []).map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
+      <div class="cnacts">${edit ? '<button class="btn" id="cnSave">Save prices</button>' : ''}<button class="btn sec" id="cnCard">Rate card</button><button class="btn sec" id="cnWa">Share on WhatsApp</button><button class="btn ghost" id="cnCopy">Copy text</button></div></div>
     <div class="card cn"><div class="cnhd"><div><h3>Bhima Ernakulam · benchmark</h3><div class="mut sm">Their prices for 22K gold coins, as quoted: one amount incl. making and ${COIN_GST}% GST.</div></div><span class="cnwhen" id="cnWhen"></span></div>
       <div class="g2"><div><label class="f">Bhima 22K rate (₹/g)</label><input id="cnBr" inputmode="decimal" autocomplete="off" value="${esc(C$.draft.br || '')}" placeholder="${esc(String(cnR22() || '22K rate'))}" ${edit ? '' : 'readonly'}></div>
         <div><label class="f">Our 22K rate today (₹/g)</label><input id="cnR" inputmode="decimal" autocomplete="off" value="${esc(C$.draft.r || '')}" placeholder="${feed ? feed : 'Enter rate'}" ${edit ? '' : 'readonly'}></div></div>
       <div class="mut sm" style="margin:6px 0 10px">${feed ? `Today's 22K rate from the Grand kiosk: <b>${cnInr(feed)}/g</b>. Leave both empty to use it.` : 'Could not read today\'s rate — enter our 22K rate.'} Fill Bhima's rate only if it differs.</div>
       <div class="cntw"><table class="cn-t" id="cnIn"><thead><tr><th>Coin</th><th class="r">Bhima price<small>incl. making &amp; ${COIN_GST}% GST</small></th><th class="r cnx">Gold value</th><th class="r">Making ₹</th><th class="r">Making %</th></tr></thead><tbody>
       ${COIN_W.map((w) => `<tr><td><b>${w} g</b></td><td class="r"><input class="cnp" data-w="${w}" inputmode="decimal" autocomplete="off" value="${esc(String((C$.draft.p || {})[w] || ''))}" placeholder="₹" ${edit ? '' : 'readonly'}></td><td class="r cnx"></td><td class="r"></td><td class="r"></td></tr>`).join('')}</tbody></table></div></div>
-    <div class="card cn"><div class="cnhd"><div><h3>Our price</h3><div class="mut sm" id="cnOurNote"></div></div></div>
-      <div class="cntw"><table class="cn-t" id="cnOut"><thead><tr><th>Coin</th><th class="r cnx">Gold value</th><th class="r cnx">GST ${COIN_GST}%</th><th class="r cnfin">Our price</th><th class="r">vs Bhima</th></tr></thead><tbody></tbody></table></div>
-      <ul class="cndisc">${(st.disc || []).map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
-      <div class="cnacts">${edit ? '<button class="btn" id="cnSave">Save prices</button>' : ''}<button class="btn sec" id="cnCard">Rate card</button><button class="btn sec" id="cnWa">Share on WhatsApp</button><button class="btn ghost" id="cnCopy">Copy text</button></div></div>
     <div class="card cn"><div class="cnhd"><div><h3>History</h3><div class="mut sm">Saved prices, newest first. Tap one to load it.</div></div><button class="btn sm ghost" id="cnRef">Refresh</button></div>
-      <div class="cntw"><table class="cn-t cnh">${C$.log.length ? `<thead><tr><th>Saved</th>${COIN_W.map((w) => `<th class="r">${w} g<small>Bhima · ours</small></th>`).join('')}<th></th></tr></thead><tbody>${C$.log.slice(0, 60).map((e) => `<tr data-id="${esc(e.id)}"><td>${esc(cnWhen(e.at))}<small>${esc(e.by || '')}${e.r22 ? ` · 22K ${cnInr(e.r22)}` : ''}${e.margin ? ` · margin ${cnMgTxt(e)}` : ''}</small></td>${COIN_W.map((w) => `<td class="r">${e.p && e.p[w] ? cnInr(e.p[w]) : '—'}<small>${e.o && e.o[w] ? cnInr(e.o[w]) : ''}</small></td>`).join('')}<td class="r">${can('coinSet') ? `<button class="btn sm ghost" data-del="${esc(e.id)}">Delete</button>` : ''}</td></tr>`).join('')}</tbody>` : '<tbody><tr><td class="mut">No saved prices yet.</td></tr></tbody>'}</table></div></div>
+      <div class="cntw"><table class="cn-t cnh">${C$.log.length ? `<thead><tr><th>Saved</th>${COIN_W.map((w) => `<th class="r">${w} g<small>ours · Bhima</small></th>`).join('')}<th></th></tr></thead><tbody>${C$.log.slice(0, 60).map((e) => `<tr data-id="${esc(e.id)}"><td>${esc(cnWhen(e.at))}<small>${esc(e.by || '')}${e.r22 ? ` · 22K ${cnInr(e.r22)}` : ''}${e.margin ? ` · margin ${cnMgTxt(e)}` : ''}</small></td>${COIN_W.map((w) => `<td class="r"><b>${e.o && e.o[w] ? cnInr(e.o[w]) : '—'}</b><small>${e.p && e.p[w] ? 'Bhima ' + cnInr(e.p[w]) : ''}</small></td>`).join('')}<td class="r">${can('coinSet') ? `<button class="btn sm ghost" data-del="${esc(e.id)}">Delete</button>` : ''}</td></tr>`).join('')}</tbody>` : '<tbody><tr><td class="mut">No saved prices yet.</td></tr></tbody>'}</table></div></div>
     ${can('coinSet') ? `<button class="card cn holcard" id="cnSetGo" style="text-align:left">⚙ <b>Margin &amp; rounding</b> — margin ${cnMgTxt(st)} · ${st.mode === 'near' ? 'nearest' : 'up to next'} ₹${st.round || 50} · change in Admin › Gold coins ›</button>` : ''}
   </div>`;
   const upd = (k, v) => { C$.draft[k] = v; C$.draft.at = 0; cnSaveDraft(); paintCoinCalc(); };
@@ -3198,7 +3198,7 @@ function drawCoins() {
 function paintCoinCalc() {   // only the calculated cells — the price being typed keeps its cursor
   const rows = coinCalc(), st = cnSet(), our = cnR22(), tin = $('#cnIn'), tout = $('#cnOut'); if (!tin || !tout) return;
   rows.forEach((r, i) => { const tr = tin.tBodies[0].rows[i]; tr.cells[2].textContent = r.ok ? cnInr(r.gold) : '—'; tr.cells[3].textContent = r.ok ? cnInr(r.mk) : '—'; tr.cells[4].innerHTML = `<b>${r.ok ? cnPct(r.mkPct) : '—'}</b>`; });
-  tout.tBodies[0].innerHTML = rows.map((r) => !r.ok || !r.our ? `<tr><td><b>${r.w} g</b></td><td colspan="4" class="mut">${our ? 'Enter Bhima\'s price' : 'Enter our 22K rate'}</td></tr>` :
+  tout.tBodies[0].innerHTML = rows.map((r) => !r.ok || !r.our ? `<tr><td><b>${r.w} g</b></td><td colspan="4" class="mut">${our ? 'Enter Bhima\'s price below' : 'Enter our 22K rate below'}</td></tr>` :
     `<tr><td><b>${r.w} g</b></td><td class="r cnx">${cnInr(r.og)}</td><td class="r cnx">${cnInr(r.ogst)}</td><td class="r cnfin"><b>${cnInr(r.tot)}</b><small>Making ${cnInr(r.omk)} · ${cnPct(r.omkPct)}</small></td><td class="r ${r.tot > r.P ? 'cnup' : r.tot < r.P ? 'cndn' : ''}">${r.tot === r.P ? 'same' : (r.tot > r.P ? '+' : '−') + cnInr(Math.abs(r.tot - r.P))}</td></tr>`).join('');
   $('#cnOurNote').textContent = our ? `22K ${cnInr(our)}/g · making = Bhima making % ${cnMgTxt(st)} margin · ${COIN_GST}% GST · ${st.mode === 'near' ? 'rounded to the nearest' : 'rounded up to the next'} ₹${st.round || 50}` : 'Enter our 22K rate first.';
   $('#cnWhen').textContent = C$.draft.at ? 'Saved ' + cnWhen(C$.draft.at) : 'Not saved yet';
