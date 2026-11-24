@@ -732,7 +732,7 @@ export default async (req: Request) => {
       for (const w of W) { const a = cleanNum(e?.p?.[w]); if (a > 0) p[w] = a; const b = cleanNum(e?.o?.[w]); if (b > 0) o[w] = b }
       if (!Object.keys(p).length) return json(req, { error: "bad_coins" }, 400)
       const entry = { id: cleanStr(e.id, 20) || Math.random().toString(36).slice(2, 9), at: cleanNum(e.at) || Date.now(), by: cleanStr(e.by, 40),
-        br: cleanNum(e.br), r22: cleanNum(e.r22), margin: cleanNum(e.margin), round: cleanNum(e.round), gst: cleanNum(e.gst), p, o }
+        br: cleanNum(e.br), r22: cleanNum(e.r22), margin: cleanNum(e.margin), round: cleanNum(e.round), mode: cleanStr(e.mode, 4), gst: cleanNum(e.gst), p, o }
       const log: any[] = ((await st.get("coins", { type: "json" })) as any[]) || []
       const next = [entry, ...log.filter((x) => x.id !== entry.id)].sort((a, b) => b.at - a.at).slice(0, 1000)
       await st.setJSON("coins", next)
@@ -750,7 +750,7 @@ export default async (req: Request) => {
 
     if (op === "coinset") {
       const c = body?.set || {}
-      const set = { margin: Math.max(-50, Math.min(100, cleanNum(c.margin))), round: [1, 5, 10, 50, 100].includes(cleanNum(c.round)) ? cleanNum(c.round) : 10,
+      const set = { margin: Math.max(-50, Math.min(100, cleanNum(c.margin))), round: [1, 5, 10, 50, 100].includes(cleanNum(c.round)) ? cleanNum(c.round) : 50, mode: c.mode === "near" ? "near" : "up",
         disc: (Array.isArray(c.disc) ? c.disc : []).map((x: any) => cleanStr(x, 160)).filter(Boolean).slice(0, 10), by: cleanStr(c.by, 40), at: Date.now() }
       await st.setJSON("coinset", set)
       ;(meta as any).coins = Date.now(); await saveMeta()

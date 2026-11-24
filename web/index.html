@@ -2523,7 +2523,8 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
     <summary><span class="dc-t">Gold coins · margin &amp; disclaimers</span><span class="dc-s" id="setCoinsMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
       <p class="note" style="margin-block:4px 0">Our coin price = weight × today's 22K rate + making + GST. Making % = Bhima's making % + this margin. Shared with all phones.</p>
       <div class="grid" style="margin-top:8px"><div class="f"><label for="cnMargin">Margin over Bhima making (% of gold value)</label><input id="cnMargin" class="num" inputmode="decimal" placeholder="0"></div>
-      <div class="f"><label for="cnRound">Round the price to</label><select id="cnRound"><option value="1">₹1</option><option value="5">₹5</option><option value="10">₹10</option><option value="50">₹50</option><option value="100">₹100</option></select></div></div>
+      <div class="f"><label for="cnRound">Round the price to</label><select id="cnRound"><option value="1">₹1</option><option value="5">₹5</option><option value="10">₹10</option><option value="50">₹50</option><option value="100">₹100</option></select></div>
+      <div class="f"><label for="cnMode">Rounding</label><select id="cnMode"><option value="up">Up to the next</option><option value="near">To the nearest</option></select></div></div>
       <div class="f" style="margin-top:8px"><label for="cnDiscTx">Disclaimers on the rate card (one per line)</label><textarea id="cnDiscTx" rows="6"></textarea></div>
       <div class="rs-acts"><button class="btn primary" type="button" id="cnSetSave">Save</button></div>
   </details>
@@ -4695,14 +4696,14 @@ $('qimgText').onclick=()=>{$('qimgPop').hidden=true;$('waText').click()};
 // and price our coins at today's 22K rate. Saved entries are shared with all phones (history); rate card image for Yamie or Grand.
 const COIN_W=[1,2,4,8];
 const COIN_DISC=['Prices are for cash transactions only.','UPI and debit cards: 1% extra.','Credit cards: 2% extra.','Foreign (international) cards: 4% extra.','Prices are spot rates and change with the market rate.'];
-let coinLog=store.get('coinLog',[]),coinSet=Object.assign({margin:0,round:10,disc:COIN_DISC.slice()},store.get('coinSet',{})),coinDraft=store.get('coinDraft',{br:'',p:{},at:0});
+let coinLog=store.get('coinLog',[]),coinSet=Object.assign({margin:0,round:50,mode:'up',disc:COIN_DISC.slice()},store.get('coinSet',{})),coinDraft=store.get('coinDraft',{br:'',p:{},at:0});
 function coinR22(){const r=baseRate('22k');return r>0?r:null}
 function coinCalc(d){
-  d=d||coinDraft;const g=gstPct(),G=1+g/100,our=coinR22(),br=num(d.br)>0?num(d.br):our,m=num(coinSet.margin)||0,R=num(coinSet.round)||10;
+  d=d||coinDraft;const g=gstPct(),G=1+g/100,our=coinR22(),br=num(d.br)>0?num(d.br):our,m=num(coinSet.margin)||0,R=num(coinSet.round)||50,up=coinSet.mode!=='near';
   return COIN_W.map(w=>{const P=num((d.p||{})[w]);if(!(P>0)||!br)return {w,ok:false};
     const pre=P/G,gold=w*br,mk=pre-gold,mkPct=gold>0?mk/gold*100:0;
     if(!our)return {w,ok:true,our:false,P,pre,gold,mk,mkPct};
-    const og=w*our,omkPct=mkPct+m,omk=og*omkPct/100,opre=og+omk,ogst=opre*g/100,raw=opre+ogst,tot=Math.round(raw/R)*R;
+    const og=w*our,omkPct=mkPct+m,omk=og*omkPct/100,opre=og+omk,ogst=opre*g/100,raw=opre+ogst,tot=(up?Math.ceil(raw/R-1e-9):Math.round(raw/R))*R;
     return {w,ok:true,our:true,P,pre,gold,mk,mkPct,og,omkPct,omk,ogst,raw,tot}});
 }
 const pct1=v=>(Math.round(v*10)/10).toFixed(1)+'%';
@@ -4714,7 +4715,7 @@ function paintCoins(){
   $('cnBrNote').textContent=`Leave empty to use today's 22K rate${our?` (${inr(our)}/g)`:''}. Enter Bhima's own 22K rate if it differs.`;
   $('cnWhen').textContent=coinDraft.at?'Saved '+coinWhen(coinDraft.at):'Not saved yet';
   $('cnIn').innerHTML=`<thead><tr><th>Coin</th><th class="r">Bhima price<small>incl. making &amp; ${fmtN(g)}% GST</small></th><th class="r">Gold value</th><th class="r">Making ₹</th><th class="r">Making %</th></tr></thead><tbody>${rows.map(r=>`<tr><td><b>${r.w} g</b></td><td class="r"><input class="num cn-p" data-w="${r.w}" inputmode="decimal" autocomplete="off" value="${esc(String((coinDraft.p||{})[r.w]||''))}" placeholder="₹"${edit?'':' readonly'}></td><td class="r">${r.ok?inr(r.gold):'—'}</td><td class="r">${r.ok?inr(r.mk):'—'}</td><td class="r"><b>${r.ok?pct1(r.mkPct):'—'}</b></td></tr>`).join('')}</tbody>`;
-  $('cnOurNote').textContent=our?`Today's 22K rate ${inr(our)}/g · making = Bhima making % ${num(coinSet.margin)>=0?'+':'−'} ${fmtN(Math.abs(num(coinSet.margin)||0))}% margin · ${fmtN(g)}% GST · rounded to ₹${coinSet.round||10}`:'Set today\'s 22K rate first (Gold Rates).';
+  $('cnOurNote').textContent=our?`Today's 22K rate ${inr(our)}/g · making = Bhima making % ${num(coinSet.margin)>=0?'+':'−'} ${fmtN(Math.abs(num(coinSet.margin)||0))}% margin · ${fmtN(g)}% GST · ${coinSet.mode==='near'?'rounded to the nearest':'rounded up to the next'} ₹${coinSet.round||50}`:'Set today\'s 22K rate first (Gold Rates).';
   $('cnOut').innerHTML=`<thead><tr><th>Coin</th><th class="r">Gold value</th><th class="r">Making</th><th class="r">GST ${fmtN(g)}%</th><th class="r cn-fin">Our price</th><th class="r">vs Bhima</th></tr></thead><tbody>${rows.map(r=>!r.ok||!r.our?`<tr><td><b>${r.w} g</b></td><td colspan="5" class="note">Enter Bhima's price</td></tr>`:
     `<tr><td><b>${r.w} g</b></td><td class="r">${inr(r.og)}</td><td class="r">${inr(r.omk)}<small>${pct1(r.omkPct)}</small></td><td class="r">${inr(r.ogst)}</td><td class="r cn-fin"><b>${inr(r.tot)}</b></td><td class="r ${r.tot>r.P?'up':r.tot<r.P?'dn':''}">${r.tot===r.P?'same':(r.tot>r.P?'+':'−')+inr(Math.abs(r.tot-r.P)).replace('−','')}</td></tr>`).join('')}</tbody>`;
   $('cnDisc').innerHTML=(coinSet.disc||[]).map(t=>`<li>${esc(t)}</li>`).join('');
@@ -4725,7 +4726,7 @@ function paintCoins(){
   $('cnHist').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>withPerm('coinSet','Only an admin can delete saved coin prices.',async()=>{
     coinLog=coinLog.filter(c=>c.id!==b.dataset.del);store.set('coinLog',coinLog);paintCoins();
     if(sync.key)try{await syncApi('coindel','POST',{id:b.dataset.del},adminCreds)}catch(e){toast('Not deleted on the shared database',null,true)}},true));
-  $('setCoinsMini').textContent=`Margin ${fmtN(num(coinSet.margin)||0)}% · ₹${coinSet.round||10}`;
+  $('setCoinsMini').textContent=`Margin ${fmtN(num(coinSet.margin)||0)}% · ${coinSet.mode==='near'?'nearest':'up to'} ₹${coinSet.round||50}`;
 }
 function paintCoinOut(){ // repaint only the calculated cells, so the price being typed keeps its cursor
   const rows=coinCalc();
@@ -4738,10 +4739,10 @@ function paintCoinsBody(rows){const g=gstPct();$('cnOut').tBodies[0].innerHTML=r
 $('cnBr').addEventListener('input',()=>{coinDraft.br=$('cnBr').value.replace(/[^\d.]/g,'');coinDraft.at=0;store.set('coinDraft',coinDraft);paintCoinOut()});
 async function pullCoins(){
   if(!sync.key||!navigator.onLine)return;
-  try{const r=await syncApi('coins','GET');if(Array.isArray(r.log)){coinLog=r.log;store.set('coinLog',coinLog)}if(r.set){coinSet=Object.assign({margin:0,round:10,disc:COIN_DISC.slice()},r.set);store.set('coinSet',coinSet)}if(document.body.dataset.view==='coins')paintCoins()}catch(e){}
+  try{const r=await syncApi('coins','GET');if(Array.isArray(r.log)){coinLog=r.log;store.set('coinLog',coinLog)}if(r.set){coinSet=Object.assign({margin:0,round:50,mode:'up',disc:COIN_DISC.slice()},r.set);store.set('coinSet',coinSet)}if(document.body.dataset.view==='coins')paintCoins()}catch(e){}
 }
 function coinEntry(){const rows=coinCalc(),our=coinR22(),p={},o={};rows.forEach(r=>{if(r.ok){p[r.w]=r.P;if(r.our)o[r.w]=r.tot}});
-  return {id:Math.random().toString(36).slice(2,9),at:Date.now(),by:meName(),br:num(coinDraft.br)>0?num(coinDraft.br):our,r22:our,margin:num(coinSet.margin)||0,round:num(coinSet.round)||10,gst:gstPct(),p,o}}
+  return {id:Math.random().toString(36).slice(2,9),at:Date.now(),by:meName(),br:num(coinDraft.br)>0?num(coinDraft.br):our,r22:our,margin:num(coinSet.margin)||0,round:num(coinSet.round)||50,mode:coinSet.mode||'up',gst:gstPct(),p,o}}
 $('cnSave').onclick=()=>withPerm('coins','Needs permission: Gold coin prices.',async()=>{
   const e=coinEntry();if(!Object.keys(e.p).length){toast("Enter Bhima's prices first",null,true);return}if(!e.r22){toast("Set today's 22K rate first",null,true);return}
   coinLog=[e,...coinLog].slice(0,1000);store.set('coinLog',coinLog);coinDraft.at=e.at;store.set('coinDraft',coinDraft);paintCoins();
@@ -4751,35 +4752,37 @@ $('cnSave').onclick=()=>withPerm('coins','Needs permission: Gold coin prices.',a
 $('cnRefresh').onclick=()=>{pullCoins();toast('Refreshing…')};
 function coinText(){
   const rows=coinCalc().filter(r=>r.ok&&r.our);const B=BRAND;
-  return [`*${B.full} · 22K Gold Coin Rates*`,coinWhen(coinDraft.at||Date.now()),'',...rows.map(r=>`${r.w} g: *${inr(r.tot)}*`),'_Prices include making charges and 3% GST._','',...(coinSet.disc||[]).map(t=>'• '+t),'',...(B.addr2||[])].join('\n');
+  return [`*${B.full} · 22K Gold Coin Rates*`,coinWhen(coinDraft.at||Date.now()),'',...rows.map(r=>`${r.w} g: *${inr(r.tot)}*  (making ${inr(r.omk)})`),'_Prices include making charges and 3% GST._','',...(coinSet.disc||[]).map(t=>'• '+t),'',...(B.addr2||[])].join('\n');
 }
 $('cnCopy').onclick=async()=>{try{await navigator.clipboard.writeText(coinText());toast('Copied')}catch(e){toast('Could not copy',null,true)}};
 // ---- rate card image ----
-const COIN_CARD={yamie:{d:['#491525','#702438','#A65369'],acc:'#C99583',acc2:'#D6B29E',bg:'#FAF7F3',soft:'#F2E4DB',ink:'#1D1D1F',mut:'#795B4D',logo:'brand/yamie/header-w.png'},
-  grand:{d:['#5C0817','#8C0D24','#C41230'],acc:'#B08A4E',acc2:'#D9C39A',bg:'#FBF8F2',soft:'#F1EAE0',ink:'#17130F',mut:'#6B5B4E',logo:'icons/grand-192.png'}};
+const COIN_CARD={yamie:{d:['#491525','#702438','#A65369'],acc:'#C99583',acc2:'#F2E4DB',bg:'#FAF7F3',soft:'#F2E4DB',ink:'#1D1D1F',mut:'#795B4D',logo:'brand/yamie/logo-2026.png'},
+  grand:{d:['#231F20','#3A3335','#5A4E4A'],acc:'#B08A4E',acc2:'#E9DCC3',bg:'#FBF8F2',soft:'#F1EAE0',ink:'#17130F',mut:'#6B5B4E',logo:'brand/grand/logo-black.png'}};
 let cnBrand=store.get('cnBrand',BRAND.id==='grand'?'grand':'yamie'),cnUrl='';
 async function coinCard(bid){
   const C=COIN_CARD[bid]||COIN_CARD.yamie,B=BRANDS[bid]||BRAND,rows=coinCalc().filter(r=>r.ok&&r.our),W=1080,H=1350;
   const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');const F='-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Arial,sans-serif';
+  const rr=(X,Y,w,h,R)=>{x.beginPath();x.moveTo(X+R,Y);x.arcTo(X+w,Y,X+w,Y+h,R);x.arcTo(X+w,Y+h,X,Y+h,R);x.arcTo(X,Y+h,X,Y,R);x.arcTo(X,Y,X+w,Y,R);x.closePath()};
   x.fillStyle=C.bg;x.fillRect(0,0,W,H);
-  const hg=x.createLinearGradient(0,0,W,330);hg.addColorStop(0,C.d[0]);hg.addColorStop(.6,C.d[1]);hg.addColorStop(1,C.d[2]);x.fillStyle=hg;x.fillRect(0,0,W,330);
-  const lg=await loadImg(C.logo);x.textAlign='center';
-  if(lg&&bid==='yamie'){const h=96,w=lg.width*h/lg.height;x.drawImage(lg,(W-w)/2,52,w,h)}
-  else{if(lg)x.drawImage(lg,W/2-48,34,96,96);x.fillStyle='#fff';x.font=`700 46px ${F}`;x.fillText((B.wm||B.name).toUpperCase()+' '+(B.wsub||''),W/2,182)}
-  x.fillStyle=C.acc2;x.font=`600 30px ${F}`;x.fillText('22K GOLD COIN RATES',W/2,bid==='yamie'?210:236);
-  x.fillStyle='rgba(255,255,255,.85)';x.font=`400 26px ${F}`;x.fillText(coinWhen(coinDraft.at||Date.now()),W/2,bid==='yamie'?256:280);
-  let y=380;const rh=rows.length>3?132:150;
-  rows.forEach(r=>{x.fillStyle='#fff';x.strokeStyle=C.soft;x.lineWidth=3;const rr=(X,Y,w,h,R)=>{x.beginPath();x.moveTo(X+R,Y);x.arcTo(X+w,Y,X+w,Y+h,R);x.arcTo(X+w,Y+h,X,Y+h,R);x.arcTo(X,Y+h,X,Y,R);x.arcTo(X,Y,X+w,Y,R);x.closePath()};
-    rr(70,y,W-140,rh-22,28);x.fill();x.stroke();
-    const cy=y+(rh-22)/2,cg=x.createRadialGradient(170,cy-12,6,170,cy,52);cg.addColorStop(0,'#F7E2A8');cg.addColorStop(.6,'#D9A94E');cg.addColorStop(1,'#A8792A');x.fillStyle=cg;x.beginPath();x.arc(170,cy,46,0,Math.PI*2);x.fill();
-    x.fillStyle='#6B4A12';x.font=`700 26px ${F}`;x.textAlign='center';x.fillText(`${r.w}g`,170,cy+9);
-    x.textAlign='left';x.fillStyle=C.ink;x.font=`600 42px ${F}`;x.fillText(`${r.w} gram`,250,cy+4);x.fillStyle=C.mut;x.font=`400 22px ${F}`;x.fillText('22K (916) gold coin',250,cy+38);
-    x.textAlign='right';x.fillStyle=C.d[1];x.font=`700 56px ${F}`;x.fillText(inr(r.tot),W-110,cy+20);y+=rh});
-  x.textAlign='center';x.fillStyle=C.mut;x.font=`italic 400 23px ${F}`;x.fillText('Prices include making charges and 3% GST',W/2,y+14);
-  const dl=(coinSet.disc||[]);let dy=Math.max(y+56,H-120-dl.length*36-40);x.fillStyle=C.soft;x.fillRect(70,dy-6,W-140,dl.length*36+40);
-  x.textAlign='left';x.fillStyle=C.ink;x.font=`600 22px ${F}`;x.fillText('Please note',96,dy+26);x.font=`400 22px ${F}`;x.fillStyle=C.mut;dl.forEach((t,i)=>x.fillText('•  '+t,96,dy+62+i*36-4));
-  x.fillStyle=C.d[0];x.fillRect(0,H-96,W,96);x.fillStyle='#fff';x.textAlign='center';x.font=`600 24px ${F}`;x.fillText(B.full,W/2,H-58);x.font=`400 19px ${F}`;x.fillStyle='rgba(255,255,255,.85)';
-  const ad=(B.addr2&&B.addr2[1])||(B.address||[]).slice(-3).join(' · ')||'';x.fillText(ad.slice(0,110),W/2,H-28);
+  // logo on the light header, as supplied (Yamie red · Grand black)
+  const lg=await loadImg(C.logo);if(lg){const h=bid==='yamie'?200:215,w=lg.width*h/lg.height;x.drawImage(lg,(W-w)/2,26,w,h)}
+  else{x.fillStyle=C.d[1];x.textAlign='center';x.font=`700 64px ${F}`;x.fillText(B.full,W/2,150)}
+  // title band
+  const hg=x.createLinearGradient(0,0,W,0);hg.addColorStop(0,C.d[0]);hg.addColorStop(.6,C.d[1]);hg.addColorStop(1,C.d[2]);x.fillStyle=hg;x.fillRect(0,258,W,96);
+  x.textAlign='center';x.fillStyle='#fff';x.font=`700 34px ${F}`;x.fillText('22K GOLD COIN RATES',W/2,300);
+  x.fillStyle=C.acc2;x.font=`400 24px ${F}`;x.fillText(coinWhen(coinDraft.at||Date.now()),W/2,336);
+  let y=384;const rh=rows.length>3?128:146;
+  rows.forEach(r=>{x.fillStyle='#fff';x.strokeStyle=C.soft;x.lineWidth=3;rr(70,y,W-140,rh-20,26);x.fill();x.stroke();
+    const cy=y+(rh-20)/2,cg=x.createRadialGradient(168,cy-12,6,168,cy,48);cg.addColorStop(0,'#F7E2A8');cg.addColorStop(.6,'#D9A94E');cg.addColorStop(1,'#A8792A');x.fillStyle=cg;x.beginPath();x.arc(168,cy,44,0,Math.PI*2);x.fill();
+    x.fillStyle='#6B4A12';x.font=`700 25px ${F}`;x.textAlign='center';x.fillText(`${r.w}g`,168,cy+9);
+    x.textAlign='left';x.fillStyle=C.ink;x.font=`600 40px ${F}`;x.fillText(`${r.w} gram`,244,cy+2);x.fillStyle=C.mut;x.font=`400 21px ${F}`;x.fillText('22K (916) gold coin',244,cy+34);
+    x.textAlign='right';x.fillStyle=C.d[1];x.font=`700 52px ${F}`;x.fillText(inr(r.tot),W-104,cy+8);
+    x.fillStyle=C.mut;x.font=`400 21px ${F}`;x.fillText(`Making ${inr(r.omk)} · ${pct1(r.omkPct)}`,W-104,cy+40);y+=rh});
+  x.textAlign='center';x.fillStyle=C.mut;x.font=`italic 400 22px ${F}`;x.fillText('Prices include making charges and 3% GST',W/2,y+12);
+  const dl=(coinSet.disc||[]),dh=dl.length*34+44;let dy=Math.min(Math.max(y+44,H-110-dh),H-110-dh);x.fillStyle=C.soft;rr(70,dy,W-140,dh,18);x.fill();
+  x.textAlign='left';x.fillStyle=C.ink;x.font=`600 22px ${F}`;x.fillText('Please note',96,dy+32);x.font=`400 21px ${F}`;x.fillStyle=C.mut;dl.forEach((t,i)=>x.fillText('•  '+t,96,dy+66+i*34));
+  x.fillStyle=C.d[0];x.fillRect(0,H-90,W,90);x.fillStyle='#fff';x.textAlign='center';x.font=`600 24px ${F}`;x.fillText(B.full,W/2,H-52);x.font=`400 19px ${F}`;x.fillStyle='rgba(255,255,255,.85)';
+  const ad=(B.addr2&&B.addr2[1])||(B.address||[]).slice(-3).join(' · ')||'';if(ad)x.fillText(ad.slice(0,110),W/2,H-22);
   return cv.toDataURL('image/jpeg',.92);
 }
 async function openCoinCard(){
@@ -4798,10 +4801,10 @@ $('cnPopWa').onclick=async()=>{
   $('cnPop').hidden=true;await waSendImgs([cnUrl],cap,'',`${cnBrand}-gold-coin-rates`);
 };
 // ---- settings (admin) ----
-function paintCoinSet(){$('cnMargin').value=coinSet.margin||'';$('cnRound').value=String(coinSet.round||10);$('cnDiscTx').value=(coinSet.disc||[]).join('\n')}
+function paintCoinSet(){$('cnMargin').value=coinSet.margin||'';$('cnRound').value=String(coinSet.round||50);$('cnMode').value=coinSet.mode==='near'?'near':'up';$('cnDiscTx').value=(coinSet.disc||[]).join('\n')}
 $('setCoins').addEventListener('toggle',()=>{if($('setCoins').open){paintCoinSet();pullCoins()}});
 $('cnSetSave').onclick=()=>withPerm('coinSet','Only an admin can change the coin margin.',async()=>{
-  const set={margin:num($('cnMargin').value)||0,round:num($('cnRound').value)||10,disc:$('cnDiscTx').value.split('\n').map(t=>t.trim()).filter(Boolean).slice(0,10),by:meName()};
+  const set={margin:num($('cnMargin').value)||0,round:num($('cnRound').value)||50,mode:$('cnMode').value==='near'?'near':'up',disc:$('cnDiscTx').value.split('\n').map(t=>t.trim()).filter(Boolean).slice(0,10),by:meName()};
   coinSet=Object.assign({},coinSet,set);store.set('coinSet',coinSet);paintCoins();
   if(sync.key){try{const r=await syncApi('coinset','POST',{set},adminCreds);if(r.set){coinSet=Object.assign(coinSet,r.set);store.set('coinSet',coinSet)}toast('Coin settings saved · shared with all phones')}catch(e){toast('Saved on this phone. Not shared yet.',null,true)}}
   else toast('Coin settings saved');
@@ -8042,7 +8045,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.8.31',APP_BUILD='__BUILD__';
+const APP_VERSION='1.8.32',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------

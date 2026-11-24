@@ -611,3 +611,9 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 - **Rate card** image (1080×1350) for **Yamie or Grand**, with the disclaimers; **Share on WhatsApp** (image + text), Download image, Copy text.
 - Disclaimers (editable by admin): cash only; UPI and debit cards 1% extra; credit cards 2%; foreign cards 4%; spot rates change with the market.
 - Permissions: **Gold coin prices · enter and save** (`coins`, given to roles that can set day's rates) and **Gold coins · margin & disclaimers** (`coinSet`, admin).
+
+## V 1.8.32 — Gold coin card: new logos, making under the price, round up to ₹50 (24 Nov 2026)
+
+- Rate card uses the supplied logos on a light header (`brand/yamie/logo-2026.png` red, `brand/grand/logo-black.png` black), with a burgundy (Yamie) or charcoal (Grand) title band.
+- Each coin shows its making charge under the price (₹ and %); the WhatsApp text lists it too.
+- Coin rounding setting: amount (₹1/5/10/50/100) and **Up to the next** (default, ₹50) or **To the nearest**.
