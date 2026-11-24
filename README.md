@@ -595,3 +595,9 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 - **+ New order**: customer, any number of items — Our design (stock label, checked against the stock list) or Customised (item, purity, product name, model reference, weight, size, changes, reference images from the customer, shrunk to 1280 px). "Not sure — ask the Design desk for help" with a question. Sends to `/api/pc-order`.
 - **Order** on the product card and **Order Desk** in the quote tools open this form with the item(s) filled in.
 - sw.js cache `ypc-v113`.
+
+## V 1.8.30 — Yamie primary colour palette (24 Nov 2026)
+
+- Yamie now uses the brand palette: Signature Burgundy #702438 (buttons, active tab), Burgundy Signature gradient #491525 → #702438 → #A65369 (top bar, scan card, Grand Total / Final Amount, login), Rose Gold #C99583 accents, Cashmere Silk #F2E4DB (selected items, highlights, balance), Porcelain Ivory #FAF7F3 background, text #1D1D1F / #795B4D, SF Pro (system font) for text.
+- Set in `web/brand.js` (Yamie `light`/`dark` tokens). Fixed reds in `index.html` now go through variables (`--grad`, `--grad-top`, `--grad-scan`, `--grad-fin`, `--grad-login`, `--acc`, `--tint`, `--scan-or`) whose fallbacks are the old colours, so **Grand is unchanged**.
+- If Settings → Theme has an accent other than "Brand", that accent still overrides the palette.
