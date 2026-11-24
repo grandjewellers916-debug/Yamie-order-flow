@@ -17,6 +17,13 @@ h1{font-size:26px}h2{font-size:22px}h3{font-size:18px}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer;border:0;background:none}
 .hidden{display:none!important}
+.cnwrap{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;max-width:1100px}.cnwrap>*{min-width:0}@media (min-width:1280px){.cnwrap{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.cnwrap>.card:nth-child(n+3){grid-column:1/-1}}
+.card.cn{margin:0}.cnhd{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px}.cnwhen{font-size:12px;color:var(--mut);white-space:nowrap;background:var(--cr);border-radius:99px;padding:3px 10px}
+.cntw{overflow-x:auto}.cn-t{font-variant-numeric:tabular-nums}.cn-t th{font-size:12px;font-weight:600;color:var(--mut);text-align:left;padding:6px 8px;border-bottom:1px solid var(--ln);vertical-align:bottom}.cn-t td{padding:7px 8px;border-bottom:1px solid var(--ln)}.cn-t .r{text-align:right}
+.cn-t small{display:block;font-size:11px;color:var(--mut);font-weight:400}.cn-t input.cnp{width:120px;text-align:right;min-height:40px;padding:6px 10px}.cn-t td.cnfin{background:var(--m3)}.cn-t td.cnfin b{color:var(--m);font-size:17px}.cn-t th.cnfin{color:var(--m)}
+.cnup{color:var(--warn)}.cndn{color:var(--ok)}.cnh tr[data-id]{cursor:pointer}.cnh tr[data-id]:hover td{background:var(--iv)}.cndisc{margin:10px 0 0;padding-left:18px;color:var(--mut);font-size:13px}.cnacts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+@media (max-width:600px){.cn-t .cnx{display:none}.cn-t input.cnp{width:92px}.cn-t th{white-space:normal}.cn-t td,.cn-t th{padding:7px 5px}.cnhd{flex-direction:column}.cnacts .btn{flex:1 1 45%}}
+
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 16px;border-radius:10px;background:var(--m);color:#fff;font-weight:600;min-height:44px}
 .btn.sec{background:#fff;color:var(--m);border:1.5px solid var(--m)}
 .btn.ghost{background:var(--cr);color:var(--ink)}
@@ -389,7 +396,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.48';
+const VERSION = '1.49';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -405,6 +412,7 @@ const ICON = {
   print: '<path d="M7 9V3h10v6M7 17H4v-7h16v7h-3M7 14h10v7H7z"/>',
   doc: '<path d="M6 3h8l5 5v13H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/>',
   gold: '<path d="M3 18l3-8h12l3 8z"/><path d="M8 10l2-5h4l2 5"/>',
+  coin: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="5.5"/><path d="M12 9.5v5"/>',
   rep: '<path d="M4 3h16v18H4z"/><path d="M8 16v-4M12 16V8M16 16v-6"/>',
   share: '<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"/>',
   copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',
@@ -523,17 +531,17 @@ const diffTxt = (d, loc) => Object.entries(d || {}).map(([t, n]) => `${kT(t, loc
 
 // ---------------- shell ----------------
 // v1.17 Yamie Core: phone bottom bar = Home · Cash · Counter · Trays · Box; the computer sidebar also has Stock, Consolidated and More
-const NAV = [['home', 'Home', 'home'], ['stock', 'Stock', 'stock', 1], ['cash', 'Cash', 'cash'], ['counter', 'Counter', 'counter'], ['tray', 'Trays', 'tray'], ['box', 'Box', 'box'], ['total', 'Consolidated', 'total', 1], ['reports', 'Reports', 'rep', 1], ['sx', 'Bullion & Grand', 'gold', 1], ['docs', 'Documents', 'doc', 1], ['more', 'More', 'more', 1]];
+const NAV = [['home', 'Home', 'home'], ['stock', 'Stock', 'stock', 1], ['cash', 'Cash', 'cash'], ['counter', 'Counter', 'counter'], ['tray', 'Trays', 'tray'], ['box', 'Box', 'box'], ['total', 'Consolidated', 'total', 1], ['reports', 'Reports', 'rep', 1], ['sx', 'Bullion & Grand', 'gold', 1], ['coins', 'Gold coins', 'coin', 1], ['docs', 'Documents', 'doc', 1], ['more', 'More', 'more', 1]];
 const MORE_VIEWS = ['more', 'alerts', 'log', 'admin', 'history', 'eod'];
 function render() {
   if (!S.me) return showLogin();
   document.title = `Yamie Core · ${S.D.date}`;
-  const navOn = (k) => S.view === k || (k === 'more' && MORE_VIEWS.includes(S.view)) || (k === 'box' && S.view === 'boxwt') || (k === 'home' && innerWidth < 900 && (S.view === 'stock' || S.view === 'total' || S.view === 'docs' || MORE_VIEWS.includes(S.view)));
+  const navOn = (k) => S.view === k || (k === 'more' && MORE_VIEWS.includes(S.view)) || (k === 'box' && S.view === 'boxwt') || (k === 'home' && innerWidth < 900 && (S.view === 'stock' || S.view === 'total' || S.view === 'docs' || S.view === 'coins' || MORE_VIEWS.includes(S.view)));
   $('#app').innerHTML = `<header class="top" id="top"></header><main id="main"></main><nav class="nav">${NAV.map(([k, l, i, dk]) => `<button data-nav="${k}" class="${dk ? 'dk' : ''} ${navOn(k) ? 'on' : ''}">${svg(i)}<span>${l}</span></button>`).join('')}<div class="navver">${esc(verText())}</div></nav>`;
   $('#app').querySelectorAll('[data-nav]').forEach((b) => b.onclick = () => go(b.dataset.nav));
   renderTop();
   S.cardF = null;   // section filters only shape the cards on their own page
-  const v = { sx: vSx, reports: vReports, home: vHub, stock: vHome, cash: vCash, docs: vDocs, boxwt: vBoxWt, counter: () => vSection('counter'), tray: () => vSection('tray'), box: () => vSection('box'), total: vTotal, more: vMore, alerts: vAlerts, log: vLog, eod: vEod, admin: vAdmin, history: vHistory }[S.view] || vHome;
+  const v = { sx: vSx, reports: vReports, home: vHub, stock: vHome, cash: vCash, docs: vDocs, coins: vCoins, boxwt: vBoxWt, counter: () => vSection('counter'), tray: () => vSection('tray'), box: () => vSection('box'), total: vTotal, more: vMore, alerts: vAlerts, log: vLog, eod: vEod, admin: vAdmin, history: vHistory }[S.view] || vHome;
   v();
 }
 // v1.16: version on screen — web app version, plus the APK version inside the Android app
@@ -2135,7 +2143,7 @@ function vHub() {
   ${hubNotes()}
   <div id="hubRem"></div>
   <div class="qk">
-    ${[['eod', 'total', 'End-of-day entries', can('move')], ['total', 'total', 'Consolidated', can('reports')], ['reports', 'rep', 'Reports · Excel / PDF', can('reports')], ['sx', 'gold', 'Bullion & Grand-Yamie boxes', can('special') || can('grandBul')], ['docs', 'doc', 'Documents', can('docs') || can('docsEdit')], ['alerts', 'bell', 'Alerts', can('alerts')], ['more', 'more', 'More & settings', true]].filter((x) => x[3]).map(([k, i, t]) => `<button data-go="${k}">${svg(i)}<span>${t}</span></button>`).join('')}
+    ${[['eod', 'total', 'End-of-day entries', can('move')], ['total', 'total', 'Consolidated', can('reports')], ['reports', 'rep', 'Reports · Excel / PDF', can('reports')], ['sx', 'gold', 'Bullion & Grand-Yamie boxes', can('special') || can('grandBul')], ['coins', 'coin', 'Gold coin prices', can('coins') || can('coinSet')], ['docs', 'doc', 'Documents', can('docs') || can('docsEdit')], ['alerts', 'bell', 'Alerts', can('alerts')], ['more', 'more', 'More & settings', true]].filter((x) => x[3]).map(([k, i, t]) => `<button data-go="${k}">${svg(i)}<span>${t}</span></button>`).join('')}
   </div>`;
   $('#main').querySelectorAll('[data-go]').forEach((b) => b.onclick = () => go(b.dataset.go));
   $('#hubRv') && ($('#hubRv').onclick = () => reviewAsk());
@@ -3075,8 +3083,162 @@ function bwLedger(l) {
     ${can('move') && editable() ? `<div class="cact" style="margin-top:12px"><button class="btn" id="lgIn">＋ Inward</button><button class="btn ghost" id="lgOut">− Outward</button></div>` : ''}`, () => {
     $('#lgIn') && ($('#lgIn').onclick = () => bwEntry(l, 'in')); $('#lgOut') && ($('#lgOut').onclick = () => bwEntry(l, 'out')); });
 }
+// ================= v1.49 Gold coins — same module as Price Check 1.8.32 =================
+// Bhima Ernakulam quotes one amount per coin incl. making and 3% GST. We back out their making
+// (price ÷ 1.03 − weight × their 22K rate, also as % of gold value), add the admin margin (% of gold value),
+// and price our coins at today's 22K rate (Grand kiosk feed, same as Price Check), rounded up to the next ₹50 (setting).
+const COIN_W = [1, 2, 4, 8], COIN_GST = 3, COIN_RATES = 'https://yamie-price-check.netlify.app/api/rates';
+const COIN_DISC = ['Prices are for cash transactions only.', 'UPI and debit cards: 1% extra.', 'Credit cards: 2% extra.', 'Foreign (international) cards: 4% extra.', 'Prices are spot rates and change with the market rate.'];
+const COIN_CARD = {
+  yamie: { full: 'Yamie Fine Jewellery', addr: 'Contact: +91 8714122750 · www.yamie.in · GSTIN 32AACFY4685K1ZR', d: ['#491525', '#702438', '#A65369'], acc2: '#F2E4DB', bg: '#FAF7F3', soft: '#F2E4DB', ink: '#1D1D1F', mut: '#795B4D', logo: 'brand/yamie/logo-2026.png' },
+  grand: { full: 'Grand Jewellers', addr: '', d: ['#231F20', '#3A3335', '#5A4E4A'], acc2: '#E9DCC3', bg: '#FBF8F2', soft: '#F1EAE0', ink: '#17130F', mut: '#6B5B4E', logo: 'brand/grand/logo-black.png' },
+};
+const cnJ = (k, d) => { try { return JSON.parse(localStorage[k]) ?? d; } catch { return d; } };
+const C$ = { log: [], set: null, draft: cnJ('ysc_coinDraft', { br: '', r: '', p: {}, at: 0 }), feed: cnJ('ysc_coinFeed', null), brand: localStorage.ysc_cnBrand || 'yamie' };
+const cnSet = () => Object.assign({ margin: 0, round: 50, mode: 'up', disc: COIN_DISC.slice() }, C$.set || {});
+const cnNum = (v) => { const n = parseFloat(String(v ?? '').replace(/[^\d.]/g, '')); return Number.isFinite(n) ? n : 0; };
+const cnInr = (v) => (v < 0 ? '−' : '') + '₹' + Math.round(Math.abs(v)).toLocaleString('en-IN');
+const cnPct = (v) => (Math.round(v * 10) / 10).toFixed(1) + '%';
+const cnWhen = (t) => new Date(t || Date.now()).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+const cnSaveDraft = () => { localStorage.ysc_coinDraft = JSON.stringify(C$.draft); };
+const cnFeed22 = () => (C$.feed && C$.feed.r22 > 0 ? C$.feed.r22 : null);
+const cnR22 = () => cnNum(C$.draft.r) > 0 ? cnNum(C$.draft.r) : cnFeed22();
+function coinCalc() {
+  const d = C$.draft, st = cnSet(), G = 1 + COIN_GST / 100, our = cnR22(), br = cnNum(d.br) > 0 ? cnNum(d.br) : our, m = +st.margin || 0, R = +st.round || 50, up = st.mode !== 'near';
+  return COIN_W.map((w) => {
+    const P = cnNum((d.p || {})[w]); if (!(P > 0) || !br) return { w, ok: false };
+    const pre = P / G, gold = w * br, mk = pre - gold, mkPct = gold > 0 ? mk / gold * 100 : 0;
+    if (!our) return { w, ok: true, our: false, P, pre, gold, mk, mkPct };
+    const og = w * our, omkPct = mkPct + m, omk = og * omkPct / 100, opre = og + omk, ogst = opre * COIN_GST / 100, raw = opre + ogst, tot = (up ? Math.ceil(raw / R - 1e-9) : Math.round(raw / R)) * R;
+    return { w, ok: true, our: true, P, pre, gold, mk, mkPct, og, omkPct, omk, ogst, raw, tot };
+  });
+}
+async function coinPull() {
+  const jobs = [api('coins').then((j) => { C$.log = j.log || []; C$.set = j.set; }).catch(fail)];
+  if (!C$.feed || Date.now() - (C$.feed.got || 0) > 5 * 60e3) jobs.push(fetch(COIN_RATES).then((r) => r.json()).then((j) => { if (j && j.r22 > 0) { C$.feed = { r22: j.r22, at: j.updated_at, got: Date.now() }; localStorage.ysc_coinFeed = JSON.stringify(C$.feed); } }).catch(() => {}));
+  await Promise.all(jobs);
+}
+async function vCoins() {
+  if (!can('coins') && !can('coinSet')) return $('#main').innerHTML = '<div class="card">No access to gold coin prices. Ask admin.</div>';
+  if (C$.loaded) drawCoins(); else $('#main').innerHTML = '<div class="card mut">Loading gold coin prices…</div>';
+  const sig = JSON.stringify([C$.log, C$.set, C$.feed]);
+  await coinPull(); C$.loaded = true; if (S.view !== 'coins' || S.modal || typingNow()) return;
+  if (!$('#cnIn') || sig !== JSON.stringify([C$.log, C$.set, C$.feed])) drawCoins();
+}
+function drawCoins() {
+  const edit = can('coins'), st = cnSet(), feed = cnFeed22(), m = $('#main');
+  m.innerHTML = `<div class="row sp wrap" style="margin-bottom:10px"><div><h1>Gold coins</h1><div class="mut">22K coin prices · benchmark Bhima Ernakulam</div></div></div>
+  <div class="cnwrap">
+    <div class="card cn"><div class="cnhd"><div><h3>Bhima Ernakulam · benchmark</h3><div class="mut sm">Their prices for 22K gold coins, as quoted: one amount incl. making and ${COIN_GST}% GST.</div></div><span class="cnwhen" id="cnWhen"></span></div>
+      <div class="g2"><div><label class="f">Bhima 22K rate (₹/g)</label><input id="cnBr" inputmode="decimal" autocomplete="off" value="${esc(C$.draft.br || '')}" placeholder="${esc(String(cnR22() || '22K rate'))}" ${edit ? '' : 'readonly'}></div>
+        <div><label class="f">Our 22K rate today (₹/g)</label><input id="cnR" inputmode="decimal" autocomplete="off" value="${esc(C$.draft.r || '')}" placeholder="${feed ? feed : 'Enter rate'}" ${edit ? '' : 'readonly'}></div></div>
+      <div class="mut sm" style="margin:6px 0 10px">${feed ? `Today's 22K rate from the Grand kiosk: <b>${cnInr(feed)}/g</b>. Leave both empty to use it.` : 'Could not read today\'s rate — enter our 22K rate.'} Fill Bhima's rate only if it differs.</div>
+      <div class="cntw"><table class="cn-t" id="cnIn"><thead><tr><th>Coin</th><th class="r">Bhima price<small>incl. making &amp; ${COIN_GST}% GST</small></th><th class="r cnx">Gold value</th><th class="r">Making ₹</th><th class="r">Making %</th></tr></thead><tbody>
+      ${COIN_W.map((w) => `<tr><td><b>${w} g</b></td><td class="r"><input class="cnp" data-w="${w}" inputmode="decimal" autocomplete="off" value="${esc(String((C$.draft.p || {})[w] || ''))}" placeholder="₹" ${edit ? '' : 'readonly'}></td><td class="r cnx"></td><td class="r"></td><td class="r"></td></tr>`).join('')}</tbody></table></div></div>
+    <div class="card cn"><div class="cnhd"><div><h3>Our price</h3><div class="mut sm" id="cnOurNote"></div></div></div>
+      <div class="cntw"><table class="cn-t" id="cnOut"><thead><tr><th>Coin</th><th class="r cnx">Gold value</th><th class="r cnx">GST ${COIN_GST}%</th><th class="r cnfin">Our price</th><th class="r">vs Bhima</th></tr></thead><tbody></tbody></table></div>
+      <ul class="cndisc">${(st.disc || []).map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
+      <div class="cnacts">${edit ? '<button class="btn" id="cnSave">Save prices</button>' : ''}<button class="btn sec" id="cnCard">Rate card</button><button class="btn sec" id="cnWa">Share on WhatsApp</button><button class="btn ghost" id="cnCopy">Copy text</button></div></div>
+    <div class="card cn"><div class="cnhd"><div><h3>History</h3><div class="mut sm">Saved prices, newest first. Tap one to load it.</div></div><button class="btn sm ghost" id="cnRef">Refresh</button></div>
+      <div class="cntw"><table class="cn-t cnh">${C$.log.length ? `<thead><tr><th>Saved</th>${COIN_W.map((w) => `<th class="r">${w} g<small>Bhima · ours</small></th>`).join('')}<th></th></tr></thead><tbody>${C$.log.slice(0, 60).map((e) => `<tr data-id="${esc(e.id)}"><td>${esc(cnWhen(e.at))}<small>${esc(e.by || '')}${e.r22 ? ` · 22K ${cnInr(e.r22)}` : ''}${e.margin ? ` · margin ${e.margin}%` : ''}</small></td>${COIN_W.map((w) => `<td class="r">${e.p && e.p[w] ? cnInr(e.p[w]) : '—'}<small>${e.o && e.o[w] ? cnInr(e.o[w]) : ''}</small></td>`).join('')}<td class="r">${can('coinSet') ? `<button class="btn sm ghost" data-del="${esc(e.id)}">Delete</button>` : ''}</td></tr>`).join('')}</tbody>` : '<tbody><tr><td class="mut">No saved prices yet.</td></tr></tbody>'}</table></div></div>
+    ${can('coinSet') ? `<button class="card cn holcard" id="cnSetGo" style="text-align:left">⚙ <b>Margin &amp; rounding</b> — margin ${st.margin || 0}% · ${st.mode === 'near' ? 'nearest' : 'up to next'} ₹${st.round || 50} · change in Admin › Gold coins ›</button>` : ''}
+  </div>`;
+  const upd = (k, v) => { C$.draft[k] = v; C$.draft.at = 0; cnSaveDraft(); paintCoinCalc(); };
+  $('#cnBr').oninput = (e) => upd('br', e.target.value.replace(/[^\d.]/g, ''));
+  $('#cnR').oninput = (e) => upd('r', e.target.value.replace(/[^\d.]/g, ''));
+  m.querySelectorAll('.cnp').forEach((el) => el.oninput = () => { C$.draft.p = { ...C$.draft.p, [el.dataset.w]: el.value.replace(/[^\d.]/g, '') }; C$.draft.at = 0; cnSaveDraft(); paintCoinCalc(); });
+  $('#cnSave') && ($('#cnSave').onclick = coinSave);
+  $('#cnCard').onclick = () => coinCardPop(false);
+  $('#cnWa').onclick = () => coinCardPop(true);
+  $('#cnCopy').onclick = async () => { try { await navigator.clipboard.writeText(coinText()); toast('Copied'); } catch { toast('⚠ Could not copy'); } };
+  $('#cnRef').onclick = async () => { C$.feed = null; await coinPull(); drawCoins(); toast('Refreshed'); };
+  m.querySelectorAll('.cnh tr[data-id]').forEach((tr) => tr.onclick = (e) => {
+    if (e.target.closest('[data-del]')) return; const x = C$.log.find((c) => c.id === tr.dataset.id); if (!x) return;
+    C$.draft = { br: x.br && x.br !== x.r22 ? String(x.br) : '', r: x.r22 && x.r22 !== cnFeed22() ? String(x.r22) : '', p: { ...x.p }, at: x.at }; cnSaveDraft(); drawCoins(); scrollTo({ top: 0, behavior: 'smooth' }); toast('Loaded prices of ' + cnWhen(x.at));
+  });
+  m.querySelectorAll('[data-del]').forEach((b) => b.onclick = async () => { if (!confirm('Delete these saved coin prices?')) return; try { C$.log = (await api('coins/del', { id: b.dataset.del })).log; drawCoins(); toast('Deleted'); } catch (e) { fail(e); } });
+  $('#cnSetGo') && ($('#cnSetGo').onclick = () => { S.tab = 'coins'; go('admin'); });
+  paintCoinCalc();
+}
+function paintCoinCalc() {   // only the calculated cells — the price being typed keeps its cursor
+  const rows = coinCalc(), st = cnSet(), our = cnR22(), tin = $('#cnIn'), tout = $('#cnOut'); if (!tin || !tout) return;
+  rows.forEach((r, i) => { const tr = tin.tBodies[0].rows[i]; tr.cells[2].textContent = r.ok ? cnInr(r.gold) : '—'; tr.cells[3].textContent = r.ok ? cnInr(r.mk) : '—'; tr.cells[4].innerHTML = `<b>${r.ok ? cnPct(r.mkPct) : '—'}</b>`; });
+  tout.tBodies[0].innerHTML = rows.map((r) => !r.ok || !r.our ? `<tr><td><b>${r.w} g</b></td><td colspan="4" class="mut">${our ? 'Enter Bhima\'s price' : 'Enter our 22K rate'}</td></tr>` :
+    `<tr><td><b>${r.w} g</b></td><td class="r cnx">${cnInr(r.og)}</td><td class="r cnx">${cnInr(r.ogst)}</td><td class="r cnfin"><b>${cnInr(r.tot)}</b><small>Making ${cnInr(r.omk)} · ${cnPct(r.omkPct)}</small></td><td class="r ${r.tot > r.P ? 'cnup' : r.tot < r.P ? 'cndn' : ''}">${r.tot === r.P ? 'same' : (r.tot > r.P ? '+' : '−') + cnInr(Math.abs(r.tot - r.P))}</td></tr>`).join('');
+  $('#cnOurNote').textContent = our ? `22K ${cnInr(our)}/g · making = Bhima making % ${(+st.margin || 0) >= 0 ? '+' : '−'} ${Math.abs(+st.margin || 0)}% margin · ${COIN_GST}% GST · ${st.mode === 'near' ? 'rounded to the nearest' : 'rounded up to the next'} ₹${st.round || 50}` : 'Enter our 22K rate first.';
+  $('#cnWhen').textContent = C$.draft.at ? 'Saved ' + cnWhen(C$.draft.at) : 'Not saved yet';
+}
+async function coinSave() {
+  const rows = coinCalc(), our = cnR22(), st = cnSet(), p = {}, o = {};
+  rows.forEach((r) => { if (r.ok) { p[r.w] = r.P; if (r.our) o[r.w] = r.tot; } });
+  if (!Object.keys(p).length) return toast('⚠ Enter Bhima\'s prices first'); if (!our) return toast('⚠ Enter our 22K rate first');
+  try { const j = await api('coins/save', { entry: { br: cnNum(C$.draft.br) > 0 ? cnNum(C$.draft.br) : our, r22: our, margin: +st.margin || 0, round: +st.round || 50, mode: st.mode, gst: COIN_GST, p, o } });
+    C$.log = j.log; C$.draft.at = j.entry.at; cnSaveDraft(); drawCoins(); toast('Coin prices saved'); } catch (e) { fail(e); }
+}
+function coinText(bid) {
+  const C = COIN_CARD[bid || C$.brand] || COIN_CARD.yamie, rows = coinCalc().filter((r) => r.ok && r.our);
+  return [`*${C.full} · 22K Gold Coin Rates*`, cnWhen(C$.draft.at || Date.now()), '', ...rows.map((r) => `${r.w} g: *${cnInr(r.tot)}*  (making ${cnInr(r.omk)})`), `_Prices include making charges and ${COIN_GST}% GST._`, '', ...(cnSet().disc || []).map((t) => '• ' + t), ...(C.addr ? ['', C.addr] : [])].join('\n');
+}
+const cnImg = (src) => new Promise((ok) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => ok(null); i.src = src; });
+async function coinCard(bid) {
+  const C = COIN_CARD[bid] || COIN_CARD.yamie, rows = coinCalc().filter((r) => r.ok && r.our), W = 1080, H = 1350;
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const x = cv.getContext('2d'); const F = '-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Arial,sans-serif';
+  const rr = (X, Y, w, h, R) => { x.beginPath(); x.moveTo(X + R, Y); x.arcTo(X + w, Y, X + w, Y + h, R); x.arcTo(X + w, Y + h, X, Y + h, R); x.arcTo(X, Y + h, X, Y, R); x.arcTo(X, Y, X + w, Y, R); x.closePath(); };
+  x.fillStyle = C.bg; x.fillRect(0, 0, W, H);
+  const lg = await cnImg(C.logo); if (lg) { const h = bid === 'yamie' ? 200 : 215, w = lg.width * h / lg.height; x.drawImage(lg, (W - w) / 2, 26, w, h); }
+  else { x.fillStyle = C.d[1]; x.textAlign = 'center'; x.font = `700 64px ${F}`; x.fillText(C.full, W / 2, 150); }
+  const hg = x.createLinearGradient(0, 0, W, 0); hg.addColorStop(0, C.d[0]); hg.addColorStop(.6, C.d[1]); hg.addColorStop(1, C.d[2]); x.fillStyle = hg; x.fillRect(0, 258, W, 96);
+  x.textAlign = 'center'; x.fillStyle = '#fff'; x.font = `700 34px ${F}`; x.fillText('22K GOLD COIN RATES', W / 2, 300);
+  x.fillStyle = C.acc2; x.font = `400 24px ${F}`; x.fillText(cnWhen(C$.draft.at || Date.now()), W / 2, 336);
+  let y = 384; const rh = rows.length > 3 ? 128 : 146;
+  rows.forEach((r) => { x.fillStyle = '#fff'; x.strokeStyle = C.soft; x.lineWidth = 3; rr(70, y, W - 140, rh - 20, 26); x.fill(); x.stroke();
+    const cy = y + (rh - 20) / 2, cg = x.createRadialGradient(168, cy - 12, 6, 168, cy, 48); cg.addColorStop(0, '#F7E2A8'); cg.addColorStop(.6, '#D9A94E'); cg.addColorStop(1, '#A8792A'); x.fillStyle = cg; x.beginPath(); x.arc(168, cy, 44, 0, Math.PI * 2); x.fill();
+    x.fillStyle = '#6B4A12'; x.font = `700 25px ${F}`; x.textAlign = 'center'; x.fillText(`${r.w}g`, 168, cy + 9);
+    x.textAlign = 'left'; x.fillStyle = C.ink; x.font = `600 40px ${F}`; x.fillText(`${r.w} gram`, 244, cy + 2); x.fillStyle = C.mut; x.font = `400 21px ${F}`; x.fillText('22K (916) gold coin', 244, cy + 34);
+    x.textAlign = 'right'; x.fillStyle = C.d[1]; x.font = `700 52px ${F}`; x.fillText(cnInr(r.tot), W - 104, cy + 8);
+    x.fillStyle = C.mut; x.font = `400 21px ${F}`; x.fillText(`Making ${cnInr(r.omk)} · ${cnPct(r.omkPct)}`, W - 104, cy + 40); y += rh; });
+  x.textAlign = 'center'; x.fillStyle = C.mut; x.font = `italic 400 22px ${F}`; x.fillText(`Prices include making charges and ${COIN_GST}% GST`, W / 2, y + 12);
+  const dl = cnSet().disc || [], dh = dl.length * 34 + 44, dy = H - 110 - dh; x.fillStyle = C.soft; rr(70, dy, W - 140, dh, 18); x.fill();
+  x.textAlign = 'left'; x.fillStyle = C.ink; x.font = `600 22px ${F}`; x.fillText('Please note', 96, dy + 32); x.font = `400 21px ${F}`; x.fillStyle = C.mut; dl.forEach((t, i) => x.fillText('•  ' + t, 96, dy + 66 + i * 34));
+  x.fillStyle = C.d[0]; x.fillRect(0, H - 90, W, 90); x.fillStyle = '#fff'; x.textAlign = 'center'; x.font = `600 24px ${F}`; x.fillText(C.full, W / 2, C.addr ? H - 52 : H - 37);
+  if (C.addr) { x.font = `400 19px ${F}`; x.fillStyle = 'rgba(255,255,255,.85)'; x.fillText(C.addr.slice(0, 110), W / 2, H - 22); }
+  return new Promise((ok) => cv.toBlob((b) => b.arrayBuffer().then((a) => ok(new Uint8Array(a))), 'image/jpeg', .92));
+}
+async function coinCardPop(wa) {
+  if (!coinCalc().some((r) => r.ok && r.our)) return toast('⚠ Enter Bhima\'s prices and our 22K rate first');
+  let bytes = null, url = '';
+  const name = () => `${C$.brand}-gold-coin-rates-${new Date().toISOString().slice(0, 10)}.jpg`;
+  const send = async () => { closeModal(); await sendReport('wa', '', 'Gold coin rates', coinText(), name(), 'image/jpeg', bytes); };
+  const paint = async () => { bytes = await coinCard(C$.brand); if (url) URL.revokeObjectURL(url); url = URL.createObjectURL(new Blob([bytes], { type: 'image/jpeg' })); const im = $('#cnImg'); if (im) im.src = url; };
+  await paint(); if (wa) return send();
+  modal('Rate card', 'Pick the brand, then share or download', `<div class="seg" id="cnBrand" style="margin-bottom:10px">${[['yamie', 'Yamie'], ['grand', 'Grand']].map(([k, t]) => `<button data-b="${k}" class="${C$.brand === k ? 'on' : ''}">${t}</button>`).join('')}</div>
+    <img id="cnImg" src="${url}" style="width:100%;border-radius:10px;border:1px solid var(--ln);display:block" alt="Gold coin rate card">
+    <div class="row" style="gap:8px;margin-top:12px"><button class="btn grow" id="cnPopWa">Share on WhatsApp</button><button class="btn sec" id="cnPopDl">Download</button></div>`, () => {
+    $('#cnBrand').querySelectorAll('button').forEach((b) => b.onclick = async () => { C$.brand = b.dataset.b; localStorage.ysc_cnBrand = C$.brand; $('#cnBrand').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b)); await paint(); });
+    $('#cnPopWa').onclick = send;
+    $('#cnPopDl').onclick = () => saveBin(name(), 'image/jpeg', bytes, true);
+  });
+}
+// v1.49 Admin › Gold coins: margin over Bhima making, rounding, disclaimers (used by the Gold coins page and rate card)
+async function admCoins() {
+  $('#adm').innerHTML = '<div class="mut" style="padding:20px">Loading…</div>';
+  try { await coinPull(); } catch (e) {} if (S.tab !== 'coins' || !$('#adm')) return;
+  const st = cnSet(), ex = coinCalc().find((r) => r.ok && r.our);
+  $('#adm').innerHTML = `<div class="card" style="max-width:760px">
+    <h3>Gold coin margin</h3>
+    <div class="mut" style="margin:4px 0 6px">Our making = Bhima's making % (worked out from their price) <b>+ this margin</b>, as % of the gold value. Then ${COIN_GST}% GST, then rounding.</div>
+    <div class="g2"><div><label class="f">Margin (% of gold value)</label><input id="cnMg" inputmode="decimal" value="${esc(String(st.margin || ''))}" placeholder="0"><div class="mut sm" style="margin-top:4px">Use a minus to go below Bhima, e.g. −0.5</div></div>
+      <div><label class="f">Round our price</label><div class="row" style="gap:6px"><select id="cnMd"><option value="up" ${st.mode !== 'near' ? 'selected' : ''}>Up to the next</option><option value="near" ${st.mode === 'near' ? 'selected' : ''}>To the nearest</option></select><select id="cnRd">${[1, 5, 10, 50, 100].map((r) => `<option value="${r}" ${(+st.round || 50) === r ? 'selected' : ''}>₹${r}</option>`).join('')}</select></div></div></div>
+    <label class="f">Disclaimers on the rate card and WhatsApp (one per line, up to 10)</label><textarea id="cnDs" rows="6">${esc((st.disc || []).join('\n'))}</textarea>
+    <div class="row wrap" style="gap:8px;margin-top:10px"><button class="btn" id="cnSetSave">Save</button><button class="btn ghost" id="cnDsReset">Default disclaimers</button></div>
+    <div class="mut sm" style="margin-top:10px">${st.at ? `Last changed ${esc(cnWhen(st.at))}${st.by ? ' by ' + esc(st.by) : ''}.` : 'Not changed yet — margin 0%, rounded up to the next ₹50.'}${ex ? ` Now: ${ex.w} g coin → ${cnInr(ex.tot)} (making ${cnPct(ex.omkPct)}).` : ''}</div></div>`;
+  $('#cnDsReset').onclick = () => { $('#cnDs').value = COIN_DISC.join('\n'); };
+  $('#cnSetSave').onclick = async () => {
+    try { const j = await api('coins/set', { set: { margin: parseFloat(String($('#cnMg').value).replace('−', '-')) || 0, round: +$('#cnRd').value, mode: $('#cnMd').value, disc: $('#cnDs').value.split('\n').map((t) => t.trim()).filter(Boolean) } }); C$.set = j.set; toast('Gold coin settings saved'); admCoins(); } catch (e) { fail(e); }
+  };
+}
 function vMore() {
-  const items = [['docs', 'Business documents', 'Licences, GST certificate, bank accounts, UPI QR', can('docs') || can('docsEdit')], ['eod', 'End-of-day entries', 'Sales, returns, smith, samples… then evening count', can('move')], ['log', 'Day log', 'Movements and checks today', true], ['alerts', 'Alerts', 'Variances and reports', can('alerts')], ['history', 'History', 'Past days and closing stock', can('reports')], ['admin', 'Admin', 'Users, locations, settings', can('users') || can('setup')], ['backup', 'Backup database', 'Download all data as a backup file', S.me.role === 'admin']].filter((x) => x[3]);
+  const items = [['coins', 'Gold coin prices', '1 · 2 · 4 · 8 g — Bhima benchmark, our price, rate card', can('coins') || can('coinSet')], ['docs', 'Business documents', 'Licences, GST certificate, bank accounts, UPI QR', can('docs') || can('docsEdit')], ['eod', 'End-of-day entries', 'Sales, returns, smith, samples… then evening count', can('move')], ['log', 'Day log', 'Movements and checks today', true], ['alerts', 'Alerts', 'Variances and reports', can('alerts')], ['history', 'History', 'Past days and closing stock', can('reports')], ['admin', 'Admin', 'Users, locations, settings, gold coin margin', can('users') || can('setup') || can('coinSet')], ['backup', 'Backup database', 'Download all data as a backup file', S.me.role === 'admin']].filter((x) => x[3]);
   $('#main').innerHTML = `<h1 style="margin-bottom:12px">More</h1><div class="list card" style="padding:0">${items.map(([k, t, d]) => `<button class="li" style="width:100%;text-align:left" data-go="${k}"><div class="grow"><div class="b">${t}</div><div class="mut sm">${d}</div></div><span class="mut">›</span></button>`).join('')}
     <button class="li" style="width:100%;text-align:left" id="pinBtn"><div class="grow"><div class="b">Change my PIN</div><div class="mut sm">${esc(S.me.name)} · ${esc(S.me.role)} · app v${VERSION}${window.YamieStock?.version ? ` · APK ${esc(window.YamieStock.version())}` : ''}</div></div></button>
     <button class="li" style="width:100%;text-align:left" id="notiBtn"><div class="grow"><div class="b">Notifications on this device</div><div class="mut sm">${localStorage.ysc_notify === '1' ? 'On' : 'Off'} — alerts while the app is open</div></div></button>
@@ -3118,11 +3280,11 @@ async function vHistory() {
   } catch (e) { fail(e); }
 }
 async function vAdmin() {
-  const tabs = [['users', 'Users', can('users')], ['locs', 'Locations', can('setup')], ['settings', 'Settings', can('setup')], ['lists', 'Lists', can('setup')], ['share', 'Holidays & sharing', can('setup')], ['backup', 'Backup', S.me.role === 'admin']].filter((x) => x[2]);
+  const tabs = [['users', 'Users', can('users')], ['locs', 'Locations', can('setup')], ['settings', 'Settings', can('setup')], ['lists', 'Lists', can('setup')], ['share', 'Holidays & sharing', can('setup')], ['coins', 'Gold coins', can('coinSet')], ['backup', 'Backup', S.me.role === 'admin']].filter((x) => x[2]);
   if (!tabs.find((t) => t[0] === S.tab)) S.tab = tabs[0]?.[0];
   $('#main').innerHTML = `<h1 style="margin-bottom:12px">Admin</h1><div class="tabs">${tabs.map(([k, t]) => `<button data-t="${k}" class="${S.tab === k ? 'on' : ''}">${t}</button>`).join('')}</div><div id="adm"></div>`;
   $('#main').querySelectorAll('[data-t]').forEach((b) => b.onclick = () => { S.tab = b.dataset.t; vAdmin(); });
-  if (S.tab === 'users') admUsers(); else if (S.tab === 'locs') admLocs(); else if (S.tab === 'backup') admBackup(); else if (S.tab === 'lists') admLists(); else if (S.tab === 'share') admShare(); else admSettings();
+  if (S.tab === 'users') admUsers(); else if (S.tab === 'locs') admLocs(); else if (S.tab === 'backup') admBackup(); else if (S.tab === 'lists') admLists(); else if (S.tab === 'share') admShare(); else if (S.tab === 'coins') admCoins(); else admSettings();
 }
 // ---------- database backup (admin) ----------
 const kb = (n) => n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
@@ -3146,7 +3308,7 @@ async function admBackup() {
   $('#bkData').onclick = () => runBackup(j, false);
   $('#bkAll').onclick = () => runBackup(j, true);
 }
-const RESTORABLE = /^(cfg\/(locs|users|settings)|day\/\d{4}-\d{2}-\d{2}|(mv|ct|ss|al)\/\d{4}-\d{2}-\d{2}\/[\w@#.\/-]+|erp\/\d{4}-\d{2}-\d{2}|seen\/[\w-]+|cash\/\d{4}-\d{2}-\d{2}\/[\w-]+|doc\/[\w-]+)$/;
+const RESTORABLE = /^(cfg\/(locs|users|settings)|day\/\d{4}-\d{2}-\d{2}|(mv|ct|ss|al)\/\d{4}-\d{2}-\d{2}\/[\w@#.\/-]+|erp\/\d{4}-\d{2}-\d{2}|seen\/[\w-]+|cash\/\d{4}-\d{2}-\d{2}\/[\w-]+|doc\/[\w-]+|coin\/(log|set))$/;
 async function buildBackup(j, photos, P) {
   const data = {}; const keys = j.data;
   for (let i = 0; i < keys.length; i += 300) { P.textContent = `Reading records ${Math.min(i + 300, keys.length)} / ${keys.length}…`; Object.assign(data, (await api('backup/get', { keys: keys.slice(i, i + 300) })).items); }

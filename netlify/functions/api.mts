@@ -780,7 +780,7 @@ export default async (req: Request) => {
     }
     // ----- restore from backup (admin only) -----
     // Only these record types can be written by a restore; meta/secret and meta/* are never touched.
-    const RESTORABLE = /^(cfg\/(locs|users|settings)|day\/\d{4}-\d{2}-\d{2}|(mv|ct|ss|al)\/\d{4}-\d{2}-\d{2}\/[\w@#.\/-]+|erp\/\d{4}-\d{2}-\d{2}|seen\/[\w-]+|cash\/\d{4}-\d{2}-\d{2}\/[\w-]+|doc\/[\w-]+|sx\/boxes|sx[elid]\/[\w-]+\/[\w.@#-]+|rv\/\d{4}-\d{2}\/[\w-]+|rps\/\d{4}-\d{2}-\d{2}\/[\w-]+)$/;
+    const RESTORABLE = /^(cfg\/(locs|users|settings)|day\/\d{4}-\d{2}-\d{2}|(mv|ct|ss|al)\/\d{4}-\d{2}-\d{2}\/[\w@#.\/-]+|erp\/\d{4}-\d{2}-\d{2}|seen\/[\w-]+|cash\/\d{4}-\d{2}-\d{2}\/[\w-]+|doc\/[\w-]+|sx\/boxes|sx[elid]\/[\w-]+\/[\w.@#-]+|rv\/\d{4}-\d{2}\/[\w-]+|rps\/\d{4}-\d{2}-\d{2}\/[\w-]+|coin\/(log|set))$/;
     if (path.startsWith('restore/') && me.role !== 'admin') return err('Only admin can restore the database', 403);
     if (path === 'restore/put' && method === 'POST') {
       const items = body.items || {}; let n = 0; const skipped: string[] = [];
@@ -892,6 +892,36 @@ export default async (req: Request) => {
       await s.delete(`doc/${id}`); for (const f of d.files || []) await s.delete(`img/${f.key}`);
       await addAlert(s, { type: 'info', title: `Document deleted · ${d.title}`, body: `${me.name} deleted ${d.type} “${d.title}”.`, by: me.id });
       return J({ ok: true });
+    }
+    // ----- v1.49 gold coin prices: Bhima Ernakulam benchmark → our price (same module as Price Check) -----
+    if (path === 'coins' && method === 'GET') {
+      if (!can('coins') && !can('coinSet')) need('coins');
+      return J({ log: (await s.get('coin/log', { type: 'json' })) || [], set: (await s.get('coin/set', { type: 'json' })) || null });
+    }
+    if (path === 'coins/save' && method === 'POST') {
+      need('coins');
+      const E = body.entry || {}, n = (v: any, lo = 0, hi = 1e7) => { const x = Number(v); return Number.isFinite(x) && x > lo && x < hi ? Math.round(x * 100) / 100 : 0; };
+      const W = ['1', '2', '4', '8'], p: any = {}, o: any = {};
+      for (const w of W) { if (n(E.p?.[w])) p[w] = n(E.p[w]); if (n(E.o?.[w])) o[w] = n(E.o[w]); }
+      if (!Object.keys(p).length) return err('Enter Bhima prices first');
+      const entry = { id: 'c' + now().toString(36) + rid().slice(0, 4), at: now(), by: me.name, byId: me.id, br: n(E.br, 0, 1e6), r22: n(E.r22, 0, 1e6), margin: Math.max(-50, Math.min(100, Number(E.margin) || 0)), round: [1, 5, 10, 50, 100].includes(+E.round) ? +E.round : 50, mode: E.mode === 'near' ? 'near' : 'up', gst: Math.max(0, Math.min(28, Number(E.gst) || 3)), p, o };
+      const log = ((await s.get('coin/log', { type: 'json' })) as any[]) || [];
+      const next = [entry, ...log].slice(0, 1000); await s.setJSON('coin/log', next);
+      return J({ ok: true, entry, log: next });
+    }
+    if (path === 'coins/del' && method === 'POST') {
+      need('coinSet');
+      const log = ((await s.get('coin/log', { type: 'json' })) as any[]) || [];
+      const next = log.filter((e: any) => e.id !== String(body.id || '')); await s.setJSON('coin/log', next);
+      return J({ ok: true, log: next });
+    }
+    if (path === 'coins/set' && method === 'POST') {
+      need('coinSet');
+      const X = body.set || {};
+      const set = { margin: Math.max(-50, Math.min(100, Number(X.margin) || 0)), round: [1, 5, 10, 50, 100].includes(+X.round) ? +X.round : 50, mode: X.mode === 'near' ? 'near' : 'up',
+        disc: (Array.isArray(X.disc) ? X.disc : []).map((t: any) => String(t || '').trim().slice(0, 140)).filter(Boolean).slice(0, 10), by: me.name, at: now() };
+      await s.setJSON('coin/set', set);
+      return J({ ok: true, set });
     }
     if (path === 'users') { need('users'); return J({ users: users.map(pubUser), perms: PERMS, roles: ROLE_PERMS }); }
     if (path === 'users/save' && method === 'POST') {
