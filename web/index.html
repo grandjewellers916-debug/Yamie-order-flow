@@ -389,7 +389,7 @@ const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', min
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.47';
+const VERSION = '1.48';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -468,9 +468,20 @@ document.addEventListener('keydown', (e) => { if (S.me || !LG.sel) return; if (/
 function logout() { S.token = ''; localStorage.removeItem('ysc_token'); S.me = null; showLogin(); }
 
 // ---------------- data ----------------
+// v1.48: the 40 s background refresh no longer rebuilds the page every time (it blinked, jumped to the top and
+// could wipe what was being typed). It redraws only when the data changed, keeps the scroll position,
+// and waits while someone is typing in a field.
+let lastSig = '', lastLoadAt = 0, pendingRender = false;
+const typingNow = () => { const a = document.activeElement; return !!(a && a.closest && a.closest('#main') && (/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) || a.isContentEditable)); };
+function keepScroll(fn) { const y = scrollY, m = $('#main'), my = m ? m.scrollTop : 0; fn(); scrollTo(0, y); const m2 = $('#main'); if (m2) m2.scrollTop = my; }
+document.addEventListener('focusout', () => setTimeout(() => { if (pendingRender && !typingNow() && !S.modal) { pendingRender = false; keepScroll(render); } }, 0));
 async function load(quiet) {
   try {
+    lastLoadAt = Date.now();
     const j = await api('state' + (S.date ? '?date=' + S.date : ''));
+    const sig = JSON.stringify(j);
+    if (quiet && sig === lastSig) return;   // nothing changed: leave the page as it is
+    lastSig = sig;
     const prevUnread = S.D?.alerts?.unread || 0;
     S.D = j; S.me = j.me; S.date = j.date === j.today ? null : j.date; applyJewelleryTypes(j.settings);
     S.round = roundOf(j.day);
@@ -480,8 +491,9 @@ async function load(quiet) {
     S.eodCount = j.mvs.filter((m) => m.eod && !m.void).length;
     S.locById = Object.fromEntries(j.locs.map((l) => [l.id, l]));
     if (quiet && j.alerts.unread > prevUnread) notify(j.alerts.unread - prevUnread);
-    if (!quiet || !S.modal) render();
-    else renderTop();
+    if (!quiet) render();
+    else if (S.modal || typingNow()) { renderTop(); pendingRender = !S.modal || pendingRender; }
+    else keepScroll(render);
   } catch (e) { if (S.token) fail(e); }
 }
 function notify(n) {
@@ -490,7 +502,7 @@ function notify(n) {
   } else toast(`🔔 ${n} new alert${n > 1 ? 's' : ''}`);
 }
 setInterval(() => { if (S.me && document.visibilityState === 'visible' && !S.modal) load(true); }, 40000);
-document.addEventListener('visibilitychange', () => { if (S.me && document.visibilityState === 'visible' && !S.modal) load(true); });
+document.addEventListener('visibilitychange', () => { if (S.me && document.visibilityState === 'visible' && !S.modal && Date.now() - lastLoadAt > 15000) load(true); });
 
 const activeLocs = (sec) => S.D.locs.filter((l) => (l.active !== false || sumLines(S.sum.exp[l.id]?.lines)) && (!sec || l.sec === sec)).sort((a, b) => (a.order || 0) - (b.order || 0));
 const expOf = (id) => S.sum.exp[id] || { lines: {}, wt: 0 };
