@@ -904,7 +904,7 @@ export default async (req: Request) => {
       const W = ['1', '2', '4', '8'], p: any = {}, o: any = {};
       for (const w of W) { if (n(E.p?.[w])) p[w] = n(E.p[w]); if (n(E.o?.[w])) o[w] = n(E.o[w]); }
       if (!Object.keys(p).length) return err('Enter Bhima prices first');
-      const entry = { id: 'c' + now().toString(36) + rid().slice(0, 4), at: now(), by: me.name, byId: me.id, br: n(E.br, 0, 1e6), r22: n(E.r22, 0, 1e6), margin: Math.max(-50, Math.min(100, Number(E.margin) || 0)), round: [1, 5, 10, 50, 100].includes(+E.round) ? +E.round : 50, mode: E.mode === 'near' ? 'near' : 'up', gst: Math.max(0, Math.min(28, Number(E.gst) || 3)), p, o };
+      const entry = { id: 'c' + now().toString(36) + rid().slice(0, 4), at: now(), by: me.name, byId: me.id, br: n(E.br, 0, 1e6), r22: n(E.r22, 0, 1e6), mtype: ['pct', 'g', 'coin'].includes(E.mtype) ? E.mtype : 'pct', margin: Math.max(-100000, Math.min(100000, Number(E.margin) || 0)), round: [1, 5, 10, 50, 100].includes(+E.round) ? +E.round : 50, mode: E.mode === 'near' ? 'near' : 'up', gst: Math.max(0, Math.min(28, Number(E.gst) || 3)), p, o };
       const log = ((await s.get('coin/log', { type: 'json' })) as any[]) || [];
       const next = [entry, ...log].slice(0, 1000); await s.setJSON('coin/log', next);
       return J({ ok: true, entry, log: next });
@@ -918,7 +918,7 @@ export default async (req: Request) => {
     if (path === 'coins/set' && method === 'POST') {
       need('coinSet');
       const X = body.set || {};
-      const set = { margin: Math.max(-50, Math.min(100, Number(X.margin) || 0)), round: [1, 5, 10, 50, 100].includes(+X.round) ? +X.round : 50, mode: X.mode === 'near' ? 'near' : 'up',
+      const set = { mtype: ['pct', 'g', 'coin'].includes(X.mtype) ? X.mtype : 'pct', margin: X.mtype === 'g' || X.mtype === 'coin' ? Math.max(-100000, Math.min(100000, Math.round(Number(X.margin) || 0))) : Math.max(-50, Math.min(100, Number(X.margin) || 0)), round: [1, 5, 10, 50, 100].includes(+X.round) ? +X.round : 50, mode: X.mode === 'near' ? 'near' : 'up',
         disc: (Array.isArray(X.disc) ? X.disc : []).map((t: any) => String(t || '').trim().slice(0, 140)).filter(Boolean).slice(0, 10), by: me.name, at: now() };
       await s.setJSON('coin/set', set);
       return J({ ok: true, set });

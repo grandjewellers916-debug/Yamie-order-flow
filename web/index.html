@@ -3095,11 +3095,12 @@ const COIN_CARD = {
 };
 const cnJ = (k, d) => { try { return JSON.parse(localStorage[k]) ?? d; } catch { return d; } };
 const C$ = { log: [], set: null, draft: cnJ('ysc_coinDraft', { br: '', r: '', p: {}, at: 0 }), feed: cnJ('ysc_coinFeed', null), brand: localStorage.ysc_cnBrand || 'yamie' };
-const cnSet = () => Object.assign({ margin: 0, round: 50, mode: 'up', disc: COIN_DISC.slice() }, C$.set || {});
+const cnSet = () => Object.assign({ mtype: 'pct', margin: 0, round: 50, mode: 'up', disc: COIN_DISC.slice() }, C$.set || {});
 const cnNum = (v) => { const n = parseFloat(String(v ?? '').replace(/[^\d.]/g, '')); return Number.isFinite(n) ? n : 0; };
 const cnInr = (v) => (v < 0 ? '−' : '') + '₹' + Math.round(Math.abs(v)).toLocaleString('en-IN');
 const cnPct = (v) => (Math.round(v * 10) / 10).toFixed(1) + '%';
 const cnWhen = (t) => new Date(t || Date.now()).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+const cnMgTxt = (st) => { const m = +st.margin || 0, sg = m >= 0 ? '+' : '−'; return st.mtype === 'g' ? `${sg} ${cnInr(Math.abs(m))}/g` : st.mtype === 'coin' ? `${sg} ${cnInr(Math.abs(m))} per coin` : `${sg} ${Math.abs(m)}%`; };
 const cnSaveDraft = () => { localStorage.ysc_coinDraft = JSON.stringify(C$.draft); };
 const cnFeed22 = () => (C$.feed && C$.feed.r22 > 0 ? C$.feed.r22 : null);
 const cnR22 = () => cnNum(C$.draft.r) > 0 ? cnNum(C$.draft.r) : cnFeed22();
@@ -3109,7 +3110,7 @@ function coinCalc() {
     const P = cnNum((d.p || {})[w]); if (!(P > 0) || !br) return { w, ok: false };
     const pre = P / G, gold = w * br, mk = pre - gold, mkPct = gold > 0 ? mk / gold * 100 : 0;
     if (!our) return { w, ok: true, our: false, P, pre, gold, mk, mkPct };
-    const og = w * our, omkPct = mkPct + m, omk = og * omkPct / 100, opre = og + omk, ogst = opre * COIN_GST / 100, raw = opre + ogst, tot = (up ? Math.ceil(raw / R - 1e-9) : Math.round(raw / R)) * R;
+    const og = w * our, omk = og * mkPct / 100 + (st.mtype === 'g' ? m * w : st.mtype === 'coin' ? m : og * m / 100), omkPct = og > 0 ? omk / og * 100 : 0, opre = og + omk, ogst = opre * COIN_GST / 100, raw = opre + ogst, tot = (up ? Math.ceil(raw / R - 1e-9) : Math.round(raw / R)) * R;
     return { w, ok: true, our: true, P, pre, gold, mk, mkPct, og, omkPct, omk, ogst, raw, tot };
   });
 }
@@ -3140,8 +3141,8 @@ function drawCoins() {
       <ul class="cndisc">${(st.disc || []).map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
       <div class="cnacts">${edit ? '<button class="btn" id="cnSave">Save prices</button>' : ''}<button class="btn sec" id="cnCard">Rate card</button><button class="btn sec" id="cnWa">Share on WhatsApp</button><button class="btn ghost" id="cnCopy">Copy text</button></div></div>
     <div class="card cn"><div class="cnhd"><div><h3>History</h3><div class="mut sm">Saved prices, newest first. Tap one to load it.</div></div><button class="btn sm ghost" id="cnRef">Refresh</button></div>
-      <div class="cntw"><table class="cn-t cnh">${C$.log.length ? `<thead><tr><th>Saved</th>${COIN_W.map((w) => `<th class="r">${w} g<small>Bhima · ours</small></th>`).join('')}<th></th></tr></thead><tbody>${C$.log.slice(0, 60).map((e) => `<tr data-id="${esc(e.id)}"><td>${esc(cnWhen(e.at))}<small>${esc(e.by || '')}${e.r22 ? ` · 22K ${cnInr(e.r22)}` : ''}${e.margin ? ` · margin ${e.margin}%` : ''}</small></td>${COIN_W.map((w) => `<td class="r">${e.p && e.p[w] ? cnInr(e.p[w]) : '—'}<small>${e.o && e.o[w] ? cnInr(e.o[w]) : ''}</small></td>`).join('')}<td class="r">${can('coinSet') ? `<button class="btn sm ghost" data-del="${esc(e.id)}">Delete</button>` : ''}</td></tr>`).join('')}</tbody>` : '<tbody><tr><td class="mut">No saved prices yet.</td></tr></tbody>'}</table></div></div>
-    ${can('coinSet') ? `<button class="card cn holcard" id="cnSetGo" style="text-align:left">⚙ <b>Margin &amp; rounding</b> — margin ${st.margin || 0}% · ${st.mode === 'near' ? 'nearest' : 'up to next'} ₹${st.round || 50} · change in Admin › Gold coins ›</button>` : ''}
+      <div class="cntw"><table class="cn-t cnh">${C$.log.length ? `<thead><tr><th>Saved</th>${COIN_W.map((w) => `<th class="r">${w} g<small>Bhima · ours</small></th>`).join('')}<th></th></tr></thead><tbody>${C$.log.slice(0, 60).map((e) => `<tr data-id="${esc(e.id)}"><td>${esc(cnWhen(e.at))}<small>${esc(e.by || '')}${e.r22 ? ` · 22K ${cnInr(e.r22)}` : ''}${e.margin ? ` · margin ${cnMgTxt(e)}` : ''}</small></td>${COIN_W.map((w) => `<td class="r">${e.p && e.p[w] ? cnInr(e.p[w]) : '—'}<small>${e.o && e.o[w] ? cnInr(e.o[w]) : ''}</small></td>`).join('')}<td class="r">${can('coinSet') ? `<button class="btn sm ghost" data-del="${esc(e.id)}">Delete</button>` : ''}</td></tr>`).join('')}</tbody>` : '<tbody><tr><td class="mut">No saved prices yet.</td></tr></tbody>'}</table></div></div>
+    ${can('coinSet') ? `<button class="card cn holcard" id="cnSetGo" style="text-align:left">⚙ <b>Margin &amp; rounding</b> — margin ${cnMgTxt(st)} · ${st.mode === 'near' ? 'nearest' : 'up to next'} ₹${st.round || 50} · change in Admin › Gold coins ›</button>` : ''}
   </div>`;
   const upd = (k, v) => { C$.draft[k] = v; C$.draft.at = 0; cnSaveDraft(); paintCoinCalc(); };
   $('#cnBr').oninput = (e) => upd('br', e.target.value.replace(/[^\d.]/g, ''));
@@ -3165,14 +3166,14 @@ function paintCoinCalc() {   // only the calculated cells — the price being ty
   rows.forEach((r, i) => { const tr = tin.tBodies[0].rows[i]; tr.cells[2].textContent = r.ok ? cnInr(r.gold) : '—'; tr.cells[3].textContent = r.ok ? cnInr(r.mk) : '—'; tr.cells[4].innerHTML = `<b>${r.ok ? cnPct(r.mkPct) : '—'}</b>`; });
   tout.tBodies[0].innerHTML = rows.map((r) => !r.ok || !r.our ? `<tr><td><b>${r.w} g</b></td><td colspan="4" class="mut">${our ? 'Enter Bhima\'s price' : 'Enter our 22K rate'}</td></tr>` :
     `<tr><td><b>${r.w} g</b></td><td class="r cnx">${cnInr(r.og)}</td><td class="r cnx">${cnInr(r.ogst)}</td><td class="r cnfin"><b>${cnInr(r.tot)}</b><small>Making ${cnInr(r.omk)} · ${cnPct(r.omkPct)}</small></td><td class="r ${r.tot > r.P ? 'cnup' : r.tot < r.P ? 'cndn' : ''}">${r.tot === r.P ? 'same' : (r.tot > r.P ? '+' : '−') + cnInr(Math.abs(r.tot - r.P))}</td></tr>`).join('');
-  $('#cnOurNote').textContent = our ? `22K ${cnInr(our)}/g · making = Bhima making % ${(+st.margin || 0) >= 0 ? '+' : '−'} ${Math.abs(+st.margin || 0)}% margin · ${COIN_GST}% GST · ${st.mode === 'near' ? 'rounded to the nearest' : 'rounded up to the next'} ₹${st.round || 50}` : 'Enter our 22K rate first.';
+  $('#cnOurNote').textContent = our ? `22K ${cnInr(our)}/g · making = Bhima making % ${cnMgTxt(st)} margin · ${COIN_GST}% GST · ${st.mode === 'near' ? 'rounded to the nearest' : 'rounded up to the next'} ₹${st.round || 50}` : 'Enter our 22K rate first.';
   $('#cnWhen').textContent = C$.draft.at ? 'Saved ' + cnWhen(C$.draft.at) : 'Not saved yet';
 }
 async function coinSave() {
   const rows = coinCalc(), our = cnR22(), st = cnSet(), p = {}, o = {};
   rows.forEach((r) => { if (r.ok) { p[r.w] = r.P; if (r.our) o[r.w] = r.tot; } });
   if (!Object.keys(p).length) return toast('⚠ Enter Bhima\'s prices first'); if (!our) return toast('⚠ Enter our 22K rate first');
-  try { const j = await api('coins/save', { entry: { br: cnNum(C$.draft.br) > 0 ? cnNum(C$.draft.br) : our, r22: our, margin: +st.margin || 0, round: +st.round || 50, mode: st.mode, gst: COIN_GST, p, o } });
+  try { const j = await api('coins/save', { entry: { br: cnNum(C$.draft.br) > 0 ? cnNum(C$.draft.br) : our, r22: our, mtype: st.mtype, margin: +st.margin || 0, round: +st.round || 50, mode: st.mode, gst: COIN_GST, p, o } });
     C$.log = j.log; C$.draft.at = j.entry.at; cnSaveDraft(); drawCoins(); toast('Coin prices saved'); } catch (e) { fail(e); }
 }
 function coinText(bid) {
@@ -3226,15 +3227,19 @@ async function admCoins() {
   const st = cnSet(), ex = coinCalc().find((r) => r.ok && r.our);
   $('#adm').innerHTML = `<div class="card" style="max-width:760px">
     <h3>Gold coin margin</h3>
-    <div class="mut" style="margin:4px 0 6px">Our making = Bhima's making % (worked out from their price) <b>+ this margin</b>, as % of the gold value. Then ${COIN_GST}% GST, then rounding.</div>
-    <div class="g2"><div><label class="f">Margin (% of gold value)</label><input id="cnMg" inputmode="decimal" value="${esc(String(st.margin || ''))}" placeholder="0"><div class="mut sm" style="margin-top:4px">Use a minus to go below Bhima, e.g. −0.5</div></div>
+    <div class="mut" style="margin:4px 0 6px">Our making = Bhima's making (worked out from their price, at our 22K rate) <b>+ this margin</b>. Then ${COIN_GST}% GST, then rounding.</div>
+    <label class="f">Margin as</label><div class="seg" id="cnMt" style="max-width:480px">${[['pct', '% of gold value'], ['g', '₹ per gram'], ['coin', '₹ per coin']].map(([k, t]) => `<button data-mt="${k}" class="${(st.mtype || 'pct') === k ? 'on' : ''}">${t}</button>`).join('')}</div>
+    <div class="g2"><div><label class="f" id="cnMgL"></label><input id="cnMg" inputmode="decimal" value="${esc(String(st.margin || ''))}" placeholder="0"><div class="mut sm" style="margin-top:4px" id="cnMgH"></div></div>
       <div><label class="f">Round our price</label><div class="row" style="gap:6px"><select id="cnMd"><option value="up" ${st.mode !== 'near' ? 'selected' : ''}>Up to the next</option><option value="near" ${st.mode === 'near' ? 'selected' : ''}>To the nearest</option></select><select id="cnRd">${[1, 5, 10, 50, 100].map((r) => `<option value="${r}" ${(+st.round || 50) === r ? 'selected' : ''}>₹${r}</option>`).join('')}</select></div></div></div>
     <label class="f">Disclaimers on the rate card and WhatsApp (one per line, up to 10)</label><textarea id="cnDs" rows="6">${esc((st.disc || []).join('\n'))}</textarea>
     <div class="row wrap" style="gap:8px;margin-top:10px"><button class="btn" id="cnSetSave">Save</button><button class="btn ghost" id="cnDsReset">Default disclaimers</button></div>
-    <div class="mut sm" style="margin-top:10px">${st.at ? `Last changed ${esc(cnWhen(st.at))}${st.by ? ' by ' + esc(st.by) : ''}.` : 'Not changed yet — margin 0%, rounded up to the next ₹50.'}${ex ? ` Now: ${ex.w} g coin → ${cnInr(ex.tot)} (making ${cnPct(ex.omkPct)}).` : ''}</div></div>`;
+    <div class="mut sm" style="margin-top:10px">${st.at ? `Last changed ${esc(cnWhen(st.at))}${st.by ? ' by ' + esc(st.by) : ''}.` : 'Not changed yet — margin 0%, rounded up to the next ₹50.'} Margin now: ${esc(cnMgTxt(st))}.${ex ? ` Now: ${ex.w} g coin → ${cnInr(ex.tot)} (making ${cnPct(ex.omkPct)}).` : ''}</div></div>`;
   $('#cnDsReset').onclick = () => { $('#cnDs').value = COIN_DISC.join('\n'); };
+  let mt = st.mtype || 'pct';
+  const mtLbl = () => { $('#cnMgL').textContent = mt === 'g' ? 'Margin (₹ per gram of the coin)' : mt === 'coin' ? 'Margin (₹ on each coin)' : 'Margin (% of gold value)'; $('#cnMgH').textContent = mt === 'g' ? 'e.g. 50 → 1 g +₹50, 8 g +₹400. Minus to go below Bhima.' : mt === 'coin' ? 'e.g. 100 → every coin +₹100. Minus to go below Bhima.' : 'e.g. 1 → +1% of the gold value. Minus to go below Bhima, e.g. −0.5'; };
+  mtLbl(); $('#cnMt').querySelectorAll('button').forEach((b) => b.onclick = () => { mt = b.dataset.mt; $('#cnMt').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b)); mtLbl(); });
   $('#cnSetSave').onclick = async () => {
-    try { const j = await api('coins/set', { set: { margin: parseFloat(String($('#cnMg').value).replace('−', '-')) || 0, round: +$('#cnRd').value, mode: $('#cnMd').value, disc: $('#cnDs').value.split('\n').map((t) => t.trim()).filter(Boolean) } }); C$.set = j.set; toast('Gold coin settings saved'); admCoins(); } catch (e) { fail(e); }
+    try { const j = await api('coins/set', { set: { mtype: mt, margin: parseFloat(String($('#cnMg').value).replace('−', '-')) || 0, round: +$('#cnRd').value, mode: $('#cnMd').value, disc: $('#cnDs').value.split('\n').map((t) => t.trim()).filter(Boolean) } }); C$.set = j.set; toast('Gold coin settings saved'); admCoins(); } catch (e) { fail(e); }
   };
 }
 function vMore() {
