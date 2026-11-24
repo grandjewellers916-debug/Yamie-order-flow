@@ -622,7 +622,9 @@ export default async (req: Request) => {
         const mc = cleanStr(o.mc, 40).replace(/\s+/g, " ").trim()
         const stt = Array.isArray(o.st) ? [...new Set(o.st.map((x: any) => cleanStr(x, 30).replace(/\s+/g, " ").trim()).filter(Boolean))].slice(0, 8) : []
         const sk = cleanStr(o.sk, 24).replace(/\s+/g, "").trim()   // V1.8.24 shank width x thickness, e.g. 1.34x1.18
-        if (jt || sc.length || mc || stt.length || sk) map[k] = { ...(jt ? { jt } : {}), ...(sc.length ? { sc } : {}), ...(mc ? { mc } : {}), ...(stt.length ? { st: stt } : {}), ...(sk ? { sk } : {}) }; else delete map[k]
+        const lst = (v: any, n: number) => Array.isArray(v) ? [...new Set(v.map((x: any) => cleanStr(x, 30).replace(/\s+/g, " ").trim()).filter(Boolean))].slice(0, n) : []
+        const sh = lst(o.sh, 4), ss = lst(o.ss, 6)   // V1.9.2 design shape (Infinity, Heart…) and stone shape (Round, Pear…)
+        if (jt || sc.length || mc || stt.length || sk || sh.length || ss.length) map[k] = { ...(jt ? { jt } : {}), ...(sc.length ? { sc } : {}), ...(mc ? { mc } : {}), ...(stt.length ? { st: stt } : {}), ...(sk ? { sk } : {}), ...(sh.length ? { sh } : {}), ...(ss.length ? { ss } : {}) }; else delete map[k]
         n++
       }
       await st.setJSON("pattrs", map)

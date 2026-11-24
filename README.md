@@ -626,3 +626,9 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 - **Sign in:** light page, app icon with "Price · Quote · Value" on the left, sign-in card on the right (stacked on phones).
 - **New Yamie app icon** (`web/brand/yamie/app-icon.png`, web icons and Android launcher).
 - Applies to every Theme style (v1.9.1; v1.9.0 applied it to the iOS colour style only). Dark mode keeps dark cards. Grand uses the same look in its own colours. Phone screens keep their layout.
+
+## 1.9.2 — Edit details in the item sheet; Shape and Stone shape
+- Search: tap a product (phone) or click a row (web) → item sheet. **Edit details** edits product name, design, metal colour, stone type, **Shape**, **Stone shape**, shank and stone colour right in the sheet. **Save**, then swipe (phone), ‹ › or arrow keys to the next item — it stays in edit mode. Moving on or **Save & next ›** saves unsaved changes first. **Done** leaves edit mode; **Making & label…** opens the full stock form. The web row's **Price it** button still prices.
+- New properties (several per product, "+ Other…" adds your own): **Shape** (Infinity, Heart, Round, Oval, Drop, Flower, Butterfly, Evil eye…; up to 4) and **Stone shape** (Round, Oval, Pear, Marquise, Princess, Emerald, Cushion, Heart, Baguette…; up to 6). Stored with the other product properties (`pattrs`: `sh`, `ss`); older forms and Bulk update keep them.
+- Search filters, text search, table columns, Excel export and share-card fields include Shape and Stone shape.
+- Who can edit: users allowed to add photos, edit, add or bulk-update stock (product name needs the photos permission).
