@@ -21,14 +21,19 @@ export const DEFAULT_SETTINGS = {
   // v1.37 ERP label code per item: barcode = code + label number (e.g. Bangle 14368 → BGL14368)
   labelCodes: [['Bangle', 'BGL'], ['Birthstone Ring', 'BRS'], ['Bracelet', 'BCL'], ['Chain', 'CHN'], ['Designer Set', 'DSS'], ['Diamond Ornament', 'DIA'], ['Hooks & Findings', 'ACC'], ['Locket', 'LKT'], ['Navaratna Ring', 'JWL'], ['Necklace', 'NCL'], ['Nosepins (18K)', 'NSP'], ['Ring', 'RNG'], ['Stud', 'STD'], ['Thali', 'TLY']].map(([item, code]) => ({ item, code })),
   // v1.29 main locations → sub locations; kind = counter / tray / box (how it is counted; weight for boxes only)
+  // v1.54 six main locations: Counter Display · Shelf Display · Floating Counters · Buffer Trays · Buffer Boxes · Grand Location
   mainLocs: [
-    { name: 'Counter Display', kind: 'counter', subs: [{ name: 'Counter' }, { name: 'Shelves' }] },
-    { name: 'Buffer Tray', kind: 'tray', subs: [] },
+    { name: 'Counter Display', kind: 'counter', subs: [] },
+    { name: 'Shelf Display', kind: 'counter', subs: [] },
+    { name: 'Floating Counters', kind: 'counter', subs: [] },
+    { name: 'Buffer Trays', kind: 'tray', subs: [] },
     { name: 'Buffer Boxes', kind: 'box', subs: [{ name: 'Gold boxes' }, { name: 'Mixed' }, { name: 'Sales Return' }, { name: 'Samples/Repairs' }, { name: 'Partner Drawings' }, { name: 'Photoshoot items' }] },
-    { name: 'Grand Jewellers', kind: 'box', subs: [{ name: 'Mixed items' }, { name: 'Trays', kind: 'tray' }] },
+    { name: 'Grand Location', kind: 'box', subs: [{ name: 'Mixed items' }, { name: 'Trays', kind: 'tray' }] },
   ],
-  areas: ['Counter Display', 'Buffer Tray', 'Buffer Boxes', 'Grand Jewellers'],
-  subDisplays: ['Counter', 'Shelves'],
+  areas: ['Counter Display', 'Shelf Display', 'Floating Counters', 'Buffer Trays', 'Buffer Boxes', 'Grand Location'],
+  subDisplays: [],
+  // v1.54 names shown for product categories whose stored name differs (stored names stay — they are part of stock records)
+  itemLabels: { Set: 'Jewellery Set', Coin: 'Gold coins' },
   spots: ['Cash Counter Area', 'Locker Area', 'Platinum Area', 'Free standing counter'],   // physical position (before v1.29 this was the main location)
   jtypes: ['Plain Gold Jewellery', 'Diamond Jewellery', 'Platinum', 'Tanih - CVD Jewellery', 'Silver', 'Mixed'],     // app count is matched against ERP labels ('lbl') or pieces ('pcs')
   reasons: ['Item sold, not updated', 'Moved to another tray', 'Sent for repair / approval', 'Label missing / wrong tag', 'Found extra item', 'Other'],
@@ -258,12 +263,12 @@ export function closingVerified(locs, opening, mvs, counts, settings) {
 // Each stock line key is an item type, optionally with a jewellery type code: "Ring" or "Ring@D".
 // A plain key means the location's own type (Plain Gold when the location is Mixed).
 // v1.13: Tanih - CVD Jewellery (code T, lab-grown diamond, gold metal) and Silver (code S) added.
-export const JTYPES = ['Plain Gold Jewellery', 'Diamond Jewellery', 'Platinum', 'Tanih - CVD Jewellery', 'Silver', 'Mixed'];
-export const LINE_JTYPES = ['Plain Gold Jewellery', 'Diamond Jewellery', 'Platinum', 'Tanih - CVD Jewellery', 'Silver'];   // v1.26 order: Gold, Diamond Jewellery, Platinum, Lab Grown, Silver
+export const JTYPES = ['Plain Gold Jewellery', 'Diamond Jewellery', 'Tanih - CVD Jewellery', 'Platinum', 'Silver', 'Mixed'];
+export const LINE_JTYPES = ['Plain Gold Jewellery', 'Diamond Jewellery', 'Tanih - CVD Jewellery', 'Platinum', 'Silver'];   // v1.54 main classifications: Gold, Diamond Studded, Lab-grown Diamond, Platinum, Silver
 export const JT_CODE = { 'Plain Gold Jewellery': 'G', 'Diamond Jewellery': 'D', 'Tanih - CVD Jewellery': 'T', Platinum: 'P', Silver: 'S' };
-export const JT_SHORT = { 'Plain Gold Jewellery': 'Gold', 'Diamond Jewellery': 'Diamond', 'Tanih - CVD Jewellery': 'Lab Grown', Platinum: 'Platinum', Silver: 'Silver' };
+export const JT_SHORT = { 'Plain Gold Jewellery': 'Gold', 'Diamond Jewellery': 'Diamond', 'Tanih - CVD Jewellery': 'Lab-grown', Platinum: 'Platinum', Silver: 'Silver' };
 // v1.26 names shown to users (stored values unchanged): Gold, Diamond Jewellery, Platinum, Lab Grown, Silver
-export const JT_LABEL = { 'Plain Gold Jewellery': 'Gold', 'Diamond Jewellery': 'Diamond Jewellery', 'Tanih - CVD Jewellery': 'Lab Grown', Platinum: 'Platinum', Silver: 'Silver', Mixed: 'Mixed' };
+export const JT_LABEL = { 'Plain Gold Jewellery': 'Gold Jewellery', 'Diamond Jewellery': 'Diamond Studded Jewellery', 'Tanih - CVD Jewellery': 'Lab-grown Diamond Jewellery', Platinum: 'Platinum Jewellery', Silver: 'Silver Jewellery', Mixed: 'Mixed' };
 export const JT_CLS = { 'Plain Gold Jewellery': 'g', 'Diamond Jewellery': 'd', 'Tanih - CVD Jewellery': 't', Platinum: 'p', Silver: 's' };
 // Report metal of a jewellery type (Tanih CVD is set in gold → Gold).
 export const METALS = ['Gold', 'Platinum', 'Silver'];
@@ -271,7 +276,7 @@ export const JT_METAL = { 'Plain Gold Jewellery': 'Gold', 'Diamond Jewellery': '
 export const jtMetal = (jt) => JT_METAL[jt] || 'Gold';
 /** v1.28 admin-managed jewellery types. settings.jtLabels {stored name: label}, settings.jtShort {name: short}, settings.jtHidden [names],
  *  settings.jtCustom [{ name, code (one letter, not G D P T S), label, short, metal }]. Mutates the shared lists/maps in place. */
-const JT_BUILTIN = { order: ['Plain Gold Jewellery', 'Diamond Jewellery', 'Platinum', 'Tanih - CVD Jewellery', 'Silver'], code: { ...JT_CODE }, short: { ...JT_SHORT }, label: { ...JT_LABEL }, cls: { ...JT_CLS }, metal: { ...JT_METAL } };
+const JT_BUILTIN = { order: ['Plain Gold Jewellery', 'Diamond Jewellery', 'Tanih - CVD Jewellery', 'Platinum', 'Silver'], code: { ...JT_CODE }, short: { ...JT_SHORT }, label: { ...JT_LABEL }, cls: { ...JT_CLS }, metal: { ...JT_METAL } };
 export const JT_FREE_CODES = 'ABCEFHIJKLMNOQRUVWXYZ'.split('');
 export function applyJewelleryTypes(st) {
   const custom = (st?.jtCustom || []).filter((c) => c && c.name && /^[A-Z]$/.test(c.code) && !'GDPTS'.includes(c.code));
@@ -286,7 +291,12 @@ export function applyJewelleryTypes(st) {
   LINE_JTYPES.length = 0; LINE_JTYPES.push(...ord2);
   JTYPES.length = 0; JTYPES.push(...ord2, 'Mixed');
   JT_LABEL.Mixed = 'Mixed';
+  for (const k of Object.keys(ITEM_LABEL)) delete ITEM_LABEL[k];
+  Object.assign(ITEM_LABEL, DEFAULT_SETTINGS.itemLabels, st?.itemLabels || {});
 }
+// v1.54 product category display names (stored item names unchanged): Set → Jewellery Set, Coin → Gold coins
+export const ITEM_LABEL = { ...DEFAULT_SETTINGS.itemLabels };
+export const itemLbl = (v) => ITEM_LABEL[v] || v;
 // v1.10: key may also carry purity: "Ring@D#18K" (jewellery type D, purity 18K). "#-" = no purity.
 export const itemOf = (k) => String(k).split(/[@#]/)[0];
 export const defaultPur = (loc) => loc?.purity || '';
@@ -306,7 +316,7 @@ export const lineKey = (loc, item, jt, pur) => {
   if (pur !== undefined && (pur || '') !== defaultPur(loc)) k += `#${pur || '-'}`;
   return k;
 };
-export const keyText = (loc, k) => { const p = purOfLine(loc, k); return `${JT_SHORT[jtOfLine(loc, k)]}${p && !/^mixed$/i.test(p) ? ' ' + p : ''} ${itemOf(k)}`; };   // v1.38: 'Mixed' purity is not an item name
+export const keyText = (loc, k) => { const p = purOfLine(loc, k); return `${JT_SHORT[jtOfLine(loc, k)]}${p && !/^mixed$/i.test(p) ? ' ' + p : ''} ${itemLbl(itemOf(k))}`; };   // v1.38: 'Mixed' purity is not an item name
 export const lineMetal = (loc, k) => jtMetal(jtOfLine(loc, k));
 export const metalOf = (loc) => (loc?.jtype ? jtMetal(loc.jtype) : loc?.cat === 'Platinum' ? 'Platinum' : loc?.cat === 'Silver' ? 'Silver' : 'Gold');
 export const erpMetal = (name) => (/platinum/i.test(name || '') ? 'Platinum' : /silver/i.test(name || '') ? 'Silver' : 'Gold');

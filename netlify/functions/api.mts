@@ -118,6 +118,31 @@ async function getLocs(s: any) {
       for (const x of l.locs) if (x.sec === 'box' && x.area === 'Buffer Boxes' && (String(x.boxNo || '').toUpperCase() === 'MIX' || /\bmix(ed)?\b/i.test(x.name || ''))) { x.sub = 'Mixed'; n++; } }
     l.mig42 = true; await s.setJSON('cfg/locs', l);
   }
+  // v1.54: six main locations — Counter Display · Shelf Display · Floating Counters · Buffer Trays · Buffer Boxes · Grand Location;
+  // classifications in the order Gold · Diamond Studded · Lab-grown Diamond · Platinum · Silver with their full names — once
+  if (!l.mig54) {
+    const raw: any = (await s.get('cfg/settings', { type: 'json' })) || {}; const st = await getSettings(s); const ml: any[] = JSON.parse(JSON.stringify(st.mainLocs));
+    const at = (n: string) => ml.findIndex((m: any) => m.name === n);
+    const mv = (fa: string, fs: string | null, ta: string, ts = '') => { for (const x of l.locs) if (x.area === fa && (fs === null || (x.sub || '') === fs)) { x.area = ta; x.sub = ts; } };
+    const renKeep = (from: string, to: string) => { const i = at(from); if (i >= 0 && at(to) < 0) { ml[i].name = to; for (const x of l.locs) if (x.area === from) x.area = to; } };
+    const cd = ml[at('Counter Display')];
+    if (cd) {
+      const sh = (cd.subs || []).find((x: any) => /^shel/i.test(x.name));
+      if (at('Shelf Display') < 0) ml.splice(at('Counter Display') + 1, 0, { name: 'Shelf Display', kind: 'counter', subs: [] });
+      if (sh) { mv('Counter Display', sh.name, 'Shelf Display'); cd.subs = cd.subs.filter((x: any) => x !== sh); }
+      if (at('Floating Counters') < 0) ml.splice(at('Shelf Display') + 1, 0, { name: 'Floating Counters', kind: 'counter', subs: [] });
+      for (const x of l.locs) if (x.sec === 'counter' && x.area === 'Counter Display' && /free.?standing|floating/i.test(`${x.spot || ''} ${x.group || ''} ${x.name || ''}`)) { x.area = 'Floating Counters'; x.sub = ''; }
+      if ((cd.subs || []).length === 1 && /^counters?$/i.test(cd.subs[0].name)) { mv('Counter Display', cd.subs[0].name, 'Counter Display'); cd.subs = []; }
+    }
+    renKeep('Buffer Tray', 'Buffer Trays'); renKeep('Grand Jewellers', 'Grand Location');
+    const ORDER = ['Counter Display', 'Shelf Display', 'Floating Counters', 'Buffer Trays', 'Buffer Boxes', 'Grand Location'];
+    ml.sort((a: any, b: any) => { const ia = ORDER.indexOf(a.name), ib = ORDER.indexOf(b.name); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); });
+    const B = ['Plain Gold Jewellery', 'Diamond Jewellery', 'Tanih - CVD Jewellery', 'Platinum', 'Silver'];
+    const jl = { ...(raw.jtLabels || {}) }, js = { ...(raw.jtShort || {}) }; for (const k of B) { delete jl[k]; delete js[k]; }
+    const jo = [...B, ...((raw.jtOrder || []).filter((j: string) => !B.includes(j)))];
+    await s.setJSON('cfg/settings', { ...raw, mainLocs: ml, jtLabels: jl, jtShort: js, jtOrder: jo });
+    l.mig54 = true; await s.setJSON('cfg/locs', l);
+  }
   // v1.8: Main location / Sub display / Jewellery type — fill in once for older locations
   if (l.locs.some((x: any) => x.jtype === undefined)) {
     for (const x of l.locs) if (x.jtype === undefined) Object.assign(x, deriveLocMeta(x));
@@ -747,6 +772,7 @@ export default async (req: Request) => {
       const str = (v: any, n = 40) => String(v ?? '').trim().slice(0, n);
       if (b.jtLabels && typeof b.jtLabels === 'object') next.jtLabels = Object.fromEntries(Object.entries(b.jtLabels).map(([k, v]: any) => [str(k, 60), str(v)]).filter(([, v]) => v));
       if (b.jtShort && typeof b.jtShort === 'object') next.jtShort = Object.fromEntries(Object.entries(b.jtShort).map(([k, v]: any) => [str(k, 60), str(v, 20)]).filter(([, v]) => v));
+      if (b.itemLabels && typeof b.itemLabels === 'object') next.itemLabels = Object.fromEntries(Object.entries(b.itemLabels).map(([k, v]: any) => [str(k, 30), str(v)]).filter(([k, v]) => k && v));   // v1.54 product display names
       if (Array.isArray(b.jtHidden)) next.jtHidden = b.jtHidden.map((x: any) => str(x, 60)).filter((x: string) => x && x !== 'Plain Gold Jewellery');
       if (Array.isArray(b.jtOrder)) next.jtOrder = b.jtOrder.map((x: any) => str(x, 60)).filter(Boolean);
       if (Array.isArray(b.jtCustom)) { const used = new Set(['G', 'D', 'P', 'T', 'S']);
