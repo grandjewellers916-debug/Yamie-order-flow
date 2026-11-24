@@ -649,3 +649,7 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 ## 1.9.6 — Edit in the Search table; large photo window
 - Web Search table: click a Product name, Collection, Design, Metal colour, Stone type, Shape, Stone shape or Stone colour cell to edit it right there. **Enter** (or **Save ↓**) saves and opens the same cell on the next row — fast entry down a column; **Save** saves and stays; **Esc** cancels; clicking elsewhere saves. The PIN is asked once if needed. Other cells still open the item window.
 - Item window on a computer: large photo on the left (all photos, swipe/scroll), details or Edit details on the right. Click the photo for full screen; ‹ › / arrow keys for the item's other photos; Esc or click to close.
+
+## 1.9.7 — Bulk update: product details
+- Bulk update › **Product details**: Collection (type **none** to clear), Design (or Clear design), and tick chips for Stone type, Shape, Stone shape and Stone colour, each with **Add the ticked** / **Replace with the ticked** / **Clear all**. Metal colour stays in the list above. The confirm line lists every change.
+- **Find items by** now also has Collection, Design, Shape and Stone shape (or "Not set").
