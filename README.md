@@ -625,4 +625,4 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 - **Settings:** cards grouped under General · Pricing & Rates · Products & Inventory · Users & Access (anything else under More).
 - **Sign in:** light page, app icon with "Price · Quote · Value" on the left, sign-in card on the right (stacked on phones).
 - **New Yamie app icon** (`web/brand/yamie/app-icon.png`, web icons and Android launcher).
-- Applies to the default style (Theme → iOS brand). Dark mode keeps dark cards. Grand uses the same look in its own colours. Phone screens keep their layout.
+- Applies to every Theme style (v1.9.1; v1.9.0 applied it to the iOS colour style only). Dark mode keeps dark cards. Grand uses the same look in its own colours. Phone screens keep their layout.
