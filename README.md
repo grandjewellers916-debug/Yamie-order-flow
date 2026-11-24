@@ -659,3 +659,6 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 - Bulk update › Change for the picked items: one list — Collection, Design, Metal colour, Stone type, Shape, Stone shape, Stone colour, then the label fields.
 - Settings › Products & Inventory › **Bulk update & top bar** (permission Product property lists): tick which filters and fields Bulk update shows, ↑ ↓ to order them, and **show or hide the top bar** on computers (hidden: the page title moves to the top, the bell sits beside it). Shared with all staff (`plists.ui`).
 - Product report: Collection, Shape and Stone shape can be shown on each card; the report heading's Collection and sub-heading use the items' collection.
+
+## 1.9.9 — New Yamie app icon
+- Yamie Price Check icon: burgundy and gold "Legacy 1986 · YAMIE · Price Check" with the scan mark — Android launcher (all sizes), web app icons (192, 512, maskable, iPhone 180) and the in-app icon. Grand is unchanged.
