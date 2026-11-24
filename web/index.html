@@ -382,7 +382,23 @@ table.rep tr.rgrp td{background:var(--iv);font-weight:600;border-top:1px solid v
 @media print{.nav,.top,.sticky,.noprint{display:none!important}main{margin:0;padding:0}}
 #uiz{position:fixed;right:12px;bottom:76px;z-index:9999;display:flex;align-items:center;gap:2px;background:#fff;border:1px solid var(--ln);border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.14);padding:3px;font:600 13px/1 Jost,system-ui,sans-serif;opacity:.55;transition:opacity .15s}
 #uiz:hover,#uiz.on{opacity:1}#uiz button{border:0;background:none;width:30px;height:30px;border-radius:50%;font:700 18px/1 Jost,system-ui,sans-serif;color:var(--ink);cursor:pointer}#uiz button:hover{background:#F3ECE4}#uiz .zv{min-width:44px;text-align:center;cursor:pointer;color:var(--mut)}
-@media print{#uiz{display:none}}
+@media print{#uiz{display:none}}.hasuiz #app>main{padding-bottom:64px!important}
+main.ccmp{padding-bottom:20px;padding-top:8px}
+/* v1.51 compact Cash Closing — fits one screen on desktop (two columns), tighter on phone */
+#main.ccmp h1{font-size:22px}#main.ccmp .chd .mut{font-size:13px}#main.ccmp .tabs{margin:6px 0 10px}#main.ccmp .tabs button{padding:6px 12px;font-size:14px}
+.ccmp .cgrid{gap:10px;margin-top:0}.ccmp .ccol{display:grid;gap:10px;align-content:start;min-width:0}
+.ccmp .card{padding:10px 12px}.ccmp .ctitle{font-size:14px;margin-bottom:6px}.ccmp label.f{font-size:12px;margin:6px 0 2px}.ccmp .g2{gap:6px 10px}
+.ccmp input,.ccmp select,.ccmp textarea{min-height:34px;padding:5px 9px;font-size:14px}.ccmp textarea{min-height:52px}
+.ccmp .cday{gap:8px}.ccmp .cday button{padding:6px 10px;gap:1px;border-radius:11px;flex-direction:row;flex-wrap:wrap;align-items:center;column-gap:8px}.ccmp .cday .mut{display:none}.ccmp .cday .b{font-size:14px}
+.ccmp .g4{grid-template-columns:1.2fr 1.1fr .8fr 1.15fr}.ccmp .cdet .ctitle{display:none}#main.ccmp .chd .csub{display:none}#main.ccmp h1{margin:0}
+.ccmp .dhead,.ccmp .drow{grid-template-columns:52px 1fr 1fr 92px;gap:6px}.ccmp .dhead{padding-bottom:3px;font-size:10px}.ccmp .dhead span:last-child{text-align:right}
+.ccmp .drow{padding:2px 0}.ccmp .dnote{padding:5px 2px;font-size:13px;border-radius:7px}.ccmp .dent input{height:30px;min-height:30px;font-size:15px;padding:3px}.ccmp .dent small{display:none}
+.ccmp .dra{text-align:right;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink)}.ccmp .dra.z{color:var(--mut);font-weight:400}.ccmp .dcf{grid-column:2/5;margin-top:-2px}
+.ccmp .ctotal{padding:10px 14px;border-radius:12px}.ccmp .ctotal .amt{font-size:26px}.ccmp .ctotal .splits{margin-top:6px;padding-top:6px}
+.ccmp .cdiff{margin-top:8px;padding:8px 10px}.ccmp .cdiff strong{font-size:18px}.ccmp .mut.sm{font-size:11.5px}.ccmp .cact{gap:8px}.ccmp .cact .btn{min-height:36px;padding:6px 10px;font-size:14px}
+.ccmp .cact.c2a .btn{min-height:30px;font-size:13px;padding:4px 8px}.ccmp .copen .amt2{font-size:20px}.ccmp .banner{padding:8px 10px;font-size:13px}.ccmp .cfnotes{margin-top:6px}
+@media(max-width:999px){.ccmp .ccol{display:contents}.ccmp .cact{order:9}}
+@media(min-width:1000px){.ccmp .cgrid.c2{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);max-width:1180px;align-items:start}}
 </style>
 </head>
 <body>
@@ -404,14 +420,14 @@ const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 
   const K = 'ysc_uiz', STEPS = [0.7, 0.75, 0.8, 0.85, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.75, 2];
   let z = +(localStorage.getItem(K) || 1); if (!STEPS.includes(z)) z = 1;
   const el = document.createElement('div'); el.id = 'uiz'; el.innerHTML = '<button title="Smaller (Ctrl −)" aria-label="Smaller">−</button><span class="zv" title="Reset to 100%"></span><button title="Bigger (Ctrl +)" aria-label="Bigger">+</button>';
-  document.body.appendChild(el);
+  document.body.appendChild(el); document.documentElement.classList.add('hasuiz');
   const apply = () => { document.documentElement.style.zoom = z === 1 ? '' : z; el.style.zoom = 1 / z; el.querySelector('.zv').textContent = Math.round(z * 100) + '%'; window.dispatchEvent(new Event('resize')); try { localStorage.setItem(K, z); } catch {} };
   const step = (d) => { const i = STEPS.indexOf(z); z = STEPS[Math.min(STEPS.length - 1, Math.max(0, i + d))]; apply(); el.classList.add('on'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('on'), 1500); };
   const [mi, pl] = el.querySelectorAll('button'); mi.onclick = () => step(-1); pl.onclick = () => step(1); el.querySelector('.zv').onclick = () => { z = 1; apply(); };
   apply();
 })();
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.50';
+const VERSION = '1.51';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -2193,9 +2209,10 @@ async function cashLoadOpening() { const c = S.cash; if (!isMorning(c) || c.stat
   try { const j = await api(`cash?openFor=${encodeURIComponent(c.counter)}&openDate=${c.date}&from=${c.date}&to=${c.date}`); c.opening = j.opening || null; } catch {} }
 function drawCash() {
   const tabs = [['closing', 'Closing'], ['history', 'History'], ['reports', 'Reports']];
-  $('#main').innerHTML = `<div class="row sp wrap"><div><div class="mut sm" style="letter-spacing:2px">02 · CASH</div><h1>${S.ctab === 'closing' ? 'Cash Closing' : S.ctab === 'history' ? 'Closing History' : 'Reports & Audit'}</h1><div class="mut">${S.ctab === 'closing' ? 'Two counts a day — morning vs previous closing, evening vs ACME' : S.ctab === 'history' ? 'Cash closing register' : 'Reconciliation summary'}</div></div>
+  $('#main').classList.toggle('ccmp', S.ctab === 'closing');
+  $('#main').innerHTML = `<div class="row sp wrap chd"><div><div class="mut sm" style="letter-spacing:2px">02 · CASH</div><h1>${S.ctab === 'closing' ? 'Cash Closing' : S.ctab === 'history' ? 'Closing History' : 'Reports & Audit'}</h1><div class="mut csub">${S.ctab === 'closing' ? 'Two counts a day — morning vs previous closing, evening vs ACME' : S.ctab === 'history' ? 'Cash closing register' : 'Reconciliation summary'}</div></div>
     ${S.ctab === 'closing' ? `<div style="text-align:right"><b class="sm">${esc(S.cash.chit ? 'Chit · ' + S.cash.chit : 'Chit')}</b><div><span class="cst ${S.cash.state === 'closed' ? 'ok' : 'pend'}">${S.cash.state === 'closed' ? 'Closed' : S.cash.state === 'draft' ? 'Draft saved' : 'Draft'}</span></div></div>` : ''}</div>
-  <div class="tabs noprint" style="margin-top:12px">${tabs.map(([k, t]) => `<button data-ct="${k}" class="${S.ctab === k ? 'on' : ''}">${t}</button>`).join('')}</div>
+  <div class="tabs noprint" style="margin-top:${S.ctab === 'closing' ? 6 : 12}px">${tabs.map(([k, t]) => `<button data-ct="${k}" class="${S.ctab === k ? 'on' : ''}">${t}</button>`).join('')}</div>
   <div id="cashBody"></div>`;
   $('#main').querySelectorAll('[data-ct]').forEach((b) => b.onclick = () => { S.ctab = b.dataset.ct; drawCash(); });
   ({ closing: cashForm, history: cashHistory, reports: cashReports })[S.ctab]();
@@ -2206,39 +2223,39 @@ function cashForm() {
   const mor = isMorning(c);
   const dayRec = (sh) => S.cashData.records.find((r) => r.date === c.date && r.counter === c.counter && sessOf(r) === sh);
   const stp = (sh) => { const r = dayRec(sh); return r ? (r.state === 'closed' ? `<span class="cst ${CASH_RES[r.result][1]}">${r.variance ? CASH_RES[r.result][0] : '✓ ' + (sh === 'Morning' ? 'Verified' : 'Closed')}</span>` : '<span class="cst pend">DRAFT</span>') : '<span class="cst pend">NOT STARTED</span>'; };
-  $('#cashBody').innerHTML = `<div class="cgrid">
+  $('#cashBody').innerHTML = `<div class="cgrid c2"><div class="ccol">
   ${c.counter ? `<div class="cday noprint">${['Morning', 'Evening'].map((sh) => `<button data-sess="${sh}" class="${sessOf(c) === sh ? 'on' : ''}"><div class="b">${sh === 'Morning' ? '☀ Morning count' : '🌙 Evening closing'}</div><div class="mut sm">${sh === 'Morning' ? 'vs previous closing' : 'vs ACME · carried forward'}</div>${stp(sh)}</button>`).join('')}</div>` : ''}
-  <div class="card"><div class="ctitle">${mor ? 'Morning count' : 'Evening closing'} details ${ro ? '<span class="tagc">Locked</span>' : ''}</div>
-    <div class="g2"><div><label class="f">Date *</label><input type="date" id="cDate" value="${esc(c.date)}" max="${S.D.today}" ${dis}></div>
+  <div class="card cdet"><div class="ctitle">${mor ? 'Morning count' : 'Evening closing'} details ${ro ? '<span class="tagc">Locked</span>' : ''}</div>
+    <div class="g2 ${innerWidth >= 1000 ? 'g4' : ''}"><div><label class="f">Date *</label><input type="date" id="cDate" value="${esc(c.date)}" max="${S.D.today}" ${dis}></div>
     <div><label class="f">Counter *</label><select id="cCounter" ${dis}><option value="">Select counter</option>${counters.map((x) => `<option ${c.counter === x ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></div>
     <div><label class="f">Chit No.</label><input id="cChit" value="${esc(c.chit)}" placeholder="e.g. CC-001" ${dis}></div>
     <div><label class="f">Count</label><select id="cShift" ${dis}>${CASH_SHIFTS.map((x) => `<option value="${x}" ${sessOf(c) === x ? 'selected' : ''}>${x === 'Morning' ? 'Morning count' : 'Evening closing'}</option>`).join('')}</select></div></div></div>
+  <div class="card"><div class="ctitle">Cash denomination count <span class="tagc">₹ INR</span></div>
+    <div class="dhead"><span>NOTE</span><span>BUNDLES × 100</span><span>LOOSE NOTES</span><span>AMOUNT</span></div>
+    ${CASH_DENOMS.map((d) => { const x = c.denoms.find((y) => +y.note === d) || {}; return `<div class="drow"><div class="dnote">₹${d}</div>
+      <div class="dent"><input type="number" inputmode="numeric" min="0" step="1" data-b="${d}" value="${esc(x.bundles || '')}" placeholder="0" ${dis}><small data-ba="${d}"></small></div>
+      <div class="dent"><input type="number" inputmode="numeric" min="0" step="1" data-l="${d}" value="${esc(x.loose || '')}" placeholder="0" ${dis}><small data-la="${d}"></small></div><div class="dra z" data-ra="${d}">—</div>${mor && c.opening ? `<div class="dcf" data-cf="${d}"></div>` : ''}</div>`; }).join('')}
+    <div class="drow"><div class="dnote" style="font-size:12px">Coins</div><div class="dent" style="grid-column:2/4"><input type="number" inputmode="decimal" min="0" step="1" id="cCoins" value="${esc(c.coins || '')}" placeholder="₹ total of coins / ₹5 ₹2 ₹1" ${dis}></div><div class="dra z" id="cCoA">—</div></div>
+</div>
+  <div class="cact noprint">${ro ? `<button class="btn sec" id="cNew">＋ New closing</button>${S.me.role === 'admin' ? '<button class="btn ghost" id="cReopen">Reopen (admin)</button>' : ''}` : `<button class="btn sec" id="cSave">Save draft</button>${can('cashVerify') ? `<button class="btn" id="cClose">${mor ? 'Verify morning count' : 'Verify & close'}</button>` : '<button class="btn" disabled title="Manager or admin">Verify & close (manager)</button>'}`}</div>
+  <div class="cact c2a noprint"><button class="btn ghost sm" id="cPrint">${svg('print', 16)} Print chit</button><button class="btn ghost sm" id="cCsv">⬇ Export CSV</button></div>
+  </div><div class="ccol">
+  <div class="ctotal"><div class="sm" style="opacity:.8">GRAND TOTAL · CASH COUNTED (A + B)</div><div class="amt" id="cGT">₹0</div><div class="splits"><span id="cSA">Bundles (A): ₹0</span><span id="cSB">Loose + coins (B): ₹0</span></div></div>
   ${mor ? `<div class="card copen"><div class="ctitle">Opening · carried forward <span class="tagc">Previous closing</span></div>${c.opening ? `<div class="row sp wrap"><div><div class="mut sm">Evening closing of ${dt(c.opening.date)}</div><div class="amt2">${inr(c.opening.gt)}</div><div class="mut sm">Counted by ${esc(c.opening.countedBy || '—')} · closed by ${esc(c.opening.closedBy || '—')}</div></div>${ro ? '' : '<button class="btn sm ghost" id="cFill">Fill carried-forward notes</button>'}</div>
     <div class="cfnotes">${CASH_DENOMS.map((d) => `<span>₹${d} × <b>${fmt(cashNotes(c.opening, d))}</b></span>`).join('')}${+c.opening.coins ? `<span>Coins <b>${inr(c.opening.coins)}</b></span>` : ''}</div>
     <div class="mut sm" style="margin-top:6px">Count the cash and enter what you find — each note row shows the carried-forward number to check against.</div>` : `<div class="banner">No closed evening count for ${esc(c.counter || 'this counter')} before ${dt(c.date)}. This morning count sets the opening.</div>`}</div>` : ''}
-  <div class="card"><div class="ctitle">Cash denomination count <span class="tagc">₹ INR</span></div>
-    <div class="dhead"><span>NOTE</span><span>BUNDLES × 100</span><span>LOOSE NOTES</span></div>
-    ${CASH_DENOMS.map((d) => { const x = c.denoms.find((y) => +y.note === d) || {}; return `<div class="drow"><div class="dnote">₹${d}</div>
-      <div class="dent"><input type="number" inputmode="numeric" min="0" step="1" data-b="${d}" value="${esc(x.bundles || '')}" placeholder="0" ${dis}><small data-ba="${d}"></small></div>
-      <div class="dent"><input type="number" inputmode="numeric" min="0" step="1" data-l="${d}" value="${esc(x.loose || '')}" placeholder="0" ${dis}><small data-la="${d}"></small></div>${mor && c.opening ? `<div class="dcf" data-cf="${d}"></div>` : ''}</div>`; }).join('')}
-    <div class="drow"><div class="dnote" style="font-size:12px">Coins</div><div class="dent" style="grid-column:2/4"><input type="number" inputmode="decimal" min="0" step="1" id="cCoins" value="${esc(c.coins || '')}" placeholder="₹ total of coins / ₹5 ₹2 ₹1" ${dis} style="font-size:15px"></div></div>
-    <div class="g2" style="margin-top:12px"><div class="mini"><span>Bundles · Total (A)</span><strong id="cA">₹0</strong></div><div class="mini"><span>Loose + coins · Total (B)</span><strong id="cB">₹0</strong></div></div>
-    <div class="mut sm" style="margin-top:8px">Enter the number of full 100-note bundles and the number of loose notes. Amounts calculate automatically.</div></div>
-  <div class="ctotal"><div class="sm" style="opacity:.8">GRAND TOTAL · CASH COUNTED (A + B)</div><div class="amt" id="cGT">₹0</div><div class="splits"><span id="cSA">Bundles: ₹0</span><span id="cSB">Loose: ₹0</span></div></div>
   <div class="card"><div class="ctitle">${mor ? 'Check against previous closing' : 'ACME Reconciliation'} <span class="tagc">Verification</span></div>
     ${mor ? '' : `<label class="f">ACME closing balance (₹) *</label><input type="number" inputmode="decimal" min="0" step="0.01" id="cAcme" value="${esc(c.acme)}" placeholder="Enter balance from ACME / ERP" ${dis}>
     ${(() => { const m = dayRec('Morning'); return m ? `<div class="mut sm" style="margin-top:6px">This morning's count: <b>${inr(m.gt)}</b>${m.state === 'closed' ? '' : ' (draft)'}</div>` : ''; })()}`}
     <div class="cdiff"><div><div class="mut sm">Variance · Counted − ${mor ? 'carried-forward opening' : 'ACME'}</div><strong id="cVar">—</strong></div><span class="cst pend" id="cRes">${mor ? 'FIRST OPENING' : 'AWAITING ACME'}</span></div>
-    <div class="mut sm" style="margin-top:8px">Tallied: no variance · Excess: physical cash higher · Short: physical cash lower.${mor ? '' : ' After closing, this count and its notes become tomorrow’s opening.'}</div></div>
+    <div class="mut sm" style="margin-top:6px">Excess: cash higher · Short: cash lower.${mor ? '' : ' After closing, this count becomes tomorrow’s opening.'}</div></div>
   <div class="card"><div class="ctitle">Verification & sign-off</div>
     <div class="g2"><div><label class="f">Counted by *</label><select id="cBy" ${dis}>${users.map((u) => `<option value="${esc(u.id)}" ${(c.countedBy || S.me.id) === u.id ? 'selected' : ''}>${esc(u.name)}</option>`).join('')}</select></div>
     <div><label class="f">Verified by</label><input value="${esc(ro ? c.verifiedByName : can('cashVerify') ? S.me.name + ' (you, on Verify & Close)' : 'Manager / admin')}" disabled></div></div>
-    <label class="f">Closing remarks / discrepancy reason</label><textarea id="cRem" rows="3" placeholder="Explain any shortage, excess or other observation…" ${dis}>${esc(c.remarks)}</textarea>
-    <div class="mut sm" style="margin-top:8px">The verifier must be a different person and should independently check the physical cash before closing.</div>
+    <label class="f">Closing remarks / discrepancy reason</label><textarea id="cRem" rows="2" placeholder="Explain any shortage, excess or other observation…" ${dis}>${esc(c.remarks)}</textarea>
+    <div class="mut sm" style="margin-top:6px">Verifier must be a different person and check the cash independently.</div>
     ${ro ? `<div class="banner ok" style="margin-top:10px">✓ Closed by ${esc(c.verifiedByName)} · ${new Date(c.closedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</div>` : ''}</div>
-  <div class="cact noprint">${ro ? `<button class="btn sec" id="cNew">＋ New closing</button>${S.me.role === 'admin' ? '<button class="btn ghost" id="cReopen">Reopen (admin)</button>' : ''}` : `<button class="btn sec" id="cSave">Save draft</button>${can('cashVerify') ? `<button class="btn" id="cClose">${mor ? 'Verify morning count' : 'Verify & close'}</button>` : '<button class="btn" disabled title="Manager or admin">Verify & close (manager)</button>'}`}</div>
-  <div class="cact noprint"><button class="btn ghost" id="cPrint">${svg('print', 18)} Print chit</button><button class="btn ghost" id="cCsv">⬇ Export CSV</button></div>
-  </div>`;
+  </div></div>`;
   const read = () => {
     if (ro) return; c.date = $('#cDate').value; c.counter = $('#cCounter').value; c.chit = $('#cChit').value.trim(); c.shift = $('#cShift').value;
     c.denoms = CASH_DENOMS.map((d) => ({ note: d, bundles: $(`[data-b="${d}"]`).value, loose: $(`[data-l="${d}"]`).value }));
@@ -2246,8 +2263,10 @@ function cashForm() {
   };
   const calc = () => {
     read(); const k = cashCalc(c);
-    for (const d of CASH_DENOMS) { const x = c.denoms.find((y) => +y.note === d) || {}; $(`[data-ba="${d}"]`).textContent = inr(Math.floor(+x.bundles || 0) * 100 * d); $(`[data-la="${d}"]`).textContent = inr(Math.floor(+x.loose || 0) * d); }
-    $('#cA').textContent = inr(k.a); $('#cB').textContent = inr(k.b); $('#cGT').textContent = inr(k.gt); $('#cSA').textContent = 'Bundles: ' + inr(k.a); $('#cSB').textContent = 'Loose: ' + inr(k.b);
+    for (const d of CASH_DENOMS) { const x = c.denoms.find((y) => +y.note === d) || {}; $(`[data-ba="${d}"]`).textContent = inr(Math.floor(+x.bundles || 0) * 100 * d); $(`[data-la="${d}"]`).textContent = inr(Math.floor(+x.loose || 0) * d);
+      const ra = (Math.floor(+x.bundles || 0) * 100 + Math.floor(+x.loose || 0)) * d; const re = $(`[data-ra="${d}"]`); re.textContent = ra ? inr(ra) : '—'; re.classList.toggle('z', !ra); }
+    const co = +c.coins || 0; $('#cCoA').textContent = co ? inr(co) : '—'; $('#cCoA').classList.toggle('z', !co);
+    $('#cGT').textContent = inr(k.gt); $('#cSA').textContent = 'Bundles (A): ' + inr(k.a); $('#cSB').textContent = 'Loose + coins (B): ' + inr(k.b);
     $('#cVar').textContent = k.variance == null ? '—' : (k.variance > 0 ? '+' : '') + inr(k.variance); $('#cVar').style.color = k.variance ? (k.variance > 0 ? 'var(--warn)' : 'var(--bad)') : k.variance === 0 ? 'var(--ok)' : '';
     const [t, cl] = CASH_RES[k.result]; $('#cRes').textContent = t; $('#cRes').className = 'cst ' + cl;
     if (mor && c.opening) for (const d of CASH_DENOMS) { const el = $(`[data-cf="${d}"]`); if (!el) continue; const want = cashNotes(c.opening, d), got = cashNotes(c, d); el.className = 'dcf ' + (got === want ? 'ok' : 'bad'); el.textContent = `carried ${fmt(want)} notes${got === want ? ' ✓' : ` · counted ${fmt(got)} (${got - want > 0 ? '+' : ''}${fmt(got - want)})`}`; }
@@ -3258,7 +3277,7 @@ async function admCoins() {
   };
 }
 function vMore() {
-  const items = [['coins', 'Gold coin prices', '1 · 2 · 4 · 8 g — Bhima benchmark, our price, rate card', can('coins') || can('coinSet')], ['docs', 'Business documents', 'Licences, GST certificate, bank accounts, UPI QR', can('docs') || can('docsEdit')], ['eod', 'End-of-day entries', 'Sales, returns, smith, samples… then evening count', can('move')], ['log', 'Day log', 'Movements and checks today', true], ['alerts', 'Alerts', 'Variances and reports', can('alerts')], ['history', 'History', 'Past days and closing stock', can('reports')], ['admin', 'Admin', 'Users, locations, settings, gold coin margin', can('users') || can('setup') || can('coinSet')], ['backup', 'Backup database', 'Download all data as a backup file', S.me.role === 'admin']].filter((x) => x[3]);
+  const items = [['total', 'Consolidated stock', 'Item count by location · ERP match · print', can('reports')], ['reports', 'Reports', 'Excel / PDF · share', can('reports')], ['sx', 'Bullion & Grand-Yamie boxes', 'Grand bullion · Yamie bullion · Grand stock at Yamie', can('special') || can('grandBul')], ['coins', 'Gold coin prices', '1 · 2 · 4 · 8 g — Bhima benchmark, our price, rate card', can('coins') || can('coinSet')], ['docs', 'Business documents', 'Licences, GST certificate, bank accounts, UPI QR', can('docs') || can('docsEdit')], ['eod', 'End-of-day entries', 'Sales, returns, smith, samples… then evening count', can('move')], ['log', 'Day log', 'Movements and checks today', true], ['alerts', 'Alerts', 'Variances and reports', can('alerts')], ['history', 'History', 'Past days and closing stock', can('reports')], ['admin', 'Admin', 'Users, locations, settings, gold coin margin', can('users') || can('setup') || can('coinSet')], ['backup', 'Backup database', 'Download all data as a backup file', S.me.role === 'admin']].filter((x) => x[3]);
   $('#main').innerHTML = `<h1 style="margin-bottom:12px">More</h1><div class="list card" style="padding:0">${items.map(([k, t, d]) => `<button class="li" style="width:100%;text-align:left" data-go="${k}"><div class="grow"><div class="b">${t}</div><div class="mut sm">${d}</div></div><span class="mut">›</span></button>`).join('')}
     <button class="li" style="width:100%;text-align:left" id="pinBtn"><div class="grow"><div class="b">Change my PIN</div><div class="mut sm">${esc(S.me.name)} · ${esc(S.me.role)} · app v${VERSION}${window.YamieStock?.version ? ` · APK ${esc(window.YamieStock.version())}` : ''}</div></div></button>
     <button class="li" style="width:100%;text-align:left" id="notiBtn"><div class="grow"><div class="b">Notifications on this device</div><div class="mut sm">${localStorage.ysc_notify === '1' ? 'On' : 'Off'} — alerts while the app is open</div></div></button>
