@@ -297,6 +297,8 @@ export default async (req: Request) => {
       if (op === "meta") return json(req, meta)
       if (op === "stock") return json(req, { v: meta.stock, rows: (await st.get("stock", { type: "json" })) || [], history: meta.history })
       if (op === "rates") return json(req, { v: meta.rates, log: (await st.get("rates", { type: "json" })) || [] })
+      // V1.8.31 gold coin prices: Bhima benchmark entries (history) and the admin's margin / disclaimers
+      if (op === "coins") return json(req, { v: (meta as any).coins || 0, log: (await st.get("coins", { type: "json" })) || [], set: (await st.get("coinset", { type: "json" })) || null })
       if (op === "settings") return json(req, { v: meta.settings, settings: (await st.get("settings", { type: "json" })) || null })
       if (op === "users") {
         // Staff PIN hashes go to every phone for offline login; admin hashes only to admins
@@ -498,7 +500,7 @@ export default async (req: Request) => {
       return json(req, { v: meta.leads, lead })
     }
 
-    const OP_PERM: Record<string, string> = { unsell: "stock", release: "approve", img: "images", quotedel: "delQuote", stock: "stock", stockdel: "stockdel", ratelog: "rates", pubrates: "rates", stockrow: "stockEdit", stocksold: "closeSale", pname: "images", pattr: "images" }
+    const OP_PERM: Record<string, string> = { coins: "coins", coindel: "coinSet", coinset: "coinSet", unsell: "stock", release: "approve", img: "images", quotedel: "delQuote", stock: "stock", stockdel: "stockdel", ratelog: "rates", pubrates: "rates", stockrow: "stockEdit", stocksold: "closeSale", pname: "images", pattr: "images" }
     const role = await callerRole()
     if (op === "settings") { if (!role || ![...SETTINGS_PERMS, "theme", "footer", "apprSet", "promos", "rules"].some((p) => roleHas(role, p))) return json(req, { error: "bad_pin" }, 403) }
     else if (op === "users") { if (!role || !(roleHas(role, "users") || roleHas(role, "roles"))) return json(req, { error: "bad_pin" }, 403) }
@@ -721,6 +723,38 @@ export default async (req: Request) => {
         } catch (e: any) { out.shopify = { ok: false, msg: String(e?.message || e) } }
       }
       return json(req, out)
+    }
+
+    if (op === "coins") {
+      const e = body?.entry || {}
+      const W = [1, 2, 4, 8]
+      const p: Record<string, number> = {}, o: Record<string, number> = {}
+      for (const w of W) { const a = cleanNum(e?.p?.[w]); if (a > 0) p[w] = a; const b = cleanNum(e?.o?.[w]); if (b > 0) o[w] = b }
+      if (!Object.keys(p).length) return json(req, { error: "bad_coins" }, 400)
+      const entry = { id: cleanStr(e.id, 20) || Math.random().toString(36).slice(2, 9), at: cleanNum(e.at) || Date.now(), by: cleanStr(e.by, 40),
+        br: cleanNum(e.br), r22: cleanNum(e.r22), margin: cleanNum(e.margin), round: cleanNum(e.round), gst: cleanNum(e.gst), p, o }
+      const log: any[] = ((await st.get("coins", { type: "json" })) as any[]) || []
+      const next = [entry, ...log.filter((x) => x.id !== entry.id)].sort((a, b) => b.at - a.at).slice(0, 1000)
+      await st.setJSON("coins", next)
+      ;(meta as any).coins = Date.now(); await saveMeta()
+      return json(req, { v: (meta as any).coins, entry })
+    }
+
+    if (op === "coindel") {
+      const id = cleanStr(body?.id, 20)
+      const log: any[] = ((await st.get("coins", { type: "json" })) as any[]) || []
+      await st.setJSON("coins", log.filter((x) => x.id !== id))
+      ;(meta as any).coins = Date.now(); await saveMeta()
+      return json(req, { v: (meta as any).coins })
+    }
+
+    if (op === "coinset") {
+      const c = body?.set || {}
+      const set = { margin: Math.max(-50, Math.min(100, cleanNum(c.margin))), round: [1, 5, 10, 50, 100].includes(cleanNum(c.round)) ? cleanNum(c.round) : 10,
+        disc: (Array.isArray(c.disc) ? c.disc : []).map((x: any) => cleanStr(x, 160)).filter(Boolean).slice(0, 10), by: cleanStr(c.by, 40), at: Date.now() }
+      await st.setJSON("coinset", set)
+      ;(meta as any).coins = Date.now(); await saveMeta()
+      return json(req, { v: (meta as any).coins, set })
     }
 
     if (op === "ratelog") {

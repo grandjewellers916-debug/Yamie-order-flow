@@ -601,3 +601,13 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 - Yamie now uses the brand palette: Signature Burgundy #702438 (buttons, active tab), Burgundy Signature gradient #491525 → #702438 → #A65369 (top bar, scan card, Grand Total / Final Amount, login), Rose Gold #C99583 accents, Cashmere Silk #F2E4DB (selected items, highlights, balance), Porcelain Ivory #FAF7F3 background, text #1D1D1F / #795B4D, SF Pro (system font) for text.
 - Set in `web/brand.js` (Yamie `light`/`dark` tokens). Fixed reds in `index.html` now go through variables (`--grad`, `--grad-top`, `--grad-scan`, `--grad-fin`, `--grad-login`, `--acc`, `--tint`, `--scan-or`) whose fallbacks are the old colours, so **Grand is unchanged**.
 - If Settings → Theme has an accent other than "Brand", that accent still overrides the palette.
+
+## V 1.8.31 — Gold coin prices (24 Nov 2026)
+
+- New **Gold Coins** page (computer side bar; phone ☰ menu → Gold coins; optional footer tab for staff roles).
+- **Bhima Ernakulam benchmark:** enter their price for 1, 2, 4 and 8 g 22K coins (one amount incl. making and 3% GST), and their 22K rate if it differs from ours. The app finds their making: price ÷ 1.03 − weight × rate, shown in ₹ and as % of the gold value.
+- **Our price** = weight × today's 22K rate + making + 3% GST, where making % = Bhima making % + **margin** (Settings → Gold coins · margin & disclaimers, admin). Rounded to ₹10 (setting: ₹1/5/10/50/100). Shows the difference from Bhima.
+- **Save prices** keeps history in the shared database (`coins` / `coinset`, last 1000 entries); tap a history row to load it; admins can delete.
+- **Rate card** image (1080×1350) for **Yamie or Grand**, with the disclaimers; **Share on WhatsApp** (image + text), Download image, Copy text.
+- Disclaimers (editable by admin): cash only; UPI and debit cards 1% extra; credit cards 2%; foreign cards 4%; spot rates change with the market.
+- Permissions: **Gold coin prices · enter and save** (`coins`, given to roles that can set day's rates) and **Gold coins · margin & disclaimers** (`coinSet`, admin).

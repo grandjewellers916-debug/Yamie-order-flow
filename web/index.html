@@ -560,7 +560,7 @@ body{padding-top:0}
 .login-in .brand.with-logo{text-align:center;align-self:center}
 
 /* ===== v1.4: views, compact header, price card, quote page, login ===== */
-body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote"] [data-pane]:not([data-pane="quote"]),body[data-view="settings"] [data-pane]:not([data-pane="settings"]),body[data-view="search"] [data-pane]:not([data-pane="search"]),body[data-view="reports"] [data-pane],body[data-view="quotes"] [data-pane]:not([data-pane="quotes"]),body[data-view="shop"] [data-pane]:not([data-pane="shop"]),body[data-view="orders"] [data-pane]:not([data-pane="orders"]){display:none!important}
+body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote"] [data-pane]:not([data-pane="quote"]),body[data-view="settings"] [data-pane]:not([data-pane="settings"]),body[data-view="search"] [data-pane]:not([data-pane="search"]),body[data-view="reports"] [data-pane],body[data-view="quotes"] [data-pane]:not([data-pane="quotes"]),body[data-view="shop"] [data-pane]:not([data-pane="shop"]),body[data-view="orders"] [data-pane]:not([data-pane="orders"]),body[data-view="coins"] [data-pane]:not([data-pane="coins"]){display:none!important}
 .od-row{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;margin:0 0 8px;color:inherit;font:inherit;cursor:pointer}
 .od-row b{font-size:15px}.od-row small{display:block;color:var(--muted,#7a7270);font-size:12.5px;margin-top:2px}.od-row .od-r{margin-left:auto;text-align:right;white-space:nowrap}
 .od-pill{display:inline-block;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--sunk);color:var(--fg)}
@@ -1932,6 +1932,30 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
   .a4-tb tr{page-break-inside:avoid}
 }
 
+/* ===== V1.8.31 Gold coin prices ===== */
+.cn-view{display:grid;gap:14px;max-width:1180px}
+.cn-card{min-width:0}
+.cn-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.cn-hd h2{margin:0;font:700 18px var(--display);color:var(--maroon);text-transform:none;letter-spacing:0}.cn-hd .note{margin:2px 0 0}
+.cn-when{font-size:12.5px;color:var(--muted);white-space:nowrap;background:var(--sunk);border-radius:999px;padding:4px 10px}
+.cn-row1{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;margin:12px 0 4px}.cn-row1 .f{margin:0;min-width:180px}.cn-row1 .note{margin:0;flex:1;min-width:200px}
+.cn-tw{overflow-x:auto;margin-top:8px}
+.cn-t{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.cn-t th{font-size:12.5px;font-weight:600;color:var(--muted);text-align:left;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:bottom}
+.cn-t th small,.cn-t td small{display:block;font-weight:400;font-size:11.5px;color:var(--muted)}
+.cn-t td{padding:9px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+.cn-t .r{text-align:right}
+.cn-t input.cn-p{width:130px;text-align:right;min-height:40px}
+.cn-t th.cn-fin{color:var(--maroon)}.cn-t td.cn-fin{background:var(--tint,var(--sunk));color:var(--maroon)}.cn-t td.cn-fin b{font-size:17px}
+.cn-t td.up{color:var(--good)}.cn-t td.dn{color:var(--bad)}
+.cn-h tbody tr[data-id]{cursor:pointer}.cn-h tbody tr[data-id]:hover{background:var(--sunk)}
+.cn-disc{margin:12px 0 0;padding:10px 14px 10px 30px;background:var(--tint,var(--sunk));border-radius:12px;font-size:13px;color:var(--muted);line-height:1.6}
+.cn-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.cn-acts .btn{flex:1 1 auto}
+#cnBrand{display:flex;gap:6px;margin:4px 0 10px}#cnBrand button{flex:1;position:static}
+#cnPop .qimg-wrap img{width:100%;height:auto;border-radius:12px;display:block}
+@media (max-width:899px){#tabCoins{display:none!important}}
+@media (max-width:600px){#cnIn th:nth-child(3),#cnIn td:nth-child(3),#cnOut th:nth-child(2),#cnOut td:nth-child(2){display:none}.cn-t th,.cn-t td{padding:7px 5px}.cn-t input.cn-p{width:96px}.cn-acts .btn{flex:1 1 45%}.cn-hd{flex-wrap:wrap}}
+
 /* ===== Theme styles: 01 iOS colour (default) · 02 true iOS · 03 Android ===== */
 .ui-pick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
 .ui-pick button{display:flex;flex-direction:column;align-items:center;gap:4px;border:1.5px solid var(--line);background:var(--surface);border-radius:14px;padding:10px 6px;cursor:pointer;color:var(--fg);text-align:center}
@@ -2047,6 +2071,7 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
     <button class="btn sm user-chip" id="userChip" type="button" hidden></button><button class="btn sm admin-pill" id="adminPill" type="button" hidden>Admin ✕</button>
     <button class="btn sm primary" id="goBill" type="button">Bill ↓</button>
     <button class="btn sm" id="menuRates" type="button">Day's rates</button>
+    <button class="btn sm" id="menuCoins" type="button">Gold coins</button>
     <button class="btn sm" id="stockBtn" type="button">Stock</button>
     <button class="btn sm" id="menuData" type="button">Stock data</button>
     <button class="btn sm" id="menuAdmin" type="button">Admin settings</button>
@@ -2344,6 +2369,23 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
 
   </section>
   <div class="qw-nav" id="qNav" data-pane="quote" hidden><button type="button" class="btn" id="qBack">‹ Back</button><button type="button" class="btn primary" id="qNext">Next ›</button></div>
+    <section class="cn-view" data-pane="coins" id="cnView">
+      <div class="card cn-card">
+        <div class="cn-hd"><div><h2>Bhima Ernakulam · benchmark</h2><p class="note">Their prices for 22K gold coins, as quoted: one amount incl. making and 3% GST.</p></div><span class="cn-when" id="cnWhen"></span></div>
+        <div class="cn-row1"><div class="f"><label for="cnBr">Bhima 22K rate (₹/g)</label><input id="cnBr" class="num" inputmode="decimal" autocomplete="off"></div><p class="note" id="cnBrNote"></p></div>
+        <div class="cn-tw"><table class="cn-t" id="cnIn"></table></div>
+      </div>
+      <div class="card cn-card">
+        <div class="cn-hd"><div><h2>Our price</h2><p class="note" id="cnOurNote"></p></div></div>
+        <div class="cn-tw"><table class="cn-t" id="cnOut"></table></div>
+        <ul class="cn-disc" id="cnDisc"></ul>
+        <div class="cn-acts"><button class="btn primary" type="button" id="cnSave">Save prices</button><button class="btn" type="button" id="cnCard">Rate card</button><button class="btn wa-btn" type="button" id="cnWa">Share on WhatsApp</button><button class="btn" type="button" id="cnCopy">Copy text</button></div>
+      </div>
+      <div class="card cn-card">
+        <div class="cn-hd"><div><h2>History</h2><p class="note">Saved prices, newest first. Tap one to load it.</p></div><button class="btn sm" type="button" id="cnRefresh">Refresh</button></div>
+        <div class="cn-tw"><table class="cn-t cn-h" id="cnHist"></table></div>
+      </div>
+    </section>
     <div class="card wl-card" data-pane="shop" id="wlCard">
       <div class="wl-hd"><div><h2>Website &amp; catalogues</h2><p class="note" id="wlSub">Links to share with customers on WhatsApp.</p></div><a class="btn primary" id="wlSite" target="_blank" rel="noopener">Open website</a></div>
       <div class="wl-bar"><input type="search" id="wlQ" placeholder="Search links" aria-label="Search links" autocomplete="off"><button type="button" class="btn" id="wlAdd">+ Add link</button><button type="button" class="btn" id="wlImp">From Shopify</button></div>
@@ -2477,6 +2519,14 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
       <div class="rs-acts"><button class="btn" type="button" id="wnOn">Turn on notifications</button><button class="btn" type="button" id="wnTest">Test</button></div>
       <button class="linkbtn" type="button" id="keysOpen" style="margin-top:8px">Keyboard shortcuts</button>
   </details>
+  <details class="card datacard setcard" id="setCoins" data-pane="settings" data-perm="coinSet">
+    <summary><span class="dc-t">Gold coins · margin &amp; disclaimers</span><span class="dc-s" id="setCoinsMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
+      <p class="note" style="margin-block:4px 0">Our coin price = weight × today's 22K rate + making + GST. Making % = Bhima's making % + this margin. Shared with all phones.</p>
+      <div class="grid" style="margin-top:8px"><div class="f"><label for="cnMargin">Margin over Bhima making (% of gold value)</label><input id="cnMargin" class="num" inputmode="decimal" placeholder="0"></div>
+      <div class="f"><label for="cnRound">Round the price to</label><select id="cnRound"><option value="1">₹1</option><option value="5">₹5</option><option value="10">₹10</option><option value="50">₹50</option><option value="100">₹100</option></select></div></div>
+      <div class="f" style="margin-top:8px"><label for="cnDiscTx">Disclaimers on the rate card (one per line)</label><textarea id="cnDiscTx" rows="6"></textarea></div>
+      <div class="rs-acts"><button class="btn primary" type="button" id="cnSetSave">Save</button></div>
+  </details>
   <details class="card datacard setcard" id="setText" data-pane="settings" data-perm="textSize">
     <summary><span class="dc-t">Text size</span><span class="dc-s" id="setTextMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
       <p class="note" style="margin-block:4px 0">Make everything smaller if the rates or prices don't fit the screen.</p>
@@ -2583,6 +2633,7 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
   <button type="button" class="tab" id="tabOrders" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4h6l1 2h3v15H5V6h3z"/><path d="M9 4v3h6V4M9 12h6M9 16h4"/></svg><span>Orders</span></button>
   <button type="button" class="tab tab-dk" id="tabRep" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/></svg><span>Reports</span></button>
   <button type="button" class="tab" id="tabRates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18"/><path d="M5 20l1.5-5h5L13 20"/><path d="M11 20l1.5-5h5L19 20"/><path d="M8 15l1.5-5h5L16 15"/></svg><span>Gold Rates</span></button>
+  <button type="button" class="tab" id="tabCoins"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="7" rx="7" ry="3"/><path d="M5 7v5c0 1.7 3.1 3 7 3s7-1.3 7-3V7"/><path d="M5 12v5c0 1.7 3.1 3 7 3s7-1.3 7-3v-5"/></svg><span>Gold Coins</span></button>
   <button type="button" class="tab" id="tabSet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="6.6"/><path d="M12 2.5v2.9M12 18.6v2.9M2.5 12h2.9M18.6 12h2.9M5.3 5.3l2 2M16.7 16.7l2 2M5.3 18.7l2-2M16.7 7.3l2-2"/></svg><span>Settings</span></button>
   <button type="button" class="sb-user" id="sbUser" aria-label="Account and log out"><span class="sb-av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span><b id="sbName">—</b><span class="sb-out">Log out</span></button>
 </nav>
@@ -2731,6 +2782,14 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
   <div class="sheet rp-sheet">
     <div class="find-head rp-head"><h4 id="rpT">Product report</h4><button class="btn" type="button" id="rpEdit">Details…</button><button class="btn" type="button" id="rpWaB">WhatsApp</button><button class="btn" type="button" id="rpPdfB">PDF</button><button class="btn" type="button" id="rpPrB">Print</button><button class="menu-x" type="button" id="rpClose" aria-label="Close">✕</button></div>
     <div class="rp-scroll" id="rpScroll"></div>
+  </div>
+</div>
+<div class="modal" id="cnPop" hidden role="dialog" aria-modal="true" aria-labelledby="cnPopT">
+  <div class="sheet qimg-sheet">
+    <div class="find-head"><h4 id="cnPopT">Gold coin rate card</h4><button class="menu-x" type="button" id="cnPopX" aria-label="Close">✕</button></div>
+    <div class="seg" id="cnBrand" role="group" aria-label="Card for"><button type="button" data-b="yamie">Yamie</button><button type="button" data-b="grand">Grand</button></div>
+    <div class="qimg-wrap"><img id="cnImg" alt="Gold coin rate card"></div>
+    <div class="acts"><button class="btn wa-btn" type="button" id="cnPopWa">Send on WhatsApp</button><button class="btn" type="button" id="cnPopDl">Download image</button></div>
   </div>
 </div>
 <div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modalTitle">
@@ -4630,6 +4689,126 @@ $('qimgText').onclick=()=>{$('qimgPop').hidden=true;$('waText').click()};
 [['gst','setGst'],['huid','setHuid']].forEach(([k,id])=>{const el=$(id);el.value=settings[k];
   el.addEventListener('input',()=>{const v=num(el.value);if(!isNaN(v)){settings[k]=v;saveSettings();renderEditor();renderBill(true)}})});
 
+// ===================== V1.8.31 Gold coin prices =====================
+// Bhima Ernakulam quotes 22K coins as one amount (gold + making + 3% GST). From it we find their making
+// (price ÷ 1.03 − weight × their 22K rate, also as % of the gold value), add our margin (admin, % of gold value),
+// and price our coins at today's 22K rate. Saved entries are shared with all phones (history); rate card image for Yamie or Grand.
+const COIN_W=[1,2,4,8];
+const COIN_DISC=['Prices are for cash transactions only.','UPI and debit cards: 1% extra.','Credit cards: 2% extra.','Foreign (international) cards: 4% extra.','Prices are spot rates and change with the market rate.'];
+let coinLog=store.get('coinLog',[]),coinSet=Object.assign({margin:0,round:10,disc:COIN_DISC.slice()},store.get('coinSet',{})),coinDraft=store.get('coinDraft',{br:'',p:{},at:0});
+function coinR22(){const r=baseRate('22k');return r>0?r:null}
+function coinCalc(d){
+  d=d||coinDraft;const g=gstPct(),G=1+g/100,our=coinR22(),br=num(d.br)>0?num(d.br):our,m=num(coinSet.margin)||0,R=num(coinSet.round)||10;
+  return COIN_W.map(w=>{const P=num((d.p||{})[w]);if(!(P>0)||!br)return {w,ok:false};
+    const pre=P/G,gold=w*br,mk=pre-gold,mkPct=gold>0?mk/gold*100:0;
+    if(!our)return {w,ok:true,our:false,P,pre,gold,mk,mkPct};
+    const og=w*our,omkPct=mkPct+m,omk=og*omkPct/100,opre=og+omk,ogst=opre*g/100,raw=opre+ogst,tot=Math.round(raw/R)*R;
+    return {w,ok:true,our:true,P,pre,gold,mk,mkPct,og,omkPct,omk,ogst,raw,tot}});
+}
+const pct1=v=>(Math.round(v*10)/10).toFixed(1)+'%';
+function coinWhen(t){return new Date(t||Date.now()).toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'})}
+function paintCoins(){
+  const our=coinR22(),g=gstPct(),rows=coinCalc(),edit=can('coins');
+  if(document.activeElement!==$('cnBr'))$('cnBr').value=coinDraft.br||'';
+  $('cnBr').placeholder=our?String(our):'22K rate';$('cnBr').readOnly=!edit;
+  $('cnBrNote').textContent=`Leave empty to use today's 22K rate${our?` (${inr(our)}/g)`:''}. Enter Bhima's own 22K rate if it differs.`;
+  $('cnWhen').textContent=coinDraft.at?'Saved '+coinWhen(coinDraft.at):'Not saved yet';
+  $('cnIn').innerHTML=`<thead><tr><th>Coin</th><th class="r">Bhima price<small>incl. making &amp; ${fmtN(g)}% GST</small></th><th class="r">Gold value</th><th class="r">Making ₹</th><th class="r">Making %</th></tr></thead><tbody>${rows.map(r=>`<tr><td><b>${r.w} g</b></td><td class="r"><input class="num cn-p" data-w="${r.w}" inputmode="decimal" autocomplete="off" value="${esc(String((coinDraft.p||{})[r.w]||''))}" placeholder="₹"${edit?'':' readonly'}></td><td class="r">${r.ok?inr(r.gold):'—'}</td><td class="r">${r.ok?inr(r.mk):'—'}</td><td class="r"><b>${r.ok?pct1(r.mkPct):'—'}</b></td></tr>`).join('')}</tbody>`;
+  $('cnOurNote').textContent=our?`Today's 22K rate ${inr(our)}/g · making = Bhima making % ${num(coinSet.margin)>=0?'+':'−'} ${fmtN(Math.abs(num(coinSet.margin)||0))}% margin · ${fmtN(g)}% GST · rounded to ₹${coinSet.round||10}`:'Set today\'s 22K rate first (Gold Rates).';
+  $('cnOut').innerHTML=`<thead><tr><th>Coin</th><th class="r">Gold value</th><th class="r">Making</th><th class="r">GST ${fmtN(g)}%</th><th class="r cn-fin">Our price</th><th class="r">vs Bhima</th></tr></thead><tbody>${rows.map(r=>!r.ok||!r.our?`<tr><td><b>${r.w} g</b></td><td colspan="5" class="note">Enter Bhima's price</td></tr>`:
+    `<tr><td><b>${r.w} g</b></td><td class="r">${inr(r.og)}</td><td class="r">${inr(r.omk)}<small>${pct1(r.omkPct)}</small></td><td class="r">${inr(r.ogst)}</td><td class="r cn-fin"><b>${inr(r.tot)}</b></td><td class="r ${r.tot>r.P?'up':r.tot<r.P?'dn':''}">${r.tot===r.P?'same':(r.tot>r.P?'+':'−')+inr(Math.abs(r.tot-r.P)).replace('−','')}</td></tr>`).join('')}</tbody>`;
+  $('cnDisc').innerHTML=(coinSet.disc||[]).map(t=>`<li>${esc(t)}</li>`).join('');
+  $('cnSave').hidden=!edit;
+  $('cnHist').innerHTML=coinLog.length?`<thead><tr><th>Saved</th>${COIN_W.map(w=>`<th class="r">${w} g<small>Bhima · ours</small></th>`).join('')}<th></th></tr></thead><tbody>${coinLog.slice(0,60).map(e=>`<tr data-id="${esc(e.id)}"><td>${esc(coinWhen(e.at))}<small>${esc(e.by||'')}${e.r22?` · 22K ${inr(e.r22)}`:''}${e.margin?` · margin ${fmtN(e.margin)}%`:''}</small></td>${COIN_W.map(w=>`<td class="r">${e.p&&e.p[w]?inr(e.p[w]):'—'}<small>${e.o&&e.o[w]?inr(e.o[w]):''}</small></td>`).join('')}<td class="r">${can('coinSet')?`<button class="linkbtn" type="button" data-del="${esc(e.id)}" aria-label="Delete">Delete</button>`:''}</td></tr>`).join('')}</tbody>`:'<tbody><tr><td class="note">No saved prices yet.</td></tr></tbody>';
+  $('cnIn').querySelectorAll('.cn-p').forEach(el=>el.addEventListener('input',()=>{coinDraft.p=Object.assign({},coinDraft.p,{[el.dataset.w]:el.value.replace(/[^\d.]/g,'')});coinDraft.at=0;store.set('coinDraft',coinDraft);paintCoinOut()}));
+  $('cnHist').querySelectorAll('tr[data-id]').forEach(tr=>tr.onclick=e=>{if(e.target.closest('[data-del]'))return;const x=coinLog.find(c=>c.id===tr.dataset.id);if(!x)return;coinDraft={br:x.br&&x.br!==x.r22?String(x.br):'',p:Object.assign({},x.p),at:x.at};store.set('coinDraft',coinDraft);paintCoins();window.scrollTo({top:0,behavior:'smooth'});toast('Loaded prices of '+coinWhen(x.at))});
+  $('cnHist').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>withPerm('coinSet','Only an admin can delete saved coin prices.',async()=>{
+    coinLog=coinLog.filter(c=>c.id!==b.dataset.del);store.set('coinLog',coinLog);paintCoins();
+    if(sync.key)try{await syncApi('coindel','POST',{id:b.dataset.del},adminCreds)}catch(e){toast('Not deleted on the shared database',null,true)}},true));
+  $('setCoinsMini').textContent=`Margin ${fmtN(num(coinSet.margin)||0)}% · ₹${coinSet.round||10}`;
+}
+function paintCoinOut(){ // repaint only the calculated cells, so the price being typed keeps its cursor
+  const rows=coinCalc();
+  rows.forEach((r,i)=>{const tr=$('cnIn').tBodies[0]&&$('cnIn').tBodies[0].rows[i];if(!tr)return;tr.cells[2].textContent=r.ok?inr(r.gold):'—';tr.cells[3].textContent=r.ok?inr(r.mk):'—';tr.cells[4].innerHTML=`<b>${r.ok?pct1(r.mkPct):'—'}</b>`});
+  paintCoinsBody(rows);
+}
+function paintCoinsBody(rows){const g=gstPct();$('cnOut').tBodies[0].innerHTML=rows.map(r=>!r.ok||!r.our?`<tr><td><b>${r.w} g</b></td><td colspan="5" class="note">Enter Bhima's price</td></tr>`:
+    `<tr><td><b>${r.w} g</b></td><td class="r">${inr(r.og)}</td><td class="r">${inr(r.omk)}<small>${pct1(r.omkPct)}</small></td><td class="r">${inr(r.ogst)}</td><td class="r cn-fin"><b>${inr(r.tot)}</b></td><td class="r ${r.tot>r.P?'up':r.tot<r.P?'dn':''}">${r.tot===r.P?'same':(r.tot>r.P?'+':'−')+inr(Math.abs(r.tot-r.P)).replace('−','')}</td></tr>`).join('');
+  $('cnWhen').textContent=coinDraft.at?'Saved '+coinWhen(coinDraft.at):'Not saved yet'}
+$('cnBr').addEventListener('input',()=>{coinDraft.br=$('cnBr').value.replace(/[^\d.]/g,'');coinDraft.at=0;store.set('coinDraft',coinDraft);paintCoinOut()});
+async function pullCoins(){
+  if(!sync.key||!navigator.onLine)return;
+  try{const r=await syncApi('coins','GET');if(Array.isArray(r.log)){coinLog=r.log;store.set('coinLog',coinLog)}if(r.set){coinSet=Object.assign({margin:0,round:10,disc:COIN_DISC.slice()},r.set);store.set('coinSet',coinSet)}if(document.body.dataset.view==='coins')paintCoins()}catch(e){}
+}
+function coinEntry(){const rows=coinCalc(),our=coinR22(),p={},o={};rows.forEach(r=>{if(r.ok){p[r.w]=r.P;if(r.our)o[r.w]=r.tot}});
+  return {id:Math.random().toString(36).slice(2,9),at:Date.now(),by:meName(),br:num(coinDraft.br)>0?num(coinDraft.br):our,r22:our,margin:num(coinSet.margin)||0,round:num(coinSet.round)||10,gst:gstPct(),p,o}}
+$('cnSave').onclick=()=>withPerm('coins','Needs permission: Gold coin prices.',async()=>{
+  const e=coinEntry();if(!Object.keys(e.p).length){toast("Enter Bhima's prices first",null,true);return}if(!e.r22){toast("Set today's 22K rate first",null,true);return}
+  coinLog=[e,...coinLog].slice(0,1000);store.set('coinLog',coinLog);coinDraft.at=e.at;store.set('coinDraft',coinDraft);paintCoins();
+  if(sync.key){try{await syncApi('coins','POST',{entry:e},adminCreds);toast('Coin prices saved · shared with all phones')}catch(x){toast(x&&x.status===403?'Saved on this phone. This user cannot save coin prices to the shared database.':'Saved on this phone. Not shared yet.',null,true)}}
+  else toast('Coin prices saved');
+},true);
+$('cnRefresh').onclick=()=>{pullCoins();toast('Refreshing…')};
+function coinText(){
+  const rows=coinCalc().filter(r=>r.ok&&r.our);const B=BRAND;
+  return [`*${B.full} · 22K Gold Coin Rates*`,coinWhen(coinDraft.at||Date.now()),'',...rows.map(r=>`${r.w} g: *${inr(r.tot)}*`),'_Prices include making charges and 3% GST._','',...(coinSet.disc||[]).map(t=>'• '+t),'',...(B.addr2||[])].join('\n');
+}
+$('cnCopy').onclick=async()=>{try{await navigator.clipboard.writeText(coinText());toast('Copied')}catch(e){toast('Could not copy',null,true)}};
+// ---- rate card image ----
+const COIN_CARD={yamie:{d:['#491525','#702438','#A65369'],acc:'#C99583',acc2:'#D6B29E',bg:'#FAF7F3',soft:'#F2E4DB',ink:'#1D1D1F',mut:'#795B4D',logo:'brand/yamie/header-w.png'},
+  grand:{d:['#5C0817','#8C0D24','#C41230'],acc:'#B08A4E',acc2:'#D9C39A',bg:'#FBF8F2',soft:'#F1EAE0',ink:'#17130F',mut:'#6B5B4E',logo:'icons/grand-192.png'}};
+let cnBrand=store.get('cnBrand',BRAND.id==='grand'?'grand':'yamie'),cnUrl='';
+async function coinCard(bid){
+  const C=COIN_CARD[bid]||COIN_CARD.yamie,B=BRANDS[bid]||BRAND,rows=coinCalc().filter(r=>r.ok&&r.our),W=1080,H=1350;
+  const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');const F='-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Arial,sans-serif';
+  x.fillStyle=C.bg;x.fillRect(0,0,W,H);
+  const hg=x.createLinearGradient(0,0,W,330);hg.addColorStop(0,C.d[0]);hg.addColorStop(.6,C.d[1]);hg.addColorStop(1,C.d[2]);x.fillStyle=hg;x.fillRect(0,0,W,330);
+  const lg=await loadImg(C.logo);x.textAlign='center';
+  if(lg&&bid==='yamie'){const h=96,w=lg.width*h/lg.height;x.drawImage(lg,(W-w)/2,52,w,h)}
+  else{if(lg)x.drawImage(lg,W/2-48,34,96,96);x.fillStyle='#fff';x.font=`700 46px ${F}`;x.fillText((B.wm||B.name).toUpperCase()+' '+(B.wsub||''),W/2,182)}
+  x.fillStyle=C.acc2;x.font=`600 30px ${F}`;x.fillText('22K GOLD COIN RATES',W/2,bid==='yamie'?210:236);
+  x.fillStyle='rgba(255,255,255,.85)';x.font=`400 26px ${F}`;x.fillText(coinWhen(coinDraft.at||Date.now()),W/2,bid==='yamie'?256:280);
+  let y=380;const rh=rows.length>3?132:150;
+  rows.forEach(r=>{x.fillStyle='#fff';x.strokeStyle=C.soft;x.lineWidth=3;const rr=(X,Y,w,h,R)=>{x.beginPath();x.moveTo(X+R,Y);x.arcTo(X+w,Y,X+w,Y+h,R);x.arcTo(X+w,Y+h,X,Y+h,R);x.arcTo(X,Y+h,X,Y,R);x.arcTo(X,Y,X+w,Y,R);x.closePath()};
+    rr(70,y,W-140,rh-22,28);x.fill();x.stroke();
+    const cy=y+(rh-22)/2,cg=x.createRadialGradient(170,cy-12,6,170,cy,52);cg.addColorStop(0,'#F7E2A8');cg.addColorStop(.6,'#D9A94E');cg.addColorStop(1,'#A8792A');x.fillStyle=cg;x.beginPath();x.arc(170,cy,46,0,Math.PI*2);x.fill();
+    x.fillStyle='#6B4A12';x.font=`700 26px ${F}`;x.textAlign='center';x.fillText(`${r.w}g`,170,cy+9);
+    x.textAlign='left';x.fillStyle=C.ink;x.font=`600 42px ${F}`;x.fillText(`${r.w} gram`,250,cy+4);x.fillStyle=C.mut;x.font=`400 22px ${F}`;x.fillText('22K (916) gold coin',250,cy+38);
+    x.textAlign='right';x.fillStyle=C.d[1];x.font=`700 56px ${F}`;x.fillText(inr(r.tot),W-110,cy+20);y+=rh});
+  x.textAlign='center';x.fillStyle=C.mut;x.font=`italic 400 23px ${F}`;x.fillText('Prices include making charges and 3% GST',W/2,y+14);
+  const dl=(coinSet.disc||[]);let dy=Math.max(y+56,H-120-dl.length*36-40);x.fillStyle=C.soft;x.fillRect(70,dy-6,W-140,dl.length*36+40);
+  x.textAlign='left';x.fillStyle=C.ink;x.font=`600 22px ${F}`;x.fillText('Please note',96,dy+26);x.font=`400 22px ${F}`;x.fillStyle=C.mut;dl.forEach((t,i)=>x.fillText('•  '+t,96,dy+62+i*36-4));
+  x.fillStyle=C.d[0];x.fillRect(0,H-96,W,96);x.fillStyle='#fff';x.textAlign='center';x.font=`600 24px ${F}`;x.fillText(B.full,W/2,H-58);x.font=`400 19px ${F}`;x.fillStyle='rgba(255,255,255,.85)';
+  const ad=(B.addr2&&B.addr2[1])||(B.address||[]).slice(-3).join(' · ')||'';x.fillText(ad.slice(0,110),W/2,H-28);
+  return cv.toDataURL('image/jpeg',.92);
+}
+async function openCoinCard(){
+  if(!coinCalc().some(r=>r.ok&&r.our)){toast("Enter Bhima's prices and set today's 22K rate first",null,true);return}
+  $('cnPop').hidden=false;[...$('cnBrand').children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.b===cnBrand)));
+  $('cnImg').removeAttribute('src');cnUrl=await coinCard(cnBrand);$('cnImg').src=cnUrl;
+}
+$('cnCard').onclick=openCoinCard;
+$('cnWa').onclick=async()=>{await openCoinCard();if(cnUrl)$('cnPopWa').click()};
+[...$('cnBrand').children].forEach(b=>b.onclick=()=>{cnBrand=b.dataset.b;store.set('cnBrand',cnBrand);openCoinCard()});
+$('cnPopX').onclick=()=>{$('cnPop').hidden=true};
+$('cnPopDl').onclick=()=>{if(!cnUrl)return;const a=document.createElement('a');a.href=cnUrl;a.download=`${cnBrand}-gold-coin-rates-${new Date().toISOString().slice(0,10)}.jpg`;document.body.appendChild(a);a.click();a.remove()};
+$('cnPopWa').onclick=async()=>{
+  if(!cnUrl)return;const cap=coinText();
+  if(NATIVE&&NATIVE.shareWhatsApp){NATIVE.shareWhatsApp('',cap,JSON.stringify([cnUrl]));$('cnPop').hidden=true;return}
+  $('cnPop').hidden=true;await waSendImgs([cnUrl],cap,'',`${cnBrand}-gold-coin-rates`);
+};
+// ---- settings (admin) ----
+function paintCoinSet(){$('cnMargin').value=coinSet.margin||'';$('cnRound').value=String(coinSet.round||10);$('cnDiscTx').value=(coinSet.disc||[]).join('\n')}
+$('setCoins').addEventListener('toggle',()=>{if($('setCoins').open){paintCoinSet();pullCoins()}});
+$('cnSetSave').onclick=()=>withPerm('coinSet','Only an admin can change the coin margin.',async()=>{
+  const set={margin:num($('cnMargin').value)||0,round:num($('cnRound').value)||10,disc:$('cnDiscTx').value.split('\n').map(t=>t.trim()).filter(Boolean).slice(0,10),by:meName()};
+  coinSet=Object.assign({},coinSet,set);store.set('coinSet',coinSet);paintCoins();
+  if(sync.key){try{const r=await syncApi('coinset','POST',{set},adminCreds);if(r.set){coinSet=Object.assign(coinSet,r.set);store.set('coinSet',coinSet)}toast('Coin settings saved · shared with all phones')}catch(e){toast('Saved on this phone. Not shared yet.',null,true)}}
+  else toast('Coin settings saved');
+},true);
+$('tabCoins').onclick=()=>setView('coins');
+$('menuCoins').onclick=()=>{try{setMenu(false)}catch(e){}setView('coins')};
+
 // ---------- making helper (Yamie making table) ----------
 function parseVal(str){
   const t=String(str||'').toUpperCase().replace(/₹|RS\.?|,/g,'').trim();
@@ -5177,12 +5356,13 @@ function setMenu(on){$('menu').hidden=!on;$('menuScrim').hidden=!on;$('menuBtn')
 $('menuBtn').onclick=()=>setMenu(true);$('menuClose').onclick=$('menuScrim').onclick=()=>setMenu(false);
 $('menu').addEventListener('click',e=>{if(e.target.closest('.menu-acts button'))setMenu(false)});
 // Views: Home (price check), Quote, Settings (stock data + admin settings)
-const VIEW_TITLE={orders:'Orders',shop:'Shop links',quotes:'All quotations',home:'Price Check',quote:'Quote',settings:'Settings',search:'Search',reports:'Reports'};
-const VIEW_SUB={orders:'Orders and customisation sent to Yamie Order Desk, with their status.',shop:'Website, catalogue and collection links to share with customers.',quotes:'Every quote. Tap one to make it the current quote.',home:'Scan or type a label to price it at today\u2019s gold rate.',quote:'Create a bill or price quote for jewellery items.',settings:'Configure pricing, charges, products, users and application preferences.',search:'Find items by label no., item name, item type, supplier or stone.',reports:'Sales, quotes and staff performance.'};
+const VIEW_TITLE={coins:'Gold Coins',orders:'Orders',shop:'Shop links',quotes:'All quotations',home:'Price Check',quote:'Quote',settings:'Settings',search:'Search',reports:'Reports'};
+const VIEW_SUB={coins:'22K gold coin prices from the Bhima benchmark, with our margin. Rate card for WhatsApp.',orders:'Orders and customisation sent to Yamie Order Desk, with their status.',shop:'Website, catalogue and collection links to share with customers.',quotes:'Every quote. Tap one to make it the current quote.',home:'Scan or type a label to price it at today\u2019s gold rate.',quote:'Create a bill or price quote for jewellery items.',settings:'Configure pricing, charges, products, users and application preferences.',search:'Find items by label no., item name, item type, supplier or stone.',reports:'Sales, quotes and staff performance.'};
 function setView(v){
   const was=document.body.dataset.view;document.body.dataset.view=v;
-  $('viewTitle').textContent=VIEW_TITLE[v];$('dkTitle').textContent=VIEW_TITLE[v];$('dkSub').textContent=VIEW_SUB[v]||'';try{paintWtop()}catch(e){}{const t=$({orders:'tabOrders',shop:'tabShop',quotes:'tabQuotes',home:'tabHome',quote:'tabQuote',settings:'tabSet',search:'tabFind',reports:'tabRep'}[v]);const g=t&&t.querySelector('svg');if(g)$('dkIco').innerHTML=g.outerHTML}$('heroBack').hidden=v==='home';
-  [['tabHome','home'],['tabFind','search'],['tabQuote','quote'],['tabQuotes','quotes'],['tabOrders','orders'],['tabShop','shop'],['tabSet','settings'],['tabRep','reports']].forEach(([id,k])=>$(id).classList.toggle('on',k===v));
+  $('viewTitle').textContent=VIEW_TITLE[v];$('dkTitle').textContent=VIEW_TITLE[v];$('dkSub').textContent=VIEW_SUB[v]||'';try{paintWtop()}catch(e){}{const t=$({coins:'tabCoins',orders:'tabOrders',shop:'tabShop',quotes:'tabQuotes',home:'tabHome',quote:'tabQuote',settings:'tabSet',search:'tabFind',reports:'tabRep'}[v]);const g=t&&t.querySelector('svg');if(g)$('dkIco').innerHTML=g.outerHTML}$('heroBack').hidden=v==='home';
+  [['tabHome','home'],['tabFind','search'],['tabQuote','quote'],['tabQuotes','quotes'],['tabOrders','orders'],['tabShop','shop'],['tabSet','settings'],['tabRep','reports'],['tabCoins','coins']].forEach(([id,k])=>$(id).classList.toggle('on',k===v));
+  if(v==='coins'){paintCoins();pullCoins()}
   if(v==='quote'){renderBill();if(sync.key)pullQuotes();try{goStep(was!=='quote'?'ov':qStep,true)}catch(e){}}
   if(v==='quotes'){try{renderRecent()}catch(e){}if(sync.key)pullQuotes()}
   if(v==='orders')loadOrders();
@@ -7862,7 +8042,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.8.30',APP_BUILD='__BUILD__';
+const APP_VERSION='1.8.31',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------
@@ -7877,20 +8057,22 @@ const PERM_LIST=[
   ['closeSale','Close sale (invoice no.)'],['cancelQuote','Cancel quote (enquiry)'],['reopen','Reopen sold / cancelled quotes'],
   ['delQuote','Delete quotes'],['images','Add product photos'],['imgDel','Delete / replace product photos'],['imgBulk','Bulk upload photos'],['stockList','Stock list in Search (phone app)'],['addDisc','Additional discount (flat)'],['round','Round final amounts to the nearest ₹50'],['stockEdit','Edit stock items · making, FVA, label details'],['stockAdd','Add new items to stock'],['stockBulk','Bulk update stock items'],['reports','Reports'],['fva','Fair Value price'],['share','Share quotes on WhatsApp'],['pdHidden','See hidden details (NLC, FVA…)'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],['webApp','Use the web version (browser on a computer / phone)'],['shopTab','Shop tab: see and share website / catalogue links'],['webLinks','Add / change shop links'],['qPrint','Print quote (A4 · network printer)'],['shareStatus','WhatsApp status card'],['quotesList','All quotations tab'],['qsCust','Quote step: Customer details'],['qsSale','Quote step: Sale type'],['qsItems','Quote step: Items'],['qsUrd','Quote step: URD & buy-back'],['qsSr','Quote step: Sales return'],['qsAdv','Quote step: Advance'],['qsSum','Quote step: Summary'],['qsClose','Quote step: Close sale'],['qsWa','Quote step: WhatsApp share'],['search','Search page · find items'],['stFilters','Search filters (item, design, colour…)'],['stRanges','Range search (weight, price, fair value…)'],['stSelect','Select items in Search'],['stExport','Export Search to Excel'],['stReport','Product details report (cards · share / print)'],['shareItems','Share items on WhatsApp (picture cards)'],['shareAllPh','Send all photos of an item'],['sharePdf','Items as PDF'],['shareUser','Send items to another user'],['shareFv','Share fair value & savings'],['shareCost','Share making, NLC & supplier'],
   ['textSize','Text size'],['imgShow','Product image show / hide'],['ratesShown','Rates shown'],['charges','Charges · GST · HUID'],
+  ['coins','Gold coin prices · enter and save'],['coinSet','Gold coins · margin & disclaimers'],
   ['mkHelper','Making helpers'],['itemCodes','Item codes'],['pdRows','Product details items'],['sync','Shared database · shop key'],['roles','Roles & permissions'],['users','Users']];
-const SET_PERMS=['suppliers','theme','footer','apprSet','export','promos','rules','reports','stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users'];
+const SET_PERMS=['coinSet','suppliers','theme','footer','apprSet','export','promos','rules','reports','stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users'];
 const STOCK_PERMS=['stockEdit','stockAdd','stockBulk','stockdel'];const PHOTO_PERMS=['images','imgDel','imgBulk'];
 // V1.8.6 functions grouped for the role editor
 const PERM_GROUPS=[['Access',['webApp']],['Quote page',['qPrint','quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa']],['Prices & making',['rates','mkEdit','mkDisc','addDisc','round','fva','pdHidden']],['Quotes',['closeSale','cancelQuote','reopen','delQuote','approve','share']],
   ['Search',['search','stFilters','stRanges','stSelect','stExport','stReport','stockList']],['WhatsApp & sharing',['shareStatus','shareItems','shareAllPh','sharePdf','shareUser','shareFv','shareCost','leads']],
-  ['Stock database',['stockEdit','stockAdd','stockBulk','stockdel','suppliers']],['Product photos & details',['images','imgDel','imgBulk']],['Shop links',['shopTab','webLinks']],['Reports',['reports']],
+  ['Stock database',['stockEdit','stockAdd','stockBulk','stockdel','suppliers']],['Product photos & details',['images','imgDel','imgBulk']],['Shop links',['shopTab','webLinks']],['Gold coins',['coins','coinSet']],['Reports',['reports']],
   ['Settings',['textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users']]];
 const permLabel=k=>(PERM_LIST.find(p=>p[0]===k)||[0,k])[1];
-const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','imgDel','imgBulk','stockList','approve','leads','share','pdHidden','addDisc','round','reports','fva','stockEdit','stockAdd','stockBulk','suppliers','quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa','search','stFilters','stRanges','stSelect','stExport','stReport','shareItems','shareAllPh','sharePdf','shareUser','shareFv','shareCost','webApp','qPrint','shareStatus','shopTab','webLinks']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share','fva','stockList','quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa','search','stFilters','stRanges','stSelect','stReport','shareItems','shareAllPh','sharePdf','shareUser','shareFv','qPrint','shareStatus','shopTab']}];
+const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['coins','rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','imgDel','imgBulk','stockList','approve','leads','share','pdHidden','addDisc','round','reports','fva','stockEdit','stockAdd','stockBulk','suppliers','quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa','search','stFilters','stRanges','stSelect','stExport','stReport','shareItems','shareAllPh','sharePdf','shareUser','shareFv','shareCost','webApp','qPrint','shareStatus','shopTab','webLinks']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share','fva','stockList','quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa','search','stFilters','stRanges','stSelect','stReport','shareItems','shareAllPh','sharePdf','shareUser','shareFv','qPrint','shareStatus','shopTab']}];
 let roles=store.get('roles',null)||clone(DEFAULT_ROLES);
 // WhatsApp sharing became a permission (v1.7.3): roles on this phone keep it once
 if(!store.get('permShare',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&!r.perms.includes('share'))r.perms.push('share')});store.set('roles',roles);store.set('permShare',true)}
 if(!store.get('perm1824',false)){roles.forEach(r=>{if(!Array.isArray(r.perms))return;if(r.perms.includes('search')&&!r.perms.includes('stReport'))r.perms.push('stReport')});store.set('roles',roles);store.set('perm1824',true)}
+if(!store.get('perm1831',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&r.perms.includes('rates')&&!r.perms.includes('coins'))r.perms.push('coins')});store.set('roles',roles);store.set('perm1831',true)}
 if(!store.get('perm1821',false)){roles.forEach(r=>{if(!Array.isArray(r.perms))return;if(!r.perms.includes('shopTab'))r.perms.push('shopTab');if(['users','stockEdit'].some(p=>r.perms.includes(p))&&!r.perms.includes('webLinks'))r.perms.push('webLinks')});store.set('roles',roles);store.set('perm1821',true)}
 if(!store.get('perm1815',false)){roles.forEach(r=>{if(!Array.isArray(r.perms))return;const add=p=>{if(!r.perms.includes(p))r.perms.push(p)};add('qPrint');add('shareStatus');if(['users','stockEdit','reports'].some(p=>r.perms.includes(p)))add('webApp')});store.set('roles',roles);store.set('perm1815',true)}
 if(!store.get('perm1814',false)){roles.forEach(r=>{if(!Array.isArray(r.perms))return;['quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa'].forEach(p=>{if(!r.perms.includes(p))r.perms.push(p)})});store.set('roles',roles);store.set('perm1814',true)}
@@ -8243,7 +8425,7 @@ setInterval(()=>pollInbox(),30000);
 setInterval(()=>{try{if(needsAppr()&&apprState(bill)==='pending')pollInbox()}catch(e){}},8000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pollInbox()});
 // Footer tabs each role sees (admin chooses; admins always see all). Home is always shown.
-const FOOT_TABS=[['tabScan','Scan'],['tabFind','Search'],['tabQuote','Quote'],['tabQuotes','All quotes'],['tabOrders','Orders'],['tabShop','Shop'],['tabRates','Gold Rates'],['tabSet','Settings']];
+const FOOT_TABS=[['tabScan','Scan'],['tabFind','Search'],['tabQuote','Quote'],['tabQuotes','All quotes'],['tabOrders','Orders'],['tabShop','Shop'],['tabRates','Gold Rates'],['tabCoins','Gold Coins'],['tabSet','Settings']];
 function applyTabs(){
   const role=curUser?curUser.role:'',hid=role&&role!=='admin'?((settings.tabHide||{})[role]||[]):[];
   FOOT_TABS.forEach(([id])=>{const b=$(id);if(b)b.hidden=hid.includes(id)});
