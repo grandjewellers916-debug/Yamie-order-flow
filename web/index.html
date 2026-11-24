@@ -988,7 +988,24 @@ body.stm .mr-img{width:52px;height:52px}body.stm .mr-t b{font-size:14.5px}body.s
 .stf-r input{appearance:none;-webkit-appearance:none;width:18px;height:18px;margin:0;border:2px solid var(--muted,#999);border-radius:50%;display:grid;place-items:center;flex:none}
 .stf-r input:checked{border-color:var(--maroon,#702438)}.stf-r input:checked::after{content:"";width:9px;height:9px;border-radius:50%;background:var(--maroon,#702438)}
 .stf-r.on{border-color:var(--maroon,#702438);background:var(--sunk,#F2E4DB);color:var(--maroon,#702438);font-weight:600}
-.stm-more{margin-top:8px}.stm-more>summary{cursor:pointer;color:var(--muted);font-size:13px;padding:6px 0}
+.stm-more{margin-top:8px}
+td.ec{cursor:cell;position:relative}td.ec:hover{box-shadow:inset 0 0 0 1px var(--acc,#C99583);background:rgba(201,149,131,.07)}td.ec-on{box-shadow:inset 0 0 0 2px var(--maroon,#702438)!important;background:rgba(112,36,56,.05)}td.ec-done{animation:ecDone 1.2s ease}@keyframes ecDone{0%{background:#DDF3E5}100%{background:transparent}}
+.cell-ed{position:fixed;z-index:80;background:var(--surface,#fff);border:1px solid var(--line,#E5DED6);border-radius:14px;box-shadow:0 18px 48px rgba(40,20,25,.22);padding:12px}
+.cell-ed .ce-h{display:flex;flex-direction:column;margin-bottom:8px}.cell-ed .ce-h small{color:var(--muted);font-size:12px}.cell-ed #ecIn{width:100%;min-height:40px;box-sizing:border-box;padding:6px 10px;border:1px solid var(--line,#E5DED6);border-radius:10px;font:inherit;background:var(--surface,#fff);color:inherit}
+.cell-ed .at-f>label{display:none}.cell-ed .sc-chips{max-height:220px;overflow:auto}.cell-ed .ce-a{display:flex;gap:6px;align-items:center;justify-content:flex-end;margin-top:10px;flex-wrap:wrap}.cell-ed .ce-k{flex:1 1 100%;font-size:11px;color:var(--muted)}
+.img-full{position:fixed;inset:0;z-index:120;background:rgba(15,8,10,.92);display:grid;place-items:center;cursor:zoom-out}.img-full[hidden]{display:none}.img-full img{max-width:94vw;max-height:86vh;object-fit:contain;border-radius:10px;background:#fff}
+.img-full .if-cap{position:absolute;bottom:18px;left:0;right:0;text-align:center;color:#fff;font-size:14px}.img-full button{position:absolute;border:0;background:rgba(255,255,255,.14);color:#fff;border-radius:50%;width:48px;height:48px;font-size:26px;cursor:pointer}.img-full .if-x{top:18px;right:18px;font-size:20px}.img-full .if-p{left:18px;top:50%;transform:translateY(-50%)}.img-full .if-n{right:18px;top:50%;transform:translateY(-50%)}
+.stm-ph img{cursor:zoom-in}.stm-ph{position:relative}.stm-phn{position:absolute;right:10px;bottom:10px;background:rgba(0,0,0,.55);color:#fff;font-size:12px;border-radius:99px;padding:2px 9px}
+/* V1.9.6 item window on a computer: large photo on the left, details / Edit details on the right */
+@media (min-width:1100px) and (pointer:fine){
+  .modal.stm-itm .sheet{max-width:1180px!important;width:94vw}
+  .modal.stm-itm .stm-it{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(360px,1fr);column-gap:28px;align-items:start}
+  .modal.stm-itm .stm-it>*{grid-column:2}
+  .modal.stm-itm .stm-it>.stm-nav{grid-column:1/-1}
+  .modal.stm-itm .stm-it>.stm-ph{grid-column:1;grid-row:2/span 30;position:sticky;top:0;align-self:start}
+  .modal.stm-itm .stm-ph img,.modal.stm-itm .stm-ph:has(img:only-child) img{width:100%;max-height:68vh;height:auto;aspect-ratio:1;object-fit:contain;background:#fff;scroll-snap-align:start}
+  .modal.stm-itm .stm-ph .st-img{height:420px}
+}.stm-more>summary{cursor:pointer;color:var(--muted);font-size:13px;padding:6px 0}
 @media (min-width:900px){.modal.stm-itm .sheet{max-width:640px}}
 .modal.stm-sheet .sheet{padding-bottom:0}.modal.stm-sheet #modalActs{position:sticky;bottom:0;flex-direction:row;flex-wrap:wrap;background:inherit;background:var(--surface);padding:10px 0 calc(12px + env(safe-area-inset-bottom,0px));margin-top:8px;border-top:1px solid var(--line);z-index:2}
 .modal.stm-sheet #modalActs .btn{flex:1 1 30%;width:auto;min-height:44px}.modal.stm-itm #modalActs .btn.primary{flex-basis:100%}.modal.stm-itm #modalActs .btn.ghost{flex-basis:100%;min-height:38px}
@@ -6766,6 +6783,10 @@ function stmMoreSheet(){
 // tap an item: a compact sheet with its photos, details, price and actions
 // V1.8.26: the sheet remembers the list it came from, so you can swipe (or arrow) from one item to the next
 let stmNav={list:[],i:0},stmTok=0,stmEdit=false,stmDirty=()=>false,stmSave=async()=>true;   // V1.9.2 edit details inside the item sheet
+async function editCredsOk(){   // V1.9.4/1.9.6 the server needs the user's PIN; after the app is reopened it is not in memory, so ask once
+  const P=['stockEdit','images','stockAdd','stockBulk'].find(p=>can(p));if(!(sync.key&&P&&!credsOk(P)))return true;
+  const ok=await new Promise(res=>{withPerm(P,'Enter your PIN to save product details.',()=>res(true),true);const iv=setInterval(()=>{if($('login').hidden){clearInterval(iv);setTimeout(()=>res(false),60)}},300)});
+  if(!ok||!credsOk(P)){toast('Not saved — PIN needed');return false}return true}
 const stmCanEd=()=>can('images')||can('stockEdit')||can('stockAdd')||can('stockBulk');
 async function stmItem(r,list,dir){
   if(dir==null)stmEdit=false;
@@ -6797,8 +6818,7 @@ async function stmItem(r,list,dir){
       if(!stmDirty())return true;
       const at=readAttr('stmA'),pn=$('stmPn')?$('stmPn').value.replace(/\s+/g,' ').trim():n0;
       // V1.9.4 the server needs the user's PIN; after the app is reopened it is not in memory, so ask once
-      const P=['stockEdit','images','stockAdd','stockBulk'].find(p=>can(p));
-      if(sync.key&&P&&!credsOk(P)){const ok=await new Promise(res=>{withPerm(P,'Enter your PIN to save product details.',()=>res(true),true);const iv=setInterval(()=>{if($('login').hidden){clearInterval(iv);setTimeout(()=>res(false),60)}},300)});if(!ok||!credsOk(P)){mark();toast('Not saved — PIN needed');return false}}
+      if(!(await editCredsOk())){mark();return false}
       st.textContent='Saving…';
       const ok1=$('stmPn')&&pn!==n0?await savePnames({[r.key]:pn}):true,ok2=attrSame(at,a0)?true:await savePattrs({[r.key]:at});
       if(ok1&&ok2){toast('Saved · '+(r.barcode||r.key));if(tok===stmTok){stmDirty=()=>false;st.textContent='Saved ✓';st.classList.remove('dirty');st.classList.add('ok')}return true}
@@ -6827,9 +6847,20 @@ async function stmItem(r,list,dir){
     if(matchMedia('(pointer:coarse)').matches&&!store.get('stmSwipeTip',false)){store.set('stmSwipeTip',true);setTimeout(()=>toast('Swipe left or right to move between items'),500)}
   }
   const us=await getProdImgs(r.key).catch(()=>[]);
-  if(tok===stmTok&&us.length&&$('stmPh'))$('stmPh').innerHTML=us.map(u=>`<img src="${u}" alt="">`).join('');
+  if(tok===stmTok&&us.length&&$('stmPh')){$('stmPh').innerHTML=us.map((u,j)=>`<img src="${u}" alt="${esc(pnameOf(r)||r.item||'')} photo ${j+1}" data-zi="${j}">`).join('')+(us.length>1?`<span class="stm-phn">${us.length} photos</span>`:'');
+    $('stmPh').querySelectorAll('img').forEach(im=>im.onclick=e=>{e.stopPropagation();imgFull(us,+im.dataset.zi,(r.barcode||r.key)+(pnameOf(r)?' · '+pnameOf(r):''))})}
 }
 // move to the item before or after this one, without closing the sheet
+// V1.9.6 full-screen photo: click the big photo; ‹ › or arrow keys for more photos; Esc or click to close
+function imgFull(us,i,cap){
+  let o=$('imgFull');if(!o){o=document.createElement('div');o.id='imgFull';o.className='img-full';o.setAttribute('role','dialog');o.setAttribute('aria-label','Photo');document.body.appendChild(o)}
+  const show=()=>{o.innerHTML=`<img src="${us[i]}" alt=""><div class="if-cap">${esc(cap)}${us.length>1?` · ${i+1} / ${us.length}`:''}</div><button type="button" class="if-x" aria-label="Close">✕</button>${us.length>1?'<button type="button" class="if-p" aria-label="Previous photo">‹</button><button type="button" class="if-n" aria-label="Next photo">›</button>':''}`;
+    o.querySelector('.if-x').onclick=close;const pv=o.querySelector('.if-p'),nx=o.querySelector('.if-n');if(pv){pv.onclick=e=>{e.stopPropagation();i=(i+us.length-1)%us.length;show()};nx.onclick=e=>{e.stopPropagation();i=(i+1)%us.length;show()}}};
+  const key=e=>{if(e.key==='Escape'){e.stopPropagation();e.preventDefault();close()}else if(us.length>1&&(e.key==='ArrowRight'||e.key==='ArrowLeft')){e.stopPropagation();e.preventDefault();i=(i+(e.key==='ArrowRight'?1:us.length-1))%us.length;show()}};
+  function close(){o.hidden=true;document.removeEventListener('keydown',key,true)}
+  o.onclick=e=>{if(e.target===o||e.target.tagName==='IMG')close()};
+  o.hidden=false;show();document.addEventListener('keydown',key,true);
+}
 async function stmGo(d){
   const L=stmNav.list,j=stmNav.i+d;
   if(!L||L.length<2)return;
@@ -7008,6 +7039,58 @@ function stVal(r,k){
   if(['gw','sw','nw','dw','dq','huid','nlc'].includes(k)){const n=N(r[k]);return n!=null&&(n>0||k==='huid')?n:null}
   const v=String(r[k]||'').trim().toLowerCase();return v||null}
 const ST_SORT_NUM=['price','fv','save','mk','sa','fva','carat','gw','sw','nw','dw','dq','huid','nlc'];
+// ---------- V1.9.6 edit a property right in the Search table ----------
+const ST_EDIT=['pname','cl','jt','mc','stt','shp','sst','scol'];
+const EC_LBL={pname:'Product name',cl:'Collection',jt:'Design',mc:'Metal colour',stt:'Stone type',shp:'Shape',sst:'Stone shape',scol:'Stone colour'};
+let ecState=null;
+function ecClose(){const p=$('cellEd');if(p)p.remove();document.querySelectorAll('td.ec-on').forEach(t=>t.classList.remove('ec-on'));ecState=null}
+function cellEdit(td){
+  if(ecState&&ecState.td===td)return;
+  if(ecState&&ecState.dirty()){const prev=ecState;prev.save(false).then(()=>cellEdit(td));return}
+  ecClose();
+  const tr=td.closest('tr[data-k]'),k=tr&&tr.dataset.k,r=k&&stockMap.get(k),c=td.dataset.ec;if(!r)return;
+  if(c==='pname'&&!can('images'))return toast('Product name needs the “photos” permission');
+  const a=attrOf(r),multi={stt:['st',STT_LIST,STT_MAX],shp:['sh',SHP_LIST,SHP_MAX],sst:['ss',SST_LIST,SST_MAX],scol:['sc',SC_LIST.map(x=>x[0]),SC_MAX]}[c];
+  let body;
+  if(c==='pname')body=`<input id="ecIn" maxlength="60" value="${esc(pnameOf(r)||'')}" placeholder="e.g. Infinity Diamond Ring" autocomplete="off">`;
+  else if(c==='cl'){const cls=[...new Set([...CL_LIST,...[...stockMap.values()].map(x=>attrOf(x).cl).filter(Boolean).sort((x,y)=>x.localeCompare(y))])];body=`<input id="ecIn" list="ecL" maxlength="40" value="${esc(a.cl||'')}" placeholder="Type or pick a collection" autocomplete="off"><datalist id="ecL">${cls.map(x=>`<option value="${esc(x)}">`).join('')}</datalist>`}
+  else if(c==='jt'){const known=new Set(JT_GROUPS.flatMap(g=>g[1]));body=`<select id="ecIn"><option value="">— none —</option>${JT_GROUPS.map(([g,l])=>`<optgroup label="${esc(g)}">${l.map(v=>`<option${a.jt===v?' selected':''}>${esc(v)}</option>`).join('')}</optgroup>`).join('')}${a.jt&&!known.has(a.jt)?`<option selected>${esc(a.jt)}</option>`:''}</select>`}
+  else if(c==='mc'){const nm=MC_LIST.map(x=>x[0]);body=`<select id="ecIn"><option value="">— none —</option>${[...nm,...(a.mc&&!nm.includes(a.mc)?[a.mc]:[])].map(v=>`<option${a.mc===v?' selected':''}>${esc(v)}</option>`).join('')}</select>`}
+  else body=attrMulti('ec','M',EC_LBL[c],'Type a new one',multi[1],a[multi[0]]||[]);
+  const p=document.createElement('div');p.id='cellEd';p.className='cell-ed'+(multi?' multi':'');p.setAttribute('role','dialog');p.setAttribute('aria-label','Edit '+EC_LBL[c]);
+  p.innerHTML=`<div class="ce-h"><b>${EC_LBL[c]}</b><small>${esc(r.barcode||r.key)}${pnameOf(r)?' · '+esc(pnameOf(r)):''}</small></div>${body}<div class="ce-a"><span class="ce-k">Enter = save &amp; next row · Esc = cancel</span><button type="button" class="btn sm" data-x>Cancel</button><button type="button" class="btn sm" data-s="0">Save</button><button type="button" class="btn sm primary" data-s="1">Save ↓</button></div>`;
+  document.body.appendChild(p);td.classList.add('ec-on');
+  if(multi)wireMulti('ec','M',multi[2]);
+  const place=()=>{const Rc=td.getBoundingClientRect(),W=Math.min(multi?440:320,innerWidth-24);p.style.width=W+'px';const H=p.offsetHeight;let x=Math.min(Math.max(12,Rc.left),innerWidth-W-12),y=Rc.bottom+6;if(y+H>innerHeight-12)y=Math.max(12,Rc.top-H-6);p.style.left=x+'px';p.style.top=y+'px'};place();
+  const read=()=>multi?readMulti('ec','M',multi[2]):$('ecIn').value.replace(/\s+/g,' ').trim();
+  const orig=c==='pname'?(pnameOf(r)||''):multi?(a[multi[0]]||[]).join('|'):(a[c]||'');
+  const dirty=()=>{const v=read();return (multi?v.join('|'):v)!==orig};
+  let busy=false;
+  const save=async down=>{
+    if(busy)return;busy=true;
+    try{
+      if(dirty()){
+        if(!(await editCredsOk()))return;
+        const v=read(),ok=c==='pname'?await savePnames({[k]:v}):await savePattrs({[k]:{...a,[multi?multi[0]:c]:v}});
+        if(!ok)return;
+      }
+      // the table may have been redrawn (e.g. after the PIN prompt): find this cell again
+      const live=document.querySelector(`#findList tr[data-k="${CSS.escape(k)}"] td[data-ec="${c}"]`)||td;
+      if(live.isConnected){live.innerHTML=stCell(stockMap.get(k)||r,c);live.classList.add('ec-done');setTimeout(()=>live.classList.remove('ec-done'),1200)}
+      const tr2=live.closest('tr'),nx=down&&tr2&&tr2.nextElementSibling,ntd=nx&&nx.querySelector(`td[data-ec="${c}"]`);
+      ecClose();
+      if(ntd){ntd.scrollIntoView({block:'nearest'});cellEdit(ntd)}
+    }finally{busy=false}};
+  ecState={td,dirty,save};
+  const f=$('ecIn')||p.querySelector('.sc-c');if(f)f.focus();if($('ecIn')&&$('ecIn').select&&$('ecIn').tagName==='INPUT')$('ecIn').select();
+  p.querySelector('[data-x]').onclick=ecClose;
+  p.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>save(b.dataset.s==='1'));
+  p.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){e.preventDefault();ecClose();td.focus&&td.focus();return}
+    if(e.key==='Enter'&&!e.target.closest('.sf-new')&&!(multi&&e.target.closest('.sc-c')&&!e.ctrlKey&&!e.metaKey)){e.preventDefault();save(true)}});
+}
+document.addEventListener('mousedown',e=>{if(!ecState)return;if(e.target.closest('#cellEd,td[data-ec],#login'))return;const st=ecState;if(st.dirty())st.save(false);else ecClose()},true);
+addEventListener('resize',()=>ecClose());
 function stCell(r,c,img,W,mkOf){
   const n=v=>num(v)>0?fmtN(num(v)):'–';
   switch(c){
@@ -7078,10 +7161,11 @@ function runFindTable(){
   const W=v=>num(v)>0?num(v).toFixed(3):'–',ed=can('stockEdit');
   const cols=stCols.filter(k=>!ST_ADMIN.includes(k)||can('pdHidden')).map(k=>ST_ALL.find(c=>c[0]===k)).filter(Boolean);
   const mkOf=r=>r.mkType&&num(r.mk)>0?valText({type:r.mkType,val:num(r.mk)}):'–';
+  const ecOk=stmCanEd();
   const img=r=>`<div class="st-img" data-img="${esc(r.key)}">${itemImg(bcSplit(r.key).pre,r.category||r.item)?`<img src="${itemImg(bcSplit(r.key).pre,r.category||r.item)}" alt="" loading="lazy">`:icoFor(r.category||r.item||'')}</div>${shopA(r,true)}`;
   const acts=r=>`<td class="st-act"><button class="btn sm st-price" type="button" data-price="${esc(r.key)}">Price it</button><button class="st-wa" type="button" data-wa="${esc(r.key)}" aria-label="Share ${esc(r.barcode||r.key)} on WhatsApp" title="Share on WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm4.5 12.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2l-.4-.2Z"/></svg></button>${ed?`<button class="st-dots" type="button" data-ed="${esc(r.key)}" aria-label="Edit ${esc(r.barcode||r.key)} in database" title="Edit in database">⋯</button>`:''}</td>`;
   const body=stGrid?`<div class="st-gridv">${show.map(r=>{const sa=stVal(r,'sa');return `<div class="stg-c${r===exact?' hit':''}${stSel.has(r.key)?' sel':''}" tabindex="0" data-k="${esc(r.key)}"><label class="stg-ck"><input type="checkbox" data-sel="${esc(r.key)}"${stSel.has(r.key)?' checked':''} aria-label="Select ${esc(r.barcode||r.key)}"></label>${img(r)}<div class="stg-x"><b>${esc(r.barcode||r.key)}</b><span>${esc(r.item||r.category||'')}</span><small>${esc(PLABEL[caratToPurity(r.carat)]||r.carat||'')} · ${W(r.gw)} g${sa>0?' · '+inr(sa):''} · ${esc(mkOf(r))}</small>${(()=>{const o=stPrice(r);return isNaN(o.lp)?'':`<span class="stg-p"><b>${inr(o.lp)}</b>${isNaN(o.fv)?'':` <em>FV ${inr(o.fv)}</em>`}</span>`})()}</div><button class="btn sm st-price" type="button" data-price="${esc(r.key)}">Price it</button><button class="st-wa" type="button" data-wa="${esc(r.key)}" aria-label="Share ${esc(r.barcode||r.key)} on WhatsApp" title="Share on WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm4.5 12.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2l-.4-.2Z"/></svg></button></div>`}).join('')}</div>`
-    :`<div class="st-wrap"><table class="stk"><thead><tr><th class="st-ck"><input type="checkbox" id="stAll" aria-label="Select all on this page"${show.length&&show.every(r=>stSel.has(r.key))?' checked':''}></th><th class="st-n">#</th>${cols.map(([c,l,r])=>`<th class="${r?'r':''} c-${c}" data-c="${c}"${stSort.k===c?` aria-sort="${stSort.d>0?'ascending':'descending'}"`:''}>${l}</th>`).join('')}<th class="c-act">Action</th></tr></thead><tbody>${show.map((r,i)=>`<tr tabindex="0" data-k="${esc(r.key)}" class="${r===exact?'hit':''}${stSel.has(r.key)?' sel':''}"><td class="st-ck"><input type="checkbox" data-sel="${esc(r.key)}"${stSel.has(r.key)?' checked':''} aria-label="Select ${esc(r.barcode||r.key)}"></td><td class="st-n">${(stPage-1)*stPer+i+1}</td>${cols.map(([c,,ra])=>`<td class="${ra?'r ':''}c-${c}">${stCell(r,c,img,W,mkOf)}</td>`).join('')}${acts(r)}</tr>`).join('')}</tbody></table></div>`;
+    :`<div class="st-wrap"><table class="stk"><thead><tr><th class="st-ck"><input type="checkbox" id="stAll" aria-label="Select all on this page"${show.length&&show.every(r=>stSel.has(r.key))?' checked':''}></th><th class="st-n">#</th>${cols.map(([c,l,r])=>`<th class="${r?'r':''} c-${c}" data-c="${c}"${stSort.k===c?` aria-sort="${stSort.d>0?'ascending':'descending'}"`:''}>${l}</th>`).join('')}<th class="c-act">Action</th></tr></thead><tbody>${show.map((r,i)=>`<tr tabindex="0" data-k="${esc(r.key)}" class="${r===exact?'hit':''}${stSel.has(r.key)?' sel':''}"><td class="st-ck"><input type="checkbox" data-sel="${esc(r.key)}"${stSel.has(r.key)?' checked':''} aria-label="Select ${esc(r.barcode||r.key)}"></td><td class="st-n">${(stPage-1)*stPer+i+1}</td>${cols.map(([c,,ra])=>`<td class="${ra?'r ':''}c-${c}${ecOk&&ST_EDIT.includes(c)?' ec':''}"${ecOk&&ST_EDIT.includes(c)?` data-ec="${c}" title="Click to edit"`:''}>${stCell(r,c,img,W,mkOf)}</td>`).join('')}${acts(r)}</tr>`).join('')}</tbody></table></div>`;
   const mob=!DESK.matches,PL=r=>{const o=stPrice(r);return isNaN(o.lp)?'':inr(o.lp)},FV=r=>{if(!can('fva'))return '';const o=stPrice(r);return isNaN(o.fv)||o.fv>=o.lp?'':inr(o.fv)};
   const mbody=`<div class="st-mlist">${show.map(r=>`<div class="mr${stSel.has(r.key)?' sel':''}" data-k="${esc(r.key)}"><label class="stg-ck mr-ck"><input type="checkbox" data-sel="${esc(r.key)}"${stSel.has(r.key)?' checked':''} aria-label="Select ${esc(r.barcode||r.key)}"></label><div class="st-img mr-img" data-img="${esc(r.key)}">${icoFor(r.category||r.item||'')}</div>
     <div class="mr-t"><b>${esc(pnameOf(r)||r.item||r.category||'Item')}</b><small>${esc([pnameOf(r)?r.item:'',r.category&&r.category!==r.item?r.category:'',PLABEL[caratToPurity(r.carat)]||r.carat||''].filter(Boolean).join(' · '))}</small><small class="mr-k">${esc(r.barcode||r.key)} · ${W(r.gw)} g${num(r.dw)>0?` · ${fmtN(num(r.dw))} ct`:''}</small>${shopA(r,true)}</div>
@@ -7103,7 +7187,7 @@ function runFindTable(){
     m.onclick=e=>{if(e.target.closest('.stg-ck,a'))return;if(stMSelMode){const c=m.querySelector('[data-sel]');if(c){c.checked=!c.checked;c.onchange()}return}const r=stockMap.get(m.dataset.k);if(r)stmItem(r)};
     m.addEventListener('touchstart',()=>{if(!can('stSelect'))return;lp=setTimeout(()=>{lp=-1;if(!stMSelMode){stMSelMode=true;stSel.add(m.dataset.k);runFindTable();paintSelBar();try{navigator.vibrate&&navigator.vibrate(20)}catch(e){}}},550)},{passive:true});
     ['touchend','touchmove','touchcancel'].forEach(ev=>m.addEventListener(ev,e=>{if(lp>0)clearTimeout(lp);if(lp===-1&&ev==='touchend'){e.preventDefault()}lp=0}))});
-  el.querySelectorAll('tbody tr,.stg-c').forEach(tr=>{tr.onclick=e=>{if(e.target.closest('[data-price],[data-ed],[data-wa],.st-ck,.stg-ck,a'))return;const r=stockMap.get(tr.dataset.k);if(r)stmItem(r,stLastRows)};tr.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();price(tr.dataset.k)}else if(e.key==='ArrowDown'&&tr.nextElementSibling){e.preventDefault();tr.nextElementSibling.focus()}else if(e.key==='ArrowUp'){e.preventDefault();(tr.previousElementSibling||$('findQ')).focus()}}});
+  el.querySelectorAll('tbody tr,.stg-c').forEach(tr=>{tr.onclick=e=>{if(e.target.closest('[data-price],[data-ed],[data-wa],.st-ck,.stg-ck,a'))return;const ec=e.target.closest('td[data-ec]');if(ec){e.stopPropagation();cellEdit(ec);return}const r=stockMap.get(tr.dataset.k);if(r)stmItem(r,stLastRows)};tr.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();price(tr.dataset.k)}else if(e.key==='ArrowDown'&&tr.nextElementSibling){e.preventDefault();tr.nextElementSibling.focus()}else if(e.key==='ArrowUp'){e.preventDefault();(tr.previousElementSibling||$('findQ')).focus()}}});
   el.querySelectorAll('[data-price]').forEach(b=>b.onclick=()=>price(b.dataset.price));
   el.querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>{const r=stockMap.get(b.dataset.ed);if(r)stockForm(r)});
   el.querySelectorAll('[data-pg]').forEach(b=>b.onclick=()=>{stPage=+b.dataset.pg;runFindTable();$('findQ').scrollIntoView({block:'nearest'})});
@@ -8374,7 +8458,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.9.5',APP_BUILD='__BUILD__';
+const APP_VERSION='1.9.6',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('sbVer'))$('sbVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------
