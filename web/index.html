@@ -41,7 +41,7 @@ input:not([type]),input[type=date],input[type=text],input[type=number],input[typ
 textarea{min-height:70px}
 label.f{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
 /* layout */
-#app{min-height:100vh}
+#app{min-height:var(--vh,100vh)}
 .top{position:sticky;top:0;z-index:20;background:var(--m);color:#fff;padding:10px 14px;padding-top:max(10px,env(safe-area-inset-top));display:flex;align-items:center;gap:10px}
 .top .logo{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;line-height:1}
 .top .logo small{display:block;font-family:Jost;font-size:11px;font-weight:400;opacity:.8;letter-spacing:1.5px;text-transform:uppercase}
@@ -158,7 +158,7 @@ main{padding:14px;padding-bottom:96px;max-width:1300px;margin:0 auto}
 /* Phone app shell (< 900 px, browser and Android app): top bar · scrolling content · bottom bar.
    The bottom bar is part of the layout (not floating), so it is always on screen; nothing can be swiped sideways. */
 @media(max-width:899px){
-  html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:pan-y;max-width:100vw}
+  html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:pan-y;max-width:var(--vw,100vw)}
   #app{height:var(--vh,100dvh);min-height:0;display:flex;flex-direction:column;overflow:hidden}
   #app>.top{position:relative;flex:none}
   #app>main{flex:1 1 auto;min-height:0;width:100%;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;padding-bottom:24px}
@@ -222,8 +222,8 @@ tr.tot td{font-weight:700;background:var(--m3)}
 td.pos{color:var(--ok);font-weight:600}td.neg{color:var(--bad);font-weight:600}
 /* modal */
 .ov{position:fixed;inset:0;background:rgba(29,23,20,.5);z-index:50;display:flex;align-items:flex-end;justify-content:center}
-.md{background:var(--iv);width:100%;max-width:640px;max-height:94vh;overflow:auto;border-radius:18px 18px 0 0;padding:0 0 calc(16px + env(safe-area-inset-bottom))}
-@media(min-width:700px){.ov{align-items:center}.md{border-radius:18px;max-height:90vh}}
+.md{background:var(--iv);width:100%;max-width:640px;max-height:calc(var(--vh,100vh)*.94);overflow:auto;border-radius:18px 18px 0 0;padding:0 0 calc(16px + env(safe-area-inset-bottom))}
+@media(min-width:700px){.ov{align-items:center}.md{border-radius:18px;max-height:calc(var(--vh,100vh)*.9)}}
 .mh{position:sticky;top:0;background:var(--iv);padding:14px 16px 10px;display:flex;gap:10px;align-items:flex-start;border-bottom:1px solid var(--ln);z-index:2}
 .mb{padding:14px 16px}
 .md.wide{max-width:940px}
@@ -246,13 +246,13 @@ td.pos{color:var(--ok);font-weight:600}td.neg{color:var(--bad);font-weight:600}
 .seg button{flex:1;padding:8px;border-radius:8px;font-weight:500}
 .seg button.on{background:#fff;color:var(--m);box-shadow:0 1px 3px rgba(0,0,0,.1)}
 .lb{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:70;display:grid;place-items:center}
-.lb img{max-width:96vw;max-height:90vh}
+.lb img{max-width:calc(var(--vw,100vw)*.96);max-height:calc(var(--vh,100vh)*.9)}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:90px;background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;z-index:90;max-width:90vw;text-align:center}
 .al{display:flex;gap:10px;padding:12px;border-bottom:1px solid var(--ln);background:#fff}
 .al.new{background:#FFFBF0}
 .al .ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none;font-weight:700}
 /* login */
-.login{min-height:100vh;display:grid;place-items:center;padding:20px;background:linear-gradient(160deg,var(--m) 0%,var(--m2) 100%)}
+.login{min-height:var(--vh,100vh);display:grid;place-items:center;padding:20px;background:linear-gradient(160deg,var(--m) 0%,var(--m2) 100%)}
 .lbox{background:var(--iv);border-radius:20px;padding:24px;width:100%;max-width:400px;text-align:center}
 .users{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0}
 .users button{padding:12px 4px;border-radius:12px;background:#fff;border:1px solid var(--ln)}
@@ -380,6 +380,9 @@ table.rep tr.rgrp td{background:var(--iv);font-weight:600;border-top:1px solid v
   .wgrid{grid-template-columns:repeat(2,1fr)}.hs,.hs2{display:none!important}.steps button{font-size:13px;gap:4px}.steps button i{width:22px;height:22px}
   .foot .btn{flex:1}}
 @media print{.nav,.top,.sticky,.noprint{display:none!important}main{margin:0;padding:0}}
+#uiz{position:fixed;right:12px;bottom:76px;z-index:9999;display:flex;align-items:center;gap:2px;background:#fff;border:1px solid var(--ln);border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.14);padding:3px;font:600 13px/1 Jost,system-ui,sans-serif;opacity:.55;transition:opacity .15s}
+#uiz:hover,#uiz.on{opacity:1}#uiz button{border:0;background:none;width:30px;height:30px;border-radius:50%;font:700 18px/1 Jost,system-ui,sans-serif;color:var(--ink);cursor:pointer}#uiz button:hover{background:#F3ECE4}#uiz .zv{min-width:44px;text-align:center;cursor:pointer;color:var(--mut)}
+@media print{#uiz{display:none}}
 </style>
 </head>
 <body>
@@ -395,8 +398,20 @@ const sgn = (n) => (n > 0 ? '+' : '') + fmt(n);
 const tm = (t) => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 const dt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' + tm(t); };
+// v1.50 web: floating UI scaling − / + on every page (remembered per device; tap the % to reset)
+(function uiZoom() {
+  if (window.YamieStock) return;
+  const K = 'ysc_uiz', STEPS = [0.7, 0.75, 0.8, 0.85, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.75, 2];
+  let z = +(localStorage.getItem(K) || 1); if (!STEPS.includes(z)) z = 1;
+  const el = document.createElement('div'); el.id = 'uiz'; el.innerHTML = '<button title="Smaller (Ctrl −)" aria-label="Smaller">−</button><span class="zv" title="Reset to 100%"></span><button title="Bigger (Ctrl +)" aria-label="Bigger">+</button>';
+  document.body.appendChild(el);
+  const apply = () => { document.documentElement.style.zoom = z === 1 ? '' : z; el.style.zoom = 1 / z; el.querySelector('.zv').textContent = Math.round(z * 100) + '%'; window.dispatchEvent(new Event('resize')); try { localStorage.setItem(K, z); } catch {} };
+  const step = (d) => { const i = STEPS.indexOf(z); z = STEPS[Math.min(STEPS.length - 1, Math.max(0, i + d))]; apply(); el.classList.add('on'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('on'), 1500); };
+  const [mi, pl] = el.querySelectorAll('button'); mi.onclick = () => step(-1); pl.onclick = () => step(1); el.querySelector('.zv').onclick = () => { z = 1; apply(); };
+  apply();
+})();
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.49';
+const VERSION = '1.50';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -422,7 +437,7 @@ const svg = (k, s = 22) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" 
 
 if (/YamieStockCheckApp/.test(navigator.userAgent) || window.YamieStock) document.documentElement.classList.add('apk');
 // real visible height (older Android WebViews get 100vh wrong)
-const setVh = () => document.documentElement.style.setProperty('--vh', window.innerHeight + 'px');
+const setVh = () => { const z = +document.documentElement.style.zoom || 1; document.documentElement.style.setProperty('--vh', window.innerHeight / z + 'px'); document.documentElement.style.setProperty('--vw', window.innerWidth / z + 'px'); };   // v1.50 divided by the UI scale
 setVh(); addEventListener('resize', setVh); addEventListener('orientationchange', () => setTimeout(setVh, 300));
 const S = { token: localStorage.ysc_token || '', me: null, D: null, view: 'home', date: null, filter: 'all', q: '', tab: 'users', modal: false, sumCache: null };
 const can = (p) => S.me && (S.me.role === 'admin' || (S.me.perms || []).includes(p));
