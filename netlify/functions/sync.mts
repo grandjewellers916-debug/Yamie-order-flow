@@ -62,7 +62,7 @@ function cleanRow(r: any) {
   return o.key ? o : null
 }
 // Permissions an admin can give to a role (admin always has all)
-const PERMS = ["stReport", "shopTab", "webLinks", "webApp", "qPrint", "shareStatus", "quotesList", "qsCust", "qsSale", "qsItems", "qsUrd", "qsSr", "qsAdv", "qsSum", "qsClose", "qsWa", "suppliers", "search", "stFilters", "stRanges", "stSelect", "stExport", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv", "shareCost", "stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "imgDel", "imgBulk", "stockList", "share", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "stockBulk", "approve", "leads", "textSize", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows", "pdHidden", "sync", "roles", "users", "settings"]
+const PERMS = ["coins", "coinSet", "plists", "stReport", "shopTab", "webLinks", "webApp", "qPrint", "shareStatus", "quotesList", "qsCust", "qsSale", "qsItems", "qsUrd", "qsSr", "qsAdv", "qsSum", "qsClose", "qsWa", "suppliers", "search", "stFilters", "stRanges", "stSelect", "stExport", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv", "shareCost", "stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "imgDel", "imgBulk", "stockList", "share", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "stockBulk", "approve", "leads", "textSize", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows", "pdHidden", "sync", "roles", "users", "settings"]
 const SETTINGS_PERMS = ["webLinks", "suppliers", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows"]
 const DEFAULT_ROLES = [
   { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "images", "imgDel", "imgBulk", "stockList", "approve", "leads", "share", "pdHidden", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "stockBulk", "suppliers", "quotesList", "qsCust", "qsSale", "qsItems", "qsUrd", "qsSr", "qsAdv", "qsSum", "qsClose", "qsWa", "search", "stFilters", "stRanges", "stSelect", "stExport", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv", "shareCost", "webApp", "qPrint", "shareStatus", "shopTab", "webLinks"] },
@@ -315,6 +315,7 @@ export default async (req: Request) => {
       }
       if (op === "quotes") return json(req, { v: meta.quotes, quotes: (await st.get("quotes", { type: "json" })) || [] })
       if (op === "leads") return json(req, { v: meta.leads || 0, leads: (await st.get("leads", { type: "json" })) || [] })
+      if (op === "plists") return json(req, { v: (meta as any).plists || 0, lists: ((await st.get("plists", { type: "json" })) as any) || null })   // V1.9.5 product property lists
       if (op === "pattrs") return json(req, { v: (meta as any).pattrs || 0, map: ((await st.get("pattrs", { type: "json" })) as any) || {} })
       if (op === "pnames") return json(req, { v: (meta as any).pnames || 0, map: ((await st.get("pnames", { type: "json" })) as any) || {} })
       if (op === "soldlist") {
@@ -394,7 +395,7 @@ export default async (req: Request) => {
         const approved = qs.filter((q) => q?.appr?.state === "approved" && q.appr.at > Date.now() - 3 * 864e5).slice(0, 50)
           .map((q) => ({ id: q.id, no: q.no || "", name: cleanStr(q.cust?.name, 40), to: q.appr.reqBy || "", byName: cleanStr(q.appr.by, 40), at: q.appr.at || 0 }))
         const leads = ls.filter((l) => l.state === "new").slice(0, 50).map((l) => ({ id: l.id, to: l.to || "", name: cleanStr(l.name, 40), byName: cleanStr(l.byName, 40), at: l.at || 0, kind: l.kind || "", n: Array.isArray(l.keys) ? l.keys.length : 0 }))
-        return json(req, { q: meta.quotes, l: meta.leads || 0, u: meta.users || 0, s: meta.settings || 0, st: meta.stock || 0, sd: (meta as any).sold || 0, pn: (meta as any).pnames || 0, pa: (meta as any).pattrs || 0, pending, approved, leads })
+        return json(req, { q: meta.quotes, l: meta.leads || 0, u: meta.users || 0, s: meta.settings || 0, st: meta.stock || 0, sd: (meta as any).sold || 0, pn: (meta as any).pnames || 0, pa: (meta as any).pattrs || 0, pl: (meta as any).plists || 0, pending, approved, leads })
       }
       return json(req, { error: "bad_op" }, 400)
     }
@@ -500,7 +501,7 @@ export default async (req: Request) => {
       return json(req, { v: meta.leads, lead })
     }
 
-    const OP_PERM: Record<string, string> = { coins: "coins", coindel: "coinSet", coinset: "coinSet", unsell: "stock", release: "approve", img: "images", quotedel: "delQuote", stock: "stock", stockdel: "stockdel", ratelog: "rates", pubrates: "rates", stockrow: "stockEdit", stocksold: "closeSale", pname: "images", pattr: "images" }
+    const OP_PERM: Record<string, string> = { plists: "plists", coins: "coins", coindel: "coinSet", coinset: "coinSet", unsell: "stock", release: "approve", img: "images", quotedel: "delQuote", stock: "stock", stockdel: "stockdel", ratelog: "rates", pubrates: "rates", stockrow: "stockEdit", stocksold: "closeSale", pname: "images", pattr: "images" }
     const role = await callerRole()
     if (op === "settings") { if (!role || ![...SETTINGS_PERMS, "theme", "footer", "apprSet", "promos", "rules"].some((p) => roleHas(role, p))) return json(req, { error: "bad_pin" }, 403) }
     else if (op === "users") { if (!role || !(roleHas(role, "users") || roleHas(role, "roles"))) return json(req, { error: "bad_pin" }, 403) }
@@ -751,6 +752,24 @@ export default async (req: Request) => {
       return json(req, { v: (meta as any).coins })
     }
 
+    if (op === "plists") {
+      // V1.9.5 the choice lists for product properties, edited in Settings: collection, design (grouped), shape, stone shape, stone type, stone colour, metal colour
+      const L: any = body?.lists && typeof body.lists === "object" ? body.lists : {}
+      const str = (x: any, n = 40) => cleanStr(x, n).replace(/\s+/g, " ").trim()
+      const uniq = (a: any[], f: (x: any) => string) => { const seen = new Set<string>(); return a.filter((x) => { const k = f(x).toLowerCase(); if (!k || seen.has(k)) return false; seen.add(k); return true }) }
+      const names = (a: any) => uniq((Array.isArray(a) ? a : []).map((x: any) => str(x)), (x) => x).slice(0, 200)
+      const col = (c: any) => { const v = String(c || "").trim(); return /^#[0-9a-f]{3,8}$/i.test(v) || /^(linear|conic|radial)-gradient\([#0-9a-z ,.%()-]{1,300}\)$/i.test(v) ? v : "#bbbbbb" }
+      const swatch = (a: any) => uniq((Array.isArray(a) ? a : []).map((x: any) => [str(Array.isArray(x) ? x[0] : x), col(Array.isArray(x) ? x[1] : "")]), (x) => x[0]).slice(0, 60)
+      const out: any = { by: cleanStr(body?.by, 40), at: Date.now() }
+      for (const k of ["cl", "sh", "ss", "st"]) if (k in L) out[k] = names(L[k])
+      for (const k of ["sc", "mc"]) if (k in L) out[k] = swatch(L[k])
+      if ("jt" in L) out.jt = uniq((Array.isArray(L.jt) ? L.jt : []).map((g: any) => [str(Array.isArray(g) ? g[0] : "", 40), names(Array.isArray(g) ? g[1] : [])]), (g) => g[0]).filter((g: any) => g[0]).slice(0, 30)
+      const prev: any = (await st.get("plists", { type: "json" })) || {}
+      const next = { ...prev, ...out }
+      await st.setJSON("plists", next)
+      ;(meta as any).plists = Date.now(); await saveMeta()
+      return json(req, { v: (meta as any).plists, lists: next })
+    }
     if (op === "coinset") {
       const c = body?.set || {}
       const set = { margin: Math.max(-50, Math.min(100, cleanNum(c.margin))), round: [1, 5, 10, 50, 100].includes(cleanNum(c.round)) ? cleanNum(c.round) : 50, mode: c.mode === "near" ? "near" : "up",

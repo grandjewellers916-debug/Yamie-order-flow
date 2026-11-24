@@ -977,6 +977,12 @@ body.stm .mr-img{width:52px;height:52px}body.stm .mr-t b{font-size:14.5px}body.s
 .stm-so.on{border-color:var(--maroon);color:var(--maroon);font-weight:600}.stm-so span{font-size:12px;color:var(--muted);font-weight:400}
 .stm-ed{margin:12px 0 4px;padding:12px;border:1px solid var(--line,#E5DED6);border-radius:14px;background:var(--surface,#fff)}.stm-edh{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}.stm-eds{font-size:12px;color:var(--muted);background:var(--sunk,#F2ECE6);border-radius:99px;padding:2px 10px}.stm-eds.dirty{color:#8a5a00;background:#FFF1D0}.stm-eds.ok{color:#1E7A45;background:#E3F4EA}
 .stm-ed .at-f{margin:10px 0 0}.stm-ed .at-f>label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}.stm-ed .at-f>label small{font-weight:400;color:var(--muted)}.stm-ed input,.stm-ed select{width:100%}.stm-ed input{min-height:44px;padding:8px 12px;border:1px solid var(--line,#E5DED6);border-radius:12px;font:inherit;font-size:16px;background:var(--surface,#fff);color:inherit;box-sizing:border-box}.stm-ed .sf-new{margin-top:6px}
+.pl-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.pl-tab{border:1px solid var(--line,#E5DED6);background:var(--surface,#fff);border-radius:99px;padding:7px 14px;font:inherit;font-size:14px;cursor:pointer;color:inherit}.pl-tab small{color:var(--muted);margin-left:2px}.pl-tab.on{background:var(--maroon,#702438);border-color:var(--maroon,#702438);color:#fff}.pl-tab.on small{color:rgba(255,255,255,.8)}
+.pl-row{display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px solid var(--line,#EEE)}.pl-n{flex:1;min-width:0;font-weight:500;overflow-wrap:anywhere}.pl-u{color:var(--muted);font-size:12px;white-space:nowrap}.pl-b{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.pl-ic{width:32px;height:32px;border:1px solid var(--line,#E5DED6);border-radius:8px;background:var(--surface,#fff);cursor:pointer;color:inherit;font:inherit}.pl-del{color:#B3261E}.pl-col{width:34px;height:30px;padding:0;border:1px solid var(--line,#ddd);border-radius:8px;background:none;flex:none}.pl-sw{width:22px;height:22px;flex:none}
+.pl-grp{margin:6px 0 12px}.pl-gh{display:flex;align-items:center;gap:8px;padding:8px 4px;background:var(--sunk,#F2ECE6);border-radius:10px}.pl-gh b{flex:1}.pl-gh small{color:var(--muted)}
+.pl-add{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}.pl-add input:not([type=color]){flex:1 1 180px;min-height:40px}.pl-add select{flex:0 1 180px}.pl-st{color:#8a5a00;font-size:13px;margin-right:auto}
+@media (max-width:600px){.pl-row{flex-wrap:wrap}.pl-n{flex-basis:60%}.pl-b{flex-basis:100%;justify-content:flex-start}}
 .stf-ph{flex:1 1 100%;grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:2px}.stf-phl{font-size:13px;font-weight:600;color:var(--muted);margin-right:2px}
 .stf-r{display:inline-flex;align-items:center;gap:7px;padding:7px 14px 7px 10px;border:1px solid var(--line,#E5DED6);border-radius:99px;background:var(--surface,#fff);font-size:14px;cursor:pointer;user-select:none}
 .stf-r input{appearance:none;-webkit-appearance:none;width:18px;height:18px;margin:0;border:2px solid var(--muted,#999);border-radius:50%;display:grid;place-items:center;flex:none}
@@ -2209,7 +2215,7 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
   :root:not(#_) .st-wrap{border:1px solid var(--cdl);border-radius:20px;box-shadow:var(--sh);background:var(--cd)}
   :root:not(#_) .stk th{background:color-mix(in srgb,var(--pg) 70%,#fff)!important}
   /* settings in groups */
-  :root:not(#_) body[data-view="settings"] .set-grid{display:flex!important;flex-direction:column;gap:18px;max-width:1500px}
+  :root:not(#_) body[data-view="settings"]:not([data-sc]) .set-grid{display:flex!important;flex-direction:column;gap:18px;max-width:1500px}
   .sg-sec{background:var(--cd);border:1px solid var(--cdl);border-radius:24px;box-shadow:var(--sh);padding:16px 20px 20px}
   .sg-h{display:flex;align-items:center;gap:10px;margin:0 0 14px;font:700 20px var(--display);color:var(--maroon);text-transform:none;letter-spacing:0}.sg-h svg{width:24px;height:24px}
   .sg-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
@@ -2691,6 +2697,13 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
       <p class="note" id="wnState" style="margin-block:2px 6px"></p>
       <div class="rs-acts"><button class="btn" type="button" id="wnOn">Turn on notifications</button><button class="btn" type="button" id="wnTest">Test</button></div>
       <button class="linkbtn" type="button" id="keysOpen" style="margin-top:8px">Keyboard shortcuts</button>
+  </details>
+  <details class="card datacard setcard" id="setPlists" data-pane="settings" data-perm="plists">
+    <summary><span class="dc-t">Product property lists</span><span class="dc-s" id="setPlistsMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
+      <p class="note" style="margin-block:4px 0">The choices shown when you edit a product. Add, rename, move or delete. Renaming also changes the products that use it; deleting only removes the choice (products keep it until edited). Shared with all phones.</p>
+      <div class="pl-tabs" id="plTabs" role="tablist"></div>
+      <div id="plBody"></div>
+      <div class="rs-acts"><span class="pl-st" id="plSt"></span><button class="btn" type="button" id="plReset">Default list</button><button class="btn primary" type="button" id="plSave">Save</button></div>
   </details>
   <details class="card datacard setcard" id="setCoins" data-pane="settings" data-perm="coinSet">
     <summary><span class="dc-t">Gold coins · margin &amp; disclaimers</span><span class="dc-s" id="setCoinsMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
@@ -4977,6 +4990,64 @@ $('cnPopWa').onclick=async()=>{
 };
 // ---- settings (admin) ----
 function paintCoinSet(){$('cnMargin').value=coinSet.margin||'';$('cnRound').value=String(coinSet.round||50);$('cnMode').value=coinSet.mode==='near'?'near':'up';$('cnDiscTx').value=(coinSet.disc||[]).join('\n')}
+// ---------- V1.9.5 Settings › Product property lists ----------
+const PL_KINDS=[['cl','Collection'],['jt','Design'],['sh','Shape'],['ss','Stone shape'],['st','Stone type'],['sc','Stone colour'],['mc','Metal colour']];
+let plDraft=null,plTab='cl',plRen=[];
+const plCopy=()=>({cl:CL_LIST.slice(),jt:JT_GROUPS.map(([g,l])=>[g,l.slice()]),sh:SHP_LIST.slice(),ss:SST_LIST.slice(),st:STT_LIST.slice(),sc:SC_LIST.map(x=>x.slice()),mc:MC_LIST.map(x=>x.slice())});
+const plVals=(r,k)=>{const a=attrOf(r);return k==='cl'?[a.cl]:k==='jt'?[a.jt]:k==='mc'?[a.mc]:(a[k]||[])};
+function plUse(k,name){const n0=String(name).toLowerCase();let n=0;for(const r of stockMap.values())if(plVals(r,k).some(x=>String(x||'').toLowerCase()===n0))n++;return n}
+const plName=(k,x)=>['sc','mc'].includes(k)?x[0]:x;
+const plCount=k=>k==='jt'?plDraft.jt.reduce((t,g)=>t+g[1].length,0):plDraft[k].length;
+const plHas=(k,name)=>{const n=name.toLowerCase();return k==='jt'?plDraft.jt.some(g=>g[1].some(x=>x.toLowerCase()===n)):plDraft[k].some(x=>plName(k,x).toLowerCase()===n)};
+function plMark(d){plDirty=d;$('plSt').textContent=d?'Not saved':'';$('plSt').classList.toggle('dirty',d)}
+function paintPlistsMini(){const L=plists||{};$('setPlistsMini').textContent=`${CL_LIST.length} collections · ${SHP_LIST.length} shapes · ${SST_LIST.length} stone shapes`}
+function paintPlists(){
+  if(!plDraft)plDraft=plCopy();paintPlistsMini();
+  $('plTabs').innerHTML=PL_KINDS.map(([k,l])=>`<button type="button" role="tab" class="pl-tab${plTab===k?' on':''}" data-k="${k}" aria-selected="${plTab===k}">${l} <small>${plCount(k)}</small></button>`).join('');
+  $('plTabs').querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{plTab=b.dataset.k;paintPlists()});
+  const k=plTab,lbl=PL_KINDS.find(x=>x[0]===k)[1],sw=['sc','mc'].includes(k);
+  const row=(name,i,extra,g)=>{const u=plUse(k,name);return `<div class="pl-row" data-i="${i}"${g!=null?` data-g="${g}"`:''}>${extra||''}<span class="pl-n">${esc(name)}</span><small class="pl-u">${u?u+' item'+(u===1?'':'s'):''}</small><span class="pl-b"><button type="button" class="pl-ic" data-mv="-1" aria-label="Move up" title="Move up">↑</button><button type="button" class="pl-ic" data-mv="1" aria-label="Move down" title="Move down">↓</button><button type="button" class="btn sm" data-ren>Rename</button><button type="button" class="btn sm pl-del" data-del>Delete</button></span></div>`};
+  let h='';
+  if(k==='jt'){
+    h=plDraft.jt.map(([g,l],gi)=>`<div class="pl-grp"><div class="pl-gh"><b>${esc(g)}</b><small>${l.length}</small><span class="pl-b"><button type="button" class="btn sm" data-gren="${gi}">Rename group</button><button type="button" class="btn sm pl-del" data-gdel="${gi}">Delete group</button></span></div>${l.map((n,i)=>row(n,i,'',gi)).join('')||'<p class="note">No designs in this group.</p>'}</div>`).join('');
+    h+=`<div class="pl-add"><select id="plGrp">${plDraft.jt.map(([g],gi)=>`<option value="${gi}">${esc(g)}</option>`).join('')}<option value="new">+ New group…</option></select><input id="plNew" maxlength="40" placeholder="New design, e.g. Infinity Band" autocomplete="off"><button type="button" class="btn primary sm" id="plAdd">+ Add</button></div>`;
+  }else{
+    h=plDraft[k].map((x,i)=>row(plName(k,x),i,sw?(/^#/.test(x[1])?`<input type="color" class="pl-col" value="${esc(x[1].length===4?'#'+[...x[1].slice(1)].map(c=>c+c).join(''):x[1].slice(0,7))}" aria-label="Colour of ${esc(x[0])}">`:`<i class="sc-sw pl-sw" style="background:${esc(x[1])}"></i>`):'')).join('')||`<p class="note">No ${lbl.toLowerCase()} choices yet. Add the first one below.</p>`;
+    h+=`<div class="pl-add">${sw?'<input type="color" id="plNewC" value="#c8a060" aria-label="Colour">':''}<input id="plNew" maxlength="40" placeholder="New ${lbl.toLowerCase()}${k==='cl'?', e.g. Infinity Collection':''}" autocomplete="off"><button type="button" class="btn primary sm" id="plAdd">+ Add</button></div>`;
+  }
+  $('plBody').innerHTML=h;
+  const listOf=el=>k==='jt'?plDraft.jt[+el.dataset.g][1]:plDraft[k];
+  $('plBody').querySelectorAll('.pl-row').forEach(el=>{const i=+el.dataset.i,L=listOf(el),name=plName(k,L[i]);
+    el.querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>{const j=i+ +b.dataset.mv;if(j<0||j>=L.length)return;[L[i],L[j]]=[L[j],L[i]];plMark(true);paintPlists()});
+    el.querySelector('[data-ren]').onclick=()=>{const v=(prompt(`Rename “${name}” to:`,name)||'').replace(/\s+/g,' ').trim();if(!v||v===name)return;if(v.toLowerCase()!==name.toLowerCase()&&plHas(k,v))return toast(`“${v}” is already in the list`);
+      if(['sc','mc'].includes(k))L[i][0]=v;else L[i]=v;const u=plUse(k,name);plRen.push({k,from:name,to:v});plMark(true);paintPlists();if(u)toast(`${u} item${u===1?'':'s'} will change to “${v}” when you save`)};
+    el.querySelector('[data-del]').onclick=()=>{const u=plUse(k,name);if(!confirm(`Delete “${name}” from the ${lbl.toLowerCase()} list?`+(u?`\n\n${u} item${u===1?' uses':'s use'} it — they keep it until you edit them.`:'')))return;L.splice(i,1);plMark(true);paintPlists()};
+    const c=el.querySelector('.pl-col');if(c)c.oninput=()=>{L[i][1]=c.value;plMark(true);const s=el.querySelector('.pl-col');if(s)s.value=c.value}});
+  $('plBody').querySelectorAll('[data-gren]').forEach(b=>b.onclick=()=>{const g=plDraft.jt[+b.dataset.gren],v=(prompt(`Rename group “${g[0]}” to:`,g[0])||'').replace(/\s+/g,' ').trim();if(!v||v===g[0])return;g[0]=v;plMark(true);paintPlists()});
+  $('plBody').querySelectorAll('[data-gdel]').forEach(b=>b.onclick=()=>{const gi=+b.dataset.gdel,g=plDraft.jt[gi];if(!confirm(`Delete the group “${g[0]}” and its ${g[1].length} design${g[1].length===1?'':'s'}?\n\nItems keep their design until you edit them.`))return;plDraft.jt.splice(gi,1);plMark(true);paintPlists()});
+  const add=()=>{const v=$('plNew').value.replace(/\s+/g,' ').trim();if(!v)return;if(plHas(k,v))return toast(`“${v}” is already in the list`);
+    if(k==='jt'){let gi=$('plGrp').value;if(gi==='new'){const g=(prompt('Name of the new group (e.g. Rings, Earrings):')||'').replace(/\s+/g,' ').trim();if(!g)return;plDraft.jt.push([g,[]]);gi=plDraft.jt.length-1}plDraft.jt[+gi][1].push(v)}
+    else if(['sc','mc'].includes(k))plDraft[k].push([v,$('plNewC').value]);else plDraft[k].push(v);
+    plMark(true);paintPlists();const n=$('plNew');if(n)n.focus()};
+  $('plAdd').onclick=add;$('plNew').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();add()}});
+}
+$('plReset').onclick=()=>{const k=plTab,l=PL_KINDS.find(x=>x[0]===k)[1];if(!confirm(`Put back the default ${l.toLowerCase()} list? Your own additions to this list are removed (items keep their values).`))return;plDraft[k]=k==='jt'?PL_DEF.jt.map(([g,l])=>[g,l.slice()]):PL_DEF[k].map(x=>Array.isArray(x)?x.slice():x);plMark(true);paintPlists()};
+$('plSave').onclick=()=>withPerm('plists','Needs permission: Product property lists.',async()=>{
+  const lists=JSON.parse(JSON.stringify(plDraft)),ren=plRen.slice();
+  try{
+    if(sync.key){const r=await syncApi('plists','POST',{lists,by:curUser?(curUser.name||curUser.username):''},adminCreds);plists=r.lists;sync.v.plists=r.v||sync.v.plists;saveSyncState()}else plists={...(plists||{}),...lists};
+    store.set('plists',plists);applyPlists();
+  }catch(e){toast(e&&e.status===403?'Needs permission: Product property lists':'Could not save — check the connection',null,true);return}
+  let moved=0;
+  if(ren.length){const map={};for(const r of stockMap.values()){const a=attrOf(r),b=JSON.parse(JSON.stringify(a));
+      for(const {k,from,to} of ren){const f=from.toLowerCase(),sw=x=>String(x||'').toLowerCase()===f?to:x;
+        if(k==='cl')b.cl=sw(b.cl);else if(k==='jt')b.jt=sw(b.jt);else if(k==='mc')b.mc=sw(b.mc);else b[k]=[...new Set((b[k]||[]).map(sw))]}
+      if(!attrSame(a,b)){map[r.key]=b;moved++}}
+    if(moved&&!(await savePattrs(map)))toast('Lists saved. Renamed values on items will update when online',null,true)}
+  plDraft=null;plRen=[];plMark(false);paintPlists();toast('Lists saved'+(moved?` · ${moved} item${moved===1?'':'s'} updated`:''));
+},true);
+$('setPlists').addEventListener('toggle',()=>{if($('setPlists').open){if(!plDirty){plDraft=null;plRen=[]}paintPlists();pullPlists()}});
+setTimeout(()=>{try{paintPlistsMini()}catch(e){}},3200);
 $('setCoins').addEventListener('toggle',()=>{if($('setCoins').open){paintCoinSet();pullCoins()}});
 $('cnSetSave').onclick=()=>withPerm('coinSet','Only an admin can change the coin margin.',async()=>{
   const set={margin:num($('cnMargin').value)||0,round:num($('cnRound').value)||50,mode:$('cnMode').value==='near'?'near':'up',disc:$('cnDiscTx').value.split('\n').map(t=>t.trim()).filter(Boolean).slice(0,10),by:meName()};
@@ -5983,7 +6054,7 @@ const SET_GICO={gen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
   more:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg>'};
 const SET_GROUPS=[['General',SET_GICO.gen,['setTheme','setText','setFoot','setDevice','setPromo','setReports']],
   ['Pricing & Rates',SET_GICO.price,['setRules','setConv','setRates','setCharges','setMk','setCoins']],
-  ['Products & Inventory',SET_GICO.prod,['setPd','setImg','setCodes','dataCard','soldCard','setExport','setBackup','setSup']],
+  ['Products & Inventory',SET_GICO.prod,['setPlists','setPd','setImg','setCodes','dataCard','soldCard','setExport','setBackup','setSup']],
   ['Users & Access',SET_GICO.users,['adminCard','setRoles','setAppr','setSync']]];
 function paintSetGrid(){
   if(!DESK.matches)return;let gd=$('setGrid');
@@ -6025,26 +6096,34 @@ function pnameCheck(inp,note,key){const f=()=>{const v=inp.value.trim(),u=pnameU
 function pnameDatalist(){return `<datalist id="pnList">${pnameList().slice(0,800).map(x=>`<option value="${esc(x.v)}">`).join('')}</datalist>`}
 setTimeout(()=>pullPnames(),2500);
 // ---- V1.8.4 design (jewellery type) and stone colours per item ----
-const JT_GROUPS=[['Rings',['Solitaire Ring','Three Stone Ring','Halo Ring','Cluster Ring','Bypass Ring','Eternity Ring','Half Eternity Band','Band Ring','Couple Bands','Cocktail Ring','Stackable Ring','Signet Ring','Toe Ring']],
+let JT_GROUPS=[['Rings',['Solitaire Ring','Three Stone Ring','Halo Ring','Cluster Ring','Bypass Ring','Eternity Ring','Half Eternity Band','Band Ring','Couple Bands','Cocktail Ring','Stackable Ring','Signet Ring','Toe Ring']],
   ['Earrings',['Stud Earrings','Solitaire Studs','Hoop Earrings','Huggie Earrings','Drop Earrings','Dangler Earrings','Jhumka','Chandbali','Ear Cuff','Sui Dhaga','Climber Earrings']],
   ['Necklaces',['Chain','Chain and Pendant Necklace','Pendant','Solitaire Pendant','Lariat Necklace','Choker','Tennis Necklace','Layered Necklace','Station Necklace','Collar Necklace','Long Haram','Mangalsutra','Necklace Set']],
   ['Bracelets & bangles',['Tennis Bracelet','Chain Bracelet','Charm Bracelet','Cuff Bracelet','Cuff Bangle','Bangle','Kada','Kids Bangle','Bracelet Set']],
   ['Others',['Nosepin','Nose Ring','Anklet','Maang Tikka','Brooch','Waist Chain','Kids Jewellery']]];
-const SC_LIST=[['White','#F4F4F2'],['Pink','#F2A7C3'],['Red','#C8243B'],['Green','#1E8A4C'],['Blue','#2A56C6'],['Yellow','#F2C230'],['Purple','#7B3FA6'],['Orange','#EE7A2B'],['Black','#202020'],['Champagne','#E6C9A0'],['Multicolour','conic-gradient(#C8243B,#F2C230,#1E8A4C,#2A56C6,#7B3FA6,#C8243B)']];
+let SC_LIST=[['White','#F4F4F2'],['Pink','#F2A7C3'],['Red','#C8243B'],['Green','#1E8A4C'],['Blue','#2A56C6'],['Yellow','#F2C230'],['Purple','#7B3FA6'],['Orange','#EE7A2B'],['Black','#202020'],['Champagne','#E6C9A0'],['Multicolour','conic-gradient(#C8243B,#F2C230,#1E8A4C,#2A56C6,#7B3FA6,#C8243B)']];
 const SC_MAX=5;
 // V1.8.23 stone types (several per product): Diamond, CZ, Pearl…; read from the stone name when not set
-const STT_LIST=['Diamond','Lab-grown Diamond','CZ','Moissanite','Pearl','Ruby','Emerald','Sapphire','Polki','Kundan','Coral','Navaratna','Gemstone','Synthetic stone'];const STT_MAX=8;
+let STT_LIST=['Diamond','Lab-grown Diamond','CZ','Moissanite','Pearl','Ruby','Emerald','Sapphire','Polki','Kundan','Coral','Navaratna','Gemstone','Synthetic stone'];const STT_MAX=8;
 const STT_GUESS=[[/lab.?grown|\blgd\b|\bcvd\b|\bhpht\b/i,'Lab-grown Diamond'],[/\bdia(mond)?s?\b|\bvvs|\bvs\d|\bsi\d|\bdia\b/i,'Diamond'],[/\bcz\b|cubic/i,'CZ'],[/moiss/i,'Moissanite'],[/pearl/i,'Pearl'],[/ruby/i,'Ruby'],[/emerald/i,'Emerald'],[/sapph/i,'Sapphire'],[/polki/i,'Polki'],[/kundan/i,'Kundan'],[/coral/i,'Coral'],[/navaratna|navratna/i,'Navaratna']];
 // V1.9.2 design shape (the motif) and stone shape — several per product
-const SHP_LIST=['Infinity','Heart','Round','Oval','Square','Rectangle','Drop','Flower','Leaf','Butterfly','Star','Moon','Evil eye','Knot','Bow','Peacock','Om','Cross','Initial / Letter','Geometric'];const SHP_MAX=4;
-const SST_LIST=['Round','Oval','Pear','Marquise','Princess','Emerald','Cushion','Heart','Baguette','Tapered baguette','Radiant','Asscher','Trillion','Rose cut','Cabochon'];const SST_MAX=6;
+let SHP_LIST=['Infinity','Heart','Round','Oval','Square','Rectangle','Drop','Flower','Leaf','Butterfly','Star','Moon','Evil eye','Knot','Bow','Peacock','Om','Cross','Initial / Letter','Geometric'];const SHP_MAX=4;
+let SST_LIST=['Round','Oval','Pear','Marquise','Princess','Emerald','Cushion','Heart','Baguette','Tapered baguette','Radiant','Asscher','Trillion','Rose cut','Cabochon'];const SST_MAX=6;
 function sttGuess(r){const t=[r&&r.stoneName,r&&r.stype].filter(Boolean).join(' ');if(!t)return [];const o=[];for(const [re,n] of STT_GUESS)if(re.test(t)&&!o.includes(n)&&!(n==='Diamond'&&o.includes('Lab-grown Diamond')))o.push(n);
   if(!o.length&&r.stype)String(r.stype).split(/[,/;+|]/).map(x=>x.trim()).filter(Boolean).forEach(x=>o.includes(x)||o.push(x));return o.slice(0,STT_MAX)}
 // V1.8.21 metal colour (one per product); shown with the purity, e.g. "18K Rose Gold"
-const MC_LIST=[['Yellow Gold','#E2B13C'],['White Gold','#E4E4DF'],['Rose Gold','#E3A08A'],['Green Gold','#B3AE57'],['Black Gold','#2A2A2A'],['Two-tone','linear-gradient(90deg,#E2B13C 50%,#E4E4DF 50%)'],['Tri-colour','linear-gradient(90deg,#E2B13C 33%,#E4E4DF 33% 66%,#E3A08A 66%)'],['Platinum','#D5D8DC'],['Silver','#C4C7CB']];
+let MC_LIST=[['Yellow Gold','#E2B13C'],['White Gold','#E4E4DF'],['Rose Gold','#E3A08A'],['Green Gold','#B3AE57'],['Black Gold','#2A2A2A'],['Two-tone','linear-gradient(90deg,#E2B13C 50%,#E4E4DF 50%)'],['Tri-colour','linear-gradient(90deg,#E2B13C 33%,#E4E4DF 33% 66%,#E3A08A 66%)'],['Platinum','#D5D8DC'],['Silver','#C4C7CB']];
 function mcSw(c){const h=MC_LIST.find(x=>x[0].toLowerCase()===String(c||'').toLowerCase());return `<i class="sc-sw" style="background:${h?h[1]:'#bbb'}" aria-hidden="true"></i>`}
 function mcLabel(r){const m=attrOf(r).mc;if(!m)return '';const pu=r?PLABEL[caratToPurity(r.carat)]:'';return /gold/i.test(m)&&pu&&/K$/i.test(pu)?`${pu} ${m}`:m}
 let pattrs=store.get('pattrs',{})||{};
+// V1.9.5 the choice lists can be changed in Settings › Product property lists (shared with all phones)
+let CL_LIST=[];
+const PL_DEF={jt:JT_GROUPS,sc:SC_LIST,st:STT_LIST,sh:SHP_LIST,ss:SST_LIST,mc:MC_LIST,cl:[]};
+let plists=store.get('plists',null),plDirty=false;
+function applyPlists(){const L=plists||{},A=k=>Array.isArray(L[k])?L[k]:PL_DEF[k];JT_GROUPS=A('jt');SC_LIST=A('sc');STT_LIST=A('st');SHP_LIST=A('sh');SST_LIST=A('ss');MC_LIST=A('mc');CL_LIST=A('cl')}
+applyPlists();
+async function pullPlists(){if(!sync.key||!navigator.onLine)return;try{const r=await syncApi('plists');plists=r&&r.lists||null;store.set('plists',plists);sync.v.plists=r&&r.v||0;saveSyncState();applyPlists();if($('setPlists')&&$('setPlists').open&&!plDirty)paintPlists()}catch(e){}}
+setTimeout(()=>pullPlists(),2900);
 const scSplit=v=>(Array.isArray(v)?v:String(v||'').split(/[,/;|+&]+/)).map(x=>String(x).trim()).filter(Boolean).map(x=>{const h=SC_LIST.find(c=>c[0].toLowerCase()===x.toLowerCase());return h?h[0]:x.replace(/\b\w/g,m=>m.toUpperCase())}).slice(0,SC_MAX);
 function attrOf(r){if(!r)return {jt:'',sc:[],mc:'',st:[],sk:'',sh:[],ss:[],cl:''};const k=r.key||keyOf(r.barcode||''),a=(k&&pattrs[k])||{};return {jt:String(a.jt||r.design||'').trim(),sc:a.sc&&a.sc.length?a.sc.slice(0,SC_MAX):scSplit(r.scol),mc:String(a.mc||r.mcol||'').trim(),st:a.st&&a.st.length?a.st.slice(0,STT_MAX):sttGuess(r),sk:String(a.sk||'').trim(),sh:Array.isArray(a.sh)?a.sh.slice(0,SHP_MAX):[],ss:Array.isArray(a.ss)?a.ss.slice(0,SST_MAX):[],cl:String(a.cl||'').trim()}}
 function scSw(c){const h=SC_LIST.find(x=>x[0]===c);return `<i class="sc-sw" style="background:${h?h[1]:'#bbb'}" aria-hidden="true"></i>`}
@@ -6063,7 +6142,7 @@ function attrFields(px,a){
   const known=new Set(JT_GROUPS.flatMap(g=>g[1]));const extra=[...used].filter(x=>!known.has(x)).sort();
   if(a.jt&&!known.has(a.jt)&&!extra.includes(a.jt))extra.push(a.jt);
   const o=v=>`<option${a.jt===v?' selected':''}>${esc(v)}</option>`;
-  const cls=[...new Set([...stockMap.values()].map(r=>attrOf(r).cl).filter(Boolean))].sort((x,y)=>x.localeCompare(y));
+  const cls=[...new Set([...CL_LIST,...[...stockMap.values()].map(r=>attrOf(r).cl).filter(Boolean).sort((x,y)=>x.localeCompare(y))])];
   return `<div class="full at-f"><label for="${px}Cl">Collection <small>(e.g. Infinity, Bridal, Daily wear)</small></label><input id="${px}Cl" list="${px}ClL" maxlength="40" autocomplete="off" placeholder="Type or pick a collection" value="${esc(a.cl||'')}"><datalist id="${px}ClL">${cls.map(c=>`<option value="${esc(c)}">`).join('')}</datalist></div>
   <div class="full at-f"><label for="${px}Jt">Design <small>(jewellery type)</small></label><select id="${px}Jt"><option value="">Choose design…</option>${JT_GROUPS.map(([g,l])=>`<optgroup label="${esc(g)}">${l.map(o).join('')}</optgroup>`).join('')}${extra.length?`<optgroup label="Your designs">${extra.map(o).join('')}</optgroup>`:''}<option value="__new">+ New design…</option></select><input id="${px}JtNew" class="sf-new" hidden maxlength="60" placeholder="Type the new design" aria-label="New design"></div>
   <div class="full at-f"><label>Metal colour <small id="${px}McN">${a.mc?esc(a.mc):'(choose one)'}</small></label><div class="sc-chips" id="${px}Mc" role="radiogroup" aria-label="Metal colour">${[...MC_LIST.map(x=>x[0]),...(a.mc&&!MC_LIST.some(x=>x[0]===a.mc)?[a.mc]:[])].map(c=>`<button type="button" class="sc-c" role="radio" data-c="${esc(c)}" aria-checked="${a.mc===c}" aria-pressed="${a.mc===c}">${mcSw(c)}${esc(c)}</button>`).join('')}<button type="button" class="sc-c" data-mcnew="1">+ Other…</button></div><input id="${px}McNew" class="sf-new" hidden maxlength="40" placeholder="e.g. Champagne Gold"></div>
@@ -8295,7 +8374,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.9.4',APP_BUILD='__BUILD__';
+const APP_VERSION='1.9.5',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('sbVer'))$('sbVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------
@@ -8310,14 +8389,14 @@ const PERM_LIST=[
   ['closeSale','Close sale (invoice no.)'],['cancelQuote','Cancel quote (enquiry)'],['reopen','Reopen sold / cancelled quotes'],
   ['delQuote','Delete quotes'],['images','Add product photos'],['imgDel','Delete / replace product photos'],['imgBulk','Bulk upload photos'],['stockList','Stock list in Search (phone app)'],['addDisc','Additional discount (flat)'],['round','Round final amounts to the nearest ₹50'],['stockEdit','Edit stock items · making, FVA, label details'],['stockAdd','Add new items to stock'],['stockBulk','Bulk update stock items'],['reports','Reports'],['fva','Fair Value price'],['share','Share quotes on WhatsApp'],['pdHidden','See hidden details (NLC, FVA…)'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],['webApp','Use the web version (browser on a computer / phone)'],['shopTab','Shop tab: see and share website / catalogue links'],['webLinks','Add / change shop links'],['qPrint','Print quote (A4 · network printer)'],['shareStatus','WhatsApp status card'],['quotesList','All quotations tab'],['qsCust','Quote step: Customer details'],['qsSale','Quote step: Sale type'],['qsItems','Quote step: Items'],['qsUrd','Quote step: URD & buy-back'],['qsSr','Quote step: Sales return'],['qsAdv','Quote step: Advance'],['qsSum','Quote step: Summary'],['qsClose','Quote step: Close sale'],['qsWa','Quote step: WhatsApp share'],['search','Search page · find items'],['stFilters','Search filters (item, design, colour…)'],['stRanges','Range search (weight, price, fair value…)'],['stSelect','Select items in Search'],['stExport','Export Search to Excel'],['stReport','Product details report (cards · share / print)'],['shareItems','Share items on WhatsApp (picture cards)'],['shareAllPh','Send all photos of an item'],['sharePdf','Items as PDF'],['shareUser','Send items to another user'],['shareFv','Share fair value & savings'],['shareCost','Share making, NLC & supplier'],
   ['textSize','Text size'],['imgShow','Product image show / hide'],['ratesShown','Rates shown'],['charges','Charges · GST · HUID'],
-  ['coins','Gold coin prices · enter and save'],['coinSet','Gold coins · margin & disclaimers'],
+  ['plists','Product property lists · collection, design, shapes, colours'],['coins','Gold coin prices · enter and save'],['coinSet','Gold coins · margin & disclaimers'],
   ['mkHelper','Making helpers'],['itemCodes','Item codes'],['pdRows','Product details items'],['sync','Shared database · shop key'],['roles','Roles & permissions'],['users','Users']];
-const SET_PERMS=['coinSet','suppliers','theme','footer','apprSet','export','promos','rules','reports','stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users'];
+const SET_PERMS=['plists','coinSet','suppliers','theme','footer','apprSet','export','promos','rules','reports','stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users'];
 const STOCK_PERMS=['stockEdit','stockAdd','stockBulk','stockdel'];const PHOTO_PERMS=['images','imgDel','imgBulk'];
 // V1.8.6 functions grouped for the role editor
 const PERM_GROUPS=[['Access',['webApp']],['Quote page',['qPrint','quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa']],['Prices & making',['rates','mkEdit','mkDisc','addDisc','round','fva','pdHidden']],['Quotes',['closeSale','cancelQuote','reopen','delQuote','approve','share']],
   ['Search',['search','stFilters','stRanges','stSelect','stExport','stReport','stockList']],['WhatsApp & sharing',['shareStatus','shareItems','shareAllPh','sharePdf','shareUser','shareFv','shareCost','leads']],
-  ['Stock database',['stockEdit','stockAdd','stockBulk','stockdel','suppliers']],['Product photos & details',['images','imgDel','imgBulk']],['Shop links',['shopTab','webLinks']],['Gold coins',['coins','coinSet']],['Reports',['reports']],
+  ['Stock database',['stockEdit','stockAdd','stockBulk','stockdel','suppliers','plists']],['Product photos & details',['images','imgDel','imgBulk']],['Shop links',['shopTab','webLinks']],['Gold coins',['coins','coinSet']],['Reports',['reports']],
   ['Settings',['textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users']]];
 const permLabel=k=>(PERM_LIST.find(p=>p[0]===k)||[0,k])[1];
 const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['coins','rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','imgDel','imgBulk','stockList','approve','leads','share','pdHidden','addDisc','round','reports','fva','stockEdit','stockAdd','stockBulk','suppliers','quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa','search','stFilters','stRanges','stSelect','stExport','stReport','shareItems','shareAllPh','sharePdf','shareUser','shareFv','shareCost','webApp','qPrint','shareStatus','shopTab','webLinks']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share','fva','stockList','quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa','search','stFilters','stRanges','stSelect','stReport','shareItems','shareAllPh','sharePdf','shareUser','shareFv','qPrint','shareStatus','shopTab']}];
@@ -8628,7 +8707,7 @@ async function pollInboxNow(){
     // users and roles changed by an admin (e.g. "See all quotes"): pick them up now, not at the morning sync
     if((r.s||0)>(sync.v.settings||0)&&!sync.dirtySettings){try{const d=await syncApi('settings');if(d.settings)applyRemoteSettings(d.settings);sync.v.settings=d.v||r.s;saveSyncState();setTimeout(promoPopup,400)}catch(e){}}
     // stock corrected or added by a manager, or sold tags removed: refresh this phone's stock list
-    if((r.sd||0)>(sync.v.sold||0))pullSold();flushSoldQ();if((r.pn||0)>(sync.v.pnames||0))pullPnames();if((r.pa||0)>(sync.v.pattrs||0))pullPattrs();
+    if((r.sd||0)>(sync.v.sold||0))pullSold();flushSoldQ();if((r.pn||0)>(sync.v.pnames||0))pullPnames();if((r.pa||0)>(sync.v.pattrs||0))pullPattrs();if((r.pl||0)>(sync.v.plists||0))pullPlists();
     if((r.st||0)>(sync.v.stock||0)&&!stockPulling){stockPulling=true;try{const d=await syncApi('stock');try{await IDB.putMany(d.rows,true)}catch(e){}stockMap.clear();altMap.clear();d.rows.forEach(indexRec);stockMeta.history=d.history||[];store.set('stockMeta',stockMeta);sync.v.stock=d.v;saveSyncState();paintStockSummary();
       if(cur.stockKey&&stockMap.has(cur.stockKey)){const k=cur.stockKey;cur.stockKey='';applyStock(stockMap.get(k))}}catch(e){}finally{stockPulling=false}}
     if((r.u||0)>(sync.v.users||0)){try{const d=await syncApi('users','GET',null,adminCreds);if(Array.isArray(d.roles)){roles=d.roles;store.set('roles',roles)}if(Array.isArray(d.users)&&d.users.length)mergeRemoteUsers(d.users);sync.v.users=d.v||r.u;saveSyncState()}catch(e){}}

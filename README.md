@@ -640,3 +640,8 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 - Fix: on the phone app, after it was reopened, saving in the item sheet stayed "Not saved" (and Save & next did not move) because the user's PIN is not kept in memory. Saving now asks for the PIN once, then saves and moves on; later saves go straight through.
 - New property **Collection** (one per product, e.g. Infinity Collection, Bridal, Daily wear; pick an existing one or type a new one) — in Edit details, item forms, Search filter, text search, table column, Excel export and share card (`pattrs.cl`).
 - Search: the Photo filter is now tick buttons on top — All · With photo · No photo.
+
+## 1.9.5 — Settings fix; Product property lists
+- Fix (web): tapping a Settings tile did nothing visible — since 1.9.0 the tile grid stayed on screen and the opened card was far below it. The grid now hides and the card opens at the top.
+- Settings › Products & Inventory › **Product property lists**: add, rename, move up/down and delete the choices for Collection, Design (in groups), Shape, Stone shape, Stone type, Stone colour (with colour) and Metal colour. Renaming also changes the items that use it; deleting removes the choice only. **Default list** puts back the built-in list. Shared with all phones (`plists`, new permission **Product property lists**).
+- Fix: the Gold coins permissions could not be given to a role (the server dropped them).
