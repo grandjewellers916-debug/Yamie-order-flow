@@ -456,7 +456,7 @@ const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 
   apply();
 })();
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.58';
+const VERSION = '1.59';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -907,8 +907,10 @@ function itemSummary0(l) { const e = expOf(l.id).lines; const F = S.cardF; const
   const arr = [...m.entries()].sort((a, b) => (b[1].on - a[1].on) || b[1].n - a[1].n);
   return arr.length ? `<div class="isum">${arr.slice(0, 8).map(([nm, x]) => `<span class="${F ? (x.on ? 'on' : 'off') : ''}">${esc(nm)} <b>${fmt(x.n)}</b></span>`).join('')}${arr.length > 8 ? `<span class="off">+${arr.length - 8} more</span>` : ''}</div>` : ''; }
 // v1.58 tray layout from setup: slots per tray × trays, minus the empty slots set in the tray settings (empties go in the last trays)
-function planSlots(l) {
-  const ins = +l.insert || 0, q = +l.qty || 0; let rem = Math.max(0, Math.min(ins * q, +l.empty || 0)); const per = [];
+function planSlots(l) { return slotRows(+l.insert || 0, +l.qty || 0, +l.empty || 0); }
+// v1.59 empty slots are a total for all the trays (one empty slot = one piece less in total, not one per tray)
+function slotRows(ins, q, e) {
+  let rem = Math.max(0, Math.min(ins * q, e || 0)); const per = [];
   for (let i = 0; i < q; i++) { const m = Math.min(ins, rem); rem -= m; per.push(ins - m); }
   const g = new Map(); for (const f of per) g.set(f, (g.get(f) || 0) + 1);
   return [...g.entries()].sort((a, b) => b[0] - a[0]).map(([f, n]) => ({ f, n }));
@@ -1137,7 +1139,8 @@ function countFlow(id, ctx) {
   const reqPh = !!S.D.settings.reqPhotos;
   // slot mode: Total = Σ (filled slots × number of trays)
   const ins = +l.insert || 0; const sT = slotMode ? rows[0] : null;
-  if (slotMode && !K.slots) K.slots = planSlots(l).length ? planSlots(l) : [{ f: ins, n: 0 }];   // v1.58 starts from the tray's set-up empty slots
+  if (slotMode && K.sN == null) { K.sN = +l.qty || 0; K.sE = Math.min(ins * K.sN, +l.empty || 0); }   // v1.59 trays + total empty slots, starting from the tray set-up
+  if (slotMode) { K.sE = Math.max(0, Math.min(ins * K.sN, +K.sE || 0)); K.slots = slotRows(ins, K.sN, K.sE); if (!K.slots.length) K.slots = [{ f: ins, n: 0 }]; }
   const slotTot = slotMode ? K.slots.reduce((a, r) => a + (+r.f || 0) * (+r.n || 0), 0) : 0;
   const slotTrays = slotMode ? K.slots.reduce((a, r) => a + (+r.n || 0), 0) : 0;
   if (slotMode) v[sT] = { ok: false, n: slotTot, reason: K.reason || '' };
@@ -1162,13 +1165,12 @@ function countFlow(id, ctx) {
   let body = '';
   if (K.step === 'slots') {
     const d = slotTot - (e.lines[sT] || 0); const cap = slotTrays * ins;
-    body = `<div class="info">ⓘ Count the <b>empty slots</b> in each tray and the number of trays — the pieces are worked out (slots − empty). Empty slots are not a shortage — only a difference from expected stock is.</div>
-    <div class="vt"><div class="vr h sl"><span></span><span>Tray type</span><span class="c">Empty slots</span><span class="c">No. of trays</span><span class="c">Total</span></div>
-    ${K.slots.map((r, i) => `<div class="vr sl">${itIcon(itemOf(sT))}<span>${jtB(jtOfLine(l, sT))} <b>${esc(l.name)}</b><br><span class="sm mut">${+r.f === ins ? 'Full tray' : +r.f < ins ? `with ${ins - r.f} empty slot${ins - r.f > 1 ? 's' : ''}` : 'over-filled'}</span>${i ? ` <button class="sm" style="color:var(--bad)" data-sdel="${i}">Remove</button>` : ''}</span>
-      <span class="c"><div class="step sm2"><button data-se="${i}|-1">−</button><input type="number" inputmode="numeric" min="0" max="${ins}" data-sei="${i}" value="${Math.max(0, ins - (+r.f || 0))}"><button data-se="${i}|1">+</button></div><div class="sm mut" style="margin-top:2px">${fmt(+r.f || 0)} filled</div></span>
-      <span class="c"><div class="step sm2"><button data-sn="${i}|-1">−</button><input type="number" inputmode="numeric" min="0" data-sni="${i}" value="${r.n}"><button data-sn="${i}|1">+</button></div></span>
-      <span class="c"><span class="pill ok">${fmt((+r.f || 0) * (+r.n || 0))}</span></span></div>`).join('')}
-    <div class="vr add"><button class="btn sm ghost" id="sAdd">＋ Add trays with a different number of empty slots</button></div>
+    body = `<div class="info">ⓘ Enter the number of trays and the <b>total empty slots</b> across them — each empty slot is one piece less in total (not per tray). Empty slots are not a shortage — only a difference from expected stock is.</div>
+    <div class="vt"><div class="vr h sl"><span></span><span>Tray type</span><span class="c">Empty slots (total)</span><span class="c">No. of trays</span><span class="c">Total</span></div>
+    <div class="vr sl">${itIcon(itemOf(sT))}<span>${jtB(jtOfLine(l, sT))} <b>${esc(l.name)}</b><br><span class="sm mut">${ins} slots per tray${K.sE ? ` · ${fmt(K.sE)} empty in all` : ' · all full'}</span></span>
+      <span class="c"><div class="step sm2"><button data-se2="-1">−</button><input type="number" inputmode="numeric" min="0" max="${ins * K.sN}" id="sEmp" value="${K.sE}"><button data-se2="1">+</button></div></span>
+      <span class="c"><div class="step sm2"><button data-sn2="-1">−</button><input type="number" inputmode="numeric" min="0" id="sTr" value="${K.sN}"><button data-sn2="1">+</button></div></span>
+      <span class="c"><span class="pill ok">${fmt(slotTot)}</span></span></div>
     <div class="vr sl tot"><span></span><span class="b">Total</span><span></span><span class="c b">${fmt(slotTrays)} trays</span><span class="c b" style="font-size:20px">${fmt(slotTot)}</span></div></div>
     <div class="kpis" style="grid-template-columns:repeat(3,1fr);margin-top:12px">
       <div class="kpi okt"><div class="l">Total slots</div><div class="v">${fmt(cap)}</div><div class="sm mut">${slotTrays} × ${ins}</div></div>
@@ -1236,6 +1238,10 @@ function countFlow(id, ctx) {
     ov.querySelectorAll('[data-ws]').forEach((b) => b.onclick = () => { K.wt = r3((K.wt ?? wtExp) + +b.dataset.ws); rerender(); });
     $('#cNote') && ($('#cNote').oninput = () => { K.note = $('#cNote').value; });
     ov.querySelectorAll('[data-step]').forEach((b) => b.onclick = () => { if (b.disabled) return; K.step = b.dataset.step; rerender(); });
+    ov.querySelectorAll('[data-se2]').forEach((b) => b.onclick = () => { K.sE = Math.max(0, (+K.sE || 0) + +b.dataset.se2); rerender(); });
+    ov.querySelectorAll('[data-sn2]').forEach((b) => b.onclick = () => { K.sN = Math.max(0, (+K.sN || 0) + +b.dataset.sn2); rerender(); });
+    $('#sEmp') && ($('#sEmp').onchange = (x) => { K.sE = Math.max(0, Math.round(+x.target.value || 0)); rerender(); });
+    $('#sTr') && ($('#sTr').onchange = (x) => { K.sN = Math.max(0, Math.round(+x.target.value || 0)); rerender(); });
     ov.querySelectorAll('[data-se]').forEach((b) => b.onclick = () => { const [i, d] = b.dataset.se.split('|'); const em = Math.max(0, Math.min(ins, ins - (+K.slots[i].f || 0) + +d)); K.slots[i].f = ins - em; rerender(); });
     ov.querySelectorAll('[data-sei]').forEach((x) => x.onchange = () => { const em = Math.max(0, Math.min(ins, Math.round(+x.value || 0))); K.slots[x.dataset.sei].f = ins - em; rerender(); });
     ov.querySelectorAll('[data-sf]').forEach((b) => b.onclick = () => { const [i, d] = b.dataset.sf.split('|'); K.slots[i].f = Math.max(0, Math.min(ins, (+K.slots[i].f || 0) + +d)); rerender(); });
@@ -1492,7 +1498,7 @@ function locEdit(l) {
     <div class="grow"><label class="f">Tag (optional — Lab-grown, Kids, Gents…)</label><select id="eCat"><option value="">—</option>${st.categories.map((p) => `<option ${l.cat === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div></div>
     <div class="row"><div class="grow"><label class="f">Main item type</label><select id="eType"><option value="">Mixed / several</option>${st.itemTypes.map((p) => `<option ${l.itemType === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div>
     ${l.sec === 'box' ? '' : `<div class="grow hidden" id="boxF"><label class="f">Box number</label><input type="text" id="eBoxX" value="${esc(l.boxNo || '')}"></div>`}</div>
-    <div class="row" id="trayF"><div class="grow"><label class="f">Pcs per tray (insert)</label><input type="number" id="eIns" value="${esc(l.insert || '')}"></div><div class="grow"><label class="f">No. of trays</label><input type="number" id="eQty" value="${esc(l.qty || '')}"></div><div class="grow"><label class="f">Empty slots</label><input type="number" id="eEmp" min="0" value="${esc(l.empty || '')}" placeholder="0"></div></div>
+    <div class="row" id="trayF"><div class="grow"><label class="f">Pcs per tray (insert)</label><input type="number" id="eIns" value="${esc(l.insert || '')}"></div><div class="grow"><label class="f">No. of trays</label><input type="number" id="eQty" value="${esc(l.qty || '')}"></div><div class="grow"><label class="f">Empty slots (total)</label><input type="number" id="eEmp" min="0" value="${esc(l.empty || '')}" placeholder="0"></div></div>
     <div class="mut sm" id="eEmpH" style="margin-top:4px">${l.id && +l.insert ? (() => { const ex = sumLines(expOf(l.id).lines); const cap = (+l.insert || 0) * (+l.qty || 0); return `Pieces = slots × trays − empty slots. Stock now ${fmt(ex)} pcs in ${fmt(cap)} slots${cap > ex ? ` <button class="btn sm ghost" type="button" id="eEmpUse">Set empty to ${fmt(cap - ex)}</button>` : ''}`; })() : 'Pieces = slots × trays − empty slots.'}</div>
     <div id="modeF"><label class="f">Default box check</label><select id="eMode">${[['both', 'Weight + count'], ['weight', 'Weight only'], ['count', 'Count only']].map(([k, t]) => `<option value="${k}" ${l.mode === k ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
     <label class="f">Note</label><input type="text" id="eNote" value="${esc(l.note || '')}">
