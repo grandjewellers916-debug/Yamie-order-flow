@@ -168,6 +168,7 @@ h3{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute
 
 /* Saved bills */
 .recent{display:flex;flex-direction:column;gap:8px}
+.r-wrap{position:relative;display:flex;gap:6px;align-items:stretch}.r-wrap>.r-item{flex:1;min-width:0}.r-del{flex:none;width:44px;border:1px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer;font-size:17px;color:#B3261E}.r-del:hover{background:#FDECEA;border-color:#E8B4AE}
 .r-item{display:flex;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface);text-align:left;cursor:pointer;width:100%}
 .r-item .p{font:500 15px var(--mono);color:var(--maroon)}
 .r-item .m{font-size:12px;color:var(--muted)}
@@ -4492,14 +4493,22 @@ $('tabOrders').hidden=!BRAND.orderDesk;
 $('pdOrd').onclick=()=>{const c=bill&&bill.cust||{};odDraft={name:c.name||'',phone:c.phone||'',note:'',help:false,helpNote:'',items:[odNewItem({key:keyOf(cur.sku),name:cur.item||''})]};setView('orders');paintOdForm()};
 $('qtOrd').onclick=()=>{if(!bill.items.length){toast('Add an item first',null,true);return}odStart(true)};
 $('qtOrd').hidden=!BRAND.orderDesk;
+// V1.9.10 deleting a quote is an admin function (open quote or the Quotes list)
+function askDeleteQuote(q){
+  if(!q)return;
+  const n=(q.items||[]).length,shared=!!q.no&&!!sync.key,c=q.cust||{};
+  const del=async()=>{
+    if(shared){try{await syncApi('quotedel','POST',{id:q.id},adminCreds)}catch(e){toast(e&&e.status===403?'Only an admin can delete quotes':'Could not delete — check the connection',null,true);return}}
+    quotes=quotes.filter(x=>x.id!==q.id);store.set('quotes',quotes);PH.del(q.id);
+    if(bill&&bill.id===q.id)startNewQuote('Quote deleted.');
+    renderRecent();toast(`${quoteLabel(q)} deleted`)};
+  showModal(`Delete ${quoteLabel(q)}?`,`${n} item${n===1?'':'s'}${c.name?` for ${c.name}`:''}${q.status==='closed'?' · marked Sold':''}. It is removed for all staff. This cannot be undone.`,[
+    {label:'Delete quote',cls:'danger',run:()=>withPerm('delQuote','Only an admin can delete quotes. Enter an admin PIN.',del,shared)},{label:'Cancel',cls:'ghost'}]);
+}
 $('qtDel').onclick=()=>{
   if(billIsEmpty()){toast('Nothing to delete');return}
-  const del=async()=>{const id=bill.id,wasShared=!!bill.no&&sync.key;
-    quotes=quotes.filter(q=>q.id!==id);store.set('quotes',quotes);PH.del(id);
-    if(wasShared)try{await syncApi('quotedel','POST',{id},adminCreds)}catch(e){toast('Deleted here. Could not delete from other phones.',null,true)}
-    startNewQuote('Quote deleted.');toast('Quote deleted')};
-  showModal(`Delete ${quoteLabel(bill)}?`,`${bill.items.length} item${bill.items.length===1?'':'s'}${bill.cust.name?` for ${bill.cust.name}`:''}. This cannot be undone.`,[
-    {label:'Delete quote',cls:'danger',run:()=>withPerm('delQuote','Needs a user allowed to delete quotes.',del,!!(bill.no&&sync.key))},{label:'Cancel',cls:'ghost'}]);
+  if(!isAdmin()){toast('Only an admin can delete quotes',null,true);return}
+  askDeleteQuote(quotes.find(x=>x.id===bill.id)||bill);
 };
 [...$('qChan').children].forEach(b=>b.onclick=()=>{if(isClosed())return;bill.channel=b.dataset.c;saveBill();renderBill()});
 [...$('qType').children].forEach(b=>b.onclick=()=>{if(isClosed())return;bill.channel=b.dataset.c;if(store.get('saleMode','store')!=='check')store.set('saleMode',b.dataset.c);saveBill();renderBill()});
@@ -4713,10 +4722,12 @@ function renderRecent(){
   const vis=quotes.filter(canSeeQuote).filter(x=>(!fu||x.by===fu)&&(!fd||dayOf(x.started||x.updated)===fd||dayOf(x.updated)===fd));
   const list=vis.filter(x=>(qFilter==='all'||(qFilter==='open'?(!x.status||x.status==='open'):x.status===qFilter))&&(!q||[x.no,x.pno,x.by,x.cust&&x.cust.name,x.cust&&x.cust.phone,x.invoice,x.erp&&x.erp.no,...(x.items||[]).map(t=>t.sku)].some(v=>String(v||'').toLowerCase().includes(q))));
   if(!list.length){el.innerHTML=`<div class="empty">${vis.length?'No quotes match.':'Quotes appear here once an item is saved to a quote.'}</div>`;return}
+  const adm=isAdmin();
   el.innerHTML=list.slice(0,80).map(x=>{const n=(x.items||[]).length;
     let net='';try{const keep=bill;bill=fixBill(clone(x));if(x.rates){bill.overrides={};PURITIES.forEach(p=>{if(x.rates[p.id]!=null)bill.overrides[p.id]=x.rates[p.id]})}net=inr(Math.abs(totals().net));bill=keep}catch(e){}
-    return `<button class="r-item${x.id===bill.id?' cur':''}" type="button" data-open="${x.id}"><span><b>${esc(quoteLabel(x))}</b>${isProv(x)?'<span class="st prov">Provisional</span>':''}${seesAll()&&!isMine(x)&&x.by?`<span class="st by">${esc(x.by)}</span>`:''}${x.status==='closed'?'<span class="st closed">Sold</span>':x.status==='cancelled'?'<span class="st cancel">Enquiry</span>':''}${x.id===bill.id?'<span class="st">Open now</span>':''}<br><span class="m">${esc((x.cust&&x.cust.name)||'No name')}${x.cust&&x.cust.phone?' · '+esc(x.cust.phone):''} · ${n} item${n===1?'':'s'} · ${new Date(x.updated||x.started).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})}${x.by?' · '+esc(x.by):''}${x.invoice?' · Inv '+esc(x.invoice):''}</span></span><span class="v">${net}</span></button>`}).join('');
+    return `<div class="r-wrap${adm?' adm':''}"><button class="r-item${x.id===bill.id?' cur':''}" type="button" data-open="${x.id}"><span><b>${esc(quoteLabel(x))}</b>${isProv(x)?'<span class="st prov">Provisional</span>':''}${seesAll()&&!isMine(x)&&x.by?`<span class="st by">${esc(x.by)}</span>`:''}${x.status==='closed'?'<span class="st closed">Sold</span>':x.status==='cancelled'?'<span class="st cancel">Enquiry</span>':''}${x.id===bill.id?'<span class="st">Open now</span>':''}<br><span class="m">${esc((x.cust&&x.cust.name)||'No name')}${x.cust&&x.cust.phone?' · '+esc(x.cust.phone):''} · ${n} item${n===1?'':'s'} · ${new Date(x.updated||x.started).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})}${x.by?' · '+esc(x.by):''}${x.invoice?' · Inv '+esc(x.invoice):''}</span></span><span class="v">${net}</span></button>${adm?`<button type="button" class="r-del" data-qdel="${x.id}" aria-label="Delete ${esc(quoteLabel(x))}" title="Delete quote (admin)">🗑</button>`:''}</div>`}).join('');
   el.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{if(b.dataset.open!==bill.id)openQuote(b.dataset.open);setView('quote');goStep(qDone('items')?'items':'cust')});
+  el.querySelectorAll('[data-qdel]').forEach(b=>b.onclick=e=>{e.stopPropagation();askDeleteQuote(quotes.find(x=>x.id===b.dataset.qdel))});
 }
 [...$('qFilter').children].forEach(b=>b.onclick=()=>{qFilter=b.dataset.f;[...$('qFilter').children].forEach(x=>x.setAttribute('aria-pressed',String(x===b)));renderRecent()});
 $('qSearch').addEventListener('input',renderRecent);$('qUser').addEventListener('change',renderRecent);$('qDate').addEventListener('change',renderRecent);
@@ -8539,7 +8550,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.9.9',APP_BUILD='__BUILD__';
+const APP_VERSION='1.9.10',APP_BUILD='__BUILD__';
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('sbVer'))$('sbVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------
@@ -8588,7 +8599,7 @@ let elev={role:'',until:0};   // another user's approval, 15 minutes
 const roleName=id=>id==='admin'?'Admin':(roles.find(r=>r.id===id)||{name:id||'—'}).name;
 // 'settings' was one permission before v1.6.42; it still grants all the settings functions
 const OLD_SETTINGS=['suppliers','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows'];
-const ADMIN_ONLY=['stock','theme','footer','apprSet','export','special','promos','rules'];   // Stock data is an admin function
+const ADMIN_ONLY=['delQuote','stock','theme','footer','apprSet','export','special','promos','rules'];   // Stock data is an admin function
 function roleHas(role,perm){if(role==='admin')return true;if(ADMIN_ONLY.includes(perm))return false;const ps=((roles.find(r=>r.id===role)||{}).perms||[]);return ps.includes(perm)||(OLD_SETTINGS.includes(perm)&&ps.includes('settings'))||(perm==='roles'&&ps.includes('users'))}
 // A manager's PIN approval covers only what it was asked for (e.g. sharing), not everything the manager can do
 function can(perm){return !!(curUser&&roleHas(curUser.role,perm))||(Date.now()<elev.until&&roleHas(elev.role,perm)&&(!elev.perms||elev.perms.includes(perm)))}
@@ -8956,6 +8967,8 @@ const setCards=()=>[...document.querySelectorAll('details.setcard[data-perm]')];
 function paintAdmin(){
   {const ok=can('rates'),b=$('band');b.classList.toggle('locked',!ok);if(ok){b.setAttribute('role','button');b.tabIndex=0}else{b.removeAttribute('role');b.removeAttribute('tabindex')}$('tabRates').hidden=!ok;$('menuRates').hidden=!ok;try{paintRates()}catch(e){}}
   $('adminPill').hidden=!(Date.now()<elev.until);
+  $('qtDel').hidden=!isAdmin();   // V1.9.10 deleting quotes: admins only
+  try{renderRecent()}catch(e){}
   $('adminPill').textContent=`${roleName(elev.role)} approval ✕`;
   setCards().forEach(c=>{const ok=can(c.dataset.perm),mini=c.querySelector('.dc-s');
     if(!ok)c.open=false;c.classList.toggle('locked',!ok);

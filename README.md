@@ -662,3 +662,7 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 
 ## 1.9.9 — New Yamie app icon
 - Yamie Price Check icon: burgundy and gold "Legacy 1986 · YAMIE · Price Check" with the scan mark — Android launcher (all sizes), web app icons (192, 512, maskable, iPhone 180) and the in-app icon. Grand is unchanged.
+
+## 1.9.10 — Delete quote: admin only
+- Deleting a quote is now an admin function. Quotes list: admins see a 🗑 beside each quote; the open quote's Delete button shows for admins only. Confirm shows the quote no., items and customer; the quote is removed for all staff.
+- "Delete quotes" is admin-only on the phone and on the server (a role with that permission can no longer delete); a staff member can still ask an admin to enter their PIN.

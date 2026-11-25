@@ -266,7 +266,7 @@ export default async (req: Request) => {
   }
   const roleHas = (role: string, perm: string) => {
     if (role === "admin") return true
-    if (perm === "stock" || perm === "theme" || perm === "footer" || perm === "apprSet" || perm === "special" || perm === "promos" || perm === "rules") return false   // stock data and theme: admins only
+    if (perm === "delQuote" || perm === "stock" || perm === "theme" || perm === "footer" || perm === "apprSet" || perm === "special" || perm === "promos" || perm === "rules") return false   // stock data and theme: admins only
     const ps: string[] = roles.find((r) => r.id === role)?.perms || []
     return ps.includes(perm) || (ps.includes("settings") && [...SETTINGS_PERMS, "textSize"].includes(perm)) || (perm === "roles" && ps.includes("users"))
   }
