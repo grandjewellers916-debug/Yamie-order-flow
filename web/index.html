@@ -403,7 +403,7 @@ main.ccmp{padding-bottom:20px;padding-top:8px}
 .stwrap{max-width:1180px}.stwrap h1{margin-bottom:12px}.stme{display:flex;align-items:center;gap:14px;padding:14px 16px;margin-bottom:6px}
 .stav{width:48px;height:48px;border-radius:50%;background:var(--m);color:#fff;display:grid;place-items:center;font:700 17px/1 Jost,system-ui,sans-serif;flex:none}
 .stver{text-align:right;font-size:12px;color:var(--mut);line-height:1.5}
-.sts{margin-top:16px}.stg{font-size:11px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--mut);margin:0 4px 8px}
+.sts{margin-top:16px}.stq{max-width:380px;flex:1 1 240px;min-height:40px}.stg{font-size:11px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--mut);margin:0 4px 8px}
 .sttg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}@media(min-width:640px){.sttg{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(min-width:1000px){.sttg{grid-template-columns:repeat(5,minmax(0,1fr))}}
 .stt{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-height:112px;padding:14px;background:#fff;border:1px solid var(--ln);border-radius:14px;text-align:left;cursor:pointer;font:inherit;color:var(--ink);transition:box-shadow .15s,transform .15s,border-color .15s}
 .stt:hover{border-color:#D9C9BA;box-shadow:0 6px 18px rgba(60,30,20,.08);transform:translateY(-1px)}.stt:active{transform:none}
@@ -456,7 +456,7 @@ const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 
   apply();
 })();
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.56';
+const VERSION = '1.57';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -3387,18 +3387,26 @@ function vMore() {
     ['Stock setup', [[adm('lists', 'ml'), 'pin', 'Locations', 'Main & sub locations', can('setup')], [adm('lists', 'jt'), 'gem', 'Classifications', 'Gold, Diamond, Lab-grown…', can('setup')], [adm('lists', 'item'), 'ring', 'Products', 'Ring, Stud, Pendant…', can('setup')], [adm('lists', 'pur'), 'scale', 'Purities', '22K, 18K, 14K, PT950…', can('setup')], [adm('locs'), 'tray', 'Counters, trays & boxes', 'Add, edit, move', can('setup')], [adm('lists', 'lc'), 'tag', 'Label codes', 'ERP barcode prefixes', can('setup')]]],
     ['Administration', [[adm('users'), 'user', 'Users', 'Logins & permissions', can('users')], [adm('settings'), 'gear', 'App & ERP settings', 'Tolerances, ERP mapping', can('setup')], [adm('teams'), 'user', 'Counting teams', 'Teams, locations, phones', can('users') || can('setup')], [adm('share'), 'share', 'Holidays & sharing', 'Report recipients, holidays', can('setup')], [adm('coins'), 'coin', 'Gold coin margin', 'Margin, rounding, disclaimers', can('coinSet')], [adm('backup'), 'dl', 'Backup', 'Download / restore data', S.me.role === 'admin']]],
   ].map(([g, it]) => [g, it.filter((x) => x[4])]).filter(([, it]) => it.length);
-  const tile = (k, ic, t, d, id = '', extra = '') => `<button class="stt" ${k ? `data-go="${k}"` : ''} ${id ? `id="${id}"` : ''}><span class="stic">${svg(ic, 22)}</span><span class="stt1">${t}</span><span class="stt2">${d}</span>${extra}</button>`;
+  // v1.57 search: every tile carries its words (title, description, group, extra keywords)
+  const KW = { eod: 'sales return smith sample entries', 'adm:lists:ml': 'main location sub location counter shelf floating tray box grand', 'adm:lists:jt': 'gold diamond lab grown platinum silver jewellery type', 'adm:lists:item': 'ring stud pendant set bracelet necklace bangle chain nosepin coin item', 'adm:lists:pur': '22k 18k 14k 9k pt950 925 purity karat', 'adm:locs:': 'add edit move tray counter box location', 'adm:users:': 'staff login pin permission role', 'adm:teams:': 'team counting phone assign', 'adm:share:': 'whatsapp email report holiday sunday', 'adm:coins:': 'margin rounding disclaimer', 'adm:backup:': 'restore download', 'adm:settings:': 'erp tolerance weight blind', coins: 'bhima rate card', sx: 'bullion 999 995 grand stock', docs: 'gst licence bank upi vehicle insurance location review', total: 'consolidated item count print', reports: 'excel pdf share' };
+  let curG = '';
+  const tile = (k, ic, t, d, id = '', extra = '') => `<button class="stt" data-s="${esc(`${t} ${d} ${curG} ${KW[k] || ''} ${id}`.toLowerCase())}" ${k ? `data-go="${k}"` : ''} ${id ? `id="${id}"` : ''}><span class="stic">${svg(ic, 22)}</span><span class="stt1">${t}</span><span class="stt2">${d}</span>${extra}</button>`;
   const ini = String(S.me.name || '?').trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
   const noti = localStorage.ysc_notify === '1';
-  $('#main').innerHTML = `<div class="stwrap"><h1>Settings</h1>
+  $('#main').innerHTML = `<div class="stwrap"><div class="row sp wrap" style="gap:10px;margin-bottom:12px"><h1 style="margin:0">Settings</h1><input type="search" id="stQ" class="stq" placeholder="Search settings — e.g. purity, team, PIN, backup" value="${esc(S.stQ || '')}"></div>
   <div class="card stme"><div class="stav">${esc(ini)}</div><div class="grow"><div class="b" style="font-size:17px">${esc(S.me.name)}</div><div class="mut sm">${esc(S.me.role)}${S.me.user ? ` · @${esc(S.me.user)}` : ''}</div></div><div class="stver">App v${VERSION}${window.YamieStock?.version ? `<br>APK ${esc(window.YamieStock.version())}` : ''}</div></div>
-  ${G.map(([g, it]) => `<section class="sts"><div class="stg">${g}</div><div class="sttg">${it.map(([k, ic, t, d]) => tile(k, ic, t, d)).join('')}</div></section>`).join('')}
-  <section class="sts"><div class="stg">This device</div><div class="sttg">
+  ${G.map(([g, it]) => { curG = g; return `<section class="sts"><div class="stg">${g}</div><div class="sttg">${it.map(([k, ic, t, d]) => tile(k, ic, t, d)).join('')}</div></section>`; }).join('')}
+  ${(curG = 'This device', '')}<section class="sts"><div class="stg">This device</div><div class="sttg">
     ${tile('', 'lock', 'Change my PIN', 'Your login PIN', 'pinBtn')}
     ${tile('', 'bell', 'Notifications', noti ? 'On — alerts while open' : 'Off', 'notiBtn', `<span class="tgl ${noti ? 'on' : ''}"><i></i></span>`)}
     ${tile('', 'sync', 'Reload app', 'Get the latest version', 'rldBtn')}
     ${tile('', 'out', 'Log out', esc(S.me.name), 'outBtn')}
-  </div></section></div>`;
+  </div></section><div class="card mut" id="stNone" style="display:none;margin-top:16px">No setting matches that search.</div></div>`;
+  const stFilter = () => { const q = ($('#stQ').value || '').trim().toLowerCase(); S.stQ = q; const ws = q.split(/\s+/).filter(Boolean); let any = 0;
+    $('#main').querySelectorAll('.sts').forEach((sec) => { let n = 0; sec.querySelectorAll('.stt').forEach((t) => { const ok = ws.every((w) => t.dataset.s.includes(w)); t.style.display = ok ? '' : 'none'; n += ok; }); sec.style.display = n ? '' : 'none'; any += n; });
+    $('#stNone').style.display = any ? 'none' : ''; };
+  $('#stQ').oninput = stFilter; stFilter(); if (S.stQ) $('#stQ').focus();
+  $('#stQ').onkeydown = (e) => { if (e.key === 'Enter') { const v = [...$('#main').querySelectorAll('.stt')].filter((t) => t.style.display !== 'none'); if (v.length === 1) v[0].click(); } else if (e.key === 'Escape') { $('#stQ').value = ''; stFilter(); } };
   $('#main').querySelectorAll('[data-go]').forEach((b) => b.onclick = () => { const g = b.dataset.go; if (g.startsWith('adm:')) { const [, tab, f] = g.split(':'); S.tab = tab; S.lfocus = f || null; go('admin'); } else go(g); });
   $('#outBtn').onclick = logout;
   $('#rldBtn').onclick = () => { if (window.YamieStock?.reload) window.YamieStock.reload(); else location.reload(); };
