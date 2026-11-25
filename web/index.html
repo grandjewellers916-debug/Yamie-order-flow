@@ -422,12 +422,18 @@ main.ccmp{padding-bottom:20px;padding-top:8px}
 .qs-g{--qc:#C9A227}.qs-d{--qc:#3F6FB5}.qs-t{--qc:#2E8B7A}.qs-p{--qc:#8A9099}.qs-s{--qc:#A7ADB4}.qs-cu{--qc:var(--m)}
 .qsc button{display:flex;justify-content:space-between;gap:8px;width:100%;background:none;border:0;border-top:1px solid var(--ln);padding:7px 10px;font:inherit;color:var(--ink);cursor:pointer;text-align:left}
 .qsc button:hover{background:#FBF7F2}.qsc .qsch{border-top:0;background:#FAF6F1;font-weight:700;font-size:13px}.qsc .qsr span{font-size:14px}.qsc b{font-variant-numeric:tabular-nums}
+/* v1.56 counting teams */
+.tmgrid{display:grid;gap:12px;margin:12px 0}@media(min-width:900px){.tmgrid{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}}
+.tmus{display:flex;flex-wrap:wrap;gap:6px}.chipck{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--ln);border-radius:999px;padding:5px 10px;cursor:pointer;font-size:14px}.chipck input,.tmck input{width:auto;min-height:0;margin:0}
+.tmtree{border:1px solid var(--ln);border-radius:12px;max-height:46vh;overflow:auto;padding:4px 8px}.tmm{border-bottom:1px solid var(--ln);padding:4px 0}.tmm:last-child{border:0}
+.tmck{display:flex;align-items:center;gap:8px;padding:6px 4px;cursor:pointer}.tmck.b{font-weight:600}.tms{padding-left:18px}.tmck.g{padding-left:16px;font-size:14px}
+.teamb{display:flex;flex-wrap:wrap;align-items:center;gap:10px 12px;margin:10px 0;border-left:4px solid var(--m)}.teamb>.grow{min-width:220px;flex:1}.chip.busy{background:#FFF4D6;color:#8A5A00}.chip.team{background:#F1ECF8;color:#5B3E8A}
 </style>
 </head>
 <body>
 <div id="app"></div>
 <script type="module">
-import { itemLbl, DOC_TYPES, VEHICLE_DOC_TYPES, isVehicleDoc, docDaysLeft, docWatch, DOC_REMIND_DEFAULT, CASH_DENOMS, CASH_COUNTERS, CASH_SHIFTS, cashCalc, cashNotes, isMorning, SECTIONS, PERMS, ROLE_PERMS, REASONS, TXN_TYPES, metalOf, erpMetal, JTYPES, LINE_JTYPES, JT_SHORT, JT_LABEL, JT_CLS, JT_METAL, JT_CODE, JT_FREE_CODES, applyJewelleryTypes, holidayOf, mainLocsOf, placesFor, defaultPlace, LOC_KINDS, METALS, jtMetal, locJts, normJts, itemOf, jtOfLine, purOfLine, defaultPur, lineKey, keyText, defaultJt, roundOf, roundCounts, summarize, sumLines, r3, locStatus, istDate, erpCompare, erpKey } from './core.mjs';
+import { teamCovers, teamsForLoc, teamsOfUser, CLAIM_MS, itemLbl, DOC_TYPES, VEHICLE_DOC_TYPES, isVehicleDoc, docDaysLeft, docWatch, DOC_REMIND_DEFAULT, CASH_DENOMS, CASH_COUNTERS, CASH_SHIFTS, cashCalc, cashNotes, isMorning, SECTIONS, PERMS, ROLE_PERMS, REASONS, TXN_TYPES, metalOf, erpMetal, JTYPES, LINE_JTYPES, JT_SHORT, JT_LABEL, JT_CLS, JT_METAL, JT_CODE, JT_FREE_CODES, applyJewelleryTypes, holidayOf, mainLocsOf, placesFor, defaultPlace, LOC_KINDS, METALS, jtMetal, locJts, normJts, itemOf, jtOfLine, purOfLine, defaultPur, lineKey, keyText, defaultJt, roundOf, roundCounts, summarize, sumLines, r3, locStatus, istDate, erpCompare, erpKey } from './core.mjs';
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -450,7 +456,7 @@ const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 
   apply();
 })();
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.55';
+const VERSION = '1.56';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -560,6 +566,7 @@ async function load(quiet) {
     if (quiet && sig === lastSig) return;   // nothing changed: leave the page as it is
     lastSig = sig;
     const prevUnread = S.D?.alerts?.unread || 0;
+    S.claims = Object.fromEntries((j.claims || []).map((c) => [c.locId, c]));   // v1.56 phones counting right now
     S.D = j; S.me = j.me; S.date = j.date === j.today ? null : j.date; applyJewelleryTypes(j.settings);
     S.round = roundOf(j.day);
     S.sum = summarize(j.locs, j.day.opening, j.mvs, roundCounts(j.counts, S.round), j.settings);
@@ -846,12 +853,19 @@ function vSection(sec) {
         return `<div class="qsc qs-${JT_CLS[j] || 'cu'}"><button class="qsch" data-qsc="${esc(j)}" title="${c ? 'Show' : 'Hide'} products"><span>${c ? '▸' : '▾'} ${esc(jtName(j))}</span><b>${fmt(tt(j))}</b></button>${c ? '' : its.map((it) => `<button class="qsr" data-qs="${esc(j)}|${esc(it)}"><span>${esc(itemLbl(it))}</span><b>${fmt(m.get(it))}</b></button>`).join('')}</div>`; }).join('')}</div>
       <div class="row sp wrap" style="margin-top:8px"><span class="mut sm">Tap a heading to collapse it · tap a product to filter.</span><span class="row" style="gap:6px"><button class="btn sm ghost" data-qsall="1">Expand all</button><button class="btn sm ghost" data-qsall="0">Collapse all</button></span></div>`
       : `<div class="qschips">${cols.map((j) => `<button class="qchip qs-${JT_CLS[j] || 'cu'}" data-qsj="${esc(j)}">${esc(JT_SHORT[j])} <b>${fmt(tt(j))}</b></button>`).join('')}</div>`}</div>`; })() : '';
-  const list = all.filter((l) => inSel(l) && (S.filter === 'all' || (S.filter === 'var' ? ['var', 'stale'].includes(st[l.id].state) : st[l.id].state === S.filter)) && (!q || `${l.name} ${l.group} ${l.purity} ${l.cat} ${l.itemType} ${l.boxNo || ''}`.toLowerCase().includes(q)));
+  // v1.56 my counting team — its locations in this section, progress, start / show only mine
+  const myT = teamsOfUser(S.D.settings, S.me.id); const mineIds = myT.length ? all.filter((l) => myT.some((t) => teamCovers(t, l))).map((l) => l.id) : [];
+  const mineDone = mineIds.filter((i) => !['pending', 'stale'].includes(st[i].state)).length;
+  const teamBar = mineIds.length ? `<div class="card teamb"><div class="grow"><div class="b">👥 ${esc(myT.map((t) => t.name).join(' · '))}</div><div class="mut sm">Your team's ${secLabel(sec).toLowerCase()} · ${mineDone}/${mineIds.length} done</div><div class="bar" style="margin-top:6px"><span style="width:${mineDone / mineIds.length * 100}%;background:var(--ok)"></span></div></div>
+    <div class="row" style="gap:6px;flex-wrap:wrap;justify-content:flex-end"><button class="btn sm ${S.teamOnly ? '' : 'ghost'}" id="tmOnly">${S.teamOnly ? '✓ Only mine' : 'Only mine'}</button>${can('count') && editable() && mineDone < mineIds.length ? '<button class="btn sm" id="tmGo">Count my team’s ›</button>' : ''}</div></div>` : '';
+  const mineSet = new Set(mineIds);
+  const list = all.filter((l) => (!S.teamOnly || !mineIds.length || mineSet.has(l.id)) && inSel(l) && (S.filter === 'all' || (S.filter === 'var' ? ['var', 'stale'].includes(st[l.id].state) : st[l.id].state === S.filter)) && (!q || `${l.name} ${l.group} ${l.purity} ${l.cat} ${l.itemType} ${l.boxNo || ''}`.toLowerCase().includes(q)));
   const groups = {}; list.forEach((l) => (groups[l.group || '—'] ||= []).push(l));
   $('#main').innerHTML = `${viewBanner()}
   <div class="row sp wrap" style="margin-bottom:10px"><div><h1>${secLabel(sec)}</h1><div class="mut">${X.locs - X.pending}/${X.locs} checked · ${hideExp() ? '' : `${fmt(X.expected)} pcs expected`}${sec === 'box' && !hideExp() ? ` · ${X.wtExpected ? '⚖ ' + g3(X.wtExpected) + ' g' : 'box weights not set'}` : ''}</div></div>
   <div class="row" style="gap:6px">${sec === 'box' ? '<button class="btn sm" id="bwBtn">⚖ Box weight tracker</button>' : ''}${can('setup') && editable() ? `<button class="btn sm sec" id="addLoc">＋ Add ${sec === 'box' ? 'box' : sec === 'tray' ? 'tray' : 'counter tray'}</button>` : ''}</div></div>
   ${selOn ? '' : startPanel(sec)}
+  ${teamBar}
   ${selBar}
   ${qSum}
   <input type="search" id="q" placeholder="Search name, purity, box no…" value="${esc(S.q)}">
@@ -871,6 +885,8 @@ function vSection(sec) {
     d.addEventListener('toggle', () => { if (!d.open) apply(); else $('#main').querySelectorAll('details.msel').forEach((o) => { if (o !== d) o.open = false; }); }); });
   $('#main').querySelectorAll('[data-qs]').forEach((b) => b.onclick = () => { const [j, ...r] = b.dataset.qs.split('|'); SEL.j = [j]; SEL.i = [r.join('|')]; vSection(sec); });
   $('#main').querySelectorAll('[data-qsj]').forEach((b) => b.onclick = () => { SEL.j = [b.dataset.qsj]; vSection(sec); });
+  $('#tmOnly') && ($('#tmOnly').onclick = () => { S.teamOnly = !S.teamOnly; vSection(sec); });
+  $('#tmGo') && ($('#tmGo').onclick = () => startCount(sec, mineIds.filter((i) => ['pending', 'stale'].includes(st[i].state)).length ? mineIds : mineIds, myT.map((t) => t.name).join(' · ')));
   $('#qsTog') && ($('#qsTog').onclick = () => { localStorage.ysc_qsum = localStorage.ysc_qsum === '0' ? '1' : '0'; vSection(sec); });
   $('#main').querySelectorAll('[data-qsc]').forEach((b) => b.onclick = () => { let a = []; try { a = JSON.parse(localStorage.ysc_qsc || '[]'); } catch {} const j = b.dataset.qsc; a = a.includes(j) ? a.filter((x) => x !== j) : [...a, j]; localStorage.ysc_qsc = JSON.stringify(a); vSection(sec); });
   $('#main').querySelectorAll('[data-qsall]').forEach((b) => b.onclick = () => { localStorage.ysc_qsc = b.dataset.qsall === '1' ? '[]' : JSON.stringify(LINE_JTYPES); vSection(sec); });
@@ -901,8 +917,11 @@ function locCard(l) {
     const okc = c?.slots?.length ? (st.state === 'ok' ? 'ok' : st.state === 'var' ? 'bad' : '') : 'plan';
     return `<div class="brk ${okc}">${rowsS.map((r) => `<div class="br"><span>${r.f} slots × ${r.n} tray${r.n === 1 ? '' : 's'}</span><b>= ${fmt(r.f * r.n)}</b></div>`).join('')}${rowsS.length > 1 || c?.slots ? `<div class="br t"><span>Total</span><span>${tr} trays</span><b>= ${fmt(tot)}</b></div>` : ''}${okc === 'plan' ? '<div class="sm mut" style="padding:0 10px">Registered layout</div>' : ''}</div>`;
   })() : '';
+  const clm = S.claims?.[l.id]; const busy = clm && clm.by !== S.me.id && ['pending', 'stale'].includes(st.state) && Date.now() - clm.at < CLAIM_MS;
+  const tms = (S.D.settings.teams || []).length ? teamsForLoc(S.D.settings, l) : [];
+  const chips2 = `${busy ? `<span class="chip busy">📱 ${esc(uname(clm.by))} counting</span>` : ''}${tms.length ? `<span class="chip team">👥 ${esc(tms.map((t) => t.name).join(' / '))}</span>` : ''}`;
   const sub = st.state === 'var' || st.state === 'stale' ? `${diffTxt(st.diff, l)}${st.mode !== 'count' && st.wtDiff ? ` ${st.wtDiff > 0 ? '+' : ''}${g3(st.wtDiff)} g` : ''}` : c ? `${uname(c.by)} · ${tm(c.at)}` : '';
-  return `<button class="loc ${st.state}" data-loc="${l.id}"><div class="th">${thumb}</div><div class="grow" style="min-width:0"><div class="nm">${esc(l.name)}</div><div class="meta">${chips}</div><div class="row sm" style="margin-top:4px;align-items:flex-start"><span class="st ${st.state}" style="flex:none">${STLBL[st.state]}</span><span class="mut vtx" title="${esc(sub)}">${esc(sub)}</span></div>${hideExp() ? '' : itemSummary(l)}</div>
+  return `<button class="loc ${st.state}" data-loc="${l.id}"><div class="th">${thumb}</div><div class="grow" style="min-width:0"><div class="nm">${esc(l.name)}</div><div class="meta">${chips}${chips2}</div><div class="row sm" style="margin-top:4px;align-items:flex-start"><span class="st ${st.state}" style="flex:none">${STLBL[st.state]}</span><span class="mut vtx" title="${esc(sub)}">${esc(sub)}</span></div>${hideExp() ? '' : itemSummary(l)}</div>
     ${slotsHtml}<div class="q">${(() => { const P = cardPcs(l); const F = S.cardF; const wtL = l.sec === 'box' ? `<div class="wtl ${e.wt ? '' : 'none'}">${e.wt ? '⚖ ' + g3(e.wt) + ' g' : '⚖ weight not set'}</div>${e.wt && +l.cover ? `<div class="mut sm">net ${g3(e.wt - l.cover)} g</div>` : ''}` : '';
       const cn = c && c.mode !== 'weight' && !['pending', 'stale'].includes(st.state) ? P.cnt : null; const ex = P.exp;
       if (cn != null) return `<div class="v" style="color:${cn === ex ? 'inherit' : 'var(--bad)'}">${fmt(cn)}</div><div class="mut sm">${hideExp() ? 'pcs' : cn === ex ? (F ? `of ${fmt(P.all)} pcs` : 'pcs') : `of ${fmt(ex)}${F ? ' matching' : ''}`}</div>${l.sec === 'box' && c.wt != null ? `<div class="wtl">⚖ ${g3(c.wt)} g counted</div>` : wtL}`;
@@ -1062,7 +1081,29 @@ function sessionSummary() {
 function locSheet(id, ctx = {}) {
   const l = S.locById[id]; const st = S.sum.status[id]; const c = S.sum.last[id];
   const counting = can('count') && editable() && (st.state === 'pending' || st.state === 'stale' || (c && c.recountAllowed) || ctx.recount);
-  if (counting) return countFlow(id, ctx); return resultView(id, ctx);
+  if (counting) {
+    // v1.56 teams + several phones: don't count a location another phone is counting, or another team's location when only the assigned team may count
+    const tf = teamsForLoc(S.D.settings, l);
+    if (S.D.settings.teamStrict && tf.length && !can('accept') && !tf.some((t) => (t.members || []).includes(S.me.id))) return toast(`${l.name} is counted by ${tf.map((t) => t.name).join(' / ')}`, 4000);
+    const cl = S.claims?.[id];
+    if (cl && cl.by !== S.me.id && Date.now() - cl.at < CLAIM_MS) {
+      if (!can('accept')) return toast(`${uname(cl.by)} is counting ${l.name} on another phone (since ${tm(cl.at)})`, 4500);
+      if (!confirm(`${uname(cl.by)} is counting ${l.name} on another phone (since ${tm(cl.at)}). Take over?`)) return;
+      claimLoc(id, true);
+    } else claimLoc(id);
+    return countFlow(id, ctx);
+  }
+  return resultView(id, ctx);
+}
+// v1.56 tell the other phones "I'm counting this" — renewed while the count screen is open, released when it closes or another location opens
+let claimT = null;
+function claimLoc(id, force) {
+  const rel = (x) => api('claim', { date: S.D.date, locId: x, release: true }).catch(() => {});
+  if (S.claiming && S.claiming !== id) rel(S.claiming);
+  clearInterval(claimT); S.claiming = id;
+  const ping = (f) => api('claim', { date: S.D.date, locId: id, force: f }).then((r) => { if (r && r.ok === false) toast(`${r.name} is also counting this — check with them`, 4000); }).catch(() => {});
+  ping(force);
+  claimT = setInterval(() => { if (!$('#ov') || S.claiming !== id) { clearInterval(claimT); if (S.claiming === id) { rel(id); S.claiming = null; } return; } ping(); }, 45000);
 }
 function head(l, extra) {
   return `<div class="row" style="gap:12px;align-items:flex-start"><div class="hico">${svg(l.sec, 26)}</div><div class="grow" style="min-width:0"><h2>${esc(l.name)}</h2><div class="mut sm">${secLabel(l.sec)} · ${esc(l.group)}${l.sec === 'box' ? ` · ${{ both: 'Count + weight', weight: 'Weight', count: 'Count' }[l.mode || 'both']}` : ''}</div></div>${extra || ''}</div>`;
@@ -3344,7 +3385,7 @@ function vMore() {
     ['Gold & bullion', [['coins', 'coin', 'Gold coins', 'Our price vs Bhima, rate card', can('coins') || can('coinSet')], ['sx', 'gold', 'Bullion & Grand', 'Bullion boxes, Grand stock', can('special') || can('grandBul')]]],
     ['Business', [['docs', 'doc', 'Documents', 'Licences, GST, bank, UPI, vehicles', can('docs') || can('docsEdit')]]],
     ['Stock setup', [[adm('lists', 'ml'), 'pin', 'Locations', 'Main & sub locations', can('setup')], [adm('lists', 'jt'), 'gem', 'Classifications', 'Gold, Diamond, Lab-grown…', can('setup')], [adm('lists', 'item'), 'ring', 'Products', 'Ring, Stud, Pendant…', can('setup')], [adm('lists', 'pur'), 'scale', 'Purities', '22K, 18K, 14K, PT950…', can('setup')], [adm('locs'), 'tray', 'Counters, trays & boxes', 'Add, edit, move', can('setup')], [adm('lists', 'lc'), 'tag', 'Label codes', 'ERP barcode prefixes', can('setup')]]],
-    ['Administration', [[adm('users'), 'user', 'Users', 'Logins & permissions', can('users')], [adm('settings'), 'gear', 'App & ERP settings', 'Tolerances, ERP mapping', can('setup')], [adm('share'), 'share', 'Holidays & sharing', 'Report recipients, holidays', can('setup')], [adm('coins'), 'coin', 'Gold coin margin', 'Margin, rounding, disclaimers', can('coinSet')], [adm('backup'), 'dl', 'Backup', 'Download / restore data', S.me.role === 'admin']]],
+    ['Administration', [[adm('users'), 'user', 'Users', 'Logins & permissions', can('users')], [adm('settings'), 'gear', 'App & ERP settings', 'Tolerances, ERP mapping', can('setup')], [adm('teams'), 'user', 'Counting teams', 'Teams, locations, phones', can('users') || can('setup')], [adm('share'), 'share', 'Holidays & sharing', 'Report recipients, holidays', can('setup')], [adm('coins'), 'coin', 'Gold coin margin', 'Margin, rounding, disclaimers', can('coinSet')], [adm('backup'), 'dl', 'Backup', 'Download / restore data', S.me.role === 'admin']]],
   ].map(([g, it]) => [g, it.filter((x) => x[4])]).filter(([, it]) => it.length);
   const tile = (k, ic, t, d, id = '', extra = '') => `<button class="stt" ${k ? `data-go="${k}"` : ''} ${id ? `id="${id}"` : ''}><span class="stic">${svg(ic, 22)}</span><span class="stt1">${t}</span><span class="stt2">${d}</span>${extra}</button>`;
   const ini = String(S.me.name || '?').trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
@@ -3396,11 +3437,66 @@ async function vHistory() {
   } catch (e) { fail(e); }
 }
 async function vAdmin() {
-  const tabs = [['users', 'Users', can('users')], ['locs', 'Locations', can('setup')], ['settings', 'Settings', can('setup')], ['lists', 'Lists', can('setup')], ['share', 'Holidays & sharing', can('setup')], ['coins', 'Gold coins', can('coinSet')], ['backup', 'Backup', S.me.role === 'admin']].filter((x) => x[2]);
+  const tabs = [['users', 'Users', can('users')], ['locs', 'Locations', can('setup')], ['settings', 'Settings', can('setup')], ['lists', 'Lists', can('setup')], ['share', 'Holidays & sharing', can('setup')], ['teams', 'Counting teams', can('users') || can('setup')], ['coins', 'Gold coins', can('coinSet')], ['backup', 'Backup', S.me.role === 'admin']].filter((x) => x[2]);
   if (!tabs.find((t) => t[0] === S.tab)) S.tab = tabs[0]?.[0];
   $('#main').innerHTML = `<h1 style="margin-bottom:12px">Admin</h1><div class="tabs">${tabs.map(([k, t]) => `<button data-t="${k}" class="${S.tab === k ? 'on' : ''}">${t}</button>`).join('')}</div><div id="adm"></div>`;
   $('#main').querySelectorAll('[data-t]').forEach((b) => b.onclick = () => { S.tab = b.dataset.t; vAdmin(); });
-  if (S.tab === 'users') admUsers(); else if (S.tab === 'locs') admLocs(); else if (S.tab === 'backup') admBackup(); else if (S.tab === 'lists') admLists(); else if (S.tab === 'share') admShare(); else if (S.tab === 'coins') admCoins(); else admSettings();
+  if (S.tab === 'users') admUsers(); else if (S.tab === 'locs') admLocs(); else if (S.tab === 'backup') admBackup(); else if (S.tab === 'lists') admLists(); else if (S.tab === 'share') admShare(); else if (S.tab === 'coins') admCoins(); else if (S.tab === 'teams') admTeams(); else admSettings();
+}
+// ---------- v1.56 Admin › Counting teams: who counts which main / sub location, counter or tray group; live progress from all phones ----------
+function teamTree() {
+  // main location → sub location → counter / tray group → locations
+  const L = activeLocs(); const T = [];
+  for (const m of mainLocsOf(S.D.settings)) { const ml = L.filter((l) => (l.area || '') === m.name); if (!ml.length) continue;
+    const subs = [...new Set(ml.map((l) => l.sub || ''))].map((sb) => { const sl = ml.filter((l) => (l.sub || '') === sb);
+      return { sub: sb, n: sl.length, groups: [...new Set(sl.map((l) => `${l.sec}|${l.group || ''}`))].map((g) => ({ key: g, name: g.split('|')[1] || '—', n: sl.filter((l) => `${l.sec}|${l.group || ''}` === g).length })) }; });
+    T.push({ name: m.name, n: ml.length, subs }); }
+  const other = L.filter((l) => !T.some((t) => t.name === (l.area || ''))); if (other.length) T.push({ name: '', n: other.length, subs: [{ sub: '', n: other.length, groups: [...new Set(other.map((l) => `${l.sec}|${l.group || ''}`))].map((g) => ({ key: g, name: g.split('|')[1] || '—', n: other.filter((l) => `${l.sec}|${l.group || ''}` === g).length })) }] });
+  return T;
+}
+function scopeText(t) {
+  return (t.scope || []).map((k) => { const p = k.split('|'); return p[0] === 'a' ? p[1] : p[0] === 's' ? `${p[1]} › ${p[2] || '—'}` : p[0] === 'g' ? `${p[2]} (${secLabel(p[1])})` : S.locById[p[1]]?.name || 'Location'; }).join(' · ') || 'No locations yet';
+}
+function admTeams() {
+  const st = S.D.settings; const teams = st.teams || []; const L = activeLocs(); const stt = S.sum.status;
+  const done = (ids) => ids.filter((i) => !['pending', 'stale'].includes(stt[i]?.state)).length;
+  const live = Object.values(S.claims || {}).filter((c) => Date.now() - c.at < CLAIM_MS);
+  const unas = L.filter((l) => !teams.some((t) => teamCovers(t, l)));
+  const save = async (patch, msg) => { try { await api('settings', { settings: patch }); toast(msg || '✓ Saved'); await load(); S.tab = 'teams'; admTeams(); } catch (e) { fail(e); } };
+  $('#adm').innerHTML = `<div class="card"><div class="row sp wrap"><div><h3>👥 Counting teams</h3><div class="mut sm" style="max-width:640px">Give each team its own locations — a main location, a sub location or single counters / tray groups. Each team counts on its own phones at the same time; the app shows who is counting what so two phones never count the same tray.</div></div><button class="btn" id="tmAdd">+ Add team</button></div>
+    <label class="row" style="gap:8px;margin-top:12px;cursor:pointer"><input type="checkbox" id="tmStrict" ${st.teamStrict ? 'checked' : ''} style="width:auto;min-height:0"> <span>Only the assigned team can count its locations <span class="mut sm">(managers can always count)</span></span></label></div>
+  <div class="tmgrid">${teams.map((t) => { const ids = L.filter((l) => teamCovers(t, l)).map((l) => l.id); const d = done(ids); const now = live.filter((c) => ids.includes(c.locId));
+    return `<div class="card tmc"><div class="row sp"><h3>👥 ${esc(t.name)}</h3><span class="row" style="gap:6px"><button class="btn sm ghost" data-tme="${esc(t.id)}">✎ Edit</button><button class="btn sm ghost" data-tmd="${esc(t.id)}">🗑</button></span></div>
+      <div class="mut sm" style="margin:2px 0 8px">${(t.members || []).length ? (t.members || []).map((u) => `<span class="chip">${esc(uname(u))}</span>`).join(' ') : '<span style="color:var(--bad)">No members</span>'}</div>
+      <div class="sm">${esc(scopeText(t))}</div>
+      <div class="row sp" style="margin-top:10px"><span class="b">${d}/${ids.length} counted</span><span class="mut sm">${ids.length ? Math.round(d / ids.length * 100) : 0}%</span></div>
+      <div class="bar" style="margin-top:4px"><span style="width:${ids.length ? d / ids.length * 100 : 0}%;background:var(--ok)"></span></div>
+      ${now.length ? `<div class="sm" style="margin-top:8px">📱 Counting now: ${now.map((c) => `${esc(uname(c.by))} — ${esc(S.locById[c.locId]?.name || '')}`).join(', ')}</div>` : ''}</div>`; }).join('') || '<div class="card mut">No teams yet. Add one to split the count between phones.</div>'}</div>
+  <div class="card"><div class="row sp"><h3>Not assigned</h3><span class="b">${unas.length} locations</span></div><div class="mut sm">${unas.length ? `Anyone with counting permission can count these. ${[...new Set(unas.map((l) => `${l.area || '—'}${l.sub ? ' › ' + l.sub : ''}`))].slice(0, 12).map(esc).join(' · ')}` : 'Every location belongs to a team.'}</div>
+    ${live.length ? `<div class="sm" style="margin-top:10px"><b>📱 All phones counting now:</b> ${live.map((c) => `${esc(uname(c.by))} — ${esc(S.locById[c.locId]?.name || '')} (${tm(c.at)})`).join(' · ')}</div>` : ''}</div>`;
+  $('#tmStrict').onchange = (e) => save({ teamStrict: e.target.checked }, e.target.checked ? '✓ Only assigned teams can count their locations' : '✓ Anyone can count any location');
+  $('#tmAdd').onclick = () => teamEdit(null);
+  $('#adm').querySelectorAll('[data-tme]').forEach((b) => b.onclick = () => teamEdit(teams.find((t) => t.id === b.dataset.tme)));
+  $('#adm').querySelectorAll('[data-tmd]').forEach((b) => b.onclick = () => { const t = teams.find((x) => x.id === b.dataset.tmd); if (confirm(`Delete ${t.name}?`)) save({ teams: teams.filter((x) => x.id !== t.id) }, '✓ Team deleted'); });
+}
+function teamEdit(t0) {
+  const teams = S.D.settings.teams || []; const t = t0 ? JSON.parse(JSON.stringify(t0)) : { id: 't' + Date.now().toString(36), name: `Team ${teams.length + 1}`, members: [], scope: [] };
+  const users = Object.entries(S.D.userNames).filter(([id]) => id !== 'system');
+  const tree = teamTree(); const sc = new Set(t.scope);
+  const other = (k) => teams.filter((x) => x.id !== t.id && (x.scope || []).includes(k)).map((x) => x.name);
+  const ck = (k, label, n, cls = '') => { const o = other(k); return `<label class="tmck ${cls}"><input type="checkbox" data-sk="${esc(k)}" ${sc.has(k) ? 'checked' : ''}> <span class="grow">${esc(label)}</span><span class="mut sm">${n}${o.length ? ` · <span style="color:var(--warn,#B7791F)">${esc(o.join(', '))}</span>` : ''}</span></label>`; };
+  const html = `<label class="f">Team name</label><input id="tmN" value="${esc(t.name)}">
+    <label class="f">Members (their phones count this team's locations)</label><div class="tmus">${users.map(([id, n]) => `<label class="chipck"><input type="checkbox" data-tu="${esc(id)}" ${t.members.includes(id) ? 'checked' : ''}> ${esc(n)}</label>`).join('')}</div>
+    <label class="f">Locations — tick a whole main location, a sub location, or single counters / tray groups</label>
+    <div class="tmtree">${tree.map((m) => `<div class="tmm">${m.name ? ck(`a|${m.name}`, m.name, `${m.n} loc`, 'b') : ''}${m.subs.map((sb) => `<div class="tms">${sb.sub ? ck(`s|${m.name}|${sb.sub}`, sb.sub, `${sb.n} loc`) : ''}${sb.groups.length > 1 || !sb.sub ? sb.groups.map((g) => ck(`g|${g.key}`, g.name, g.n, 'g')).join('') : ''}</div>`).join('')}</div>`).join('')}</div>
+    <button class="btn" style="width:100%;margin-top:14px" id="tmS">Save team</button>`;
+  modal(t0 ? 'Edit team' : 'New counting team', 'Several teams can count at the same time on different phones', html, (ov) => {
+    $('#tmS').onclick = async () => {
+      t.name = $('#tmN').value.trim() || t.name; t.members = [...ov.querySelectorAll('[data-tu]:checked')].map((x) => x.dataset.tu); t.scope = [...ov.querySelectorAll('[data-sk]:checked')].map((x) => x.dataset.sk);
+      const next = t0 ? teams.map((x) => x.id === t.id ? t : x) : [...teams, t];
+      try { await api('settings', { settings: { teams: next } }); closeModal(); toast('✓ Team saved'); await load(); S.tab = 'teams'; go('admin'); } catch (e) { fail(e); }
+    };
+  });
 }
 // ---------- database backup (admin) ----------
 const kb = (n) => n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';

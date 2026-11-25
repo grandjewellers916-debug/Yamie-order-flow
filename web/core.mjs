@@ -34,6 +34,9 @@ export const DEFAULT_SETTINGS = {
   subDisplays: [],
   // v1.54 names shown for product categories whose stored name differs (stored names stay — they are part of stock records)
   itemLabels: { Set: 'Jewellery Set', Coin: 'Gold coins' },
+  // v1.56 counting teams: [{ id, name, members: [userId], scope: ['a|Main', 's|Main|Sub', 'g|sec|Group', 'l|locId'] }]
+  teams: [],
+  teamStrict: false,
   spots: ['Cash Counter Area', 'Locker Area', 'Platinum Area', 'Free standing counter'],   // physical position (before v1.29 this was the main location)
   jtypes: ['Plain Gold Jewellery', 'Diamond Jewellery', 'Platinum', 'Tanih - CVD Jewellery', 'Silver', 'Mixed'],     // app count is matched against ERP labels ('lbl') or pieces ('pcs')
   reasons: ['Item sold, not updated', 'Moved to another tray', 'Sent for repair / approval', 'Label missing / wrong tag', 'Found extra item', 'Other'],
@@ -401,3 +404,9 @@ export function erpCompare(erp, locs, sm, settings, which = 'closing', opening =
 export function istDate(d = new Date()) {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
 }
+
+// v1.56 counting teams — which locations a team counts
+export const teamCovers = (t, l) => { const sc = t?.scope || []; return sc.includes(`a|${l.area || ''}`) || sc.includes(`s|${l.area || ''}|${l.sub || ''}`) || sc.includes(`g|${l.sec}|${l.group || ''}`) || sc.includes(`l|${l.id}`); };
+export const teamsForLoc = (st, l) => (st?.teams || []).filter((t) => teamCovers(t, l));
+export const teamsOfUser = (st, uid) => (st?.teams || []).filter((t) => (t.members || []).includes(uid));
+export const CLAIM_MS = 10 * 60 * 1000;   // a phone's "counting now" claim lasts 10 min unless renewed

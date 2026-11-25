@@ -5,6 +5,7 @@ import { runDocReminders } from '../lib/reminders.mjs';
 import {
   DEFAULT_SETTINGS, ROLE_PERMS, PERMS, SECTIONS, TXN_TYPES, deriveLocMeta, JTYPES, normJts, applyJewelleryTypes, mainLocsOf, placeLoc29, defaultPlace, keyText, lineKey, itemOf, jtOfLine, purOfLine, summarize, closingVerified, computeExpected, erpCompare,
   latestCounts, locStatus, sumLines, istDate, r3, CASH_DENOMS, cashCalc, isMorning,
+  teamsForLoc, CLAIM_MS,
 } from '../../web/core.mjs';
 
 export const config = { path: '/api/*' };
@@ -287,7 +288,8 @@ export default async (req: Request) => {
       const rpSent = can('share') ? await listJSON(s, `rps/${today}/`) : [];
       const grandDE = can('special') || can('grandBul') ? ((await s.get(`sxd/gbul/${today}`, { type: 'json' })) || false) : null;   // v1.37 Grand bullion day-end received?
       const shopLocs = (await listJSON(s, 'doc/')).filter((x: any) => x.type === 'Shop Location' && x.place).map((x: any) => ({ id: x.id, title: x.title, type: x.type, place: x.place }));   // v1.33 everyone can share the shop location
-      return J({ today, date, day: d.day, mvs: d.mvs, counts: d.allCounts, sessions, erp, locs, settings, me: pubUser(me), alerts, days, rpSent, shopLocs, grandDE, userNames: Object.fromEntries(users.map((u) => [u.id, u.name])) });
+      const claims = date === today ? (await listJSON(s, `cl/${today}/`)).filter((c: any) => now() - c.at < CLAIM_MS) : [];   // v1.56 who is counting what right now
+      return J({ today, date, day: d.day, mvs: d.mvs, counts: d.allCounts, sessions, erp, claims, locs, settings, me: pubUser(me), alerts, days, rpSent, shopLocs, grandDE, userNames: Object.fromEntries(users.map((u) => [u.id, u.name])) });
     }
 
     // helpers needing an open day
@@ -298,11 +300,28 @@ export default async (req: Request) => {
       return day;
     };
 
+    // v1.56 "counting now" claim from a phone — renew every minute while the count screen is open; release on close
+    if (path === 'claim' && method === 'POST') {
+      need('count'); await openDay(body.date || today);
+      const locId = String(body.locId || '').replace(/[^a-z0-9_-]/gi, '').slice(0, 40); if (!locId) return err('Unknown location');
+      const key = `cl/${today}/${locId}`; const cur: any = await s.get(key, { type: 'json' });
+      if (body.release) { if (cur && cur.by === me.id) await s.delete(key); return J({ ok: true }); }
+      if (cur && cur.by !== me.id && now() - cur.at < CLAIM_MS && !body.force) return J({ ok: false, by: cur.by, name: users.find((u) => u.id === cur.by)?.name || cur.by, at: cur.at });
+      if (cur && cur.by !== me.id && body.force && !can('accept')) return err('Only a manager can take over a count', 403);
+      await s.setJSON(key, { locId, by: me.id, at: now() });
+      return J({ ok: true });
+    }
+
     if (path === 'count' && method === 'POST') {
       need('count');
       await openDay(body.date);
       const locs = await getLocs(s); const settings = await getSettings(s);
       const loc = locs.find((l) => l.id === body.locId); if (!loc) return err('Unknown location');
+      // v1.56 teams: when "only the assigned team" is on, other staff can't count a team's locations (managers can)
+      const tf = teamsForLoc(settings, loc);
+      if (settings.teamStrict && tf.length && !can('accept') && !tf.some((t: any) => (t.members || []).includes(me.id))) return err(`${loc.name} is assigned to ${tf.map((t: any) => t.name).join(' / ')}. Ask a manager.`, 403);
+      const clm: any = await s.get(`cl/${today}/${loc.id}`, { type: 'json' });
+      if (clm && clm.by !== me.id && now() - clm.at < CLAIM_MS && !can('accept')) return err(`${users.find((u) => u.id === clm.by)?.name || 'Someone'} is counting ${loc.name} on another phone.`, 409);
       const { day, mvs, counts } = await loadDay(s, today);
       const exp = computeExpected(day.opening, mvs)[loc.id] || { lines: {}, wt: 0 };
       const prev = latestCounts(counts)[loc.id];
@@ -331,6 +350,7 @@ export default async (req: Request) => {
       const st = locStatus(exp, rec, [], loc.id, settings);
       rec.result = st.state; rec.diff = st.diff; rec.wtDiff = st.wtDiff;
       await s.setJSON(`ct/${today}/${loc.id}/${rec.id}`, rec);
+      try { await s.delete(`cl/${today}/${loc.id}`); } catch {}
       if (st.state === 'var') {
         const parts = Object.entries(st.diff).map(([t, d]: any) => `${keyText(loc, t)} ${d > 0 ? '+' : ''}${d}${rec.reasons[t] ? ` (${rec.reasons[t]})` : ''}`);
         if (mode !== 'count' && Math.abs(st.wtDiff) > settings.wtTol) parts.push(`weight ${st.wtDiff > 0 ? '+' : ''}${st.wtDiff.toFixed(3)} g`);
@@ -774,6 +794,10 @@ export default async (req: Request) => {
       if (b.jtShort && typeof b.jtShort === 'object') next.jtShort = Object.fromEntries(Object.entries(b.jtShort).map(([k, v]: any) => [str(k, 60), str(v, 20)]).filter(([, v]) => v));
       if (b.itemLabels && typeof b.itemLabels === 'object') next.itemLabels = Object.fromEntries(Object.entries(b.itemLabels).map(([k, v]: any) => [str(k, 30), str(v)]).filter(([k, v]) => k && v));   // v1.54 product display names
       if (Array.isArray(b.jtHidden)) next.jtHidden = b.jtHidden.map((x: any) => str(x, 60)).filter((x: string) => x && x !== 'Plain Gold Jewellery');
+      if (Array.isArray(b.teams)) next.teams = b.teams.slice(0, 30).map((t: any, i: number) => ({ id: str(t.id, 20).replace(/[^a-z0-9-]/gi, '') || `t${now()}${i}`, name: str(t.name) || `Team ${i + 1}`,
+        members: (Array.isArray(t.members) ? t.members : []).map((x: any) => str(x, 40)).filter((x: string) => users.some((u: any) => u.id === x)),
+        scope: (Array.isArray(t.scope) ? t.scope : []).slice(0, 400).map((x: any) => str(x, 140)).filter((x: string) => /^[asgl]\|/.test(x)) }));   // v1.56 counting teams
+      if (b.teamStrict != null) next.teamStrict = !!b.teamStrict;
       if (Array.isArray(b.jtOrder)) next.jtOrder = b.jtOrder.map((x: any) => str(x, 60)).filter(Boolean);
       if (Array.isArray(b.jtCustom)) { const used = new Set(['G', 'D', 'P', 'T', 'S']);
         next.jtCustom = b.jtCustom.slice(0, 15).map((c: any) => ({ name: str(c.name, 60), code: str(c.code, 1).toUpperCase(), label: str(c.label || c.name), short: str(c.short || c.label || c.name, 20), metal: ['Gold', 'Platinum', 'Silver'].includes(c.metal) ? c.metal : 'Gold' }))
