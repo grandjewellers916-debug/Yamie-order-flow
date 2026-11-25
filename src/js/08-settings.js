@@ -20,8 +20,9 @@ function renderMore() {
     ['links', 'Price Check & Repair Desk', 'Open the other Yamie apps', true],
     ['pin', 'Change my PIN', me.name, true],
   ];
-  $('vMore').innerHTML = `<p class="kicker">More</p><h1 class="h1">${esc(me.name)}</h1><p class="sub">${esc(me.role)} · Order Desk ${APP_VERSION}${NATIVE && NATIVE.version ? ' · app ' + esc(NATIVE.version()) : ''}</p>
+  $('vMore').innerHTML = `<p class="kicker">More</p><h1 class="h1">${esc(me.name)}</h1><p class="sub">${esc(me.role)} · Order Desk ${APP_VERSION}${NATIVE && NATIVE.version ? ' · app file ' + esc(NATIVE.version()) : ''}${serverVer ? ' · server ' + esc(serverVer) : ''}</p>
     <div class="menu">${items.filter((x) => x[3]).map(([k, t, d]) => `<button onclick="openSub('${k}')"><span>${t}<small>${esc(d)}</small></span>›</button>`).join('')}
+    <button onclick="updCheck(true)"><span>Check for updates · Reload app<small>Get the latest version without installing a new app</small></span>↻</button>
     <button onclick="logout()"><span>Log out<small>Back to the PIN screen</small></span>›</button></div>`;
 }
 function renderSub() {

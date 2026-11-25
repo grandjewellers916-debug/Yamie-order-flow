@@ -15,7 +15,9 @@ import { backupOp } from '../lib/backup.mts';
 
 export const config = { path: '/api/*' };
 
-const SERVER_VERSION = '2.7';
+/** Lowest APK that can run the current web page; raise it only when the Android (Kotlin) part changes. */
+const APK_MIN = '2.8';
+const SERVER_VERSION = '2.8';
 const PERM_KEYS = ['enquiry', 'estimate', 'approve', 'advance', 'verify', 'discount', 'confirm', 'vendor', 'production', 'receive', 'qc',
   'finalprice', 'approvefinal', 'ready', 'close', 'cancel', 'rates', 'vendors', 'vendorcontact', 'review', 'viewcost', 'reports', 'delete', 'settings', 'grand', 'grandCreate', 'grandSend', 'grandRecv', 'grandQc', 'grandLabel', 'grandMark', 'grandPack', 'grandDispatch', 'grandAcct', 'grandcfg'];
 const DEF_ROLE_PERMS: Record<string, string[]> = {
@@ -628,7 +630,7 @@ export default async (req: Request) => {
   if (method === 'POST') body = await req.json().catch(() => ({}));
 
   try {
-    if (path === 'ping') return J({ ok: true, now: now(), ver: SERVER_VERSION });
+    if (path === 'ping') return J({ ok: true, now: now(), ver: SERVER_VERSION, apkMin: APK_MIN });
     if (path === 'login-list') {
       const users = await getUsers(s);
       const st = await getSettings(s);

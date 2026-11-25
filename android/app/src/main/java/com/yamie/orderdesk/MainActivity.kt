@@ -99,8 +99,15 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        dropOldWebUpdate()
+        val bundled = WebViewAssetLoader.AssetsPathHandler(this)
         assetLoader = WebViewAssetLoader.Builder()
-            .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
+            .addPathHandler("/assets/", WebViewAssetLoader.PathHandler { path ->
+                // a newer web page downloaded by "Reload app" wins over the one inside the APK
+                val f = File(filesDir, "web/index.html")
+                if ((path == "index.html" || path.isEmpty()) && f.exists()) WebResourceResponse("text/html", "utf-8", f.inputStream())
+                else bundled.handle(path)
+            })
             .build()
 
         web = WebView(this)
@@ -221,7 +228,52 @@ class MainActivity : ComponentActivity() {
         } catch (e: Exception) { }
     }
 
+    // ---------- live update of the web part (no APK install needed) ----------
+    private fun bundledVer(): String = try { (packageManager.getPackageInfo(packageName, 0).versionName ?: "").split(".").take(2).joinToString(".") } catch (e: Exception) { "" }
+    private fun verCmp(a: String, b: String): Int {
+        val x = a.split(".").map { it.toIntOrNull() ?: 0 }; val y = b.split(".").map { it.toIntOrNull() ?: 0 }
+        for (i in 0 until maxOf(x.size, y.size)) { val d = (x.getOrElse(i) { 0 }) - (y.getOrElse(i) { 0 }); if (d != 0) return d }
+        return 0
+    }
+    private fun webUpdVer(): String = try { File(filesDir, "web/ver.txt").readText().trim() } catch (e: Exception) { "" }
+    /** After a new APK is installed, an older downloaded page must not hide it. */
+    private fun dropOldWebUpdate() {
+        val v = webUpdVer(); if (v.isEmpty() || verCmp(v, bundledVer()) <= 0) File(filesDir, "web").deleteRecursively()
+    }
+    private fun jsCall(code: String) = runOnUiThread { try { web.evaluateJavascript(code, null) } catch (e: Exception) { } }
+
     inner class Bridge {
+        @JavascriptInterface
+        fun webVer(): String = webUpdVer()
+
+        /** Download the live web page (same build as the website) into app storage; reports to window.onWebUpdate(ok, ver, msg). */
+        @JavascriptInterface
+        fun updateWeb(want: String) {
+            Thread {
+                try {
+                    val c = java.net.URL("https://$WEB_HOST/index.html?u=" + System.currentTimeMillis()).openConnection() as java.net.HttpURLConnection
+                    c.connectTimeout = 15000; c.readTimeout = 60000; c.useCaches = false; c.setRequestProperty("Cache-Control", "no-cache")
+                    if (c.responseCode != 200) throw Exception("HTTP " + c.responseCode)
+                    val html = c.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
+                    val v = Regex("APP_VERSION\\s*=\\s*[\"']([0-9.]+)[\"']").find(html)?.groupValues?.get(1) ?: throw Exception("not the Order Desk page")
+                    if (html.length < 50000 || !html.contains("</html>")) throw Exception("download incomplete")
+                    if (verCmp(v, bundledVer()) <= 0) { File(filesDir, "web").deleteRecursively(); jsCall("window.onWebUpdate&&onWebUpdate(true,'$v','same as app')"); return@Thread }
+                    val dir = File(filesDir, "web"); dir.mkdirs()
+                    val tmp = File(dir, "index.tmp"); tmp.writeText(html, Charsets.UTF_8)
+                    tmp.renameTo(File(dir, "index.html")); File(dir, "ver.txt").writeText(v)
+                    jsCall("window.onWebUpdate&&onWebUpdate(true,'$v','')")
+                } catch (e: Exception) {
+                    jsCall("window.onWebUpdate&&onWebUpdate(false,'',${JSONObject.quote(e.message ?: "error")})")
+                }
+            }.start()
+        }
+
+        @JavascriptInterface
+        fun reloadApp() = runOnUiThread { web.clearCache(false); web.loadUrl("https://$APP_HOST/assets/index.html") }
+
+        @JavascriptInterface
+        fun resetWeb() { File(filesDir, "web").deleteRecursively() }
+
 
 
         @JavascriptInterface
@@ -413,5 +465,6 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         const val APP_HOST = "appassets.androidplatform.net"
+        const val WEB_HOST = "yamie-order-desk.netlify.app"
     }
 }

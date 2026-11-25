@@ -1,7 +1,7 @@
 // ======================================================================
 // Yamie Order Desk — core: helpers, server calls, sync, login
 // ======================================================================
-const APP_VERSION = '2.7';
+const APP_VERSION = '2.8';
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s != null ? s : '').replace(/[&<>"']/g, (x) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[x]);
 const num = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(/[,₹\s]/g, '')); return isFinite(n) ? n : 0; };
@@ -95,13 +95,13 @@ let serverVer = '';
 /** Version on the top bar (app or web) and a warning when the server is older than this app. */
 function showVersion() {
   const appV = NATIVE && NATIVE.version ? (() => { try { return NATIVE.version(); } catch (e) { return ''; } })() : '';
-  const el = $('verTag'); if (el) el.textContent = (appV ? 'App v' + appV : 'Web v' + APP_VERSION) + (serverVer && serverVer !== APP_VERSION ? ' · server v' + serverVer : '');
+  const el = $('verTag'); if (el) el.textContent = (appV ? 'App v' + APP_VERSION + (appV.split('.').slice(0, 2).join('.') !== APP_VERSION ? ' (live)' : '') : 'Web v' + APP_VERSION) + (serverVer && serverVer !== APP_VERSION ? ' · server v' + serverVer : '');
   const w = $('verWarn'); if (w) w.hidden = !(serverVer && parseFloat(serverVer) < parseFloat(APP_VERSION));
 }
 async function pullAll() {
   const d = await api('state');
   orders = d.orders; applyCfg(d); lastPull = d.now; resetAt = d.resetAt || '';
-  serverVer = d.ver || '1.7'; showVersion();
+  serverVer = d.ver || '1.7'; showVersion(); if (typeof updCheck === 'function') updCheck(false);
   sortOrders(); cacheLocal(); setNet(true);
 }
 let pulling = false;

@@ -90,6 +90,12 @@ The page talks to `localStorage.yod_api` when set (tests set it to the local ser
 - Final price → manager approves → "Order ready: send card with final price". Customer-OK step and final price card removed (server no longer needs finals[].cust).
 - Phones on cards: shopPhone (estimate), shopPhone2 + shopLandline (ready), woPhone (work order).
 
+## V2.8 (25-11-2026)
+- Reload app / live updates: the APK checks the server version when it opens, every 30 minutes and when brought back to the front. If the website has a newer version, the app downloads the new page in the background and shows a violet bar "Version X is ready — Reload app". More → "Check for updates · Reload app" does it on demand. The website version just reloads.
+- The downloaded page is kept in the app's storage; installing a newer APK later replaces it automatically.
+- `APK_MIN` in api.mts: raise it only when the Android (Kotlin) part changes — older apps then show "New app — Download", which opens the latest APK from GitHub Releases.
+- Install V2.8 once by hand (older apps cannot update themselves; they show the Download bar).
+
 ## V2.7 (25-11-2026)
 - VA / making % is calculated on the gold value only (weight × gold rate × qty), never on stone or diamond value — same as Price Check. The "metal + stone" option is removed from Pricing & policy. Per-gram, flat and combo making were already on weight.
 - Estimates already sent keep their saved amounts; a recalculation (e.g. final price) uses the new basis.

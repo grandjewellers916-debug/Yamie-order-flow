@@ -44,7 +44,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: order-desk-v${{ github.run_number }}
-          name: Yamie Order Desk v2.7.${{ github.run_number }}
+          name: Yamie Order Desk v2.8.${{ github.run_number }}
           target_commitish: ${{ github.sha }}
           files: Yamie-Order-Desk-v*.apk
-          body: "Yamie Order Desk V2.7: VA / making % is now calculated on the gold value only (weight x gold rate), never on stones - same as Price Check. Includes everything in V2.6. Installs over the old version."
+          body: "Yamie Order Desk V2.8: Reload app - the app now updates itself from the website; when a new version is out a bar shows Reload app, and More has Check for updates. Install this APK once; later versions arrive without installing a new APK (unless the Android part changes - then the app offers the download). Includes everything in V2.7."
