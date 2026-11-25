@@ -456,7 +456,7 @@ const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 
   apply();
 })();
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.57';
+const VERSION = '1.58';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -906,16 +906,23 @@ function itemSummary0(l) { const e = expOf(l.id).lines; const F = S.cardF; const
   for (const [k, n] of Object.entries(e)) { if (!n) continue; const nm = keyText(l, k).replace(/^Gold /, ''); const on = !F || F.l(l, k); const x = m.get(nm) || { n: 0, on: false }; x.n += n; x.on ||= on; m.set(nm, x); }
   const arr = [...m.entries()].sort((a, b) => (b[1].on - a[1].on) || b[1].n - a[1].n);
   return arr.length ? `<div class="isum">${arr.slice(0, 8).map(([nm, x]) => `<span class="${F ? (x.on ? 'on' : 'off') : ''}">${esc(nm)} <b>${fmt(x.n)}</b></span>`).join('')}${arr.length > 8 ? `<span class="off">+${arr.length - 8} more</span>` : ''}</div>` : ''; }
+// v1.58 tray layout from setup: slots per tray × trays, minus the empty slots set in the tray settings (empties go in the last trays)
+function planSlots(l) {
+  const ins = +l.insert || 0, q = +l.qty || 0; let rem = Math.max(0, Math.min(ins * q, +l.empty || 0)); const per = [];
+  for (let i = 0; i < q; i++) { const m = Math.min(ins, rem); rem -= m; per.push(ins - m); }
+  const g = new Map(); for (const f of per) g.set(f, (g.get(f) || 0) + 1);
+  return [...g.entries()].sort((a, b) => b[0] - a[0]).map(([f, n]) => ({ f, n }));
+}
 function locCard(l) {
   const e = expOf(l.id); const st = S.sum.status[l.id]; const c = S.sum.last[l.id];
   const thumb = l.images?.[0] ? `<img loading="lazy" src="${img(l.images[0].key)}" alt="">` : svg(l.sec, 26);
   const chips = [l.boxNo ? `<span class="chip m">Box ${esc(l.boxNo)}</span>` : '', l.purity ? `<span class="chip m">${esc(l.purity)}</span>` : '', jtChips(l), l.cat && !['Gold', 'Diamond', 'Platinum', 'Mixed', 'Silver', 'Lab-grown', l.jtype].includes(l.cat) ? `<span class="chip">${esc(l.cat)}</span>` : '', l.itemType ? `<span class="chip">${esc(l.itemType)}</span>` : ''].join('');
   const slotsHtml = l.sec === 'tray' && +l.insert > 0 ? (() => {
-    const rowsS = c?.slots?.length ? c.slots.map((r) => ({ f: r.f, n: r.n })) : hideExp() ? null : [{ f: +l.insert, n: +l.qty || 0, plan: true }];
+    const rowsS = c?.slots?.length ? c.slots.map((r) => ({ f: r.f, n: r.n })) : hideExp() ? null : planSlots(l).map((r) => ({ ...r, plan: true }));
     if (!rowsS) return '';
     const tot = rowsS.reduce((a, r) => a + r.f * r.n, 0); const tr = rowsS.reduce((a, r) => a + r.n, 0);
     const okc = c?.slots?.length ? (st.state === 'ok' ? 'ok' : st.state === 'var' ? 'bad' : '') : 'plan';
-    return `<div class="brk ${okc}">${rowsS.map((r) => `<div class="br"><span>${r.f} slots × ${r.n} tray${r.n === 1 ? '' : 's'}</span><b>= ${fmt(r.f * r.n)}</b></div>`).join('')}${rowsS.length > 1 || c?.slots ? `<div class="br t"><span>Total</span><span>${tr} trays</span><b>= ${fmt(tot)}</b></div>` : ''}${okc === 'plan' ? '<div class="sm mut" style="padding:0 10px">Registered layout</div>' : ''}</div>`;
+    return `<div class="brk ${okc}">${rowsS.map((r) => `<div class="br"><span>${r.f} ${+r.f < +l.insert ? `filled (${l.insert - r.f} empty)` : 'slots'} × ${r.n} tray${r.n === 1 ? '' : 's'}</span><b>= ${fmt(r.f * r.n)}</b></div>`).join('')}${rowsS.length > 1 || c?.slots ? `<div class="br t"><span>Total</span><span>${tr} trays</span><b>= ${fmt(tot)}</b></div>` : ''}${okc === 'plan' ? '<div class="sm mut" style="padding:0 10px">Registered layout</div>' : ''}</div>`;
   })() : '';
   const clm = S.claims?.[l.id]; const busy = clm && clm.by !== S.me.id && ['pending', 'stale'].includes(st.state) && Date.now() - clm.at < CLAIM_MS;
   const tms = (S.D.settings.teams || []).length ? teamsForLoc(S.D.settings, l) : [];
@@ -1130,7 +1137,7 @@ function countFlow(id, ctx) {
   const reqPh = !!S.D.settings.reqPhotos;
   // slot mode: Total = Σ (filled slots × number of trays)
   const ins = +l.insert || 0; const sT = slotMode ? rows[0] : null;
-  if (slotMode && !K.slots) K.slots = [{ f: ins, n: +l.qty || 0 }];
+  if (slotMode && !K.slots) K.slots = planSlots(l).length ? planSlots(l) : [{ f: ins, n: 0 }];   // v1.58 starts from the tray's set-up empty slots
   const slotTot = slotMode ? K.slots.reduce((a, r) => a + (+r.f || 0) * (+r.n || 0), 0) : 0;
   const slotTrays = slotMode ? K.slots.reduce((a, r) => a + (+r.n || 0), 0) : 0;
   if (slotMode) v[sT] = { ok: false, n: slotTot, reason: K.reason || '' };
@@ -1155,13 +1162,13 @@ function countFlow(id, ctx) {
   let body = '';
   if (K.step === 'slots') {
     const d = slotTot - (e.lines[sT] || 0); const cap = slotTrays * ins;
-    body = `<div class="info">ⓘ Enter the number of trays for each slot configuration. Empty slots are not a shortage — only a difference from expected stock is.</div>
-    <div class="vt"><div class="vr h sl"><span></span><span>Tray type</span><span class="c">Slots filled</span><span class="c">No. of trays</span><span class="c">Total</span></div>
+    body = `<div class="info">ⓘ Count the <b>empty slots</b> in each tray and the number of trays — the pieces are worked out (slots − empty). Empty slots are not a shortage — only a difference from expected stock is.</div>
+    <div class="vt"><div class="vr h sl"><span></span><span>Tray type</span><span class="c">Empty slots</span><span class="c">No. of trays</span><span class="c">Total</span></div>
     ${K.slots.map((r, i) => `<div class="vr sl">${itIcon(itemOf(sT))}<span>${jtB(jtOfLine(l, sT))} <b>${esc(l.name)}</b><br><span class="sm mut">${+r.f === ins ? 'Full tray' : +r.f < ins ? `with ${ins - r.f} empty slot${ins - r.f > 1 ? 's' : ''}` : 'over-filled'}</span>${i ? ` <button class="sm" style="color:var(--bad)" data-sdel="${i}">Remove</button>` : ''}</span>
-      <span class="c">${i ? `<div class="step sm2"><button data-sf="${i}|-1">−</button><input type="number" inputmode="numeric" min="0" data-sfi="${i}" value="${r.f}"><button data-sf="${i}|1">+</button></div>` : `<span class="pill">${ins}</span>`}</span>
+      <span class="c"><div class="step sm2"><button data-se="${i}|-1">−</button><input type="number" inputmode="numeric" min="0" max="${ins}" data-sei="${i}" value="${Math.max(0, ins - (+r.f || 0))}"><button data-se="${i}|1">+</button></div><div class="sm mut" style="margin-top:2px">${fmt(+r.f || 0)} filled</div></span>
       <span class="c"><div class="step sm2"><button data-sn="${i}|-1">−</button><input type="number" inputmode="numeric" min="0" data-sni="${i}" value="${r.n}"><button data-sn="${i}|1">+</button></div></span>
       <span class="c"><span class="pill ok">${fmt((+r.f || 0) * (+r.n || 0))}</span></span></div>`).join('')}
-    <div class="vr add"><button class="btn sm ghost" id="sAdd">＋ Add trays with a different number of filled slots</button></div>
+    <div class="vr add"><button class="btn sm ghost" id="sAdd">＋ Add trays with a different number of empty slots</button></div>
     <div class="vr sl tot"><span></span><span class="b">Total</span><span></span><span class="c b">${fmt(slotTrays)} trays</span><span class="c b" style="font-size:20px">${fmt(slotTot)}</span></div></div>
     <div class="kpis" style="grid-template-columns:repeat(3,1fr);margin-top:12px">
       <div class="kpi okt"><div class="l">Total slots</div><div class="v">${fmt(cap)}</div><div class="sm mut">${slotTrays} × ${ins}</div></div>
@@ -1211,7 +1218,7 @@ function countFlow(id, ctx) {
   const nextLbl = K.step === 'review' ? `Verify ${box ? 'box' : 'tray'}${ctx.sess ? ' & next' : ''}` : `Next: ${steps[sIdx + 1][1]}`;
   const html = `${sessStrip(id)}
     <div class="ctiles">${photosRow(l).replace('<div class="photos">', '<div class="photos mini">')}<div class="kpis tiles">${tiles}</div></div>
-    <div class="row wrap" style="margin:10px 0">${[l.boxNo ? `Box ${l.boxNo}` : '', l.purity, jtNames(l), l.cat && !['Gold', 'Diamond', 'Platinum'].includes(l.cat) ? l.cat : '', l.itemType, l.insert ? `${l.insert} × ${l.qty || 1}` : ''].filter(Boolean).map((x, i) => `<span class="chip ${i === 0 && l.boxNo ? 'mm' : 'm'}">${esc(x)}</span>`).join('')}</div>
+    <div class="row wrap" style="margin:10px 0">${[l.boxNo ? `Box ${l.boxNo}` : '', l.purity, jtNames(l), l.cat && !['Gold', 'Diamond', 'Platinum'].includes(l.cat) ? l.cat : '', l.itemType, l.insert ? `${l.insert} × ${l.qty || 1}${+l.empty ? ` · ${l.empty} empty` : ''}` : ''].filter(Boolean).map((x, i) => `<span class="chip ${i === 0 && l.boxNo ? 'mm' : 'm'}">${esc(x)}</span>`).join('')}</div>
     <div class="steps">${steps.map(([k, t], i) => `<button data-step="${k}" class="${k === K.step ? 'on' : ''} ${i < sIdx ? 'past' : ''}" ${k === 'submit' || i > sIdx ? 'disabled' : ''}><i>${i < sIdx ? '✓' : i + 1}</i>${t}</button>`).join('')}</div>
     ${body}
     <div class="foot">${footL}<span class="who hs2">${svg('user', 18)} <span><span class="mut sm">Counted by</span><br><b>${esc(S.me.name)}</b></span></span><button class="btn sec" id="rst">↺ Reset</button>${S.sess && ctx.sess ? '<button class="btn sec hs2" id="vsum">☰ View summary</button>' : ''}<button class="btn" id="nx">${nextLbl} ›</button></div>`;
@@ -1229,12 +1236,14 @@ function countFlow(id, ctx) {
     ov.querySelectorAll('[data-ws]').forEach((b) => b.onclick = () => { K.wt = r3((K.wt ?? wtExp) + +b.dataset.ws); rerender(); });
     $('#cNote') && ($('#cNote').oninput = () => { K.note = $('#cNote').value; });
     ov.querySelectorAll('[data-step]').forEach((b) => b.onclick = () => { if (b.disabled) return; K.step = b.dataset.step; rerender(); });
+    ov.querySelectorAll('[data-se]').forEach((b) => b.onclick = () => { const [i, d] = b.dataset.se.split('|'); const em = Math.max(0, Math.min(ins, ins - (+K.slots[i].f || 0) + +d)); K.slots[i].f = ins - em; rerender(); });
+    ov.querySelectorAll('[data-sei]').forEach((x) => x.onchange = () => { const em = Math.max(0, Math.min(ins, Math.round(+x.value || 0))); K.slots[x.dataset.sei].f = ins - em; rerender(); });
     ov.querySelectorAll('[data-sf]').forEach((b) => b.onclick = () => { const [i, d] = b.dataset.sf.split('|'); K.slots[i].f = Math.max(0, Math.min(ins, (+K.slots[i].f || 0) + +d)); rerender(); });
     ov.querySelectorAll('[data-sn]').forEach((b) => b.onclick = () => { const [i, d] = b.dataset.sn.split('|'); K.slots[i].n = Math.max(0, (+K.slots[i].n || 0) + +d); rerender(); });
     ov.querySelectorAll('[data-sfi]').forEach((x) => x.onchange = () => { K.slots[x.dataset.sfi].f = Math.max(0, Math.round(+x.value || 0)); rerender(); });
     ov.querySelectorAll('[data-sni]').forEach((x) => x.onchange = () => { K.slots[x.dataset.sni].n = Math.max(0, Math.round(+x.value || 0)); rerender(); });
     ov.querySelectorAll('[data-sdel]').forEach((b) => b.onclick = () => { K.slots.splice(+b.dataset.sdel, 1); rerender(); });
-    $('#sAdd') && ($('#sAdd').onclick = () => { K.slots.push({ f: Math.max(0, ins - 1), n: 1 }); rerender(); });
+    $('#sAdd') && ($('#sAdd').onclick = () => { K.slots.push({ f: Math.max(0, ins - 1), n: 1 }); if (K.slots[0] && +K.slots[0].n > 0 && K.slots.length === 2) K.slots[0].n = +K.slots[0].n - 1; rerender(); });
     $('#sReason') && ($('#sReason').onchange = () => { K.reason = $('#sReason').value; rerender(); });
     $('#vsum') && ($('#vsum').onclick = sessionOverview);
     $('#vAll') && ($('#vAll').onclick = () => { rows.forEach((t) => { v[t] = { ok: true }; }); K.va = true; rerender(); toast(`All ${rows.length} items marked Yes`); });
@@ -1286,7 +1295,7 @@ function resultView(id, ctx) {
   const myCounts = S.D.counts.filter((x) => x.locId === id).sort((a, b) => b.at - a.at);
   const types = [...new Set([...Object.keys(e.lines), ...Object.keys(c?.lines || {})])];
   const html = `${sessStrip(id)}${photosRow(l)}
-  <div class="row wrap" style="margin:10px 0">${[l.boxNo ? `Box ${l.boxNo}` : '', l.purity, jtNames(l), l.cat && !['Gold', 'Diamond', 'Platinum'].includes(l.cat) ? l.cat : '', l.itemType, l.insert ? `${l.insert} × ${l.qty || 1}` : ''].filter(Boolean).map((x) => `<span class="chip m">${esc(x)}</span>`).join('')}</div>
+  <div class="row wrap" style="margin:10px 0">${[l.boxNo ? `Box ${l.boxNo}` : '', l.purity, jtNames(l), l.cat && !['Gold', 'Diamond', 'Platinum'].includes(l.cat) ? l.cat : '', l.itemType, l.insert ? `${l.insert} × ${l.qty || 1}${+l.empty ? ` · ${l.empty} empty` : ''}` : ''].filter(Boolean).map((x) => `<span class="chip m">${esc(x)}</span>`).join('')}</div>
   ${blind ? '' : `<div class="kpis" style="grid-template-columns:repeat(4,1fr)">
     <div class="kpi"><div class="l">Opening</div><div class="v" style="font-size:20px">${fmt(sumLines(o.lines))}</div>${box ? `<div class="sm mut">${g3(o.wt)} g</div>` : ''}</div>
     <div class="kpi"><div class="l">In</div><div class="v" style="font-size:20px;color:var(--ok)">${fmt(sumLines(f.in))}</div>${box ? `<div class="sm mut">${g3(f.wtIn)} g</div>` : ''}</div>
@@ -1483,7 +1492,8 @@ function locEdit(l) {
     <div class="grow"><label class="f">Tag (optional — Lab-grown, Kids, Gents…)</label><select id="eCat"><option value="">—</option>${st.categories.map((p) => `<option ${l.cat === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div></div>
     <div class="row"><div class="grow"><label class="f">Main item type</label><select id="eType"><option value="">Mixed / several</option>${st.itemTypes.map((p) => `<option ${l.itemType === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div>
     ${l.sec === 'box' ? '' : `<div class="grow hidden" id="boxF"><label class="f">Box number</label><input type="text" id="eBoxX" value="${esc(l.boxNo || '')}"></div>`}</div>
-    <div class="row" id="trayF"><div class="grow"><label class="f">Pcs per tray (insert)</label><input type="number" id="eIns" value="${esc(l.insert || '')}"></div><div class="grow"><label class="f">No. of trays</label><input type="number" id="eQty" value="${esc(l.qty || '')}"></div></div>
+    <div class="row" id="trayF"><div class="grow"><label class="f">Pcs per tray (insert)</label><input type="number" id="eIns" value="${esc(l.insert || '')}"></div><div class="grow"><label class="f">No. of trays</label><input type="number" id="eQty" value="${esc(l.qty || '')}"></div><div class="grow"><label class="f">Empty slots</label><input type="number" id="eEmp" min="0" value="${esc(l.empty || '')}" placeholder="0"></div></div>
+    <div class="mut sm" id="eEmpH" style="margin-top:4px">${l.id && +l.insert ? (() => { const ex = sumLines(expOf(l.id).lines); const cap = (+l.insert || 0) * (+l.qty || 0); return `Pieces = slots × trays − empty slots. Stock now ${fmt(ex)} pcs in ${fmt(cap)} slots${cap > ex ? ` <button class="btn sm ghost" type="button" id="eEmpUse">Set empty to ${fmt(cap - ex)}</button>` : ''}`; })() : 'Pieces = slots × trays − empty slots.'}</div>
     <div id="modeF"><label class="f">Default box check</label><select id="eMode">${[['both', 'Weight + count'], ['weight', 'Weight only'], ['count', 'Count only']].map(([k, t]) => `<option value="${k}" ${l.mode === k ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
     <label class="f">Note</label><input type="text" id="eNote" value="${esc(l.note || '')}">
     ${canItems ? `<h3 style="margin:16px 0 6px">Items in this ${l.sec === 'box' ? 'box' : 'location'}</h3><div class="mut sm">${isNew ? 'Pieces placed here now (you can also add later).' : 'Add, change or delete items. Saving updates book stock (logged).'}</div><div id="iedBox" style="margin-top:8px"></div>${isNew && l.sec === 'box' ? `<div id="iniWt"><label class="f">Box weight (g)</label><input type="number" step="0.001" inputmode="decimal" id="eWt"></div>` : ''}` : ''}
@@ -1507,8 +1517,9 @@ function locEdit(l) {
       jtHint(); drawItems(); });
     const vis = () => { const s = $('#eSec').value; const cur = $('#ePlace').value.split('||'); $('#ePlace').innerHTML = placeOpts(s, cur[0], cur[1] || ''); $('#boxF') && $('#boxF').classList.toggle('hidden', true); $('#modeF').classList.toggle('hidden', s !== 'box'); $('#trayF').classList.toggle('hidden', s !== 'tray'); };
     $('#eSec').onchange = vis; vis();
+    $('#eEmpUse') && ($('#eEmpUse').onclick = () => { $('#eEmp').value = $('#eEmpUse').textContent.replace(/\D/g, ''); });
     $('#eSave').onclick = async () => {
-      const [pA, pS = ''] = $('#ePlace').value.split('||'); const loc = { ...l, area: pA, sub: pS, spot: $('#eSpot').value.trim(), jtype: jsel.length > 1 ? 'Mixed' : jsel[0], jtypes: jsel, sec: $('#eSec').value, group: $('#eGrp').value.trim(), name: $('#eName').value.trim(), purity: $('#ePur').value, cat: $('#eCat').value, itemType: $('#eType').value, boxNo: (($('#eBox') || $('#eBoxX'))?.value || '').trim(), insert: +$('#eIns').value || 0, qty: +$('#eQty').value || 0, mode: $('#eMode').value, note: $('#eNote').value };
+      const [pA, pS = ''] = $('#ePlace').value.split('||'); const loc = { ...l, area: pA, sub: pS, spot: $('#eSpot').value.trim(), jtype: jsel.length > 1 ? 'Mixed' : jsel[0], jtypes: jsel, sec: $('#eSec').value, group: $('#eGrp').value.trim(), name: $('#eName').value.trim(), purity: $('#ePur').value, cat: $('#eCat').value, itemType: $('#eType').value, boxNo: (($('#eBox') || $('#eBoxX'))?.value || '').trim(), insert: +$('#eIns').value || 0, qty: +$('#eQty').value || 0, empty: Math.max(0, Math.round(+($('#eEmp')?.value) || 0)), mode: $('#eMode').value, note: $('#eNote').value };
       if (loc.sec === 'box') { loc.boxNo = ($('#eBox') || $('#eBoxX'))?.value.trim() || loc.boxNo || ''; if (!loc.boxNo && !loc.name) return toast('Enter the box number'); if (!loc.name) loc.name = /^box/i.test(loc.boxNo) ? loc.boxNo : `Box ${loc.boxNo}`; if (!loc.group) loc.group = loc.itemType ? `${loc.itemType} boxes` : 'Boxes'; }
       if (loc.sec === 'tray' && !loc.group) loc.group = loc.itemType ? `${loc.itemType} trays` : 'Buffer trays';
       if (loc.sec === 'counter' && !loc.group) return toast('Enter the counter (e.g. Cash side · Counter 1)');
@@ -3682,7 +3693,7 @@ function locTable(sec, ls, lineF, matchPcs) {
       default: if (c.icol) { const n = c.v(l); return `<td class="${n ? '' : 'mut'}">${n ? fmt(n) : '—'}</td>`; }
       case 'pcs': return `<td>${lineF ? `<b>${fmt(matchPcs(l))}</b> <span class="mut sm">/ ${fmt(sumLines(e.lines))}</span>` : fmt(sumLines(e.lines))}</td>`;
       case 'trays': return `<td>${+l.qty ? `<b>${fmt(+l.qty)}</b>` : '—'}</td>`;
-      case 'slots': return `<td>${+l.insert ? fmt(+l.insert) + (+l.qty ? ` <span class="mut sm">= ${fmt(l.insert * l.qty)}</span>` : '') : '—'}</td>`;
+      case 'slots': return `<td>${+l.insert ? fmt(+l.insert) + (+l.qty ? ` <span class="mut sm">= ${fmt(l.insert * l.qty - (+l.empty || 0))}${+l.empty ? ` (${fmt(+l.empty)} empty)` : ''}</span>` : '') : '—'}</td>`;
       case 'wt': return `<td class="${e.wt || sec !== 'box' ? '' : 'neg'}">${e.wt ? g3(e.wt) : sec === 'box' ? 'not set' : '—'}${can('setup') && editable() ? ` <button class="lnk" data-wtl="${l.id}">${e.wt ? 'edit' : 'add'}</button>` : ''}</td>`;
       case 'status': { const st = S.sum.status[l.id]?.state; return `<td style="text-align:left"><span class="st ${st}">${STLBL[st] || ''}</span></td>`; }
         return `<td style="text-align:left">${esc(c.v(l) || '—')}</td>`; } };

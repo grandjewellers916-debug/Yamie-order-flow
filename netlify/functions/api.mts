@@ -547,7 +547,7 @@ export default async (req: Request) => {
       need('setup');
       const data = await s.get('cfg/locs', { type: 'json' });
       const L = body.loc || {};
-      const fields = ['sec', 'group', 'name', 'purity', 'cat', 'itemType', 'boxNo', 'insert', 'qty', 'mode', 'images', 'note', 'order', 'erpName', 'itemNotes', 'area', 'sub', 'jtype', 'jtypes', 'cover', 'spot'];
+      const fields = ['sec', 'group', 'name', 'purity', 'cat', 'itemType', 'boxNo', 'insert', 'qty', 'empty', 'mode', 'images', 'note', 'order', 'erpName', 'itemNotes', 'area', 'sub', 'jtype', 'jtypes', 'cover', 'spot'];
       let loc = data.locs.find((l: any) => l.id === L.id);
       if (L.active === false && loc) {
         const day = await ensureToday(s); const { mvs } = await loadDay(s, today);
