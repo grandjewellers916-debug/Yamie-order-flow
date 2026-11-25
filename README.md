@@ -666,3 +666,6 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 ## 1.9.10 — Delete quote: admin only
 - Deleting a quote is now an admin function. Quotes list: admins see a 🗑 beside each quote; the open quote's Delete button shows for admins only. Confirm shows the quote no., items and customer; the quote is removed for all staff.
 - "Delete quotes" is admin-only on the phone and on the server (a role with that permission can no longer delete); a staff member can still ask an admin to enter their PIN.
+
+## 1.9.11 — Net weight range in Search
+- Search ranges: **Gross wt** and **Net wt** are separate from–to ranges (the Gross/Net drop-down is gone), so both can be used together. Also in the phone filter sheet and the active-filter chips.
