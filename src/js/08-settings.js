@@ -82,7 +82,7 @@ function subPolicy() {
         <label class="check" style="margin:4px 0"><input type="checkbox" id="po_mkA" ${mkShowFlags(s.mkShow || 'type').amt ? 'checked' : ''}><span>Show the making amount (otherwise it is included in the gold value)</span></label>
         <p class="hint">Staff can change it for each estimate / final price.</p></div>
       <div class="two">${inp('huidRate', 'HUID charge ₹ per piece')}<div class="field"><label>Payments</label><label class="check" style="margin:6px 0"><input type="checkbox" id="po_verifyPay" ${s.verifyPay !== false ? 'checked' : ''}><span>Manager must verify each payment</span></label></div></div>
-      <label class="check"><input type="checkbox" id="po_mkOnStone" ${s.mkOnStone ? 'checked' : ''}><span>VA / making % applies to metal + stone (Price Check / Yamie workbook). Untick for metal only.</span></label>
+      <p class="hint">VA / making % is calculated on the gold value only (weight × gold rate), never on stones — same as Price Check.</p>
       <div class="two">${inp('discLimit', 'Sales discount limit % (above needs manager)')}${inp('tol', 'Final price tolerance ±%')}</div>
       <p class="hint">Karat reference weights (same design in each karat; from the Karat Converter bangle):</p>
       <div class="two">${['k22', 'k18', 'k14', 'k9'].map((k) => `<div class="field"><label>${k.slice(1).toUpperCase()}K grams</label><input id="kr_${k}" inputmode="decimal" value="${s.karatRef[k]}"></div>`).join('')}</div>
@@ -110,7 +110,7 @@ function savePolicy() {
   ['gst', 'discLimit', 'tol', 'minAdv', 'leadDays', 'qcBuffer', 'autoLock', 'huidRate'].forEach((k) => { st[k] = num($('po_' + k).value); });
   SHOP_KEYS.forEach((k) => { st[k] = $('po_' + k).value.trim(); });
   const mT = $('po_mkT').checked, mA = $('po_mkA').checked;
-  st.mkOnStone = $('po_mkOnStone').checked; st.mkShow = mT && mA ? 'type' : mA ? 'amount' : mT ? 'typeonly' : 'hide'; st.verifyPay = $('po_verifyPay').checked;
+  st.mkOnStone = false; st.mkShow = mT && mA ? 'type' : mA ? 'amount' : mT ? 'typeonly' : 'hide'; st.verifyPay = $('po_verifyPay').checked;
   st.shipRates = _ship.filter((r) => String(r.name).trim()).map((r) => ({ name: String(r.name).trim(), rate: num(r.rate) })); st.karatRef22Weighed = $('po_k22w').checked;
   ['k22', 'k18', 'k14', 'k9'].forEach((k) => { st.karatRef[k] = num($('kr_' + k).value) || st.karatRef[k]; });
   if (_off.length >= 7) return toast('Keep at least one working day');

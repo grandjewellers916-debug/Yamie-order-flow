@@ -15,7 +15,7 @@ import { backupOp } from '../lib/backup.mts';
 
 export const config = { path: '/api/*' };
 
-const SERVER_VERSION = '2.6';
+const SERVER_VERSION = '2.7';
 const PERM_KEYS = ['enquiry', 'estimate', 'approve', 'advance', 'verify', 'discount', 'confirm', 'vendor', 'production', 'receive', 'qc',
   'finalprice', 'approvefinal', 'ready', 'close', 'cancel', 'rates', 'vendors', 'vendorcontact', 'review', 'viewcost', 'reports', 'delete', 'settings', 'grand', 'grandCreate', 'grandSend', 'grandRecv', 'grandQc', 'grandLabel', 'grandMark', 'grandPack', 'grandDispatch', 'grandAcct', 'grandcfg'];
 const DEF_ROLE_PERMS: Record<string, string[]> = {
@@ -27,7 +27,7 @@ const DEF_SETTINGS: any = {
   shopAddr: '63/322Aa Ground Level, Grand Business Center, K K Road, Kadavanthra, Ernakulam, Kerala 682020',
   rates: { k22: 0, k18: 0, k14: 0, k9: 0, pt: 0, ag: 0, at: 0, by: '', src: '', kioskAt: '' },
   kioskAuto: true, kioskUrl: 'https://grandjewellers.com/api/kiosk-rates',
-  gst: 3, minAdv: 20, roundTo: 50, finalRoundTo: 100, gems: null, lists: null, mkRules: [], mkShow: 'type', verifyPay: true, huidRate: 80, shipRates: [{ name: 'Courier (Kerala)', rate: 150 }, { name: 'Courier (rest of India)', rate: 300 }, { name: 'India Post (insured)', rate: 400 }], shopPhone2: '', shopLandline: '', woPhone: '', rem: {}, reviewDesks: [{ name: 'Owner / Admin', users: [] }, { name: 'Design desk', users: [] }], reviewTopics: ['Pricing', 'Making charge', 'Design style', 'Stones', 'Size / weight', 'Other'], mkOnStone: true, leadDays: 20, qcBuffer: 2, weeklyOff: [0], holidays: [],
+  gst: 3, minAdv: 20, roundTo: 50, finalRoundTo: 100, gems: null, lists: null, mkRules: [], mkShow: 'type', verifyPay: true, huidRate: 80, shipRates: [{ name: 'Courier (Kerala)', rate: 150 }, { name: 'Courier (rest of India)', rate: 300 }, { name: 'India Post (insured)', rate: 400 }], shopPhone2: '', shopLandline: '', woPhone: '', rem: {}, reviewDesks: [{ name: 'Owner / Admin', users: [] }, { name: 'Design desk', users: [] }], reviewTopics: ['Pricing', 'Making charge', 'Design style', 'Stones', 'Size / weight', 'Other'], mkOnStone: false, leadDays: 20, qcBuffer: 2, weeklyOff: [0], holidays: [],
   estValid: 7, validCount: 'cal', estExpired: 'block', finalValid: 0, roundMode: 'up', finalRoundMode: 'up', advRound: 1, tol: 2, discLimit: 0, karatRef: { k22: 32.6, k18: 28.4, k14: 24.3, k9: 18.7 },
   approveDays: 2, etdWarnDays: 2, collectDays: 7, autoLock: 20,
   priceCheckUrl: 'https://yamie-price-check.netlify.app', repairUrl: 'https://yamie-repair-desk.netlify.app',

@@ -44,7 +44,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: order-desk-v${{ github.run_number }}
-          name: Yamie Order Desk v2.6.${{ github.run_number }}
+          name: Yamie Order Desk v2.7.${{ github.run_number }}
           target_commitish: ${{ github.sha }}
           files: Yamie-Order-Desk-v*.apk
-          body: "Yamie Order Desk V2.6: Grand orders - edit and delete by admin only (admin can edit after goods are received); bullion issue with alloy and total weight, received weight, optional internal document numbers for issue and receipt, current balance and mode of payment (RTGS, Bullion invoice, Balance pending) - new permission 09. Includes everything in V2.5. Installs over the old version."
+          body: "Yamie Order Desk V2.7: VA / making % is now calculated on the gold value only (weight x gold rate), never on stones - same as Price Check. Includes everything in V2.6. Installs over the old version."

@@ -1,6 +1,6 @@
 // ======================================================================
 // Pricing — same flow as Yamie Price Check:
-// metal = net wt × rate × qty; stones; making as % (of metal + stone, or metal only),
+// metal = net wt × rate × qty; stones; making as % of the gold (metal) value only,
 // ₹ per gram, both, or flat; other charges; discount; GST; round UP to ₹50.
 // ======================================================================
 const PURITIES = [
@@ -34,7 +34,7 @@ function priceLine(it, rates, wt) {
   const w = num(wt != null ? wt : it.wt), rate = rateOf(it.purity, rates);
   const metal = r2(w * rate * qty);
   const stone = r2((it.stones || []).reduce((t, s) => t + stoneCharge(s), 0) * qty);
-  const base = S.mkOnStone ? metal + stone : metal;
+  const base = metal; // VA / making % is always on the gold (metal) value only — never on stones
   // making at the rate quoted (mk / mkPg) and, if the sales staff gave a lower "making after discount", at that rate
   const mkAt = (pct, pg) => {
     if (it.mkMode === 'pct') return { making: 0, va: r2(base * num(pct) / 100) };
@@ -105,7 +105,7 @@ function breakdownHtml(b, items, opt = {}) {
     if (l.stone) rows.push([`${nm}Stones`, rupee2(l.stone)]);
     if (l.mkSave) rows.push([`${nm}Making as quoted`, `<s>${rupee2(l.mkFull)}</s>`]);
     if (l.making) rows.push([`${nm}Making${l.mkSave ? ' after discount' : ''}`, rupee2(l.making)]);
-    if (l.va) rows.push([`${nm}VA / making ${num(l.mkSave && it.mkD !== '' && it.mkD != null ? it.mkD : it.mk)}%${l.mkSave ? ' after discount' : ''}${S.mkOnStone ? ' (metal + stone)' : ''}`, rupee2(l.va)]);
+    if (l.va) rows.push([`${nm}VA / making ${num(l.mkSave && it.mkD !== '' && it.mkD != null ? it.mkD : it.mk)}%${l.mkSave ? ' after discount' : ''} of gold value`, rupee2(l.va)]);
     if (l.huid) rows.push([`${nm}HUID · ${l.huidN} × ₹${num(S.huidRate)}`, rupee2(l.huid)]);
     if (l.other) rows.push([`${nm}Other`, rupee2(l.other)]);
   });

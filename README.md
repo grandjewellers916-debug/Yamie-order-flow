@@ -90,6 +90,10 @@ The page talks to `localStorage.yod_api` when set (tests set it to the local ser
 - Final price → manager approves → "Order ready: send card with final price". Customer-OK step and final price card removed (server no longer needs finals[].cust).
 - Phones on cards: shopPhone (estimate), shopPhone2 + shopLandline (ready), woPhone (work order).
 
+## V2.7 (25-11-2026)
+- VA / making % is calculated on the gold value only (weight × gold rate × qty), never on stone or diamond value — same as Price Check. The "metal + stone" option is removed from Pricing & policy. Per-gram, flat and combo making were already on weight.
+- Estimates already sent keep their saved amounts; a recalculation (e.g. final price) uses the new basis.
+
 ## V2.6 (23-11-2026)
 - Grand orders: Edit and Delete are admin only. An admin can edit an order even after goods came in; lines already received keep their received qty / weight and cannot be removed.
 - Bullion & payment card on each Grand order (permission "09. Bullion issue, receipt doc. no., balance & payment"):
