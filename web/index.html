@@ -991,6 +991,8 @@ body.stm .mr-img{width:52px;height:52px}body.stm .mr-t b{font-size:14.5px}body.s
 .bu-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}.bu-h{margin:14px 0 6px;font-size:14px}.bu-row{display:flex;align-items:center;gap:8px;padding:5px 4px;border-bottom:1px solid var(--line,#EEE)}.bu-row label{flex:1;display:flex;gap:8px;align-items:center;cursor:pointer}.bu-row.off label{color:var(--muted)}.bu-top{display:flex;flex-wrap:wrap;gap:8px}
 @media (max-width:700px){.bu-cols{grid-template-columns:1fr}}
 :root.no-wtop{--wt:0px!important}:root.no-wtop:not(#_) .wtop{display:none!important}:root.no-wtop:not(#_) .dk-bell{display:inline-grid}
+.mp-mode{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 8px}.mp-h{margin:14px 0 6px;font-size:14px;font-weight:700;color:var(--muted)}.mp-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.mp-row input{flex:1 1 220px;min-height:42px;padding:6px 12px;border:1px solid var(--line);border-radius:12px;font:inherit;background:var(--surface);color:inherit}
+.mp-prev .note{margin:10px 0 6px}.mp-th{display:flex;gap:8px;flex-wrap:wrap}.mp-th img{width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid var(--line);background:#fff}
 .stf-ph{flex:1 1 100%;grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:2px}.stf-phl{font-size:13px;font-weight:600;color:var(--muted);margin-right:2px}
 .stf-r{display:inline-flex;align-items:center;gap:7px;padding:7px 14px 7px 10px;border:1px solid var(--line,#E5DED6);border-radius:99px;background:var(--surface,#fff);font-size:14px;cursor:pointer;user-select:none}
 .stf-r input{appearance:none;-webkit-appearance:none;width:18px;height:18px;margin:0;border:2px solid var(--muted,#999);border-radius:50%;display:grid;place-items:center;flex:none}
@@ -6304,7 +6306,8 @@ function paintSelBar(){
   for(const k of [...stSel])if(!stockMap.has(k))stSel.delete(k);
   const on=document.body.dataset.view==='search'&&stSel.size>0&&can('stSelect');b.hidden=!on;if(!on)return;
   const tot=stLastRows.length,more=stLastRows.some(r=>!stSel.has(r.key));
-  b.innerHTML=`<span class="ss-n"><b>${stSel.size.toLocaleString('en-IN')}</b> selected</span>${more&&tot>1?`<button type="button" class="linkbtn" id="ssAll">${DESK.matches?'Select all '+tot.toLocaleString('en-IN')+' found':'All '+tot.toLocaleString('en-IN')}</button>`:''}<button type="button" class="btn primary" id="ssShare">Share…</button>${can('stReport')?'<button type="button" class="btn" id="ssRep">Report…</button>':''}${can('stockBulk')?'<button type="button" class="btn" id="ssUpd">Update…</button>':''}<button type="button" class="btn ss-clr" id="ssClr">Clear</button>`;
+  b.innerHTML=`<span class="ss-n"><b>${stSel.size.toLocaleString('en-IN')}</b> selected</span>${more&&tot>1?`<button type="button" class="linkbtn" id="ssAll">${DESK.matches?'Select all '+tot.toLocaleString('en-IN')+' found':'All '+tot.toLocaleString('en-IN')}</button>`:''}<button type="button" class="btn primary" id="ssShare">Share…</button>${can('stReport')?'<button type="button" class="btn" id="ssRep">Report…</button>':''}${can('stockBulk')?'<button type="button" class="btn" id="ssUpd">Update…</button>':''}${can('images')?'<button type="button" class="btn" id="ssPh">Photo…</button>':''}<button type="button" class="btn ss-clr" id="ssClr">Clear</button>`;
+  if($('ssPh'))$('ssPh').onclick=()=>multiPhoto([...stSel]);
   if($('ssUpd'))$('ssUpd').onclick=()=>bulkForm([...stSel].map(k=>stockMap.get(k)).filter(Boolean));
   if($('ssAll'))$('ssAll').onclick=()=>{stLastRows.slice(0,500).forEach(r=>stSel.add(r.key));if(tot>500)toast('First 500 items selected',null,true);runFind()};
   $('ssClr').onclick=()=>{stSel.clear();runFind();paintSelBar()};
@@ -7508,6 +7511,43 @@ async function imgAct(k,act,i,u){
   try{runFind()}catch(e){}try{if(keyOf(cur.sku)===k)renderEditor()}catch(e){}
   return true;
 }
+// ---------- V1.9.13 the same photo for many items (e.g. chains of one model), or copy photos from another item ----------
+async function imgMany(keys,src,mode){
+  if(!sync.key){toast('Connect the shared database first',null,true);return false}
+  if(!navigator.onLine){toast('Needs the internet to change photos',null,true);return false}
+  if(!(await editCredsOk()))return false;
+  try{const r=await syncApi('imgmany','POST',{keys,mode,...src},adminCreds);
+    if(r&&r.idx){imgIdx=r.idx;imgN=r.n||{};store.set('imgIdx',imgIdx);store.set('imgN',imgN);sync.v.imgs=r.v||sync.v.imgs;saveSyncState()}
+    for(const k of keys){imgMem.delete(k);try{await PH.del('img:'+k)}catch(e){}delete imgT[k]}store.set('imgT',imgT);
+    closeModal();toast(`${r.photos>1?r.photos+' photos':'Photo'} ${mode==='replace'?'set on':'added to'} ${r.done} item${r.done===1?'':'s'}`+(r.full?` · ${r.full} already had ${IMG_MAX} photos`:''));
+    try{runFind()}catch(e){}if(keys.length===1)try{openPhotos(keys[0])}catch(e){}return true}
+  catch(e){toast(e&&e.status===403?(mode==='replace'?'Replacing photos needs a user allowed to delete photos':'Not allowed for this user'):'Photos not saved. '+syncErrText(e),null,true);return false}
+}
+function multiPhoto(keys,copyOnly){
+  keys=[...new Set(keys)].filter(Boolean);if(!keys.length)return;
+  const one=keys.length===1,lbl=one?keys[0]:keys.length+' items',withPh=keys.filter(k=>imgCount(k)>0).length;
+  showModal(one?`Copy photos to ${lbl}`:`Photo for ${lbl}`,one?'Copy all photos of another item (e.g. the same model) to this item.':`Give all ${keys.length} selected items the same photo — e.g. chains of the same model.${withPh?` ${withPh} already have photos.`:''}`,[{label:'Close',cls:'ghost'}]);$('modal').dataset.ph='';
+  $('modalBody').innerHTML=`<div class="mp">
+    <div class="mp-mode" role="radiogroup" aria-label="Their own photos"><label class="stf-r on"><input type="radio" name="mpMode" value="add" checked><span>Add to ${one?'its':'their'} photos</span></label><label class="stf-r"><input type="radio" name="mpMode" value="replace"><span>Replace ${one?'its':'their'} photos</span></label></div>
+    ${copyOnly?'':`<div class="mp-h">Upload a photo</div><div class="mp-row"><button type="button" class="btn primary" data-mp="gallery">${onComputer()?'Choose a file':'Gallery'}</button><button type="button" class="btn" data-mp="camera">Camera</button></div><div class="mp-h">or copy from an item</div>`}
+    <div class="mp-row"><input id="mpFrom" list="mpFromL" autocomplete="off" placeholder="Label no. with the photo, e.g. CHN1195" maxlength="40" aria-label="Copy photos from label no."><datalist id="mpFromL">${[...stockMap.values()].filter(r=>imgCount(r.key)&&!keys.includes(r.key)).slice(0,400).map(r=>`<option value="${esc(r.barcode||r.key)}">${esc(pnameOf(r)||r.item||'')}</option>`).join('')}</datalist><button type="button" class="btn" id="mpCopy" disabled>Copy photos</button></div>
+    <div class="mp-prev" id="mpPrev"></div>
+  </div>`;
+  const mode=()=>(document.querySelector('input[name="mpMode"]:checked')||{}).value||'add';
+  document.querySelectorAll('input[name="mpMode"]').forEach(i=>i.onchange=()=>document.querySelectorAll('.mp-mode .stf-r').forEach(l=>l.classList.toggle('on',l.contains(document.querySelector('input[name="mpMode"]:checked')))));
+  $('modalBody').querySelectorAll('[data-mp]').forEach(b=>b.onclick=()=>withPerm('images','Needs a user allowed to add product photos.',()=>{photoJob={multi:keys,mode:mode()};if(canNativePhotos){NATIVE.pickPhotos(b.dataset.mp);return}const inp=$(b.dataset.mp==='camera'?'pimgCam':'pimgFile');inp.multiple=false;inp.click()},true));
+  let src='',tk=0;
+  const look=async()=>{const t=++tk,raw=$('mpFrom').value.trim(),r=findStock?findStock(raw):null,k=r?r.key:keyOf(raw);src='';$('mpCopy').disabled=true;
+    if(!raw){$('mpPrev').innerHTML='';return}
+    if(keys.includes(k)){$('mpPrev').innerHTML='<p class="note">That is one of the items you are giving photos to.</p>';return}
+    const n=imgCount(k);if(!n){$('mpPrev').innerHTML=`<p class="note">${esc(raw)}: no photos${r?'':' (label not found)'}.</p>`;return}
+    $('mpPrev').innerHTML='<p class="note">Loading…</p>';const us=await getProdImgs(k).catch(()=>[]);if(t!==tk)return;
+    $('mpPrev').innerHTML=`<p class="note"><b>${esc(r?(r.barcode||r.key):k)}</b>${r&&pnameOf(r)?' · '+esc(pnameOf(r)):''} — ${us.length} photo${us.length===1?'':'s'}</p><div class="mp-th">${us.map(u=>`<img src="${u}" alt="">`).join('')}</div>`;src=k;$('mpCopy').disabled=false};
+  $('mpFrom').addEventListener('input',()=>{clearTimeout(look.t);look.t=setTimeout(look,300)});
+  $('mpFrom').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();if(src)$('mpCopy').click();else look()}});
+  $('mpCopy').onclick=()=>withPerm('images','Needs a user allowed to add product photos.',()=>{if(src)imgMany(keys,{from:src},mode())},true);
+  setTimeout(()=>$('mpFrom').focus(),50);
+}
 // what to do with the next picked photo(s)
 let photoJob=null;
 function pickPhotos(k,act,i,src){
@@ -7517,6 +7557,7 @@ function pickPhotos(k,act,i,src){
 }
 async function takePhotos(list){
   const j=photoJob;photoJob=null;if(!j||!list.length)return;
+  if(j.multi){const u=await shrinkUrl(list[0],1024);await imgMany(j.multi,{img:u},j.mode);return}
   if(j.act==='set'){await imgAct(j.k,'set',j.i,list[0]);toast('Photo replaced')}
   else{let n=0;for(const u of list){if(!(await imgAct(j.k,'add',0,u)))break;n++}if(n)toast(n===1?'Photo added':`${n} photos added`)}
   pmNameAuto(j.k);
@@ -7573,11 +7614,12 @@ async function paintPhotoMgr(k){
     <p class="note">${arr.length?`${arr.length} photo${arr.length===1?'':'s'} · the first is the main photo, used in quotes and search.`:'No photos yet.'} Saved for all phones and computers.</p>
     <div class="pm-grid">${arr.map((u,ix)=>`<figure class="pm-t${ix?'':' main'}"><button type="button" class="pm-im" data-big="${ix}" aria-label="View photo ${ix+1}"><img src="${u}" alt="Photo ${ix+1} of ${esc(k)}"></button>${ix?'':'<span class="pm-badge">Main</span>'}
       <figcaption>${ix?`<button type="button" class="linkbtn" data-main="${ix+1}">Make main</button>`:''}<button type="button" class="linkbtn" data-rep="${ix+1}">Replace</button><button type="button" class="linkbtn danger" data-del="${ix+1}">Delete</button></figcaption></figure>`).join('')}
-      ${addOk?`<div class="pm-add"><b>Add photo${arr.length?'s':''}</b><button type="button" class="btn sm primary" data-add="camera">Camera</button><button type="button" class="btn sm" data-add="gallery">${onComputer()?'Choose files':'Gallery'}</button><button type="button" class="btn sm" id="pmPasteBtn">Paste</button><small>${IMG_MAX-arr.length} more allowed</small></div>`:''}</div>
+      ${addOk?`<div class="pm-add"><b>Add photo${arr.length?'s':''}</b><button type="button" class="btn sm primary" data-add="camera">Camera</button><button type="button" class="btn sm" data-add="gallery">${onComputer()?'Choose files':'Gallery'}</button><button type="button" class="btn sm" id="pmPasteBtn">Paste</button><button type="button" class="btn sm" id="pmCopyFrom">Copy from another item…</button><small>${IMG_MAX-arr.length} more allowed</small></div>`:''}</div>
     ${addOk?`<div class="pm-paste" id="pmPaste" contenteditable="true" role="textbox" aria-label="Paste a photo here" spellcheck="false">${onComputer()?'Copy a photo, then press <b>Ctrl+V</b> here to add it':'Long-press here and tap <b>Paste</b> to add a copied photo'}</div>`:''}`;
   pnameCheck($('pmName'),$('pmPnNote'),k);wireAttr('pmA');
   $('pmNameSave').onclick=()=>withPerm('images','Needs a user allowed to add product photos.',async()=>{const v=$('pmName').value.replace(/\s+/g,' ').trim(),a=readAttr('pmA');const ok1=await savePnames({[k]:v}),ok2=attrSame(a,attrOf(stockMap.get(k)||{key:k}))?true:await savePattrs({[k]:a});if(ok1&&ok2)toast('Details saved'+(v?` · ${v}`:''))},true);
   $('pmName').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('pmNameSave').click()}});
+  if($('pmCopyFrom'))$('pmCopyFrom').onclick=()=>multiPhoto([k],true);
   if($('pmPasteBtn'))$('pmPasteBtn').onclick=()=>withPerm('images','Needs a user allowed to add product photos.',async()=>{
     try{const its=await navigator.clipboard.read();const bl=[];for(const it of its){const t=it.types.find(x=>/^image\//.test(x));if(t)bl.push(await it.getType(t))}
       if(!bl.length){toast('No photo copied. Copy a photo first.',null,true);return}await pastePhotos(k,bl)}catch(e){const z=$('pmPaste');if(z){z.focus();toast(onComputer()?'Press Ctrl+V to paste':'Long-press the box and tap Paste',null,true)}}},true);
@@ -8551,7 +8593,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.9.12',APP_BUILD='__BUILD__';
+const APP_VERSION='1.9.13',APP_BUILD='__BUILD__';
 const NATIVE_API=1;   // V1.9.12 bump (with MainActivity.NATIVE_API) when the screens need something new from the phone app
 // V1.9.12 automatic updates: the phone app downloads new screens itself and calls window.__otaReady; the website checks ota.json.
 // The page reloads only when nobody is busy (no popup, not typing, not scanning, app in front).

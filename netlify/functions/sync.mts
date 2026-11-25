@@ -501,7 +501,7 @@ export default async (req: Request) => {
       return json(req, { v: meta.leads, lead })
     }
 
-    const OP_PERM: Record<string, string> = { plists: "plists", coins: "coins", coindel: "coinSet", coinset: "coinSet", unsell: "stock", release: "approve", img: "images", quotedel: "delQuote", stock: "stock", stockdel: "stockdel", ratelog: "rates", pubrates: "rates", stockrow: "stockEdit", stocksold: "closeSale", pname: "images", pattr: "images" }
+    const OP_PERM: Record<string, string> = { imgmany: "images", plists: "plists", coins: "coins", coindel: "coinSet", coinset: "coinSet", unsell: "stock", release: "approve", img: "images", quotedel: "delQuote", stock: "stock", stockdel: "stockdel", ratelog: "rates", pubrates: "rates", stockrow: "stockEdit", stocksold: "closeSale", pname: "images", pattr: "images" }
     const role = await callerRole()
     if (op === "settings") { if (!role || ![...SETTINGS_PERMS, "theme", "footer", "apprSet", "promos", "rules"].some((p) => roleHas(role, p))) return json(req, { error: "bad_pin" }, 403) }
     else if (op === "users") { if (!role || !(roleHas(role, "users") || roleHas(role, "roles"))) return json(req, { error: "bad_pin" }, 403) }
@@ -538,6 +538,31 @@ export default async (req: Request) => {
       await st.setJSON("imgidx", idx); await st.setJSON("imgn", cnt)
       meta.imgs = Date.now(); await saveMeta()
       return json(req, { v: meta.imgs, idx, n: cnt, count: n })
+    }
+
+    if (op === "imgmany") {
+      // V1.9.13 one photo, or all photos of another label, onto many labels (e.g. chains of the same model)
+      const K = (v: any) => cleanStr(v, 40).toUpperCase().replace(/[^A-Z0-9]/g, "")
+      const from = K(body?.from), mode = body?.mode === "replace" ? "replace" : "add"
+      const keys = [...new Set((Array.isArray(body?.keys) ? body.keys : []).map(K).filter((k: string) => k && k !== from))].slice(0, 300) as string[]
+      if (!keys.length) return json(req, { error: "no_keys" }, 400)
+      if (mode === "replace" && !(await permOk("imgDel"))) return json(req, { error: "bad_pin" }, 403)
+      const idx: any = (await st.get("imgidx", { type: "json" })) || {}, cnt: any = (await st.get("imgn", { type: "json" })) || {}
+      const src: string[] = []
+      if (typeof body?.img === "string" && /^data:image\/(jpeg|png|webp);base64,/.test(body.img) && body.img.length < 400000) src.push(body.img)
+      else if (from) { const n = idx[from] ? Math.max(1, Number(cnt[from]) || 1) : 0; for (let j = 1; j <= n; j++) { const x = await st.get(imgPath(from, j)); if (x) src.push(x as string) } }
+      if (!src.length) return json(req, { error: "no_photo" }, 400)
+      let done = 0, full = 0
+      for (const k of keys) {
+        let n = idx[k] ? Math.max(1, Number(cnt[k]) || 1) : 0
+        if (mode === "replace") { for (let j = 1; j <= n; j++) await st.delete(imgPath(k, j)); n = 0 }
+        for (const im of src) { if (n >= IMG_MAX) { full++; break } n++; await st.set(imgPath(k, n), im) }
+        if (n) { idx[k] = Date.now(); if (n > 1) cnt[k] = n; else delete cnt[k] } else { delete idx[k]; delete cnt[k] }
+        done++
+      }
+      await st.setJSON("imgidx", idx); await st.setJSON("imgn", cnt)
+      meta.imgs = Date.now(); await saveMeta()
+      return json(req, { v: meta.imgs, idx, n: cnt, done, full, photos: src.length })
     }
 
     const soldReg = async () => (((await st.get("sold", { type: "json" })) as any) || {}) as Record<string, any>

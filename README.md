@@ -674,3 +674,8 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 - **Phone app:** on opening and when brought back (at most every 15 min) it checks the website's `ota.json`, downloads only the changed files into app storage and serves them instead of the built-in copy — same address, so saved data and sign-in stay. It reloads itself when nobody is busy (no popup, not typing, not scanning). A new APK is needed only when `NATIVE_API` goes up (screens that need new phone features); a newer APK replaces any downloaded copy. Phones need this APK (1.9.12) once; after that screen updates arrive by themselves.
 - **Website:** checks `ota.json` every 10 min and when the tab comes back, and reloads itself the same safe way.
 - `ota.json` is written at each Netlify deploy by `tools/ota.mjs` (in the build command). Bump `NATIVE_API` in web/index.html and MainActivity together when the web needs a new native function.
+
+## 1.9.13 — Same photo for many items; copy photos from another item
+- Search: select items (e.g. chains of the same model) → **Photo…** in the selection bar → upload one photo (Gallery / Camera / file) or **copy from an item** (type its label; its photos are previewed). **Add to their photos** or **Replace their photos** (replace needs "delete photos").
+- Item photos window: **Copy from another item…** (same window, one item).
+- Server op `imgmany` {keys ≤300, img | from, mode} copies on the server — nothing is uploaded twice; items already at 6 photos are reported.
