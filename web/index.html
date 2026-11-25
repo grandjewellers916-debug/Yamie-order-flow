@@ -8551,7 +8551,22 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.9.11',APP_BUILD='__BUILD__';
+const APP_VERSION='1.9.12',APP_BUILD='__BUILD__';
+const NATIVE_API=1;   // V1.9.12 bump (with MainActivity.NATIVE_API) when the screens need something new from the phone app
+// V1.9.12 automatic updates: the phone app downloads new screens itself and calls window.__otaReady; the website checks ota.json.
+// The page reloads only when nobody is busy (no popup, not typing, not scanning, app in front).
+let updPending='';
+function updIdle(){const a=document.activeElement,g=id=>document.getElementById(id);if(document.hidden)return false;if(g('modal')&&!g('modal').hidden)return false;if(g('login')&&!g('login').hidden)return false;if(g('cellEd'))return false;if(g('imgFull')&&!g('imgFull').hidden)return false;if(g('camScan')&&!g('camScan').hidden)return false;if(a&&(/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)||a.isContentEditable))return false;return true}
+function updTry(){if(!updPending)return;if(updIdle()){const v=updPending;updPending='';try{toast(`Updating to v${v}…`)}catch(e){}setTimeout(()=>location.reload(),900);return}clearTimeout(updTry.t);updTry.t=setTimeout(updTry,4000)}
+window.__otaReady=v=>{updPending=String(v||'new');updTry()};
+async function webUpdCheck(manual){
+  if(typeof YamieNative!=='undefined'&&YamieNative.checkUpdate){try{YamieNative.checkUpdate()}catch(e){}return}
+  if(location.protocol!=='https:'||!/^web-/.test(APP_BUILD))return;
+  try{const j=await (await fetch('ota.json?t='+Date.now(),{cache:'no-store'})).json();
+    if(j&&j.build&&j.build!==APP_BUILD){const k='ypc_updTried',t=JSON.parse(sessionStorage.getItem(k)||'{}');if(t.b===j.build&&Date.now()-t.at<10*60e3)return;sessionStorage.setItem(k,JSON.stringify({b:j.build,at:Date.now()}));window.__otaReady(j.v)}
+    else if(manual)toast(`You have the latest version (v${APP_VERSION})`)}catch(e){if(manual)toast('Could not check — offline?')}}
+setInterval(()=>webUpdCheck(),10*60e3);setTimeout(()=>webUpdCheck(),15000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){webUpdCheck();updTry()}});
 {const b=APP_BUILD.includes('__')?'dev':APP_BUILD,v='v'+APP_VERSION;$('appVer').textContent=v+' · '+(/^web/.test(b)?b:'build '+b);$('heroVer').textContent=v;if($('sbVer'))$('sbVer').textContent=v;if($('wtVer'))$('wtVer').textContent=v;try{document.documentElement.dataset.ver=APP_VERSION}catch(e){}}
 
 // ---------- users and login ----------

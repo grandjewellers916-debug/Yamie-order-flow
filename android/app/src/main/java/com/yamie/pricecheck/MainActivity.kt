@@ -85,8 +85,9 @@ class MainActivity : ComponentActivity() {
             android.content.pm.ActivityInfo.SCREEN_ORIENTATION_FULL_USER
         else android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
+        otaPrune()
         assetLoader = WebViewAssetLoader.Builder()
-            .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
+            .addPathHandler("/assets/", OtaHandler())
             .build()
 
         web = WebView(this)
@@ -147,6 +148,99 @@ class MainActivity : ComponentActivity() {
         if (savedInstanceState != null) web.restoreState(savedInstanceState)
         else web.loadUrl("https://$APP_HOST/assets/index.html")
         takeIntent(intent)
+        otaCheck(true)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::web.isInitialized) otaCheck(false)
+    }
+
+    // ---------- V1.9.12 automatic updates (no new APK needed for screen changes) ----------
+    // The app checks the website's ota.json, downloads only the files that changed into app storage and serves
+    // them in place of the built-in copy. Same address, so saved data and sign-in stay. If the website needs a
+    // newer phone app (nativeApi), the update waits for a new APK. A newer APK replaces any downloaded copy.
+    private val otaRoot by lazy { File(filesDir, "ota") }
+    private val otaWeb get() = File(otaRoot, "web")
+    @Volatile private var otaLast = 0L
+    @Volatile private var otaBusy = false
+    private fun otaHost() = if (packageName.contains("grand")) "grand-price-check.netlify.app" else "yamie-price-check.netlify.app"
+    private fun appVersion(): String = try { packageManager.getPackageInfo(packageName, 0).versionName ?: "0" } catch (e: Exception) { "0" }
+    private fun verCmp(a: String, b: String): Int {
+        val x = a.split('.').map { it.toIntOrNull() ?: 0 }; val y = b.split('.').map { it.toIntOrNull() ?: 0 }
+        for (i in 0 until maxOf(x.size, y.size)) { val d = x.getOrElse(i) { 0 } - y.getOrElse(i) { 0 }; if (d != 0) return d }
+        return 0
+    }
+    private fun otaState(): JSONObject = try { JSONObject(File(otaRoot, "state.json").readText()) } catch (e: Exception) { JSONObject() }
+    private fun otaPrune() {
+        val v = otaState().optString("v", "")
+        if (v.isEmpty() || verCmp(appVersion(), v) >= 0) { otaWeb.deleteRecursively(); File(otaRoot, "state.json").delete() }
+    }
+    private fun sha(input: java.io.InputStream): String {
+        val md = java.security.MessageDigest.getInstance("SHA-256")
+        input.use { val b = ByteArray(65536); while (true) { val n = it.read(b); if (n < 0) break; md.update(b, 0, n) } }
+        return md.digest().joinToString("") { "%02x".format(it) }
+    }
+    private fun assetSha(path: String): String? = try { sha(assets.open(path)) } catch (e: Exception) { null }
+    private fun otaGet(url: String): ByteArray {
+        val c = URL(url).openConnection() as HttpURLConnection
+        c.connectTimeout = 8000; c.readTimeout = 20000; c.useCaches = false
+        try { if (c.responseCode != 200) throw Exception("HTTP ${c.responseCode}"); return c.inputStream.use { it.readBytes() } } finally { c.disconnect() }
+    }
+    private fun otaCheck(force: Boolean) {
+        val now = System.currentTimeMillis()
+        if (otaBusy || (!force && now - otaLast < 15 * 60_000L)) return
+        otaLast = now; otaBusy = true
+        thread(name = "ota") {
+            val next = File(otaRoot, "next")
+            try {
+                val host = otaHost()
+                val man = JSONObject(String(otaGet("https://$host/ota.json?t=$now")))
+                val v = man.optString("v", ""); val build = man.optString("build", "")
+                if (man.optInt("nativeApi", 1) > NATIVE_API || v.isEmpty() || build.isEmpty()) return@thread
+                if (verCmp(v, appVersion()) <= 0 || otaState().optString("build") == build) return@thread
+                val files = man.getJSONObject("files")
+                next.deleteRecursively(); next.mkdirs()
+                for (p in files.keys()) {
+                    if (p == "brand-id.js" || p == "ota.json" || p.contains("..") || p.startsWith("/")) continue
+                    val want = files.getString(p)
+                    if (assetSha(p) == want) continue                       // same as the built-in copy
+                    val dst = File(next, p); dst.parentFile?.mkdirs()
+                    val cur = File(otaWeb, p)
+                    if (cur.isFile && sha(cur.inputStream()) == want) { cur.copyTo(dst, true); continue }
+                    val bytes = otaGet("https://$host/" + p.split('/').joinToString("/") { Uri.encode(it) } + "?b=" + Uri.encode(build))
+                    if (sha(bytes.inputStream()) != want) throw Exception("changed while downloading: $p")
+                    dst.writeBytes(bytes)
+                }
+                otaWeb.deleteRecursively(); otaRoot.mkdirs()
+                if (!next.renameTo(otaWeb)) throw Exception("swap")
+                File(otaRoot, "state.json").writeText(JSONObject().put("v", v).put("build", build).put("at", now).toString())
+                runOnUiThread { web.evaluateJavascript("window.__otaReady&&window.__otaReady(${JSONObject.quote(v)})", null) }
+            } catch (e: Exception) {
+                next.deleteRecursively()
+            } finally { otaBusy = false }
+        }
+    }
+    private fun mimeOf(p: String) = when (p.substringAfterLast('.').lowercase()) {
+        "html", "htm" -> "text/html"; "js", "mjs" -> "text/javascript"; "css" -> "text/css"; "json" -> "application/json"
+        "webmanifest" -> "application/manifest+json"; "png" -> "image/png"; "jpg", "jpeg" -> "image/jpeg"; "svg" -> "image/svg+xml"
+        "webp" -> "image/webp"; "gif" -> "image/gif"; "ico" -> "image/x-icon"; "wasm" -> "application/wasm"; "txt" -> "text/plain"
+        else -> "application/octet-stream"
+    }
+    private inner class OtaHandler : WebViewAssetLoader.PathHandler {
+        private val base = WebViewAssetLoader.AssetsPathHandler(this@MainActivity)
+        override fun handle(path: String): WebResourceResponse? {
+            if (path != "brand-id.js") {
+                val f = File(otaWeb, path)
+                try {
+                    if (f.isFile && f.canonicalPath.startsWith(otaWeb.canonicalPath + File.separator)) {
+                        val m = mimeOf(path)
+                        return WebResourceResponse(m, if (m.startsWith("text/") || m.contains("json") || m.contains("javascript")) "utf-8" else null, f.inputStream())
+                    }
+                } catch (e: Exception) { }
+            }
+            return base.handle(path)
+        }
     }
 
     // WhatsApp text shared into the app, or a tapped notification
@@ -192,6 +286,10 @@ class MainActivity : ComponentActivity() {
     }
 
     inner class Bridge {
+        @JavascriptInterface
+        fun checkUpdate() { runOnUiThread { otaCheck(true) } }   // V1.9.12
+        @JavascriptInterface
+        fun webVersion(): String = otaState().optString("v", "")
         @JavascriptInterface
         fun scan(source: String) {
             runOnUiThread {
@@ -543,6 +641,8 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         private const val APP_HOST = "appassets.androidplatform.net"
+        // V1.9.12 bump with NATIVE_API in web/index.html when the screens need something new from this phone app
+        const val NATIVE_API = 1
         private const val RATES_URL = "https://grandjewellers.com/api/kiosk-rates"
     }
 }

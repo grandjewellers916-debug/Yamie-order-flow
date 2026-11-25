@@ -46,6 +46,7 @@ jobs:
             grand-price-check.apk
 
       - name: Publish download
+        if: github.ref == 'refs/heads/price-check'   # test builds from other branches only check that it compiles
         uses: softprops/action-gh-release@v2
         with:
           tag_name: price-check-v${{ github.run_number }}

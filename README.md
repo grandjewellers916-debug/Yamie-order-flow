@@ -669,3 +669,8 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 
 ## 1.9.11 — Net weight range in Search
 - Search ranges: **Gross wt** and **Net wt** are separate from–to ranges (the Gross/Net drop-down is gone), so both can be used together. Also in the phone filter sheet and the active-filter chips.
+
+## 1.9.12 — Automatic updates (no manual update)
+- **Phone app:** on opening and when brought back (at most every 15 min) it checks the website's `ota.json`, downloads only the changed files into app storage and serves them instead of the built-in copy — same address, so saved data and sign-in stay. It reloads itself when nobody is busy (no popup, not typing, not scanning). A new APK is needed only when `NATIVE_API` goes up (screens that need new phone features); a newer APK replaces any downloaded copy. Phones need this APK (1.9.12) once; after that screen updates arrive by themselves.
+- **Website:** checks `ota.json` every 10 min and when the tab comes back, and reloads itself the same safe way.
+- `ota.json` is written at each Netlify deploy by `tools/ota.mjs` (in the build command). Bump `NATIVE_API` in web/index.html and MainActivity together when the web needs a new native function.
