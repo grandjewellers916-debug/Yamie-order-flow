@@ -2,7 +2,7 @@ name: Build Android app
 
 on:
   push:
-    branches: [price-check]
+    branches: [price-check, price-check-web]   # review branch: build check only (no release)
   workflow_dispatch:
 
 permissions:
