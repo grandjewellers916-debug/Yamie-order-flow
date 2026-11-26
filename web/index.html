@@ -2262,6 +2262,7 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
 }
 @media (min-width:1280px) and (pointer:fine) and (prefers-color-scheme:dark){:root:not(#_):not([data-theme="light"]) body{background:var(--pg)}}
 
+.pb-w{position:relative;display:block;flex:1 1 auto;min-width:0}.pb-w>input{width:100%;padding-right:46px!important;box-sizing:border-box}.pb-b{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:38px;height:34px;display:grid;place-items:center;border:0;border-radius:8px;background:var(--soft,#F6EEF0);color:var(--brand,#6E1E33);cursor:pointer;padding:0}.pb-b:active{opacity:.7}
 </style>
 <script src="brand-id.js"></script>
 <script src="brand.js"></script>
@@ -8693,7 +8694,33 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.9.15',APP_BUILD='__BUILD__';
+const APP_VERSION='1.9.16',APP_BUILD='__BUILD__';
+/* V1.9.16 phone book on every customer number box (share, report, wishlist, lead, quote, order), like Order Desk */
+const canPickContact=()=>!!((NATIVE&&NATIVE.pickContact)||(navigator.contacts&&navigator.contacts.select));
+const pbClean=p=>{const d=String(p||'').replace(/[^\d+]/g,'');return d.replace(/^\+?91(?=\d{10}$)/,'').replace(/^0(?=\d{10}$)/,'')};
+async function pickContact(done){
+  if(NATIVE&&NATIVE.pickContact){window.onContactPicked=r=>{window.onContactPicked=null;if(r&&r.ok)done({name:r.name||'',phone:pbClean(r.phone)});else if(r&&r.error)toast(r.error)};NATIVE.pickContact();return}
+  if(navigator.contacts&&navigator.contacts.select){try{const [c]=await navigator.contacts.select(['name','tel'],{multiple:false});if(c)done({name:(c.name||[])[0]||'',phone:pbClean((c.tel||[])[0]||'')})}catch(e){}return}
+  toast('Picking contacts works in the app or Chrome on Android');
+}
+const PB_NAME={qPhone:'qName',ldPhone:'ldName'};
+function pbNameBox(inp){
+  if(PB_NAME[inp.id])return $(PB_NAME[inp.id]);
+  if(inp.dataset.k==='phone'){const f=inp.closest('form,.lead-f')?.parentElement||inp.parentElement;return f&&f.querySelector('input[data-k="name"]')}
+  return null;
+}
+const PB_ICO='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M8 17c.8-1.8 2.3-2.6 4-2.6s3.2.8 4 2.6M3 7h2M3 12h2M3 17h2"/></svg>';
+function pbWire(root){
+  if(!canPickContact())return;
+  (root||document).querySelectorAll('input[inputmode="tel"]:not([data-pb])').forEach(inp=>{
+    inp.dataset.pb='1';const w=document.createElement('span');w.className='pb-w';inp.parentNode.insertBefore(w,inp);w.appendChild(inp);
+    const b=document.createElement('button');b.type='button';b.className='pb-b';b.title='Pick from phone book';b.setAttribute('aria-label','Pick from phone book');b.innerHTML=PB_ICO;w.appendChild(b);
+    b.onclick=()=>pickContact(c=>{if(!c.phone)return;inp.value=c.phone;inp.dispatchEvent(new Event('input',{bubbles:true}));inp.dispatchEvent(new Event('change',{bubbles:true}));
+      const n=pbNameBox(inp);if(n&&!n.value.trim()&&c.name){n.value=c.name;n.dispatchEvent(new Event('input',{bubbles:true}));n.dispatchEvent(new Event('change',{bubbles:true}))}
+      if(c.name)toast(`${c.name} · ${c.phone}`)});
+  });
+}
+try{new MutationObserver(ms=>{for(const m of ms)if(m.addedNodes.length){pbWire();break}}).observe(document.body,{childList:true,subtree:true});pbWire()}catch(e){}
 const NATIVE_API=1;   // V1.9.12 bump (with MainActivity.NATIVE_API) when the screens need something new from the phone app
 // V1.9.12 automatic updates: the phone app downloads new screens itself and calls window.__otaReady; the website checks ota.json.
 // The page reloads only when nobody is busy (no popup, not typing, not scanning, app in front).

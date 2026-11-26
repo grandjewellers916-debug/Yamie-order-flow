@@ -13,6 +13,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.print.PrintAttributes
+import android.provider.ContactsContract
 import android.print.PrintManager
 import android.util.Base64
 import android.webkit.JavascriptInterface
@@ -280,12 +281,35 @@ class MainActivity : ComponentActivity() {
 
     private val askNotify = registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
+    // V1.9.16 phone book: pick one number (no contacts permission needed for a picked entry), like Order Desk
+    private val pickContact = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
+        val uri = res.data?.data
+        var name = ""; var phone = ""
+        if (res.resultCode == RESULT_OK && uri != null) {
+            try {
+                contentResolver.query(uri, arrayOf(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NUMBER), null, null, null)?.use { c ->
+                    if (c.moveToFirst()) { name = c.getString(0) ?: ""; phone = c.getString(1) ?: "" }
+                }
+            } catch (e: Exception) { }
+        }
+        val o = JSONObject().put("name", name).put("phone", phone).put("ok", phone.isNotEmpty())
+        web.evaluateJavascript("window.onContactPicked&&window.onContactPicked(${o})", null)
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         web.saveState(outState)
     }
 
     inner class Bridge {
+        @JavascriptInterface
+        fun pickContact(): Boolean {
+            runOnUiThread {
+                try { pickContact.launch(Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI)) }
+                catch (e: Exception) { web.evaluateJavascript("window.onContactPicked&&window.onContactPicked({ok:false,error:'No contacts app'})", null) }
+            }
+            return true
+        }
         @JavascriptInterface
         fun checkUpdate() { runOnUiThread { otaCheck(true) } }   // V1.9.12
         @JavascriptInterface
