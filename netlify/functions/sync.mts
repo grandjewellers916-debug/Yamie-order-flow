@@ -650,8 +650,8 @@ export default async (req: Request) => {
         const sk = cleanStr(o.sk, 24).replace(/\s+/g, "").trim()   // V1.8.24 shank width x thickness, e.g. 1.34x1.18
         const lst = (v: any, n: number) => Array.isArray(v) ? [...new Set(v.map((x: any) => cleanStr(x, 30).replace(/\s+/g, " ").trim()).filter(Boolean))].slice(0, n) : []
         const sh = lst(o.sh, 4), ss = lst(o.ss, 6)
-        const cl = cleanStr(o.cl, 40).replace(/\s+/g, " ").trim()   // V1.9.4 collection name   // V1.9.2 design shape (Infinity, Heart…) and stone shape (Round, Pear…)
-        if (jt || sc.length || mc || stt.length || sk || sh.length || ss.length || cl) map[k] = { ...(cl ? { cl } : {}), ...(jt ? { jt } : {}), ...(sc.length ? { sc } : {}), ...(mc ? { mc } : {}), ...(stt.length ? { st: stt } : {}), ...(sk ? { sk } : {}), ...(sh.length ? { sh } : {}), ...(ss.length ? { ss } : {}) }; else delete map[k]
+        const cl = lst(Array.isArray(o.cl) ? o.cl : o.cl ? [o.cl] : [], 5)   // V1.9.15 collections (several per product; was one name)   // V1.9.2 design shape (Infinity, Heart…) and stone shape (Round, Pear…)
+        if (jt || sc.length || mc || stt.length || sk || sh.length || ss.length || cl.length) map[k] = { ...(cl.length ? { cl } : {}), ...(jt ? { jt } : {}), ...(sc.length ? { sc } : {}), ...(mc ? { mc } : {}), ...(stt.length ? { st: stt } : {}), ...(sk ? { sk } : {}), ...(sh.length ? { sh } : {}), ...(ss.length ? { ss } : {}) }; else delete map[k]
         n++
       }
       await st.setJSON("pattrs", map)
@@ -790,7 +790,7 @@ export default async (req: Request) => {
       for (const k of ["sc", "mc"]) if (k in L) out[k] = swatch(L[k])
       if ("ui" in L && L.ui && typeof L.ui === "object") {   // V1.9.8 bulk update filters / fields (order + hidden) and the top bar
         const keys = (a: any) => [...new Set((Array.isArray(a) ? a : []).map((x: any) => String(x || "")).filter((x: string) => /^[A-Za-z]{1,20}$/.test(x)))].slice(0, 80)
-        out.ui = { bkF: keys(L.ui.bkF), bkFoff: keys(L.ui.bkFoff), bkC: keys(L.ui.bkC), bkCoff: keys(L.ui.bkCoff), top: L.ui.top === "hide" ? "hide" : "show" }
+        out.ui = { bkF: keys(L.ui.bkF), bkFoff: keys(L.ui.bkFoff), bkC: keys(L.ui.bkC), bkCoff: keys(L.ui.bkCoff), sf: keys(L.ui.sf), sfOff: keys(L.ui.sfOff), top: L.ui.top === "hide" ? "hide" : "show" }
       }
       if ("jt" in L) out.jt = uniq((Array.isArray(L.jt) ? L.jt : []).map((g: any) => [str(Array.isArray(g) ? g[0] : "", 40), names(Array.isArray(g) ? g[1] : [])]), (g) => g[0]).filter((g: any) => g[0]).slice(0, 30)
       const prev: any = (await st.get("plists", { type: "json" })) || {}

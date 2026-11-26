@@ -993,6 +993,14 @@ body.stm .mr-img{width:52px;height:52px}body.stm .mr-t b{font-size:14.5px}body.s
 :root.no-wtop{--wt:0px!important}:root.no-wtop:not(#_) .wtop{display:none!important}:root.no-wtop:not(#_) .dk-bell{display:inline-grid}
 .mp-mode{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 8px}.mp-h{margin:14px 0 6px;font-size:14px;font-weight:700;color:var(--muted)}.mp-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.mp-row input{flex:1 1 220px;min-height:42px;padding:6px 12px;border:1px solid var(--line);border-radius:12px;font:inherit;background:var(--surface);color:inherit}
 .mp-prev .note{margin:10px 0 6px}.mp-th{display:flex;gap:8px;flex-wrap:wrap}.mp-th img{width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid var(--line);background:#fff}
+.cust-box{margin:10px 0}.cp{border:1px dashed var(--acc,#C99583);border-radius:14px;padding:12px;background:var(--surface,#fff)}.cp-h{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px}.cp-list{max-height:360px;overflow:auto}.cp-a{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.stf-cust,.bk-cust{font-size:13px;white-space:nowrap}.bk-cust{margin-left:10px;font-weight:600}
+#bkFind{background:#EEF4FB;border:1px solid #CFE0F2;border-radius:14px;padding:10px 12px;margin-bottom:12px}#bkFind>summary{color:#1F4E79}
+.bk-chgbox{background:#FBF4EA;border:1px solid #EFD9B8;border-radius:14px;padding:10px 12px}.bk-chgbox>.bk-ch{color:#7A4A12;margin-top:2px}
+.bk-ph .mp-row input{flex:1 1 200px}.bk-php{margin:8px 0}.bk-php .mp-th img{width:72px;height:72px}
+.menu-rl{display:block;width:calc(100% - 24px);margin:6px 12px 10px;min-height:44px;border:1px solid var(--line);border-radius:12px;background:var(--surface);font:inherit;font-weight:600;color:var(--maroon,#702438);cursor:pointer}
+:root:not(#_) .sb-brand>.sb-rl{display:inline-block!important;margin:6px auto 0;border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:3px 12px;font:inherit;font-size:12px;font-weight:600;color:var(--maroon,#702438);cursor:pointer}
+.set-gh{margin:18px 4px 6px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}@media (min-width:1280px) and (pointer:fine){.set-gh{display:none}}
 .stf-ph{flex:1 1 100%;grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:2px}.stf-phl{font-size:13px;font-weight:600;color:var(--muted);margin-right:2px}
 .stf-r{display:inline-flex;align-items:center;gap:7px;padding:7px 14px 7px 10px;border:1px solid var(--line,#E5DED6);border-radius:99px;background:var(--surface,#fff);font-size:14px;cursor:pointer;user-select:none}
 .stf-r input{appearance:none;-webkit-appearance:none;width:18px;height:18px;margin:0;border:2px solid var(--muted,#999);border-radius:50%;display:grid;place-items:center;flex:none}
@@ -2284,6 +2292,7 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
     <button id="newBillBtn" type="button" hidden>Clear bill</button>
   </div>
   <div class="menu-ver">Price check &amp; bill · <span id="appVer"></span> <span class="sync-dot" id="syncDot" hidden></span></div>
+  <button type="button" class="menu-rl" id="menuReload">↻ Reload app · get the latest version</button>
 </nav>
 <header class="wtop" id="wtop" aria-label="Yamie Price Check">
   <button class="wt-brand" type="button" id="wtHome" aria-label="Home"><span class="wt-mark" id="wtMark"></span><span class="wt-nm"><b id="wtNm">Yamie</b><small>Price Check &amp; Quote · <span id="wtVer"></span></small></span></button>
@@ -2732,6 +2741,11 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
       <div id="plBody"></div>
       <div class="rs-acts"><span class="pl-st" id="plSt"></span><button class="btn" type="button" id="plReset">Default list</button><button class="btn primary" type="button" id="plSave">Save</button></div>
   </details>
+  <details class="card datacard setcard" id="setSf" data-pane="settings" data-perm="plists">
+    <summary><span class="dc-t">Search filters</span><span class="dc-s" id="setSfMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
+      <p class="note" style="margin-block:4px 0">Which filters Search shows, and their order — for all staff. Anyone can also change it for their own device from ⚙ Customise filters on the Search page.</p>
+      <div id="sfSet"></div>
+  </details>
   <details class="card datacard setcard" id="setBkUi" data-pane="settings" data-perm="plists">
     <summary><span class="dc-t">Bulk update &amp; top bar</span><span class="dc-s" id="setBkUiMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
       <p class="note" style="margin-block:4px 0">Choose which filters and fields Bulk update shows and their order (tick to show, ↑ ↓ to move). Shared with all staff.</p>
@@ -2845,7 +2859,7 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
 
 <div id="printArea" aria-hidden="true"></div>
 <nav class="tabbar" id="tabbar" aria-label="Sections">
-  <div class="sb-brand" aria-hidden="true"><span class="sb-mark" id="sbMark"></span><span class="sb-txt"><b id="sbNm">Yamie</b><small>Price Check &amp; Quote</small></span><img class="sb-lg" id="sbLogo" alt=""><span class="sb-pc">Price Checker</span><span class="sb-ver" id="sbVer"></span></div>
+  <div class="sb-brand" aria-hidden="true"><span class="sb-mark" id="sbMark"></span><span class="sb-txt"><b id="sbNm">Yamie</b><small>Price Check &amp; Quote</small></span><img class="sb-lg" id="sbLogo" alt=""><span class="sb-pc">Price Checker</span><span class="sb-ver" id="sbVer"></span><button type="button" class="sb-rl" id="sbReload" title="Reload the app and get the latest version">↻ Reload</button></div>
   <button type="button" class="tab on" id="tabHome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.2 12 3.8l9 7.4h-2.5V20.2h-5v-5.5h-3v5.5h-5V11.2z"/></svg><span>Home</span></button>
   <button type="button" class="tab" id="tabScan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M7.5 8v8M10.5 8v8M13.5 8v8M16.5 8v8"/></svg><span>Scan</span></button>
   <button type="button" class="tab" id="tabFind"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><span>Search</span></button>
@@ -5039,7 +5053,7 @@ function paintCoinSet(){$('cnMargin').value=coinSet.margin||'';$('cnRound').valu
 const PL_KINDS=[['cl','Collection'],['jt','Design'],['sh','Shape'],['ss','Stone shape'],['st','Stone type'],['sc','Stone colour'],['mc','Metal colour']];
 let plDraft=null,plTab='cl',plRen=[];
 const plCopy=()=>({cl:CL_LIST.slice(),jt:JT_GROUPS.map(([g,l])=>[g,l.slice()]),sh:SHP_LIST.slice(),ss:SST_LIST.slice(),st:STT_LIST.slice(),sc:SC_LIST.map(x=>x.slice()),mc:MC_LIST.map(x=>x.slice())});
-const plVals=(r,k)=>{const a=attrOf(r);return k==='cl'?[a.cl]:k==='jt'?[a.jt]:k==='mc'?[a.mc]:(a[k]||[])};
+const plVals=(r,k)=>{const a=attrOf(r);return k==='cl'?a.cl:k==='jt'?[a.jt]:k==='mc'?[a.mc]:(a[k]||[])};
 function plUse(k,name){const n0=String(name).toLowerCase();let n=0;for(const r of stockMap.values())if(plVals(r,k).some(x=>String(x||'').toLowerCase()===n0))n++;return n}
 const plName=(k,x)=>['sc','mc'].includes(k)?x[0]:x;
 const plCount=k=>k==='jt'?plDraft.jt.reduce((t,g)=>t+g[1].length,0):plDraft[k].length;
@@ -5086,7 +5100,7 @@ $('plSave').onclick=()=>withPerm('plists','Needs permission: Product property li
   let moved=0;
   if(ren.length){const map={};for(const r of stockMap.values()){const a=attrOf(r),b=JSON.parse(JSON.stringify(a));
       for(const {k,from,to} of ren){const f=from.toLowerCase(),sw=x=>String(x||'').toLowerCase()===f?to:x;
-        if(k==='cl')b.cl=sw(b.cl);else if(k==='jt')b.jt=sw(b.jt);else if(k==='mc')b.mc=sw(b.mc);else b[k]=[...new Set((b[k]||[]).map(sw))]}
+        if(k==='cl')b.cl=[...new Set((b.cl||[]).map(sw))];else if(k==='jt')b.jt=sw(b.jt);else if(k==='mc')b.mc=sw(b.mc);else b[k]=[...new Set((b[k]||[]).map(sw))]}
       if(!attrSame(a,b)){map[r.key]=b;moved++}}
     if(moved&&!(await savePattrs(map)))toast('Lists saved. Renamed values on items will update when online',null,true)}
   plDraft=null;plRen=[];plMark(false);paintPlists();toast('Lists saved'+(moved?` · ${moved} item${moved===1?'':'s'} updated`:''));
@@ -5097,7 +5111,7 @@ setTimeout(()=>{try{paintPlistsMini()}catch(e){}},3200);
 let buDraft=null;
 function buMark(d){$('buSt').textContent=d?'Not saved':''}
 function paintBkUi(){
-  const u=uiCfg();if(!buDraft)buDraft={f:bkOrder(BKF_ALL,u.bkF,u.bkFoff),c:bkOrder(BKC_ALL(),u.bkC,u.bkCoff),top:u.top==='hide'?'hide':'show'};
+  const u=uiShared();if(!buDraft)buDraft={f:bkOrder(BKF_ALL,u.bkF,u.bkFoff),c:bkOrder(BKC_ALL(),u.bkC,u.bkCoff),top:u.top==='hide'?'hide':'show'};
   $('setBkUiMini').textContent=`${buDraft.f.filter(x=>x.on).length} filters · ${buDraft.c.filter(x=>x.on).length} fields · top bar ${buDraft.top==='hide'?'hidden':'shown'}`;
   const list=(id,L)=>{$(id).innerHTML=L.map((x,i)=>`<div class="bu-row${x.on?'':' off'}" data-i="${i}"><label><input type="checkbox"${x.on?' checked':''}> ${esc(x.l)}</label><span class="pl-b"><button type="button" class="pl-ic" data-mv="-1" aria-label="Move ${esc(x.l)} up">↑</button><button type="button" class="pl-ic" data-mv="1" aria-label="Move ${esc(x.l)} down">↓</button></span></div>`).join('');
     $(id).querySelectorAll('.bu-row').forEach(r=>{const i=+r.dataset.i;r.querySelector('input').onchange=e=>{L[i].on=e.target.checked;buMark(true);paintBkUi()};
@@ -5107,10 +5121,14 @@ function paintBkUi(){
 }
 $('buReset').onclick=()=>{buDraft={f:bkOrder(BKF_ALL,[],[]),c:bkOrder(BKC_ALL(),[],[]),top:'show'};buMark(true);paintBkUi()};
 $('buSave').onclick=()=>withPerm('plists','Needs permission: Product property lists.',async()=>{
-  const ui={bkF:buDraft.f.map(x=>x.k),bkFoff:buDraft.f.filter(x=>!x.on).map(x=>x.k),bkC:buDraft.c.map(x=>x.k),bkCoff:buDraft.c.filter(x=>!x.on).map(x=>x.k),top:buDraft.top};
+  const ui={...uiShared(),bkF:buDraft.f.map(x=>x.k),bkFoff:buDraft.f.filter(x=>!x.on).map(x=>x.k),bkC:buDraft.c.map(x=>x.k),bkCoff:buDraft.c.filter(x=>!x.on).map(x=>x.k),top:buDraft.top};
   try{if(sync.key){const r=await syncApi('plists','POST',{lists:{ui},by:curUser?(curUser.name||curUser.username):''},adminCreds);plists=r.lists;sync.v.plists=r.v||sync.v.plists;saveSyncState()}else plists={...(plists||{}),ui};
     store.set('plists',plists);applyPlists();buDraft=null;buMark(false);paintBkUi();toast('Saved · all staff have it')}
   catch(e){toast(e&&e.status===403?'Needs permission: Product property lists':'Could not save — check the connection',null,true)}},true);
+function paintSfSet(){const it=bkOrder(SF_ALL(),uiShared().sf,uiShared().sfOff);$('setSfMini').textContent=`${it.filter(x=>x.on).length} of ${it.length} shown`;
+  custPanel($('sfSet'),'Search filters (all staff)',it,async(shared,L)=>{if(L)await saveUi({sf:L.map(x=>x.k),sfOff:L.filter(x=>!x.on).map(x=>x.k)},true);setTimeout(paintSfSet,50)},['sf','sfOff'])}
+$('setSf').addEventListener('toggle',()=>{if($('setSf').open)paintSfSet()});
+setTimeout(()=>{try{const it=bkOrder(SF_ALL(),uiShared().sf,uiShared().sfOff);$('setSfMini').textContent=`${it.filter(x=>x.on).length} of ${it.length} shown`}catch(e){}},3400);
 $('setBkUi').addEventListener('toggle',()=>{if($('setBkUi').open){buDraft=null;buMark(false);paintBkUi()}});
 setTimeout(()=>{try{buDraft=null;paintBkUi()}catch(e){}},3300);
 $('setCoins').addEventListener('toggle',()=>{if($('setCoins').open){paintCoinSet();pullCoins()}});
@@ -5363,7 +5381,7 @@ function pdRows(t,st,p,w){
     cw:clr&&st&&num(st.cw)>0?`${w(st.cw)}${num(st.sq)>0?` · ${fmtN(num(st.sq))}\u00a0pcs`:''}`:'',
     cPrice:cPrice>0?inr(cPrice):'',
     huid:p.huidN?`${p.huidN}\u00a0×\u00a0${inr(settings.huid)}`:'',huidNo:codes,
-    stones:st&&st.stoneName,pcs:st&&st.pcs>1?fmtN(st.pcs):'',location:st&&st.location,rule:st&&st.rule?st.rule+(st.ruleSet&&st.ruleSet.length?` · sets ${st.ruleSet.join(', ')}`:''):'',imp:st&&st.imp?'Yes':'',pname:st?pnameOf(st):'',jt:st?attrOf(st).jt:'',scol:st?attrOf(st).sc.join(', '):'',mc:st?mcLabel(st):'',stt:st?attrOf(st).st.join(', '):'',cl:st?attrOf(st).cl:'',shp:st?attrOf(st).sh.join(', '):'',sst:st?attrOf(st).ss.join(', '):'',labelDate:st&&fmtDate(st.labelDate),supplier:st&&st.supplier};
+    stones:st&&st.stoneName,pcs:st&&st.pcs>1?fmtN(st.pcs):'',location:st&&st.location,rule:st&&st.rule?st.rule+(st.ruleSet&&st.ruleSet.length?` · sets ${st.ruleSet.join(', ')}`:''):'',imp:st&&st.imp?'Yes':'',pname:st?pnameOf(st):'',jt:st?attrOf(st).jt:'',scol:st?attrOf(st).sc.join(', '):'',mc:st?mcLabel(st):'',stt:st?attrOf(st).st.join(', '):'',cl:st?attrOf(st).cl.join(', '):'',shp:st?attrOf(st).sh.join(', '):'',sst:st?attrOf(st).ss.join(', '):'',labelDate:st&&fmtDate(st.labelDate),supplier:st&&st.supplier};
   return PD_ROWS.concat(PD_HIDDEN).map(([k,l])=>[l,v[k],k]);
 }
 function paintPdRowsSet(){
@@ -6117,10 +6135,23 @@ const SET_GICO={gen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
   prod:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></svg>',
   users:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 3-5.5 6.5-5.5s6.5 1.9 6.5 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M17 14.5c2.6 0 4.5 1.5 4.5 4.5"/></svg>',
   more:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg>'};
-const SET_GROUPS=[['General',SET_GICO.gen,['setTheme','setText','setFoot','setDevice','setPromo','setReports']],
-  ['Pricing & Rates',SET_GICO.price,['setRules','setConv','setRates','setCharges','setMk','setCoins']],
-  ['Products & Inventory',SET_GICO.prod,['setPlists','setBkUi','setPd','setImg','setCodes','dataCard','soldCard','setExport','setBackup','setSup']],
-  ['Users & Access',SET_GICO.users,['adminCard','setRoles','setAppr','setSync']]];
+// V1.9.14 settings sorted into categories (computer grid and phone list)
+const SET_GROUPS=[['Appearance & this device',SET_GICO.gen,['setTheme','setText','setFoot','setImg','setPd','setDevice']],
+  ['Prices & rates',SET_GICO.price,['setRates','setCharges','setRules','setConv','setMk','setPromo','setCoins']],
+  ['Products & stock',SET_GICO.prod,['setPlists','setCodes','setSup','dataCard','soldCard']],
+  ['Search & bulk update',SET_GICO.prod,['setSf','setBkUi']],
+  ['Quotes',SET_GICO.price,['setAppr']],
+  ['Reports & data',SET_GICO.gen,['setReports','setExport','setBackup']],
+  ['Users & access',SET_GICO.users,['adminCard','setRoles','setSync']]];
+function sortSettings(){   // same order on the phone, with a heading per group
+  const cards=setCards();if(!cards.length)return;const par=cards[0].parentElement;let after=null;
+  document.querySelectorAll('.set-gh').forEach(h=>h.remove());
+  SET_GROUPS.forEach(([t,,ids])=>{const list=ids.map(id=>$(id)).filter(c=>c&&c.parentElement===par);if(!list.length)return;
+    const h=document.createElement('h3');h.className='set-gh';h.dataset.pane='settings';h.textContent=t;
+    if(after)after.after(h);else par.insertBefore(h,cards[0]);let last=h;list.forEach(c=>{last.after(c);last=c});after=last});
+  cards.filter(c=>!SET_GROUPS.some(g=>g[2].includes(c.id))).forEach(c=>{if(after){after.after(c);after=c}});
+}
+setTimeout(()=>{try{sortSettings()}catch(e){}},0);
 function paintSetGrid(){
   if(!DESK.matches)return;let gd=$('setGrid');
   if(!gd){gd=document.createElement('div');gd.id='setGrid';gd.className='set-grid';gd.dataset.pane='settings';const first=setCards()[0];first.parentElement.insertBefore(gd,first);
@@ -6182,7 +6213,9 @@ function mcSw(c){const h=MC_LIST.find(x=>x[0].toLowerCase()===String(c||'').toLo
 function mcLabel(r){const m=attrOf(r).mc;if(!m)return '';const pu=r?PLABEL[caratToPurity(r.carat)]:'';return /gold/i.test(m)&&pu&&/K$/i.test(pu)?`${pu} ${m}`:m}
 let pattrs=store.get('pattrs',{})||{};
 // V1.9.5 the choice lists can be changed in Settings › Product property lists (shared with all phones)
-let CL_LIST=[];
+let CL_LIST=[];const CL_MAX=5;   // V1.9.15 a product can be in several collections
+const clArr=v=>(Array.isArray(v)?v:v?[v]:[]).map(x=>String(x||'').replace(/\s+/g,' ').trim()).filter(Boolean).slice(0,CL_MAX);
+const clChoices=()=>[...new Set([...CL_LIST,...[...stockMap.values()].flatMap(r=>attrOf(r).cl).sort((x,y)=>x.localeCompare(y))])];
 const PL_DEF={jt:JT_GROUPS,sc:SC_LIST,st:STT_LIST,sh:SHP_LIST,ss:SST_LIST,mc:MC_LIST,cl:[]};
 let plists=store.get('plists',null),plDirty=false;
 function applyUi(){const hide=((plists&&plists.ui)||{}).top==='hide';document.documentElement.classList.toggle('no-wtop',hide);const b=$('dkBell'),acts=document.querySelector('#dkHead .dk-acts');if(b&&acts){if(hide&&b.parentElement!==acts)acts.prepend(b);else if(!hide&&DESK.matches&&$('wtBellSlot')&&b.parentElement!==$('wtBellSlot'))$('wtBellSlot').appendChild(b)}}
@@ -6192,13 +6225,13 @@ async function pullPlists(){if(!sync.key||!navigator.onLine)return;try{const r=a
 setTimeout(()=>pullPlists(),2900);
 setTimeout(()=>{try{applyUi()}catch(e){}},0);addEventListener('load',()=>{try{applyUi()}catch(e){}});
 const scSplit=v=>(Array.isArray(v)?v:String(v||'').split(/[,/;|+&]+/)).map(x=>String(x).trim()).filter(Boolean).map(x=>{const h=SC_LIST.find(c=>c[0].toLowerCase()===x.toLowerCase());return h?h[0]:x.replace(/\b\w/g,m=>m.toUpperCase())}).slice(0,SC_MAX);
-function attrOf(r){if(!r)return {jt:'',sc:[],mc:'',st:[],sk:'',sh:[],ss:[],cl:''};const k=r.key||keyOf(r.barcode||''),a=(k&&pattrs[k])||{};return {jt:String(a.jt||r.design||'').trim(),sc:a.sc&&a.sc.length?a.sc.slice(0,SC_MAX):scSplit(r.scol),mc:String(a.mc||r.mcol||'').trim(),st:a.st&&a.st.length?a.st.slice(0,STT_MAX):sttGuess(r),sk:String(a.sk||'').trim(),sh:Array.isArray(a.sh)?a.sh.slice(0,SHP_MAX):[],ss:Array.isArray(a.ss)?a.ss.slice(0,SST_MAX):[],cl:String(a.cl||'').trim()}}
+function attrOf(r){if(!r)return {jt:'',sc:[],mc:'',st:[],sk:'',sh:[],ss:[],cl:[]};const k=r.key||keyOf(r.barcode||''),a=(k&&pattrs[k])||{};return {jt:String(a.jt||r.design||'').trim(),sc:a.sc&&a.sc.length?a.sc.slice(0,SC_MAX):scSplit(r.scol),mc:String(a.mc||r.mcol||'').trim(),st:a.st&&a.st.length?a.st.slice(0,STT_MAX):sttGuess(r),sk:String(a.sk||'').trim(),sh:Array.isArray(a.sh)?a.sh.slice(0,SHP_MAX):[],ss:Array.isArray(a.ss)?a.ss.slice(0,SST_MAX):[],cl:clArr(a.cl)}}
 function scSw(c){const h=SC_LIST.find(x=>x[0]===c);return `<i class="sc-sw" style="background:${h?h[1]:'#bbb'}" aria-hidden="true"></i>`}
 function scHtml(arr){return arr.length?`<span class="sc-l">${arr.map(c=>`<span class="sc-t">${scSw(c)}${esc(c)}</span>`).join('')}</span>`:''}
 async function pullPattrs(){if(!sync.key||!navigator.onLine)return;try{const r=await syncApi('pattrs');if(r&&r.map){pattrs=r.map;store.set('pattrs',pattrs);sync.v.pattrs=r.v||0;saveSyncState();pnRefresh()}}catch(e){}}
 async function savePattrs(map){
-  Object.entries(map).forEach(([k,v])=>{const old=pattrs[k]||{};if(!('sh' in v))v.sh=old.sh||[];if(!('ss' in v))v.ss=old.ss||[];if(!('cl' in v))v.cl=old.cl||''});   // V1.9.2 older forms don't send shapes: keep them
-  Object.entries(map).forEach(([k,v])=>{const o={};if(v.jt)o.jt=v.jt;if(v.sc&&v.sc.length)o.sc=v.sc.slice(0,SC_MAX);if(v.mc)o.mc=v.mc;if(v.st&&v.st.length)o.st=v.st.slice(0,STT_MAX);if(v.sk)o.sk=String(v.sk).slice(0,24);if(v.sh&&v.sh.length)o.sh=v.sh.slice(0,SHP_MAX);if(v.ss&&v.ss.length)o.ss=v.ss.slice(0,SST_MAX);if(v.cl)o.cl=String(v.cl).replace(/\s+/g,' ').trim().slice(0,40);if(o.jt||o.sc||o.mc||o.st||o.sk||o.sh||o.ss||o.cl)pattrs[k]=o;else delete pattrs[k]});store.set('pattrs',pattrs);pnRefresh();
+  Object.entries(map).forEach(([k,v])=>{const old=pattrs[k]||{};if(!('sh' in v))v.sh=old.sh||[];if(!('ss' in v))v.ss=old.ss||[];if(!('cl' in v))v.cl=clArr(old.cl)});   // V1.9.2 older forms don't send shapes: keep them
+  Object.entries(map).forEach(([k,v])=>{const o={};if(v.jt)o.jt=v.jt;if(v.sc&&v.sc.length)o.sc=v.sc.slice(0,SC_MAX);if(v.mc)o.mc=v.mc;if(v.st&&v.st.length)o.st=v.st.slice(0,STT_MAX);if(v.sk)o.sk=String(v.sk).slice(0,24);if(v.sh&&v.sh.length)o.sh=v.sh.slice(0,SHP_MAX);if(v.ss&&v.ss.length)o.ss=v.ss.slice(0,SST_MAX);{const c=clArr(v.cl).map(x=>x.slice(0,40));if(c.length)o.cl=c}if(o.jt||o.sc||o.mc||o.st||o.sk||o.sh||o.ss||o.cl)pattrs[k]=o;else delete pattrs[k]});store.set('pattrs',pattrs);pnRefresh();
   if(!sync.key)return true;
   try{const r=await syncApi('pattr','POST',{map},adminCreds);if(r&&r.map){pattrs=r.map;store.set('pattrs',pattrs);sync.v.pattrs=r.v||sync.v.pattrs;saveSyncState()}return true}catch(e){toast(e&&e.status===403?'Needs a user allowed to add photos or edit stock':'Saved here; it goes to the database when online',null,true);return false}
 }
@@ -6209,8 +6242,7 @@ function attrFields(px,a){
   const known=new Set(JT_GROUPS.flatMap(g=>g[1]));const extra=[...used].filter(x=>!known.has(x)).sort();
   if(a.jt&&!known.has(a.jt)&&!extra.includes(a.jt))extra.push(a.jt);
   const o=v=>`<option${a.jt===v?' selected':''}>${esc(v)}</option>`;
-  const cls=[...new Set([...CL_LIST,...[...stockMap.values()].map(r=>attrOf(r).cl).filter(Boolean).sort((x,y)=>x.localeCompare(y))])];
-  return `<div class="full at-f"><label for="${px}Cl">Collection <small>(e.g. Infinity, Bridal, Daily wear)</small></label><input id="${px}Cl" list="${px}ClL" maxlength="40" autocomplete="off" placeholder="Type or pick a collection" value="${esc(a.cl||'')}"><datalist id="${px}ClL">${cls.map(c=>`<option value="${esc(c)}">`).join('')}</datalist></div>
+  return `${attrMulti(px,'Cl','Collection','e.g. Bridal, Infinity',clChoices(),a.cl||[])}
   <div class="full at-f"><label for="${px}Jt">Design <small>(jewellery type)</small></label><select id="${px}Jt"><option value="">Choose design…</option>${JT_GROUPS.map(([g,l])=>`<optgroup label="${esc(g)}">${l.map(o).join('')}</optgroup>`).join('')}${extra.length?`<optgroup label="Your designs">${extra.map(o).join('')}</optgroup>`:''}<option value="__new">+ New design…</option></select><input id="${px}JtNew" class="sf-new" hidden maxlength="60" placeholder="Type the new design" aria-label="New design"></div>
   <div class="full at-f"><label>Metal colour <small id="${px}McN">${a.mc?esc(a.mc):'(choose one)'}</small></label><div class="sc-chips" id="${px}Mc" role="radiogroup" aria-label="Metal colour">${[...MC_LIST.map(x=>x[0]),...(a.mc&&!MC_LIST.some(x=>x[0]===a.mc)?[a.mc]:[])].map(c=>`<button type="button" class="sc-c" role="radio" data-c="${esc(c)}" aria-checked="${a.mc===c}" aria-pressed="${a.mc===c}">${mcSw(c)}${esc(c)}</button>`).join('')}<button type="button" class="sc-c" data-mcnew="1">+ Other…</button></div><input id="${px}McNew" class="sf-new" hidden maxlength="40" placeholder="e.g. Champagne Gold"></div>
   <div class="full at-f"><label>Stone type <small id="${px}StN">${a.st&&a.st.length?a.st.length+' chosen':'(choose all that apply)'}</small></label><div class="sc-chips st-chips" id="${px}St" role="group" aria-label="Stone types">${[...STT_LIST,...(a.st||[]).filter(x=>!STT_LIST.includes(x))].map(c=>`<button type="button" class="sc-c" data-c="${esc(c)}" aria-pressed="${(a.st||[]).includes(c)}">${esc(c)}</button>`).join('')}<button type="button" class="sc-c" data-stnew="1">+ Other…</button></div><input id="${px}StNew" class="sf-new" hidden maxlength="30" placeholder="e.g. Tanzanite – Enter to add"></div>
@@ -6232,7 +6264,7 @@ function wireMulti(px,id,max){
   sn();
 }
 const readMulti=(px,id,max)=>{const sb=$(px+id);if(!sb)return [];const o=[...sb.querySelectorAll('[data-c][aria-pressed="true"]')].map(b=>b.dataset.c);const i=$(px+id+'New'),nv=i&&i.value.replace(/\s+/g,' ').trim();if(nv&&!o.some(x=>x.toLowerCase()===nv.toLowerCase()))o.push(nv);return o.slice(0,max)};
-function wireAttr(px){wireMulti(px,'Sh',SHP_MAX);wireMulti(px,'Ss',SST_MAX);
+function wireAttr(px){wireMulti(px,'Cl',CL_MAX);wireMulti(px,'Sh',SHP_MAX);wireMulti(px,'Ss',SST_MAX);
   const sel=$(px+'Jt'),nw=$(px+'JtNew');sel.addEventListener('change',()=>{nw.hidden=sel.value!=='__new';if(!nw.hidden)nw.focus()});
   const box=$(px+'Sc'),cnt=()=>{const n=box.querySelectorAll('[aria-pressed="true"]').length;$(px+'ScN').textContent=n?`${n} of ${SC_MAX}`:`(up to ${SC_MAX})`;box.querySelectorAll('.sc-c').forEach(b=>b.disabled=n>=SC_MAX&&b.getAttribute('aria-pressed')!=='true')};
   box.querySelectorAll('.sc-c').forEach(b=>b.onclick=()=>{b.setAttribute('aria-pressed',b.getAttribute('aria-pressed')==='true'?'false':'true');cnt()});cnt();
@@ -6246,8 +6278,8 @@ function wireAttr(px){wireMulti(px,'Sh',SHP_MAX);wireMulti(px,'Ss',SST_MAX);
     const on=b.getAttribute('aria-pressed')!=='true';mb.querySelectorAll('[data-c]').forEach(x=>{x.setAttribute('aria-pressed','false');x.setAttribute('aria-checked','false')});if(on){b.setAttribute('aria-pressed','true');b.setAttribute('aria-checked','true')}
     $(px+'McNew').hidden=true;$(px+'McN').textContent=on?b.dataset.c:'(choose one)'});
 }
-function readAttr(px){const sel=$(px+'Jt'),mn=$(px+'McNew'),mo=$(px+'Mc')&&$(px+'Mc').querySelector('[aria-pressed="true"]');return {jt:(sel.value==='__new'?$(px+'JtNew').value:sel.value).replace(/\s+/g,' ').trim(),sc:[...$(px+'Sc').querySelectorAll('[aria-pressed="true"]')].map(b=>b.dataset.c).slice(0,SC_MAX),mc:(mn&&!mn.hidden&&mn.value.trim()?mn.value.replace(/\s+/g,' ').trim():mo?mo.dataset.c:''),st:$(px+'St')?(()=>{const o=[...$(px+'St').querySelectorAll('[data-c][aria-pressed="true"]')].map(b=>b.dataset.c);const nv=$(px+'StNew')&&$(px+'StNew').value.replace(/\s+/g,' ').trim();if(nv&&!o.some(x=>x.toLowerCase()===nv.toLowerCase()))o.push(nv);return o.slice(0,STT_MAX)})():[],sk:$(px+'Sk')?$(px+'Sk').value.replace(/\s+/g,'').replace(/[xX*]/g,'×').trim():'',sh:readMulti(px,'Sh',SHP_MAX),ss:readMulti(px,'Ss',SST_MAX),cl:$(px+'Cl')?$(px+'Cl').value.replace(/\s+/g,' ').trim():''}}
-const attrSame=(a,b)=>a.jt===b.jt&&a.sc.join('|')===b.sc.join('|')&&(a.mc||'')===(b.mc||'')&&(a.st||[]).join('|')===(b.st||[]).join('|')&&(a.sk||'')===(b.sk||'')&&(a.sh||[]).join('|')===(b.sh||[]).join('|')&&(a.ss||[]).join('|')===(b.ss||[]).join('|')&&(a.cl||'')===(b.cl||'');
+function readAttr(px){const sel=$(px+'Jt'),mn=$(px+'McNew'),mo=$(px+'Mc')&&$(px+'Mc').querySelector('[aria-pressed="true"]');return {jt:(sel.value==='__new'?$(px+'JtNew').value:sel.value).replace(/\s+/g,' ').trim(),sc:[...$(px+'Sc').querySelectorAll('[aria-pressed="true"]')].map(b=>b.dataset.c).slice(0,SC_MAX),mc:(mn&&!mn.hidden&&mn.value.trim()?mn.value.replace(/\s+/g,' ').trim():mo?mo.dataset.c:''),st:$(px+'St')?(()=>{const o=[...$(px+'St').querySelectorAll('[data-c][aria-pressed="true"]')].map(b=>b.dataset.c);const nv=$(px+'StNew')&&$(px+'StNew').value.replace(/\s+/g,' ').trim();if(nv&&!o.some(x=>x.toLowerCase()===nv.toLowerCase()))o.push(nv);return o.slice(0,STT_MAX)})():[],sk:$(px+'Sk')?$(px+'Sk').value.replace(/\s+/g,'').replace(/[xX*]/g,'×').trim():'',sh:readMulti(px,'Sh',SHP_MAX),ss:readMulti(px,'Ss',SST_MAX),cl:readMulti(px,'Cl',CL_MAX)}}
+const attrSame=(a,b)=>a.jt===b.jt&&a.sc.join('|')===b.sc.join('|')&&(a.mc||'')===(b.mc||'')&&(a.st||[]).join('|')===(b.st||[]).join('|')&&(a.sk||'')===(b.sk||'')&&(a.sh||[]).join('|')===(b.sh||[]).join('|')&&(a.ss||[]).join('|')===(b.ss||[]).join('|')&&(a.cl||[]).join('|')===(b.cl||[]).join('|');
 // web: hover an item photo to see the whole picture
 (()=>{let tip=null,tmr=0,on=null;
   const SEL='.st-img,#pdTile.photo,.pm-im,.mr-img';
@@ -6334,7 +6366,7 @@ function shVal(r,k){
     case 'scol':return attrOf(r).sc.join(', ');
     case 'mc':return mcLabel(r);
     case 'stt':return attrOf(r).st.join(', ');
-    case 'cl':return attrOf(r).cl;
+    case 'cl':return attrOf(r).cl.join(', ');
     case 'shp':return attrOf(r).sh.join(', ');
     case 'sst':return attrOf(r).ss.join(', ');
     case 'carat':return PLABEL[caratToPurity(r.carat)]||String(r.carat||'');
@@ -6577,7 +6609,7 @@ const rpRows=(r,f)=>f.filter(k=>k!=='img'&&k!=='key'&&k!==rpHead(r,f).nmK).map(k
 // the heading, sub-heading, category and collection of the report, guessed from the items
 function rpMeta(list){
   const top=g=>{const m=new Map();list.forEach(r=>{const v=String(g(r)||'').trim();if(v)m.set(v,(m.get(v)||0)+1)});let b='',n=0;m.forEach((c,k)=>{if(c>n){b=k;n=c}});return n>=Math.max(1,list.length*0.6)?b:''};
-  const cat=top(r=>r.category),cl=top(r=>attrOf(r).cl),dz=top(r=>attrOf(r).jt),col=cl||dz;   // V1.9.8 the items' own collection first
+  const cat=top(r=>r.category),cl=top(r=>attrOf(r).cl[0]),dz=top(r=>attrOf(r).jt),col=cl||dz;   // V1.9.8 the items' own collection first
   const clT=cl?(/collection/i.test(cl)?cl:cl+' Collection'):'';
   return {t:'Design Report',s:[clT||(cat?cat+' Collection':''),dz?dz+' Designs':''].filter(Boolean).join(' – '),cat,col,tot:true,date:new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})};
 }
@@ -6849,7 +6881,7 @@ async function stmItem(r,list,dir){
   const o=stPrice(r),lp=o.lp,fv=can('fva')?o.fv:NaN,save=!isNaN(lp)&&!isNaN(fv)&&lp>fv?lp-fv:0,a=attrOf(r);
   showModal(pnameOf(r)||r.item||r.category||'Item','',[]);$('modalTitle').classList.add('stm-ttl');$('modal').classList.add('stm-sheet','stm-itm');
   const W=v=>num(v)>0?num(v).toFixed(3)+' g':'';
-  const rows=[['Label no.',r.barcode||r.key],['Item name',pnameOf(r)?r.item:''],['Item type',r.category],['Collection',a.cl],['Design',a.jt],['Purity',PLABEL[caratToPurity(r.carat)]||r.carat],['Gross wt',W(r.gw)],['Net wt',W(r.nw)],
+  const rows=[['Label no.',r.barcode||r.key],['Item name',pnameOf(r)?r.item:''],['Item type',r.category],['Collection',(a.cl||[]).join(', ')],['Design',a.jt],['Purity',PLABEL[caratToPurity(r.carat)]||r.carat],['Gross wt',W(r.gw)],['Net wt',W(r.nw)],
     ['Stone',shVal(r,'stone')],['Stone type',(a.st||[]).join(', ')],['Shape',(a.sh||[]).join(', ')],['Stone shape',(a.ss||[]).join(', ')],['Stone colour',a.sc.join(', ')],['Making',r.mkType&&num(r.mk)>0?valText({type:r.mkType,val:num(r.mk)}):''],['HUID no.',r.huidNo],['Size',r.size],['Location',r.location]].filter(x=>x[1]);
   $('modalBody').innerHTML=`<div class="stm-it">
     ${many?`<div class="stm-nav"><button type="button" data-d="-1" aria-label="Previous item"${i?'':' disabled'}>‹</button><span>${i+1} <small>of</small> ${L.length.toLocaleString('en-IN')}</span><button type="button" data-d="1" aria-label="Next item"${i<L.length-1?'':' disabled'}>›</button></div>`:''}
@@ -6954,7 +6986,7 @@ function stFilterBar(rowsAll){
   const uniq=f=>[...new Set(rowsAll.map(f).filter(Boolean))].sort();
   const ci=(f)=>{const m=new Map();rowsAll.forEach(r=>{const v=String(r[f]||'').trim();if(v&&!m.has(v.toLowerCase()))m.set(v.toLowerCase(),v)});return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1],'en',{numeric:true}))};
   const mOpt=(f,L)=>{const m=new Map();rowsAll.forEach(r=>attrOf(r)[f].forEach(v=>m.set(v.toLowerCase(),v)));const ix=v=>{const i=L.indexOf(v);return i<0?99:i};return [...m.entries()].sort((a,b)=>ix(a[1])-ix(b[1])||a[1].localeCompare(b[1]))};
-  const opts={cl:(()=>{const m=new Map();rowsAll.forEach(r=>{const v=attrOf(r).cl;if(v)m.set(v.toLowerCase(),v)});return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1]))})(),shp:mOpt('sh',SHP_LIST),sst:mOpt('ss',SST_LIST),cat:ci('category').filter(([k])=>!findF.item||rowsAll.some(r=>String(r.category||'').trim().toLowerCase()===k&&String(r.item||'').trim().toLowerCase()===findF.item)),item:ci('item'),imp:[['yes','Imported'],['no','Not imported']],pn:[['yes','Named'],['no','No name yet']],jt:(()=>{const m=new Map();rowsAll.forEach(r=>{const j=attrOf(r).jt;if(j)m.set(j.toLowerCase(),j)});return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1]))})(),stt:(()=>{const m=new Map();rowsAll.forEach(r=>attrOf(r).st.forEach(v=>m.set(v.toLowerCase(),v)));const ix=v=>{const i=STT_LIST.indexOf(v);return i<0?99:i};return [...m.entries()].sort((a,b)=>ix(a[1])-ix(b[1])||a[1].localeCompare(b[1]))})(),mc:(()=>{const m=new Map();rowsAll.forEach(r=>{const v=attrOf(r).mc;if(v)m.set(v.toLowerCase(),v)});return [...m.entries()].sort((a,b)=>{const ia=MC_LIST.findIndex(x=>x[0]===a[1]),ib=MC_LIST.findIndex(x=>x[0]===b[1]);return (ia<0?99:ia)-(ib<0?99:ib)})})(),sc:(()=>{const m=new Set();rowsAll.forEach(r=>attrOf(r).sc.forEach(c=>m.add(c)));return [...m].sort((a,b)=>{const ia=SC_LIST.findIndex(x=>x[0]===a),ib=SC_LIST.findIndex(x=>x[0]===b);return (ia<0?99:ia)-(ib<0?99:ib)}).map(c=>[c.toLowerCase(),c])})(),type:wtCodes().map(c=>[c,CAT[c]||c]),pur:uniq(r=>caratToPurity(r.carat)).map(p=>[p,PLABEL[p]||p]),stone:[['any','With stone'],['dia','Diamond'],['clr','Colour stone'],['none','No stone']],
+  const opts={cl:(()=>{const m=new Map();rowsAll.forEach(r=>attrOf(r).cl.forEach(v=>m.set(v.toLowerCase(),v)));return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1]))})(),shp:mOpt('sh',SHP_LIST),sst:mOpt('ss',SST_LIST),cat:ci('category').filter(([k])=>!findF.item||rowsAll.some(r=>String(r.category||'').trim().toLowerCase()===k&&String(r.item||'').trim().toLowerCase()===findF.item)),item:ci('item'),imp:[['yes','Imported'],['no','Not imported']],pn:[['yes','Named'],['no','No name yet']],jt:(()=>{const m=new Map();rowsAll.forEach(r=>{const j=attrOf(r).jt;if(j)m.set(j.toLowerCase(),j)});return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1]))})(),stt:(()=>{const m=new Map();rowsAll.forEach(r=>attrOf(r).st.forEach(v=>m.set(v.toLowerCase(),v)));const ix=v=>{const i=STT_LIST.indexOf(v);return i<0?99:i};return [...m.entries()].sort((a,b)=>ix(a[1])-ix(b[1])||a[1].localeCompare(b[1]))})(),mc:(()=>{const m=new Map();rowsAll.forEach(r=>{const v=attrOf(r).mc;if(v)m.set(v.toLowerCase(),v)});return [...m.entries()].sort((a,b)=>{const ia=MC_LIST.findIndex(x=>x[0]===a[1]),ib=MC_LIST.findIndex(x=>x[0]===b[1]);return (ia<0?99:ia)-(ib<0?99:ib)})})(),sc:(()=>{const m=new Set();rowsAll.forEach(r=>attrOf(r).sc.forEach(c=>m.add(c)));return [...m].sort((a,b)=>{const ia=SC_LIST.findIndex(x=>x[0]===a),ib=SC_LIST.findIndex(x=>x[0]===b);return (ia<0?99:ia)-(ib<0?99:ib)}).map(c=>[c.toLowerCase(),c])})(),type:wtCodes().map(c=>[c,CAT[c]||c]),pur:uniq(r=>caratToPurity(r.carat)).map(p=>[p,PLABEL[p]||p]),stone:[['any','With stone'],['dia','Diamond'],['clr','Colour stone'],['none','No stone']],
     sup:uniq(r=>r.supplier).map(x=>[x,x]),loc:uniq(r=>r.location).map(x=>[x,x]),lab:[['yes','Labelled'],['no','Not labelled']],img:[['yes','With photo'],['no','No photo']]};
   const val=k=>k==='type'?findType:findF[k];
   const RNG=[['w','Gross wt','g'],['n','Net wt','g'],['p','Label price','₹'],['f','Fair value','₹'],['m','Making','₹'],['d','Diamond','ct']].filter(([k])=>k!=='f'||can('fva'));
@@ -6970,6 +7002,7 @@ function stFilterBar(rowsAll){
     `<button type="button" class="linkbtn stf-clear" id="stfClear"${FILTERS.some(([k])=>val(k))||anyR?'':' hidden'}>Clear all</button>`;
   bar.querySelectorAll('input[name="stfImg"]').forEach(i=>i.onchange=()=>{findF.img=i.value;stPage=1;runFindTable();paintWtop()});
   bar.querySelectorAll('[data-f]').forEach(sel=>sel.onchange=()=>{const k=sel.dataset.f;if(k==='type')findType=sel.value;else findF[k]=sel.value;stPage=1;runFindTable();paintWtop()});
+  sfArrange(bar);
   $('stfClear').onclick=()=>{findType='';Object.keys(findF).forEach(k=>findF[k]='');const g=bar.querySelector('.st-rng');if(g)g.remove();stPage=1;runFindTable();paintWtop()};
 }
 function stPass(r){
@@ -6987,7 +7020,7 @@ function stPass(r){
   if(findF.mc&&attrOf(r).mc.toLowerCase()!==findF.mc)return false;
   if(findF.stt&&!attrOf(r).st.some(c=>c.toLowerCase()===findF.stt))return false;
   if(findF.sc&&!attrOf(r).sc.some(c=>c.toLowerCase()===findF.sc))return false;
-  if(findF.cl&&attrOf(r).cl.toLowerCase()!==findF.cl)return false;
+  if(findF.cl&&!attrOf(r).cl.some(c=>c.toLowerCase()===findF.cl))return false;
   if(findF.shp&&!attrOf(r).sh.some(c=>c.toLowerCase()===findF.shp))return false;
   if(findF.sst&&!attrOf(r).ss.some(c=>c.toLowerCase()===findF.sst))return false;
   if(findF.pn){const h=!!pnameOf(r);if(findF.pn==='yes'&&!h)return false;if(findF.pn==='no'&&h)return false}
@@ -7083,7 +7116,7 @@ function stPrice(r){
 let stSort=(()=>{const v=store.get('stSort',null);return v&&v.k&&(v.d===1||v.d===-1)?v:{k:'key',d:1}})(),stLimit=200;
 function stVal(r,k){
   const N=v=>{const n=num(v);return isNaN(n)?null:n};
-  if(k==='pname')return pnameOf(r)||null;if(k==='jt')return attrOf(r).jt||null;if(k==='scol')return attrOf(r).sc.join(', ')||null;if(k==='mc')return mcLabel(r)||null;if(k==='stt')return attrOf(r).st.join(', ')||null;if(k==='shp')return attrOf(r).sh.join(', ')||null;if(k==='cl')return attrOf(r).cl||null;if(k==='sst')return attrOf(r).ss.join(', ')||null;
+  if(k==='pname')return pnameOf(r)||null;if(k==='jt')return attrOf(r).jt||null;if(k==='scol')return attrOf(r).sc.join(', ')||null;if(k==='mc')return mcLabel(r)||null;if(k==='stt')return attrOf(r).st.join(', ')||null;if(k==='shp')return attrOf(r).sh.join(', ')||null;if(k==='cl')return attrOf(r).cl.join(', ')||null;if(k==='sst')return attrOf(r).ss.join(', ')||null;
   if(k==='price'||k==='fv'||k==='save'){const v=stPrice(r)[k==='price'?'lp':k];return isNaN(v)?null:v}
   if(k==='mk'){const v=stPrice(r).mk;if(!isNaN(v))return v;return N(r.mk)}          // making in ₹ at today's rate
   if(k==='sa'){const v=(num(r.saDia)||0)+(num(r.saClr)||0)||num(r.sa)||0;return v>0?v:null}
@@ -7103,10 +7136,9 @@ function cellEdit(td){
   ecClose();
   const tr=td.closest('tr[data-k]'),k=tr&&tr.dataset.k,r=k&&stockMap.get(k),c=td.dataset.ec;if(!r)return;
   if(c==='pname'&&!can('images'))return toast('Product name needs the “photos” permission');
-  const a=attrOf(r),multi={stt:['st',STT_LIST,STT_MAX],shp:['sh',SHP_LIST,SHP_MAX],sst:['ss',SST_LIST,SST_MAX],scol:['sc',SC_LIST.map(x=>x[0]),SC_MAX]}[c];
+  const a=attrOf(r),multi={cl:['cl',clChoices(),CL_MAX],stt:['st',STT_LIST,STT_MAX],shp:['sh',SHP_LIST,SHP_MAX],sst:['ss',SST_LIST,SST_MAX],scol:['sc',SC_LIST.map(x=>x[0]),SC_MAX]}[c];
   let body;
   if(c==='pname')body=`<input id="ecIn" maxlength="60" value="${esc(pnameOf(r)||'')}" placeholder="e.g. Infinity Diamond Ring" autocomplete="off">`;
-  else if(c==='cl'){const cls=[...new Set([...CL_LIST,...[...stockMap.values()].map(x=>attrOf(x).cl).filter(Boolean).sort((x,y)=>x.localeCompare(y))])];body=`<input id="ecIn" list="ecL" maxlength="40" value="${esc(a.cl||'')}" placeholder="Type or pick a collection" autocomplete="off"><datalist id="ecL">${cls.map(x=>`<option value="${esc(x)}">`).join('')}</datalist>`}
   else if(c==='jt'){const known=new Set(JT_GROUPS.flatMap(g=>g[1]));body=`<select id="ecIn"><option value="">— none —</option>${JT_GROUPS.map(([g,l])=>`<optgroup label="${esc(g)}">${l.map(v=>`<option${a.jt===v?' selected':''}>${esc(v)}</option>`).join('')}</optgroup>`).join('')}${a.jt&&!known.has(a.jt)?`<option selected>${esc(a.jt)}</option>`:''}</select>`}
   else if(c==='mc'){const nm=MC_LIST.map(x=>x[0]);body=`<select id="ecIn"><option value="">— none —</option>${[...nm,...(a.mc&&!nm.includes(a.mc)?[a.mc]:[])].map(v=>`<option${a.mc===v?' selected':''}>${esc(v)}</option>`).join('')}</select>`}
   else body=attrMulti('ec','M',EC_LBL[c],'Type a new one',multi[1],a[multi[0]]||[]);
@@ -7151,7 +7183,7 @@ function stCell(r,c,img,W,mkOf){
     case 'key':return `<b>${esc(r.barcode||r.key)}</b>`;
     case 'jt':{const v=attrOf(r).jt;return v?esc(v):'<span class="lab-n">–</span>'}
     case 'scol':{const v=attrOf(r).sc;return v.length?scHtml(v):'<span class="lab-n">–</span>'}
-    case 'cl':{const v=attrOf(r).cl;return v?esc(v):'<span class="lab-n">–</span>'}
+    case 'cl':{const v=attrOf(r).cl;return v.length?v.map(esc).join(', '):'<span class="lab-n">–</span>'}
     case 'shp':case 'sst':{const v=attrOf(r)[c==='shp'?'sh':'ss'];return v.length?`<span class="stt-t">${v.map(esc).join(', ')}</span>`:'<span class="lab-n">–</span>'}
     case 'stt':{const v=attrOf(r).st;return v.length?`<span class="stt-t">${v.map(esc).join(', ')}</span>`:'<span class="lab-n">–</span>'}
     case 'mc':{const v=mcLabel(r);return v?`<span class="mc-t">${mcSw(attrOf(r).mc)}${esc(v)}</span>`:'<span class="lab-n">–</span>'}
@@ -7512,13 +7544,14 @@ async function imgAct(k,act,i,u){
   return true;
 }
 // ---------- V1.9.13 the same photo for many items (e.g. chains of one model), or copy photos from another item ----------
-async function imgMany(keys,src,mode){
+async function imgMany(keys,src,mode,quiet){
   if(!sync.key){toast('Connect the shared database first',null,true);return false}
   if(!navigator.onLine){toast('Needs the internet to change photos',null,true);return false}
   if(!(await editCredsOk()))return false;
   try{const r=await syncApi('imgmany','POST',{keys,mode,...src},adminCreds);
     if(r&&r.idx){imgIdx=r.idx;imgN=r.n||{};store.set('imgIdx',imgIdx);store.set('imgN',imgN);sync.v.imgs=r.v||sync.v.imgs;saveSyncState()}
     for(const k of keys){imgMem.delete(k);try{await PH.del('img:'+k)}catch(e){}delete imgT[k]}store.set('imgT',imgT);
+    if(quiet)return true;
     closeModal();toast(`${r.photos>1?r.photos+' photos':'Photo'} ${mode==='replace'?'set on':'added to'} ${r.done} item${r.done===1?'':'s'}`+(r.full?` · ${r.full} already had ${IMG_MAX} photos`:''));
     try{runFind()}catch(e){}if(keys.length===1)try{openPhotos(keys[0])}catch(e){}return true}
   catch(e){toast(e&&e.status===403?(mode==='replace'?'Replacing photos needs a user allowed to delete photos':'Not allowed for this user'):'Photos not saved. '+syncErrText(e),null,true);return false}
@@ -7558,6 +7591,7 @@ function pickPhotos(k,act,i,src){
 async function takePhotos(list){
   const j=photoJob;photoJob=null;if(!j||!list.length)return;
   if(j.multi){const u=await shrinkUrl(list[0],1024);await imgMany(j.multi,{img:u},j.mode);return}
+  if(j.bulkPh){const u=await shrinkUrl(list[0],1024);if(window.__bkPhSet)window.__bkPhSet(u);return}
   if(j.act==='set'){await imgAct(j.k,'set',j.i,list[0]);toast('Photo replaced')}
   else{let n=0;for(const u of list){if(!(await imgAct(j.k,'add',0,u)))break;n++}if(n)toast(n===1?'Photo added':`${n} photos added`)}
   pmNameAuto(j.k);
@@ -7566,7 +7600,7 @@ async function takePhotos(list){
 function askProdPhoto(k){openPhotos(k)}
 // a name typed in the photo manager is saved with the photos
 function pmNameAuto(k){const i=$('pmName');if(!i||i.dataset.k!==k||$('modal').hidden)return;const v=i.value.replace(/\s+/g,' ').trim();if(v&&v!==pnameOf(stockMap.get(k)||{key:k}))savePnames({[k]:v});
-  if($('pmAJt')){const a=readAttr('pmA');if((a.jt||a.sc.length||a.mc||a.st.length||a.sk||a.sh.length||a.ss.length||a.cl)&&!attrSame(a,attrOf(stockMap.get(k)||{key:k})))savePattrs({[k]:a})}}
+  if($('pmAJt')){const a=readAttr('pmA');if((a.jt||a.sc.length||a.mc||a.st.length||a.sk||a.sh.length||a.ss.length||(a.cl||[]).length)&&!attrSame(a,attrOf(stockMap.get(k)||{key:k})))savePattrs({[k]:a})}}
 // V1.8.3 paste photos: the photo manager (Ctrl+V, Paste button, long-press box), or Ctrl+V on Home with an item open
 async function pastePhotos(k,blobs){
   const room=IMG_MAX-imgCount(k);if(room<=0){toast(`An item can have ${IMG_MAX} photos`,null,true);return}
@@ -7892,7 +7926,7 @@ function stockForm(rec){
   $('modalTitle').textContent=isNew?'New item in stock':'Edit '+(r.barcode||r.key);$('modalTitle').classList.remove('price-pop');
   $('modalBody').innerHTML=`<p class="note">${isNew?'All label details, as on the other labels.':'Correct the making, FVA or any detail.'} Saved to the shared database for all staff.</p><div class="pr-form">`+SF.map(([k,l,t,req])=>{
     const id='sf_'+k,lab=`<label for="${id}">${esc(l)}${req?' *':''}</label>`;
-    if(t==='at')return attrFields('sfA',isNew?{jt:'',sc:[],mc:'',st:[],sk:'',sh:[],ss:[],cl:''}:attrOf(r));
+    if(t==='at')return attrFields('sfA',isNew?{jt:'',sc:[],mc:'',st:[],sk:'',sh:[],ss:[],cl:[]}:attrOf(r));
     if(t==='pn')return `<div class="full">${lab}<input id="${id}" list="pnList" autocomplete="off" maxlength="80" placeholder="e.g. Pink Solo Ring" value="${esc(isNew?'':pnameOf(r))}">${pnameDatalist()}<small class="pn-note" id="sfPnNote" aria-live="polite"></small></div>`;
     if(LST[k])return `<div${k==='item'||k==='category'?' class="sf-lst"':''}>${lab}<select id="${id}" class="sf-sel">${k==='supplier'?supOptions(v0.supplier,'Choose supplier…',true):optsOf(k,v0[k],k==='category'&&v0.item?x=>lc(x.item)===lc(v0.item):null)}</select><input id="${id}_new" class="sf-new" hidden placeholder="Type the new ${LST[k]}" aria-label="New ${LST[k]}"></div>`;
     if(t==='pur')return `<div>${lab}<select id="${id}">${purs.map(x=>`<option${String(v0.carat||'22').toUpperCase()===x?' selected':''}>${x}</option>`).join('')}</select></div>`;
@@ -8101,7 +8135,7 @@ function bulkFindPass(r,f){
   if(f.cat&&lcT(r.category)!==f.cat)return false;
   if(f.stt){const a=attrOf(r).st.map(lcT);if(f.stt==='__none'?a.length>0:!a.includes(f.stt))return false}
   if(f.mc){const m=lcT(attrOf(r).mc);if(f.mc==='__none'?!!m:m!==f.mc)return false}
-  if(f.cl){const m=lcT(attrOf(r).cl);if(f.cl==='__none'?!!m:m!==f.cl)return false}   // V1.9.7
+  if(f.cl){const a=attrOf(r).cl.map(lcT);if(f.cl==='__none'?a.length>0:!a.includes(f.cl))return false}   // V1.9.7 / 1.9.15 several
   if(f.jt){const m=lcT(attrOf(r).jt);if(f.jt==='__none'?!!m:m!==f.jt)return false}
   if(f.loc){const m=lcT(r.location);if(f.loc==='__none'?!!m:m!==f.loc)return false}
   for(const k of ['sh','ss','sc'])if(f[k]){const a=attrOf(r)[k].map(lcT);if(f[k]==='__none'?a.length>0:!a.includes(f[k]))return false}
@@ -8137,8 +8171,44 @@ function bulkPick(labels,q,f){
 }
 // V1.9.8 Bulk update layout (Settings › Bulk update & top bar): which filters / fields show and their order, shared
 const BKF_ALL=[['item','Item name','bkfItem'],['cat','Item type','bkfCat'],['cl','Collection','bkfCl'],['jt','Design','bkfJt'],['mc','Metal colour','bkfMc'],['stt','Stone type','bkfStt'],['sh','Shape','bkfSh'],['ss','Stone shape','bkfSs'],['sc','Stone colour','bkfSc'],['pur','Purity','bkfPur'],['sup','Supplier','bkfSup'],['loc','Location','bkfLoc'],['imp','Imported','bkfImp'],['wt','Weight range','bkfWBy'],['wa','Wastage %','bkfWaEq'],['mk','Making','bkfMkT'],['fv','FVA','bkfFv']];
-const BKC_ALL=()=>[['cl','Collection'],['jt','Design'],...BF.filter(x=>x[0]==='mc').map(x=>[x[0],x[1]]),['st','Stone type'],['sh','Shape'],['ss','Stone shape'],['sc','Stone colour'],...BF.filter(x=>x[0]!=='mc').map(x=>[x[0],x[1]])];
-const uiCfg=()=>(plists&&plists.ui)||{};
+const BKC_ALL=()=>[['photo','Photo'],['cl','Collection'],['jt','Design'],...BF.filter(x=>x[0]==='mc').map(x=>[x[0],x[1]]),['st','Stone type'],['sh','Shape'],['ss','Stone shape'],['sc','Stone colour'],...BF.filter(x=>x[0]!=='mc').map(x=>[x[0],x[1]])];
+const uiShared=()=>(plists&&plists.ui)||{};
+const uiCfg=()=>({...uiShared(),...(store.get('uiLocal',{})||{})});   // V1.9.14 a device can keep its own filter layout
+async function saveUi(part,shared){
+  if(!shared){store.set('uiLocal',{...(store.get('uiLocal',{})||{}),...part});return true}
+  const loc=store.get('uiLocal',{})||{};Object.keys(part).forEach(k=>delete loc[k]);store.set('uiLocal',loc);
+  const ui={...uiShared(),...part};
+  if(sync.key){const r=await syncApi('plists','POST',{lists:{ui},by:curUser?(curUser.name||curUser.username):''},adminCreds);plists=r.lists;sync.v.plists=r.v||sync.v.plists;saveSyncState()}else plists={...(plists||{}),ui};
+  store.set('plists',plists);applyPlists();return true}
+function uiLocalClear(keys){const loc=store.get('uiLocal',{})||{};keys.forEach(k=>delete loc[k]);store.set('uiLocal',loc)}
+// a list you tick and order (filters / fields). save(shared) → Promise
+function custPanel(box,title,items,save,keys){
+  const L=items.map(x=>({...x}));
+  const paint=()=>{box.innerHTML=`<div class="cp"><div class="cp-h"><b>${esc(title)}</b><span class="note">Tick to show · ↑ ↓ to move</span></div><div class="cp-list">${L.map((x,i)=>`<div class="bu-row${x.on?'':' off'}" data-i="${i}"><label><input type="checkbox"${x.on?' checked':''}> ${esc(x.l)}</label><span class="pl-b"><button type="button" class="pl-ic" data-mv="-1" aria-label="Move ${esc(x.l)} up">↑</button><button type="button" class="pl-ic" data-mv="1" aria-label="Move ${esc(x.l)} down">↓</button></span></div>`).join('')}</div>
+    <div class="cp-a">${can('plists')?'<button type="button" class="btn primary sm" data-cs="all">Save for all staff</button>':''}<button type="button" class="btn sm${can('plists')?'':' primary'}" data-cs="me">Save on this device</button><button type="button" class="btn sm" data-cs="def">Shop default</button><button type="button" class="btn ghost sm" data-cs="x">Cancel</button></div></div>`;
+    box.querySelectorAll('.bu-row').forEach(r=>{const i=+r.dataset.i;r.querySelector('input').onchange=e=>{L[i].on=e.target.checked;r.classList.toggle('off',!L[i].on)};
+      r.querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>{const j=i+ +b.dataset.mv;if(j<0||j>=L.length)return;[L[i],L[j]]=[L[j],L[i]];paint();const nb=box.querySelector(`.bu-row[data-i="${j}"] [data-mv="${b.dataset.mv}"]`);if(nb)nb.focus()})});
+    box.querySelectorAll('[data-cs]').forEach(b=>b.onclick=async()=>{const w=b.dataset.cs;
+      if(w==='x'){box.hidden=true;box.innerHTML='';return}
+      if(w==='def'){uiLocalClear(keys);box.hidden=true;box.innerHTML='';save(null);toast('Using the shop layout');return}
+      const run=async()=>{try{await save(w==='all',L);box.hidden=true;box.innerHTML='';toast(w==='all'?'Saved · all staff have it':'Saved on this device')}catch(e){toast(e&&e.status===403?'Needs permission: Product property lists':'Could not save — check the connection',null,true)}};
+      if(w==='all')withPerm('plists','Needs permission: Product property lists.',run,true);else run()})};
+  box.hidden=false;paint();box.scrollIntoView({block:'nearest'});
+}
+// ---------- V1.9.14 Search filters: which show and their order ----------
+const SF_RNG=()=>[['w','Gross wt'],['n','Net wt'],['p','Label price'],['f','Fair value'],['m','Making'],['d','Diamond']].filter(([k])=>k!=='f'||can('fva'));
+const SF_ALL=()=>[['img','Photo'],...FILTERS.filter(([k])=>k!=='img'),...SF_RNG().map(([k,l])=>['r'+k,l+' (range)'])];
+function sfItems(){const u=uiCfg();return bkOrder(SF_ALL(),u.sf,u.sfOff)}
+function sfArrange(bar){
+  const row=bar.querySelector('.stf-row'),rng=bar.querySelector('.st-rng');if(!row)return;
+  const box=k=>k==='img'?row.querySelector('.stf-ph'):k[0]==='r'&&SF_RNG().some(([x])=>'r'+x===k)?rng&&rng.querySelector(`.rg[data-rg="${k.slice(1)}"]`):(row.querySelector(`[data-f="${k}"]`)||{}).parentElement;
+  const clr=row.querySelector('#stfClear');
+  sfItems().forEach(({k,on})=>{const el=box(k);if(!el||el===row)return;
+    if(!on){el.remove();if(k[0]==='r'&&k.length===2){if(findF[k[1]+'Min']||findF[k[1]+'Max']){findF[k[1]+'Min']='';findF[k[1]+'Max']=''}}else if(k==='type')findType='';else if(findF[k])findF[k]='';return}
+    if(k[0]==='r'&&k.length===2&&rng)rng.appendChild(el);else row.insertBefore(el,clr)});
+  if(!row.querySelector('#stfCust')){const b=document.createElement('button');b.type='button';b.className='linkbtn stf-cust';b.id='stfCust';b.textContent='⚙ Customise filters';b.onclick=()=>{let p=$('sfCust');if(!p){p=document.createElement('div');p.id='sfCust';p.className='cust-box';bar.appendChild(p)}
+      custPanel(p,'Search filters',sfItems(),async(shared,L)=>{if(L)await saveUi({sf:L.map(x=>x.k),sfOff:L.filter(x=>!x.on).map(x=>x.k)},shared);const g=bar.querySelector('.st-rng');if(g)g.remove();runFindTable()},['sf','sfOff'])};row.insertBefore(b,clr)}
+}
 function bkOrder(all,saved,off){const keys=all.map(x=>x[0]),o=[...(saved||[]).filter(k=>keys.includes(k)),...keys.filter(k=>!(saved||[]).includes(k))];return o.map(k=>({k,l:all.find(x=>x[0]===k)[1],on:!(off||[]).includes(k)}))}
 function bkArrange(){
   const u=uiCfg(),fo=bkOrder(BKF_ALL,u.bkF,u.bkFoff),co=bkOrder(BKC_ALL(),u.bkC,u.bkCoff);
@@ -8152,13 +8222,28 @@ function bkArrange(){
     const g1=fd.querySelector('.bkf-g');fd.querySelectorAll('.bkf-g').forEach(g=>g.remove());const n=fd.querySelector('.bkf-n');n.before(pills);n.before(rng)}
   // fields to change: one list in the chosen order
   const f1=document.querySelector('#modalBody .pr-form:not(.bk-pd)'),pd=document.querySelector('#modalBody .bk-pd');if(!f1||!pd)return;
-  const node=k=>{const m=$('bkM'+k);if(['st','sh','ss','sc'].includes(k))return m?m.closest('.bk-m'):null;const i=$('bk_'+k);return i?i.closest('.pr-form>div'):null};
+  const node=k=>{if(k==='photo')return $('bkPhoto');const m=$('bkM'+k);if(['cl','st','sh','ss','sc'].includes(k))return m?m.closest('.bk-m'):null;const i=$('bk_'+k);return i?i.closest('.pr-form>div'):null};
   co.forEach(({k,on})=>{const el=node(k);if(!el)return;if(!on)el.remove();else f1.appendChild(el)});
   pd.remove();const h=[...document.querySelectorAll('#modalBody .bk-ch')].find(x=>/Product details/.test(x.textContent));if(h)h.remove();
+  // V1.9.14 the change part in its own colour, with ⚙ Customise for both parts
+  const h2=[...document.querySelectorAll('#modalBody .bk-ch')].find(x=>/Change for the picked items/.test(x.textContent));
+  if(h2&&!f1.closest('.bk-chgbox')){const w=document.createElement('div');w.className='bk-chgbox';h2.before(w);w.appendChild(h2);let n=h2.nextElementSibling;
+    const notes=[...document.querySelectorAll('#modalBody > p.note')].filter(p=>p.compareDocumentPosition(h2)&Node.DOCUMENT_POSITION_PRECEDING);w.appendChild(f1);notes.forEach(p=>w.appendChild(p));
+    const cb=document.createElement('button');cb.type='button';cb.className='linkbtn bk-cust';cb.textContent='⚙ Customise fields';cb.onclick=()=>bkCust('c');h2.appendChild(cb)}
+  if(fd&&!fd.querySelector('.bk-cust')){const cb=document.createElement('button');cb.type='button';cb.className='linkbtn bk-cust';cb.textContent='⚙ Customise filters';cb.onclick=e=>{e.preventDefault();bkCust('f')};const sm=fd.querySelector('summary');(sm||fd).appendChild(cb)}
 }
+function bkCust(which){
+  let p=$('bkCustBox');if(!p){p=document.createElement('div');p.id='bkCustBox';p.className='cust-box';const fd=$('bkFind');(fd||$('modalBody')).after?(which==='f'&&fd?fd.after(p):$('modalBody').prepend(p)):0}
+  const u=uiCfg(),f=which==='f';
+  custPanel(p,f?'Bulk update · find items by':'Bulk update · fields to change',f?bkOrder(BKF_ALL,u.bkF,u.bkFoff):bkOrder(BKC_ALL(),u.bkC,u.bkCoff),async(shared,L)=>{
+    if(L)await saveUi(f?{bkF:L.map(x=>x.k),bkFoff:L.filter(x=>!x.on).map(x=>x.k)}:{bkC:L.map(x=>x.k),bkCoff:L.filter(x=>!x.on).map(x=>x.k)},shared);
+    const pre=bkLastPre;closeModal();setTimeout(()=>bulkForm(pre),60)},f?['bkF','bkFoff']:['bkC','bkCoff']);
+}
+let bkLastPre=null,bkPh=null;
 // V1.9.7 product details that bulk update can change: tick chips + add / replace / clear
-const BK_MULTI=[['st','Stone type',()=>STT_LIST,STT_MAX],['sh','Shape',()=>SHP_LIST,SHP_MAX],['ss','Stone shape',()=>SST_LIST,SST_MAX],['sc','Stone colour',()=>SC_LIST.map(x=>x[0]),SC_MAX]];
+const BK_MULTI=[['cl','Collection',()=>clChoices(),CL_MAX],['st','Stone type',()=>STT_LIST,STT_MAX],['sh','Shape',()=>SHP_LIST,SHP_MAX],['ss','Stone shape',()=>SST_LIST,SST_MAX],['sc','Stone colour',()=>SC_LIST.map(x=>x[0]),SC_MAX]];
 function bulkForm(pre){
+  bkLastPre=pre;bkPh=null;
   withPerm('stockBulk','Enter your PIN to bulk update stock items.',()=>{
   const cats=Object.values(CAT).filter(Boolean);
   $('modalTitle').textContent='Bulk update label details';$('modalTitle').classList.remove('price-pop');
@@ -8173,7 +8258,7 @@ function bulkForm(pre){
         <div><label for="bkfSup">Supplier</label><select id="bkfSup"><option value="">Any</option>${(()=>{const m=new Map();for(const r of stockMap.values()){const v=String(r.supplier||'').trim();if(v&&!m.has(v.toLowerCase()))m.set(v.toLowerCase(),v)}return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1],'en',{numeric:true})).map(([k,v])=>`<option value="${esc(k)}">${esc(v)}${(()=>{const x=supList().find(s=>s.name.toLowerCase()===k);return x&&x.full?' · '+esc(x.full):''})()}</option>`).join('')})()}</select></div>
         <div><label for="bkfMc">Metal colour</label><select id="bkfMc"><option value="">Any</option>${(()=>{const m=new Map();for(const r of stockMap.values()){const v=attrOf(r).mc;if(v)m.set(v.toLowerCase(),v)}return [...m.entries()].map(([k,v])=>`<option value="${esc(k)}">${esc(v)}</option>`).join('')})()}<option value="__none">Not set</option></select></div>
         <div><label for="bkfStt">Stone type</label><select id="bkfStt"><option value="">Any</option>${(()=>{const m=new Map();for(const r of stockMap.values())attrOf(r).st.forEach(v=>m.set(v.toLowerCase(),v));return [...m.entries()].map(([k,v])=>`<option value="${esc(k)}">${esc(v)}</option>`).join('')})()}<option value="__none">Not set</option></select></div>
-        ${[['Cl','Collection',r=>[attrOf(r).cl]],['Jt','Design',r=>[attrOf(r).jt]],['Sh','Shape',r=>attrOf(r).sh],['Ss','Stone shape',r=>attrOf(r).ss],['Sc','Stone colour',r=>attrOf(r).sc],['Loc','Location',r=>[r.location]]].map(([id,l,fn])=>{const m=new Map();for(const r of stockMap.values())fn(r).forEach(v=>{if(v)m.set(v.toLowerCase(),v)});return `<div><label for="bkf${id}">${l}</label><select id="bkf${id}"><option value="">Any</option>${[...m.entries()].sort((a,b)=>a[1].localeCompare(b[1])).map(([k,v])=>`<option value="${esc(k)}">${esc(v)}</option>`).join('')}<option value="__none">Not set</option></select></div>`}).join('')}
+        ${[['Cl','Collection',r=>attrOf(r).cl],['Jt','Design',r=>[attrOf(r).jt]],['Sh','Shape',r=>attrOf(r).sh],['Ss','Stone shape',r=>attrOf(r).ss],['Sc','Stone colour',r=>attrOf(r).sc],['Loc','Location',r=>[r.location]]].map(([id,l,fn])=>{const m=new Map();for(const r of stockMap.values())fn(r).forEach(v=>{if(v)m.set(v.toLowerCase(),v)});return `<div><label for="bkf${id}">${l}</label><select id="bkf${id}"><option value="">Any</option>${[...m.entries()].sort((a,b)=>a[1].localeCompare(b[1])).map(([k,v])=>`<option value="${esc(k)}">${esc(v)}</option>`).join('')}<option value="__none">Not set</option></select></div>`}).join('')}
         <div><label for="bkfImp">Imported</label><select id="bkfImp"><option value="">Any</option><option value="yes">Imported only</option><option value="no">Not imported</option></select></div>
       </div></div>
       <div class="bkf-g"><b>Weight</b><div class="bkf-r3">
@@ -8210,11 +8295,23 @@ function bulkForm(pre){
     <p class="note">Making: fill one of Wstg %, Fixed Charge (₹ per piece) or Making Rate (₹ per gram of net wt).</p>
     <p class="bk-ch">Product details</p>
     <div class="pr-form bk-pd">
-      <div><label for="bk_cl">Collection</label><input id="bk_cl" list="bkClL" maxlength="40" placeholder="Keep" autocomplete="off"><datalist id="bkClL">${[...new Set([...CL_LIST,...[...stockMap.values()].map(r=>attrOf(r).cl).filter(Boolean)])].map(x=>`<option value="${esc(x)}">`).join('')}</datalist><small class="bk-h">Type <b>none</b> to clear</small></div>
       <div><label for="bk_jt">Design</label><select id="bk_jt"><option value="">Keep</option>${JT_GROUPS.map(([g,l])=>`<optgroup label="${esc(g)}">${l.map(v=>`<option>${esc(v)}</option>`).join('')}</optgroup>`).join('')}<option value="__none">Clear design</option></select></div>
+      <div class="full bk-ph" id="bkPhoto"><div class="at-f"><label>Photo <small>— the same photo for all picked items</small></label></div>
+        <div class="mp-row"><button type="button" class="btn sm" data-bkp="gallery">${onComputer()?'Choose a file':'Gallery'}</button><button type="button" class="btn sm" data-bkp="camera">Camera</button><input id="bkPhFrom" list="bkPhL" autocomplete="off" placeholder="or copy from label no." maxlength="40" aria-label="Copy photos from label no."><datalist id="bkPhL">${[...stockMap.values()].filter(r=>imgCount(r.key)).slice(0,400).map(r=>`<option value="${esc(r.barcode||r.key)}">${esc(pnameOf(r)||r.item||'')}</option>`).join('')}</datalist></div>
+        <div class="bk-php" id="bkPhPrev"></div>
+        <div class="bk-mm" role="radiogroup" aria-label="Photo: add or replace"><label class="stf-r on"><input type="radio" name="bkPhMode" value="add" checked><span>Add to their photos</span></label><label class="stf-r"><input type="radio" name="bkPhMode" value="replace"><span>Replace their photos</span></label></div></div>
       ${BK_MULTI.map(([k,l,L,max])=>`<div class="full bk-m">${attrMulti('bkM',k,l,'Type a new one',L(),[])}<div class="bk-mm" role="radiogroup" aria-label="${l}: how to change">${[['add','Add the ticked'],['set','Replace with the ticked'],['clear','Clear all']].map(([v,t],i)=>`<label class="stf-r${i?'':' on'}"><input type="radio" name="bkMode_${k}" value="${v}"${i?'':' checked'}><span>${t}</span></label>`).join('')}</div></div>`).join('')}
     </div>`;
   bkArrange();
+  // V1.9.14 photo for the picked items: upload one, or copy from a label
+  const phPrev=()=>{const b=$('bkPhPrev');if(!b)return;if(!bkPh){b.innerHTML='';return}
+    b.innerHTML=bkPh.img?`<div class="mp-th"><img src="${bkPh.img}" alt=""></div><button type="button" class="linkbtn" id="bkPhX">Remove</button>`:`<p class="note">${esc(bkPh.label)} — ${bkPh.n} photo${bkPh.n===1?'':'s'}</p><div class="mp-th">${(bkPh.us||[]).map(u=>`<img src="${u}" alt="">`).join('')}</div><button type="button" class="linkbtn" id="bkPhX">Remove</button>`;
+    $('bkPhX').onclick=()=>{bkPh=null;if($('bkPhFrom'))$('bkPhFrom').value='';phPrev()}};
+  window.__bkPhSet=u=>{bkPh={img:u};if($('bkPhFrom'))$('bkPhFrom').value='';phPrev()};
+  document.querySelectorAll('[data-bkp]').forEach(b=>b.onclick=()=>withPerm('images','Needs a user allowed to add product photos.',()=>{photoJob={bulkPh:1};if(canNativePhotos){NATIVE.pickPhotos(b.dataset.bkp);return}const inp=$(b.dataset.bkp==='camera'?'pimgCam':'pimgFile');inp.multiple=false;inp.click()},true));
+  if($('bkPhFrom')){let tk=0;$('bkPhFrom').addEventListener('input',()=>{clearTimeout(phPrev.t);phPrev.t=setTimeout(async()=>{const t=++tk,raw=$('bkPhFrom').value.trim(),r=findStock(raw),k=r?r.key:keyOf(raw);if(!raw){bkPh=null;phPrev();return}
+    const n=imgCount(k);if(!n){bkPh=null;$('bkPhPrev').innerHTML=`<p class="note">${esc(raw)}: no photos.</p>`;return}const us=await getProdImgs(k).catch(()=>[]);if(t!==tk)return;bkPh={from:k,label:r?(r.barcode||r.key):k,n:us.length,us};phPrev()},300)})}
+  document.querySelectorAll('input[name="bkPhMode"]').forEach(i=>i.onchange=()=>i.closest('.bk-mm').querySelectorAll('.stf-r').forEach(l=>l.classList.toggle('on',l.contains(i)&&i.checked)));
   BK_MULTI.forEach(([k,,,max])=>{if(!$('bkM'+k))return;wireMulti('bkM',k,max);document.querySelectorAll(`input[name="bkMode_${k}"]`).forEach(i=>i.onchange=()=>i.closest('.bk-mm').querySelectorAll('.stf-r').forEach(l=>l.classList.toggle('on',l.contains(i)&&i.checked)))});
   if($('bk_supplier'))$('bk_supplier').addEventListener('change',()=>{$('bk_supplier_new').hidden=$('bk_supplier').value!=='__new';if(!$('bk_supplier_new').hidden)$('bk_supplier_new').focus()});
   const MK=['mkPct','mkFix','mkPg'];MK.forEach(k=>$('bk_'+k)&&$('bk_'+k).addEventListener('input',e=>{if(e.target.value.trim())MK.filter(x=>x!==k).forEach(x=>{if($('bk_'+x))$('bk_'+x).value=''})}));
@@ -8256,11 +8353,13 @@ function bulkForm(pre){
     if(g('imp')){ch.imp=g('imp')==='Yes'?'Yes':'';what.push(g('imp')==='Yes'?'imported':'not imported')}
     // metal colour lives with the product details (not the stock row), so it does not touch making / rules
     const mcNew=g('mc').replace(/\s+/g,' ');const mcCanon=mcNew&&(MC_LIST.find(x=>x[0].toLowerCase()===mcNew.toLowerCase())||[mcNew])[0];if(mcCanon)what.push('metal colour '+mcCanon);
-    const clRaw=($('bk_cl')?$('bk_cl').value:'').replace(/\s+/g,' ').trim(),clNew=clRaw?(/^(none|clear|-)$/i.test(clRaw)?'':clRaw):null;if(clNew!=null)what.push(clNew?'collection '+clNew:'clear collection');
+    const clNew=null;
     const jtRaw=$('bk_jt')?$('bk_jt').value:'',jtNew=jtRaw?(jtRaw==='__none'?'':jtRaw):null;if(jtNew!=null)what.push(jtNew?'design '+jtNew:'clear design');
     const mops={};BK_MULTI.forEach(([k,l,,max])=>{const mode=(document.querySelector(`input[name="bkMode_${k}"]:checked`)||{}).value||'add',t=readMulti('bkM',k,max);
       if(mode==='clear'){mops[k]={mode,t:[]};what.push('clear '+l.toLowerCase())}else if(t.length){mops[k]={mode,t,max};what.push((mode==='set'?l.toLowerCase()+' = ':'add '+l.toLowerCase()+' ')+t.join(', '))}});
     const pdOn=!!mcCanon||clNew!=null||jtNew!=null||Object.keys(mops).length>0;
+    const phMode=(document.querySelector('input[name="bkPhMode"]:checked')||{}).value||'add',phSrc=bkPh?(bkPh.img?{img:bkPh.img}:{from:bkPh.from}):null;
+    if(phSrc)what.push((phMode==='replace'?'replace photos with ':'add photo ')+(bkPh.img?'(uploaded)':'from '+bkPh.label));
     if(!what.length){toast('Fill at least one detail to change',null,true);return}
     const stockCh=Object.keys(ch).length>0;
     const rows=pick.list.map(r=>stockCh?Object.assign({},r,ch,{at:Date.now()}):r);
@@ -8269,10 +8368,11 @@ function bulkForm(pre){
       try{
         let hist=null;
         if(sync.key&&stockCh)for(let i=0;i<rows.length;i+=300){const res=await syncApi('stockrow','POST',{rows:rows.slice(i,i+300),what:what.join(', '),by:meName()},adminCreds);sync.v.stock=res.v;hist=res.history}
-        if(pdOn){const map={};rows.forEach(r=>{const o=pattrs[r.key]||{},a=attrOf(r),v={jt:o.jt||'',sc:o.sc||[],mc:o.mc||'',st:o.st||[],sk:o.sk||'',sh:o.sh||[],ss:o.ss||[],cl:o.cl||''};
+        if(pdOn){const map={};rows.forEach(r=>{const o=pattrs[r.key]||{},a=attrOf(r),v={jt:o.jt||'',sc:o.sc||[],mc:o.mc||'',st:o.st||[],sk:o.sk||'',sh:o.sh||[],ss:o.ss||[],cl:clArr(o.cl)};
           if(mcCanon)v.mc=mcCanon;if(clNew!=null)v.cl=clNew;if(jtNew!=null)v.jt=jtNew;
           for(const [k,op] of Object.entries(mops))v[k]=op.mode==='clear'?[]:op.mode==='set'?op.t.slice():[...new Set([...(a[k]||[]),...op.t])].slice(0,op.max);
           map[r.key]=v});if(!(await savePattrs(map)))throw new Error('attr')}
+        if(phSrc&&!(await imgMany(rows.map(r=>r.key),phSrc,phMode,true)))throw new Error('photo');
         saveSyncState();if(hist){stockMeta.history=hist;store.set('stockMeta',stockMeta)}
         try{await IDB.putMany(rows,false)}catch(e){}
         rows.forEach(indexRec);paintStockSummary();closeModal();
@@ -8593,7 +8693,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.9.13',APP_BUILD='__BUILD__';
+const APP_VERSION='1.9.15',APP_BUILD='__BUILD__';
 const NATIVE_API=1;   // V1.9.12 bump (with MainActivity.NATIVE_API) when the screens need something new from the phone app
 // V1.9.12 automatic updates: the phone app downloads new screens itself and calls window.__otaReady; the website checks ota.json.
 // The page reloads only when nobody is busy (no popup, not typing, not scanning, app in front).
@@ -8601,6 +8701,11 @@ let updPending='';
 function updIdle(){const a=document.activeElement,g=id=>document.getElementById(id);if(document.hidden)return false;if(g('modal')&&!g('modal').hidden)return false;if(g('login')&&!g('login').hidden)return false;if(g('cellEd'))return false;if(g('imgFull')&&!g('imgFull').hidden)return false;if(g('camScan')&&!g('camScan').hidden)return false;if(a&&(/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)||a.isContentEditable))return false;return true}
 function updTry(){if(!updPending)return;if(updIdle()){const v=updPending;updPending='';try{toast(`Updating to v${v}…`)}catch(e){}setTimeout(()=>location.reload(),900);return}clearTimeout(updTry.t);updTry.t=setTimeout(updTry,4000)}
 window.__otaReady=v=>{updPending=String(v||'new');updTry()};
+// V1.9.14 reload button: get the latest version now (phone app: download it first)
+function appReload(){try{toast('Getting the latest version…')}catch(e){}
+  if(typeof YamieNative!=='undefined'&&YamieNative.checkUpdate){try{YamieNative.checkUpdate()}catch(e){}setTimeout(()=>location.reload(),6000);return}
+  setTimeout(()=>location.reload(),600)}
+document.addEventListener('click',e=>{if(e.target.closest('#menuReload,#sbReload')){e.preventDefault();appReload()}});
 async function webUpdCheck(manual){
   if(typeof YamieNative!=='undefined'&&YamieNative.checkUpdate){try{YamieNative.checkUpdate()}catch(e){}return}
   if(location.protocol!=='https:'||!/^web-/.test(APP_BUILD))return;
