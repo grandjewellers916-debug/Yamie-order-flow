@@ -5,7 +5,7 @@ import { runDocReminders } from '../lib/reminders.mjs';
 import {
   DEFAULT_SETTINGS, ROLE_PERMS, PERMS, SECTIONS, TXN_TYPES, deriveLocMeta, JTYPES, normJts, applyJewelleryTypes, mainLocsOf, placeLoc29, defaultPlace, keyText, lineKey, itemOf, jtOfLine, purOfLine, summarize, closingVerified, computeExpected, erpCompare,
   latestCounts, locStatus, sumLines, istDate, r3, CASH_DENOMS, cashCalc, isMorning,
-  teamsForLoc, CLAIM_MS,
+  teamsForLoc, CLAIM_MS, ccOf, periodCats, ccValidate, CC_LABEL,
 } from '../../web/core.mjs';
 
 export const config = { path: '/api/*' };
@@ -170,10 +170,16 @@ async function loadDay(s: any, date: string, round?: string) {
   return { day, mvs, counts: counts.filter((c: any) => (c.round || 'morning') === r), allCounts: counts, round: r };
 }
 function roundsDone(locs: any[], day: any, mvs: any[], morning: any[], evening: any[], settings: any) {
-  const f = (cs: any[]) => { const sm = summarize(locs, day.opening, mvs, cs, settings); return { done: sm.total.locs - sm.total.pending - sm.total.stale, locs: sm.total.locs, var: sm.total.var }; };
+  // v1.60 only the categories each period has to count (counting configuration); a period that is off is not required
+  const cc = ccOf(settings);
+  const one = (cs: any[], period: string, staleOk: boolean) => {
+    const req = periodCats(cc, period); if (!req.length) return { off: true, done: 0, locs: 0, var: 0, cats: {} };
+    const sm = summarize(locs, day.opening, mvs, cs, settings); const cats: any = {}; let done = 0, n = 0, v = 0;
+    for (const k of req) { const X = sm.sec[k] || { locs: 0, pending: 0, stale: 0, var: 0 }; const d = X.locs - X.pending - (staleOk ? 0 : X.stale); cats[k] = { done: d, locs: X.locs, var: X.var + (staleOk ? X.stale : 0) }; done += d; n += X.locs; v += cats[k].var; }
+    return { done, locs: n, var: v, cats };
+  };
   // morning: stale is fine (stock moved later in the day) — it was counted
-  const m = summarize(locs, day.opening, mvs, morning, settings);
-  return { morning: { done: m.total.locs - m.total.pending, locs: m.total.locs, var: m.total.var + m.total.stale }, evening: f(evening) };
+  return { morning: one(morning, 'morning', true), evening: one(evening, 'evening', false) };
 }
 function daySummaryLine(locs: any[], day: any, mvs: any[], counts: any[], settings: any) {
   const sm = summarize(locs, day.opening, mvs, counts, settings);
@@ -207,7 +213,7 @@ async function ensureToday(s: any) {
     if (prev.status !== 'closed') prev = await closeDay(s, prevDate, 'system', true);
     opening = prev.closing || {};
   }
-  await s.setJSON(`day/${today}`, { date: today, opening, status: 'open', createdAt: now() }, { onlyIfNew: true });
+  await s.setJSON(`day/${today}`, { date: today, opening, status: 'open', createdAt: now(), cc: ccOf(await getSettings(s)) }, { onlyIfNew: true });   // v1.60 the day's counting configuration snapshot
   return s.get(`day/${today}`, { type: 'json' });
 }
 const erpWhich = (erp: any, date: string) => (erp?.reportDate && erp.reportDate < date ? 'opening' : 'closing');
@@ -288,6 +294,17 @@ export default async (req: Request) => {
       const rpSent = can('share') ? await listJSON(s, `rps/${today}/`) : [];
       const grandDE = can('special') || can('grandBul') ? ((await s.get(`sxd/gbul/${today}`, { type: 'json' })) || false) : null;   // v1.37 Grand bullion day-end received?
       const shopLocs = (await listJSON(s, 'doc/')).filter((x: any) => x.type === 'Shop Location' && x.place).map((x: any) => ({ id: x.id, title: x.title, type: x.type, place: x.place }));   // v1.33 everyone can share the shop location
+      if (date === today && d.day.status !== 'closed') { try {   // v1.60 reminders before the deadline and overdue alerts for counting periods that are on
+        const cc = ccOf(settings); const hm = new Date(now() + 5.5 * 3600e3).toISOString().slice(11, 16); const mins = (t: string) => +t.slice(0, 2) * 60 + +t.slice(3);
+        const rd = roundsDone(locs, d.day, d.mvs, d.allCounts.filter((c: any) => (c.round || 'morning') === 'morning'), d.allCounts.filter((c: any) => c.round === 'evening'), settings);
+        const flags = { ...(d.day.ccAlerts || {}) }; let ch = false;
+        for (const k of ['morning', 'evening']) { const P = cc[k]; const R = (rd as any)[k]; if (!P.on || R.off || R.done >= R.locs) continue;
+          const nm = k === 'morning' ? 'Morning count' : 'Evening count'; const left = mins(P.due) - mins(hm);
+          if (P.remind && left <= P.remind && left > 0 && !flags[k + 'R']) { flags[k + 'R'] = 1; ch = true; await addAlert(s, { type: 'info', title: `⏰ ${nm} due at ${P.due}`, body: `${R.done}/${R.locs} verified — ${left} min left.`, by: 'system' }); }
+          if (left <= 0 && !flags[k + 'O']) { flags[k + 'O'] = 1; ch = true; await addAlert(s, { type: 'variance', title: `${nm} overdue`, body: `Deadline ${P.due} passed — ${R.done}/${R.locs} verified.`, by: 'system' }); }
+        }
+        if (ch) { d.day.ccAlerts = flags; await s.setJSON(`day/${today}`, d.day); }
+      } catch {} }
       const claims = date === today ? (await listJSON(s, `cl/${today}/`)).filter((c: any) => now() - c.at < CLAIM_MS) : [];   // v1.56 who is counting what right now
       return J({ today, date, day: d.day, mvs: d.mvs, counts: d.allCounts, sessions, erp, claims, locs, settings, me: pubUser(me), alerts, days, rpSent, shopLocs, grandDE, userNames: Object.fromEntries(users.map((u) => [u.id, u.name])) });
     }
@@ -320,12 +337,18 @@ export default async (req: Request) => {
       // v1.56 teams: when "only the assigned team" is on, other staff can't count a team's locations (managers can)
       const tf = teamsForLoc(settings, loc);
       if (settings.teamStrict && tf.length && !can('accept') && !tf.some((t: any) => (t.members || []).includes(me.id))) return err(`${loc.name} is assigned to ${tf.map((t: any) => t.name).join(' / ')}. Ask a manager.`, 403);
+      { // v1.60 counting configuration: period on, category part of this period, staff assigned to it
+        const cday = await ensureToday(s); const period = cday.round || 'morning'; const cc = ccOf(settings); const P = cc[period]; const pn = period === 'morning' ? 'Morning' : 'Evening';
+        if (!P.on) return err(`${pn} count is turned off in the counting configuration.`, 409);
+        if (!periodCats(cc, period).includes(loc.sec)) return err(`${CC_LABEL[loc.sec]} are not part of the ${pn.toLowerCase()} count.`, 409);
+        if (P.staff.length && !P.staff.includes(me.id) && !can('accept')) return err(`You are not assigned to the ${pn.toLowerCase()} count.`, 403);
+      }
       const clm: any = await s.get(`cl/${today}/${loc.id}`, { type: 'json' });
       if (clm && clm.by !== me.id && now() - clm.at < CLAIM_MS && !can('accept')) return err(`${users.find((u) => u.id === clm.by)?.name || 'Someone'} is counting ${loc.name} on another phone.`, 409);
       const { day, mvs, counts } = await loadDay(s, today);
       const exp = computeExpected(day.opening, mvs)[loc.id] || { lines: {}, wt: 0 };
       const prev = latestCounts(counts)[loc.id];
-      if (prev && !can('accept')) {
+      if (prev && !can('accept') && ccOf(settings).recountAdmin) {
         const pst = locStatus(exp, prev, mvs, loc.id, settings);
         if (pst.state !== 'stale' && !prev.recountAllowed) return err(`Already verified by ${users.find((u) => u.id === prev.by)?.name || prev.by}. Changes need a manager correction.`, 409);
       }
@@ -336,6 +359,7 @@ export default async (req: Request) => {
       for (const [t, r] of Object.entries(body.reasons || {})) rec.reasons[String(t).slice(0, 30)] = String(r).slice(0, 80);
       if (body.verifyAll && !can('verifyAll')) return err('No permission to use Verify all', 403);
       rec.verifyAll = !!body.verifyAll;
+      if (body.session || body.sessionId) rec.session = String(body.session || body.sessionId).replace(/[^a-z0-9-]/gi, '').slice(0, 40);   // v1.60 which counting session
       rec.itemNotes = {}; rec.photos = {};
       for (const [k, n] of Object.entries(body.itemNotes || {})) { const v = String(n || '').trim().slice(0, 200); if (v) rec.itemNotes[String(k).slice(0, 30)] = v; }
       let nPh = 0;
@@ -370,15 +394,45 @@ export default async (req: Request) => {
       return J({ ok: true });
     }
 
+    // v1.60 counting sessions follow the counting configuration: period on/off, categories, single / multiple, admin / staff choice,
+    // fixed order, assigned staff, duplicate prevention, joining (multiple staff), resume, partial submission, PIN on submit
     if (path === 'session/start' && method === 'POST') {
       need('count'); await openDay(body.date);
-      const scope = ['all', ...SECTIONS.map((x) => x.key)].includes(body.scope) ? body.scope : 'all';
+      const settings = await getSettings(s); const cc = ccOf(settings);
+      const curDay = await ensureToday(s); const round = curDay.round || 'morning'; const P = cc[round]; const pn = round === 'morning' ? 'Morning' : 'Evening';
+      if (!P.on) return err(`${pn} count is turned off in the counting configuration.`, 409);
+      if (P.staff.length && !P.staff.includes(me.id) && !can('accept')) return err(`You are not assigned to the ${pn.toLowerCase()} count.`, 403);
+      const allowed = periodCats(cc, round);
       const ids = Array.isArray(body.ids) ? body.ids.slice(0, 400).map((x: any) => String(x).slice(0, 40)) : null;
       const label = String(body.label || '').slice(0, 120);
-      const curDay = await ensureToday(s); const round = curDay.round || 'morning';
-      const existing = (await listJSON(s, `ss/${today}/`)).find((x: any) => x.by === me.id && x.scope === scope && (x.label || '') === label && (x.round || 'morning') === round && x.status === 'active');
-      if (existing) return J({ session: existing, resumed: true });
-      const rec: any = { id: `${now()}-${rid()}`, date: today, scope, round, by: me.id, at: now(), status: 'active' };
+      let cats: string[] = Array.isArray(body.cats) ? body.cats.filter((x: any) => allowed.includes(x)) : body.scope && body.scope !== 'all' ? [body.scope].filter((x) => allowed.includes(x)) : allowed.slice();
+      const bad = (Array.isArray(body.cats) ? body.cats : []).filter((x: any) => !allowed.includes(x));
+      if (!ids && bad.length) return err(`${bad.map((k: any) => CC_LABEL[k] || k).join(', ')} ${bad.length > 1 ? 'are' : 'is'} not part of the ${pn.toLowerCase()} count.`);
+      if (!ids) {
+        if (P.mode === 'multi' && P.select === 'admin') cats = allowed.slice();                       // admin predefined: the whole set
+        if (P.mode === 'single' && cats.length !== 1) return err('Single-category mode — pick one category to count.');
+        if (!cats.length) return err(`Nothing to count — ${pn.toLowerCase()} count has no enabled category.`);
+        if (P.seq === 'fixed') cats = P.order.filter((k) => cats.includes(k));
+      }
+      const all = await listJSON(s, `ss/${today}/`); const act = all.filter((x: any) => x.status === 'active' && (x.round || 'morning') === round);
+      if (ids) {   // team / custom subset: same as before
+        const ex = act.find((x: any) => x.by === me.id && (x.label || '') === label && x.ids);
+        if (ex) return J({ session: ex, resumed: true });
+      } else {
+        const same = act.find((x: any) => !x.ids && JSON.stringify(x.cats || [x.scope]) === JSON.stringify(cats));
+        if (same) {
+          const mine = same.by === me.id || (same.staff || []).includes(me.id);
+          if (mine && !cc.resume) { same.status = 'abandoned'; same.endedAt = now(); await s.setJSON(`ss/${today}/${same.id}`, same); }
+          else if (mine || cc.multiStaff) { if (!mine) { same.staff = [...new Set([...(same.staff || [same.by]), me.id])]; await s.setJSON(`ss/${today}/${same.id}`, same); } return J({ session: same, resumed: true, joined: !mine }); }
+          else return err(`${users.find((u) => u.id === same.by)?.name || 'Someone'} already has this ${pn.toLowerCase()} count open — joining is turned off.`, 409);
+        }
+        const clash = act.find((x: any) => !x.ids && (x.cats || [x.scope === 'all' ? null : x.scope].filter(Boolean)).some((k: string) => cats.includes(k)) && !(x.by === me.id && !cc.resume));
+        if (clash) return err(`${CC_LABEL[(clash.cats || []).find((k: string) => cats.includes(k))] || 'This stock'} already has an active ${pn.toLowerCase()} session (${users.find((u) => u.id === clash.by)?.name || clash.by}). Resume or join that one.`, 409);
+        for (const x of act.filter((x: any) => !x.ids && x.by === me.id && !cc.resume)) { x.status = 'abandoned'; x.endedAt = now(); await s.setJSON(`ss/${today}/${x.id}`, x); }
+      }
+      const n = all.filter((x: any) => (x.round || 'morning') === round).length + 1;
+      const rec: any = { id: `${now()}-${rid()}`, no: `${today.replace(/-/g, '')}-${round === 'morning' ? 'M' : 'E'}${String(n).padStart(2, '0')}`, date: today, round, by: me.id, staff: [me.id], at: now(), status: 'active',
+        cats: ids ? [] : cats, scope: ids ? 'all' : cats.length === 1 ? cats[0] : 'all', mode: P.mode, cfg: { ...P, partial: cc.partial, resume: cc.resume, multiStaff: cc.multiStaff, auth: cc.auth } };
       if (ids) { rec.ids = ids; rec.label = label; }
       await s.setJSON(`ss/${today}/${rec.id}`, rec);
       return J({ session: rec });
@@ -387,26 +441,51 @@ export default async (req: Request) => {
       need('count');
       const key = `ss/${today}/${String(body.id).replace(/[^a-z0-9-]/gi, '')}`;
       const ses: any = await s.get(key, { type: 'json' }); if (!ses) return err('Session not found');
-      const locs = await getLocs(s); const settings = await getSettings(s);
+      const locs = await getLocs(s); const settings = await getSettings(s); const cfg = ses.cfg || { ...ccOf(settings)[ses.round || 'morning'], ...ccOf(settings) };   // config snapshot from when the session started
+      if (cfg.auth) { if (!body.pin || hashPin(body.pin, me.salt) !== me.pinHash) return err(body.pin ? 'Wrong PIN — count not submitted' : 'Enter your PIN to submit this count', 403); }
       const { day, mvs, counts } = await loadDay(s, today, ses.round || 'morning');
       const sm = summarize(locs, day.opening, mvs, counts, settings);
-      const inScope = ses.ids ? locs.filter((l) => ses.ids.includes(l.id)) : locs.filter((l) => l.active !== false && (ses.scope === 'all' || l.sec === ses.scope));
+      const cats = ses.cats?.length ? ses.cats : ses.scope === 'all' ? ['counter', 'tray', 'box'] : [ses.scope];
+      const inScope = ses.ids ? locs.filter((l) => ses.ids.includes(l.id)) : locs.filter((l) => l.active !== false && cats.includes(l.sec));
       let exp = 0, act = 0, short = 0, excess = 0, pend = 0, done = 0, wtVar = 0;
-      const lines: string[] = [];
+      const lines: string[] = []; const per: any = {};
+      const latest = latestCounts(counts);
       for (const l of inScope) {
+        const P = (per[l.sec] ||= { locs: 0, done: 0, var: 0, short: 0, excess: 0, staff: [], mism: [] }); P.locs++;
         const st = sm.status[l.id]; const c = sm.last[l.id];
-        if (st.state === 'pending') continue; done++;
+        if (st.state === 'pending') continue; done++; P.done++;
+        if (latest[l.id]?.by && !P.staff.includes(latest[l.id].by)) P.staff.push(latest[l.id].by);
         if (c.mode !== 'weight') { exp += Object.values(sm.exp[l.id]?.lines || {}).reduce((a: number, b: any) => a + b, 0); act += Object.values(c.lines || {}).reduce((a: number, b: any) => a + b, 0); }
-        for (const d of Object.values(st.diff) as number[]) { if (d < 0) short -= d; else excess += d; }
-        if (st.state === 'var' || st.state === 'stale') { pend++; if (Math.abs(st.wtDiff) > settings.wtTol) wtVar++; lines.push(`${l.name}: ${Object.entries(st.diff).map(([t, d]: any) => `${keyText(l, t)} ${d > 0 ? '+' : ''}${d}`).join(', ') || `weight ${st.wtDiff > 0 ? '+' : ''}${st.wtDiff} g`}`); }
+        for (const d of Object.values(st.diff) as number[]) { if (d < 0) { short -= d; P.short -= d; } else { excess += d; P.excess += d; } }
+        if (st.state === 'var' || st.state === 'stale') { pend++; P.var++; if (Math.abs(st.wtDiff) > settings.wtTol) wtVar++;
+          const t = `${l.name}: ${Object.entries(st.diff).map(([t, d]: any) => `${keyText(l, t)} ${d > 0 ? '+' : ''}${d}${c.reasons?.[t] ? ` (${c.reasons[t]})` : ''}`).join(', ') || `weight ${st.wtDiff > 0 ? '+' : ''}${(+st.wtDiff || 0).toFixed(3)} g`}`; lines.push(t); P.mism.push(t); }
       }
+      const complete = done >= inScope.length;
+      if (!complete && cfg.partial === false) return err(`Partial submission is turned off — ${inScope.length - done} location(s) still to count.`, 409);
+      for (const k of Object.keys(per)) per[k].status = per[k].done >= per[k].locs ? (per[k].var ? 'mismatch' : 'done') : per[k].done ? 'partial' : 'not started';
       ses.summary = { locs: inScope.length, done, expected: exp, actual: act, short, excess, pending: pend, wtVar };
-      ses.status = done >= inScope.length ? 'done' : 'active'; ses.finishedAt = now();
+      ses.per = per; ses.status = complete ? 'done' : 'partial'; ses.finishedAt = now(); ses.finishedBy = me.id;
+      ses.staff = [...new Set([...(ses.staff || [ses.by]), ...Object.values(per).flatMap((x: any) => x.staff)])];
       await s.setJSON(key, ses);
-      const label = (ses.round === 'evening' ? 'Evening · ' : 'Morning · ') + (ses.label || (ses.scope === 'all' ? 'Full stock count' : SECTIONS.find((x) => x.key === ses.scope)?.label + ' count'));
-      const text = `${label} by ${me.name}: ${done}/${inScope.length} verified. Expected ${exp}, actual ${act}, short ${short}, excess ${excess}. Pending discrepancies ${pend}.` + (lines.length ? ' ' + lines.join('; ') : '');
-      await addAlert(s, { type: 'report', title: `${label} ${ses.status === 'done' ? 'completed' : 'saved (incomplete)'}`, body: text, by: me.id, ok: !pend && ses.status === 'done' });
+      const label = (ses.round === 'evening' ? 'Evening · ' : 'Morning · ') + (ses.label || (cats.length === 3 ? 'Full stock count' : cats.map((k: string) => CC_LABEL[k]).join(' + ')));
+      const text = `${label} (${ses.no || ses.id}) by ${me.name}: ${done}/${inScope.length} verified. Expected ${exp}, actual ${act}, short ${short}, excess ${excess}. Pending discrepancies ${pend}.` + (lines.length ? ' ' + lines.join('; ') : '');
+      await addAlert(s, { type: 'report', title: `${label} ${complete ? 'completed' : 'submitted (partial)'}`, body: text, by: me.id, ok: !pend && complete });
       return J({ ok: true, session: ses, text });
+    }
+    // v1.60 counting reports: sessions over a date range, day-wise period / category results, configuration change history
+    if (path === 'counting' && method === 'GET') {
+      need('reports');
+      const from = url.searchParams.get('from') || today, to = url.searchParams.get('to') || today;
+      const keys = (await dayKeys(s)).filter((k: string) => k >= from && k <= to).slice(-62);
+      const locs = await getLocs(s); const settings = await getSettings(s);
+      const days = await Promise.all(keys.map(async (k: string) => {
+        const [sess, d] = await Promise.all([listJSON(s, `ss/${k}/`), loadDay(s, k)]);
+        let rounds = d.day?.summary?.rounds;
+        if (!rounds && d.day) rounds = roundsDone(locs, d.day, d.mvs, d.allCounts.filter((c: any) => (c.round || 'morning') === 'morning'), d.allCounts.filter((c: any) => c.round === 'evening'), settings);
+        return { date: k, status: d.day?.status, round: d.day?.round || 'morning', rounds, sessions: sess, cfg: d.day?.cc || null };
+      }));
+      const hist = (await listJSON(s, 'cch/')).filter((x: any) => { const dt = new Date(x.at + 5.5 * 3600e3).toISOString().slice(0, 10); return dt >= from && dt <= to; }).sort((a: any, b: any) => b.at - a.at);
+      return J({ days, hist, names: Object.fromEntries(users.map((u) => [u.id, u.name])) });
     }
 
     if (path === 'erp' && method === 'POST') {
@@ -597,12 +676,11 @@ export default async (req: Request) => {
         const erp = await s.get(`erp/${today}`, { type: 'json' });
         const ec = erpCmp(erp, locs, d.day, d.mvs, d.counts, settings);
         const rd = roundsDone(locs, d.day, d.mvs, d.allCounts.filter((c: any) => (c.round || 'morning') === 'morning'), d.allCounts.filter((c: any) => c.round === 'evening'), settings);
-        const miss = [];
-        if (rd.morning.done < rd.morning.locs) miss.push(`morning count ${rd.morning.done}/${rd.morning.locs}`);
-        if ((d.day.round || 'morning') !== 'evening') miss.push('evening count not started');
-        else if (rd.evening.done < rd.evening.locs) miss.push(`evening count ${rd.evening.done}/${rd.evening.locs}`);
+        const miss = [];   // v1.60 only counting periods that are on, and only their categories
+        if (!rd.morning.off && rd.morning.done < rd.morning.locs) miss.push(`morning count ${rd.morning.done}/${rd.morning.locs}`);
+        if (!rd.evening.off) { if ((d.day.round || 'morning') !== 'evening') miss.push('evening count not started'); else if (rd.evening.done < rd.evening.locs) miss.push(`evening count ${rd.evening.done}/${rd.evening.locs}`); }
         if (miss.length) {
-          if (me.role !== 'admin') return err(`Both counts are compulsory — ${miss.join(', ')}. Only admin can close now.`, 409);
+          if (me.role !== 'admin') return err(`Required counts are not complete — ${miss.join(', ')}. Only admin can close now.`, 409);
           if (!String(body.override || '').trim()) return err(`Counts incomplete (${miss.join(', ')}). Give a reason to close.`, 409);
         }
         if (ec.entered && !ec.matched) {
@@ -794,6 +872,12 @@ export default async (req: Request) => {
       if (b.jtShort && typeof b.jtShort === 'object') next.jtShort = Object.fromEntries(Object.entries(b.jtShort).map(([k, v]: any) => [str(k, 60), str(v, 20)]).filter(([, v]) => v));
       if (b.itemLabels && typeof b.itemLabels === 'object') next.itemLabels = Object.fromEntries(Object.entries(b.itemLabels).map(([k, v]: any) => [str(k, 30), str(v)]).filter(([k, v]) => k && v));   // v1.54 product display names
       if (Array.isArray(b.jtHidden)) next.jtHidden = b.jtHidden.map((x: any) => str(x, 60)).filter((x: string) => x && x !== 'Plain Gold Jewellery');
+      if (b.cc && typeof b.cc === 'object') {   // v1.60 counting configuration (admin) — validated, change history kept
+        if (me.role !== 'admin') return err('Only admin can change the counting configuration', 403);
+        const nc = ccOf({ cc: b.cc }); const errs = ccValidate(nc); if (errs.length) return err(errs.join('. '));
+        const before = ccOf(cur); next.cc = nc;
+        if (JSON.stringify(before) !== JSON.stringify(nc)) await s.setJSON(`cch/${now()}-${rid().slice(0, 4)}`, { at: now(), by: me.id, byName: me.name, before, after: nc, note: String(b.ccNote || '').slice(0, 200) });
+      }
       if (Array.isArray(b.teams)) next.teams = b.teams.slice(0, 30).map((t: any, i: number) => ({ id: str(t.id, 20).replace(/[^a-z0-9-]/gi, '') || `t${now()}${i}`, name: str(t.name) || `Team ${i + 1}`,
         members: (Array.isArray(t.members) ? t.members : []).map((x: any) => str(x, 40)).filter((x: string) => users.some((u: any) => u.id === x)),
         scope: (Array.isArray(t.scope) ? t.scope : []).slice(0, 400).map((x: any) => str(x, 140)).filter((x: string) => /^[asgl]\|/.test(x)) }));   // v1.56 counting teams

@@ -410,3 +410,40 @@ export const teamCovers = (t, l) => { const sc = t?.scope || []; return sc.inclu
 export const teamsForLoc = (st, l) => (st?.teams || []).filter((t) => teamCovers(t, l));
 export const teamsOfUser = (st, uid) => (st?.teams || []).filter((t) => (t.members || []).includes(uid));
 export const CLAIM_MS = 10 * 60 * 1000;   // a phone's "counting now" claim lasts 10 min unless renewed
+
+// ================= v1.60 counting configuration (Settings → Stock taking → Counting configuration) =================
+// Categories = SECTIONS keys: counter (Counters & Shelves), tray (Buffer Trays), box (Boxes).
+export const CC_CATS = [['counter', 'Counters & Shelves'], ['tray', 'Buffer Trays'], ['box', 'Boxes']];
+export const CC_LABEL = Object.fromEntries(CC_CATS);
+const CC_PERIOD = (start, due) => ({ on: true, cats: ['counter', 'tray', 'box'], mode: 'multi', select: 'staff', seq: 'flexible', order: ['counter', 'tray', 'box'], start, due, remind: 30, staff: [] });
+export const CC_DEFAULT = {
+  cats: { counter: true, tray: true, box: true },                 // global switches — off = left out of future counts (records kept)
+  morning: CC_PERIOD('09:30', '11:00'),
+  evening: CC_PERIOD('18:30', '20:30'),
+  partial: true,      // a session may be submitted before every location is counted (then it stays "partial")
+  resume: true,       // an incomplete session can be resumed (off: it is closed as abandoned and a new one starts)
+  multiStaff: true,   // other staff can join an active session (each records their own counts)
+  auth: false,        // re-enter PIN to submit a session
+  recountAdmin: true, // recount of a verified location needs a manager / admin
+};
+const HM = /^([01]\d|2[0-3]):[0-5]\d$/;
+// normalise whatever is stored (older apps have no cc) — keeps today's behaviour by default
+export function ccOf(st) {
+  const c = st?.cc || {}; const cats = { ...CC_DEFAULT.cats, ...(c.cats || {}) };
+  const per = (k) => { const d = CC_DEFAULT[k], p = { ...d, ...(c[k] || {}) };
+    const keys = CC_CATS.map((x) => x[0]);
+    p.cats = (Array.isArray(p.cats) ? p.cats : d.cats).filter((x) => keys.includes(x));
+    p.order = [...new Set([...(Array.isArray(p.order) ? p.order : []).filter((x) => keys.includes(x)), ...keys])];
+    p.mode = p.mode === 'single' ? 'single' : 'multi'; p.select = p.select === 'admin' ? 'admin' : 'staff'; p.seq = p.seq === 'fixed' ? 'fixed' : 'flexible';
+    p.start = HM.test(p.start) ? p.start : d.start; p.due = HM.test(p.due) ? p.due : d.due; p.remind = Math.max(0, Math.min(240, Math.round(+p.remind || 0)));
+    p.staff = Array.isArray(p.staff) ? p.staff.map(String).slice(0, 100) : []; p.on = p.on !== false; return p; };
+  return { cats, morning: per('morning'), evening: per('evening'), partial: c.partial !== false, resume: c.resume !== false, multiStaff: c.multiStaff !== false, auth: !!c.auth, recountAdmin: c.recountAdmin !== false };
+}
+// categories a counting period must count today (period on ∩ category on), in the period's order
+export const periodCats = (cc, period) => { const p = cc[period]; if (!p || !p.on) return []; return p.order.filter((k) => p.cats.includes(k) && cc.cats[k]); };
+export function ccValidate(cc) {
+  const errs = [];
+  for (const k of ['morning', 'evening']) if (cc[k].on && !periodCats(cc, k).length) errs.push(`${k === 'morning' ? 'Morning' : 'Evening'} count is on but has no enabled stock category`);
+  for (const k of ['morning', 'evening']) if (cc[k].on && cc[k].start >= cc[k].due) errs.push(`${k === 'morning' ? 'Morning' : 'Evening'} deadline must be after its start time`);
+  return errs;
+}

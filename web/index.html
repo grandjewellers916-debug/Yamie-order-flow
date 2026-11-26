@@ -383,6 +383,7 @@ table.rep tr.rgrp td{background:var(--iv);font-weight:600;border-top:1px solid v
 #uiz{position:fixed;right:12px;bottom:76px;z-index:9999;display:flex;align-items:center;gap:2px;background:#fff;border:1px solid var(--ln);border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.14);padding:3px;font:600 13px/1 Jost,system-ui,sans-serif;opacity:.55;transition:opacity .15s}
 #uiz:hover,#uiz.on{opacity:1}#uiz button{border:0;background:none;width:30px;height:30px;border-radius:50%;font:700 18px/1 Jost,system-ui,sans-serif;color:var(--ink);cursor:pointer}#uiz button:hover{background:#F3ECE4}#uiz .zv{min-width:44px;text-align:center;cursor:pointer;color:var(--mut)}
 @media print{#uiz{display:none}}.hasuiz #app>main{padding-bottom:64px!important}
+body:has(.pad) #uiz{display:none}   /* v1.60 keep the zoom pill off the PIN pad */
 main.ccmp{padding-bottom:20px;padding-top:8px}
 /* v1.51 compact Cash Closing — fits one screen on desktop (two columns), tighter on phone */
 #main.ccmp h1{font-size:22px}#main.ccmp .chd .mut{font-size:13px}#main.ccmp .tabs{margin:6px 0 10px}#main.ccmp .tabs button{padding:6px 12px;font-size:14px}
@@ -428,12 +429,21 @@ main.ccmp{padding-bottom:20px;padding-top:8px}
 .tmtree{border:1px solid var(--ln);border-radius:12px;max-height:46vh;overflow:auto;padding:4px 8px}.tmm{border-bottom:1px solid var(--ln);padding:4px 0}.tmm:last-child{border:0}
 .tmck{display:flex;align-items:center;gap:8px;padding:6px 4px;cursor:pointer}.tmck.b{font-weight:600}.tms{padding-left:18px}.tmck.g{padding-left:16px;font-size:14px}
 .teamb{display:flex;flex-wrap:wrap;align-items:center;gap:10px 12px;margin:10px 0;border-left:4px solid var(--m)}.teamb>.grow{min-width:220px;flex:1}.chip.busy{background:#FFF4D6;color:#8A5A00}.chip.team{background:#F1ECF8;color:#5B3E8A}
+/* v1.60 counting dashboard + configuration */
+.cbgrid{display:grid;gap:12px;margin:12px 0}@media(min-width:900px){.cbgrid{grid-template-columns:1fr 1fr}}.cbc.cur{border-left:4px solid var(--m)}
+.cbrows{margin-top:8px;border-top:1px solid var(--ln)}.cbr{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--ln)}.cbi{color:var(--m);display:grid;place-items:center}.cbr .btn{min-height:34px}
+.cctg{display:flex;align-items:center;gap:12px;padding:10px 2px;border-bottom:1px solid var(--ln);cursor:pointer}.cctg:last-child{border:0}.cctg .grow{display:flex;flex-direction:column;gap:2px}.cctg b{display:inline-flex;align-items:center;gap:6px}
+.sw{appearance:none;-webkit-appearance:none;width:44px!important;min-width:44px;height:26px!important;min-height:0!important;border-radius:13px;background:#D8CFC6;position:relative;cursor:pointer;transition:.15s;padding:0!important;border:0!important}.sw::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:.15s}.sw:checked{background:var(--ok)}.sw:checked::after{left:21px}
+.ccgrid{display:grid;gap:12px}@media(min-width:1000px){.ccgrid{grid-template-columns:1fr 1fr}}.ccp.off{opacity:.7}.cccats{display:flex;flex-wrap:wrap;gap:6px}.chipck.dis{opacity:.5}
+.seg{display:flex;flex-wrap:wrap;gap:4px;background:#F3ECE4;border-radius:12px;padding:3px}.seg button{flex:1 1 auto;border:0;background:none;border-radius:9px;padding:8px 10px;font:inherit;font-size:13px;cursor:pointer;color:var(--ink)}.seg button.on{background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.1);font-weight:600;color:var(--m)}
+.ccord{margin-top:8px;display:grid;gap:6px}.ccoi{display:flex;align-items:center;gap:8px;border:1px solid var(--ln);border-radius:10px;padding:8px 10px;background:#fff;cursor:grab}.ccoi.drg{opacity:.5}.ccoi button{border:1px solid var(--ln);background:#fff;border-radius:8px;width:32px;height:30px;cursor:pointer}.ccoi button:disabled{opacity:.35}
+.ccsum{margin:0;padding-left:18px;line-height:1.6;font-size:14px}
 </style>
 </head>
 <body>
 <div id="app"></div>
 <script type="module">
-import { teamCovers, teamsForLoc, teamsOfUser, CLAIM_MS, itemLbl, DOC_TYPES, VEHICLE_DOC_TYPES, isVehicleDoc, docDaysLeft, docWatch, DOC_REMIND_DEFAULT, CASH_DENOMS, CASH_COUNTERS, CASH_SHIFTS, cashCalc, cashNotes, isMorning, SECTIONS, PERMS, ROLE_PERMS, REASONS, TXN_TYPES, metalOf, erpMetal, JTYPES, LINE_JTYPES, JT_SHORT, JT_LABEL, JT_CLS, JT_METAL, JT_CODE, JT_FREE_CODES, applyJewelleryTypes, holidayOf, mainLocsOf, placesFor, defaultPlace, LOC_KINDS, METALS, jtMetal, locJts, normJts, itemOf, jtOfLine, purOfLine, defaultPur, lineKey, keyText, defaultJt, roundOf, roundCounts, summarize, sumLines, r3, locStatus, istDate, erpCompare, erpKey } from './core.mjs';
+import { ccOf, periodCats, ccValidate, CC_CATS, CC_LABEL, teamCovers, teamsForLoc, teamsOfUser, CLAIM_MS, itemLbl, DOC_TYPES, VEHICLE_DOC_TYPES, isVehicleDoc, docDaysLeft, docWatch, DOC_REMIND_DEFAULT, CASH_DENOMS, CASH_COUNTERS, CASH_SHIFTS, cashCalc, cashNotes, isMorning, SECTIONS, PERMS, ROLE_PERMS, REASONS, TXN_TYPES, metalOf, erpMetal, JTYPES, LINE_JTYPES, JT_SHORT, JT_LABEL, JT_CLS, JT_METAL, JT_CODE, JT_FREE_CODES, applyJewelleryTypes, holidayOf, mainLocsOf, placesFor, defaultPlace, LOC_KINDS, METALS, jtMetal, locJts, normJts, itemOf, jtOfLine, purOfLine, defaultPur, lineKey, keyText, defaultJt, roundOf, roundCounts, summarize, sumLines, r3, locStatus, istDate, erpCompare, erpKey } from './core.mjs';
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -456,7 +466,7 @@ const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 
   apply();
 })();
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.59';
+const VERSION = '1.60';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -571,7 +581,13 @@ async function load(quiet) {
     S.round = roundOf(j.day);
     S.sum = summarize(j.locs, j.day.opening, j.mvs, roundCounts(j.counts, S.round), j.settings);
     const mT = S.round === 'morning' ? S.sum.total : summarize(j.locs, j.day.opening, j.mvs, roundCounts(j.counts, 'morning'), j.settings).total;
-    S.rounds = { morning: { done: mT.locs - mT.pending, locs: mT.locs }, evening: S.round === 'evening' ? { done: S.sum.total.locs - S.sum.total.pending - S.sum.total.stale, locs: S.sum.total.locs } : { done: 0, locs: mT.locs } };
+    // v1.60 rounds only over the categories each counting period requires (counting configuration)
+    S.cc = ccOf(j.settings);
+    const mSum = S.round === 'morning' ? S.sum : summarize(j.locs, j.day.opening, j.mvs, roundCounts(j.counts, 'morning'), j.settings);
+    const one = (sm, k, staleOk, live) => { const req = periodCats(S.cc, k); if (!req.length) return { off: true, done: 0, locs: 0, var: 0, cats: {} }; const cats = {}; let d = 0, n = 0, v = 0;
+      for (const c of req) { const X = sm.sec[c] || { locs: 0, pending: 0, stale: 0, var: 0 }; const dn = live ? X.locs - X.pending - (staleOk ? 0 : X.stale) : 0; cats[c] = { done: dn, locs: X.locs, var: live ? X.var + (staleOk ? X.stale : 0) : 0, pend: live ? X.pending : X.locs }; d += dn; n += X.locs; v += cats[c].var; }
+      return { done: d, locs: n, var: v, cats }; };
+    S.rounds = { morning: one(mSum, 'morning', true, true), evening: one(S.sum, 'evening', false, S.round === 'evening') };
     S.eodCount = j.mvs.filter((m) => m.eod && !m.void).length;
     S.locById = Object.fromEntries(j.locs.map((l) => [l.id, l]));
     if (quiet && j.alerts.unread > prevUnread) notify(j.alerts.unread - prevUnread);
@@ -649,12 +665,12 @@ function bindBanner() {
 function dayFlow() {
   const R = S.rounds; const ev = S.round === 'evening'; const closed = S.D.day.status === 'closed';
   const st = (done, cur) => done ? 'done' : cur ? 'cur' : '';
-  const mDone = R.morning.done >= R.morning.locs, eDone = ev && R.evening.done >= R.evening.locs;
+  const mDone = R.morning.off || R.morning.done >= R.morning.locs, eDone = ev && (R.evening.off || R.evening.done >= R.evening.locs);
   return `<div class="flow">
-    <div class="fs ${st(mDone, !ev)}"><i>☀</i><div><b>Morning count</b><span>${R.morning.done}/${R.morning.locs} verified</span></div></div>
+    ${R.morning.off ? '' : `<div class="fs ${st(mDone, !ev)}"><i>☀</i><div><b>Morning count</b><span>${R.morning.done}/${R.morning.locs} verified</span></div></div>`}
     <div class="fs ${st(ev, mDone && !ev)}" data-flow="eod"><i>🧾</i><div><b>End-of-day entries</b><span>${S.eodCount} entr${S.eodCount === 1 ? 'y' : 'ies'}${ev ? ' · done' : ''}</span></div></div>
-    <div class="fs ${st(eDone, ev && !eDone)}"><i>🌙</i><div><b>Evening count</b><span>${ev ? `${R.evening.done}/${R.evening.locs} verified` : 'after entries'}</span></div></div>
-    <div class="fs ${st(closed, eDone && !closed)}" data-flow="close"><i>🔒</i><div><b>Close day</b><span>${closed ? 'closed' : 'both counts compulsory'}</span></div></div></div>`;
+    ${R.evening.off ? '' : `<div class="fs ${st(eDone, ev && !eDone)}"><i>🌙</i><div><b>Evening count</b><span>${ev ? `${R.evening.done}/${R.evening.locs} verified` : 'after entries'}</span></div></div>`}
+    <div class="fs ${st(closed, (R.evening.off ? mDone : eDone) && !closed)}" data-flow="close"><i>🔒</i><div><b>Close day</b><span>${closed ? 'closed' : R.morning.off && R.evening.off ? 'no counts required' : 'required counts first'}</span></div></div></div>`;
 }
 
 // ---------------- end-of-day entries ----------------
@@ -727,7 +743,7 @@ function vEod() {
   });
   $('#startEve') && ($('#startEve').onclick = async () => {
     if (rows.some((r) => r.locId || r.qty || r.wt) && !confirm('There are unsaved rows above. Start the evening count without them?')) return;
-    if (R.morning.done < R.morning.locs && !confirm(`Morning count is not complete (${R.morning.done}/${R.morning.locs}). Both counts are compulsory — start evening anyway?`)) return;
+    if (!R.morning.off && R.morning.done < R.morning.locs && !confirm(`Morning count is not complete (${R.morning.done}/${R.morning.locs}). Start evening anyway?`)) return;
     try { await api('round', { date: S.D.date, round: 'evening' }); toast('🌙 Evening count started'); await load(true); S.view = 'home'; render(); } catch (e) { fail(e); }
   });
   $('#goCount') && ($('#goCount').onclick = () => go('home'));
@@ -759,7 +775,7 @@ function vHome() {
     <div class="kpi"><div class="l">Checked</div><div class="v">${T.locs - T.pending}<span class="mut" style="font-size:16px">/${T.locs}</span></div><div class="sm" style="color:${T.var + T.stale ? 'var(--bad)' : 'var(--ok)'}">${T.var + T.stale ? `${T.var + T.stale} with variance` : 'No variance'}</div></div>
   </div>
   ${dayFlow()}
-  ${startPanel('all')}
+  ${countBoard()}
   <div class="secs">${SECTIONS.map((s) => secCard(s)).join('')}</div>
   ${mainLocPanel()}
   ${editable() && (can('move') || can('close') || can('setup')) ? `<div class="acts">
@@ -774,7 +790,67 @@ function vHome() {
   $('#closeBtn') && ($('#closeBtn').onclick = closeDayFlow);
   $('#eodBtn') && ($('#eodBtn').onclick = () => go('eod'));
   $('#main').querySelectorAll('[data-flow]').forEach((b) => b.onclick = () => { const f = b.dataset.flow; if (f === 'eod') go('eod'); else if (f === 'close') can('close') && editable() && closeDayFlow(); });
-  bindLocCards(); bindStart();
+  bindLocCards(); bindStart(); bindBoard();
+}
+// ---------- v1.60 counting dashboard: one card per counting period that is on (time, staff, category status, progress, mismatches, start / resume) ----------
+const CC_IC = { counter: 'counter', tray: 'tray', box: 'box' };
+const hmNow = () => new Date(Date.now() + 5.5 * 3600e3).toISOString().slice(11, 16);
+function periodState(k) {
+  const P = S.cc[k]; const R = S.rounds[k]; const cur = S.round === k; const past = k === 'morning' && S.round === 'evening';
+  const overdue = isToday() && S.D.day.status !== 'closed' && hmNow() > P.due && R.done < R.locs && (cur || (k === 'evening' && S.round === 'morning'));
+  return { P, R, cur, past, overdue };
+}
+function catStatus(k, c) {
+  const { R, cur, past, overdue } = periodState(k); const X = R.cats[c]; if (!X) return ['—', ''];
+  const act = (S.D.sessions || []).some((x) => x.status === 'active' && (x.round || 'morning') === k && (x.cats || []).includes(c));
+  if (X.done >= X.locs && X.locs) return X.var ? (past ? ['Pending review', 'warn'] : ['Mismatch detected', 'bad']) : ['Completed', 'ok'];
+  if (overdue) return ['Overdue', 'bad'];
+  if (X.done || act) return ['In progress', 'cur'];
+  return [cur || past ? 'Not started' : 'Not started', ''];
+}
+function countBoard() {
+  if (!S.cc) return '';
+  const pers = ['morning', 'evening'].filter((k) => !S.rounds[k].off);
+  if (!pers.length) return `<div class="card mut" style="margin-top:12px">Morning and evening counts are both turned off in the counting configuration.</div>`;
+  return `<div class="cbgrid">${pers.map((k) => { const { P, R, cur, past, overdue } = periodState(k); const nm = k === 'morning' ? '☀ Morning count' : '🌙 Evening count';
+    const cats = periodCats(S.cc, k); const staff = P.staff.length ? P.staff.map(uname).join(', ') : 'All staff with counting permission';
+    const mine = (S.D.sessions || []).filter((x) => x.status === 'active' && (x.round || 'morning') === k && !x.ids && ((x.staff || [x.by]).includes(S.me.id) || S.cc.multiStaff));
+    const can2 = cur && can('count') && editable() && (!P.staff.length || P.staff.includes(S.me.id) || can('accept'));
+    const firstOpen = cats.find((c) => R.cats[c].done < R.cats[c].locs);
+    const btn = (c) => { if (!can2) return ''; const done = R.cats[c].done >= R.cats[c].locs; if (done) return ''; const lock = P.seq === 'fixed' && c !== firstOpen;
+      const res = mine.some((x) => (x.cats || []).includes(c)); return `<button class="btn sm ${lock ? 'ghost' : ''}" data-ccs="${k}|${c}" ${lock ? 'disabled title="Fixed order — finish the earlier category first"' : ''}>${res ? 'Resume' : 'Start'} ›</button>`; };
+    const allDone = R.done >= R.locs;
+    const main = !can2 || allDone ? '' : P.mode === 'single' ? '' : `<button class="btn" data-ccm="${k}">${mine.length ? 'Resume count ›' : P.select === 'staff' ? 'Start count ›' : `Start ${cats.length > 1 ? 'combined ' : ''}count ›`}</button>`;
+    return `<div class="card cbc ${cur ? 'cur' : ''}"><div class="row sp wrap"><div><div class="b" style="font-size:17px">${nm}</div><div class="mut sm">${P.start}–${P.due} · ${esc(staff)}</div></div>
+        <span class="st ${allDone ? (R.var ? 'var' : 'ok') : overdue ? 'var' : cur ? 'pending' : ''}">${allDone ? (R.var ? 'Mismatch' : 'Completed') : overdue ? 'Overdue' : cur ? (R.done ? 'In progress' : 'Not started') : past ? 'Closed' : 'After entries'}</span></div>
+      <div class="bar" style="margin:10px 0 4px"><span style="width:${R.locs ? R.done / R.locs * 100 : 0}%;background:var(--ok)"></span></div>
+      <div class="row sp sm"><span>${R.done}/${R.locs} verified</span>${R.var ? `<span style="color:var(--bad)">${R.var} mismatch${R.var > 1 ? 'es' : ''} pending</span>` : '<span class="mut">No mismatches</span>'}</div>
+      <div class="cbrows">${cats.map((c, i) => { const X = R.cats[c]; const [t, cl] = catStatus(k, c);
+        return `<div class="cbr"><span class="cbi">${svg(CC_IC[c], 18)}</span><span class="grow"><b>${P.seq === 'fixed' && cats.length > 1 ? `${i + 1}. ` : ''}${esc(CC_LABEL[c])}</b><span class="mut sm"> · ${X.done}/${X.locs}</span></span><span class="st ${cl === 'ok' ? 'ok' : cl === 'bad' ? 'var' : cl === 'warn' ? 'var' : cl === 'cur' ? 'pending' : ''}">${t}</span>${P.mode === 'single' ? btn(c) : ''}</div>`; }).join('')}</div>
+      ${main ? `<div class="row" style="margin-top:10px;justify-content:flex-end">${main}</div>` : ''}
+      ${!cur && !past && k === 'evening' ? '<div class="mut sm" style="margin-top:6px">Starts after the end-of-day entries.</div>' : ''}
+      <div class="mut sm" style="margin-top:6px">${P.mode === 'single' ? 'One category per session' : `Combined session · ${P.select === 'admin' ? 'set categories' : 'pick categories'}`} · ${P.seq === 'fixed' ? 'fixed order' : 'any order'}</div></div>`; }).join('')}</div>`;
+}
+function bindBoard() {
+  $('#main').querySelectorAll('[data-ccs]').forEach((b) => b.onclick = () => { const [k, c] = b.dataset.ccs.split('|'); startCats([c]); });
+  $('#main').querySelectorAll('[data-ccm]').forEach((b) => b.onclick = () => { const k = b.dataset.ccm; const P = S.cc[k]; const cats = periodCats(S.cc, k);
+    const mine = (S.D.sessions || []).find((x) => x.status === 'active' && (x.round || 'morning') === k && !x.ids && (x.staff || [x.by]).includes(S.me.id));
+    if (mine) return startCats(mine.cats || cats);
+    if (P.select === 'admin' || cats.length === 1) return startCats(cats);
+    const R = S.rounds[k];
+    modal('Start count', `${k === 'morning' ? 'Morning' : 'Evening'} · pick the categories to count now`, `<div class="mut sm" style="margin-bottom:8px">Categories you leave out stay pending — they still have to be counted ${k === 'morning' ? 'this morning' : 'this evening'}.</div>
+      ${cats.map((c) => { const X = R.cats[c]; const d = X.done >= X.locs; return `<label class="tmck b"><input type="checkbox" data-pc="${c}" ${d ? 'disabled' : 'checked'}> <span class="grow">${esc(CC_LABEL[c])}</span><span class="mut sm">${X.done}/${X.locs}${d ? ' ✓' : ''}</span></label>`; }).join('')}
+      <button class="btn" style="width:100%;margin-top:12px" id="pcGo">Start ›</button>`, (ov) => { $('#pcGo').onclick = () => { const sel = [...ov.querySelectorAll('[data-pc]:checked')].map((x) => x.dataset.pc); if (!sel.length) return toast('Pick at least one category'); closeModal(); startCats(sel); }; });
+  });
+}
+async function startCats(cats) {
+  try {
+    const r = await api('session/start', { date: S.D.date, cats, scope: cats.length === 1 ? cats[0] : 'all' });
+    const cs = r.session.cats?.length ? r.session.cats : cats;
+    S.sess = { ...r.session, order: cs.flatMap((k) => activeLocs(k)).map((l) => l.id) };
+    toast(r.joined ? 'Joined the count — your counts are recorded under your name' : r.resumed ? 'Resuming your count' : `Session ${r.session.no || ''} started`);
+    openNext(null);
+  } catch (e) { fail(e); }
 }
 function secCard(s) {
   const X = S.sum.sec[s.key]; const n = X.locs || 1;
@@ -786,13 +862,15 @@ function secCard(s) {
 
 function startPanel(scope) {
   if (!can('count') || !editable()) return '';
+  if (S.cc && scope !== 'all' && !periodCats(S.cc, S.round).includes(scope)) return `<div class="card mut" style="margin:10px 0">${S.cc[S.round].on ? `${esc(CC_LABEL[scope])} are not part of the ${S.round} count.` : `The ${S.round} count is turned off.`}</div>`;
+  if (S.cc && scope !== 'all' && S.cc[S.round].mode === 'multi' && S.cc[S.round].select === 'admin' && periodCats(S.cc, S.round).length > 1) return `<div class="card" style="margin:10px 0"><div class="b">${S.round === 'evening' ? '🌙 Evening' : '☀ Morning'} count is a combined session</div><div class="mut sm">${periodCats(S.cc, S.round).map((c) => CC_LABEL[c]).join(' + ')} — start it from the Stock page.</div><button class="btn sm" style="margin-top:8px" data-go2="home">Go to Stock ›</button></div>`;
   const P = sessProgress(orderFor(scope)); const mine = (S.D.sessions || []).find((x) => x.by === S.me.id && x.scope === scope && !x.ids && (x.round || 'morning') === S.round && x.status === 'active');
   const all = P.done === P.total;
   return `<div class="startp"><div class="grow"><div class="b" style="font-size:17px">${S.round === 'evening' ? '🌙 Evening' : '☀ Morning'} · ${scopeLabel(scope)}</div><div class="sm" style="opacity:.85">${P.done}/${P.total} ${scope === 'box' ? 'boxes' : 'trays'} verified · ${P.gDone}/${P.gTotal} ${scope === 'counter' ? 'counters' : 'groups'} complete</div>
     <div class="bar" style="background:rgba(255,255,255,.25)"><span style="width:${P.done / (P.total || 1) * 100}%;background:#fff"></span></div></div>
     <button class="btn" data-start="${scope}">${all ? 'View summary' : mine || P.done ? 'Resume count ›' : 'Start count ›'}</button></div>`;
 }
-function bindStart() { $('#main').querySelectorAll('[data-start]').forEach((b) => b.onclick = () => startCount(b.dataset.start)); }
+function bindStart() { $('#main').querySelectorAll('[data-start]').forEach((b) => b.onclick = () => startCount(b.dataset.start)); $('#main').querySelectorAll('[data-go2]').forEach((b) => b.onclick = () => go(b.dataset.go2)); }
 
 // ---------------- section list ----------------
 function vSection(sec) {
@@ -992,6 +1070,7 @@ function sessProgress(order) {
 }
 async function startCount(scope, ids, label) {
   try {
+    if (!ids) return startCats(scope === 'all' ? periodCats(S.cc, S.round) : [scope]);   // v1.60 sessions follow the counting configuration
     const r = await api('session/start', { date: S.D.date, scope, ids: ids || null, label: label || '' });
     S.sess = { ...r.session, order: ids || orderFor(scope) };
     if (r.resumed) toast('Resuming your count');
@@ -1073,7 +1152,8 @@ function sessionSummary() {
     $('#ct') && ($('#ct').onclick = () => openNext(null));
     $('#fin').onclick = async () => {
       try {
-        const r = await api('session/finish', { id: S.sess.id }); S.sess = null; await load(true);
+        let pin; if (S.sess.cfg?.auth) { pin = prompt('Enter your PIN to submit this count'); if (!pin) return; }   // v1.60 authentication on submit
+        const r = await api('session/finish', { id: S.sess.id, pin }); S.sess = null; await load(true);
         const wa = S.D.settings.waNumber;
         modal('Count saved', 'Sent to admin', `<div class="card">${esc(r.text)}</div>
           ${wa ? `<a class="btn ok" style="width:100%;margin-top:12px;text-decoration:none" target="_blank" href="https://wa.me/${wa}?text=${encodeURIComponent('Yamie stock count ' + S.D.date + '\n' + r.text)}">Also send on WhatsApp</a>` : ''}
@@ -1091,6 +1171,10 @@ function locSheet(id, ctx = {}) {
   const l = S.locById[id]; const st = S.sum.status[id]; const c = S.sum.last[id];
   const counting = can('count') && editable() && (st.state === 'pending' || st.state === 'stale' || (c && c.recountAllowed) || ctx.recount);
   if (counting) {
+    { const P = S.cc?.[S.round]; const pn = S.round === 'morning' ? 'morning' : 'evening';   // v1.60 counting configuration
+      if (P && !P.on) return toast(`The ${pn} count is turned off`, 3500);
+      if (P && !periodCats(S.cc, S.round).includes(l.sec)) return toast(`${CC_LABEL[l.sec]} are not part of the ${pn} count`, 3500);
+      if (P && P.staff.length && !P.staff.includes(S.me.id) && !can('accept')) return toast(`You are not assigned to the ${pn} count`, 3500); }
     // v1.56 teams + several phones: don't count a location another phone is counting, or another team's location when only the assigned team may count
     const tf = teamsForLoc(S.D.settings, l);
     if (S.D.settings.teamStrict && tf.length && !can('accept') && !tf.some((t) => (t.members || []).includes(S.me.id))) return toast(`${l.name} is counted by ${tf.map((t) => t.name).join(' / ')}`, 4000);
@@ -1717,7 +1801,54 @@ new MutationObserver(() => { const m = $('#main'); if (m) fbScan(m); }).observe(
 // ================= v1.30 Reports page: build a report, preview, export Excel (.xlsx) / PDF / CSV =================
 const RP_TYPES = [['locs', 'Location list', 'Counters, trays and boxes with the columns you choose'], ['place', 'Item count by location', 'Item × main / sub location'], ['pur', 'Purity-wise', 'Purity with items underneath'],
   ['item', 'Item-wise', 'Item split by purity'], ['loc', 'Location-wise', 'Main location → each counter / tray / box'], ['jt', 'Jewellery type', 'Type and metal totals'], ['boxwt', 'Box weight', 'Opening, inward, outward, closing, cover, net'],
-  ['var', 'Variances', 'Locations not matching'], ['custom', 'Custom', 'Rows × columns you pick']];
+  ['var', 'Variances', 'Locations not matching'], ['custom', 'Custom', 'Rows × columns you pick'],
+  ['cday', 'Daily verification', 'Morning / evening × category: done, pending, missed'], ['csess', 'Counting sessions', 'Each session (single or combined) by category'], ['cstaff', 'Staff-wise counting', 'Sessions and locations per employee'], ['cmis', 'Mismatch history', 'Mismatches recorded in sessions'], ['cch', 'Configuration changes', 'Who changed the counting configuration']];
+const CT_TYPES = ['cday', 'csess', 'cstaff', 'cmis', 'cch'];   // v1.60 counting reports (data from the server: api counting)
+function ctData(P) {
+  const C = (P.ct ||= { from: S.D.date, to: S.D.date, per: '', cat: '', by: '', st: '' }); const key = `${C.from}|${C.to}`;
+  if (S.ccRep?.key === key) return S.ccRep.d;
+  if (!S.ccRepBusy) { S.ccRepBusy = true; api(`counting?from=${C.from}&to=${C.to}`).then((d) => { S.ccRep = { key, d }; S.ccRepBusy = false; if (S.view === 'reports') vReports(); }).catch((e) => { S.ccRepBusy = false; fail(e); }); }
+  return null;
+}
+function ctBuild(P) {
+  const T = (title, cols, rows) => ({ title, cols, rows }); const d = ctData(P); const C = P.ct;
+  if (!d) return T('Loading counting records…', [{ t: '' }], []);
+  const nm = (id) => d.names[id] || uname(id) || id; const pn = (k) => k === 'evening' ? 'Evening' : 'Morning'; const tm2 = (t) => t ? new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '';
+  const okP = (k) => !C.per || C.per === k; const okC = (c) => !C.cat || C.cat === c; const rng = C.from === C.to ? dt(C.from) : `${dt(C.from)} – ${dt(C.to)}`;
+  const sessRows = []; for (const day of d.days) for (const x of day.sessions || []) { const per = x.round || 'morning'; if (!okP(per)) continue;
+    const cats = x.cats?.length ? x.cats : x.ids ? ['(custom)'] : x.scope === 'all' ? ['counter', 'tray', 'box'] : [x.scope];
+    for (const c of cats) { if (!okC(c)) continue; const r = x.per?.[c]; const staff = r?.staff?.length ? r.staff : x.staff || [x.by];
+      const st = x.status === 'active' ? 'In progress' : x.status === 'abandoned' ? 'Abandoned' : !r ? (x.status === 'done' ? 'Completed' : 'Partial') : r.status === 'done' ? 'Completed' : r.status === 'mismatch' ? 'Mismatch' : r.status === 'partial' ? 'Partial' : 'Not started';
+      if (C.by && !staff.includes(C.by) && x.by !== C.by) continue; if (C.st && C.st !== st) continue;
+      sessRows.push({ date: day.date, per, x, c, r, staff, st }); } }
+  if (P.type === 'csess') return T(`Counting sessions · ${rng}`, [{ t: 'Date' }, { t: 'Session' }, { t: 'Period' }, { t: 'Category' }, { t: 'Staff' }, { t: 'Started' }, { t: 'Submitted' }, { t: 'Locations', num: true }, { t: 'Verified', num: true }, { t: 'Mismatches', num: true }, { t: 'Status' }],
+    sessRows.map(({ date, per, x, c, r, staff, st }) => ({ cls: st === 'Mismatch' ? 'neg' : '', cells: [dt(date), `${x.no || x.id.slice(-6)}${(x.cats || []).length > 1 ? ' (combined)' : ''}`, pn(per), CC_LABEL[c] || x.label || c, staff.map(nm).join(', '), tm2(x.at), tm2(x.finishedAt), r?.locs ?? '', r?.done ?? '', r?.var ?? '', st] })));
+  if (P.type === 'cmis') return T(`Mismatch history · ${rng}`, [{ t: 'Date' }, { t: 'Period' }, { t: 'Session' }, { t: 'Category' }, { t: 'Location · difference (reason)' }],
+    sessRows.flatMap(({ date, per, x, c, r }) => (r?.mism || []).map((m) => ({ cells: [dt(date), pn(per), x.no || '', CC_LABEL[c] || c, m] }))));
+  if (P.type === 'cstaff') { const by = {}; for (const { x, c, r, staff } of sessRows) for (const u of staff) { const b = (by[u] ||= { ses: new Set(), cats: new Set(), done: 0, vr: 0 }); b.ses.add(x.id); b.cats.add(CC_LABEL[c] || c); if (r && (r.staff || []).includes(u)) { b.done += r.done / Math.max(1, r.staff.length); b.vr += r.var / Math.max(1, r.staff.length); } }
+    return T(`Staff-wise counting · ${rng}`, [{ t: 'Employee' }, { t: 'Sessions', num: true }, { t: 'Categories' }, { t: 'Locations verified', num: true }, { t: 'Mismatches', num: true }],
+      Object.entries(by).filter(([u]) => !C.by || u === C.by).map(([u, b]) => ({ cells: [nm(u), b.ses.size, [...b.cats].join(', '), Math.round(b.done), Math.round(b.vr)] }))); }
+  if (P.type === 'cch') return T(`Counting configuration changes · ${rng}`, [{ t: 'When' }, { t: 'By' }, { t: 'Reason' }, { t: 'What changed' }],
+    d.hist.map((h) => ({ cells: [new Date(h.at).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }), h.byName || nm(h.by), h.note || '', ccDiff(h.before, h.after)] })));
+  // cday: date × period × category — off periods are not listed (they don't count against anyone)
+  const rows = []; for (const day of d.days) for (const per of ['morning', 'evening']) { if (!okP(per)) continue; const R0 = day.rounds?.[per]; if (!R0 || R0.off) continue;
+    for (const [c, X] of Object.entries(R0.cats || {})) { if (!okC(c)) continue; const started = per === 'morning' || day.round === 'evening';
+      const st = X.done >= X.locs ? (X.var ? 'Mismatch' : 'Completed') : day.status === 'closed' || day.date < S.D.today ? (X.done ? 'Missed (partial)' : 'Missed') : started ? (X.done ? 'In progress' : 'Pending') : 'Not started';
+      if (C.st && C.st !== st) continue; rows.push({ cls: /Missed|Mismatch/.test(st) ? 'neg' : '', cells: [dt(day.date), pn(per), CC_LABEL[c], X.locs, X.done, X.locs - X.done, X.var, st] }); } }
+  return T(`Daily verification · ${rng}`, [{ t: 'Date' }, { t: 'Period' }, { t: 'Category' }, { t: 'Required', num: true }, { t: 'Verified', num: true }, { t: 'Pending', num: true }, { t: 'Mismatches', num: true }, { t: 'Status' }], rows);
+}
+function ccDiff(a, b) {
+  if (!a || !b) return ''; const out = [];
+  for (const [c] of CC_CATS) if (a.cats[c] !== b.cats[c]) out.push(`${CC_LABEL[c]} ${b.cats[c] ? 'on' : 'off'}`);
+  for (const k of ['morning', 'evening']) { const x = a[k], y = b[k]; const n = k === 'morning' ? 'Morning' : 'Evening';
+    if (x.on !== y.on) out.push(`${n} ${y.on ? 'on' : 'off'}`);
+    if (x.cats.join() !== y.cats.join()) out.push(`${n} categories: ${y.cats.map((c) => CC_LABEL[c]).join(', ') || 'none'}`);
+    for (const [f, t] of [['mode', 'mode'], ['select', 'selection'], ['seq', 'sequence'], ['start', 'start'], ['due', 'deadline'], ['remind', 'reminder']]) if (x[f] !== y[f]) out.push(`${n} ${t}: ${y[f]}`);
+    if (x.order.join() !== y.order.join()) out.push(`${n} order: ${y.order.map((c) => CC_LABEL[c]).join(' → ')}`);
+    if (x.staff.join() !== y.staff.join()) out.push(`${n} staff: ${y.staff.map(uname).join(', ') || 'all'}`); }
+  for (const [f, t] of [['partial', 'partial submission'], ['resume', 'resume'], ['multiStaff', 'multiple staff'], ['auth', 'PIN on submit'], ['recountAdmin', 'recount needs admin']]) if (a[f] !== b[f]) out.push(`${t} ${b[f] ? 'on' : 'off'}`);
+  return out.join(' · ') || 'No change';
+}
 function rpState() { return (S.rp ||= { type: 'locs', sec: 'all', f: { jt: [], a: [], pl: [], i: [], p: [] }, cols: null, pcol: 'place', purs: false, group: true, cr: { r: 'item', r2: '', c: 'area', m: 'exp' }, saved: '' }); }
 // filtered summary lines + location test (same item line must match type / item / purity)
 function rpLines(P) { const F = P.f; return S.sum.lines.filter((r) => { const l = S.locById[r.locId]; if (!l) return false;
@@ -1725,13 +1856,14 @@ function rpLines(P) { const F = P.f; return S.sum.lines.filter((r) => { const l 
 function rpLocs(P) { const F = P.f; const lineOn = F.jt.length || F.i.length || F.p.length; const L = rpLines(P);
   return activeLocs().filter((l) => (P.sec === 'all' || l.sec === P.sec) && (!F.a.length || F.a.includes(l.area || 'Not set')) && (!F.pl.length || F.pl.includes(placeOf(l)))
     && (!lineOn || L.some((r) => r.locId === l.id && (r.exp || r.op || r.cnt)) || (!heldOf(l).length && (!F.i.length || F.i.includes(l.itemType)) && (!F.p.length || F.p.includes(l.purity || 'Not set')) && (!F.jt.length || locJts(l).some((j) => F.jt.includes(j)))))); }
-const rpProd = (P) => { const F = P.f; return [F.jt.map((j) => JF_LBL[j]).join(' + ') || 'All stock types', F.i.join(', ') || 'All items', F.p.join(', ') || 'All purities'].join(' · '); };
-const rpLocTxt = (P) => { const F = P.f; return [P.sec !== 'all' ? secLabel(P.sec) : 'All sections', F.a.join(', ') || 'All main locations', F.pl.join(', ') || (F.a.length ? 'all sub locations' : '')].filter(Boolean).join(' · '); };
+const rpProd = (P) => { if (CT_TYPES.includes(P.type)) { const C = P.ct || {}; return [C.per ? (C.per === 'morning' ? 'Morning' : 'Evening') : 'Morning + evening', C.cat ? CC_LABEL[C.cat] : 'All categories', C.st || ''].filter(Boolean).join(' · '); } const F = P.f; return [F.jt.map((j) => JF_LBL[j]).join(' + ') || 'All stock types', F.i.join(', ') || 'All items', F.p.join(', ') || 'All purities'].join(' · '); };
+const rpLocTxt = (P) => { if (CT_TYPES.includes(P.type)) { const C = P.ct || {}; return `${C.from === C.to ? dt(C.from) : `${dt(C.from)} – ${dt(C.to)}`}${C.by ? ' · ' + uname(C.by) : ' · all staff'}`; } const F = P.f; return [P.sec !== 'all' ? secLabel(P.sec) : 'All sections', F.a.join(', ') || 'All main locations', F.pl.join(', ') || (F.a.length ? 'all sub locations' : '')].filter(Boolean).join(' · '); };
 const rpFilterText = (P) => { const F = P.f; return [P.sec !== 'all' ? secLabel(P.sec) : '', F.jt.map((j) => JF_LBL[j]).join(' + '), F.a.join(', '), F.pl.join(', '), F.i.join(', '), F.p.join(', ')].filter(Boolean).join(' · ') || 'All stock'; };
 const ord = (l) => { const ML = mainLocsOf(S.D.settings); const mi = ML.findIndex((m) => m.name === l.area); const si = mi < 0 ? 0 : (ML[mi].subs || []).findIndex((x) => x.name === l.sub); return [mi < 0 ? 99 : mi, si, SECTIONS.findIndex((x) => x.key === l.sec)]; };
 const byPlace = (a, b) => { const x = ord(a), y = ord(b); return x[0] - y[0] || x[1] - y[1] || x[2] - y[2] || String(a.group).localeCompare(String(b.group), undefined, { numeric: true }) || (a.order || 0) - (b.order || 0) || a.name.localeCompare(b.name, undefined, { numeric: true }); };
 // -> { title, cols:[{t, num, g3}], rows:[{cls, cells}] }
 function rpBuild(P) {
+  if (CT_TYPES.includes(P.type)) return ctBuild(P);
   const L = rpLines(P); const T = (title, cols, rows) => ({ title, cols, rows });
   if (P.type === 'locs') {
     const all = LCOLS.filter((c) => !c.secs || P.sec === 'all' || c.secs.includes(P.sec)); const keys = P.cols || colCfg().order.filter((k) => !colCfg().hidden.includes(k));
@@ -1814,7 +1946,13 @@ function vReports() {
   $('#main').innerHTML = `${viewBanner()}<div class="row sp wrap" style="margin-bottom:10px"><div><h1>Reports</h1><div class="mut">${dt(S.D.date)} · ${S.D.day.status === 'closed' ? 'Closed' : 'Live'} · export to Excel or PDF</div></div>
     <div class="row noprint" style="gap:6px">${can('share') ? '<button class="btn" id="rpS">📤 Share</button><button class="btn sec" id="rpX">⬇ Excel</button><button class="btn sec" id="rpP">⬇ PDF</button><button class="btn ghost" id="rpC">CSV</button>' : '<span class="mut sm">🔒 Sharing and downloads need the “Share &amp; download reports” permission — ask the admin</span>'}</div></div>
   <div class="rptypes noprint" data-fbar="rp-types">${RP_TYPES.map(([k, t, d]) => `<button data-rpt="${k}" data-fk="${k}" class="${P.type === k ? 'on' : ''}"><b>${t}</b><span>${d}</span></button>`).join('')}</div>
-  <div class="selbar card noprint" data-fbar="rp-f">
+  ${CT_TYPES.includes(P.type) ? (() => { const C = P.ct; const us = Object.entries(S.D.userNames).filter(([id]) => id !== 'system');
+    const sel = (id, lbl, v, o) => `<div class="grow"><label class="f" style="margin-top:0">${lbl}</label><select id="${id}">${o.map(([a, b]) => `<option value="${esc(a)}" ${v === a ? 'selected' : ''}>${esc(b)}</option>`).join('')}</select></div>`;
+    const sts = P.type === 'cday' ? ['Completed', 'Mismatch', 'In progress', 'Pending', 'Not started', 'Missed', 'Missed (partial)'] : ['Completed', 'Mismatch', 'Partial', 'In progress', 'Abandoned'];
+    return `<div class="selbar card noprint"><div class="grow"><label class="f" style="margin-top:0">From</label><input type="date" id="ctF" value="${C.from}" max="${S.D.today}"></div><div class="grow"><label class="f" style="margin-top:0">To</label><input type="date" id="ctT" value="${C.to}" max="${S.D.today}"></div>
+      ${P.type === 'cch' ? '' : `${sel('ctP', 'Period', C.per, [['', 'Morning + evening'], ['morning', 'Morning'], ['evening', 'Evening']])}${sel('ctC', 'Category', C.cat, [['', 'All categories'], ...CC_CATS])}${P.type === 'cday' ? '' : sel('ctB', 'Employee', C.by, [['', 'All staff'], ...us])}${P.type === 'cstaff' || P.type === 'cmis' ? '' : sel('ctS', 'Status', C.st, [['', 'All'], ...sts.map((x) => [x, x])])}`}
+      <div style="align-self:flex-end"><button class="btn ghost" id="ctR">↻ Refresh</button></div></div>`; })() : ''}
+  <div class="selbar card noprint" data-fbar="rp-f" ${CT_TYPES.includes(P.type) ? 'style="display:none"' : ''}>
     ${['locs', 'var', 'boxwt'].includes(P.type) ? '' : ''}${P.type !== 'boxwt' ? `<div class="grow" data-fk="sec"><label class="f" style="margin-top:0">Section</label><select id="rpSec">${[['all', 'All sections'], ...SECTIONS.map((x) => [x.key, x.label])].map(([k, t]) => `<option value="${k}" ${P.sec === k ? 'selected' : ''}>${t}</option>`).join('')}</select></div>` : ''}
     ${msel('jt', 'Stock type', LINE_JTYPES.filter((j) => live.some((r) => r.jt === j) || F.jt.includes(j)).map((j) => [j, JF_LBL[j]]), F.jt, 'All stock')}
     ${msel('a', 'Main location', opts((r) => S.locById[r.locId].area || 'Not set', (v) => rdOrder('area', v)), F.a, 'All main locations')}
@@ -1835,6 +1973,11 @@ function vReports() {
   bindBanner();
   const re = () => vReports();
   $('#main').querySelectorAll('[data-rpt]').forEach((b) => b.onclick = () => { P.type = b.dataset.rpt; re(); });
+  const ctSet = (k, v, refetch) => { P.ct[k] = v; if (refetch) S.ccRep = null; re(); };
+  $('#ctF') && ($('#ctF').onchange = (e) => ctSet('from', e.target.value, 1)); $('#ctT') && ($('#ctT').onchange = (e) => ctSet('to', e.target.value, 1));
+  $('#ctP') && ($('#ctP').onchange = (e) => ctSet('per', e.target.value)); $('#ctC') && ($('#ctC').onchange = (e) => ctSet('cat', e.target.value));
+  $('#ctB') && ($('#ctB').onchange = (e) => ctSet('by', e.target.value)); $('#ctS') && ($('#ctS').onchange = (e) => ctSet('st', e.target.value));
+  $('#ctR') && ($('#ctR').onclick = () => { S.ccRep = null; re(); });
   bindMsel($('#main'), (k) => k === 'cols' ? (P.cols || colCfg().order.filter((x) => !colCfg().hidden.includes(x))) : F[k], (k, v) => { if (k === 'cols') P.cols = ['name', ...v.filter((x) => x !== 'name')]; else F[k] = v; re(); });
   $('#rpSec') && ($('#rpSec').onchange = () => { P.sec = $('#rpSec').value; re(); });
   $('#rpGrp') && ($('#rpGrp').onchange = () => { P.group = $('#rpGrp').checked; re(); });
@@ -3401,11 +3544,11 @@ function vMore() {
     ['Stock & reports', [['total', 'total', 'Consolidated', 'Item count by location', can('reports')], ['reports', 'rep', 'Reports', 'Excel · PDF · WhatsApp', can('reports')], ['boxwt', 'box', 'Box weights', 'Box weight tracker', true]]],
     ['Gold & bullion', [['coins', 'coin', 'Gold coins', 'Our price vs Bhima, rate card', can('coins') || can('coinSet')], ['sx', 'gold', 'Bullion & Grand', 'Bullion boxes, Grand stock', can('special') || can('grandBul')]]],
     ['Business', [['docs', 'doc', 'Documents', 'Licences, GST, bank, UPI, vehicles', can('docs') || can('docsEdit')]]],
-    ['Stock setup', [[adm('lists', 'ml'), 'pin', 'Locations', 'Main & sub locations', can('setup')], [adm('lists', 'jt'), 'gem', 'Classifications', 'Gold, Diamond, Lab-grown…', can('setup')], [adm('lists', 'item'), 'ring', 'Products', 'Ring, Stud, Pendant…', can('setup')], [adm('lists', 'pur'), 'scale', 'Purities', '22K, 18K, 14K, PT950…', can('setup')], [adm('locs'), 'tray', 'Counters, trays & boxes', 'Add, edit, move', can('setup')], [adm('lists', 'lc'), 'tag', 'Label codes', 'ERP barcode prefixes', can('setup')]]],
+    ['Stock setup', [[adm('lists', 'ml'), 'pin', 'Locations', 'Main & sub locations', can('setup')], [adm('lists', 'jt'), 'gem', 'Classifications', 'Gold, Diamond, Lab-grown…', can('setup')], [adm('lists', 'item'), 'ring', 'Products', 'Ring, Stud, Pendant…', can('setup')], [adm('lists', 'pur'), 'scale', 'Purities', '22K, 18K, 14K, PT950…', can('setup')], [adm('locs'), 'tray', 'Counters, trays & boxes', 'Add, edit, move', can('setup')], [adm('lists', 'lc'), 'tag', 'Label codes', 'ERP barcode prefixes', can('setup')], [adm('cc'), 'clock', 'Counting configuration', 'Morning / evening, categories, rules', S.me.role === 'admin']]],
     ['Administration', [[adm('users'), 'user', 'Users', 'Logins & permissions', can('users')], [adm('settings'), 'gear', 'App & ERP settings', 'Tolerances, ERP mapping', can('setup')], [adm('teams'), 'user', 'Counting teams', 'Teams, locations, phones', can('users') || can('setup')], [adm('share'), 'share', 'Holidays & sharing', 'Report recipients, holidays', can('setup')], [adm('coins'), 'coin', 'Gold coin margin', 'Margin, rounding, disclaimers', can('coinSet')], [adm('backup'), 'dl', 'Backup', 'Download / restore data', S.me.role === 'admin']]],
   ].map(([g, it]) => [g, it.filter((x) => x[4])]).filter(([, it]) => it.length);
   // v1.57 search: every tile carries its words (title, description, group, extra keywords)
-  const KW = { eod: 'sales return smith sample entries', 'adm:lists:ml': 'main location sub location counter shelf floating tray box grand', 'adm:lists:jt': 'gold diamond lab grown platinum silver jewellery type', 'adm:lists:item': 'ring stud pendant set bracelet necklace bangle chain nosepin coin item', 'adm:lists:pur': '22k 18k 14k 9k pt950 925 purity karat', 'adm:locs:': 'add edit move tray counter box location', 'adm:users:': 'staff login pin permission role', 'adm:teams:': 'team counting phone assign', 'adm:share:': 'whatsapp email report holiday sunday', 'adm:coins:': 'margin rounding disclaimer', 'adm:backup:': 'restore download', 'adm:settings:': 'erp tolerance weight blind', coins: 'bhima rate card', sx: 'bullion 999 995 grand stock', docs: 'gst licence bank upi vehicle insurance location review', total: 'consolidated item count print', reports: 'excel pdf share' };
+  const KW = { 'adm:cc:': 'stock taking morning evening session category mode sequence reminder deadline partial resume pin recount',  eod: 'sales return smith sample entries', 'adm:lists:ml': 'main location sub location counter shelf floating tray box grand', 'adm:lists:jt': 'gold diamond lab grown platinum silver jewellery type', 'adm:lists:item': 'ring stud pendant set bracelet necklace bangle chain nosepin coin item', 'adm:lists:pur': '22k 18k 14k 9k pt950 925 purity karat', 'adm:locs:': 'add edit move tray counter box location', 'adm:users:': 'staff login pin permission role', 'adm:teams:': 'team counting phone assign', 'adm:share:': 'whatsapp email report holiday sunday', 'adm:coins:': 'margin rounding disclaimer', 'adm:backup:': 'restore download', 'adm:settings:': 'erp tolerance weight blind', coins: 'bhima rate card', sx: 'bullion 999 995 grand stock', docs: 'gst licence bank upi vehicle insurance location review', total: 'consolidated item count print', reports: 'excel pdf share' };
   let curG = '';
   const tile = (k, ic, t, d, id = '', extra = '') => `<button class="stt" data-s="${esc(`${t} ${d} ${curG} ${KW[k] || ''} ${id}`.toLowerCase())}" ${k ? `data-go="${k}"` : ''} ${id ? `id="${id}"` : ''}><span class="stic">${svg(ic, 22)}</span><span class="stt1">${t}</span><span class="stt2">${d}</span>${extra}</button>`;
   const ini = String(S.me.name || '?').trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
@@ -3462,11 +3605,11 @@ async function vHistory() {
   } catch (e) { fail(e); }
 }
 async function vAdmin() {
-  const tabs = [['users', 'Users', can('users')], ['locs', 'Locations', can('setup')], ['settings', 'Settings', can('setup')], ['lists', 'Lists', can('setup')], ['share', 'Holidays & sharing', can('setup')], ['teams', 'Counting teams', can('users') || can('setup')], ['coins', 'Gold coins', can('coinSet')], ['backup', 'Backup', S.me.role === 'admin']].filter((x) => x[2]);
+  const tabs = [['users', 'Users', can('users')], ['locs', 'Locations', can('setup')], ['settings', 'Settings', can('setup')], ['lists', 'Lists', can('setup')], ['share', 'Holidays & sharing', can('setup')], ['cc', 'Counting configuration', S.me.role === 'admin'], ['teams', 'Counting teams', can('users') || can('setup')], ['coins', 'Gold coins', can('coinSet')], ['backup', 'Backup', S.me.role === 'admin']].filter((x) => x[2]);
   if (!tabs.find((t) => t[0] === S.tab)) S.tab = tabs[0]?.[0];
   $('#main').innerHTML = `<h1 style="margin-bottom:12px">Admin</h1><div class="tabs">${tabs.map(([k, t]) => `<button data-t="${k}" class="${S.tab === k ? 'on' : ''}">${t}</button>`).join('')}</div><div id="adm"></div>`;
   $('#main').querySelectorAll('[data-t]').forEach((b) => b.onclick = () => { S.tab = b.dataset.t; vAdmin(); });
-  if (S.tab === 'users') admUsers(); else if (S.tab === 'locs') admLocs(); else if (S.tab === 'backup') admBackup(); else if (S.tab === 'lists') admLists(); else if (S.tab === 'share') admShare(); else if (S.tab === 'coins') admCoins(); else if (S.tab === 'teams') admTeams(); else admSettings();
+  if (S.tab === 'users') admUsers(); else if (S.tab === 'locs') admLocs(); else if (S.tab === 'backup') admBackup(); else if (S.tab === 'lists') admLists(); else if (S.tab === 'share') admShare(); else if (S.tab === 'coins') admCoins(); else if (S.tab === 'teams') admTeams(); else if (S.tab === 'cc') admCC(); else admSettings();
 }
 // ---------- v1.56 Admin › Counting teams: who counts which main / sub location, counter or tray group; live progress from all phones ----------
 function teamTree() {
@@ -3521,6 +3664,54 @@ function teamEdit(t0) {
       const next = t0 ? teams.map((x) => x.id === t.id ? t : x) : [...teams, t];
       try { await api('settings', { settings: { teams: next } }); closeModal(); toast('✓ Team saved'); await load(); S.tab = 'teams'; go('admin'); } catch (e) { fail(e); }
     };
+  });
+}
+// ---------- v1.60 Settings → Stock taking → Counting configuration (admin) ----------
+function admCC() {
+  if (S.me.role !== 'admin') return $('#adm').innerHTML = '<div class="card">Admin only</div>';
+  const E = (S.ccEdit ||= JSON.parse(JSON.stringify(S.cc)));
+  const tg = (id, on, lbl, sub = '') => `<label class="cctg"><span class="grow"><b>${lbl}</b>${sub ? `<span class="mut sm">${sub}</span>` : ''}</span><input type="checkbox" class="sw" data-cc="${id}" ${on ? 'checked' : ''}></label>`;
+  const seg = (id, val, opts) => `<div class="seg">${opts.map(([v, t]) => `<button class="${val === v ? 'on' : ''}" data-ccv="${id}|${v}">${t}</button>`).join('')}</div>`;
+  const users = Object.entries(S.D.userNames).filter(([id]) => id !== 'system');
+  const per = (k) => { const P = E[k]; const nm = k === 'morning' ? '☀ Morning count' : '🌙 Evening count';
+    return `<div class="card ccp ${P.on ? '' : 'off'}"><div class="row sp"><h3>${nm}</h3><input type="checkbox" class="sw" data-cc="${k}.on" ${P.on ? 'checked' : ''}></div>
+      <div class="mut sm">${k === 'morning' ? 'Opening stock verification' : 'Closing stock verification'}${P.on ? '' : ' — turned off: not shown as pending, missed or overdue'}</div>
+      ${P.on ? `<label class="f">Stock categories</label><div class="cccats">${CC_CATS.map(([c, t]) => `<label class="chipck ${E.cats[c] ? '' : 'dis'}"><input type="checkbox" data-ccc="${k}|${c}" ${P.cats.includes(c) ? 'checked' : ''} ${E.cats[c] ? '' : 'disabled'}> ${svg(CC_IC[c], 16)} ${t}${E.cats[c] ? '' : ' (off)'}</label>`).join('')}</div>
+      <label class="f">Counting mode</label>${seg(k + '.mode', P.mode, [['single', 'Single category per session'], ['multi', 'Multiple categories per session']])}
+      ${P.mode === 'multi' ? `<label class="f">Category selection</label>${seg(k + '.select', P.select, [['admin', 'Admin predefined'], ['staff', 'Staff selectable']])}` : ''}
+      <label class="f">Counting sequence</label>${seg(k + '.seq', P.seq, [['flexible', 'Flexible — any order'], ['fixed', 'Fixed order']])}
+      ${P.seq === 'fixed' ? `<div class="ccord">${P.order.filter((c) => P.cats.includes(c)).map((c, i, a) => `<div class="ccoi" draggable="true" data-dr="${k}|${c}"><span class="mut">⋮⋮</span><b class="grow">${i + 1}. ${esc(CC_LABEL[c])}</b><button data-up="${k}|${c}" ${i ? '' : 'disabled'}>↑</button><button data-dn="${k}|${c}" ${i < a.length - 1 ? '' : 'disabled'}>↓</button></div>`).join('')}</div>` : ''}
+      <div class="g2"><div><label class="f">Start</label><input type="time" data-cct="${k}.start" value="${P.start}"></div><div><label class="f">Deadline</label><input type="time" data-cct="${k}.due" value="${P.due}"></div></div>
+      <label class="f">Reminder before the deadline</label><select data-ccr="${k}">${[0, 15, 30, 45, 60, 90, 120].map((m) => `<option value="${m}" ${P.remind === m ? 'selected' : ''}>${m ? m + ' min before' : 'No reminder'}</option>`).join('')}</select>
+      <label class="f">Authorised staff <span class="mut sm">(none ticked = everyone with counting permission)</span></label><div class="tmus">${users.map(([id, n]) => `<label class="chipck"><input type="checkbox" data-ccu="${k}|${id}" ${P.staff.includes(id) ? 'checked' : ''}> ${esc(n)}</label>`).join('')}</div>` : ''}</div>`; };
+  const summary = () => { const pl = (k) => { const P = E[k]; if (!P.on) return `${k === 'morning' ? 'Morning' : 'Evening'}: off`; const c = periodCats(E, k);
+      return `${k === 'morning' ? 'Morning' : 'Evening'} ${P.start}–${P.due}: ${c.map((x) => CC_LABEL[x]).join(P.seq === 'fixed' ? ' → ' : ' + ') || 'no category'} · ${P.mode === 'single' ? 'one category per session' : `combined (${P.select === 'admin' ? 'admin set' : 'staff pick'})`} · ${P.staff.length ? P.staff.map(uname).join(', ') : 'all staff'}${P.remind ? ` · reminder ${P.remind} min before` : ''}`; };
+    return [pl('morning'), pl('evening'), `Rules: partial submission ${E.partial ? 'allowed' : 'not allowed'} · resume ${E.resume ? 'allowed' : 'not allowed'} · multiple staff per session ${E.multiStaff ? 'allowed' : 'not allowed'} · PIN on submit ${E.auth ? 'on' : 'off'} · recount ${E.recountAdmin ? 'needs manager / admin' : 'open'}`]; };
+  const errs = ccValidate(ccOf({ cc: E })); const changed = JSON.stringify(ccOf({ cc: E })) !== JSON.stringify(S.cc);
+  $('#adm').innerHTML = `<div class="card"><div class="row sp wrap"><div><h3>🕘 Counting configuration</h3><div class="mut sm" style="max-width:680px">Settings → Stock taking. Changes apply to sessions started after saving — sessions already running keep the settings they started with. Turning something off never deletes counts or history.</div></div>${changed ? '<span class="st pending">Unsaved changes</span>' : '<span class="st ok">Saved</span>'}</div></div>
+  <h3 style="margin:14px 0 6px">1 · Global category settings</h3><div class="card">${CC_CATS.map(([c, t]) => tg('cats.' + c, E.cats[c], `${svg(CC_IC[c], 16)} ${t}`, E.cats[c] ? 'Counted in the sessions that include it' : 'Left out of future counts — records kept')).join('')}</div>
+  <h3 style="margin:14px 0 6px">2 · Morning · 3 · Evening</h3><div class="ccgrid">${per('morning')}${per('evening')}</div>
+  <h3 style="margin:14px 0 6px">4 · General counting rules</h3><div class="card">${tg('partial', E.partial, 'Partial submission', 'Allow submitting a session before every location is counted')}${tg('resume', E.resume, 'Resume incomplete session', 'Off: an unfinished session is closed and a new one starts')}${tg('multiStaff', E.multiStaff, 'Multiple staff per session', 'Others can join an active session; each count records who did it')}${tg('auth', E.auth, 'Authentication', 'Re-enter PIN to submit a session')}${tg('recountAdmin', E.recountAdmin, 'Recount needs admin / manager authorisation', 'Off: staff can recount a verified location')}</div>
+  <h3 style="margin:14px 0 6px">5 · Summary & save</h3><div class="card"><ul class="ccsum">${summary().map((x) => `<li>${esc(x)}</li>`).join('')}</ul>
+    ${errs.length ? `<div class="banner" style="background:var(--badb);color:var(--bad)">${errs.map(esc).join('<br>')}</div>` : ''}
+    <div class="row wrap" style="gap:8px;margin-top:10px"><input id="ccNote" placeholder="Reason for the change (optional, kept in history)" style="flex:1 1 240px"><button class="btn ghost" id="ccUndo" ${changed ? '' : 'disabled'}>Undo changes</button><button class="btn" id="ccSave" ${changed && !errs.length ? '' : 'disabled'}>Save configuration</button></div></div>`;
+  const set = (path, v) => { const ks = path.split('.'); let o = E; while (ks.length > 1) o = o[ks.shift()]; o[ks[0]] = v; };
+  const re = () => keepScroll(admCC);
+  $('#adm').querySelectorAll('[data-cc]').forEach((x) => x.onchange = () => { set(x.dataset.cc, x.checked); if (x.dataset.cc.startsWith('cats.') && !x.checked) { const c = x.dataset.cc.slice(5); for (const k of ['morning', 'evening']) if (!E[k].cats.length) {} } re(); });
+  $('#adm').querySelectorAll('[data-ccv]').forEach((b) => b.onclick = () => { const [p, v] = b.dataset.ccv.split('|'); set(p, v); re(); });
+  $('#adm').querySelectorAll('[data-ccc]').forEach((x) => x.onchange = () => { const [k, c] = x.dataset.ccc.split('|'); E[k].cats = x.checked ? [...new Set([...E[k].cats, c])] : E[k].cats.filter((y) => y !== c); re(); });
+  $('#adm').querySelectorAll('[data-ccu]').forEach((x) => x.onchange = () => { const [k, u] = x.dataset.ccu.split('|'); E[k].staff = x.checked ? [...new Set([...E[k].staff, u])] : E[k].staff.filter((y) => y !== u); re(); });
+  $('#adm').querySelectorAll('[data-cct]').forEach((x) => x.onchange = () => { set(x.dataset.cct, x.value); re(); });
+  $('#adm').querySelectorAll('[data-ccr]').forEach((x) => x.onchange = () => { E[x.dataset.ccr].remind = +x.value; re(); });
+  const mv = (k, c, d) => { const o = E[k].order; const vis = o.filter((x) => E[k].cats.includes(x)); const i = vis.indexOf(c), j = i + d; if (j < 0 || j >= vis.length) return; [vis[i], vis[j]] = [vis[j], vis[i]]; E[k].order = [...vis, ...o.filter((x) => !vis.includes(x))]; re(); };
+  $('#adm').querySelectorAll('[data-up]').forEach((b) => b.onclick = () => { const [k, c] = b.dataset.up.split('|'); mv(k, c, -1); });
+  $('#adm').querySelectorAll('[data-dn]').forEach((b) => b.onclick = () => { const [k, c] = b.dataset.dn.split('|'); mv(k, c, 1); });
+  let drag = null;   // drag-and-drop reordering for the fixed sequence
+  $('#adm').querySelectorAll('[data-dr]').forEach((el) => { el.ondragstart = () => { drag = el.dataset.dr; el.classList.add('drg'); }; el.ondragend = () => el.classList.remove('drg'); el.ondragover = (e) => e.preventDefault();
+    el.ondrop = (e) => { e.preventDefault(); if (!drag) return; const [k, c] = drag.split('|'), [k2, c2] = el.dataset.dr.split('|'); if (k !== k2 || c === c2) return; const o = E[k].order.filter((x) => x !== c); o.splice(o.indexOf(c2) + (E[k].order.indexOf(c) < E[k].order.indexOf(c2) ? 1 : 0), 0, c); E[k].order = o; drag = null; re(); }; });
+  $('#ccUndo').onclick = () => { S.ccEdit = null; admCC(); };
+  $('#ccSave').onclick = () => modal('Save counting configuration?', 'Applies to sessions started from now on', `<ul class="ccsum">${summary().map((x) => `<li>${esc(x)}</li>`).join('')}</ul><button class="btn" style="width:100%;margin-top:12px" id="ccOk">Save</button>`, () => {
+    $('#ccOk').onclick = async () => { try { await api('settings', { settings: { cc: E, ccNote: $('#ccNote')?.value || '' } }); closeModal(); S.ccEdit = null; toast('✓ Counting configuration saved'); await load(true); S.tab = 'cc'; go('admin'); } catch (e) { fail(e); } };
   });
 }
 // ---------- database backup (admin) ----------
