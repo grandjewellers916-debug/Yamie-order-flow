@@ -96,8 +96,40 @@ function cardFoot(k, y, phones) {
   return y + H;
 }
 /** Hero photo + up to 3 thumbnails in a soft rounded panel. */
+/** Photos tagged with their item number; for several items every item gets at least its first photo. */
+function itemPhotos(items, extra, tag) {
+  const per = items.map((it, i) => (it.photos || []).concat(it.refs || []).map((p) => ({ p, n: String(i + 1) })));
+  const ex = (extra || []).map((p) => ({ p, n: tag || '★' }));
+  const groups = per.concat(ex.length ? [ex] : []).filter((g) => g.length), MAX = 12, pick = [];
+  groups.forEach((g) => pick.push(g[0]));
+  for (let r = 1; pick.length < MAX && groups.some((g) => g[r]); r++) groups.forEach((g) => { if (g[r] && pick.length < MAX) pick.push(g[r]); });
+  const order = new Map(groups.flat().map((x, i) => [x, i]));
+  return pick.sort((a, b) => order.get(a) - order.get(b));
+}
+/** Several items: all photos in a grid at the top, each with its item number. */
+async function cardPhotoGrid(k, list, px, py, w) {
+  const { T } = k;
+  const ims = (await Promise.all(list.map((x) => loadImg(imgUrl(x.p))))).map((im, i) => (im ? { im, n: list[i].n } : null)).filter(Boolean);
+  if (!ims.length) return py;
+  const n = ims.length, cols = n <= 4 ? n : n <= 6 ? 3 : 4, rows = Math.ceil(n / cols), gap = 16, pad = 16;
+  const tw = (w - 2 * pad - (cols - 1) * gap) / cols, th = Math.min(Math.round(tw * 0.9), 340);
+  const H = pad * 2 + rows * th + (rows - 1) * gap;
+  k.box(px, py, w, H, 24, k.grad(px, py, px, py + H, '#fbfbfc', T.soft2), T.line, 1.5);
+  ims.forEach((x, i) => {
+    const r = Math.floor(i / cols), inRow = Math.min(cols, n - r * cols), x0 = px + (w - (inRow * tw + (inRow - 1) * gap)) / 2;
+    const tx = x0 + (i % cols) * (tw + gap), ty = py + pad + r * (th + gap);
+    k.box(tx, ty, tw, th, 14, '#fff', T.line, 1.5); k.contain(x.im, tx, ty, tw, th, 8);
+    const bw = Math.max(44, k.tw(x.n, 22, 800) + 24);
+    k.box(tx + 8, ty + 8, bw, 38, 19, k.grad(tx, ty, tx + bw, ty, T.a, T.b), null); k.t(x.n, tx + 8 + bw / 2, ty + 35, 22, 800, '#fff', 'center');
+  });
+  return py + H;
+}
 async function cardPhotos(k, photos, px, py, w, heroH) {
   const { T } = k;
+  if (photos && photos.length && typeof photos[0] === 'object') {
+    if (new Set(photos.filter((x) => /^\d+$/.test(x.n)).map((x) => x.n)).size > 1) return cardPhotoGrid(k, photos, px, py, w);
+    photos = photos.map((x) => x.p);
+  }
   const ims = (await Promise.all((photos || []).slice(0, 4).map((p) => loadImg(imgUrl(p))))).filter(Boolean);
   if (!ims.length) return py;
   const thumbs = ims.slice(1, 4), th = thumbs.length ? Math.round((w - 80) / 3 * 0.78) : 0;
@@ -168,7 +200,7 @@ async function cardEstimate(o, est) {
     const dEnd = drawDetails(items[0], est.lines[0], 0, 576, y, W - 576 - 30);
     y = Math.max(pEnd, dEnd) + 32;
   } else {
-    y = await cardPhotos(k, allPhotos(items), 38, y, W - 76, 420) + 24;
+    y = await cardPhotos(k, itemPhotos(items), 38, y, W - 76, 420) + 24;
     items.forEach((it, i) => { y = drawDetails(it, est.lines[i], i, 38, y, W - 76) + 24; });
     y += 8;
   }
@@ -253,7 +285,7 @@ async function cardWork(o) {
   let cx = 58; k.icon('user', cx, 228, 30, T.ink); cx += 44; cx += k.t('To ' + v.name, cx, 254, 27, 500, T.txt) + 30;
   k.t('|', cx, 252, 27, 300, T.mute); cx += 34; k.icon('cal', cx, 228, 30, T.ink); cx += 44; cx += k.t('ETD:', cx, 254, 27, 500, T.txt) + 10;
   const ew = k.tw(dt(v.etd), 29, 700) + 30; k.box(cx, 220, ew, 48, 16, T.soft, null); k.t(dt(v.etd), cx + 15, 254, 29, 700, T.ink);
-  let y = await cardPhotos(k, allPhotos(o.items).concat(v.photos || []), 72, 296, W - 144, 300);
+  let y = await cardPhotos(k, itemPhotos(o.items, v.photos, 'Ref'), 72, 296, W - 144, 300);
   y += 30;
   for (let i = 0; i < o.items.length; i++) {
     const it = o.items[i];
@@ -303,7 +335,7 @@ async function cardReady(o) {
   x.fillStyle = T.ink; x.beginPath(); x.arc(92, 172, 34, 0, 7); x.fill(); k.icon('check', 70, 150, 44, '#fff', 3);
   k.t('Your Order is Ready', 150, 192, 54, 800, T.ink);
   k.icon('user', 150, 212, 28, T.ink); k.t(o.cust.name, 190, 236, 28, 500, T.ink);
-  let y = await cardPhotos(k, allPhotos(o.items), 38, 280, W - 76, 300);
+  let y = await cardPhotos(k, itemPhotos(o.items), 38, 280, W - 76, 300);
   y += 32;
   // order details: a 4-column row per item
   const cols = (it) => [['Item', it.product || it.cat], ['Purity', purLabel(it.purity)], ['Colour', it.colour], [sizeLabel(it.cat).replace(/ \/.*/, ''), it.size || 'Standard']];

@@ -90,6 +90,10 @@ The page talks to `localStorage.yod_api` when set (tests set it to the local ser
 - Final price → manager approves → "Order ready: send card with final price". Customer-OK step and final price card removed (server no longer needs finals[].cust).
 - Phones on cards: shopPhone (estimate), shopPhone2 + shopLandline (ready), woPhone (work order).
 
+## V2.9 (26-11-2026)
+- Cards (estimate, work order, order ready) for orders with several items: all item photos in a grid at the top, each tagged with its item number (at least the first photo of every item, up to 12). Single-item orders keep the large photo + thumbnails.
+- Web-only change: V2.8 apps update through Reload app.
+
 ## V2.8 (25-11-2026)
 - Reload app / live updates: the APK checks the server version when it opens, every 30 minutes and when brought back to the front. If the website has a newer version, the app downloads the new page in the background and shows a violet bar "Version X is ready — Reload app". More → "Check for updates · Reload app" does it on demand. The website version just reloads.
 - The downloaded page is kept in the app's storage; installing a newer APK later replaces it automatically.

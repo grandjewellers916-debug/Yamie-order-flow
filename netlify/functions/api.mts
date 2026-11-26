@@ -17,7 +17,7 @@ export const config = { path: '/api/*' };
 
 /** Lowest APK that can run the current web page; raise it only when the Android (Kotlin) part changes. */
 const APK_MIN = '2.8';
-const SERVER_VERSION = '2.8';
+const SERVER_VERSION = '2.9';
 const PERM_KEYS = ['enquiry', 'estimate', 'approve', 'advance', 'verify', 'discount', 'confirm', 'vendor', 'production', 'receive', 'qc',
   'finalprice', 'approvefinal', 'ready', 'close', 'cancel', 'rates', 'vendors', 'vendorcontact', 'review', 'viewcost', 'reports', 'delete', 'settings', 'grand', 'grandCreate', 'grandSend', 'grandRecv', 'grandQc', 'grandLabel', 'grandMark', 'grandPack', 'grandDispatch', 'grandAcct', 'grandcfg'];
 const DEF_ROLE_PERMS: Record<string, string[]> = {
