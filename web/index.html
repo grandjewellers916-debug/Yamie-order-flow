@@ -466,7 +466,7 @@ const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 
   apply();
 })();
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.60';
+const VERSION = '1.61';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -2461,8 +2461,20 @@ async function vCash() {
   S.ctab ||= 'closing';
   $('#main').innerHTML = `<div class="mut sm" style="letter-spacing:2px">02 · CASH</div><h1>Cash Closing</h1><div class="mut">Daily denomination verification</div><div class="mut" style="margin-top:20px">Loading…</div>`;
   try { S.cashData = await api('cash'); } catch (e) { $('#main').innerHTML = `<div class="card">${esc(e.message)}</div>`; return; }
-  if (!S.cash) { const b = blankCash(); const ex = S.cashData.records.find((r) => r.date === b.date && r.counter === b.counter && sessOf(r) === b.shift); S.cash = ex ? JSON.parse(JSON.stringify(ex)) : b; }
+  cashSync();
   await cashLoadOpening(); drawCash();
+}
+// v1.61 keep the open chit in step with the server (a count closed on another phone shows here on the next refresh)
+function cashSync() {
+  const rs = S.cashData.records, cp = (x) => JSON.parse(JSON.stringify(x)), c = S.cash;
+  if (c && S.cashDirty) return;                                                    // someone is typing on this device — leave it
+  if (c && c.id) { const x = rs.find((r) => r.id === c.id); if (x) { if ((x.updatedAt || '') !== (c.updatedAt || '') || x.state !== c.state) S.cash = cp(x); return; } }
+  const b = c && !c.id && c.date === S.D.today ? c : blankCash();
+  if (c && c.id && c.date !== S.D.today) return;                                   // an older chit opened from history
+  const same = (r) => r.date === b.date && sessOf(r) === sessOf(b);
+  let ex = rs.find((r) => same(r) && r.counter === b.counter);
+  if (!ex && !S.cashPicked) { const other = rs.filter(same); if (other.length === 1) ex = other[0]; }   // the phone used another counter — open that one
+  S.cash = ex ? cp(ex) : (c && !c.id && c.date === S.D.today ? c : b);
 }
 // morning count: fetch the carried-forward opening (previous evening closing) for an unsaved chit
 async function cashLoadOpening() { const c = S.cash; if (!isMorning(c) || c.state === 'closed' || !c.counter) return;
@@ -2532,14 +2544,14 @@ function cashForm() {
     if (mor && c.opening) for (const d of CASH_DENOMS) { const el = $(`[data-cf="${d}"]`); if (!el) continue; const want = cashNotes(c.opening, d), got = cashNotes(c, d); el.className = 'dcf ' + (got === want ? 'ok' : 'bad'); el.textContent = `carried ${fmt(want)} notes${got === want ? ' ✓' : ` · counted ${fmt(got)} (${got - want > 0 ? '+' : ''}${fmt(got - want)})`}`; }
     return k;
   };
-  $('#cashBody').querySelectorAll('input,select,textarea').forEach((el) => el.addEventListener('input', calc));
+  $('#cashBody').querySelectorAll('input,select,textarea').forEach((el) => el.addEventListener('input', () => { S.cashDirty = true; calc(); }));
   calc();
   // switching date / counter / session loads that chit if it exists
-  const swap = () => { read(); const ex = S.cashData.records.find((r) => r.date === c.date && r.counter === c.counter && sessOf(r) === sessOf(c));
+  const swap = () => { S.cashDirty = false; S.cashPicked = true; read(); const ex = S.cashData.records.find((r) => r.date === c.date && r.counter === c.counter && sessOf(r) === sessOf(c));
     if (ex && ex.id !== c.id) { S.cash = JSON.parse(JSON.stringify(ex)); toast(`Opened the ${ex.state === 'closed' ? 'closed' : 'saved'} ${sessOf(ex).toLowerCase()} chit`); return drawCash(); }
     if (!ex && c.id) { S.cash = { ...blankCash(c.date, c.shift), counter: c.counter }; }
     cashLoadOpening().then(drawCash); };
-  $('#cashBody').querySelectorAll('[data-sess]').forEach((b) => b.onclick = () => { const ex = dayRec(b.dataset.sess); S.cash = ex ? JSON.parse(JSON.stringify(ex)) : { ...blankCash(c.date, b.dataset.sess), counter: c.counter }; cashLoadOpening().then(drawCash); });
+  $('#cashBody').querySelectorAll('[data-sess]').forEach((b) => b.onclick = () => { const ex = dayRec(b.dataset.sess); S.cashDirty = false; S.cash = ex ? JSON.parse(JSON.stringify(ex)) : { ...blankCash(c.date, b.dataset.sess), counter: c.counter }; cashLoadOpening().then(drawCash); });
   $('#cFill') && ($('#cFill').onclick = () => { for (const d of CASH_DENOMS) { const x = (c.opening.denoms || []).find((y) => +y.note === d) || {}; $(`[data-b="${d}"]`).value = x.bundles || ''; $(`[data-l="${d}"]`).value = x.loose || ''; } $('#cCoins').value = c.opening.coins || ''; calc(); toast('Filled with the carried-forward notes — check them against the cash'); });
   ['#cDate', '#cCounter', '#cShift'].forEach((sel) => $(sel) && $(sel).addEventListener('change', swap));
   const save = async (final) => {
@@ -2547,13 +2559,13 @@ function cashForm() {
     const k = cashCalc(c);
     if (final) { if (!mor && c.acme === '') return toast('Enter the ACME closing balance'); if (k.variance && !c.remarks.trim()) return toast('Explain the cash variance in remarks'); if (c.countedBy === S.me.id) return toast('Choose who counted the cash — the verifier must be a different person');
       if (!confirm(`${mor ? 'Morning count' : 'Evening closing'}: confirm the physical cash ${inr(k.gt)} was independently verified, and close this chit?${mor ? '' : '\n\nIt becomes tomorrow’s opening.'}${k.variance ? `\n\nVariance ${k.variance > 0 ? '+' : ''}${inr(k.variance)} (${k.result.toUpperCase()})` : ''}`)) return; }
-    try { const r = await api('cash/save', { rec: c, final }); localStorage.ycc_counter = c.counter; S.cash = r.rec; const i = S.cashData.records.findIndex((x) => x.id === r.rec.id); if (i >= 0) S.cashData.records[i] = r.rec; else S.cashData.records.unshift(r.rec);
+    try { const r = await api('cash/save', { rec: c, final }); localStorage.ycc_counter = c.counter; S.cashDirty = false; S.cash = r.rec; const i = S.cashData.records.findIndex((x) => x.id === r.rec.id); if (i >= 0) S.cashData.records[i] = r.rec; else S.cashData.records.unshift(r.rec);
       toast(final ? (r.rec.variance ? `⚠ Closed with ${r.rec.result} ${inr(Math.abs(r.rec.variance))}` : mor ? '✓ Morning count verified' : '✓ Cash tallied and closed — carried forward to tomorrow') : '✓ Draft saved — visible on every device'); drawCash(); } catch (e) { fail(e); }
   };
   $('#cSave') && ($('#cSave').onclick = () => save(false));
   $('#cClose') && ($('#cClose').onclick = () => save(true));
-  $('#cNew') && ($('#cNew').onclick = () => { S.cash = blankCash(); drawCash(); });
-  $('#cReopen') && ($('#cReopen').onclick = async () => { const reason = prompt('Reason to reopen this closed chit'); if (!reason) return; try { const r = await api('cash/reopen', { date: c.date, id: c.id, reason }); S.cash = r.rec; const i = S.cashData.records.findIndex((x) => x.id === r.rec.id); if (i >= 0) S.cashData.records[i] = r.rec; toast('Reopened'); drawCash(); } catch (e) { fail(e); } });
+  $('#cNew') && ($('#cNew').onclick = () => { S.cashDirty = false; S.cash = blankCash(); drawCash(); });
+  $('#cReopen') && ($('#cReopen').onclick = async () => { const reason = prompt('Reason to reopen this closed chit'); if (!reason) return; try { const r = await api('cash/reopen', { date: c.date, id: c.id, reason }); S.cashDirty = false; S.cash = r.rec; const i = S.cashData.records.findIndex((x) => x.id === r.rec.id); if (i >= 0) S.cashData.records[i] = r.rec; toast('Reopened'); drawCash(); } catch (e) { fail(e); } });
   $('#cPrint').onclick = () => { read(); printChit(c); };
   $('#cCsv').onclick = () => { read(); cashCSV([c]); };
 }
@@ -2567,7 +2579,7 @@ function cashHistory() {
     <div class="card list" style="padding:0;margin-top:10px">${list.map(cashRow).join('') || '<div class="mut" style="padding:20px;text-align:center">No cash closings yet. Start with today’s cash count.</div>'}</div>
     <div class="mut sm" style="margin-top:8px">Last 2 months · shared with every device.</div>`;
   $('#cashBody').querySelectorAll('[data-cf]').forEach((b) => b.onclick = () => { S.cf = b.dataset.cf; cashHistory(); });
-  $('#cashBody').querySelectorAll('[data-cid]').forEach((b) => b.onclick = () => { S.cash = JSON.parse(JSON.stringify(rs.find((r) => r.id === b.dataset.cid))); S.ctab = 'closing'; drawCash(); });
+  $('#cashBody').querySelectorAll('[data-cid]').forEach((b) => b.onclick = () => { S.cashDirty = false; S.cash = JSON.parse(JSON.stringify(rs.find((r) => r.id === b.dataset.cid))); S.ctab = 'closing'; drawCash(); });
 }
 function cashReports() {
   S.cmon ||= S.D.today.slice(0, 7);
@@ -2586,7 +2598,7 @@ function cashReports() {
   <div class="mut sm" style="margin-top:10px">From the shared cash register. Every save, close and reopen is logged with the user and time.</div>`;
   $('#cMon').onchange = () => { S.cmon = $('#cMon').value; cashReports(); };
   $('#cRepCsv').onclick = () => cashCSV(rs);
-  $('#cashBody').querySelectorAll('[data-cid]').forEach((b) => b.onclick = () => { S.cash = JSON.parse(JSON.stringify(S.cashData.records.find((r) => r.id === b.dataset.cid))); S.ctab = 'closing'; drawCash(); });
+  $('#cashBody').querySelectorAll('[data-cid]').forEach((b) => b.onclick = () => { S.cashDirty = false; S.cash = JSON.parse(JSON.stringify(S.cashData.records.find((r) => r.id === b.dataset.cid))); S.ctab = 'closing'; drawCash(); });
 }
 function cashCSV(list) {
   const q = (v) => '"' + String(v ?? '').replace(/"/g, '""') + '"'; const rows = [['Date', 'Counter', 'Session', 'Chit', 'State', ...CASH_DENOMS.flatMap((d) => [`₹${d} bundles`, `₹${d} loose`]), 'Coins', 'Bundles total (A)', 'Loose total (B)', 'Grand total', 'Expected (opening / ACME)', 'ACME', 'Variance', 'Result', 'Counted by', 'Verified by', 'Remarks']];
