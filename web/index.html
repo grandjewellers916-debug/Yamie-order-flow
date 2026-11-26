@@ -466,7 +466,7 @@ const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 
   apply();
 })();
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.61';
+const VERSION = '1.62';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -669,7 +669,7 @@ function dayFlow() {
   return `<div class="flow">
     ${R.morning.off ? '' : `<div class="fs ${st(mDone, !ev)}"><i>☀</i><div><b>Morning count</b><span>${R.morning.done}/${R.morning.locs} verified</span></div></div>`}
     <div class="fs ${st(ev, mDone && !ev)}" data-flow="eod"><i>🧾</i><div><b>End-of-day entries</b><span>${S.eodCount} entr${S.eodCount === 1 ? 'y' : 'ies'}${ev ? ' · done' : ''}</span></div></div>
-    ${R.evening.off ? '' : `<div class="fs ${st(eDone, ev && !eDone)}"><i>🌙</i><div><b>Evening count</b><span>${ev ? `${R.evening.done}/${R.evening.locs} verified` : 'after entries'}</span></div></div>`}
+    ${R.evening.off ? '' : `<div class="fs ${st(eDone, ev && !eDone)}" ${!ev && !closed && can('move') ? 'data-flow="eve" title="Start the evening count"' : ''}><i>🌙</i><div><b>Evening count</b><span>${ev ? `${R.evening.done}/${R.evening.locs} verified` : can('move') && !closed ? 'tap to start' : 'after entries'}</span></div></div>`}
     <div class="fs ${st(closed, (R.evening.off ? mDone : eDone) && !closed)}" data-flow="close"><i>🔒</i><div><b>Close day</b><span>${closed ? 'closed' : R.morning.off && R.evening.off ? 'no counts required' : 'required counts first'}</span></div></div></div>`;
 }
 
@@ -743,8 +743,7 @@ function vEod() {
   });
   $('#startEve') && ($('#startEve').onclick = async () => {
     if (rows.some((r) => r.locId || r.qty || r.wt) && !confirm('There are unsaved rows above. Start the evening count without them?')) return;
-    if (!R.morning.off && R.morning.done < R.morning.locs && !confirm(`Morning count is not complete (${R.morning.done}/${R.morning.locs}). Start evening anyway?`)) return;
-    try { await api('round', { date: S.D.date, round: 'evening' }); toast('🌙 Evening count started'); await load(true); S.view = 'home'; render(); } catch (e) { fail(e); }
+    startEvening();
   });
   $('#goCount') && ($('#goCount').onclick = () => go('home'));
   $('#backMorning') && ($('#backMorning').onclick = async () => { if (!confirm('Go back to the morning count? Evening counts stay saved but are not used until evening starts again.')) return; try { await api('round', { date: S.D.date, round: 'morning' }); await load(true); vEod(); } catch (e) { fail(e); } });
@@ -789,7 +788,7 @@ function vHome() {
   $('#main').querySelectorAll('[data-mv]').forEach((b) => b.onclick = () => moveForm(b.dataset.mv));
   $('#closeBtn') && ($('#closeBtn').onclick = closeDayFlow);
   $('#eodBtn') && ($('#eodBtn').onclick = () => go('eod'));
-  $('#main').querySelectorAll('[data-flow]').forEach((b) => b.onclick = () => { const f = b.dataset.flow; if (f === 'eod') go('eod'); else if (f === 'close') can('close') && editable() && closeDayFlow(); });
+  $('#main').querySelectorAll('[data-flow]').forEach((b) => b.onclick = () => { const f = b.dataset.flow; if (f === 'eod') go('eod'); else if (f === 'eve') editable() && startEvening(); else if (f === 'close') can('close') && editable() && closeDayFlow(); });
   bindLocCards(); bindStart(); bindBoard();
 }
 // ---------- v1.60 counting dashboard: one card per counting period that is on (time, staff, category status, progress, mismatches, start / resume) ----------
@@ -808,6 +807,7 @@ function catStatus(k, c) {
   if (X.done || act) return ['In progress', 'cur'];
   return [cur || past ? 'Not started' : 'Not started', ''];
 }
+const nowHM = () => new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Kolkata' });
 function countBoard() {
   if (!S.cc) return '';
   const pers = ['morning', 'evening'].filter((k) => !S.rounds[k].off);
@@ -828,10 +828,19 @@ function countBoard() {
       <div class="cbrows">${cats.map((c, i) => { const X = R.cats[c]; const [t, cl] = catStatus(k, c);
         return `<div class="cbr"><span class="cbi">${svg(CC_IC[c], 18)}</span><span class="grow"><b>${P.seq === 'fixed' && cats.length > 1 ? `${i + 1}. ` : ''}${esc(CC_LABEL[c])}</b><span class="mut sm"> · ${X.done}/${X.locs}</span></span><span class="st ${cl === 'ok' ? 'ok' : cl === 'bad' ? 'var' : cl === 'warn' ? 'var' : cl === 'cur' ? 'pending' : ''}">${t}</span>${P.mode === 'single' ? btn(c) : ''}</div>`; }).join('')}</div>
       ${main ? `<div class="row" style="margin-top:10px;justify-content:flex-end">${main}</div>` : ''}
-      ${!cur && !past && k === 'evening' ? '<div class="mut sm" style="margin-top:6px">Starts after the end-of-day entries.</div>' : ''}
+      ${!cur && !past && k === 'evening' ? `<div class="row wrap" style="margin-top:10px;gap:8px;justify-content:flex-end;align-items:center"><span class="mut sm grow">${S.eodCount ? `${S.eodCount} end-of-day entr${S.eodCount === 1 ? 'y' : 'ies'} saved.` : 'Save today’s end-of-day entries first.'}</span>${can('move') ? '<button class="btn sec sm" data-eodgo>🧾 End-of-day entries</button>' : ''}${can('move') && editable() ? `<button class="btn ${nowHM() >= P.start ? '' : 'sec'}" data-eve>🌙 Start evening count ›</button>` : ''}</div>${!can('move') ? '<div class="mut sm" style="margin-top:6px">A manager starts the evening count after the end-of-day entries.</div>' : ''}` : ''}
       <div class="mut sm" style="margin-top:6px">${P.mode === 'single' ? 'One category per session' : `Combined session · ${P.select === 'admin' ? 'set categories' : 'pick categories'}`} · ${P.seq === 'fixed' ? 'fixed order' : 'any order'}</div></div>`; }).join('')}</div>`;
 }
+// v1.62 start the evening count (from the Stock board, the day steps or the End-of-day page)
+async function startEvening() {
+  const R = S.rounds;
+  if (!R.morning.off && R.morning.done < R.morning.locs && !confirm(`Morning count is not complete (${R.morning.done}/${R.morning.locs}). Start the evening count anyway?\n\nMake sure today's end-of-day entries (sales, returns, smith…) are saved first.`)) return;
+  if (!S.eodCount && !confirm('No end-of-day entries saved today. Start the evening count anyway?')) return;
+  try { await api('round', { date: S.D.date, round: 'evening' }); toast('🌙 Evening count started'); await load(true); S.view = 'stock'; render(); } catch (e) { fail(e); }
+}
 function bindBoard() {
+  $('#main').querySelectorAll('[data-eve]').forEach((b) => b.onclick = () => startEvening());
+  $('#main').querySelectorAll('[data-eodgo]').forEach((b) => b.onclick = () => go('eod'));
   $('#main').querySelectorAll('[data-ccs]').forEach((b) => b.onclick = () => { const [k, c] = b.dataset.ccs.split('|'); startCats([c]); });
   $('#main').querySelectorAll('[data-ccm]').forEach((b) => b.onclick = () => { const k = b.dataset.ccm; const P = S.cc[k]; const cats = periodCats(S.cc, k);
     const mine = (S.D.sessions || []).find((x) => x.status === 'active' && (x.round || 'morning') === k && !x.ids && (x.staff || [x.by]).includes(S.me.id));
