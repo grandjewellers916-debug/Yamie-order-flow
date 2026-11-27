@@ -561,7 +561,7 @@ body{padding-top:0}
 .login-in .brand.with-logo{text-align:center;align-self:center}
 
 /* ===== v1.4: views, compact header, price card, quote page, login ===== */
-body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote"] [data-pane]:not([data-pane="quote"]),body[data-view="settings"] [data-pane]:not([data-pane="settings"]),body[data-view="search"] [data-pane]:not([data-pane="search"]),body[data-view="reports"] [data-pane],body[data-view="quotes"] [data-pane]:not([data-pane="quotes"]),body[data-view="shop"] [data-pane]:not([data-pane="shop"]),body[data-view="orders"] [data-pane]:not([data-pane="orders"]),body[data-view="coins"] [data-pane]:not([data-pane="coins"]),body[data-view="courier"] [data-pane]:not([data-pane="courier"]){display:none!important}
+body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote"] [data-pane]:not([data-pane="quote"]),body[data-view="settings"] [data-pane]:not([data-pane="settings"]),body[data-view="search"] [data-pane]:not([data-pane="search"]),body[data-view="reports"] [data-pane],body[data-view="quotes"] [data-pane]:not([data-pane="quotes"]),body[data-view="shop"] [data-pane]:not([data-pane="shop"]),body[data-view="orders"] [data-pane]:not([data-pane="orders"]),body[data-view="coins"] [data-pane]:not([data-pane="coins"]),body[data-view="courier"] [data-pane]:not([data-pane="courier"]),body[data-view="dash"] [data-pane]:not([data-pane="dash"]){display:none!important}
 .od-row{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;margin:0 0 8px;color:inherit;font:inherit;cursor:pointer}
 .od-row b{font-size:15px}.od-row small{display:block;color:var(--muted,#7a7270);font-size:12.5px;margin-top:2px}.od-row .od-r{margin-left:auto;text-align:right;white-space:nowrap}
 .od-pill{display:inline-block;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--sunk);color:var(--fg)}
@@ -1982,6 +1982,69 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
   .a4-tb tr{page-break-inside:avoid}
 }
 
+/* ===== V1.9.18 Home dashboard (phones) ===== */
+.dash{--db:#6D2B22;--dbd:#55201A;--dol:#839073;--dold:#6B7860;--div:#FAF5F0;--dch:#C9A96E;--dbl:#F3E3DC;display:flex;flex-direction:column;gap:14px;padding-bottom:8px}
+:root:not([data-brand="yamie"]) .dash{--db:var(--maroon);--dbd:var(--band)}
+body[data-view="dash"]{background:linear-gradient(180deg,#FBF6F1 0%,#F7EEE7 100%)}
+body[data-view="dash"] .hero{display:none}
+@media (max-width:899px){body[data-view="dash"] .wrap{padding-top:max(6px,env(safe-area-inset-top))}}
+.dh-top{display:grid;grid-template-columns:48px 1fr 56px;align-items:start;gap:6px}
+.dh-ic{width:48px;height:48px;border:0;background:none;color:var(--db);display:grid;place-items:center;border-radius:50%;cursor:pointer}.dh-ic svg{width:26px;height:26px}
+.dh-brand{display:flex;flex-direction:column;align-items:center;gap:6px;padding-top:2px}
+.dh-logo{height:82px;width:auto;max-width:60vw;object-fit:contain;display:block}
+.dh-sub{display:flex;align-items:center;gap:12px;color:var(--db);font:500 13px var(--body);letter-spacing:.42em;text-transform:uppercase}
+.dh-sub i,.dh-tag i{display:block;width:34px;height:1px;background:var(--dch)}
+.dh-rt{display:flex;flex-direction:column;align-items:center;gap:2px}
+.dash .dh-bell{color:var(--db);width:48px;height:48px}.dh-ver{font:500 11px var(--mono,monospace);color:var(--muted);letter-spacing:.04em}
+.dh-when{display:flex;justify-content:center;align-items:center;gap:14px;color:var(--fg);font-size:14.5px}
+.dh-when span{display:flex;align-items:center;gap:7px}.dh-when svg{width:20px;height:20px;color:#B08A4E}.dh-when b{font-weight:500}
+.dh-when i{width:1px;height:22px;background:var(--line)}
+.dh-rates{background:rgba(255,255,255,.72);border:1px solid #EEDFD4;border-radius:18px;padding:12px 12px 10px;box-shadow:0 2px 10px rgba(109,43,34,.07);cursor:pointer}
+.dh-rh{display:flex;align-items:center;gap:8px}
+.dh-rt1{display:flex;align-items:center;gap:8px;flex:1;min-width:0;color:var(--db);font:700 12.5px var(--body);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}.dh-rt1 svg{width:20px;height:20px;color:#B08A4E;flex:none}
+.dh-upd{font-size:11px;color:var(--muted);white-space:nowrap}
+.dh-ref{border:0;background:none;color:var(--dol);width:40px;height:40px;margin:-6px -6px -6px 0;display:grid;place-items:center;border-radius:50%;cursor:pointer}.dh-ref svg{width:22px;height:22px}
+.dh-ref.spin svg{animation:dhspin .8s linear infinite}@keyframes dhspin{to{transform:rotate(360deg)}}
+.dh-rg{display:grid;margin-top:10px}
+.dh-r{display:flex;flex-direction:column;align-items:center;gap:6px;padding:2px 2px 4px;border-left:1px solid #EADBD0}.dh-r:first-child{border-left:0}
+.dh-k{background:var(--dbl);color:var(--db);border-radius:999px;padding:2px 12px;font:600 12.5px var(--body)}
+.dh-r b{font:700 clamp(15px,4.6vw,20px) var(--display,Georgia,serif);color:#2A1714;white-space:nowrap;font-variant-numeric:tabular-nums}
+.dh-rnote{margin:6px 0 0;font-size:11.5px;color:#9A5B12;text-align:center}
+.dh-prim{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.dh-p{min-height:118px;border-radius:18px;border:1px solid transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:12px 6px;cursor:pointer;font:500 15.5px/1.15 var(--body);text-align:center;box-shadow:0 4px 14px rgba(60,20,15,.14);transition:transform .12s}
+.dh-p:active,.dh-t:active{transform:scale(.97)}
+.dh-p>svg{width:38px;height:38px}.dh-p b{font-weight:500;position:relative}.dh-nw{white-space:nowrap}.dh-ch svg{width:13px;height:13px;vertical-align:-1px;margin-left:3px}
+.dh-p-scan{background:linear-gradient(160deg,#8E3A2E 0%,var(--db) 55%,var(--dbd) 100%);color:#fff}
+.dh-p-price{background:#FBF1EA;color:var(--db);border-color:#EADBD0;box-shadow:0 2px 10px rgba(109,43,34,.08)}
+.dh-p-quote{background:linear-gradient(160deg,#94A083 0%,var(--dol) 55%,var(--dold) 100%);color:#fff}
+.dh-grid{display:grid;gap:10px}
+.dh-grid.lay-3{grid-template-columns:repeat(3,minmax(0,1fr))}.dh-grid.lay-2{grid-template-columns:repeat(2,minmax(0,1fr))}.dh-grid.lay-list{grid-template-columns:1fr;gap:8px}
+.dh-t{background:#FBF4EF;border:1px solid #EFE2D8;border-radius:16px;min-height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:10px 6px;color:var(--db);cursor:pointer;text-align:center;box-shadow:0 1px 6px rgba(109,43,34,.06)}
+.dh-t svg{width:32px;height:32px;flex:none}.dh-t b{font:500 14.5px/1.2 var(--body);color:var(--db)}.dh-t small{display:none}
+.dh-t span{display:flex;flex-direction:column;gap:2px}
+.dh-grid.sz-s .dh-t{min-height:74px;gap:5px}.dh-grid.sz-s .dh-t svg{width:26px;height:26px}.dh-grid.sz-s .dh-t b{font-size:13px}
+.dh-grid.sz-l .dh-t{min-height:124px}.dh-grid.sz-l .dh-t svg{width:40px;height:40px}.dh-grid.sz-l .dh-t b{font-size:16px}
+.dh-grid.lay-2 .dh-t small,.dh-grid.lay-list .dh-t small{display:block;font-size:11.5px;color:var(--muted);line-height:1.3}
+.dh-grid.lay-list .dh-t{flex-direction:row;justify-content:flex-start;text-align:left;min-height:60px;padding:10px 14px;gap:14px}
+.dh-grid.lay-list.sz-s .dh-t{min-height:50px}.dh-grid.lay-list.sz-l .dh-t{min-height:76px}
+.dh-empty{grid-column:1/-1;text-align:center;padding:16px}
+.dh-cust{align-self:center;font-size:13px;color:var(--db);min-height:40px}
+.dh-tag{display:flex;align-items:center;justify-content:center;gap:12px;margin:2px 0 6px;color:var(--db);font:italic 500 12px var(--display,Georgia,serif);letter-spacing:.32em;text-transform:uppercase}
+@media (max-width:400px){.dh-lu{display:none}.dh-rt1{letter-spacing:.04em;font-size:12px}}
+@media (max-width:370px){.dh-logo{height:66px}.dh-p{min-height:104px;font-size:14px}.dh-p>svg{width:32px;height:32px}.dh-sub{letter-spacing:.3em}.dh-when{font-size:13px;gap:8px}}
+/* Settings › Home dashboard */
+@media (min-width:900px){#setDash{display:none!important}}
+.ds-l{display:block;margin-top:12px}
+.ds-pin,.ds-list{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.ds-it{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:6px 10px;min-height:56px;color:var(--maroon)}
+.ds-it>svg{width:24px;height:24px;flex:none}.ds-it span{flex:1;min-width:0;display:flex;flex-direction:column}.ds-it b{font:600 14px var(--body);color:var(--fg)}.ds-it small{font-size:11.5px;color:var(--muted)}
+.ds-it.off{opacity:.55}.ds-it.drag{box-shadow:0 8px 22px rgba(0,0,0,.18);border-color:var(--gold);position:relative;z-index:2}
+.ds-fix{background:var(--sunk)}
+.ds-h{border:0;background:none;color:var(--muted);width:44px;height:44px;margin-left:-8px;display:grid;place-items:center;cursor:grab;touch-action:none;border-radius:10px}.ds-h svg{width:22px;height:22px}.ds-h:active{cursor:grabbing}
+.ds-sw{position:relative;width:46px;height:28px;flex:none;cursor:pointer}.ds-sw input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+.ds-sw i{position:absolute;inset:0;border-radius:14px;background:#D9CFC8;transition:background .15s}.ds-sw i::after{content:"";position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .15s}
+.ds-sw input:checked+i{background:var(--maroon)}.ds-sw input:checked+i::after{transform:translateX(18px)}
+.ds-sw input:focus-visible+i{outline:2px solid var(--gold);outline-offset:2px}
 /* ===== V1.9.17 Courier label ===== */
 .cl-view{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;max-width:1240px;min-width:0}
 @media (min-width:1100px){.cl-view{grid-template-columns:minmax(0,1fr) 440px;align-items:start}.cl-side{position:sticky;top:calc(var(--wt,0px) + 110px)}}
@@ -2652,6 +2715,23 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
 
   </section>
   <div class="qw-nav" id="qNav" data-pane="quote" hidden><button type="button" class="btn" id="qBack">‹ Back</button><button type="button" class="btn primary" id="qNext">Next ›</button></div>
+    <section class="dash" data-pane="dash" id="dashView">
+      <div class="dh-top">
+        <button class="dh-ic" type="button" id="dhMenu" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+        <div class="dh-brand"><img class="dh-logo" id="dhLogo" alt=""><div class="dh-sub"><i></i><span>Price Check</span><i></i></div></div>
+        <div class="dh-rt"><button class="bell dh-bell" type="button" id="dhBell" aria-label="Notifications" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span class="bell-n" hidden></span></button><small class="dh-ver" id="dhVer"></small></div>
+      </div>
+      <div class="dh-when"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><b id="dhDate"></b></span><i aria-hidden="true"></i><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><b id="dhTime"></b></span></div>
+      <div class="dh-rates" id="dhRates" role="button" tabindex="0" aria-label="Today's gold rates">
+        <div class="dh-rh"><span class="dh-rt1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4h12l3 5-9 11L3 9z"/><path d="M3 9h18M9 4l3 16 3-16"/></svg>Today’s gold rates</span><span class="dh-upd" id="dhUpd"></span><button type="button" class="dh-ref" id="dhRef" aria-label="Refresh rates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button></div>
+        <div class="dh-rg" id="dhRg"></div>
+        <p class="dh-rnote" id="dhRNote" hidden></p>
+      </div>
+      <div class="dh-prim" id="dhPrim"></div>
+      <div class="dh-grid" id="dhGrid"></div>
+      <button class="linkbtn dh-cust" type="button" id="dhCust">Customise home</button>
+      <p class="dh-tag" id="dhTag"><i></i><span>For the joy of being you</span><i></i></p>
+    </section>
     <section class="cl-view" data-pane="courier" id="clView">
       <div class="cl-main">
         <div class="card">
@@ -2851,6 +2931,15 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
     <summary><span class="dc-t">Product details · items shown</span><span class="dc-s" id="setPdMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
       <p class="note" style="margin-block:4px 0">Tick the items to show on the Product Details card. Items with no value are skipped anyway.</p>
       <div class="pd-rowpick" id="pdRowPick"></div>
+  </details>
+  <details class="card datacard setcard" id="setDash" data-pane="settings">
+    <summary><span class="dc-t">Home dashboard · your tiles</span><span class="dc-s" id="setDashMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
+      <p class="note" style="margin-block:4px 0">Choose the shortcuts on your home screen and their order. Saved for <b id="dsWho">you</b> on this phone; other staff keep their own.</p>
+      <span class="flabel ds-l">Always on home</span><div class="ds-pin" id="dsPin"></div>
+      <span class="flabel ds-l">Shortcuts · drag ⠿ to move, switch to show or hide</span><div class="ds-list" id="dsList"></div>
+      <span class="flabel ds-l">Layout</span><div class="seg" id="dsLay"><button type="button" data-l="2">2 columns</button><button type="button" data-l="3">3 columns</button><button type="button" data-l="list">List</button></div>
+      <span class="flabel ds-l">Tile size</span><div class="seg" id="dsSize"><button type="button" data-z="s">Compact</button><button type="button" data-z="m">Standard</button><button type="button" data-z="l">Large</button></div>
+      <div class="rs-acts" style="margin-top:12px"><button class="btn primary" type="button" id="dsPrev">Preview home</button><button class="btn" type="button" id="dsReset">Reset to default layout</button></div>
   </details>
   <details class="card datacard setcard" id="setDevice" data-pane="settings" data-perm="textSize">
     <summary><span class="dc-t">This computer · log-out &amp; alerts</span><span class="dc-s" id="setDevMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
@@ -5818,12 +5907,13 @@ function setMenu(on){$('menu').hidden=!on;$('menuScrim').hidden=!on;$('menuBtn')
 $('menuBtn').onclick=()=>setMenu(true);$('menuClose').onclick=$('menuScrim').onclick=()=>setMenu(false);
 $('menu').addEventListener('click',e=>{if(e.target.closest('.menu-acts button'))setMenu(false)});
 // Views: Home (price check), Quote, Settings (stock data + admin settings)
-const VIEW_TITLE={courier:'Courier label',coins:'Gold Coins',orders:'Orders',shop:'Shop links',quotes:'All quotations',home:'Price Check',quote:'Quote',settings:'Settings',search:'Search',reports:'Reports'};
-const VIEW_SUB={courier:'Print the parcel address label. Addresses are saved for every phone.',coins:'22K gold coin prices from the Bhima benchmark, with our margin. Rate card for WhatsApp.',orders:'Orders and customisation sent to Yamie Order Desk, with their status.',shop:'Website, catalogue and collection links to share with customers.',quotes:'Every quote. Tap one to make it the current quote.',home:'Scan or type a label to price it at today\u2019s gold rate.',quote:'Create a bill or price quote for jewellery items.',settings:'Configure pricing, charges, products, users and application preferences.',search:'Find items by label no., item name, item type, supplier or stone.',reports:'Sales, quotes and staff performance.'};
+const VIEW_TITLE={dash:'Home',courier:'Courier label',coins:'Gold Coins',orders:'Orders',shop:'Shop links',quotes:'All quotations',home:'Price Check',quote:'Quote',settings:'Settings',search:'Search',reports:'Reports'};
+const VIEW_SUB={dash:'Your home screen.',courier:'Print the parcel address label. Addresses are saved for every phone.',coins:'22K gold coin prices from the Bhima benchmark, with our margin. Rate card for WhatsApp.',orders:'Orders and customisation sent to Yamie Order Desk, with their status.',shop:'Website, catalogue and collection links to share with customers.',quotes:'Every quote. Tap one to make it the current quote.',home:'Scan or type a label to price it at today\u2019s gold rate.',quote:'Create a bill or price quote for jewellery items.',settings:'Configure pricing, charges, products, users and application preferences.',search:'Find items by label no., item name, item type, supplier or stone.',reports:'Sales, quotes and staff performance.'};
 function setView(v){
   const was=document.body.dataset.view;document.body.dataset.view=v;
-  $('viewTitle').textContent=VIEW_TITLE[v];$('dkTitle').textContent=VIEW_TITLE[v];$('dkSub').textContent=VIEW_SUB[v]||'';try{paintWtop()}catch(e){}{const t=$({courier:'tabCourier',coins:'tabCoins',orders:'tabOrders',shop:'tabShop',quotes:'tabQuotes',home:'tabHome',quote:'tabQuote',settings:'tabSet',search:'tabFind',reports:'tabRep'}[v]);const g=t&&t.querySelector('svg');if(g)$('dkIco').innerHTML=g.outerHTML}$('heroBack').hidden=v==='home';
-  [['tabHome','home'],['tabFind','search'],['tabQuote','quote'],['tabQuotes','quotes'],['tabOrders','orders'],['tabShop','shop'],['tabSet','settings'],['tabRep','reports'],['tabCoins','coins'],['tabCourier','courier']].forEach(([id,k])=>$(id).classList.toggle('on',k===v));
+  $('viewTitle').textContent=VIEW_TITLE[v];$('dkTitle').textContent=VIEW_TITLE[v];$('dkSub').textContent=VIEW_SUB[v]||'';try{paintWtop()}catch(e){}{const t=$({dash:'tabHome',courier:'tabCourier',coins:'tabCoins',orders:'tabOrders',shop:'tabShop',quotes:'tabQuotes',home:'tabHome',quote:'tabQuote',settings:'tabSet',search:'tabFind',reports:'tabRep'}[v]);const g=t&&t.querySelector('svg');if(g)$('dkIco').innerHTML=g.outerHTML}$('heroBack').hidden=v==='home'||v==='dash';
+  [['tabHome','home'],['tabFind','search'],['tabQuote','quote'],['tabQuotes','quotes'],['tabOrders','orders'],['tabShop','shop'],['tabSet','settings'],['tabRep','reports'],['tabCoins','coins'],['tabCourier','courier']].forEach(([id,k])=>$(id).classList.toggle('on',k===v||(v==='dash'&&k==='home')));
+  if(v==='dash'){try{dashRender()}catch(e){console.error(e)}}
   if(v==='coins'){paintCoins();pullCoins()}
   if(v==='courier'){try{clOpen()}catch(e){console.error(e)}}
   if(v==='quote'){renderBill();if(sync.key)pullQuotes();try{goStep(was!=='quote'?'ov':qStep,true)}catch(e){}}
@@ -8824,7 +8914,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.9.17',APP_BUILD='__BUILD__';
+const APP_VERSION='1.9.18',APP_BUILD='__BUILD__';
 /* V1.9.16 phone book on every customer number box (share, report, wishlist, lead, quote, order), like Order Desk */
 const canPickContact=()=>!!((NATIVE&&NATIVE.pickContact)||(navigator.contacts&&navigator.contacts.select));
 const pbClean=p=>{const d=String(p||'').replace(/[^\d+]/g,'');return d.replace(/^\+?91(?=\d{10}$)/,'').replace(/^0(?=\d{10}$)/,'')};
@@ -9056,6 +9146,137 @@ $('tabCourier').onclick=()=>withPerm('courier','Needs permission: Courier labels
 $('menuCourier').onclick=()=>{try{setMenu(false)}catch(e){}withPerm('courier','Needs permission: Courier labels.',()=>setView('courier'))};
 $('qLabelBtn').onclick=()=>withPerm('courier','Needs permission: Courier labels.',()=>{setView('courier');clFromQuote()});
 window.addEventListener('online',()=>{if(clQ.length)clFlush()});
+/* ===== V1.9.18 Home dashboard (phones): logo, date & time, today's rates, three main actions, the user's own shortcut tiles ===== */
+const DI=p=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+const DASH_ICO={
+  scan:'<path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M7 8v8M10 8v8M13 8v8M16 8v8"/>',
+  price:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8"/><circle cx="9" cy="11.5" r=".6"/><circle cx="12" cy="11.5" r=".6"/><circle cx="15" cy="11.5" r=".6"/><circle cx="9" cy="15" r=".6"/><circle cx="12" cy="15" r=".6"/><circle cx="15" cy="15" r=".6"/><circle cx="9" cy="18.2" r=".6"/><circle cx="12" cy="18.2" r=".6"/><circle cx="15" cy="18.2" r=".6"/>',
+  quote:'<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 15.5h7M9 19h4"/>',
+  add:'<path d="M12 3 4 7v9l8 4 4-2"/><path d="m4 7 8 4 8-4-8-4M12 11v9"/><path d="M19 14v6M16 17h6"/>',
+  inventory:'<path d="M3 13h7v7H3zM14 13h7v7h-7zM8.5 4h7v7h-7z"/>',
+  orders:'<path d="M6 8h12l-1 13H7z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
+  courier:'<path d="M3 7l9-4 9 4-9 4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10M7.5 5l9 4"/>',
+  shop:'<path d="M4 9l1.5-5h13L20 9"/><path d="M4 9h16v2a3 3 0 0 1-5.3 1.9A3 3 0 0 1 12 14a3 3 0 0 1-2.7-1.1A3 3 0 0 1 4 11z"/><path d="M5 13v8h14v-8M10 21v-5h4v5"/>',
+  rates:'<path d="M3 20h18"/><path d="M5 20l1.5-5h5L13 20"/><path d="M11 20l1.5-5h5L19 20"/><path d="M8 15l1.5-5h5L16 15"/>',
+  guide:'<path d="M20 12l-8 8-8-8V4h8z"/><circle cx="8" cy="8" r="1.4"/><path d="M10.5 15.5l5-5M11 11h.01M15 15h.01"/>',
+  reports:'<path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/>',
+  quotes:'<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>',
+  coins:'<ellipse cx="12" cy="7" rx="7" ry="3"/><path d="M5 7v5c0 1.7 3.1 3 7 3s7-1.3 7-3V7"/><path d="M5 12v5c0 1.7 3.1 3 7 3s7-1.3 7-3v-5"/>',
+  stock:'<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',
+  alerts:'<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/>',
+  settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+  help:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"/>',
+  cal:'<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+  clock:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  gem:'<path d="M6 4h12l3 5-9 11L3 9z"/><path d="M3 9h18M9 4l3 16 3-16M7.5 4 9 9l3-5 3 5 1.5-5"/>',
+  refresh:'<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>',
+  menu:'<path d="M4 7h16M4 12h16M4 17h16"/>',grip:'<circle cx="9" cy="7" r="1"/><circle cx="15" cy="7" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="17" r="1"/><circle cx="15" cy="17" r="1"/>',
+  chev:'<path d="m9 6 6 6-6 6"/>'};
+const goTab=id=>{const b=$(id);if(b)b.click()};
+// Every shortcut on the home screen. Each opens the existing screen, with its usual permission checks.
+const DASH_PRIM=[
+  {id:'scan',n:'Scan Barcode',d:'Scan a tag with the camera',go:()=>goTab('tabScan')},
+  {id:'price',n:'Price Check',d:'Price a label at today’s rate',go:()=>setView('home')},
+  {id:'quote',n:'Create Quote',d:'Bill or price quote for a customer',go:()=>setView('quote')}];
+const DASH_TILES=[
+  {id:'add',n:'Add Product',d:'Add a new item to stock',go:()=>withPerm('stockAdd','Needs permission: Add new items to stock.',()=>{openFind();setTimeout(()=>{try{stockForm(null)}catch(e){}},120)})},
+  {id:'inventory',n:'Inventory',d:'Search stock by label, item, supplier',go:()=>openFind()},
+  {id:'orders',n:'Orders',d:'Orders sent to Order Desk',ok:()=>!!BRAND.orderDesk,go:()=>goTab('tabOrders')},
+  {id:'courier',n:'Courier Label',d:'Print the parcel address label',go:()=>goTab('tabCourier')},
+  {id:'shop',n:'Shop',d:'Website and catalogue links',go:()=>goTab('tabShop')},
+  {id:'rates',n:'Gold Rates',d:'Set or check the day’s rates',go:()=>openRates()},
+  {id:'guide',n:'Making Guide',d:'Making & fair value by item',go:()=>openMkGuide()},
+  {id:'reports',n:'Reports',d:'Sales, quotes and staff',go:()=>withPerm('reports','Needs permission: Reports.',()=>setView('reports'))},
+  {id:'quotes',n:'All Quotes',d:'Every saved quote',go:()=>goTab('tabQuotes')},
+  {id:'coins',n:'Gold Coins',d:'22K coin prices and rate card',go:()=>goTab('menuCoins')},
+  {id:'stock',n:'Stock Data',d:'Import and manage the stock list',go:()=>openSettings('dataCard')},
+  {id:'alerts',n:'Notifications',d:'Approvals, leads and items for you',ok:()=>!!sync.key,go:()=>{try{openInbox()}catch(e){}}},
+  {id:'settings',n:'Settings',d:'Pricing, users and this app',go:()=>openSettings()},
+  {id:'help',n:'Help',d:'How to use the home screen',go:()=>dashHelp()}];
+const DASH_DEF={order:['add','inventory','orders','courier','shop','rates','guide','reports','quotes','settings','help','coins','stock','alerts'],hidden:['coins','stock','alerts'],lay:'3',size:'m'};
+const dashTiles=()=>DASH_TILES.filter(t=>!t.ok||t.ok());
+const dashKey=()=>{let u='';try{u=curUser&&curUser.id||''}catch(e){}return 'dash_'+(u||'guest')};
+function dashPrefs(){
+  const p=Object.assign({},DASH_DEF,store.get(dashKey(),null)||{}),ids=dashTiles().map(t=>t.id),seen=new Set();
+  p.order=(Array.isArray(p.order)?p.order:[]).filter(i=>ids.includes(i)&&!seen.has(i)&&seen.add(i));
+  ids.forEach(i=>{if(!seen.has(i)){p.order.push(i);if(!DASH_DEF.order.includes(i)||DASH_DEF.hidden.includes(i))p.hidden=[...(p.hidden||[]),i]}});
+  p.hidden=(Array.isArray(p.hidden)?p.hidden:[]).filter(i=>ids.includes(i));
+  if(!['2','3','list'].includes(p.lay))p.lay='3';if(!['s','m','l'].includes(p.size))p.size='m';
+  return p;
+}
+function dashSave(p,msg){store.set(dashKey(),{order:p.order,hidden:p.hidden,lay:p.lay,size:p.size,at:Date.now()});dashRender();if(msg)toast(msg)}
+let dashUser='';
+function dashRender(){
+  const v=$('dashView');if(!v)return;dashUser=dashKey();
+  const p=dashPrefs(),tiles=p.order.filter(i=>!p.hidden.includes(i)).map(i=>DASH_TILES.find(t=>t.id===i)).filter(Boolean);
+  $('dhPrim').innerHTML=DASH_PRIM.map(t=>`<button type="button" class="dh-p dh-p-${t.id}" data-t="${t.id}">${DI(DASH_ICO[t.id])}<b>${esc(t.n.split(' ')[0])}<br><span class="dh-nw">${esc(t.n.split(' ').slice(1).join(' '))}<span class="dh-ch">${DI(DASH_ICO.chev)}</span></span></b></button>`).join('');
+  const g=$('dhGrid');g.className=`dh-grid lay-${p.lay} sz-${p.size}`;
+  g.innerHTML=tiles.length?tiles.map(t=>`<button type="button" class="dh-t" data-t="${t.id}">${DI(DASH_ICO[t.id])}<span><b>${esc(t.n)}</b><small>${esc(t.d)}</small></span></button>`).join(''):'<p class="note dh-empty">No shortcuts on your home screen. Tap <b>Customise home</b> to add some.</p>';
+  v.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{const t=[...DASH_PRIM,...DASH_TILES].find(x=>x.id===b.dataset.t);if(t)try{t.go()}catch(e){toast('This screen is not available on this app',null,true)}});
+  dashRates();dashClock();
+}
+function dashRates(){
+  const g=$('dhRg');if(!g)return;const list=SHOWN().filter(p=>!['platinum','silver'].includes(p.id)).slice(0,4);
+  g.style.gridTemplateColumns=`repeat(${Math.max(1,list.length)},minmax(0,1fr))`;
+  g.innerHTML=list.map(p=>{const v=baseRate(p.id);return `<div class="dh-r"><span class="dh-k">${esc(p.label)}</span><b>${v==null?'—':'₹ '+v.toLocaleString('en-IN')}</b></div>`}).join('');
+  const e=dayEntry(),t=x=>new Date(x).toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'});
+  const any=list.some(p=>baseRate(p.id)!=null);
+  $('dhUpd').innerHTML=e?`<span class="dh-lu">Last updated: </span>${t(e.at)}`:live.at?`<span class="dh-lu">Kiosk: </span>${t(live.at)}`:rateLog.length?`Last set ${new Date(rateLog[0].at).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}`:'';
+  $('dhRNote').hidden=any&&!!e;$('dhRNote').textContent=!any?'No rates yet. '+(can('rates')?'Tap to set the day’s rates.':'Ask a manager to set the day’s rates.'):!e?(can('rates')?'Day’s rates not set · tap to set them.':'Day’s rates not set yet.'):'';
+}
+function dashClock(){
+  const d=new Date();if(!$('dhDate'))return;
+  $('dhDate').textContent=d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})+', '+d.toLocaleDateString('en-IN',{weekday:'long'});
+  $('dhTime').textContent=d.toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'}).toUpperCase();
+}
+setInterval(()=>{if(document.body.dataset.view!=='dash')return;dashClock();if(dashUser!==dashKey())dashRender()},10000);
+function dashHelp(){
+  showModal('Home screen',`Scan Barcode opens the camera to read a tag. Price Check prices a label at today's rate. Create Quote opens the quote.\n\nThe tiles below are your own shortcuts. Change which ones show, their order, columns and size in Settings › Home dashboard. Each staff member has their own home screen on this phone.\n\nTap the gold rates card to set the day's rates, or ↻ to refresh them.`,[{label:'Reload app',cls:'ghost',run:()=>goTab('menuReload')},{label:'Customise home',cls:'ghost',run:()=>openSettings('setDash')},{label:'OK',cls:'primary'}]);
+  $('modalBody').style.whiteSpace='pre-line';setTimeout(()=>{const o=new MutationObserver(()=>{if($('modal').hidden){$('modalBody').style.whiteSpace='';o.disconnect()}});o.observe($('modal'),{attributes:true})},0);
+}
+// ---- Settings › Home dashboard ----
+function dsPaint(){
+  if(!$('dsList'))return;const p=dashPrefs();
+  $('dsWho').textContent=curUser?(curUser.name||curUser.username):'this phone';
+  $('dsPin').innerHTML=DASH_PRIM.map(t=>`<div class="ds-it ds-fix">${DI(DASH_ICO[t.id])}<span><b>${esc(t.n)}</b><small>Always on home</small></span></div>`).join('');
+  $('dsList').innerHTML=p.order.map(i=>{const t=DASH_TILES.find(x=>x.id===i),on=!p.hidden.includes(i);return `<div class="ds-it${on?'':' off'}" data-id="${i}"><button type="button" class="ds-h" aria-label="Drag to move ${esc(t.n)}" title="Drag to move">${DI(DASH_ICO.grip)}</button>${DI(DASH_ICO[i])}<span><b>${esc(t.n)}</b><small>${esc(t.d)}</small></span><label class="ds-sw"><input type="checkbox"${on?' checked':''} aria-label="Show ${esc(t.n)} on home"><i></i></label></div>`}).join('');
+  [...$('dsLay').children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.l===p.lay)));
+  [...$('dsSize').children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.z===p.size)));
+  $('setDashMini').textContent=`${p.order.length-p.hidden.length} tiles`;
+  $('dsList').querySelectorAll('.ds-it').forEach(it=>{
+    it.querySelector('input').onchange=e=>{const q=dashPrefs(),id=it.dataset.id;q.hidden=q.hidden.filter(x=>x!==id);if(!e.target.checked)q.hidden.push(id);dashSave(q,e.target.checked?'Shown on home':'Hidden from home · you can show it again here');dsPaint()};
+    const h=it.querySelector('.ds-h');h.addEventListener('pointerdown',dsDrag);
+    h.onkeydown=e=>{if(e.key!=='ArrowUp'&&e.key!=='ArrowDown')return;e.preventDefault();const s=e.key==='ArrowUp'?it.previousElementSibling:it.nextElementSibling;if(!s)return;if(e.key==='ArrowUp')s.before(it);else s.after(it);dsOrderSave();h.focus()};
+  });
+}
+function dsOrderSave(){const q=dashPrefs();q.order=[...$('dsList').children].map(x=>x.dataset.id).filter(Boolean);dashSave(q,'Order saved')}
+function dsDrag(e){
+  const h=e.currentTarget,it=h.closest('.ds-it'),list=$('dsList');if(!it)return;e.preventDefault();
+  const start=[...list.children].indexOf(it),pid=e.pointerId;it.classList.add('drag');
+  const move=ev=>{if(ev.pointerId!==pid)return;ev.preventDefault();const y=ev.clientY;let before=null;for(const s of list.children){if(s===it)continue;const r=s.getBoundingClientRect();if(y<r.top+r.height/2){before=s;break}}
+    if(before!==it.nextElementSibling)list.insertBefore(it,before);
+    const r=list.getBoundingClientRect();if(y<r.top+30)window.scrollBy(0,-8);else if(y>window.innerHeight-60)window.scrollBy(0,8)};
+  const up=ev=>{if(ev.pointerId!==pid)return;window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);window.removeEventListener('pointercancel',up);it.classList.remove('drag');if([...list.children].indexOf(it)!==start)dsOrderSave()};
+  window.addEventListener('pointermove',move,{passive:false});window.addEventListener('pointerup',up);window.addEventListener('pointercancel',up);
+}
+$('dsLay').querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{const q=dashPrefs();q.lay=b.dataset.l;dashSave(q,'Layout saved');dsPaint()});
+$('dsSize').querySelectorAll('[data-z]').forEach(b=>b.onclick=()=>{const q=dashPrefs();q.size=b.dataset.z;dashSave(q,'Tile size saved');dsPaint()});
+$('dsPrev').onclick=()=>setView('dash');
+$('dsReset').onclick=()=>showModal('Reset your home screen?','Shortcuts, order, columns and tile size go back to the standard layout. Nothing else changes.',[{label:'Cancel',cls:'ghost'},{label:'Reset to default',cls:'primary',run:()=>{store.set(dashKey(),null);dashRender();dsPaint();toast('Home screen reset')}}]);
+$('setDash').addEventListener('toggle',()=>{if($('setDash').open)dsPaint()});
+// ---- wiring: phones land on the dashboard; Home tab and the back arrow come back to it ----
+$('dhMenu').onclick=()=>goTab('menuBtn');
+$('dhCust').onclick=()=>openSettings('setDash');
+$('dhRates').onclick=e=>{if(e.target.closest('#dhRef'))return;if(can('rates'))openRates();else toast('Only a manager can set the day’s rates')};
+$('dhRef').onclick=async()=>{const b=$('dhRef');b.classList.add('spin');try{await loadRates();if(sync.key)await pullAll(true)}catch(e){}b.classList.remove('spin');dashRates();toast('Rates refreshed')};
+{const o=paintRates;paintRates=function(){const r=o.apply(this,arguments);try{dashRates()}catch(e){}return r}}
+$('tabHome').onclick=()=>{const v=document.body.dataset.view,h=WIDE.matches?'home':'dash';if(v===h)window.scrollTo({top:0,behavior:'smooth'});else setView(h)};
+$('heroBack').onclick=()=>setView(WIDE.matches?'home':'dash');
+WIDE.addEventListener('change',()=>{if(WIDE.matches&&document.body.dataset.view==='dash')setView('home')});
+document.documentElement.dataset.brand=BRAND.id;$('dhVer').textContent='v'+APP_VERSION;
+if(BRAND.labelLogo||BRAND.logoHeaderColor)$('dhLogo').src=BRAND.labelLogo||BRAND.logoHeaderColor;
+$('dhLogo').alt=BRAND.full;$('dhTag').hidden=BRAND.id!=='yamie';
+setTimeout(()=>{if(!WIDE.matches&&document.body.dataset.view==='home')setView('dash')},0);
 const NATIVE_API=1;   // V1.9.12 bump (with MainActivity.NATIVE_API) when the screens need something new from the phone app
 // V1.9.12 automatic updates: the phone app downloads new screens itself and calls window.__otaReady; the website checks ota.json.
 // The page reloads only when nobody is busy (no popup, not typing, not scanning, app in front).
