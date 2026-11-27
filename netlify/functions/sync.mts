@@ -591,8 +591,11 @@ export default async (req: Request) => {
       if (mode === "replace" && !(await permOk("imgDel"))) return json(req, { error: "bad_pin" }, 403)
       const idx: any = (await st.get("imgidx", { type: "json" })) || {}, cnt: any = (await st.get("imgn", { type: "json" })) || {}
       const src: string[] = []
-      if (typeof body?.img === "string" && /^data:image\/(jpeg|png|webp);base64,/.test(body.img) && body.img.length < 400000) src.push(body.img)
-      else if (from) { const n = idx[from] ? Math.max(1, Number(cnt[from]) || 1) : 0; for (let j = 1; j <= n; j++) { const x = await st.get(imgPath(from, j)); if (x) src.push(x as string) } }
+      const okImg = (x: any) => typeof x === "string" && /^data:image\/(jpeg|png|webp);base64,/.test(x) && x.length < 400000
+      // V1.9.21 several uploaded photos at once (bulk update), up to IMG_MAX
+      if (Array.isArray(body?.imgs)) for (const x of body.imgs.slice(0, IMG_MAX)) { if (okImg(x)) src.push(x) }
+      if (!src.length && okImg(body?.img)) src.push(body.img)
+      else if (!src.length && from) { const n = idx[from] ? Math.max(1, Number(cnt[from]) || 1) : 0; for (let j = 1; j <= n; j++) { const x = await st.get(imgPath(from, j)); if (x) src.push(x as string) } }
       if (!src.length) return json(req, { error: "no_photo" }, 400)
       let done = 0, full = 0
       for (const k of keys) {

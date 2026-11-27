@@ -2035,6 +2035,7 @@ body[data-view="dash"] .hero{display:none}
 /* Settings › Home dashboard */
 /* V1.9.19 Dashboard on the web (900px and wider): own header, actions + shortcuts on the left, rates / today / recent quotes on the right */
 .dw-head,.dw-side,.dh-pd{display:none}
+.bk-phs{flex-wrap:wrap}.bk-pt{position:relative;display:inline-block}.bk-px{position:absolute;top:-6px;right:-6px;width:24px;height:24px;border-radius:50%;border:0;background:var(--maroon);color:#fff;font:600 15px/24px var(--body);cursor:pointer;padding:0}
 /* V1.9.20 search on the home dashboard */
 .dh-srch{position:relative;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #EADBD0;border-radius:16px;padding:0 6px 0 14px;min-height:52px;box-shadow:0 2px 10px rgba(109,43,34,.07)}
 .dh-srch:focus-within{border-color:var(--db);box-shadow:0 0 0 3px color-mix(in srgb,var(--db) 14%,transparent)}
@@ -7843,7 +7844,7 @@ function multiPhoto(keys,copyOnly){
   </div>`;
   const mode=()=>(document.querySelector('input[name="mpMode"]:checked')||{}).value||'add';
   document.querySelectorAll('input[name="mpMode"]').forEach(i=>i.onchange=()=>document.querySelectorAll('.mp-mode .stf-r').forEach(l=>l.classList.toggle('on',l.contains(document.querySelector('input[name="mpMode"]:checked')))));
-  $('modalBody').querySelectorAll('[data-mp]').forEach(b=>b.onclick=()=>withPerm('images','Needs a user allowed to add product photos.',()=>{photoJob={multi:keys,mode:mode()};if(canNativePhotos){NATIVE.pickPhotos(b.dataset.mp);return}const inp=$(b.dataset.mp==='camera'?'pimgCam':'pimgFile');inp.multiple=false;inp.click()},true));
+  $('modalBody').querySelectorAll('[data-mp]').forEach(b=>b.onclick=()=>withPerm('images','Needs a user allowed to add product photos.',()=>{photoJob={multi:keys,mode:mode()};if(canNativePhotos){NATIVE.pickPhotos(b.dataset.mp);return}const inp=$(b.dataset.mp==='camera'?'pimgCam':'pimgFile');inp.multiple=b.dataset.mp!=='camera';inp.click()},true));
   let src='',tk=0;
   const look=async()=>{const t=++tk,raw=$('mpFrom').value.trim(),r=findStock?findStock(raw):null,k=r?r.key:keyOf(raw);src='';$('mpCopy').disabled=true;
     if(!raw){$('mpPrev').innerHTML='';return}
@@ -7865,8 +7866,8 @@ function pickPhotos(k,act,i,src){
 }
 async function takePhotos(list){
   const j=photoJob;photoJob=null;if(!j||!list.length)return;
-  if(j.multi){const u=await shrinkUrl(list[0],1024);await imgMany(j.multi,{img:u},j.mode);return}
-  if(j.bulkPh){const u=await shrinkUrl(list[0],1024);if(window.__bkPhSet)window.__bkPhSet(u);return}
+  if(j.multi){const us=[];for(const f of list.slice(0,IMG_MAX))us.push(await shrinkUrl(f,1024));await imgMany(j.multi,{imgs:us},j.mode);return}
+  if(j.bulkPh){const us=[];for(const f of list.slice(0,IMG_MAX))us.push(await shrinkUrl(f,1024));if(window.__bkPhAdd)window.__bkPhAdd(us);return}
   if(j.act==='set'){await imgAct(j.k,'set',j.i,list[0]);toast('Photo replaced')}
   else{let n=0;for(const u of list){if(!(await imgAct(j.k,'add',0,u)))break;n++}if(n)toast(n===1?'Photo added':`${n} photos added`)}
   pmNameAuto(j.k);
@@ -8571,7 +8572,7 @@ function bulkForm(pre){
     <p class="bk-ch">Product details</p>
     <div class="pr-form bk-pd">
       <div><label for="bk_jt">Design</label><select id="bk_jt"><option value="">Keep</option>${JT_GROUPS.map(([g,l])=>`<optgroup label="${esc(g)}">${l.map(v=>`<option>${esc(v)}</option>`).join('')}</optgroup>`).join('')}<option value="__none">Clear design</option></select></div>
-      <div class="full bk-ph" id="bkPhoto"><div class="at-f"><label>Photo <small>— the same photo for all picked items</small></label></div>
+      <div class="full bk-ph" id="bkPhoto"><div class="at-f"><label>Photos <small>— the same photos for all picked items (up to ${IMG_MAX})</small></label></div>
         <div class="mp-row"><button type="button" class="btn sm" data-bkp="gallery">${onComputer()?'Choose a file':'Gallery'}</button><button type="button" class="btn sm" data-bkp="camera">Camera</button><input id="bkPhFrom" list="bkPhL" autocomplete="off" placeholder="or copy from label no." maxlength="40" aria-label="Copy photos from label no."><datalist id="bkPhL">${[...stockMap.values()].filter(r=>imgCount(r.key)).slice(0,400).map(r=>`<option value="${esc(r.barcode||r.key)}">${esc(pnameOf(r)||r.item||'')}</option>`).join('')}</datalist></div>
         <div class="bk-php" id="bkPhPrev"></div>
         <div class="bk-mm" role="radiogroup" aria-label="Photo: add or replace"><label class="stf-r on"><input type="radio" name="bkPhMode" value="add" checked><span>Add to their photos</span></label><label class="stf-r"><input type="radio" name="bkPhMode" value="replace"><span>Replace their photos</span></label></div></div>
@@ -8580,10 +8581,13 @@ function bulkForm(pre){
   bkArrange();
   // V1.9.14 photo for the picked items: upload one, or copy from a label
   const phPrev=()=>{const b=$('bkPhPrev');if(!b)return;if(!bkPh){b.innerHTML='';return}
+    if(bkPh.imgs){b.innerHTML=`<p class="note">${bkPh.imgs.length} photo${bkPh.imgs.length===1?'':'s'} to add${bkPh.imgs.length<IMG_MAX?' · Gallery or Camera adds more':''}</p><div class="mp-th bk-phs">${bkPh.imgs.map((u,i)=>`<span class="bk-pt"><img src="${u}" alt="Photo ${i+1}"><button type="button" class="bk-px" data-px="${i}" aria-label="Remove photo ${i+1}">×</button></span>`).join('')}</div><button type="button" class="linkbtn" id="bkPhX">Remove all</button>`;
+      b.querySelectorAll('[data-px]').forEach(x=>x.onclick=()=>{bkPh.imgs.splice(+x.dataset.px,1);if(!bkPh.imgs.length)bkPh=null;phPrev()});
+      $('bkPhX').onclick=()=>{bkPh=null;phPrev()};return}
     b.innerHTML=bkPh.img?`<div class="mp-th"><img src="${bkPh.img}" alt=""></div><button type="button" class="linkbtn" id="bkPhX">Remove</button>`:`<p class="note">${esc(bkPh.label)} — ${bkPh.n} photo${bkPh.n===1?'':'s'}</p><div class="mp-th">${(bkPh.us||[]).map(u=>`<img src="${u}" alt="">`).join('')}</div><button type="button" class="linkbtn" id="bkPhX">Remove</button>`;
     $('bkPhX').onclick=()=>{bkPh=null;if($('bkPhFrom'))$('bkPhFrom').value='';phPrev()}};
-  window.__bkPhSet=u=>{bkPh={img:u};if($('bkPhFrom'))$('bkPhFrom').value='';phPrev()};
-  document.querySelectorAll('[data-bkp]').forEach(b=>b.onclick=()=>withPerm('images','Needs a user allowed to add product photos.',()=>{photoJob={bulkPh:1};if(canNativePhotos){NATIVE.pickPhotos(b.dataset.bkp);return}const inp=$(b.dataset.bkp==='camera'?'pimgCam':'pimgFile');inp.multiple=false;inp.click()},true));
+  window.__bkPhAdd=us=>{const have=bkPh&&bkPh.imgs?bkPh.imgs:[],all=[...have,...us];if(all.length>IMG_MAX)toast(`Up to ${IMG_MAX} photos per item · kept the first ${IMG_MAX}`);bkPh={imgs:all.slice(0,IMG_MAX)};if($('bkPhFrom'))$('bkPhFrom').value='';phPrev()};
+  document.querySelectorAll('[data-bkp]').forEach(b=>b.onclick=()=>withPerm('images','Needs a user allowed to add product photos.',()=>{photoJob={bulkPh:1};if(canNativePhotos){NATIVE.pickPhotos(b.dataset.bkp);return}const inp=$(b.dataset.bkp==='camera'?'pimgCam':'pimgFile');inp.multiple=b.dataset.bkp!=='camera';inp.click()},true));
   if($('bkPhFrom')){let tk=0;$('bkPhFrom').addEventListener('input',()=>{clearTimeout(phPrev.t);phPrev.t=setTimeout(async()=>{const t=++tk,raw=$('bkPhFrom').value.trim(),r=findStock(raw),k=r?r.key:keyOf(raw);if(!raw){bkPh=null;phPrev();return}
     const n=imgCount(k);if(!n){bkPh=null;$('bkPhPrev').innerHTML=`<p class="note">${esc(raw)}: no photos.</p>`;return}const us=await getProdImgs(k).catch(()=>[]);if(t!==tk)return;bkPh={from:k,label:r?(r.barcode||r.key):k,n:us.length,us};phPrev()},300)})}
   document.querySelectorAll('input[name="bkPhMode"]').forEach(i=>i.onchange=()=>i.closest('.bk-mm').querySelectorAll('.stf-r').forEach(l=>l.classList.toggle('on',l.contains(i)&&i.checked)));
@@ -8633,8 +8637,8 @@ function bulkForm(pre){
     const mops={};BK_MULTI.forEach(([k,l,,max])=>{const mode=(document.querySelector(`input[name="bkMode_${k}"]:checked`)||{}).value||'add',t=readMulti('bkM',k,max);
       if(mode==='clear'){mops[k]={mode,t:[]};what.push('clear '+l.toLowerCase())}else if(t.length){mops[k]={mode,t,max};what.push((mode==='set'?l.toLowerCase()+' = ':'add '+l.toLowerCase()+' ')+t.join(', '))}});
     const pdOn=!!mcCanon||clNew!=null||jtNew!=null||Object.keys(mops).length>0;
-    const phMode=(document.querySelector('input[name="bkPhMode"]:checked')||{}).value||'add',phSrc=bkPh?(bkPh.img?{img:bkPh.img}:{from:bkPh.from}):null;
-    if(phSrc)what.push((phMode==='replace'?'replace photos with ':'add photo ')+(bkPh.img?'(uploaded)':'from '+bkPh.label));
+    const phMode=(document.querySelector('input[name="bkPhMode"]:checked')||{}).value||'add',phSrc=bkPh?(bkPh.imgs?{imgs:bkPh.imgs}:bkPh.img?{img:bkPh.img}:{from:bkPh.from}):null;
+    if(phSrc)what.push(bkPh.imgs?(phMode==='replace'?'replace photos with ':'add ')+bkPh.imgs.length+' uploaded photo'+(bkPh.imgs.length===1?'':'s'):(phMode==='replace'?'replace photos with ':'add photo ')+(bkPh.img?'(uploaded)':'from '+bkPh.label));
     if(!what.length){toast('Fill at least one detail to change',null,true);return}
     const stockCh=Object.keys(ch).length>0;
     const rows=pick.list.map(r=>stockCh?Object.assign({},r,ch,{at:Date.now()}):r);
@@ -8968,7 +8972,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.9.20',APP_BUILD='__BUILD__';
+const APP_VERSION='1.9.21',APP_BUILD='__BUILD__';
 /* V1.9.16 phone book on every customer number box (share, report, wishlist, lead, quote, order), like Order Desk */
 const canPickContact=()=>!!((NATIVE&&NATIVE.pickContact)||(navigator.contacts&&navigator.contacts.select));
 const pbClean=p=>{const d=String(p||'').replace(/[^\d+]/g,'');return d.replace(/^\+?91(?=\d{10}$)/,'').replace(/^0(?=\d{10}$)/,'')};
