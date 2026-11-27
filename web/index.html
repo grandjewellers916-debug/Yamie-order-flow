@@ -2035,15 +2035,27 @@ body[data-view="dash"] .hero{display:none}
 /* Settings › Home dashboard */
 /* V1.9.19 Dashboard on the web (900px and wider): own header, actions + shortcuts on the left, rates / today / recent quotes on the right */
 .dw-head,.dw-side,.dh-pd{display:none}
+/* V1.9.20 search on the home dashboard */
+.dh-srch{position:relative;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #EADBD0;border-radius:16px;padding:0 6px 0 14px;min-height:52px;box-shadow:0 2px 10px rgba(109,43,34,.07)}
+.dh-srch:focus-within{border-color:var(--db);box-shadow:0 0 0 3px color-mix(in srgb,var(--db) 14%,transparent)}
+.dh-srch>svg{width:20px;height:20px;color:var(--db);flex:none}
+.dh-srch input{flex:1;min-width:0;border:0;background:none;font:500 16px var(--body);color:var(--fg);padding:12px 0;outline:none}
+.dh-srch input::-webkit-search-cancel-button{cursor:pointer}
+.dh-sq{border:0;background:var(--dbl);color:var(--db);width:42px;height:40px;border-radius:12px;display:grid;place-items:center;cursor:pointer;flex:none}.dh-sq svg{width:22px;height:22px}
+.dh-sug{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:30;background:#fff;border:1px solid #EADBD0;border-radius:14px;box-shadow:0 12px 30px rgba(60,20,15,.16);padding:6px;max-height:min(60vh,420px);overflow:auto}
+.dh-so{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2px 12px;width:100%;border:0;background:none;text-align:left;padding:9px 10px;border-radius:10px;cursor:pointer;font:inherit;color:var(--fg)}
+.dh-so:hover,.dh-so.on{background:#FBF4EF}
+.dh-so b{font:600 14px var(--mono,monospace);color:var(--db);grid-row:span 2}.dh-so span{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dh-so small{grid-column:2;color:var(--muted);font-size:12px}.dh-so i{font-style:normal;font-size:12px;color:var(--muted);grid-row:span 2}
+.dh-sall{width:100%;border:0;border-top:1px solid #F0E4DB;background:none;padding:10px;margin-top:4px;color:var(--db);font:600 13.5px var(--body);cursor:pointer;text-align:left;border-radius:0 0 10px 10px}
 body[data-view="dash"] #bill.qv{display:none!important}
 @media (max-width:899px){#tabDash{display:none}}
 @media (min-width:900px){
   body[data-view="dash"] .dk-head{display:none}
-  .dash{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,380px);grid-template-areas:"head head" "prim side" "grid side" "cust side" ". side";align-items:start;gap:18px 24px;padding:22px 28px 28px;max-width:1500px}
+  .dash{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,380px);grid-template-areas:"head head" "srch side" "prim side" "grid side" "cust side" ". side";align-items:start;gap:18px 24px;padding:22px 28px 28px;max-width:1500px}
   .dash>.dh-top,.dash>.dh-when,.dash>.dh-tag{display:none}
   .dw-head{grid-area:head;display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
   .dw-head h2{margin:0;font:600 26px var(--display,Georgia,serif);color:var(--db)}.dw-head p{margin:4px 0 0;color:var(--muted);font-size:14px}
-  .dh-prim{grid-area:prim;gap:14px}.dh-grid{grid-area:grid}.dh-cust{grid-area:cust;justify-self:start}
+  .dh-srch{grid-area:srch}.dh-prim{grid-area:prim;gap:14px}.dh-grid{grid-area:grid}.dh-cust{grid-area:cust;justify-self:start}
   .dw-side{grid-area:side;display:flex;flex-direction:column;gap:14px;position:sticky;top:calc(var(--wt,0px) + 14px)}
   .dw-side .dh-rates{margin:0}
   .dh-p{min-height:132px;flex-direction:row;justify-content:flex-start;text-align:left;padding:18px 20px;gap:16px;font-size:17px}
@@ -2758,6 +2770,7 @@ body[data-view="dash"] #bill.qv{display:none!important}
         <div class="dh-rt"><button class="bell dh-bell" type="button" id="dhBell" aria-label="Notifications" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span class="bell-n" hidden></span></button><small class="dh-ver" id="dhVer"></small></div>
       </div>
       <div class="dh-when"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><b id="dhDate"></b></span><i aria-hidden="true"></i><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><b id="dhTime"></b></span></div>
+      <form class="dh-srch" id="dhSearch" role="search" autocomplete="off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input id="dhQ" type="search" enterkeyhint="search" placeholder="Search label no., item, supplier…" aria-label="Search stock" autocapitalize="characters" spellcheck="false" aria-autocomplete="list" aria-controls="dhSug"><button type="button" class="dh-sq" id="dhScanQ" aria-label="Scan a tag" title="Scan a tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M7 8v8M10 8v8M13 8v8M16 8v8"/></svg></button><div class="dh-sug" id="dhSug" role="listbox" hidden></div></form>
       <div class="dh-rates" id="dhRates" role="button" tabindex="0" aria-label="Today's gold rates">
         <div class="dh-rh"><span class="dh-rt1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4h12l3 5-9 11L3 9z"/><path d="M3 9h18M9 4l3 16 3-16"/></svg>Today’s gold rates</span><span class="dh-upd" id="dhUpd"></span><button type="button" class="dh-ref" id="dhRef" aria-label="Refresh rates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button></div>
         <div class="dh-rg" id="dhRg"></div>
@@ -8955,7 +8968,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.9.19',APP_BUILD='__BUILD__';
+const APP_VERSION='1.9.20',APP_BUILD='__BUILD__';
 /* V1.9.16 phone book on every customer number box (share, report, wishlist, lead, quote, order), like Order Desk */
 const canPickContact=()=>!!((NATIVE&&NATIVE.pickContact)||(navigator.contacts&&navigator.contacts.select));
 const pbClean=p=>{const d=String(p||'').replace(/[^\d+]/g,'');return d.replace(/^\+?91(?=\d{10}$)/,'').replace(/^0(?=\d{10}$)/,'')};
@@ -9318,6 +9331,45 @@ document.documentElement.dataset.brand=BRAND.id;$('dhVer').textContent='v'+APP_V
 if(BRAND.labelLogo||BRAND.logoHeaderColor)$('dhLogo').src=BRAND.labelLogo||BRAND.logoHeaderColor;
 $('dhLogo').alt=BRAND.full;$('dhTag').hidden=BRAND.id!=='yamie';
 setTimeout(()=>{if(document.body.dataset.view==='home')setView('dash')},0);
+/* ===== V1.9.20 search on the home dashboard: a label number prices the item; anything else opens Search ===== */
+function dhMatches(q){
+  const k=keyOf(q),t=q.toLowerCase(),out=[];if(q.length<2)return out;
+  const ex=findStock(q);if(ex)out.push(ex);
+  for(const r of stockMap.values()){if(out.length>=6)break;if(r===ex)continue;
+    if((k.length>=2&&(r.key.includes(k)||keyOf(r.label||'').includes(k)))||[pnameOf(r),r.item,r.category,r.supplier,r.model].some(v=>v&&String(v).toLowerCase().includes(t)))out.push(r)}
+  return out;
+}
+let dhSel=-1;
+function dhSugPaint(){
+  const q=$('dhQ').value.trim(),box=$('dhSug'),list=dhMatches(q);dhSel=-1;
+  if(!q||q.length<2){box.hidden=true;return}
+  box.innerHTML=(list.length?list.map((r,i)=>{const nm=pnameOf(r)||r.item||r.category||'',sub=[r.category&&r.category!==nm?r.category:'',r.gw?num(r.gw).toFixed(3)+' g':'',r.supplier||''].filter(Boolean).join(' · ');
+    return `<button type="button" class="dh-so" role="option" data-i="${i}"><b>${esc(r.label||r.barcode||r.key)}</b><span>${esc(nm)}</span><i>Price ›</i><small>${esc(sub)}</small></button>`}).join(''):'<p class="note" style="margin:6px 10px">No item with that label number.</p>')
+    +`<button type="button" class="dh-sall" data-all="1">Search all stock for “${esc(q)}” ›</button>`;
+  box.hidden=false;
+  box.querySelectorAll('[data-i]').forEach(b=>b.onmousedown=e=>{e.preventDefault();dhPick(list[+b.dataset.i])});
+  box.querySelector('[data-all]').onmousedown=e=>{e.preventDefault();dhAll(q)};
+  dhSugPaint.list=list;
+}
+function dhClose(){$('dhSug').hidden=true;dhSel=-1}
+function dhPick(r){dhClose();$('dhQ').value='';$('dhQ').blur();setView('home');useScannedCode(r.barcode||r.key);try{paintBarcode()}catch(e){}}
+function dhAll(q){dhClose();$('dhQ').value='';$('dhQ').blur();findType='';stPage=1;openFind(q)}
+$('dhQ').addEventListener('input',dhSugPaint);
+$('dhQ').addEventListener('focus',()=>{if($('dhQ').value.trim())dhSugPaint()});
+$('dhQ').addEventListener('blur',()=>setTimeout(dhClose,150));
+$('dhQ').addEventListener('keydown',e=>{
+  const box=$('dhSug'),opts=[...box.querySelectorAll('.dh-so')];
+  if(e.key==='Escape'){dhClose();return}
+  if((e.key==='ArrowDown'||e.key==='ArrowUp')&&!box.hidden&&opts.length){e.preventDefault();dhSel=(dhSel+(e.key==='ArrowDown'?1:-1)+opts.length)%opts.length;opts.forEach((o,i)=>o.classList.toggle('on',i===dhSel));opts[dhSel].scrollIntoView({block:'nearest'})}
+});
+$('dhSearch').onsubmit=e=>{e.preventDefault();const q=$('dhQ').value.trim();if(!q)return;
+  const l=dhSugPaint.list||[];if(dhSel>=0&&l[dhSel]){dhPick(l[dhSel]);return}
+  const r=findStock(q);if(r)dhPick(r);else dhAll(q)};
+$('dhScanQ').onclick=()=>goTab('tabScan');
+// keep the dashboard numbers fresh: after log-in, once the stock list has loaded, and every 10 s while it is open
+{const o=paintAdmin;paintAdmin=function(){const r=o.apply(this,arguments);try{if(document.body.dataset.view==='dash')dwPaint()}catch(e){}return r}}
+{let n=-1;setInterval(()=>{if(document.body.dataset.view!=='dash')return;if(stockMap.size!==n||Date.now()%10000<1000){n=stockMap.size;try{dwPaint()}catch(e){}}},1000)}
+
 /* ===== V1.9.19 Dashboard on the web: greeting, today's numbers, recent quotes, rates on the right ===== */
 $('tabDash').onclick=()=>{if(document.body.dataset.view==='dash')window.scrollTo({top:0,behavior:'smooth'});else setView('dash')};
 $('dwCust').onclick=()=>openSettings('setDash');
