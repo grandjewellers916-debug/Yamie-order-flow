@@ -62,11 +62,11 @@ function cleanRow(r: any) {
   return o.key ? o : null
 }
 // Permissions an admin can give to a role (admin always has all)
-const PERMS = ["coins", "coinSet", "plists", "stReport", "shopTab", "webLinks", "webApp", "qPrint", "shareStatus", "quotesList", "qsCust", "qsSale", "qsItems", "qsUrd", "qsSr", "qsAdv", "qsSum", "qsClose", "qsWa", "suppliers", "search", "stFilters", "stRanges", "stSelect", "stExport", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv", "shareCost", "stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "imgDel", "imgBulk", "stockList", "share", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "stockBulk", "approve", "leads", "textSize", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows", "pdHidden", "sync", "roles", "users", "settings"]
+const PERMS = ["coins", "coinSet", "plists", "stReport", "shopTab", "webLinks", "webApp", "qPrint", "shareStatus", "quotesList", "qsCust", "qsSale", "qsItems", "qsUrd", "qsSr", "qsAdv", "qsSum", "qsClose", "qsWa", "suppliers", "search", "stFilters", "stRanges", "stSelect", "stExport", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv", "shareCost", "stock", "stockdel", "rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "delQuote", "images", "imgDel", "imgBulk", "stockList", "share", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "stockBulk", "approve", "leads", "textSize", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows", "pdHidden", "courier", "addrDel", "courierSet", "sync", "roles", "users", "settings"]
 const SETTINGS_PERMS = ["webLinks", "suppliers", "imgShow", "ratesShown", "charges", "mkHelper", "itemCodes", "pdRows"]
 const DEFAULT_ROLES = [
-  { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "images", "imgDel", "imgBulk", "stockList", "approve", "leads", "share", "pdHidden", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "stockBulk", "suppliers", "quotesList", "qsCust", "qsSale", "qsItems", "qsUrd", "qsSr", "qsAdv", "qsSum", "qsClose", "qsWa", "search", "stFilters", "stRanges", "stSelect", "stExport", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv", "shareCost", "webApp", "qPrint", "shareStatus", "shopTab", "webLinks"] },
-  { id: "staff", name: "Staff", perms: ["rates", "closeSale", "cancelQuote", "share", "fva", "stockList", "quotesList", "qsCust", "qsSale", "qsItems", "qsUrd", "qsSr", "qsAdv", "qsSum", "qsClose", "qsWa", "search", "stFilters", "stRanges", "stSelect", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv", "qPrint", "shareStatus", "shopTab"] },
+  { id: "manager", name: "Manager", perms: ["rates", "mkEdit", "mkDisc", "closeSale", "cancelQuote", "reopen", "images", "imgDel", "imgBulk", "stockList", "approve", "leads", "share", "pdHidden", "addDisc", "round", "reports", "fva", "stockEdit", "stockAdd", "stockBulk", "suppliers", "quotesList", "qsCust", "qsSale", "qsItems", "qsUrd", "qsSr", "qsAdv", "qsSum", "qsClose", "qsWa", "search", "stFilters", "stRanges", "stSelect", "stExport", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv", "shareCost", "webApp", "qPrint", "shareStatus", "shopTab", "webLinks", "courier", "addrDel"] },
+  { id: "staff", name: "Staff", perms: ["rates", "closeSale", "cancelQuote", "share", "fva", "stockList", "quotesList", "qsCust", "qsSale", "qsItems", "qsUrd", "qsSr", "qsAdv", "qsSum", "qsClose", "qsWa", "search", "stFilters", "stRanges", "stSelect", "shareItems", "shareAllPh", "sharePdf", "shareUser", "shareFv", "qPrint", "shareStatus", "shopTab", "courier"] },
 ]
 // A quote as the app keeps it, minus anything large (photos stay on the phone that took them)
 function cleanQuote(q: any) {
@@ -89,6 +89,20 @@ function cleanRates(r: any) {
   }
   return o
 }
+
+// V1.9.17 courier labels: one shared address book for every phone (key = mobile | PIN | first address line)
+const ADDR_FIELDS = ["name", "phone", "phone2", "line1", "line2", "landmark", "pin", "city", "district", "state", "courier"]
+const addrPhone = (p: unknown) => { const d = String(p ?? "").replace(/\D/g, ""); return d.length > 10 ? d.slice(-10) : d }
+const addrKey = (r: any) => addrPhone(r?.phone) + "|" + String(r?.pin ?? "").replace(/\D/g, "").slice(0, 6) + "|" + String(r?.line1 ?? "").toLowerCase().replace(/\s+/g, " ").trim().slice(0, 120)
+function cleanAddr(r: any) {
+  if (!r || typeof r !== "object") return null
+  const o: any = {}
+  for (const f of ADDR_FIELDS) o[f] = cleanStr(r[f], f === "line1" || f === "line2" || f === "landmark" ? 160 : 60).trim()
+  if (!o.name || addrPhone(o.phone).length !== 10 || !/^[1-9]\d{5}$/.test(o.pin) || !o.line1) return null
+  o.t = cleanNum(r.t) || Date.now(); o.by = cleanStr(r.by, 40); o.n = Math.max(0, Math.min(99999, cleanNum(r.n) || 0))
+  return o
+}
+const ADDR_MAX = 20000
 
 export default async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(req) })
@@ -264,6 +278,16 @@ export default async (req: Request) => {
     if (ch && (await st.get("roles"))) { await st.setJSON("roles", roles); meta.users = Date.now() }
     ;(meta as any).v1775 = 1; await saveMeta()
   }
+  // V1.9.17 courier labels: every role can print labels; roles that give making discounts can also delete saved addresses (once)
+  if (!(meta as any).v1917) {
+    let ch = false
+    for (const r of roles) if (Array.isArray(r?.perms)) {
+      if (!r.perms.includes("courier")) { r.perms.push("courier"); ch = true }
+      if (r.perms.includes("mkDisc") && !r.perms.includes("addrDel")) { r.perms.push("addrDel"); ch = true }
+    }
+    if (ch && (await st.get("roles"))) { await st.setJSON("roles", roles); meta.users = Date.now() }
+    ;(meta as any).v1917 = 1; await saveMeta()
+  }
   const roleHas = (role: string, perm: string) => {
     if (role === "admin") return true
     if (perm === "delQuote" || perm === "stock" || perm === "theme" || perm === "footer" || perm === "apprSet" || perm === "special" || perm === "promos" || perm === "rules") return false   // stock data and theme: admins only
@@ -314,6 +338,7 @@ export default async (req: Request) => {
         return json(req, { img: k ? (await st.get(imgPath(k, i))) || null : null, i })
       }
       if (op === "quotes") return json(req, { v: meta.quotes, quotes: (await st.get("quotes", { type: "json" })) || [] })
+      if (op === "addrs") return json(req, { v: (meta as any).addrs || 0, list: (await st.get("addrs", { type: "json" })) || [], set: (await st.get("courierset", { type: "json" })) || null })
       if (op === "leads") return json(req, { v: meta.leads || 0, leads: (await st.get("leads", { type: "json" })) || [] })
       if (op === "plists") return json(req, { v: (meta as any).plists || 0, lists: ((await st.get("plists", { type: "json" })) as any) || null })   // V1.9.5 product property lists
       if (op === "pattrs") return json(req, { v: (meta as any).pattrs || 0, map: ((await st.get("pattrs", { type: "json" })) as any) || {} })
@@ -501,7 +526,24 @@ export default async (req: Request) => {
       return json(req, { v: meta.leads, lead })
     }
 
-    const OP_PERM: Record<string, string> = { imgmany: "images", plists: "plists", coins: "coins", coindel: "coinSet", coinset: "coinSet", unsell: "stock", release: "approve", img: "images", quotedel: "delQuote", stock: "stock", stockdel: "stockdel", ratelog: "rates", pubrates: "rates", stockrow: "stockEdit", stocksold: "closeSale", pname: "images", pattr: "images" }
+    if (op === "addr") {
+      // V1.9.17 courier addresses: saved by any phone with the shop key (like quotes); merged by key, newest wins
+      const incoming = (Array.isArray(body?.items) ? body.items : [body?.item]).slice(0, 5000).map(cleanAddr).filter(Boolean) as any[]
+      if (!incoming.length) return json(req, { error: "bad_addr" }, 400)
+      for (let attempt = 0; attempt < 6; attempt++) {
+        const e = await st.getWithMetadata("addrs", { type: "json" })
+        const list: any[] = (e?.data as any[]) || []
+        const map = new Map(list.map((r) => [addrKey(r), r]))
+        for (const r of incoming) { const k = addrKey(r), old = map.get(k); if (!old || (r.t || 0) >= (old.t || 0)) map.set(k, { ...old, ...r, n: Math.max(r.n || 0, old?.n || 0) }) }
+        const next = [...map.values()].sort((a, b) => (b.t || 0) - (a.t || 0)).slice(0, ADDR_MAX)
+        const res = e ? await st.setJSON("addrs", next, { onlyIfMatch: e.etag }) : await st.setJSON("addrs", next, { onlyIfNew: true })
+        if (res.modified) { (meta as any).addrs = Date.now(); await saveMeta(); return json(req, { v: (meta as any).addrs, n: next.length }) }
+        await new Promise((r) => setTimeout(r, 120 + Math.random() * 250))
+      }
+      return json(req, { error: "busy" }, 409)
+    }
+
+    const OP_PERM: Record<string, string> = { addrdel: "addrDel", courierset: "courierSet", imgmany: "images", plists: "plists", coins: "coins", coindel: "coinSet", coinset: "coinSet", unsell: "stock", release: "approve", img: "images", quotedel: "delQuote", stock: "stock", stockdel: "stockdel", ratelog: "rates", pubrates: "rates", stockrow: "stockEdit", stocksold: "closeSale", pname: "images", pattr: "images" }
     const role = await callerRole()
     if (op === "settings") { if (!role || ![...SETTINGS_PERMS, "theme", "footer", "apprSet", "promos", "rules"].some((p) => roleHas(role, p))) return json(req, { error: "bad_pin" }, 403) }
     else if (op === "users") { if (!role || !(roleHas(role, "users") || roleHas(role, "roles"))) return json(req, { error: "bad_pin" }, 403) }
@@ -592,6 +634,26 @@ export default async (req: Request) => {
       return json(req, { v: meta.quotes, quote: q })
     }
 
+    if (op === "addrdel") {
+      const keys = new Set((Array.isArray(body?.keys) ? body.keys : [body?.key]).map((k: any) => cleanStr(k, 200)).filter(Boolean))
+      for (let attempt = 0; attempt < 6; attempt++) {
+        const e = await st.getWithMetadata("addrs", { type: "json" })
+        if (!e) return json(req, { v: (meta as any).addrs || 0 })
+        const next = ((e.data as any[]) || []).filter((r) => !keys.has(addrKey(r)))
+        const res = await st.setJSON("addrs", next, { onlyIfMatch: e.etag })
+        if (res.modified) { (meta as any).addrs = Date.now(); await saveMeta(); return json(req, { v: (meta as any).addrs, n: next.length }) }
+        await new Promise((r) => setTimeout(r, 120 + Math.random() * 250))
+      }
+      return json(req, { error: "busy" }, 409)
+    }
+    if (op === "courierset") {
+      // Sender ("From") block on the courier label and the India Post customer ID
+      const s = body?.set || {}
+      const set = { name: cleanStr(s.name, 80), lines: (Array.isArray(s.lines) ? s.lines : []).slice(0, 4).map((x: any) => cleanStr(x, 120)).filter(Boolean), phone: cleanStr(s.phone, 40), email: cleanStr(s.email, 80), gstin: cleanStr(s.gstin, 20).toUpperCase(), ipCust: cleanStr(s.ipCust, 30), at: Date.now() }
+      await st.setJSON("courierset", set)
+      ;(meta as any).addrs = Date.now(); await saveMeta()
+      return json(req, { v: (meta as any).addrs, set })
+    }
     if (op === "quotedel") {
       const id = cleanStr(body?.id, 24)
       const list: any[] = ((await st.get("quotes", { type: "json" })) as any[]) || []

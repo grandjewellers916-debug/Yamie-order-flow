@@ -679,3 +679,13 @@ Same `web/index.html`, same shared database. Applies on a computer (Chrome / Edg
 - Search: select items (e.g. chains of the same model) → **Photo…** in the selection bar → upload one photo (Gallery / Camera / file) or **copy from an item** (type its label; its photos are previewed). **Add to their photos** or **Replace their photos** (replace needs "delete photos").
 - Item photos window: **Copy from another item…** (same window, one item).
 - Server op `imgmany` {keys ≤300, img | from, mode} copies on the server — nothing is uploaded twice; items already at 6 photos are reported.
+
+## 1.9.17 — Courier label (27 Nov 2026)
+- New page **Courier label** (side bar on tablets / computers; ☰ menu on phones; and **🏷 Courier label** in the quote's Sale type card when an online quote has a delivery partner). Same label as the old yamie.in/pages/courier-label page: logo, courier, India Post customer ID (India Post only), Deliver to with large PIN and phone, Order / Pcs·Wt / Payment, barcode of the AWB or order no., note, From block with GSTIN.
+- Paper: 4×6 thermal, A4 · 1 label, A5 portrait, A5 landscape, A4 · 2 copies (remembered per phone). Long addresses shrink to fit; a repeated alternate mobile or landmark is printed once. Android app: goes to Android printing (choose the paper size there).
+- PIN code fills district, city and state (api.postalpincode.in). Paste an address from WhatsApp to fill the form. Phone-book button on both mobile boxes.
+- **One shared address book** for every phone and computer (Netlify Blobs record `addrs`, key = mobile | PIN | first address line): saved on every print and with **Save address**; typing a saved mobile fills the address; search box with suggestions; delete needs permission. Works offline (queued, sent when back online). **Import file…** takes the backup file of the old yamie.in courier page.
+- From the quote: customer name, mobile, delivery partner and quote no. come in; the saved address for that mobile is filled; the printed address is kept on the quote (`bill.ship`).
+- **Sender details** (admin / permission *Courier label · sender details*): firm name, two address lines, mobile, email, GSTIN, India Post customer ID — shared record `courierset`. Defaults per brand in `brand.js` (`ship`, `labelLogo`); Grand starts empty.
+- Server: `GET op=addrs` → `{v, list, set}`; `POST op=addr {items}` (shop key, merged with ETag retries); `POST op=addrdel {key|keys}` (perm `addrDel`); `POST op=courierset {set}` (perm `courierSet`). New permissions `courier` (all roles, once), `addrDel` (roles with making discount, once), `courierSet` (admin unless given).
+- `web/vendor/jsbarcode.min.js` (JsBarcode 3.11.6, MIT) for the barcode.

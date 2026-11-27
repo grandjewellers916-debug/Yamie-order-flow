@@ -561,7 +561,7 @@ body{padding-top:0}
 .login-in .brand.with-logo{text-align:center;align-self:center}
 
 /* ===== v1.4: views, compact header, price card, quote page, login ===== */
-body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote"] [data-pane]:not([data-pane="quote"]),body[data-view="settings"] [data-pane]:not([data-pane="settings"]),body[data-view="search"] [data-pane]:not([data-pane="search"]),body[data-view="reports"] [data-pane],body[data-view="quotes"] [data-pane]:not([data-pane="quotes"]),body[data-view="shop"] [data-pane]:not([data-pane="shop"]),body[data-view="orders"] [data-pane]:not([data-pane="orders"]),body[data-view="coins"] [data-pane]:not([data-pane="coins"]){display:none!important}
+body[data-view="home"] [data-pane]:not([data-pane="home"]),body[data-view="quote"] [data-pane]:not([data-pane="quote"]),body[data-view="settings"] [data-pane]:not([data-pane="settings"]),body[data-view="search"] [data-pane]:not([data-pane="search"]),body[data-view="reports"] [data-pane],body[data-view="quotes"] [data-pane]:not([data-pane="quotes"]),body[data-view="shop"] [data-pane]:not([data-pane="shop"]),body[data-view="orders"] [data-pane]:not([data-pane="orders"]),body[data-view="coins"] [data-pane]:not([data-pane="coins"]),body[data-view="courier"] [data-pane]:not([data-pane="courier"]){display:none!important}
 .od-row{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;margin:0 0 8px;color:inherit;font:inherit;cursor:pointer}
 .od-row b{font-size:15px}.od-row small{display:block;color:var(--muted,#7a7270);font-size:12.5px;margin-top:2px}.od-row .od-r{margin-left:auto;text-align:right;white-space:nowrap}
 .od-pill{display:inline-block;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--sunk);color:var(--fg)}
@@ -1982,6 +1982,71 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
   .a4-tb tr{page-break-inside:avoid}
 }
 
+/* ===== V1.9.17 Courier label ===== */
+.cl-view{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;max-width:1240px;min-width:0}
+@media (min-width:1100px){.cl-view{grid-template-columns:minmax(0,1fr) 440px;align-items:start}.cl-side{position:sticky;top:calc(var(--wt,0px) + 110px)}}
+.cl-main,.cl-side{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-content:start;min-width:0}
+.cl-view .card{min-width:0}
+.cl-hint{font-size:11.5px;color:var(--muted);min-height:14px}
+.cl-find{position:relative}.cl-find input{width:100%;font:500 16px var(--body);border:1px solid var(--line);border-radius:10px;padding:9px 10px;min-height:42px;background:var(--surface);color:var(--fg)}
+.cl-sugg{position:absolute;left:0;right:0;top:100%;z-index:30;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.14);max-height:300px;overflow:auto;margin-top:4px}
+.cl-sugg button,.cl-list .cl-it{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:10px 12px;font:500 14px var(--body);color:var(--fg);cursor:pointer}
+.cl-sugg button:last-child,.cl-list .cl-it:last-child{border-bottom:0}
+.cl-sugg small,.cl-list small{display:block;color:var(--muted);font-weight:400;font-size:12px}
+.cl-sugg button:hover,.cl-list .cl-it:hover{background:var(--sunk)}
+.cl-list{max-height:360px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+.cl-list:empty{display:none}
+.cl-del{border:0;background:none;color:var(--muted);font-size:20px;line-height:1;padding:2px 8px;cursor:pointer}.cl-del:hover{color:var(--bad)}
+.cl-count{color:var(--muted);font-weight:500;font-size:13px}
+.cl-paste summary{cursor:pointer;font-size:13px;color:var(--maroon);font-weight:600}
+.cl-paste textarea{width:100%;margin:8px 0;font:500 15px var(--body);border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:var(--surface);color:var(--fg)}
+.cl-from-q{font-size:13px;background:color-mix(in srgb,var(--gold) 12%,var(--surface));border:1px solid color-mix(in srgb,var(--gold) 40%,var(--line));border-radius:10px;padding:8px 10px}
+.cl-size{grid-auto-flow:row;grid-template-columns:repeat(5,1fr)}@media (max-width:640px){.cl-size{grid-template-columns:repeat(3,1fr)}}
+.cl-size button{font-size:13px}
+.cl-acts{display:flex;gap:10px;flex-wrap:wrap}
+.f input.cl-bad{border-color:var(--bad);border-width:2px}
+.cl-stage{background:var(--sunk);border-radius:10px;padding:12px;overflow:hidden;min-width:0;max-width:100%}
+.cl-scaler{transform-origin:top left}
+#qLabelBtn{margin-top:8px;width:100%}
+#clSetPop .sheet{max-width:560px}
+/* the label (screen preview and print) */
+.cl-lab{box-sizing:border-box;width:100mm;height:150mm;background:#fff;color:#000;border:.6mm solid #000;padding:4mm;font:400 10pt/1.3 Arial,Helvetica,sans-serif;display:flex;flex-direction:column;overflow:hidden;text-align:left;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.cl-lab *{box-sizing:border-box}
+.cl-top{display:flex;justify-content:space-between;align-items:center;border-bottom:.4mm solid #000;padding-bottom:1.5mm;margin-bottom:2mm;gap:3mm}
+.cl-logo{height:14mm;width:auto;max-width:40mm;object-fit:contain;display:block}
+.cl-cd{display:flex;flex-direction:column;align-items:flex-end;gap:1mm;text-align:right}
+.cl-cour{font-weight:700;font-size:12pt;text-transform:uppercase;letter-spacing:.5px}
+.cl-cust{font-size:9.5pt;font-weight:700;border:.35mm solid #000;padding:.4mm 1.5mm;white-space:nowrap}
+.cl-date{font-size:9pt}
+.cl-tag{font-size:8pt;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;background:#000;color:#fff;display:inline-block;padding:.6mm 2mm;margin-bottom:1.5mm}
+.cl-body{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.cl-to{flex:1 0 auto}
+.cl-nm{font-size:18pt;font-weight:700;line-height:1.15;margin-bottom:1mm;word-break:break-word}
+.cl-ad{font-size:13pt;line-height:1.35;word-break:break-word}
+.cl-pinr{display:flex;align-items:center;gap:3mm;margin-top:2mm}
+.cl-pin{font-size:24pt;font-weight:700;letter-spacing:2.5px;border:.5mm solid #000;padding:.5mm 2.5mm}
+.cl-st{font-size:11pt;font-weight:700;text-transform:uppercase}
+.cl-ph{font-size:14pt;font-weight:700;margin-top:2mm}
+.cl-sd{display:flex;flex-direction:column;flex:0 0 auto}
+.cl-meta{display:grid;grid-template-columns:repeat(3,1fr);border-top:.4mm solid #000;border-bottom:.4mm solid #000;margin-top:2mm}
+.cl-meta div{padding:1.5mm;border-right:.3mm solid #000;font-size:9.5pt;font-weight:700;word-break:break-word}.cl-meta div:last-child{border-right:0}
+.cl-meta small{display:block;font-size:6.5pt;font-weight:400;letter-spacing:1px;text-transform:uppercase}
+.cl-awb{font-size:9.5pt;padding-top:1.5mm}
+.cl-bar{text-align:center;margin-top:1mm;height:15mm}.cl-bar svg{height:15mm;max-width:100%}
+.cl-note{border:.4mm solid #000;font-size:9pt;font-weight:700;text-align:center;padding:1.2mm;margin-top:1.5mm;text-transform:uppercase;letter-spacing:.5px}
+.cl-from{border-top:.4mm dashed #000;margin-top:2mm;padding-top:2mm;font-size:8.5pt;line-height:1.3}
+.cl-from .cl-tag{font-size:7pt;padding:.4mm 1.5mm}.cl-from b{font-size:9.5pt}.cl-from .cl-gst{font-size:8.5pt}
+.cl-lab.a5p{width:138mm;height:200mm;padding:6mm}
+.cl-lab.a5p .cl-logo{height:20mm}.cl-lab.a5p .cl-cour{font-size:15pt}.cl-lab.a5p .cl-cust{font-size:12pt}.cl-lab.a5p .cl-date{font-size:11pt}.cl-lab.a5p .cl-tag{font-size:10pt}
+.cl-lab.a5p .cl-nm{font-size:24pt}.cl-lab.a5p .cl-ad{font-size:17pt}.cl-lab.a5p .cl-pin{font-size:32pt}.cl-lab.a5p .cl-st{font-size:14pt}.cl-lab.a5p .cl-ph{font-size:18pt}
+.cl-lab.a5p .cl-meta div{font-size:12pt;padding:2mm}.cl-lab.a5p .cl-meta small{font-size:8pt}.cl-lab.a5p .cl-bar,.cl-lab.a5p .cl-bar svg{height:18mm}
+.cl-lab.a5p .cl-note{font-size:11pt;padding:2mm}.cl-lab.a5p .cl-from{font-size:11pt}.cl-lab.a5p .cl-from b{font-size:12pt}.cl-lab.a5p .cl-from .cl-tag{font-size:8.5pt}
+.cl-lab.a5l{width:200mm;height:138mm;padding:5mm}
+.cl-lab.a5l .cl-logo{height:16mm}.cl-lab.a5l .cl-body{flex-direction:row;gap:5mm}
+.cl-lab.a5l .cl-to{flex:1.15 1 0;min-width:0;padding-right:5mm;border-right:.4mm solid #000}
+.cl-lab.a5l .cl-sd{flex:1 1 0;min-width:0;justify-content:space-between}.cl-lab.a5l .cl-meta{margin-top:0}
+.cl-lab.a5l .cl-nm{font-size:20pt}.cl-lab.a5l .cl-ad{font-size:14pt}.cl-lab.a5l .cl-pin{font-size:26pt}.cl-lab.a5l .cl-from{font-size:9pt}
+.cl-sheet{display:flex;gap:4mm;flex-wrap:wrap}
 /* ===== V1.8.31 Gold coin prices ===== */
 .cn-view{display:grid;gap:14px;max-width:1180px}
 .cn-card{min-width:0}
@@ -2003,7 +2068,7 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
 .cn-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.cn-acts .btn{flex:1 1 auto}
 #cnBrand{display:flex;gap:6px;margin:4px 0 10px}#cnBrand button{flex:1;position:static}
 #cnPop .qimg-wrap img{width:100%;height:auto;border-radius:12px;display:block}
-@media (max-width:899px){#tabCoins{display:none!important}}
+@media (max-width:899px){#tabCoins,#tabCourier{display:none!important}}
 @media (max-width:600px){#cnIn th:nth-child(3),#cnIn td:nth-child(3),#cnOut th:nth-child(2),#cnOut td:nth-child(2){display:none}.cn-t th,.cn-t td{padding:7px 5px}.cn-t input.cn-p{width:96px}.cn-acts .btn{flex:1 1 45%}.cn-hd{flex-wrap:wrap}}
 
 /* ===== Theme styles: 01 iOS colour (default) · 02 true iOS · 03 Android ===== */
@@ -2287,6 +2352,7 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
     <button class="btn sm primary" id="goBill" type="button">Bill ↓</button>
     <button class="btn sm" id="menuRates" type="button">Day's rates</button>
     <button class="btn sm" id="menuCoins" type="button">Gold coins</button>
+    <button class="btn sm" id="menuCourier" type="button">Courier label</button>
     <button class="btn sm" id="stockBtn" type="button">Stock</button>
     <button class="btn sm" id="menuData" type="button">Stock data</button>
     <button class="btn sm" id="menuAdmin" type="button">Admin settings</button>
@@ -2534,6 +2600,7 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
         <div class="courier-list" id="qCourier" role="radiogroup" aria-label="Delivery partner"></div>
         <div class="qo-row" id="qDelAmtRow" hidden><label class="flabel" for="qDel">Delivery charges</label><div class="qo-in"><span>₹</span><input id="qDel" class="num" inputmode="decimal" placeholder="0" autocomplete="off"></div></div>
         <div class="pa" id="qCourierWarn" hidden></div>
+        <button class="btn" type="button" id="qLabelBtn" hidden>🏷 Courier label · print the parcel address</button>
       </div>
     </div>
 
@@ -2585,6 +2652,66 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
 
   </section>
   <div class="qw-nav" id="qNav" data-pane="quote" hidden><button type="button" class="btn" id="qBack">‹ Back</button><button type="button" class="btn primary" id="qNext">Next ›</button></div>
+    <section class="cl-view" data-pane="courier" id="clView">
+      <div class="cl-main">
+        <div class="card">
+          <div class="sec-head"><h2>Deliver to</h2><button class="linkbtn" type="button" id="clClear">Clear</button></div>
+          <div class="cl-from-q" id="clFromQ" hidden></div>
+          <div class="f full cl-find"><label for="clFind">Saved address · search name, mobile, city or PIN</label><input id="clFind" type="search" autocomplete="off" placeholder="Type to find a saved customer"><div class="cl-sugg" id="clSugg" hidden></div></div>
+          <details class="cl-paste"><summary>Paste an address from WhatsApp</summary><textarea id="clPaste" rows="4" placeholder="Name on the first line. Mobile and PIN are picked up by themselves."></textarea><button class="btn sm" type="button" id="clParse">Fill the form</button></details>
+          <div class="grid">
+            <div class="f full"><label for="clName">Recipient name *</label><input id="clName" autocomplete="off" maxlength="60"></div>
+            <div class="f"><label for="clPhone">Mobile *</label><input id="clPhone" type="tel" inputmode="tel" autocomplete="off" maxlength="20"><small class="cl-hint" id="clPhoneHint"></small></div>
+            <div class="f"><label for="clPhone2">Alternate mobile</label><input id="clPhone2" type="tel" inputmode="tel" autocomplete="off" maxlength="20"></div>
+            <div class="f full"><label for="clLine1">House / building / street *</label><input id="clLine1" autocomplete="off" maxlength="160"></div>
+            <div class="f full"><label for="clLine2">Area / locality</label><input id="clLine2" autocomplete="off" maxlength="160"></div>
+            <div class="f full"><label for="clLandmark">Landmark</label><input id="clLandmark" autocomplete="off" maxlength="160"></div>
+            <div class="f"><label for="clPin">PIN code *</label><input id="clPin" class="num" inputmode="numeric" autocomplete="off" maxlength="6"><small class="cl-hint" id="clPinHint"></small></div>
+            <div class="f"><label for="clCity">City / post office *</label><input id="clCity" autocomplete="off" maxlength="60"></div>
+            <div class="f"><label for="clDistrict">District</label><input id="clDistrict" autocomplete="off" maxlength="60"></div>
+            <div class="f"><label for="clState">State *</label><select id="clState"></select></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="sec-head"><h2>Shipment</h2></div>
+          <div class="grid">
+            <div class="f"><label for="clCourier">Courier</label><select id="clCourier"></select></div>
+            <div class="f"><label for="clOrder">Order / quote no.</label><input id="clOrder" autocomplete="off" maxlength="40"></div>
+            <div class="f"><label for="clAwb">AWB / tracking no.</label><input id="clAwb" autocomplete="off" maxlength="40"></div>
+            <div class="f"><label for="clPcs">Pieces</label><input id="clPcs" class="num" inputmode="numeric" autocomplete="off" maxlength="4" value="1"></div>
+            <div class="f"><label for="clWt">Weight</label><input id="clWt" autocomplete="off" maxlength="20" placeholder="e.g. 250 g"></div>
+            <div class="f"><label for="clPay">Payment</label><select id="clPay"><option>Prepaid</option><option>COD</option></select></div>
+            <div class="f full" id="clCodRow" hidden><label for="clCod">COD amount (₹)</label><input id="clCod" class="num" inputmode="numeric" autocomplete="off" maxlength="9"></div>
+            <div class="f full"><label for="clNote">Note on label</label><input id="clNote" autocomplete="off" maxlength="60" value="Handle with care"></div>
+          </div>
+          <span class="flabel">Paper</span>
+          <div class="seg cl-size" id="clSize" role="group" aria-label="Paper size"><button type="button" data-s="thermal">4×6 thermal</button><button type="button" data-s="a4one">A4 · 1 label</button><button type="button" data-s="a5port">A5 portrait</button><button type="button" data-s="a5land">A5 landscape</button><button type="button" data-s="a4two">A4 · 2 copies</button></div>
+          <div class="cl-acts"><button class="btn primary" type="button" id="clPrint">Print label</button><button class="btn" type="button" id="clSave">Save address</button></div>
+        </div>
+      </div>
+      <div class="cl-side">
+        <div class="card"><div class="sec-head"><h2>Preview</h2><button class="linkbtn" type="button" id="clSetBtn">Sender details</button></div><div class="cl-stage" id="clStage"><div class="cl-scaler" id="clScaler"></div></div></div>
+        <div class="card">
+          <div class="sec-head"><h2>Saved addresses <span class="cl-count" id="clCount"></span></h2><button class="linkbtn" type="button" id="clRefresh">↻ Refresh</button></div>
+          <p class="note" id="clBookNote"></p>
+          <div class="cl-list" id="clList"></div>
+          <div class="cl-acts"><button class="btn sm" type="button" id="clImport">Import file…</button><input type="file" id="clImportFile" accept=".json,application/json" hidden></div>
+        </div>
+      </div>
+    </section>
+    <div class="modal" id="clSetPop" hidden role="dialog" aria-modal="true" aria-labelledby="clSetT">
+      <div class="sheet"><h4 id="clSetT">Courier label · sender details</h4><p class="note">Printed in the From box of every label, for all phones.</p>
+        <div class="grid">
+          <div class="f full"><label for="clsName">Firm name</label><input id="clsName" maxlength="80"></div>
+          <div class="f full"><label for="clsL1">Address line 1</label><input id="clsL1" maxlength="120"></div>
+          <div class="f full"><label for="clsL2">Address line 2</label><input id="clsL2" maxlength="120"></div>
+          <div class="f"><label for="clsPhone">Mobile</label><input id="clsPhone" maxlength="40"></div>
+          <div class="f"><label for="clsEmail">Email</label><input id="clsEmail" maxlength="80"></div>
+          <div class="f"><label for="clsGst">GSTIN</label><input id="clsGst" maxlength="20" autocapitalize="characters"></div>
+          <div class="f"><label for="clsIp">India Post customer ID</label><input id="clsIp" class="num" inputmode="numeric" maxlength="30"></div>
+        </div>
+        <div class="acts"><button class="btn ghost" type="button" id="clsCancel">Cancel</button><button class="btn primary" type="button" id="clsSave">Save</button></div></div>
+    </div>
     <section class="cn-view" data-pane="coins" id="cnView">
       <div class="card cn-card">
         <div class="cn-hd"><div><h2>Bhima Ernakulam · benchmark</h2><p class="note">Their prices for 22K gold coins, as quoted: one amount incl. making and 3% GST.</p></div><span class="cn-when" id="cnWhen"></span></div>
@@ -2871,6 +2998,7 @@ body:has(.modal:not([hidden])) .st-selbar{display:none}
   <button type="button" class="tab tab-dk" id="tabRep" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/></svg><span>Reports</span></button>
   <button type="button" class="tab" id="tabRates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18"/><path d="M5 20l1.5-5h5L13 20"/><path d="M11 20l1.5-5h5L19 20"/><path d="M8 15l1.5-5h5L16 15"/></svg><span>Gold Rates</span></button>
   <button type="button" class="tab" id="tabCoins"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="7" rx="7" ry="3"/><path d="M5 7v5c0 1.7 3.1 3 7 3s7-1.3 7-3V7"/><path d="M5 12v5c0 1.7 3.1 3 7 3s7-1.3 7-3v-5"/></svg><span>Gold Coins</span></button>
+  <button type="button" class="tab" id="tabCourier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10M7.5 5l9 4"/></svg><span>Courier label</span></button>
   <button type="button" class="tab" id="tabSet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="6.6"/><path d="M12 2.5v2.9M12 18.6v2.9M2.5 12h2.9M18.6 12h2.9M5.3 5.3l2 2M16.7 16.7l2 2M5.3 18.7l2-2M16.7 7.3l2-2"/></svg><span>Settings</span></button>
   <button type="button" class="sb-user" id="sbUser" aria-label="Account and log out"><span class="sb-av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span><b id="sbName">—</b><span class="sb-out">Log out</span></button>
 </nav>
@@ -4271,6 +4399,7 @@ function renderBill(keepInputs){
   $('qCourier').innerHTML=COURIERS.map(c=>`<button type="button" role="radio" class="cour${bill.courier===c.id?' on':''}" aria-checked="${bill.courier===c.id}" data-k="${c.id}"${closed?' disabled':''}><b>${esc(c.name)}</b><span>${esc(c.note)}</span></button>`).join('');
   $('qCourier').querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{bill.courier=b.dataset.k;saveBill();renderBill(true);if(b.dataset.k==='own')setTimeout(()=>$('qDel').focus(),60)});
   $('qDelAmtRow').hidden=bill.courier!=='own';
+  $('qLabelBtn').hidden=!bill.courier||bill.courier==='pickup';
   if(document.activeElement!==$('qDel'))$('qDel').value=bill.delivery||'';$('qDel').readOnly=closed;
   $('qCourierWarn').hidden=!s.courierWarn;$('qCourierWarn').textContent=s.courierWarn?'⚠ '+s.courierWarn:'';
   $('qSaleNote').textContent=online?(s.courier?`${s.courier.name} · ${s.delivery?inr(s.delivery):'no charges'}`:'Choose a delivery partner'):'In the store';
@@ -5689,13 +5818,14 @@ function setMenu(on){$('menu').hidden=!on;$('menuScrim').hidden=!on;$('menuBtn')
 $('menuBtn').onclick=()=>setMenu(true);$('menuClose').onclick=$('menuScrim').onclick=()=>setMenu(false);
 $('menu').addEventListener('click',e=>{if(e.target.closest('.menu-acts button'))setMenu(false)});
 // Views: Home (price check), Quote, Settings (stock data + admin settings)
-const VIEW_TITLE={coins:'Gold Coins',orders:'Orders',shop:'Shop links',quotes:'All quotations',home:'Price Check',quote:'Quote',settings:'Settings',search:'Search',reports:'Reports'};
-const VIEW_SUB={coins:'22K gold coin prices from the Bhima benchmark, with our margin. Rate card for WhatsApp.',orders:'Orders and customisation sent to Yamie Order Desk, with their status.',shop:'Website, catalogue and collection links to share with customers.',quotes:'Every quote. Tap one to make it the current quote.',home:'Scan or type a label to price it at today\u2019s gold rate.',quote:'Create a bill or price quote for jewellery items.',settings:'Configure pricing, charges, products, users and application preferences.',search:'Find items by label no., item name, item type, supplier or stone.',reports:'Sales, quotes and staff performance.'};
+const VIEW_TITLE={courier:'Courier label',coins:'Gold Coins',orders:'Orders',shop:'Shop links',quotes:'All quotations',home:'Price Check',quote:'Quote',settings:'Settings',search:'Search',reports:'Reports'};
+const VIEW_SUB={courier:'Print the parcel address label. Addresses are saved for every phone.',coins:'22K gold coin prices from the Bhima benchmark, with our margin. Rate card for WhatsApp.',orders:'Orders and customisation sent to Yamie Order Desk, with their status.',shop:'Website, catalogue and collection links to share with customers.',quotes:'Every quote. Tap one to make it the current quote.',home:'Scan or type a label to price it at today\u2019s gold rate.',quote:'Create a bill or price quote for jewellery items.',settings:'Configure pricing, charges, products, users and application preferences.',search:'Find items by label no., item name, item type, supplier or stone.',reports:'Sales, quotes and staff performance.'};
 function setView(v){
   const was=document.body.dataset.view;document.body.dataset.view=v;
-  $('viewTitle').textContent=VIEW_TITLE[v];$('dkTitle').textContent=VIEW_TITLE[v];$('dkSub').textContent=VIEW_SUB[v]||'';try{paintWtop()}catch(e){}{const t=$({coins:'tabCoins',orders:'tabOrders',shop:'tabShop',quotes:'tabQuotes',home:'tabHome',quote:'tabQuote',settings:'tabSet',search:'tabFind',reports:'tabRep'}[v]);const g=t&&t.querySelector('svg');if(g)$('dkIco').innerHTML=g.outerHTML}$('heroBack').hidden=v==='home';
-  [['tabHome','home'],['tabFind','search'],['tabQuote','quote'],['tabQuotes','quotes'],['tabOrders','orders'],['tabShop','shop'],['tabSet','settings'],['tabRep','reports'],['tabCoins','coins']].forEach(([id,k])=>$(id).classList.toggle('on',k===v));
+  $('viewTitle').textContent=VIEW_TITLE[v];$('dkTitle').textContent=VIEW_TITLE[v];$('dkSub').textContent=VIEW_SUB[v]||'';try{paintWtop()}catch(e){}{const t=$({courier:'tabCourier',coins:'tabCoins',orders:'tabOrders',shop:'tabShop',quotes:'tabQuotes',home:'tabHome',quote:'tabQuote',settings:'tabSet',search:'tabFind',reports:'tabRep'}[v]);const g=t&&t.querySelector('svg');if(g)$('dkIco').innerHTML=g.outerHTML}$('heroBack').hidden=v==='home';
+  [['tabHome','home'],['tabFind','search'],['tabQuote','quote'],['tabQuotes','quotes'],['tabOrders','orders'],['tabShop','shop'],['tabSet','settings'],['tabRep','reports'],['tabCoins','coins'],['tabCourier','courier']].forEach(([id,k])=>$(id).classList.toggle('on',k===v));
   if(v==='coins'){paintCoins();pullCoins()}
+  if(v==='courier'){try{clOpen()}catch(e){console.error(e)}}
   if(v==='quote'){renderBill();if(sync.key)pullQuotes();try{goStep(was!=='quote'?'ov':qStep,true)}catch(e){}}
   if(v==='quotes'){try{renderRecent()}catch(e){}if(sync.key)pullQuotes()}
   if(v==='orders')loadOrders();
@@ -8694,7 +8824,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.9.16',APP_BUILD='__BUILD__';
+const APP_VERSION='1.9.17',APP_BUILD='__BUILD__';
 /* V1.9.16 phone book on every customer number box (share, report, wishlist, lead, quote, order), like Order Desk */
 const canPickContact=()=>!!((NATIVE&&NATIVE.pickContact)||(navigator.contacts&&navigator.contacts.select));
 const pbClean=p=>{const d=String(p||'').replace(/[^\d+]/g,'');return d.replace(/^\+?91(?=\d{10}$)/,'').replace(/^0(?=\d{10}$)/,'')};
@@ -8721,6 +8851,211 @@ function pbWire(root){
   });
 }
 try{new MutationObserver(ms=>{for(const m of ms)if(m.addedNodes.length){pbWire();break}}).observe(document.body,{childList:true,subtree:true});pbWire()}catch(e){}
+/* ===== V1.9.17 Courier label: the parcel address label (4×6 thermal, A4, A5), one shared address book for every phone ===== */
+const CL_STATES=['Kerala','Tamil Nadu','Karnataka','Andhra Pradesh','Telangana','Maharashtra','Goa','Gujarat','Delhi','Uttar Pradesh','West Bengal','Rajasthan','Madhya Pradesh','Punjab','Haryana','Bihar','Odisha','Jharkhand','Chhattisgarh','Assam','Uttarakhand','Himachal Pradesh','Jammu and Kashmir','Ladakh','Puducherry','Chandigarh','Sikkim','Meghalaya','Manipur','Mizoram','Nagaland','Tripura','Arunachal Pradesh','Andaman and Nicobar Islands','Lakshadweep','Dadra and Nagar Haveli and Daman and Diu'];
+const CL_COURIERS=['India Post – Speed Post','DTDC','Professional Couriers','Blue Dart','Delhivery','ST Courier','Shree Maruti','BVC','Sequel','Ambe Express','Air Parcel','Bright Asset Transit',BRAND.name+' Delivery','Hand delivery','Other'];
+const CL_FROM_Q={indiapost:'India Post – Speed Post',bat:'Bright Asset Transit',bvc:'BVC',sequel:'Sequel',own:BRAND.name+' Delivery'};
+const CL_ID={name:'clName',phone:'clPhone',phone2:'clPhone2',line1:'clLine1',line2:'clLine2',landmark:'clLandmark',pin:'clPin',city:'clCity',district:'clDistrict',state:'clState',courier:'clCourier'};
+const CL_PAGE={thermal:'@page{size:100mm 150mm;margin:0}',a4one:'@page{size:A4 portrait;margin:0}',a4two:'@page{size:A4 portrait;margin:0}',a5port:'@page{size:A5 portrait;margin:0}',a5land:'@page{size:A5 landscape;margin:0}'};
+const CL_PAD={thermal:'0',a4one:'8mm',a4two:'2mm',a5port:'5mm',a5land:'5mm'};
+let clBook=store.get('clBook',[]),clQ=store.get('clQ',[]),clSetS=store.get('clSet',null),clReady=false,clQuoteId='',clLastPin='',clSize=store.get('clSize','thermal'),clPulled=0;
+const clV=k=>String(($(CL_ID[k]||k)||{}).value||'').trim();
+const clPh=p=>{const d=String(p||'').replace(/\D/g,'');return d.length>10?d.slice(-10):d};
+const clFmtPh=p=>{p=clPh(p);return p.length===10?'+91 '+p.slice(0,5)+' '+p.slice(5):p};
+const clKey=r=>clPh(r.phone)+'|'+String(r.pin||'').replace(/\D/g,'').slice(0,6)+'|'+String(r.line1||'').toLowerCase().replace(/\s+/g,' ').trim().slice(0,120);
+const clNorm=t=>String(t||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+function clSender(){const b=BRAND.ship||{name:BRAND.full,lines:[]};return clSetS&&clSetS.at?Object.assign({},b,clSetS):b}
+function clAddr(){const o={};['name','phone','phone2','line1','line2','landmark','pin','city','district','state'].forEach(k=>o[k]=clV(k));o.courier=clV('courier');return o}
+function clFill(r){['name','phone','phone2','line1','line2','landmark','pin','city','district','state'].forEach(k=>{if(r[k]!=null&&$(CL_ID[k]))$(CL_ID[k]).value=r[k]});if(r.courier&&CL_COURIERS.includes(r.courier))$('clCourier').value=r.courier;clLastPin=clV('pin');clCheck(true);clRender()}
+function clEsc(s){return esc(s)}
+// ---- the label ----
+function clLabelHtml(id){
+  const sz=clSize,cls=sz==='a5land'?' a5l':sz==='a5port'?' a5p':'',snd=clSender(),cour=clV('courier');
+  let lm=clV('landmark').replace(/^near\s+/i,'');const ad=clNorm(clV('line1')+' '+clV('line2'));if(lm&&ad.includes(clNorm(lm)))lm='';
+  const addr=[clV('line1'),clV('line2'),lm?'Near '+lm:''].filter(Boolean).map(clEsc).join(',<br>');
+  const dist=clV('district'),city=clV('city'),cityLine=[city,dist&&dist.toLowerCase()!==city.toLowerCase()?dist+' Dist.':''].filter(Boolean).map(clEsc).join(', ');
+  const seen={},phones=[clV('phone'),clV('phone2')].filter(p=>{const c=clPh(p);if(!c||seen[c])return false;seen[c]=1;return true}).map(clFmtPh).join(' / ');
+  const pay=clV('clPay')==='COD'?'COD ₹'+clEsc(clV('clCod')||'—'):'PREPAID',note=clV('clNote'),awb=clV('clAwb'),ord=clV('clOrder'),code=(awb||ord).replace(/[^\x20-\x7E]/g,'');
+  const ip=/^india post/i.test(cour)&&snd.ipCust?`<span class="cl-cust">Customer ID: ${clEsc(snd.ipCust)}</span>`:'';
+  const logo=BRAND.labelLogo?`<img class="cl-logo" src="${BRAND.labelLogo}" alt="${clEsc(BRAND.full)}">`:`<b>${clEsc(BRAND.full)}</b>`;
+  const from=`<span class="cl-tag">From · If undelivered return to</span><br><b>${clEsc(snd.name||BRAND.full)}</b>${(snd.lines||[]).map(l=>'<br>'+clEsc(l)).join('')}${snd.phone||snd.email?'<br>'+[snd.phone?'Mob: '+clEsc(snd.phone):'',clEsc(snd.email||'')].filter(Boolean).join(' · '):''}${snd.gstin?`<br><b class="cl-gst">GSTIN: ${clEsc(snd.gstin)}</b>`:''}`;
+  const d=new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+  return `<div class="cl-lab${cls}"><div class="cl-top">${logo}<div class="cl-cd"><span class="cl-cour">${clEsc(cour)}</span>${ip}<span class="cl-date">${d}</span></div></div>`+
+    `<div class="cl-body"><div class="cl-to"><span class="cl-tag">Deliver to</span><div class="cl-nm">${clEsc(clV('name'))||'<span style="color:#aaa">Recipient name</span>'}</div>`+
+    `<div class="cl-ad">${addr||'<span style="color:#aaa">Address</span>'}${cityLine?'<br>'+cityLine:''}</div>`+
+    `<div class="cl-pinr"><span class="cl-pin">${clEsc(clV('pin'))||'000000'}</span><span class="cl-st">${clEsc(clV('state'))}</span></div><div class="cl-ph">Ph: ${phones||'—'}</div></div>`+
+    `<div class="cl-sd"><div class="cl-meta"><div><small>Order</small>${clEsc(ord)||'—'}</div><div><small>Pcs / Wt</small>${clEsc(clV('clPcs')||'1')}${clV('clWt')?' · '+clEsc(clV('clWt')):''}</div><div><small>Payment</small>${pay}</div></div>`+
+    (awb?`<div class="cl-awb"><b>AWB:</b> ${clEsc(awb)}</div>`:'')+(code?`<div class="cl-bar"><svg id="${id}" data-code="${clEsc(code)}"></svg></div>`:'')+
+    (note?`<div class="cl-note">${clEsc(note)}</div>`:'')+`<div class="cl-from">${from}</div></div></div></div>`;
+}
+let clBarP=null;
+function clBars(root){
+  const go=()=>root.querySelectorAll('svg[data-code]').forEach(el=>{try{JsBarcode(el,el.dataset.code,{format:'CODE128',displayValue:false,margin:0,height:50,width:1.6})}catch(e){}});
+  if(window.JsBarcode){go();return Promise.resolve()}
+  clBarP=clBarP||loadScript('vendor/jsbarcode.min.js',()=>!!window.JsBarcode).catch(()=>{clBarP=null});
+  return clBarP.then(()=>{if(window.JsBarcode)go()});
+}
+// long addresses: shrink the address block (then the details) until everything fits on the label
+function clFit(lab){
+  const to=lab.querySelector('.cl-to'),body=lab.querySelector('.cl-body'),sd=lab.querySelector('.cl-sd');if(!to||!body)return[1,1];
+  to.style.zoom=1;sd.style.zoom=1;const over=()=>body.scrollHeight>body.clientHeight+1||sd.scrollHeight>body.clientHeight+1;
+  let z=1,y=1;while(over()&&z>0.55){z=Math.round((z-0.05)*100)/100;to.style.zoom=z}
+  while(over()&&y>0.7){y=Math.round((y-0.05)*100)/100;sd.style.zoom=y}
+  return[z,y];
+}
+let clZoom=[1,1];
+function clRender(){
+  if(!clReady)return;
+  const sc=$('clScaler'),st=$('clStage');sc.innerHTML=clLabelHtml('clBarPrev');
+  const fit=()=>{clZoom=clFit(sc.firstChild);const lab=sc.firstChild,w=lab.offsetWidth,h=lab.offsetHeight,k=Math.min(1,(st.clientWidth-24)/w);sc.style.transform=`scale(${k})`;st.style.height=(h*k+24)+'px'};
+  fit();clBars(sc).then(fit);
+  [...$('clSize').children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.s===clSize)));
+  $('clCodRow').hidden=clV('clPay')!=='COD';
+}
+function clCheck(quiet){
+  let ok=true;const mark=(k,bad)=>{$(CL_ID[k]).classList.toggle('cl-bad',!!bad&&!quiet);if(bad)ok=false};
+  ['name','line1','city'].forEach(k=>mark(k,!clV(k)));mark('pin',!/^[1-9]\d{5}$/.test(clV('pin')));mark('phone',clPh(clV('phone')).length!==10);
+  $('clPhoneHint').textContent=clV('phone')&&clPh(clV('phone')).length!==10?'Enter a 10-digit mobile number':'';
+  return ok;
+}
+// ---- PIN code → district, city, state (India Post directory) ----
+function clPinLookup(){
+  const pin=clV('pin'),h=$('clPinHint');if(!/^[1-9]\d{5}$/.test(pin)||pin===clLastPin)return;clLastPin=pin;h.textContent='Looking up…';
+  fetch('https://api.postalpincode.in/pincode/'+pin).then(r=>r.json()).then(d=>{
+    const po=d&&d[0]&&d[0].PostOffice;if(!po||!po.length){h.textContent='PIN not found · fill the city by hand';return}
+    const p=po[0];if(!clV('district'))$('clDistrict').value=p.District||'';if(!clV('city'))$('clCity').value=p.Block&&p.Block!=='NA'?p.Block:(p.District||'');
+    const m=CL_STATES.find(s=>s.toLowerCase()===String(p.State||'').toLowerCase());if(m)$('clState').value=m;
+    h.textContent=`${p.District}, ${p.State}`;clRender();
+  }).catch(()=>{h.textContent=''});
+}
+// ---- paste from WhatsApp ----
+function clParse(){
+  const t=$('clPaste').value.trim();if(!t)return;
+  const phRe=/(?:\+?91[\s-]?)?[6-9]\d{4}[\s-]?\d{5}/g,phones=(t.match(phRe)||[]).map(clPh),pin=((t.match(/\b[1-9]\d{2}\s?\d{3}\b/)||[''])[0]).replace(/\s/g,'');
+  const st=CL_STATES.find(s=>new RegExp('\\b'+s+'\\b','i').test(t));
+  let lines=t.replace(phRe,'').replace(/\b[1-9]\d{2}\s?\d{3}\b/,'').replace(/(mob(ile)?|ph(one)?|contact|pin(code)?|name)\s*[:.\-]?/gi,'').split(/\n|,/).map(x=>x.trim()).filter(Boolean);
+  if(st)lines=lines.filter(l=>l.toLowerCase()!==st.toLowerCase());
+  if(lines[0])$('clName').value=lines.shift();
+  if(lines.length){const city=lines.length>1?lines.pop():'';$('clCity').value=city;const h=Math.ceil(lines.length/2);$('clLine1').value=lines.slice(0,h).join(', ');$('clLine2').value=lines.slice(h).join(', ')}
+  if(phones[0])$('clPhone').value=phones[0];if(phones[1])$('clPhone2').value=phones[1];
+  if(pin){$('clPin').value=pin;clLastPin=''}if(st)$('clState').value=st;
+  $('clPaste').closest('details').open=false;$('clPaste').value='';clRender();clPinLookup();clCheck(true);
+}
+// ---- the shared address book ----
+function clSaveLocal(){store.set('clBook',clBook.slice(0,20000));store.set('clQ',clQ.slice(0,5000))}
+function clUpsert(r){const k=clKey(r),i=clBook.findIndex(x=>clKey(x)===k);if(i>=0){r.n=Math.max(r.n||0,clBook[i].n||0);clBook.splice(i,1)}clBook.unshift(r);clQ=[r,...clQ.filter(x=>clKey(x)!==k)];clSaveLocal()}
+async function clFlush(){
+  if(!sync.key||!clQ.length||!navigator.onLine)return false;
+  const send=clQ.slice(0,2000);
+  try{await syncApi('addr','POST',{items:send});clQ=clQ.filter(x=>!send.includes(x));clSaveLocal();return true}catch(e){return false}
+}
+async function clPull(){
+  if(!sync.key)return;
+  try{await clFlush();const r=await syncApi('addrs','GET');if(Array.isArray(r.list)){const pend=new Map(clQ.map(x=>[clKey(x),x]));clBook=[...pend.values(),...r.list.filter(x=>!pend.has(clKey(x)))];}if(r.set)clSetS=r.set;store.set('clSet',clSetS);clSaveLocal();clPulled=Date.now();clList();clRender()}catch(e){}
+}
+function clRemember(printed){
+  if(!clCheck(true))return false;
+  const r=clAddr();r.t=Date.now();r.by=(curUser&&(curUser.name||curUser.username))||'';const k=clKey(r),old=clBook.find(x=>clKey(x)===k);r.n=((old&&old.n)||0)+(printed?1:0);
+  clUpsert(r);clList();clFlush().then(ok=>{if(!ok&&sync.key)toast('Saved on this phone · it will be shared when online',null,true)});return !!old;
+}
+function clMatch(q){
+  q=String(q||'').toLowerCase().trim();const qd=q.replace(/\D/g,'');if(!q)return clBook;
+  return clBook.filter(r=>[r.name,r.city,r.district,r.line1,r.line2,r.pin].join(' ').toLowerCase().includes(q)||(qd.length>=3&&(clPh(r.phone)+' '+clPh(r.phone2)).includes(qd)));
+}
+function clRow(r,del){const d=new Date(r.t||0).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'2-digit'});
+  return `<span><b>${clEsc(r.name)}</b><small>${clEsc(clFmtPh(r.phone))} · ${clEsc(r.city)} – ${clEsc(r.pin)}${r.n>1?` · ${r.n} labels`:''}</small></span><span style="display:flex;align-items:center;gap:4px"><small>${d}</small>${del?'<button type="button" class="cl-del" title="Delete" aria-label="Delete saved address">×</button>':''}</span>`}
+function clList(){
+  if(!clReady)return;
+  const box=$('clList'),list=clMatch('');$('clCount').textContent=clBook.length?`(${clBook.length})`:'';
+  $('clBookNote').textContent=!clBook.length?'Addresses are saved here when a label is printed or Save address is pressed.':sync.key?'Shared by every phone and computer. Tap one to load it.':'On this phone only. Connect the shared database to share them.';
+  box.innerHTML='';const canDel=can('addrDel')||isAdmin();
+  list.slice(0,80).forEach(r=>{const el=document.createElement('div');el.className='cl-it';el.setAttribute('role','button');el.tabIndex=0;el.innerHTML=clRow(r,canDel);
+    el.onclick=()=>{clFill(r);window.scrollTo({top:0,behavior:'smooth'});toast(`${r.name} loaded`)};
+    const x=el.querySelector('.cl-del');if(x)x.onclick=ev=>{ev.stopPropagation();clDelete(r)};box.appendChild(el)});
+}
+function clDelete(r){
+  showModal('Delete saved address?',`${r.name} · ${clFmtPh(r.phone)} · ${r.city} – ${r.pin}. It is removed for every phone.`,[{label:'Cancel',cls:'ghost'},{label:'Delete',cls:'primary',run:()=>withPerm('addrDel','Needs permission: Delete saved courier addresses.',async()=>{
+    const k=clKey(r);
+    if(sync.key){try{await syncApi('addrdel','POST',{key:k},adminCreds)}catch(e){toast(e&&e.status===403?'This user cannot delete saved addresses.':'Could not reach the shared database. Try again when online.',null,true);return}}
+    clBook=clBook.filter(x=>clKey(x)!==k);clQ=clQ.filter(x=>clKey(x)!==k);clSaveLocal();clList();toast('Address deleted')},!!sync.key)}]);
+}
+function clSuggest(){
+  const q=$('clFind').value,box=$('clSugg');if(!q.trim()){box.hidden=true;return}
+  const m=clMatch(q).slice(0,8);box.innerHTML=m.length?'':'<p class="note" style="padding:10px 12px;margin:0">No saved address matches.</p>';
+  m.forEach(r=>{const b=document.createElement('button');b.type='button';b.innerHTML=clRow(r,false);b.onclick=()=>{clFill(r);$('clFind').value='';box.hidden=true;toast(`${r.name} loaded`)};box.appendChild(b)});box.hidden=false;
+}
+// ---- printing ----
+async function clPrint(){
+  if(!clCheck(false)){const b=$('clView').querySelector('.cl-bad');if(b)b.focus();toast('Fill the address first',null,true);return}
+  clRender();const n=clSize==='a4two'?2:1;let html='';for(let i=0;i<n;i++)html+=clLabelHtml('clBarP'+i);
+  const box=document.createElement('div');box.innerHTML=`<div class="cl-sheet" style="padding:${CL_PAD[clSize]}">${html}</div>`;
+  await clBars(box);box.querySelectorAll('.cl-lab').forEach(l=>{l.querySelector('.cl-to').style.zoom=clZoom[0];l.querySelector('.cl-sd').style.zoom=clZoom[1]});
+  clRemember(true);
+  if(clQuoteId&&bill&&bill.id===clQuoteId){bill.ship=clAddr();bill.ship.at=Date.now();saveBill()}
+  const job=`${BRAND.name} courier label ${clV('name')}`.replace(/[\/\\]/g,'-');
+  await Promise.all([...box.querySelectorAll('img')].map(async im=>{const i=await loadImg(im.getAttribute('src'));if(!i)return;try{const cv=document.createElement('canvas');cv.width=i.naturalWidth;cv.height=i.naturalHeight;cv.getContext('2d').drawImage(i,0,0);im.src=cv.toDataURL('image/png')}catch(e){}}));
+  if(NATIVE&&NATIVE.printHtml){
+    const css=[...document.querySelectorAll('style')].map(x=>x.textContent).join('\n');
+    NATIVE.printHtml(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><style>${css}</style><style>${CL_PAGE[clSize]}html,body{background:#fff!important;margin:0;padding:0}#printArea{display:block!important}body>*:not(#printArea){display:none!important}</style></head><body><div id="printArea">${box.innerHTML}</div></body></html>`,job);
+    toast('Choose the printer and paper size');return}
+  $('printArea').innerHTML=box.innerHTML;
+  let pg=$('clPageCss');if(!pg){pg=document.createElement('style');pg.id='clPageCss';document.head.appendChild(pg)}pg.textContent=`@media print{${CL_PAGE[clSize]}}`;
+  const t=document.title;document.title=job;window.print();document.title=t;
+}
+window.addEventListener('afterprint',()=>{const pg=$('clPageCss');if(pg)pg.textContent=''});
+// ---- sender details (admin) ----
+function clSetOpen(){withPerm('courierSet','Needs permission: Courier label · sender details.',()=>{
+  const s=clSender();$('clsName').value=s.name||'';$('clsL1').value=(s.lines||[])[0]||'';$('clsL2').value=(s.lines||[])[1]||'';$('clsPhone').value=s.phone||'';$('clsEmail').value=s.email||'';$('clsGst').value=s.gstin||'';$('clsIp').value=s.ipCust||'';
+  $('clSetPop').hidden=false;setTimeout(()=>$('clsName').focus(),40)},!!sync.key)}
+async function clSetSave(){
+  const set={name:$('clsName').value.trim(),lines:[$('clsL1').value.trim(),$('clsL2').value.trim()].filter(Boolean),phone:$('clsPhone').value.trim(),email:$('clsEmail').value.trim(),gstin:$('clsGst').value.trim().toUpperCase(),ipCust:$('clsIp').value.trim(),at:Date.now()};
+  if(sync.key){try{const r=await syncApi('courierset','POST',{set},adminCreds);clSetS=r.set||set}catch(e){toast(e&&e.status===403?'This user cannot change the sender details.':'Could not reach the shared database. Try again when online.',null,true);return}}else clSetS=set;
+  store.set('clSet',clSetS);$('clSetPop').hidden=true;clRender();toast('Sender details saved');
+}
+// ---- from a quote: customer, courier and quote no. come in ----
+function clFromQuote(){
+  const c=bill&&bill.cust||{},s=bill.ship||{};clOpen();clQuoteId=bill.id;
+  const ph=clPh(c.phone),hit=s.line1&&clPh(s.phone)===ph?s:clBook.find(r=>clPh(r.phone)===ph&&ph.length===10);
+  ['phone2','line1','line2','landmark','pin','city','district'].forEach(k=>$(CL_ID[k]).value='');$('clState').value='Kerala';
+  if(hit)clFill(hit);
+  $('clName').value=c.name||(hit&&hit.name)||'';$('clPhone').value=c.phone||(hit&&hit.phone)||'';
+  const cour=CL_FROM_Q[bill.courier];if(cour)$('clCourier').value=cour;
+  $('clOrder').value=quoteLabel(bill)==='Draft'?'':quoteLabel(bill);$('clAwb').value='';
+  $('clFromQ').hidden=false;$('clFromQ').innerHTML=`From quote <b>${clEsc(quoteLabel(bill))}</b>${c.name?' · '+clEsc(c.name):''}${hit?' · saved address filled':' · enter the address once, it is saved for next time'}`;
+  clLastPin=clV('pin');clCheck(true);clRender();setTimeout(()=>{(hit?$('clPrint'):$('clLine1')).focus()},80);
+}
+function clOpen(){
+  if(!clReady){
+    clReady=true;
+    $('clState').innerHTML=CL_STATES.map(s=>`<option>${esc(s)}</option>`).join('');$('clState').value='Kerala';
+    $('clCourier').innerHTML=CL_COURIERS.map(s=>`<option>${esc(s)}</option>`).join('');$('clCourier').value=store.get('clCour',CL_COURIERS[0]);
+    try{PB_NAME.clPhone='clName'}catch(e){}
+    $('clView').addEventListener('input',e=>{if(e.target.id==='clFind'||e.target.id==='clPaste')return;if(e.target.classList.contains('cl-bad'))clCheck(false);clRender()});
+    $('clView').addEventListener('change',e=>{if(e.target.id==='clCourier')store.set('clCour',e.target.value);clRender()});
+    $('clPin').addEventListener('input',()=>{$('clPin').value=$('clPin').value.replace(/\D/g,'');clPinLookup()});
+    $('clPhone').addEventListener('input',()=>{const p=clPh(clV('phone'));if(p.length!==10||clV('line1'))return;const hit=clBook.find(r=>clPh(r.phone)===p);if(hit){const nm=clV('name');clFill(hit);if(nm)$('clName').value=nm;toast('Saved customer found · address filled')}});
+    $('clFind').addEventListener('input',clSuggest);$('clFind').addEventListener('blur',()=>setTimeout(()=>$('clSugg').hidden=true,200));
+    $('clParse').onclick=clParse;
+    $('clSize').querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{clSize=b.dataset.s;store.set('clSize',clSize);clRender()});
+    $('clPrint').onclick=clPrint;
+    $('clSave').onclick=()=>{if(!clCheck(false)){toast('Fill the address first',null,true);return}const upd=clRemember(false);toast(upd?'Address updated':'Address saved')};
+    $('clClear').onclick=()=>{['name','phone','phone2','line1','line2','landmark','pin','city','district'].forEach(k=>$(CL_ID[k]).value='');['clOrder','clAwb','clWt','clCod'].forEach(id=>$(id).value='');$('clPcs').value='1';$('clState').value='Kerala';$('clPinHint').textContent='';clLastPin='';clQuoteId='';$('clFromQ').hidden=true;$('clView').querySelectorAll('.cl-bad').forEach(x=>x.classList.remove('cl-bad'));clRender();$('clName').focus()};
+    $('clRefresh').onclick=()=>{if(!sync.key){toast('Connect the shared database to share addresses',null,true);return}clPull().then(()=>toast('Addresses up to date'))};
+    $('clSetBtn').onclick=clSetOpen;$('clsCancel').onclick=()=>$('clSetPop').hidden=true;$('clsSave').onclick=clSetSave;
+    $('clSetPop').addEventListener('click',e=>{if(e.target===$('clSetPop'))$('clSetPop').hidden=true});
+    $('clImport').onclick=()=>$('clImportFile').click();
+    $('clImportFile').onchange=function(){const f=this.files[0];this.value='';if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const a=JSON.parse(rd.result);if(!Array.isArray(a))throw 0;let n=0;
+      a.forEach(x=>{if(!x||!x.name||clPh(x.phone).length!==10||!/^[1-9]\d{5}$/.test(String(x.pin||''))||!x.line1)return;const r={};['name','phone','phone2','line1','line2','landmark','pin','city','district','state','courier'].forEach(k=>r[k]=String(x[k]||'').trim());r.t=Number(x.t)||Date.now();r.n=Number(x.n)||0;
+        if(!clBook.some(y=>clKey(y)===clKey(r))){clBook.push(r);clQ.push(r);n++}});
+      clBook.sort((p,q)=>(q.t||0)-(p.t||0));clSaveLocal();clList();clFlush();toast(`${n} address${n===1?'':'es'} added`)}catch(e){toast('Not an address file',null,true)}};rd.readAsText(f)};
+  }
+  clList();clRender();
+  if(sync.key&&Date.now()-clPulled>60000)clPull();else clFlush();
+}
+$('tabCourier').onclick=()=>withPerm('courier','Needs permission: Courier labels.',()=>setView('courier'));
+$('menuCourier').onclick=()=>{try{setMenu(false)}catch(e){}withPerm('courier','Needs permission: Courier labels.',()=>setView('courier'))};
+$('qLabelBtn').onclick=()=>withPerm('courier','Needs permission: Courier labels.',()=>{setView('courier');clFromQuote()});
+window.addEventListener('online',()=>{if(clQ.length)clFlush()});
 const NATIVE_API=1;   // V1.9.12 bump (with MainActivity.NATIVE_API) when the screens need something new from the phone app
 // V1.9.12 automatic updates: the phone app downloads new screens itself and calls window.__otaReady; the website checks ota.json.
 // The page reloads only when nobody is busy (no popup, not typing, not scanning, app in front).
@@ -8756,17 +9091,19 @@ const PERM_LIST=[
   ['delQuote','Delete quotes'],['images','Add product photos'],['imgDel','Delete / replace product photos'],['imgBulk','Bulk upload photos'],['stockList','Stock list in Search (phone app)'],['addDisc','Additional discount (flat)'],['round','Round final amounts to the nearest ₹50'],['stockEdit','Edit stock items · making, FVA, label details'],['stockAdd','Add new items to stock'],['stockBulk','Bulk update stock items'],['reports','Reports'],['fva','Fair Value price'],['share','Share quotes on WhatsApp'],['pdHidden','See hidden details (NLC, FVA…)'],['approve','Approve quotes · set discount'],['leads','Share WhatsApp leads'],['webApp','Use the web version (browser on a computer / phone)'],['shopTab','Shop tab: see and share website / catalogue links'],['webLinks','Add / change shop links'],['qPrint','Print quote (A4 · network printer)'],['shareStatus','WhatsApp status card'],['quotesList','All quotations tab'],['qsCust','Quote step: Customer details'],['qsSale','Quote step: Sale type'],['qsItems','Quote step: Items'],['qsUrd','Quote step: URD & buy-back'],['qsSr','Quote step: Sales return'],['qsAdv','Quote step: Advance'],['qsSum','Quote step: Summary'],['qsClose','Quote step: Close sale'],['qsWa','Quote step: WhatsApp share'],['search','Search page · find items'],['stFilters','Search filters (item, design, colour…)'],['stRanges','Range search (weight, price, fair value…)'],['stSelect','Select items in Search'],['stExport','Export Search to Excel'],['stReport','Product details report (cards · share / print)'],['shareItems','Share items on WhatsApp (picture cards)'],['shareAllPh','Send all photos of an item'],['sharePdf','Items as PDF'],['shareUser','Send items to another user'],['shareFv','Share fair value & savings'],['shareCost','Share making, NLC & supplier'],
   ['textSize','Text size'],['imgShow','Product image show / hide'],['ratesShown','Rates shown'],['charges','Charges · GST · HUID'],
   ['plists','Product property lists · collection, design, shapes, colours'],['coins','Gold coin prices · enter and save'],['coinSet','Gold coins · margin & disclaimers'],
+  ['courier','Courier labels · print and save addresses'],['addrDel','Delete saved courier addresses'],['courierSet','Courier label · sender details'],
   ['mkHelper','Making helpers'],['itemCodes','Item codes'],['pdRows','Product details items'],['sync','Shared database · shop key'],['roles','Roles & permissions'],['users','Users']];
 const SET_PERMS=['plists','coinSet','suppliers','theme','footer','apprSet','export','promos','rules','reports','stock','stockdel','textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users'];
 const STOCK_PERMS=['stockEdit','stockAdd','stockBulk','stockdel'];const PHOTO_PERMS=['images','imgDel','imgBulk'];
 // V1.8.6 functions grouped for the role editor
 const PERM_GROUPS=[['Access',['webApp']],['Quote page',['qPrint','quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa']],['Prices & making',['rates','mkEdit','mkDisc','addDisc','round','fva','pdHidden']],['Quotes',['closeSale','cancelQuote','reopen','delQuote','approve','share']],
   ['Search',['search','stFilters','stRanges','stSelect','stExport','stReport','stockList']],['WhatsApp & sharing',['shareStatus','shareItems','shareAllPh','sharePdf','shareUser','shareFv','shareCost','leads']],
-  ['Stock database',['stockEdit','stockAdd','stockBulk','stockdel','suppliers','plists']],['Product photos & details',['images','imgDel','imgBulk']],['Shop links',['shopTab','webLinks']],['Gold coins',['coins','coinSet']],['Reports',['reports']],
+  ['Stock database',['stockEdit','stockAdd','stockBulk','stockdel','suppliers','plists']],['Product photos & details',['images','imgDel','imgBulk']],['Shop links',['shopTab','webLinks']],['Gold coins',['coins','coinSet']],['Courier labels',['courier','addrDel','courierSet']],['Reports',['reports']],
   ['Settings',['textSize','imgShow','ratesShown','charges','mkHelper','itemCodes','pdRows','sync','roles','users']]];
 const permLabel=k=>(PERM_LIST.find(p=>p[0]===k)||[0,k])[1];
-const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['coins','rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','imgDel','imgBulk','stockList','approve','leads','share','pdHidden','addDisc','round','reports','fva','stockEdit','stockAdd','stockBulk','suppliers','quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa','search','stFilters','stRanges','stSelect','stExport','stReport','shareItems','shareAllPh','sharePdf','shareUser','shareFv','shareCost','webApp','qPrint','shareStatus','shopTab','webLinks']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share','fva','stockList','quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa','search','stFilters','stRanges','stSelect','stReport','shareItems','shareAllPh','sharePdf','shareUser','shareFv','qPrint','shareStatus','shopTab']}];
+const DEFAULT_ROLES=[{id:'manager',name:'Manager',perms:['coins','rates','mkEdit','mkDisc','closeSale','cancelQuote','reopen','images','imgDel','imgBulk','stockList','approve','leads','share','pdHidden','addDisc','round','reports','fva','stockEdit','stockAdd','stockBulk','suppliers','quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa','search','stFilters','stRanges','stSelect','stExport','stReport','shareItems','shareAllPh','sharePdf','shareUser','shareFv','shareCost','webApp','qPrint','shareStatus','shopTab','webLinks','courier','addrDel']},{id:'staff',name:'Staff',perms:['rates','closeSale','cancelQuote','share','fva','stockList','quotesList','qsCust','qsSale','qsItems','qsUrd','qsSr','qsAdv','qsSum','qsClose','qsWa','search','stFilters','stRanges','stSelect','stReport','shareItems','shareAllPh','sharePdf','shareUser','shareFv','qPrint','shareStatus','shopTab','courier']}];
 let roles=store.get('roles',null)||clone(DEFAULT_ROLES);
+if(!store.get('perm1917',false)){roles.forEach(r=>{if(!Array.isArray(r.perms))return;if(!r.perms.includes('courier'))r.perms.push('courier');if(r.perms.includes('mkDisc')&&!r.perms.includes('addrDel'))r.perms.push('addrDel')});store.set('roles',roles);store.set('perm1917',true)}
 // WhatsApp sharing became a permission (v1.7.3): roles on this phone keep it once
 if(!store.get('permShare',false)){roles.forEach(r=>{if(Array.isArray(r.perms)&&!r.perms.includes('share'))r.perms.push('share')});store.set('roles',roles);store.set('permShare',true)}
 if(!store.get('perm1824',false)){roles.forEach(r=>{if(!Array.isArray(r.perms))return;if(r.perms.includes('search')&&!r.perms.includes('stReport'))r.perms.push('stReport')});store.set('roles',roles);store.set('perm1824',true)}
