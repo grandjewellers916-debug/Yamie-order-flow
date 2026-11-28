@@ -69,8 +69,8 @@ h1{margin:10px 0 0;font:600 clamp(34px,4.6vw,56px)/1.05 var(--serif);color:var(-
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px}
 .card{position:relative;display:flex;flex-direction:column;background:var(--card);border-radius:18px;overflow:hidden;cursor:pointer;box-shadow:0 2px 6px rgba(74,20,36,.05),0 10px 26px rgba(74,20,36,.08);transition:transform .15s,box-shadow .15s;text-align:left}
 .card:hover{transform:translateY(-2px);box-shadow:0 4px 10px rgba(74,20,36,.08),0 16px 34px rgba(74,20,36,.12)}
-.ph{position:relative;aspect-ratio:16/10;background:#FBF8F6;overflow:hidden}
-.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.ph{position:relative;aspect-ratio:1/1;background:#fff;overflow:hidden}
+.ph img{width:100%;height:100%;object-fit:contain;display:block}
 .ph .none{display:grid;place-items:center;height:100%;color:var(--muted);font-size:13px}
 .np{position:absolute;right:10px;bottom:10px;background:rgba(60,55,55,.72);color:#fff;border-radius:999px;font-size:12px;padding:3px 10px}
 .bdgs{position:absolute;left:10px;top:10px;display:flex;flex-direction:column;align-items:flex-start;gap:5px}
@@ -84,6 +84,10 @@ h1{margin:10px 0 0;font:600 clamp(34px,4.6vw,56px)/1.05 var(--serif);color:var(-
 .pr{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px}
 .pr .now{font-weight:600;font-size:19px;color:var(--maroon);font-variant-numeric:tabular-nums}
 .pr s{color:var(--muted);font-size:13px}
+.wl{display:inline-block;grid-column:1/-1;justify-self:start;margin-top:6px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#8A5A12;background:linear-gradient(135deg,#F7E7C4,#EBCF94);border-radius:6px;padding:2px 8px}
+.wl+.pr{margin-top:3px}
+.wban{display:flex;align-items:center;justify-content:center;gap:10px;margin:14px auto 0;max-width:820px;background:linear-gradient(135deg,#F9EDD3,#EFD8A8);color:#5A3A0E;border:1px solid #E2C385;border-radius:14px;padding:10px 18px;font-weight:500;text-align:center}
+.wban svg{width:20px;height:20px;flex:none}
 .pr .sv{background:#E3F4E8;color:#1D7A42;font-size:12.5px;font-weight:600;border-radius:999px;padding:2px 9px}
 .go{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--maroon);display:grid;place-items:center;color:var(--maroon);flex:none}
 .go svg{width:16px;height:16px}
@@ -170,6 +174,7 @@ h1{margin:10px 0 0;font:600 clamp(34px,4.6vw,56px)/1.05 var(--serif);color:var(-
 </div>
 <main class="wrap" id="main">
   <div class="bar"><div class="chips" id="chips" role="toolbar" aria-label="Filter by type"></div><div class="valid" id="valid" hidden></div><div class="vw" id="vw" role="group" aria-label="View"><button type="button" data-v="grid" aria-pressed="true" aria-label="Grid view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg></button><button type="button" data-v="list" aria-pressed="false" aria-label="List view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg></button></div></div>
+  <div class="wban" id="wban" hidden></div>
   <p class="count" id="count"></p>
   <div class="grid" id="grid"></div>
   <div class="foot" id="foot"></div>
@@ -222,9 +227,12 @@ function rates(cp){
     $('rates').hidden=false}).catch(()=>{});
 }
 function fail(t,p){document.title=t;$('top').innerHTML=`<header class="hero">${logo?`<img class="logo" src="${esc(logo)}" alt="">`:''}</header>`;$('main').innerHTML=`<div class="msg"><h2>${esc(t)}</h2><p>${esc(p)}</p>${street?`<p>${esc(street)}</p>`:''}${phone?`<p><a href="tel:${esc(phone.replace(/\s/g,''))}">${esc(phone)}</a></p>`:''}</div>`}
-function price(x){if(!x.p&&!x.f)return '';const now=x.f&&x.f>0?x.f:x.p;const was=x.f&&x.p>x.f?x.p:0;return `<div class="pr"><span class="now">${inr(now)}</span>${was?`<s>${inr(was)}</s><span class="sv">Save ${inr(was-now)}</span>`:''}</div>`}
+const nowOf=x=>x.w>0?x.w:(x.f>0?x.f:x.p);
+function price(x){if(!x.p&&!x.f&&!x.w)return '';const now=nowOf(x);const was=Math.max(x.p||0,x.f||0)>now?Math.max(x.p||0,x.f||0):0;
+  return `${x.w?`<span class="wl">Web price</span>`:''}<div class="pr"><span class="now">${inr(now)}</span>${was?`<s>${inr(was)}</s><span class="sv">Save ${inr(was-now)}</span>`:''}</div>`}
+const pTxt=x=>nowOf(x)>0?` at ${x.w?'web price ':''}${inr(nowOf(x))}`:'';
 const meta=x=>[x.c&&String(x.c).toLowerCase()!==String(x.t).toLowerCase()?x.c:'',x.pu,x.k].filter(Boolean).join(' · ');
-const badges=x=>(x.b||[]).length?`<span class="bdgs">${x.b.map(b=>`<span class="bdg ${esc(b.c)}">${esc(b.t)}</span>`).join('')}</span>`:'';
+const badges=x=>{const L=[...(x.wn?[{t:x.wn,c:'gold'}]:[]),...(x.b||[])].slice(0,3);return L.length?`<span class="bdgs">${L.map(b=>`<span class="bdg ${esc(b.c)}">${esc(b.t)}</span>`).join('')}</span>`:''};
 const favBtn=x=>`<button type="button" class="fav" data-fav="${esc(x.k)}" aria-pressed="${FAV.has(x.k)}" aria-label="${FAV.has(x.k)?'Remove from':'Add to'} favourites">${I.heart}</button>`;
 function groups(){const m=new Map();C.items.forEach(x=>{const g=x.c||'Other';if(!m.has(g))m.set(g,[]);m.get(g).push(x)});return m}
 function chipLabel(g,L){const pu=[...new Set(L.map(x=>x.pu).filter(Boolean))];return pu.length===1?(/^[A-Z]\d/.test(pu[0])?`${g} (${pu[0]})`:`${g} – ${pu[0]}`):g}
@@ -240,7 +248,7 @@ function paint(){
   wireFav($('grid'));actions();
 }
 function wireFav(root){root.querySelectorAll('[data-fav]').forEach(b=>b.onclick=e=>{e.stopPropagation();const k=b.dataset.fav;FAV.has(k)?FAV.delete(k):FAV.add(k);saveFav();document.querySelectorAll(`[data-fav="${CSS.escape(k)}"]`).forEach(x=>{x.setAttribute('aria-pressed',FAV.has(k));x.setAttribute('aria-label',(FAV.has(k)?'Remove from':'Add to')+' favourites')});actions()})}
-function favText(){const L=C.items.filter(x=>FAV.has(x.k));return L.length?`Hi ${shop()}, I like these from “${C.title}”:\n`+L.map(x=>`• ${x.t} (${x.k})`).join('\n'):`Hi ${shop()}, I saw your collection “${C.title}”.`}
+function favText(){const L=C.items.filter(x=>FAV.has(x.k));return L.length?`Hi ${shop()}, I like these from “${C.title}”:\n`+L.map(x=>`• ${x.t} (${x.k})${pTxt(x)}`).join('\n'):`Hi ${shop()}, I saw your collection “${C.title}”.`}
 function actions(){if(!C.wa)return;const n=C.items.filter(x=>FAV.has(x.k)).length;
   $('fab').innerHTML=I.wa+(n?`Ask about my ${n} favourite${n>1?'s':''}`:'Ask on WhatsApp');$('fab').href=wa(favText());$('fab').hidden=false;
   $('pbar').innerHTML=`<a href="${wa(favText())}" target="_blank" rel="noopener" aria-label="WhatsApp">${I.wa}</a><a href="${tel()}" aria-label="Call">${I.call}</a><a class="t" href="${wa(favText())}" target="_blank" rel="noopener">${n?`Ask about ${n} favourite${n>1?'s':''}`:'To Purchase Call / Chat'}</a>`;$('pbar').hidden=false;
@@ -252,7 +260,7 @@ function open(x){cur=x;ci=1;const n=Math.max(1,x.n||0);
     <div class="car">${x.n?`<img id="dImg" src="${img(x.k,1)}" alt="${esc(x.t)}">`:'<div style="display:grid;place-items:center;height:100%;color:var(--muted)">Photo coming soon</div>'}${badges(x)}${x.n>1?`<button type="button" class="nav pv" id="dPv" aria-label="Previous photo">‹</button><button type="button" class="nav nx" id="dNx" aria-label="Next photo">›</button><div class="dots" id="dDots">${Array.from({length:n},(_,i)=>`<i class="${i?'':'on'}"></i>`).join('')}</div>`:''}</div>
     <div class="dt"><h2 id="dName">${esc(x.t)}</h2><div class="meta">${esc(meta(x))}</div>${price(x)}
     ${x.l&&x.l.length?`<dl class="dl">${x.l.map(([a,b])=>`<dt>${esc(a)}</dt><dd>${esc(b)}</dd>`).join('')}</dl>`:''}</div>
-    ${C.wa?`<div class="ask"><a class="call" href="${tel()}" aria-label="Call">${I.call}</a><a target="_blank" rel="noopener" href="${wa(`Hi ${shop()}, I'm interested in ${x.t} (${x.k}) from “${C.title}”.`)}">${I.wa}Ask about this design</a></div>`:''}`;
+    ${C.wa?`<div class="ask"><a class="call" href="${tel()}" aria-label="Call">${I.call}</a><a target="_blank" rel="noopener" href="${wa(`Hi ${shop()}, I'm interested in ${x.t} (${x.k})${pTxt(x)} from “${C.title}”.`)}">${I.wa}Ask about this design</a></div>`:''}`;
   $('dlg').hidden=false;document.body.style.overflow='hidden';$('dX').onclick=close;wireFav($('sheet'));
   const go=d=>{ci=((ci-1+d+n)%n)+1;$('dImg').src=img(x.k,ci);[...$('dDots').children].forEach((e,i)=>e.classList.toggle('on',i===ci-1))};
   if($('dPv')){$('dPv').onclick=()=>go(-1);$('dNx').onclick=()=>go(1);let sx=0;const c=$('sheet').querySelector('.car');c.addEventListener('touchstart',e=>{sx=e.touches[0].clientX},{passive:true});c.addEventListener('touchend',e=>{const d=e.changedTouches[0].clientX-sx;if(Math.abs(d)>40)go(d<0?1:-1)})}
@@ -274,6 +282,7 @@ fetch(api('col'),{cache:'no-store'}).then(async r=>{const j=await r.json().catch
   $('ttl').textContent=C.title||cp.head||'Curated Designs for You';
   $('sub').textContent=C.note||cp.sub||'';
   if(C.exp){$('valid').innerHTML=`${I.clock}Link valid till ${esc(new Date(C.exp).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}))}`;$('valid').hidden=false}
+  if(C.items.some(x=>x.w>0)&&cp.wtxt){$('wban').innerHTML=`<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.4 11.6 12.4 2.6A2 2 0 0 0 11 2H4a2 2 0 0 0-2 2v7c0 .5.2 1 .6 1.4l9 9a2 2 0 0 0 2.8 0l7-7a2 2 0 0 0 0-2.8ZM6.5 8A1.5 1.5 0 1 1 6.5 5a1.5 1.5 0 0 1 0 3Z"/></svg>${esc(cp.wtxt)}`;$('wban').hidden=false}
   foot();paint();
 }).catch(()=>fail('Could not load','Check your internet and open the link again.'));
 })();

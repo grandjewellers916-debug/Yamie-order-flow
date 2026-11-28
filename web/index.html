@@ -3079,7 +3079,12 @@ body:not([data-view="quote"]):not([data-view="home"]) #bill.qv{display:none!impo
       <h4 class="cp-h">Offer badges</h4>
       <p class="note" style="margin:0 0 8px">Shown on the photo of each matching design, e.g. "Making 50% off" on all Chains. Up to two per design.</p>
       <div id="cpOffers"></div>
-      <div class="sh-row" style="margin-top:8px"><button class="btn" type="button" id="cpAdd">+ Add offer</button><button class="btn primary" type="button" id="cpSave">Save</button></div>
+      <div class="sh-row" style="margin-top:8px"><button class="btn" type="button" id="cpAdd">+ Add offer</button></div>
+      <h4 class="cp-h">Web-only prices</h4>
+      <p class="note" style="margin:0 0 8px">Extra savings for customers who enquire from a link. The page shows the web price with the bigger saving, and the WhatsApp message tells your staff the web price. If several apply, the lowest price wins.</p>
+      <label class="cp-l">Line shown on the page when web prices apply<input id="cpWtxt" maxlength="100" autocomplete="off"></label>
+      <div id="cpWp"></div>
+      <div class="sh-row" style="margin-top:8px"><button class="btn" type="button" id="cpWpAdd">+ Add web price</button><button class="btn primary" type="button" id="cpSave">Save</button></div>
       <p class="note" id="cpSt" aria-live="polite"></p>
   </details>
   <details class="card datacard setcard" id="setLook" data-pane="settings" data-perm="users">
@@ -5512,7 +5517,7 @@ $('xpSave').onclick=()=>withPerm('plists','Needs permission: Product property li
 const CP_BGS=[['silk','Ivory silk','linear-gradient(135deg,#FBF6F1,#F3E6DE 55%,#E9D3C8)'],['velvet','Maroon top','linear-gradient(180deg,#5A1628 0 42%,#F8F1EC 42%)'],['blush','Blush','linear-gradient(160deg,#FFF8F5,#F6DCD6)'],['plain','Plain','#FAF7F3'],['custom','Your picture','repeating-linear-gradient(45deg,#eee 0 8px,#f8f8f8 8px 16px)']];
 const CP_COLS=[['maroon','Maroon'],['gold','Gold'],['green','Green'],['rose','Rose'],['navy','Navy'],['black','Black']];
 const CP_RK=[['r22','22K'],['r18','18K'],['r14','14K'],['r9','9K'],['platinum','Platinum'],['silver','Silver']];
-function cpGet(){const d={bg:'silk',bgv:0,hasD:false,hasM:false,rates:true,rk:['r22','r18','r14','r9'],tag:'Everyday fine jewellery',head:'Your Curated Jewellery Edit',sub:'Handpicked designs, selected just for you',cta:'To purchase, call / chat with us',offers:[]};return Object.assign(d,JSON.parse(JSON.stringify((settings.cpage&&settings.cpage[BRAND.id])||{})))}
+function cpGet(){const d={bg:'silk',bgv:0,hasD:false,hasM:false,rates:true,rk:['r22','r18','r14','r9'],tag:'Everyday fine jewellery',head:'Your Curated Jewellery Edit',sub:'Handpicked designs, selected just for you',cta:'To purchase, call / chat with us',offers:[],wp:[],wtxt:'Web-exclusive prices — extra savings when you enquire from this page'};return Object.assign(d,JSON.parse(JSON.stringify((settings.cpage&&settings.cpage[BRAND.id])||{})))}
 let CPW=null;
 function cpImg(sl){return `${SYNC_BASE||location.origin}/api/sync?op=cpbgimg&b=${BRAND.id}&s=${sl}&v=${CPW&&CPW.bgv||0}`}
 function paintCp(){const c=CPW;
@@ -5537,11 +5542,31 @@ function paintCp(){const c=CPW;
       if(f==='t'||f==='c'){const b=row.querySelector('.bdg');b.className='bdg '+o.c;b.textContent=o.t||'Preview'}
       if(f==='to')paintCp()})});
     row.querySelector('[data-del]').onclick=()=>{c.offers.splice(+row.dataset.i,1);paintCp()}});
+  // V1.9.36 web-only prices
+  const WK=[['lpct','% off label price'],['fpct','% off fair value'],['mpct','% off making'],['flat','₹ off the price']];
+  $('cpWtxt').value=c.wtxt||'';
+  $('cpWp').innerHTML=c.wp.length?c.wp.map((o,i)=>`<div class="cp-of" data-w="${i}">
+      <input data-f="t" maxlength="32" placeholder="Name shown as a badge, e.g. Web price 10% off" value="${esc(o.t)}" aria-label="Name" style="min-height:42px;border:1px solid var(--line);border-radius:12px;padding:6px 12px;font:15px var(--body)">
+      <span class="bdg gold">${esc(o.t||'Web price')}</span>
+      <div class="sh-row"><select data-f="k" aria-label="Kind of saving">${WK.map(([v,l])=>`<option value="${v}"${o.k===v?' selected':''}>${l}</option>`).join('')}</select>
+      <input data-f="v" inputmode="decimal" placeholder="${o.k==='flat'?'₹ amount':'%'}" value="${o.v||''}" aria-label="Amount" style="flex:0 1 110px">
+      <select data-f="to" aria-label="Applies to"><option value="all"${o.to==='all'?' selected':''}>All designs</option><option value="type"${o.to==='type'?' selected':''}>Item types / names…</option><option value="labels"${o.to==='labels'?' selected':''}>Label numbers…</option></select>
+      <input data-f="vs" list="cpTypes2" placeholder="${o.to==='labels'?'CHN0687, DIA1276…':'Chain, Nosepin…'}" value="${esc((o.vs||[]).join(', '))}" aria-label="Which designs"${o.to==='all'?' hidden':''}>
+      <input type="date" data-f="till" value="${esc(o.till||'')}" aria-label="Valid till (optional)" title="Valid till (optional)">
+      <label class="cp-c" style="margin:0"><input type="checkbox" data-f="on"${o.on!==false?' checked':''}> On</label>
+      <button class="btn sm" type="button" data-del aria-label="Delete web price">Delete</button></div></div>`).join('')+`<datalist id="cpTypes2">${[...new Set([...stockMap.values()].flatMap(r=>[r.category,r.item]).filter(Boolean))].sort().slice(0,300).map(v=>`<option value="${esc(v)}">`).join('')}</datalist>`:'<p class="note" style="margin:0">No web prices yet.</p>';
+  $('cpWp').querySelectorAll('[data-w]').forEach(row=>{const o=c.wp[+row.dataset.w];
+    row.querySelectorAll('[data-f]').forEach(el=>{const f=el.dataset.f;el.addEventListener(el.type==='checkbox'||el.tagName==='SELECT'?'change':'input',()=>{
+      if(f==='on')o.on=el.checked;else if(f==='vs')o.vs=el.value.split(',').map(x=>x.trim()).filter(Boolean);else if(f==='v')o.v=num(el.value)||0;else o[f]=el.value;
+      if(f==='t')row.querySelector('.bdg').textContent=o.t||'Web price';
+      if(f==='to'||f==='k')paintCp()})});
+    row.querySelector('[data-del]').onclick=()=>{c.wp.splice(+row.dataset.w,1);paintCp()}});
   $('cpMini').textContent=`${(CP_BGS.find(x=>x[0]===c.bg)||[])[1]||''}${c.offers.filter(o=>o.on!==false).length?` · ${c.offers.filter(o=>o.on!==false).length} offer${c.offers.filter(o=>o.on!==false).length>1?'s':''}`:''}`;
 }
 $('setCp').addEventListener('toggle',()=>{if($('setCp').open){CPW=cpGet();paintCp()}});
 $('cpRates').onchange=()=>{CPW.rates=$('cpRates').checked;paintCp()};
 $('cpRk').addEventListener('change',e=>{const k=e.target.dataset.rk;if(!k)return;CPW.rk=CP_RK.map(x=>x[0]).filter(x=>x===k?e.target.checked:CPW.rk.includes(x))});
+$('cpWpAdd').onclick=()=>{CPW.wp.push({id:Math.random().toString(36).slice(2,9),t:'Web price',on:true,k:'lpct',v:0,to:'all',vs:[],till:''});paintCp();const l=[...$('cpWp').querySelectorAll('[data-f="v"]')].pop();if(l)l.focus()};
 $('cpAdd').onclick=()=>{CPW.offers.push({id:Math.random().toString(36).slice(2,9),t:'',c:'maroon',on:true,to:'all',v:[],till:''});paintCp();const l=[...$('cpOffers').querySelectorAll('[data-f="t"]')].pop();if(l)l.focus()};
 let cpSlot='d';
 document.querySelectorAll('[data-cpup]').forEach(b=>b.onclick=()=>{cpSlot=b.dataset.cpup;$('cpFile').value='';$('cpFile').click()});
@@ -5549,7 +5574,7 @@ function cpShrink(file,maxW,maxH){return new Promise((ok,no)=>{const u=URL.creat
 $('cpFile').onchange=()=>withPerm('users','Needs permission: Users.',async()=>{const f=$('cpFile').files[0];if(!f)return;$('cpSt').textContent='Uploading the picture…';
   try{const d=await cpShrink(f,cpSlot==='d'?2200:1300,cpSlot==='d'?1400:2400);await syncApi('cpbg','POST',{brand:BRAND.id,slot:cpSlot,img:d},adminCreds);CPW['has'+cpSlot.toUpperCase()]=true;CPW.bgv=Date.now();CPW.bg='custom';cpCommit('Picture saved')}catch(e){$('cpSt').textContent='Could not upload — '+(e.message||'check the internet')}},true);
 document.querySelectorAll('[data-cprm]').forEach(b=>b.onclick=()=>withPerm('users','Needs permission: Users.',async()=>{const sl=b.dataset.cprm;try{await syncApi('cpbg','POST',{brand:BRAND.id,slot:sl,img:''},adminCreds);CPW['has'+sl.toUpperCase()]=false;CPW.bgv=Date.now();cpCommit('Picture removed')}catch(e){$('cpSt').textContent='Could not remove — check the internet'}},true));
-function cpCommit(msg){const c=CPW;c.tag=$('cpTag').value.trim();c.head=$('cpHead').value.trim();c.sub=$('cpSub').value.trim();c.cta=$('cpCta').value.trim();c.offers=c.offers.filter(o=>o.t.trim());
+function cpCommit(msg){const c=CPW;c.tag=$('cpTag').value.trim();c.head=$('cpHead').value.trim();c.sub=$('cpSub').value.trim();c.cta=$('cpCta').value.trim();c.wtxt=$('cpWtxt').value.trim();c.offers=c.offers.filter(o=>o.t.trim());c.wp=c.wp.filter(o=>o.v>0);
   settings.cpage={...(settings.cpage||{}),[BRAND.id]:JSON.parse(JSON.stringify(c))};saveSettings();paintCp();$('cpSt').textContent=msg||'Saved. Customers see it the next time they open a link.';toast(msg||'Customer page saved')}
 $('cpSave').onclick=()=>withPerm('users','Needs permission: Users.',()=>cpCommit(),true);
 // V1.9.34 own address for customer web links (per shop)
@@ -7024,7 +7049,7 @@ function openShareSel(only){
   $('cwGo').onclick=async()=>{const v=pick(),days=+$('cwDays').value||7,title=$('cwTitle').value.replace(/\s+/g,' ').trim()||cpGet().head||'Your Curated Jewellery Edit',wa=$('cwWa').value.replace(/[^\d+]/g,'');
     const pm=$('cwPm').value;store.set('cwTitle',title);store.set('cwDays',days);store.set('cwWa',wa);store.set('cwPm',pm);
     const fvOk=can('fva');   // V1.9.33 both prices are kept with the link; the price setting decides what the customer sees
-    const items=list.slice(0,300).map(r=>{const o=stPrice(r);let pu='';try{pu=String(shVal(r,'carat')||'')}catch(e){}return {k:r.key,t:shTitle(r),c:r.category||r.item||'',pu,it:r.item||'',n:imgCount(r.key),p:!isNaN(o.lp)?Math.round(o.lp):0,f:fvOk&&!isNaN(o.fv)?Math.round(o.fv):0,
+    const items=list.slice(0,300).map(r=>{const o=stPrice(r);let pu='';try{pu=String(shVal(r,'carat')||'')}catch(e){}return {k:r.key,t:shTitle(r),c:r.category||r.item||'',pu,it:r.item||'',m:!isNaN(o.mk)?Math.round(o.mk*(1+gstPct()/100)):0,n:imgCount(r.key),p:!isNaN(o.lp)?Math.round(o.lp):0,f:fvOk&&!isNaN(o.fv)?Math.round(o.fv):0,
       l:v.filter(k=>!['img','item','pname','price','fv','save','key','shop','category'].includes(k)).map(k=>{const x=shVal(r,k);return x?[SH_F.find(c=>c[0]===k)[1],String(x)]:null}).filter(Boolean)}});
     $('cwGo').disabled=true;$('cwOut').textContent='Making the link…';
     try{const r=await syncApi('colnew','POST',{col:{title,days,wa,pm,brand:BRAND.id,note:$('cwNote').value.trim(),shop:BRAND.full||BRAND.name,by:curUser?curUser.id:'',byName:meName(),items}});
@@ -9353,7 +9378,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.9.35',APP_BUILD='__BUILD__';
+const APP_VERSION='1.9.36',APP_BUILD='__BUILD__';
 /* V1.9.16 phone book on every customer number box (share, report, wishlist, lead, quote, order), like Order Desk */
 const canPickContact=()=>!!((NATIVE&&NATIVE.pickContact)||(navigator.contacts&&navigator.contacts.select));
 const pbClean=p=>{const d=String(p||'').replace(/[^\d+]/g,'');return d.replace(/^\+?91(?=\d{10}$)/,'').replace(/^0(?=\d{10}$)/,'')};

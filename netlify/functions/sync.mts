@@ -44,7 +44,38 @@ function cleanCp(v: any) {
       to: ["all", "type", "labels"].includes(x?.to) ? x.to : "all", v: (Array.isArray(x?.v) ? x.v : []).map((y: any) => s(y, 60)).filter(Boolean).slice(0, 200),
       till: /^\d{4}-\d{2}-\d{2}$/.test(String(x?.till || "")) ? String(x.till) : "",
     })).filter((x: any) => x.t),
+    // V1.9.36 web-only prices: extra savings for customers who enquire through a link
+    wtxt: s(o.wtxt ?? "Web-exclusive prices — extra savings when you enquire from this page", 100),
+    wp: (Array.isArray(o.wp) ? o.wp : []).slice(0, 20).map((x: any) => ({
+      id: s(x?.id, 20) || Math.random().toString(36).slice(2, 9), t: s(x?.t, 32), on: x?.on !== false,
+      k: ["lpct", "fpct", "mpct", "flat"].includes(x?.k) ? x.k : "lpct", v: Math.max(0, Math.min(x?.k === "flat" ? 10_000_000 : 90, Number(x?.v) || 0)),
+      to: ["all", "type", "labels"].includes(x?.to) ? x.to : "all", vs: (Array.isArray(x?.vs) ? x.vs : []).map((y: any) => s(y, 60)).filter(Boolean).slice(0, 200),
+      till: /^\d{4}-\d{2}-\d{2}$/.test(String(x?.till || "")) ? String(x.till) : "",
+    })).filter((x: any) => x.v > 0),
   }
+}
+function cpMatch(o: any, x: any, vals: string[]) {
+  const low = (v: any) => String(v || "").toLowerCase()
+  return o.to === "all" || (o.to === "labels" ? vals.map((y) => y.toUpperCase()).includes(x.k) : vals.some((y) => [low(x.c), low(x.it)].includes(low(y))))
+}
+// the best web-only price for one design: only counts when it is lower than the price the page would show anyway
+function cpWeb(cp: any, x: any) {
+  const today = new Date(Date.now() + 5.5 * 36e5).toISOString().slice(0, 10)
+  let best = 0, name = ""
+  for (const o of cp?.wp || []) {
+    if (!o.on || (o.till && o.till < today) || !cpMatch(o, x, o.vs)) continue
+    const P = Number(x.p) || 0, F = Number(x.f) || 0, M = Number(x.m) || 0
+    let w = 0
+    if (o.k === "lpct" && P) w = P * (1 - o.v / 100)
+    else if (o.k === "fpct" && (F || P)) w = (F || P) * (1 - o.v / 100)
+    else if (o.k === "mpct" && P && M) w = P - M * o.v / 100
+    else if (o.k === "flat" && (F || P)) w = (F || P) - o.v
+    if (!w) continue
+    w = Math.round(w / 10) * 10
+    const ref = F || P
+    if (w > 0 && w < ref && (!best || w < best)) { best = w; name = o.t }
+  }
+  return best ? { w: best, wn: name } : {}
 }
 function cpBadges(cp: any, x: any) {
   const today = new Date(Date.now() + 5.5 * 36e5).toISOString().slice(0, 10)
@@ -152,8 +183,11 @@ export default async (req: Request) => {
       // V1.9.33 price mode: both | label | fair | none (the shop can change it while the link is live)
       const pm = c.pm || "both", sl = pm === "both" || pm === "label", sf = pm === "both" || pm === "fair"
       const set: any = (await st.get("settings", { type: "json" })) || {}, cp = cleanCp(set?.cpage?.[c.brand === "grand" ? "grand" : "yamie"])
-      const { offers, ...look } = cp
-      return json(req, { title: c.title, note: c.note, shop: c.shop, wa: c.wa, by: c.byName, exp: c.exp, at: c.at, pm, brand: c.brand || "yamie", cp: look, items: (c.items || []).map((x: any) => ({ ...x, p: sl ? x.p : 0, f: sf ? x.f : 0, b: cpBadges(cp, x) })) })
+      const { offers, wp, ...look } = cp
+      return json(req, { title: c.title, note: c.note, shop: c.shop, wa: c.wa, by: c.byName, exp: c.exp, at: c.at, pm, brand: c.brand || "yamie", cp: look, items: (c.items || []).map((x: any) => {
+        const web: any = pm === "none" ? {} : cpWeb(cp, x), { m, ...pub } = x
+        return { ...pub, p: sl ? x.p : 0, f: sf ? x.f : 0, b: cpBadges(cp, x), ...web }
+      }) })
     }
     const k = String(sp.get("k") || "").toUpperCase().replace(/[^A-Z0-9]/g, ""), i = Math.max(1, Math.min(IMG_MAX, Number(sp.get("i")) || 1))
     if (!(c.items || []).some((x: any) => x.k === k)) return new Response("no", { status: 404 })
@@ -584,7 +618,7 @@ export default async (req: Request) => {
       const id = Array.from(crypto.getRandomValues(new Uint8Array(9)), (b) => "abcdefghjkmnpqrstuvwxyz23456789"[b % 31]).join("")
       const items = (Array.isArray(c.items) ? c.items : []).slice(0, 300).map((x: any) => ({
         k: cleanStr(x?.k, 40).toUpperCase().replace(/[^A-Z0-9]/g, ""), t: cleanStr(x?.t, 80), c: cleanStr(x?.c, 40), n: Math.max(0, Math.min(IMG_MAX, cleanNum(x?.n) || 0)),
-        p: cleanNum(x?.p) || 0, f: cleanNum(x?.f) || 0, pu: cleanStr(x?.pu, 20), it: cleanStr(x?.it, 60),
+        p: cleanNum(x?.p) || 0, f: cleanNum(x?.f) || 0, pu: cleanStr(x?.pu, 20), it: cleanStr(x?.it, 60), m: cleanNum(x?.m) || 0,
         l: (Array.isArray(x?.l) ? x.l : []).slice(0, 16).map((r: any) => [cleanStr(r?.[0], 30), cleanStr(r?.[1], 80)]).filter((r: any) => r[0] && r[1]) })).filter((x: any) => x.k)
       if (!items.length) return json(req, { error: "no_items" }, 400)
       const days = Math.max(1, Math.min(90, cleanNum(c.days) || 7))
