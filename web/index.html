@@ -2037,6 +2037,12 @@ body[data-view="dash"] .hero{display:none}
 .dw-head,.dw-side,.dh-pd{display:none}
 .dh-rg2{display:flex;justify-content:center;gap:18px;margin-top:8px;padding-top:8px;border-top:1px dashed #EADBD0;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}.dh-rg2 b{color:var(--db);font-weight:600;margin-right:2px}
 .pub-miss{color:#9A3B2E!important;font-weight:600}
+.dh-cust{display:flex;align-items:center;gap:10px;justify-content:center}.dh-cust>span{color:var(--muted)}#dhArr.on{font-weight:700}
+.dh-grid.arr .dh-t{cursor:grab;touch-action:none;outline:2px dashed color-mix(in srgb,var(--db) 35%,transparent);outline-offset:-4px;animation:dhWig .28s ease-in-out infinite alternate}
+.dh-grid.arr .dh-t:nth-child(2n){animation-delay:.14s}.dh-grid .dh-t.drag{cursor:grabbing;animation:none;opacity:.92;transform:scale(1.04);box-shadow:0 12px 28px rgba(60,20,15,.22);z-index:3;position:relative}
+@keyframes dhWig{from{transform:rotate(-.6deg)}to{transform:rotate(.6deg)}}
+@media (prefers-reduced-motion:reduce){.dh-grid.arr .dh-t{animation:none}}
+.dh-t{-webkit-touch-callout:none;user-select:none}
 .pl-lk{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:2px 0 8px;font-size:13px}.pl-lk small{color:var(--muted)}.pl-lk em{color:var(--muted);font-style:normal}.pl-lkc{background:var(--dbl,#F6EEF0);color:var(--db,#6E1E33);border-radius:999px;padding:2px 10px;font-weight:600;font-size:12.5px}
 .pl-lkp{background:#FBF7F3;border:1px solid #EFE2D8;border-radius:12px;padding:10px 12px;margin:0 0 10px}.pl-lkp .sc-c small{color:var(--muted);margin-left:4px}
 @media (max-width:899px){body:has(#rsheet:not([hidden])) .tabbar,body:has(#ssheet:not([hidden])) .tabbar{z-index:16}#rsheet .in,#ssheet .in{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}}
@@ -2480,7 +2486,7 @@ body:not([data-view="quote"]):not([data-view="home"]) #bill.qv{display:none!impo
 <header class="wtop" id="wtop" aria-label="Yamie Price Check">
   <button class="wt-brand" type="button" id="wtHome" aria-label="Home"><span class="wt-mark" id="wtMark"></span><span class="wt-nm"><b id="wtNm">Yamie</b><small>Price Check &amp; Quote · <span id="wtVer"></span></small></span></button>
   <nav class="wt-cats" id="wtCats" aria-label="Item types"></nav>
-  <form class="wt-search" id="wtSearch" role="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input id="wtQ" type="search" placeholder="Search label no., item, supplier…" aria-label="Search stock" autocomplete="off"></form>
+  <form class="wt-search" id="wtSearch" role="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input id="wtQ" type="search" placeholder="Search label, design, colour…" aria-label="Search stock" autocomplete="off"></form>
   <span class="wt-bellslot" id="wtBellSlot"></span>
   <button class="wt-user" type="button" id="wtUser" aria-label="Account"><span class="wt-av" id="wtAv">A</span><span class="wt-un"><b id="wtUn">Admin</b><small id="wtRole"></small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
 </header>
@@ -2776,7 +2782,7 @@ body:not([data-view="quote"]):not([data-view="home"]) #bill.qv{display:none!impo
         <div class="dh-rt"><button class="bell dh-bell" type="button" id="dhBell" aria-label="Notifications" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span class="bell-n" hidden></span></button><small class="dh-ver" id="dhVer"></small></div>
       </div>
       <div class="dh-when"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><b id="dhDate"></b></span><i aria-hidden="true"></i><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><b id="dhTime"></b></span></div>
-      <form class="dh-srch" id="dhSearch" role="search" autocomplete="off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input id="dhQ" type="search" enterkeyhint="search" placeholder="Search label no., item, supplier…" aria-label="Search stock" autocapitalize="characters" spellcheck="false" aria-autocomplete="list" aria-controls="dhSug"><button type="button" class="dh-sq" id="dhScanQ" aria-label="Scan a tag" title="Scan a tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M7 8v8M10 8v8M13 8v8M16 8v8"/></svg></button><div class="dh-sug" id="dhSug" role="listbox" hidden></div></form>
+      <form class="dh-srch" id="dhSearch" role="search" autocomplete="off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input id="dhQ" type="search" enterkeyhint="search" placeholder="Search label, design, colour…" aria-label="Search stock" autocapitalize="characters" spellcheck="false" aria-autocomplete="list" aria-controls="dhSug"><button type="button" class="dh-sq" id="dhScanQ" aria-label="Scan a tag" title="Scan a tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M7 8v8M10 8v8M13 8v8M16 8v8"/></svg></button><div class="dh-sug" id="dhSug" role="listbox" hidden></div></form>
       <div class="dh-rates" id="dhRates" role="button" tabindex="0" aria-label="Today's gold rates">
         <div class="dh-rh"><span class="dh-rt1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4h12l3 5-9 11L3 9z"/><path d="M3 9h18M9 4l3 16 3-16"/></svg>Today’s gold rates</span><span class="dh-upd" id="dhUpd"></span><button type="button" class="dh-ref" id="dhRef" aria-label="Refresh rates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button></div>
         <div class="dh-rg" id="dhRg"></div>
@@ -2789,7 +2795,7 @@ body:not([data-view="quote"]):not([data-view="home"]) #bill.qv{display:none!impo
         <div class="dw-card" id="dwRecent"><div class="dw-ch"><b>Recent quotes</b><button class="linkbtn" type="button" id="dwAllQ">All quotes</button></div><div class="dw-ql" id="dwQl"></div></div>
       </aside>
       <div class="dh-grid" id="dhGrid"></div>
-      <button class="linkbtn dh-cust" type="button" id="dhCust">Customise home</button>
+      <div class="dh-cust"><button class="linkbtn" type="button" id="dhArr">Arrange tiles</button><span aria-hidden="true">·</span><button class="linkbtn" type="button" id="dhCust">Customise home</button></div>
       <p class="dh-tag" id="dhTag"><i></i><span>For the joy of being you</span><i></i></p>
     </section>
     <section class="cl-view" data-pane="courier" id="clView">
@@ -6371,6 +6377,9 @@ function paintWtop(){
   const bell=$('dkBell');if(bell&&bell.parentElement!==$('wtBellSlot')&&!document.documentElement.classList.contains('no-wtop'))$('wtBellSlot').appendChild(bell);
 }
 document.addEventListener('click',e=>{if(!e.target.closest('#wtMore,#wtMoreBtn'))$('wtMore').hidden=true});
+/* V1.9.24 search text: every word has to match somewhere (label, names, supplier, location, purity, HUID, weights and all product properties) */
+function stHay(r){const a=attrOf(r);return [r.key,r.label,r.barcode,r.item,r.category,r.supplier,r.stoneName,r.location,r.model,r.carat,r.huidNo,r.note,r.notes,pnameOf(r),a.jt,a.mc,(a.cl||[]).join(' '),a.sc.join(' '),a.st.join(' '),a.sh.join(' '),a.ss.join(' '),r.gw?num(r.gw).toFixed(3)+'g':'',r.nw?num(r.nw).toFixed(3):''].map(v=>String(v||'')).join(' ¦ ').toLowerCase()}
+function stQMatch(r,q){const w=String(q||'').toLowerCase().split(/\s+/).filter(Boolean);if(!w.length)return true;const h=stHay(r),hk=keyOf(r.key)+' '+keyOf(r.label||'');return w.every(x=>h.includes(x)||(keyOf(x).length>=2&&hk.includes(keyOf(x))))}
 function goType(c){findType=findType===c&&document.body.dataset.view==='search'?'':c;stPage=1;$('findQ').value='';setView('search');runFind();paintWtop()}
 $('wtHome').onclick=()=>setView('home');
 $('wtUser').onclick=()=>$('sbUser').click();
@@ -7547,7 +7556,7 @@ function runFindTable(){
   const exact=q?findStock(q):null,all=[...stockMap.values()];
   stFilterBar(all);
   let rows=all.filter(stPass);
-  if(q)rows=rows.filter(r=>r===exact||(k.length>=2&&(r.key.includes(k)||keyOf(r.label||'').includes(k)))||[r.item,r.category,r.supplier,r.stoneName,r.location,r.model,pnameOf(r),attrOf(r).jt,attrOf(r).sc.join(' '),attrOf(r).st.join(' '),attrOf(r).sh.join(' '),attrOf(r).ss.join(' '),attrOf(r).cl,attrOf(r).mc].some(v=>String(v||'').toLowerCase().includes(ql)));
+  if(q)rows=rows.filter(r=>r===exact||(k.length>=2&&(r.key.includes(k)||keyOf(r.label||'').includes(k)))||stQMatch(r,q));
   rows.sort((a,b)=>{const x=stVal(a,stSort.k),y=stVal(b,stSort.k);if(x==null||y==null){if(x==null&&y==null)return a.key<b.key?-1:1;return x==null?1:-1}
     const c=typeof x==='number'&&typeof y==='number'?x-y:String(x).localeCompare(String(y),'en',{numeric:true});return (c||(a.key<b.key?-1:1)*(stSort.d))*stSort.d});
   if(exact&&rows.includes(exact)){rows=[exact,...rows.filter(r=>r!==exact)]}
@@ -9026,7 +9035,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.9.23',APP_BUILD='__BUILD__';
+const APP_VERSION='1.9.24',APP_BUILD='__BUILD__';
 /* V1.9.16 phone book on every customer number box (share, report, wishlist, lead, quote, order), like Order Desk */
 const canPickContact=()=>!!((NATIVE&&NATIVE.pickContact)||(navigator.contacts&&navigator.contacts.select));
 const pbClean=p=>{const d=String(p||'').replace(/[^\d+]/g,'');return d.replace(/^\+?91(?=\d{10}$)/,'').replace(/^0(?=\d{10}$)/,'')};
@@ -9324,8 +9333,27 @@ function dashRender(){
   $('dhPrim').innerHTML=DASH_PRIM.filter(t=>!modOff(MOD_OF[t.id])).map(t=>`<button type="button" class="dh-p dh-p-${t.id}" data-t="${t.id}">${DI(DASH_ICO[t.id])}<b>${esc(t.n.split(' ')[0])}<br><span class="dh-nw">${esc(t.n.split(' ').slice(1).join(' '))}<span class="dh-ch">${DI(DASH_ICO.chev)}</span></span><small class="dh-pd">${esc(t.d)}</small></b></button>`).join('');
   const g=$('dhGrid');g.className=`dh-grid lay-${p.lay} sz-${p.size}`;
   g.innerHTML=tiles.length?tiles.map(t=>`<button type="button" class="dh-t" data-t="${t.id}">${DI(DASH_ICO[t.id])}<span><b>${esc(t.n)}</b><small>${esc(t.d)}</small></span></button>`).join(''):'<p class="note dh-empty">No shortcuts on your home screen. Tap <b>Customise home</b> to add some.</p>';
-  v.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{const t=[...DASH_PRIM,...DASH_TILES].find(x=>x.id===b.dataset.t);if(t)try{t.go()}catch(e){toast('This screen is not available on this app',null,true)}});
+  v.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{if(dhArr||Date.now()-dhLong<600)return;const t=[...DASH_PRIM,...DASH_TILES].find(x=>x.id===b.dataset.t);if(t)try{t.go()}catch(e){toast('This screen is not available on this app',null,true)}});
+  g.classList.toggle('arr',dhArr);g.querySelectorAll('.dh-t').forEach(b=>{b.addEventListener('pointerdown',dhTileDown);b.setAttribute('aria-roledescription',dhArr?'Movable tile':'')});
+  $('dhArr').textContent=dhArr?'Done arranging':'Arrange tiles';$('dhArr').classList.toggle('on',dhArr);if($('dhArrN'))$('dhArrN').hidden=!dhArr;
   dashRates();dashClock();try{dwPaint()}catch(e){console.error(e)}
+}
+/* V1.9.24 drag tiles on the home screen: "Arrange tiles" (or press and hold a tile), drag, Done; order is saved for this user */
+let dhArr=false,dhLong=0;
+function dhArrange(on){dhArr=on;dashRender();if(!on)toast('Tile order saved')}
+function dhTileDown(e){
+  const t=e.currentTarget,g=$('dhGrid');if(e.button>0)return;
+  if(!dhArr){const x0=e.clientX,y0=e.clientY;let timer=setTimeout(()=>{dhLong=Date.now();try{navigator.vibrate&&navigator.vibrate(30)}catch(_){}dhArrange(true);toast('Drag the tiles, then tap Done arranging')},550);
+    const stop=ev=>{if(ev.type==='pointermove'&&Math.hypot(ev.clientX-x0,ev.clientY-y0)<8)return;clearTimeout(timer);window.removeEventListener('pointermove',stop);window.removeEventListener('pointerup',stop);window.removeEventListener('pointercancel',stop)};
+    window.addEventListener('pointermove',stop);window.addEventListener('pointerup',stop);window.addEventListener('pointercancel',stop);return}
+  e.preventDefault();const pid=e.pointerId,start=[...g.children].indexOf(t);t.classList.add('drag');
+  const move=ev=>{if(ev.pointerId!==pid)return;ev.preventDefault();let best=null,bd=1e9,after=false;
+    for(const s of g.children){if(s===t)continue;const r=s.getBoundingClientRect();if(ev.clientX>=r.left&&ev.clientX<=r.right&&ev.clientY>=r.top&&ev.clientY<=r.bottom){best=s;after=g.classList.contains('lay-list')?ev.clientY>r.top+r.height/2:ev.clientX>r.left+r.width/2;break}}
+    if(best){const ref=after?best.nextElementSibling:best;if(ref!==t&&ref!==t.nextElementSibling)g.insertBefore(t,ref)}
+    if(ev.clientY<70)window.scrollBy(0,-10);else if(ev.clientY>window.innerHeight-80)window.scrollBy(0,10)};
+  const up=ev=>{if(ev.pointerId!==pid)return;window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);window.removeEventListener('pointercancel',up);t.classList.remove('drag');
+    if([...g.children].indexOf(t)!==start){const q=dashPrefs(),shown=[...g.children].map(x=>x.dataset.t).filter(Boolean),rest=q.order.filter(i=>!shown.includes(i));q.order=[...shown,...rest];store.set(dashKey(),{order:q.order,hidden:q.hidden,lay:q.lay,size:q.size,at:Date.now()})}};
+  window.addEventListener('pointermove',move,{passive:false});window.addEventListener('pointerup',up);window.addEventListener('pointercancel',up);
 }
 function dashRates(){
   const g=$('dhRg');if(!g)return;const list=SHOWN().filter(p=>!['platinum','silver'].includes(p.id)).slice(0,4);
@@ -9375,6 +9403,7 @@ function dsDrag(e){
 $('dsLay').querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{const q=dashPrefs();q.lay=b.dataset.l;dashSave(q,'Layout saved');dsPaint()});
 $('dsSize').querySelectorAll('[data-z]').forEach(b=>b.onclick=()=>{const q=dashPrefs();q.size=b.dataset.z;dashSave(q,'Tile size saved');dsPaint()});
 $('dsPrev').onclick=()=>setView('dash');
+$('dhArr').onclick=()=>dhArrange(!dhArr);
 $('dsReset').onclick=()=>showModal('Reset your home screen?','Shortcuts, order, columns and tile size go back to the standard layout. Nothing else changes.',[{label:'Cancel',cls:'ghost'},{label:'Reset to default',cls:'primary',run:()=>{store.set(dashKey(),null);dashRender();dsPaint();toast('Home screen reset')}}]);
 $('setDash').addEventListener('toggle',()=>{if($('setDash').open)dsPaint()});
 // ---- wiring: phones land on the dashboard; Home tab and the back arrow come back to it ----
@@ -9395,7 +9424,7 @@ function dhMatches(q){
   const k=keyOf(q),t=q.toLowerCase(),out=[];if(q.length<2)return out;
   const ex=findStock(q);if(ex)out.push(ex);
   for(const r of stockMap.values()){if(out.length>=6)break;if(r===ex)continue;
-    if((k.length>=2&&(r.key.includes(k)||keyOf(r.label||'').includes(k)))||[pnameOf(r),r.item,r.category,r.supplier,r.model].some(v=>v&&String(v).toLowerCase().includes(t)))out.push(r)}
+    if((k.length>=2&&(r.key.includes(k)||keyOf(r.label||'').includes(k)))||stQMatch(r,q))out.push(r)}
   return out;
 }
 let dhSel=-1;
