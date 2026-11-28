@@ -2037,6 +2037,8 @@ body[data-view="dash"] .hero{display:none}
 .dw-head,.dw-side,.dh-pd{display:none}
 .dh-rg2{display:flex;justify-content:center;gap:18px;margin-top:8px;padding-top:8px;border-top:1px dashed #EADBD0;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}.dh-rg2 b{color:var(--db);font-weight:600;margin-right:2px}
 .pub-miss{color:#9A3B2E!important;font-weight:600}
+.pl-lk{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:2px 0 8px;font-size:13px}.pl-lk small{color:var(--muted)}.pl-lk em{color:var(--muted);font-style:normal}.pl-lkc{background:var(--dbl,#F6EEF0);color:var(--db,#6E1E33);border-radius:999px;padding:2px 10px;font-weight:600;font-size:12.5px}
+.pl-lkp{background:#FBF7F3;border:1px solid #EFE2D8;border-radius:12px;padding:10px 12px;margin:0 0 10px}.pl-lkp .sc-c small{color:var(--muted);margin-left:4px}
 @media (max-width:899px){body:has(#rsheet:not([hidden])) .tabbar,body:has(#ssheet:not([hidden])) .tabbar{z-index:16}#rsheet .in,#ssheet .in{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}}
 .bk-phs{flex-wrap:wrap}.bk-pt{position:relative;display:inline-block}.bk-px{position:absolute;top:-6px;right:-6px;width:24px;height:24px;border-radius:50%;border:0;background:var(--maroon);color:#fff;font:600 15px/24px var(--body);cursor:pointer;padding:0}
 /* V1.9.20 search on the home dashboard */
@@ -5332,7 +5334,7 @@ function paintCoinSet(){$('cnMargin').value=coinSet.margin||'';$('cnRound').valu
 // ---------- V1.9.5 Settings › Product property lists ----------
 const PL_KINDS=[['cl','Collection'],['jt','Design'],['sh','Shape'],['ss','Stone shape'],['st','Stone type'],['sc','Stone colour'],['mc','Metal colour']];
 let plDraft=null,plTab='cl',plRen=[];
-const plCopy=()=>({cl:CL_LIST.slice(),jt:JT_GROUPS.map(([g,l])=>[g,l.slice()]),sh:SHP_LIST.slice(),ss:SST_LIST.slice(),st:STT_LIST.slice(),sc:SC_LIST.map(x=>x.slice()),mc:MC_LIST.map(x=>x.slice())});
+const plCopy=()=>({jtl:JSON.parse(JSON.stringify(JT_LINK)),cl:CL_LIST.slice(),jt:JT_GROUPS.map(([g,l])=>[g,l.slice()]),sh:SHP_LIST.slice(),ss:SST_LIST.slice(),st:STT_LIST.slice(),sc:SC_LIST.map(x=>x.slice()),mc:MC_LIST.map(x=>x.slice())});
 const plVals=(r,k)=>{const a=attrOf(r);return k==='cl'?a.cl:k==='jt'?[a.jt]:k==='mc'?[a.mc]:(a[k]||[])};
 function plUse(k,name){const n0=String(name).toLowerCase();let n=0;for(const r of stockMap.values())if(plVals(r,k).some(x=>String(x||'').toLowerCase()===n0))n++;return n}
 const plName=(k,x)=>['sc','mc'].includes(k)?x[0]:x;
@@ -5348,7 +5350,13 @@ function paintPlists(){
   const row=(name,i,extra,g)=>{const u=plUse(k,name);return `<div class="pl-row" data-i="${i}"${g!=null?` data-g="${g}"`:''}>${extra||''}<span class="pl-n">${esc(name)}</span><small class="pl-u">${u?u+' item'+(u===1?'':'s'):''}</small><span class="pl-b"><button type="button" class="pl-ic" data-mv="-1" aria-label="Move up" title="Move up">↑</button><button type="button" class="pl-ic" data-mv="1" aria-label="Move down" title="Move down">↓</button><button type="button" class="btn sm" data-ren>Rename</button><button type="button" class="btn sm pl-del" data-del>Delete</button></span></div>`};
   let h='';
   if(k==='jt'){
-    h=plDraft.jt.map(([g,l],gi)=>`<div class="pl-grp"><div class="pl-gh"><b>${esc(g)}</b><small>${l.length}</small><span class="pl-b"><button type="button" class="btn sm" data-gren="${gi}">Rename group</button><button type="button" class="btn sm pl-del" data-gdel="${gi}">Delete group</button></span></div>${l.map((n,i)=>row(n,i,'',gi)).join('')||'<p class="note">No designs in this group.</p>'}</div>`).join('');
+    plDraft.jtl=plDraft.jtl||{};const INS=itemNames();
+    h=`<p class="note" style="margin:0 0 10px">Link each group to its <b>Item names</b>: when an item is picked, only its group's designs are offered (item details, table, Search and Bulk update filters). Groups you have not linked match by name, e.g. Rings ↔ any item name with “ring”.</p>`;
+    h+=plDraft.jt.map(([g,l],gi)=>{const ex=Array.isArray(plDraft.jtl[g]),set=jtLinkSet(g,plDraft.jtl),lk=INS.filter(([n])=>set.has(n.toLowerCase()));
+      return `<div class="pl-grp"><div class="pl-gh"><b>${esc(g)}</b><small>${l.length}</small><span class="pl-b"><button type="button" class="btn sm" data-glink="${gi}" aria-expanded="false">Item names</button><button type="button" class="btn sm" data-gren="${gi}">Rename group</button><button type="button" class="btn sm pl-del" data-gdel="${gi}">Delete group</button></span></div>
+      <div class="pl-lk"><small>${ex?'Linked to':'Matched by name'}:</small> ${lk.length?lk.map(([n])=>`<span class="pl-lkc">${esc(n)}</span>`).join(''):`<em>${ex?'no item names':'none yet'}</em>`}</div>
+      <div class="pl-lkp" id="plLk${gi}" hidden><p class="note">Tick the item names that use ${esc(g)} designs:</p><div class="sc-chips">${INS.map(([n,c])=>`<button type="button" class="sc-c" data-lk="${esc(n)}" aria-pressed="${set.has(n.toLowerCase())}">${esc(n)} <small>${c}</small></button>`).join('')||'<em class="note">No item names in stock yet.</em>'}</div>${ex?`<button type="button" class="linkbtn" data-lkauto="${gi}">Match by name again</button>`:''}</div>
+      ${l.map((n,i)=>row(n,i,'',gi)).join('')||'<p class="note">No designs in this group.</p>'}</div>`}).join('');
     h+=`<div class="pl-add"><select id="plGrp">${plDraft.jt.map(([g],gi)=>`<option value="${gi}">${esc(g)}</option>`).join('')}<option value="new">+ New group…</option></select><input id="plNew" maxlength="40" placeholder="New design, e.g. Infinity Band" autocomplete="off"><button type="button" class="btn primary sm" id="plAdd">+ Add</button></div>`;
   }else{
     h=plDraft[k].map((x,i)=>row(plName(k,x),i,sw?(/^#/.test(x[1])?`<input type="color" class="pl-col" value="${esc(x[1].length===4?'#'+[...x[1].slice(1)].map(c=>c+c).join(''):x[1].slice(0,7))}" aria-label="Colour of ${esc(x[0])}">`:`<i class="sc-sw pl-sw" style="background:${esc(x[1])}"></i>`):'')).join('')||`<p class="note">No ${lbl.toLowerCase()} choices yet. Add the first one below.</p>`;
@@ -5362,8 +5370,14 @@ function paintPlists(){
       if(['sc','mc'].includes(k))L[i][0]=v;else L[i]=v;const u=plUse(k,name);plRen.push({k,from:name,to:v});plMark(true);paintPlists();if(u)toast(`${u} item${u===1?'':'s'} will change to “${v}” when you save`)};
     el.querySelector('[data-del]').onclick=()=>{const u=plUse(k,name);if(!confirm(`Delete “${name}” from the ${lbl.toLowerCase()} list?`+(u?`\n\n${u} item${u===1?' uses':'s use'} it — they keep it until you edit them.`:'')))return;L.splice(i,1);plMark(true);paintPlists()};
     const c=el.querySelector('.pl-col');if(c)c.oninput=()=>{L[i][1]=c.value;plMark(true);const s=el.querySelector('.pl-col');if(s)s.value=c.value}});
-  $('plBody').querySelectorAll('[data-gren]').forEach(b=>b.onclick=()=>{const g=plDraft.jt[+b.dataset.gren],v=(prompt(`Rename group “${g[0]}” to:`,g[0])||'').replace(/\s+/g,' ').trim();if(!v||v===g[0])return;g[0]=v;plMark(true);paintPlists()});
-  $('plBody').querySelectorAll('[data-gdel]').forEach(b=>b.onclick=()=>{const gi=+b.dataset.gdel,g=plDraft.jt[gi];if(!confirm(`Delete the group “${g[0]}” and its ${g[1].length} design${g[1].length===1?'':'s'}?\n\nItems keep their design until you edit them.`))return;plDraft.jt.splice(gi,1);plMark(true);paintPlists()});
+  $('plBody').querySelectorAll('[data-gren]').forEach(b=>b.onclick=()=>{const g=plDraft.jt[+b.dataset.gren],v=(prompt(`Rename group “${g[0]}” to:`,g[0])||'').replace(/\s+/g,' ').trim();if(!v||v===g[0])return;if(plDraft.jtl&&Array.isArray(plDraft.jtl[g[0]])){plDraft.jtl[v]=plDraft.jtl[g[0]];delete plDraft.jtl[g[0]]}g[0]=v;plMark(true);paintPlists()});
+  // V1.9.23 link a design group to item names
+  $('plBody').querySelectorAll('[data-glink]').forEach(b=>b.onclick=()=>{const p=$('plLk'+b.dataset.glink);p.hidden=!p.hidden;b.setAttribute('aria-expanded',String(!p.hidden))});
+  $('plBody').querySelectorAll('[data-lk]').forEach(b=>b.onclick=()=>{const gi=+b.closest('.pl-lkp').id.slice(4),g=plDraft.jt[gi][0];
+    if(!Array.isArray(plDraft.jtl[g]))plDraft.jtl[g]=[...jtLinkSet(g,plDraft.jtl)].map(k=>(itemNames().find(x=>x[0].toLowerCase()===k)||[k])[0]);
+    const n=b.dataset.lk,L=plDraft.jtl[g],i=L.findIndex(x=>x.toLowerCase()===n.toLowerCase());if(i>=0)L.splice(i,1);else L.push(n);plMark(true);paintPlists();const p=$('plLk'+gi);if(p){p.hidden=false;const t=$('plBody').querySelector(`[data-glink="${gi}"]`);if(t)t.setAttribute('aria-expanded','true')}});
+  $('plBody').querySelectorAll('[data-lkauto]').forEach(b=>b.onclick=()=>{const g=plDraft.jt[+b.dataset.lkauto][0];delete plDraft.jtl[g];plMark(true);paintPlists()});
+  $('plBody').querySelectorAll('[data-gdel]').forEach(b=>b.onclick=()=>{const gi=+b.dataset.gdel,g=plDraft.jt[gi];if(!confirm(`Delete the group “${g[0]}” and its ${g[1].length} design${g[1].length===1?'':'s'}?\n\nItems keep their design until you edit them.`))return;if(plDraft.jtl)delete plDraft.jtl[g[0]];plDraft.jt.splice(gi,1);plMark(true);paintPlists()});
   const add=()=>{const v=$('plNew').value.replace(/\s+/g,' ').trim();if(!v)return;if(plHas(k,v))return toast(`“${v}” is already in the list`);
     if(k==='jt'){let gi=$('plGrp').value;if(gi==='new'){const g=(prompt('Name of the new group (e.g. Rings, Earrings):')||'').replace(/\s+/g,' ').trim();if(!g)return;plDraft.jt.push([g,[]]);gi=plDraft.jt.length-1}plDraft.jt[+gi][1].push(v)}
     else if(['sc','mc'].includes(k))plDraft[k].push([v,$('plNewC').value]);else plDraft[k].push(v);
@@ -6501,10 +6515,23 @@ let pattrs=store.get('pattrs',{})||{};
 let CL_LIST=[];const CL_MAX=5;   // V1.9.15 a product can be in several collections
 const clArr=v=>(Array.isArray(v)?v:v?[v]:[]).map(x=>String(x||'').replace(/\s+/g,' ').trim()).filter(Boolean).slice(0,CL_MAX);
 const clChoices=()=>[...new Set([...CL_LIST,...[...stockMap.values()].flatMap(r=>attrOf(r).cl).sort((x,y)=>x.localeCompare(y))])];
+/* V1.9.23 Design groups linked to Item Names: picking an item shows only its group's designs.
+   plists.jtl = {group: [item names]} for groups the admin linked; other groups match by name (Rings <-> any item name with "ring"). */
+let JT_LINK={};
+const JT_KEYS={rings:['ring','band'],earrings:['earring','stud','jhumk','hoop','drop','ear'],necklaces:['necklace','choker','haram','mala','mangalsutra'],chains:['chain'],pendants:['pendant','locket'],'bracelets & bangles':['bracelet','bangle','kada','kangan'],bangles:['bangle','kada'],bracelets:['bracelet'],anklets:['anklet','payal','kolusu'],'nose pins':['nose','nath','mookuthi'],'nosepins':['nose','nath','mookuthi']};
+const jtKeys=g=>{const k=String(g||'').toLowerCase().trim();if(JT_KEYS[k])return JT_KEYS[k];return k.split(/\s*(?:&|,|\band\b)\s*/).map(w=>w.replace(/s$/,'')).filter(w=>w.length>2)};
+const itemNames=()=>{const m=new Map();for(const r of stockMap.values()){const v=String(r.item||'').replace(/\s+/g,' ').trim();if(v){const k=v.toLowerCase();m.set(k,[m.has(k)?m.get(k)[0]:v,(m.has(k)?m.get(k)[1]:0)+1])}}return [...m.values()].sort((a,b)=>a[0].localeCompare(b[0]))};
+function jtLinkSet(g,links){const L=links||JT_LINK;if(Array.isArray(L[g]))return new Set(L[g].map(x=>String(x).toLowerCase()));
+  const ks=jtKeys(g);if(!ks.length)return new Set();return new Set(itemNames().map(x=>x[0].toLowerCase()).filter(n=>ks.some(k=>n.includes(k))))}
+const jtLinked=g=>Array.isArray(JT_LINK[g]);
+// groups to offer for these item names (all groups when none given or nothing linked)
+function jtGroupsFor(items){const it=[...new Set((items||[]).map(x=>String(x||'').toLowerCase().replace(/\s+/g,' ').trim()).filter(Boolean))];if(!it.length)return JT_GROUPS;
+  const gs=JT_GROUPS.filter(([g])=>{const L=jtLinkSet(g);return it.some(i=>L.has(i))});return gs.length?gs:JT_GROUPS}
+const jtDesignsFor=items=>new Set(jtGroupsFor(items).flatMap(g=>g[1]).map(x=>x.toLowerCase()));
 const PL_DEF={jt:JT_GROUPS,sc:SC_LIST,st:STT_LIST,sh:SHP_LIST,ss:SST_LIST,mc:MC_LIST,cl:[]};
 let plists=store.get('plists',null),plDirty=false;
 function applyUi(){const hide=((plists&&plists.ui)||{}).top==='hide';document.documentElement.classList.toggle('no-wtop',hide);const b=$('dkBell'),acts=document.querySelector('#dkHead .dk-acts');if(b&&acts){if(hide&&b.parentElement!==acts)acts.prepend(b);else if(!hide&&DESK.matches&&$('wtBellSlot')&&b.parentElement!==$('wtBellSlot'))$('wtBellSlot').appendChild(b)}}
-function applyPlists(){const L=plists||{},A=k=>Array.isArray(L[k])?L[k]:PL_DEF[k];JT_GROUPS=A('jt');try{applyUi()}catch(e){}SC_LIST=A('sc');STT_LIST=A('st');SHP_LIST=A('sh');SST_LIST=A('ss');MC_LIST=A('mc');CL_LIST=A('cl')}
+function applyPlists(){const L=plists||{},A=k=>Array.isArray(L[k])?L[k]:PL_DEF[k];JT_GROUPS=A('jt');JT_LINK=L.jtl&&typeof L.jtl==='object'&&!Array.isArray(L.jtl)?L.jtl:{};try{applyUi()}catch(e){}SC_LIST=A('sc');STT_LIST=A('st');SHP_LIST=A('sh');SST_LIST=A('ss');MC_LIST=A('mc');CL_LIST=A('cl')}
 applyPlists();
 async function pullPlists(){if(!sync.key||!navigator.onLine)return;try{const r=await syncApi('plists');plists=r&&r.lists||null;store.set('plists',plists);sync.v.plists=r&&r.v||0;saveSyncState();applyPlists();if($('setPlists')&&$('setPlists').open&&!plDirty)paintPlists()}catch(e){}}
 setTimeout(()=>pullPlists(),2900);
@@ -6522,13 +6549,14 @@ async function savePattrs(map){
 }
 setTimeout(()=>pullPattrs(),2700);
 // the design list and colour chips, used by the item form and the photo manager
-function attrFields(px,a){
+function attrFields(px,a,item){
   const used=new Set();for(const r of stockMap.values()){const j=attrOf(r).jt;if(j)used.add(j)}
   const known=new Set(JT_GROUPS.flatMap(g=>g[1]));const extra=[...used].filter(x=>!known.has(x)).sort();
+  const GS=jtGroupsFor(item?[item]:[]),part=GS!==JT_GROUPS;if(part&&a.jt&&known.has(a.jt)&&!GS.some(g=>g[1].includes(a.jt)))extra.push(a.jt);
   if(a.jt&&!known.has(a.jt)&&!extra.includes(a.jt))extra.push(a.jt);
   const o=v=>`<option${a.jt===v?' selected':''}>${esc(v)}</option>`;
   return `${attrMulti(px,'Cl','Collection','e.g. Bridal, Infinity',clChoices(),a.cl||[])}
-  <div class="full at-f"><label for="${px}Jt">Design <small>(jewellery type)</small></label><select id="${px}Jt"><option value="">Choose design…</option>${JT_GROUPS.map(([g,l])=>`<optgroup label="${esc(g)}">${l.map(o).join('')}</optgroup>`).join('')}${extra.length?`<optgroup label="Your designs">${extra.map(o).join('')}</optgroup>`:''}<option value="__new">+ New design…</option></select><input id="${px}JtNew" class="sf-new" hidden maxlength="60" placeholder="Type the new design" aria-label="New design"></div>
+  <div class="full at-f"><label for="${px}Jt">Design <small>${part?`(${esc(GS.map(g=>g[0]).join(', '))} · for ${esc(item)})`:'(jewellery type)'}</small></label><select id="${px}Jt" data-item="${esc(item||'')}"><option value="">Choose design…</option>${GS.map(([g,l])=>`<optgroup label="${esc(g)}">${l.map(o).join('')}</optgroup>`).join('')}${extra.length?`<optgroup label="Your designs">${extra.map(o).join('')}</optgroup>`:''}${part?'<option value="__all">Show all designs…</option>':''}<option value="__new">+ New design…</option></select><input id="${px}JtNew" class="sf-new" hidden maxlength="60" placeholder="Type the new design" aria-label="New design"></div>
   <div class="full at-f"><label>Metal colour <small id="${px}McN">${a.mc?esc(a.mc):'(choose one)'}</small></label><div class="sc-chips" id="${px}Mc" role="radiogroup" aria-label="Metal colour">${[...MC_LIST.map(x=>x[0]),...(a.mc&&!MC_LIST.some(x=>x[0]===a.mc)?[a.mc]:[])].map(c=>`<button type="button" class="sc-c" role="radio" data-c="${esc(c)}" aria-checked="${a.mc===c}" aria-pressed="${a.mc===c}">${mcSw(c)}${esc(c)}</button>`).join('')}<button type="button" class="sc-c" data-mcnew="1">+ Other…</button></div><input id="${px}McNew" class="sf-new" hidden maxlength="40" placeholder="e.g. Champagne Gold"></div>
   <div class="full at-f"><label>Stone type <small id="${px}StN">${a.st&&a.st.length?a.st.length+' chosen':'(choose all that apply)'}</small></label><div class="sc-chips st-chips" id="${px}St" role="group" aria-label="Stone types">${[...STT_LIST,...(a.st||[]).filter(x=>!STT_LIST.includes(x))].map(c=>`<button type="button" class="sc-c" data-c="${esc(c)}" aria-pressed="${(a.st||[]).includes(c)}">${esc(c)}</button>`).join('')}<button type="button" class="sc-c" data-stnew="1">+ Other…</button></div><input id="${px}StNew" class="sf-new" hidden maxlength="30" placeholder="e.g. Tanzanite – Enter to add"></div>
   ${attrMulti(px,'Sh','Shape','e.g. Infinity, Heart',SHP_LIST,a.sh||[])}
@@ -6550,7 +6578,10 @@ function wireMulti(px,id,max){
 }
 const readMulti=(px,id,max)=>{const sb=$(px+id);if(!sb)return [];const o=[...sb.querySelectorAll('[data-c][aria-pressed="true"]')].map(b=>b.dataset.c);const i=$(px+id+'New'),nv=i&&i.value.replace(/\s+/g,' ').trim();if(nv&&!o.some(x=>x.toLowerCase()===nv.toLowerCase()))o.push(nv);return o.slice(0,max)};
 function wireAttr(px){wireMulti(px,'Cl',CL_MAX);wireMulti(px,'Sh',SHP_MAX);wireMulti(px,'Ss',SST_MAX);
-  const sel=$(px+'Jt'),nw=$(px+'JtNew');sel.addEventListener('change',()=>{nw.hidden=sel.value!=='__new';if(!nw.hidden)nw.focus()});
+  const sel=$(px+'Jt'),nw=$(px+'JtNew');sel.addEventListener('change',()=>{
+    if(sel.value==='__all'){const all=JT_GROUPS.map(([g,l])=>`<optgroup label="${esc(g)}">${l.map(v=>`<option>${esc(v)}</option>`).join('')}</optgroup>`).join('');   // V1.9.23 widen to every group
+      sel.querySelectorAll('optgroup').forEach(g=>{if(g.label!=='Your designs')g.remove()});sel.querySelector('option[value="__all"]').remove();sel.querySelector('option[value=""]').insertAdjacentHTML('afterend',all);sel.value='';const l=sel.closest('.at-f').querySelector('label small');if(l)l.textContent='(all designs)';try{sel.showPicker&&sel.showPicker()}catch(e){}return}
+    nw.hidden=sel.value!=='__new';if(!nw.hidden)nw.focus()});
   const box=$(px+'Sc'),cnt=()=>{const n=box.querySelectorAll('[aria-pressed="true"]').length;$(px+'ScN').textContent=n?`${n} of ${SC_MAX}`:`(up to ${SC_MAX})`;box.querySelectorAll('.sc-c').forEach(b=>b.disabled=n>=SC_MAX&&b.getAttribute('aria-pressed')!=='true')};
   box.querySelectorAll('.sc-c').forEach(b=>b.onclick=()=>{b.setAttribute('aria-pressed',b.getAttribute('aria-pressed')==='true'?'false':'true');cnt()});cnt();
   const sb=$(px+'St');if(sb){const sn=()=>{const n=sb.querySelectorAll('[aria-pressed="true"]').length;$(px+'StN').textContent=n?`${n} chosen`:'(choose all that apply)'};
@@ -7174,7 +7205,7 @@ async function stmItem(r,list,dir){
     <div class="stm-pr"><div><small>Label price</small><b>${isNaN(lp)?'—':inr(lp)}</b></div>${!isNaN(fv)&&save?`<div class="fv"><small>Fair value</small><b>${inr(fv)}</b></div><div class="sv"><small>Saves</small><b>${inr(save)}</b></div>`:''}</div>
     ${stmEdit?`<div class="stm-ed" id="stmEd"><div class="stm-edh"><b>Edit details</b><span id="stmEdS" class="stm-eds">No changes</span></div>
       ${can('images')?`<div class="full at-f"><label for="stmPn">Product name</label><input id="stmPn" maxlength="60" autocomplete="off" value="${esc(pnameOf(r)||'')}" placeholder="e.g. Infinity Diamond Ring"></div>`:''}
-      ${attrFields('stmA',a)}</div>
+      ${attrFields('stmA',a,r.item)}</div>
       <details class="stm-more"><summary>Label details</summary><dl class="stm-dl">${rows.map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl></details>`
     :`<dl class="stm-dl">${rows.map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>`}
     ${shopA(r)}</div>`;
@@ -7271,7 +7302,7 @@ function stFilterBar(rowsAll){
   const uniq=f=>[...new Set(rowsAll.map(f).filter(Boolean))].sort();
   const ci=(f)=>{const m=new Map();rowsAll.forEach(r=>{const v=String(r[f]||'').trim();if(v&&!m.has(v.toLowerCase()))m.set(v.toLowerCase(),v)});return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1],'en',{numeric:true}))};
   const mOpt=(f,L)=>{const m=new Map();rowsAll.forEach(r=>attrOf(r)[f].forEach(v=>m.set(v.toLowerCase(),v)));const ix=v=>{const i=L.indexOf(v);return i<0?99:i};return [...m.entries()].sort((a,b)=>ix(a[1])-ix(b[1])||a[1].localeCompare(b[1]))};
-  const opts={cl:(()=>{const m=new Map();rowsAll.forEach(r=>attrOf(r).cl.forEach(v=>m.set(v.toLowerCase(),v)));return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1]))})(),shp:mOpt('sh',SHP_LIST),sst:mOpt('ss',SST_LIST),cat:ci('category').filter(([k])=>!findF.item||rowsAll.some(r=>String(r.category||'').trim().toLowerCase()===k&&String(r.item||'').trim().toLowerCase()===findF.item)),item:ci('item'),imp:[['yes','Imported'],['no','Not imported']],pn:[['yes','Named'],['no','No name yet']],jt:(()=>{const m=new Map();rowsAll.forEach(r=>{const j=attrOf(r).jt;if(j)m.set(j.toLowerCase(),j)});return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1]))})(),stt:(()=>{const m=new Map();rowsAll.forEach(r=>attrOf(r).st.forEach(v=>m.set(v.toLowerCase(),v)));const ix=v=>{const i=STT_LIST.indexOf(v);return i<0?99:i};return [...m.entries()].sort((a,b)=>ix(a[1])-ix(b[1])||a[1].localeCompare(b[1]))})(),mc:(()=>{const m=new Map();rowsAll.forEach(r=>{const v=attrOf(r).mc;if(v)m.set(v.toLowerCase(),v)});return [...m.entries()].sort((a,b)=>{const ia=MC_LIST.findIndex(x=>x[0]===a[1]),ib=MC_LIST.findIndex(x=>x[0]===b[1]);return (ia<0?99:ia)-(ib<0?99:ib)})})(),sc:(()=>{const m=new Set();rowsAll.forEach(r=>attrOf(r).sc.forEach(c=>m.add(c)));return [...m].sort((a,b)=>{const ia=SC_LIST.findIndex(x=>x[0]===a),ib=SC_LIST.findIndex(x=>x[0]===b);return (ia<0?99:ia)-(ib<0?99:ib)}).map(c=>[c.toLowerCase(),c])})(),type:wtCodes().map(c=>[c,CAT[c]||c]),pur:uniq(r=>caratToPurity(r.carat)).map(p=>[p,PLABEL[p]||p]),stone:[['any','With stone'],['dia','Diamond'],['clr','Colour stone'],['none','No stone']],
+  const opts={cl:(()=>{const m=new Map();rowsAll.forEach(r=>attrOf(r).cl.forEach(v=>m.set(v.toLowerCase(),v)));return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1]))})(),shp:mOpt('sh',SHP_LIST),sst:mOpt('ss',SST_LIST),cat:ci('category').filter(([k])=>!findF.item||rowsAll.some(r=>String(r.category||'').trim().toLowerCase()===k&&String(r.item||'').trim().toLowerCase()===findF.item)),item:ci('item'),imp:[['yes','Imported'],['no','Not imported']],pn:[['yes','Named'],['no','No name yet']],jt:(()=>{const m=new Map(),ok=findF.item?jtDesignsFor([findF.item]):null;rowsAll.forEach(r=>{const j=attrOf(r).jt;if(j&&(!ok||ok.has(j.toLowerCase())||lcT(r.item)===findF.item||j.toLowerCase()===findF.jt))m.set(j.toLowerCase(),j)});return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1]))})(),stt:(()=>{const m=new Map();rowsAll.forEach(r=>attrOf(r).st.forEach(v=>m.set(v.toLowerCase(),v)));const ix=v=>{const i=STT_LIST.indexOf(v);return i<0?99:i};return [...m.entries()].sort((a,b)=>ix(a[1])-ix(b[1])||a[1].localeCompare(b[1]))})(),mc:(()=>{const m=new Map();rowsAll.forEach(r=>{const v=attrOf(r).mc;if(v)m.set(v.toLowerCase(),v)});return [...m.entries()].sort((a,b)=>{const ia=MC_LIST.findIndex(x=>x[0]===a[1]),ib=MC_LIST.findIndex(x=>x[0]===b[1]);return (ia<0?99:ia)-(ib<0?99:ib)})})(),sc:(()=>{const m=new Set();rowsAll.forEach(r=>attrOf(r).sc.forEach(c=>m.add(c)));return [...m].sort((a,b)=>{const ia=SC_LIST.findIndex(x=>x[0]===a),ib=SC_LIST.findIndex(x=>x[0]===b);return (ia<0?99:ia)-(ib<0?99:ib)}).map(c=>[c.toLowerCase(),c])})(),type:wtCodes().map(c=>[c,CAT[c]||c]),pur:uniq(r=>caratToPurity(r.carat)).map(p=>[p,PLABEL[p]||p]),stone:[['any','With stone'],['dia','Diamond'],['clr','Colour stone'],['none','No stone']],
     sup:uniq(r=>r.supplier).map(x=>[x,x]),loc:uniq(r=>r.location).map(x=>[x,x]),lab:[['yes','Labelled'],['no','Not labelled']],img:[['yes','With photo'],['no','No photo']]};
   const val=k=>k==='type'?findType:findF[k];
   const RNG=[['w','Gross wt','g'],['n','Net wt','g'],['p','Label price','₹'],['f','Fair value','₹'],['m','Making','₹'],['d','Diamond','ct']].filter(([k])=>k!=='f'||can('fva'));
@@ -7424,7 +7455,7 @@ function cellEdit(td){
   const a=attrOf(r),multi={cl:['cl',clChoices(),CL_MAX],stt:['st',STT_LIST,STT_MAX],shp:['sh',SHP_LIST,SHP_MAX],sst:['ss',SST_LIST,SST_MAX],scol:['sc',SC_LIST.map(x=>x[0]),SC_MAX]}[c];
   let body;
   if(c==='pname')body=`<input id="ecIn" maxlength="60" value="${esc(pnameOf(r)||'')}" placeholder="e.g. Infinity Diamond Ring" autocomplete="off">`;
-  else if(c==='jt'){const known=new Set(JT_GROUPS.flatMap(g=>g[1]));body=`<select id="ecIn"><option value="">— none —</option>${JT_GROUPS.map(([g,l])=>`<optgroup label="${esc(g)}">${l.map(v=>`<option${a.jt===v?' selected':''}>${esc(v)}</option>`).join('')}</optgroup>`).join('')}${a.jt&&!known.has(a.jt)?`<option selected>${esc(a.jt)}</option>`:''}</select>`}
+  else if(c==='jt'){const known=new Set(JT_GROUPS.flatMap(g=>g[1])),GS=jtGroupsFor([r.item]),inG=GS.some(g=>g[1].includes(a.jt));body=`<select id="ecIn"><option value="">— none —</option>${GS.map(([g,l])=>`<optgroup label="${esc(g)}">${l.map(v=>`<option${a.jt===v?' selected':''}>${esc(v)}</option>`).join('')}</optgroup>`).join('')}${a.jt&&(!known.has(a.jt)||!inG)?`<option selected>${esc(a.jt)}</option>`:''}</select>${GS!==JT_GROUPS?`<p class="note" style="margin:6px 0 0">Designs for ${esc(r.item)}: ${esc(GS.map(g=>g[0]).join(', '))}</p>`:''}`}
   else if(c==='mc'){const nm=MC_LIST.map(x=>x[0]);body=`<select id="ecIn"><option value="">— none —</option>${[...nm,...(a.mc&&!nm.includes(a.mc)?[a.mc]:[])].map(v=>`<option${a.mc===v?' selected':''}>${esc(v)}</option>`).join('')}</select>`}
   else body=attrMulti('ec','M',EC_LBL[c],'Type a new one',multi[1],a[multi[0]]||[]);
   const p=document.createElement('div');p.id='cellEd';p.className='cell-ed'+(multi?' multi':'');p.setAttribute('role','dialog');p.setAttribute('aria-label','Edit '+EC_LBL[c]);
@@ -8217,7 +8248,7 @@ function stockForm(rec){
   $('modalTitle').textContent=isNew?'New item in stock':'Edit '+(r.barcode||r.key);$('modalTitle').classList.remove('price-pop');
   $('modalBody').innerHTML=`<p class="note">${isNew?'All label details, as on the other labels.':'Correct the making, FVA or any detail.'} Saved to the shared database for all staff.</p><div class="pr-form">`+SF.map(([k,l,t,req])=>{
     const id='sf_'+k,lab=`<label for="${id}">${esc(l)}${req?' *':''}</label>`;
-    if(t==='at')return attrFields('sfA',isNew?{jt:'',sc:[],mc:'',st:[],sk:'',sh:[],ss:[],cl:[]}:attrOf(r));
+    if(t==='at')return attrFields('sfA',isNew?{jt:'',sc:[],mc:'',st:[],sk:'',sh:[],ss:[],cl:[]}:attrOf(r),isNew?'':r&&r.item);
     if(t==='pn')return `<div class="full">${lab}<input id="${id}" list="pnList" autocomplete="off" maxlength="80" placeholder="e.g. Pink Solo Ring" value="${esc(isNew?'':pnameOf(r))}">${pnameDatalist()}<small class="pn-note" id="sfPnNote" aria-live="polite"></small></div>`;
     if(LST[k])return `<div${k==='item'||k==='category'?' class="sf-lst"':''}>${lab}<select id="${id}" class="sf-sel">${k==='supplier'?supOptions(v0.supplier,'Choose supplier…',true):optsOf(k,v0[k],k==='category'&&v0.item?x=>lc(x.item)===lc(v0.item):null)}</select><input id="${id}_new" class="sf-new" hidden placeholder="Type the new ${LST[k]}" aria-label="New ${LST[k]}"></div>`;
     if(t==='pur')return `<div>${lab}<select id="${id}">${purs.map(x=>`<option${String(v0.carat||'22').toUpperCase()===x?' selected':''}>${x}</option>`).join('')}</select></div>`;
@@ -8621,7 +8652,15 @@ function bulkForm(pre){
   // item names follow the item type picked
   // item types follow the item name picked
   $('bkfItem').addEventListener('change',()=>{const it=$('bkfItem').value,was=$('bkfCat').value,m=new Map();for(const r of stockMap.values()){if(it&&lcT(r.item)!==it)continue;const v=String(r.category||'').trim();if(v&&!m.has(v.toLowerCase()))m.set(v.toLowerCase(),v)}
-    $('bkfCat').innerHTML='<option value="">Any</option>'+[...m.entries()].sort((a,b)=>a[1].localeCompare(b[1],'en',{numeric:true})).map(([k,v])=>`<option value="${esc(k)}"${k===was?' selected':''}>${esc(v)}</option>`).join('');if(was&&!m.has(was))$('bkfCat').value=''});
+    $('bkfCat').innerHTML='<option value="">Any</option>'+[...m.entries()].sort((a,b)=>a[1].localeCompare(b[1],'en',{numeric:true})).map(([k,v])=>`<option value="${esc(k)}"${k===was?' selected':''}>${esc(v)}</option>`).join('');if(was&&!m.has(was))$('bkfCat').value='';
+    // V1.9.23 Design filter and the Design change list show only the designs of this item's group
+    const ok=it?jtDesignsFor([it]):null;
+    if($('bkfJt')){const f=$('bkfJt'),w=f.value,o0=f.querySelector('option[value=""]').textContent,d=new Map();for(const r of stockMap.values()){const j=attrOf(r).jt;if(!j)continue;if(ok&&!ok.has(j.toLowerCase())&&lcT(r.item)!==it)continue;d.set(j.toLowerCase(),j)}
+      f.innerHTML=`<option value="">${esc(o0)}</option>`+[...d.entries()].sort((a,b)=>a[1].localeCompare(b[1])).map(([k,v])=>`<option value="${esc(k)}"${k===w?' selected':''}>${esc(v)}</option>`).join('')+'<option value="__none">Not set</option>';if(w&&w!=='__none'&&!d.has(w))f.value=''}
+    if($('bk_jt')){const c=$('bk_jt'),w=c.value,GS=jtGroupsFor(it?[it]:[]);
+      c.innerHTML='<option value="">Keep</option>'+GS.map(([g,l])=>`<optgroup label="${esc(g)}">${l.map(v=>`<option${v===w?' selected':''}>${esc(v)}</option>`).join('')}</optgroup>`).join('')+'<option value="__none">Clear design</option>';if(w==='__none')c.value='__none';
+      const lb=c.closest('div')&&c.closest('div').querySelector('label');if(lb)lb.textContent=GS!==JT_GROUPS?`Design (${GS.map(g=>g[0]).join(', ')})`:'Design'}
+  });
   ['bkfStt','bkfMc','bkfCl','bkfJt','bkfSh','bkfSs','bkfSc','bkfLoc','bkfWaEq','bkfFvEq','bkfCat','bkfItem','bkfWaMin','bkfWaMax','bkfMkT','bkfMkMin','bkfMkMax','bkfFv','bkfFvMin','bkfFvMax','bkfPur','bkfSup','bkfImp','bkfWBy','bkfWMin','bkfWMax'].forEach(id=>{if(!$(id))return;$(id).addEventListener('input',upd);$(id).addEventListener('change',upd)});
   bulkAdd=code=>{const k=keyOf(code);if(!k)return;const r=findStock(k),ta=$('bkLabels');if(!ta)return;
     const have=new Set(ta.value.split(/[\s,;]+/).map(keyOf).filter(Boolean));
@@ -8987,7 +9026,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.9.22',APP_BUILD='__BUILD__';
+const APP_VERSION='1.9.23',APP_BUILD='__BUILD__';
 /* V1.9.16 phone book on every customer number box (share, report, wishlist, lead, quote, order), like Order Desk */
 const canPickContact=()=>!!((NATIVE&&NATIVE.pickContact)||(navigator.contacts&&navigator.contacts.select));
 const pbClean=p=>{const d=String(p||'').replace(/[^\d+]/g,'');return d.replace(/^\+?91(?=\d{10}$)/,'').replace(/^0(?=\d{10}$)/,'')};
