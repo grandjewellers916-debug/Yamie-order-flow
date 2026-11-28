@@ -1006,7 +1006,7 @@ async function shopifyApi() {
   if (!token) {
     const id = process.env.SHOPIFY_CLIENT_ID, sec = process.env.SHOPIFY_CLIENT_SECRET
     if (!id || !sec) throw new Error("Not set up: add SHOPIFY_CLIENT_ID and SHOPIFY_CLIENT_SECRET in Netlify")
-    const tr = await fetch(`https://${dom}/admin/oauth/access_token`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ client_id: id, client_secret: sec, grant_type: "client_credentials" }) })
+    const tr = await fetch(`https://${dom}/admin/oauth/access_token`, { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded", accept: "application/json" }, body: new URLSearchParams({ grant_type: "client_credentials", client_id: id, client_secret: sec }).toString() })   // V1.9.22 form body, as in Shopify's client-credentials guide
     const tj: any = await tr.json().catch(() => ({}))
     if (!tr.ok || !tj.access_token) throw new Error("Shopify login failed (" + tr.status + ")")
     token = tj.access_token
