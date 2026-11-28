@@ -718,7 +718,10 @@ export default async (req: Request) => {
         const lst = (v: any, n: number) => Array.isArray(v) ? [...new Set(v.map((x: any) => cleanStr(x, 30).replace(/\s+/g, " ").trim()).filter(Boolean))].slice(0, n) : []
         const sh = lst(o.sh, 4), ss = lst(o.ss, 6)
         const cl = lst(Array.isArray(o.cl) ? o.cl : o.cl ? [o.cl] : [], 5)   // V1.9.15 collections (several per product; was one name)   // V1.9.2 design shape (Infinity, Heart…) and stone shape (Round, Pear…)
-        if (jt || sc.length || mc || stt.length || sk || sh.length || ss.length || cl.length) map[k] = { ...(cl.length ? { cl } : {}), ...(jt ? { jt } : {}), ...(sc.length ? { sc } : {}), ...(mc ? { mc } : {}), ...(stt.length ? { st: stt } : {}), ...(sk ? { sk } : {}), ...(sh.length ? { sh } : {}), ...(ss.length ? { ss } : {}) }; else delete map[k]
+        // V1.9.28 extra properties set in Settings (Size, …): {id: value}
+        const x: Record<string, string> = {}; if (o.x && typeof o.x === "object" && !Array.isArray(o.x)) for (const [i, t] of Object.entries(o.x).slice(0, 12)) { const id = String(i).toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 12), val = cleanStr(t, 40).replace(/\s+/g, " ").trim(); if (id && val) x[id] = val }
+        const hasX = Object.keys(x).length > 0
+        if (jt || sc.length || mc || stt.length || sk || sh.length || ss.length || cl.length || hasX) map[k] = { ...(hasX ? { x } : {}), ...(cl.length ? { cl } : {}), ...(jt ? { jt } : {}), ...(sc.length ? { sc } : {}), ...(mc ? { mc } : {}), ...(stt.length ? { st: stt } : {}), ...(sk ? { sk } : {}), ...(sh.length ? { sh } : {}), ...(ss.length ? { ss } : {}) }; else delete map[k]
         n++
       }
       await st.setJSON("pattrs", map)
@@ -862,6 +865,8 @@ export default async (req: Request) => {
         const keys = (a: any) => [...new Set((Array.isArray(a) ? a : []).map((x: any) => String(x || "")).filter((x: string) => /^[A-Za-z]{1,20}$/.test(x)))].slice(0, 80)
         out.ui = { bkF: keys(L.ui.bkF), bkFoff: keys(L.ui.bkFoff), bkC: keys(L.ui.bkC), bkCoff: keys(L.ui.bkCoff), sf: keys(L.ui.sf), sfOff: keys(L.ui.sfOff), top: L.ui.top === "hide" ? "hide" : "show" }
       }
+      // V1.9.28 extra product properties: [{id, n, o:[choices]}]
+      if ("xp" in L) out.xp = (Array.isArray(L.xp) ? L.xp : []).map((p: any) => ({ id: String(p?.id || "").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 12), n: str(p?.n, 30), o: names(p?.o).slice(0, 200) })).filter((p: any) => p.id && p.n).filter((p: any, i: number, a: any[]) => a.findIndex((q: any) => q.id === p.id) === i).slice(0, 10)
       // V1.9.23 design group -> item names it is used for
       if ("jtl" in L && L.jtl && typeof L.jtl === "object" && !Array.isArray(L.jtl)) { const o: Record<string, string[]> = {}; for (const [g, v] of Object.entries(L.jtl).slice(0, 30)) { const k = str(g, 40); if (k) o[k] = names(v).slice(0, 100) } out.jtl = o }
       if ("jt" in L) out.jt = uniq((Array.isArray(L.jt) ? L.jt : []).map((g: any) => [str(Array.isArray(g) ? g[0] : "", 40), names(Array.isArray(g) ? g[1] : [])]), (g) => g[0]).filter((g: any) => g[0]).slice(0, 30)
