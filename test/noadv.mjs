@@ -1,0 +1,41 @@
+// Confirm without advance: special customer + permission to ask + admin approval.
+const B = 'http://localhost:' + (process.env.PORT || 8788) + '/api/';
+let pass = 0, fail = 0;
+const ok = (c, m) => { if (c) { pass++; console.log('ok  ', m); } else { fail++; console.log('FAIL', m); } };
+async function call(tok, p, body) { const r = await fetch(B + p, { method: body ? 'POST' : 'GET', headers: { 'content-type': 'application/json', ...(tok ? { authorization: 'Bearer ' + tok } : {}) }, body: body ? JSON.stringify(body) : undefined }); return { s: r.status, d: await r.json() }; }
+const login = async (userId, pin) => (await call(null, 'login', { userId, pin })).d.token;
+let A = await login('admin', '1986'); await call(A, 'mypin', { pin: '4321', name: 'Praveen' }); A = await login('admin', '4321');
+const u1 = await call(A, 'user', { user: { name: 'Meera', role: 'manager', pin: '3333' } }), mgrId = u1.d.users.find((u) => u.name === 'Meera').id;
+const u2 = await call(A, 'user', { user: { name: 'Anu', role: 'staff', pin: '1111' } }), stId = u2.d.users.find((u) => u.name === 'Anu').id;
+const M = await login(mgrId, '3333'), St = await login(stId, '1111');
+await call(M, 'rates', { rates: { k22: 11800, k18: 9655, k14: 7520, k9: 4830, pt: 4200, ag: 160 } });
+const item = { id: 'i1', product: 'Ring', qty: 1, purity: '18k', colour: 'White', wt: 3.2, stones: [], mkMode: 'pct', mk: 14, photos: [] };
+let r = await call(St, 'order', { create: true, order: { cust: { name: 'Mr Trusted', phone: '+91 9000000055', src: 'Walk-in' }, items: [item] } });
+let o = r.d.order;
+const save = async (tok, ord) => { const x = await call(tok, 'order', { order: ord, baseRev: ord.rev }); if (x.s === 200) o = x.d.order; return x; };
+await save(St, { ...o, status: 'estimate', ests: [{ v: 1, total: 40000, minAdv: 8000, sub: 38800, metal: 30896, rates: { k18: 9655 }, items: [item], lines: [] }] });
+await save(St, { ...o, status: 'approved', approval: { v: 1, ch: 'WhatsApp', ev: 'OK' } });
+ok(o.status === 'approved', 'order approved, no advance');
+r = await save(M, { ...o, status: 'confirmed' }); ok(r.s === 400 && /below the minimum/.test(r.d.error), 'cannot confirm without advance by default');
+r = await save(St, { ...o, noAdv: { req: { reason: 'regular' } } }); ok(r.s === 403, 'staff without the permission cannot ask');
+r = await save(M, { ...o, noAdv: { req: { reason: 'regular' } } }); ok(r.s === 400 && /special customer/.test(r.d.error), 'not a special customer — refused');
+r = await call(M, 'special', { phone: '9000000055', name: 'Mr Trusted' }); ok(r.s === 403, 'manager cannot mark special customers');
+r = await call(A, 'special', { phone: '+91 90000 00055', name: 'Mr Trusted', note: 'family friend' }); ok(r.s === 200 && r.d.settings.specialCust.length === 1, 'admin marks special customer');
+r = await save(M, { ...o, noAdv: { req: { reason: 'regular, pays on delivery' } } }); ok(r.s === 200 && o.noAdv.req.by === 'Meera' && !o.noAdv.ok, 'manager asks; waiting for admin');
+r = await save(M, { ...o, noAdv: { ...o.noAdv, ok: { by: 'Meera' } } }); ok(r.s === 403, 'manager cannot approve');
+r = await save(M, { ...o, status: 'confirmed' }); ok(r.s === 400, 'still cannot confirm before approval');
+r = await save(A, { ...o, noAdv: { ...o.noAdv, ok: { at: 1 } } }); ok(r.s === 200 && o.noAdv.ok.by === 'Praveen', 'admin approves');
+r = await save(M, { ...o, status: 'confirmed', lock: 'full' }); ok(r.s === 400, 'rate lock still needs the metal value paid');
+r = await save(M, { ...o, status: 'confirmed', lock: 'none' }); ok(r.s === 200 && o.status === 'confirmed' && o.noAdvUsed && o.noAdvUsed.by === 'Praveen', 'manager confirms without advance');
+// a second order: approval tied to the estimate version
+r = await call(St, 'order', { create: true, order: { cust: { name: 'Mr Trusted', phone: '9000000055', src: 'Walk-in' }, items: [item] } }); o = r.d.order;
+await save(St, { ...o, status: 'estimate', ests: [{ v: 1, total: 40000, minAdv: 8000, sub: 38800, metal: 30896, rates: { k18: 9655 }, items: [item], lines: [] }] });
+await save(St, { ...o, status: 'approved', approval: { v: 1, ch: 'WhatsApp', ev: 'OK' } });
+r = await save(A, { ...o, noAdv: { req: { reason: 'x' }, ok: { at: 1 } } }); ok(o.noAdv && o.noAdv.ok && o.noAdv.req.by === 'Praveen', 'admin asks + approves in one step');
+await save(St, { ...o, status: 'enquiry' });
+await save(St, { ...o, status: 'estimate', ests: o.ests.concat([{ v: 2, total: 45000, minAdv: 9000, sub: 43000, metal: 30896, rates: { k18: 9655 }, items: [item], lines: [] }]) });
+await save(St, { ...o, status: 'approved', approval: { v: 2, ch: 'WhatsApp', ev: 'OK v2' } });
+r = await save(M, { ...o, status: 'confirmed' }); ok(r.s === 400 && /older estimate/.test(r.d.error), 'approval for an older estimate does not count');
+await call(A, 'special', { phone: '9000000055', on: false });
+r = await call(A, 'state'); ok(!(r.d.settings.specialCust || []).length, 'admin removes special customer');
+console.log(`\n${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);

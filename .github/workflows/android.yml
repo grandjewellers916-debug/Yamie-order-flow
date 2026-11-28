@@ -44,7 +44,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: order-desk-v${{ github.run_number }}
-          name: Yamie Order Desk v3.0.${{ github.run_number }}
+          name: Yamie Order Desk v3.1.${{ github.run_number }}
           target_commitish: ${{ github.sha }}
           files: Yamie-Order-Desk-v*.apk
-          body: "Yamie Order Desk V3.0: Grand order form - enter one item at a time, Add to list moves it into a compact list at the bottom with Edit and Delete, and a fresh line is ready for the next item; quick buttons for more of the same design. V2.8+ apps get this through Reload app."
+          body: "Yamie Order Desk V3.1: confirm an order without advance - only for special customers marked by an admin, asked by staff with the new permission, approved by an admin for each order. Grand orders ask for more of the same item and model after each item is added. V2.8+ apps get this through Reload app."

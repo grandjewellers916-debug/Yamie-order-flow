@@ -194,3 +194,4 @@ details.sec .in{padding:0 12px 12px}
 .gList .in{padding:4px 0}.gRow{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--line)}.gRow:last-child{border:0}.gRow.sub{padding-left:22px}.gRow.urg{background:#fff6f6}
 .gRow img,.gRow .no{width:44px;height:44px;border-radius:10px;object-fit:cover;flex:none}.gRow .no{display:grid;place-items:center;background:#f3eefe;color:#4a1a8c;font-weight:800}
 .gRow .t{flex:1;min-width:0;font-size:14px}.gRow .t small{display:block;color:var(--mute);margin-top:2px}.gRow .a{display:flex;gap:6px;flex:none}
+.gAskBig{background:#efe7fe;border-color:#c9b5f5;font-size:15px;padding:12px 14px}

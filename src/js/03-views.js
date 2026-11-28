@@ -76,6 +76,7 @@ function tasksFor(o) {
   if (o.status === 'approved' && on('advance') && verified(o, 'advance') < num(est && est.minAdv) && now >= apAt + n('advance') * dayMs) t.push(['Take advance (min ' + rupee(est && est.minAdv) + ')', 'w', apAt + n('advance') * dayMs]);
   if (on('verify') && can('verify') && (o.pays || []).some((p) => !p.ok)) t.push(['Verify payment', 'r', now]);
   if (on('confirm') && o.status === 'approved' && verified(o, 'advance') >= num(est && est.minAdv) && can('confirm')) t.push(['Advance verified · confirm the order', 'g', now]);
+  if (o.status === 'approved' && typeof noAdvState === 'function') { const na = noAdvState(o); if (na === 'wait' && me.role === 'admin') t.push(['⭐ Approve: confirm without advance', 'r', now]); if (na === 'ok' && can('confirm')) t.push(['⭐ Approved without advance · confirm the order', 'g', now]); }
   if (on('assignVendor') && o.status === 'confirmed' && now >= (o.confirmedAt || 0) + n('assignVendor') * dayMs) t.push(['Assign vendor', 'w', (o.confirmedAt || now) + n('assignVendor') * dayMs]);
   if (on('workOrder') && o.status === 'vendor' && !o.vendor.sentAt) t.push(['Send work order to ' + o.vendor.name, 'w', now]);
   if (['vendor', 'production', 'rework'].includes(o.status) && o.vendor && o.vendor.etd) {

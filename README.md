@@ -90,6 +90,15 @@ The page talks to `localStorage.yod_api` when set (tests set it to the local ser
 - Final price → manager approves → "Order ready: send card with final price". Customer-OK step and final price card removed (server no longer needs finals[].cust).
 - Phones on cards: shopPhone (estimate), shopPhone2 + shopLandline (ready), woPhone (work order).
 
+## V3.1 (28-11-2026)
+- Confirm without advance — all three are needed, and the server checks each:
+  1. **Special customer**: an admin marks the customer (☆ Mark special on the order screen, or More → Special customers, with a note). Matched by phone number.
+  2. **Permission** "Ask to confirm orders without advance" (Settings → Permissions; managers have it by default, staff do not). Button: "⭐ Confirm without advance (special customer)" with a reason.
+  3. **Admin approval** for that order: the admin sees "⭐ Approve: confirm without advance" in tasks and Approve / Reject on the order. An admin asking approves it at once.
+- The approval is tied to the estimate version; a revised estimate needs a new approval. The gold rate cannot be locked without the metal value paid. The order history records who asked, who approved and that it was confirmed without the minimum advance.
+
+- Grand order form: right after **Add to list** the app asks "✓ Added Chain · Ganguly. More of the same item and model in another weight, length or quantity?" — **Yes, add another** opens a row for the same design (only weight, length, qty); **No, new item** goes on to a new item. It keeps asking after each added row.
+
 ## V3.0 (28-11-2026)
 - Grand order form: one item is entered at a time ("New item"). **✓ Add to list** checks it (item, weight, quantity, emergency date) and moves it to **Items in this order** at the bottom — one compact row per item (photo or number, item · model · length, weight × qty = line weight, emergency date) with **✎ Edit** and **Delete**. A fresh empty line is then ready for the next item.
 - Edit opens the item in the entry card ("Edit item n" → Update item / Cancel). Items already received from the vendor cannot be deleted.

@@ -561,9 +561,14 @@ function gSameHtml() {
   const seen = new Set(), ds = [];
   for (let j = GF.lines.length - 1; j >= 0 && ds.length < 4; j--) { const l = GF.lines[j]; if (j === GF.edit || !gFilled(l) || !l.model) continue; const k = l.item + '|' + l.model; if (!seen.has(k)) { seen.add(k); ds.push(j); } }
   if (!ds.length) return '';
-  return `<div class="gAsk"><span>More of the same design in another weight / length?</span><span class="choiceRow" style="margin:0">${ds.map((j) => `<button class="chip" onclick="gSameAs(${j})">${esc(GF.lines[j].item)} · ${esc(GF.lines[j].model)}</button>`).join('')}</span></div>`;
+  const last = GF._last && GF.lines.find((l, j) => j !== GF.edit && gFilled(l) && l.item === GF._last.item && l.model === GF._last.model);
+  const others = ds.filter((j) => GF.lines[j] !== last);
+  const chips = others.length ? `<div class="gAsk"><span>${last ? 'Or another' : 'More of the same'} design in another weight / length?</span><span class="choiceRow" style="margin:0">${others.map((j) => `<button class="chip" onclick="gSameAs(${j})">${esc(GF.lines[j].item)} · ${esc(GF.lines[j].model)}</button>`).join('')}</span></div>` : '';
+  if (!last) return chips.replace('Or another', 'More of the same');
+  const j = GF.lines.indexOf(last);
+  return `<div class="gAsk gAskBig"><span>✓ Added <b>${esc(last.item)}${last.model ? ' · ' + esc(last.model) : ''}</b>. More of the same item and model in another weight, length or quantity?</span><span><button class="btn small" onclick="gSameAs(${j})">Yes, add another</button><button class="btn small secondary" onclick="GF._last=null;gForm()">No, new item</button></span></div>${chips}`;
 }
-function gSameAs(j) { const l = GF.lines[j]; Object.assign(GF.lines[GF.edit], { item: l.item, model: l.model, img: l.ownImg ? '' : l.img, purity: l.purity, sub: 1 }); gForm(); gFocusEntry(); }
+function gSameAs(j) { GF._last = null; const l = GF.lines[j]; Object.assign(GF.lines[GF.edit], { item: l.item, model: l.model, img: l.ownImg ? '' : l.img, purity: l.purity, sub: 1 }); gForm(); gFocusEntry(); }
 function gFocusEntry() { setTimeout(() => { const el = $('gEntry'); if (el) { el.scrollIntoView({ block: 'start', behavior: 'smooth' }); const w = el.querySelector('.gLine input[inputmode="decimal"]'); if (w) w.focus({ preventScroll: true }); } }, 60); }
 function gCommit() {
   const i = GF.edit, l = GF.lines[i];
@@ -577,12 +582,13 @@ function gCommit() {
     let j = -1; if (l.sub) for (let k = 0; k < GF.lines.length; k++) if (gFilled(GF.lines[k]) && GF.lines[k].item === l.item && GF.lines[k].model === l.model) j = k;
     if (l.sub && j < 0) l.sub = 0;
     if (j >= 0) GF.lines.splice(j + 1, 0, l); else GF.lines.push(l);
+    GF._last = { item: l.item, model: l.model };
     toast('Added to the list');
   } else toast('Item updated');
   GF.lines = GF.lines.filter((x, k) => gFilled(x)); GF.lines.push(gBlankLine()); GF.edit = GF.lines.length - 1; GF.isEdit = false; GF._backup = null;
   gForm(); gFocusEntry();
 }
-function gEntryClear() { GF.lines[GF.edit] = gBlankLine(); gForm(); }
+function gEntryClear() { GF._last = null; GF.lines[GF.edit] = gBlankLine(); gForm(); }
 function gEntryCancel() { if (GF._backup) GF.lines[GF.edit] = GF._backup; GF.lines = GF.lines.filter(gFilled); GF.lines.push(gBlankLine()); GF.edit = GF.lines.length - 1; GF.isEdit = false; GF._backup = null; gForm(); }
 function gEditLine(i) {
   const e = GF.lines[GF.edit];

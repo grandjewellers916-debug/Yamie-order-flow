@@ -13,6 +13,7 @@ function renderMore() {
     ['lists', 'Picture lists', 'Categories, item types, settings, shanks, finishes, stones, shapes — with real photos', can('settings')],
     ['mk', 'Making charge helper', `${(S.mkRules || []).length} default rule(s) by vendor, purity and weight`, can('rates') || can('settings')],
     ['rem', 'Reminders', 'Switch reminders on or off and set their timing', can('settings')],
+    ['special', 'Special customers', `${(S.specialCust || []).length} customer(s) · can be confirmed without advance`, me.role === 'admin'],
     ['review', 'Review desks', `${desks().map((d) => d.name).join(', ')} · ${(S.reviewTopics || []).length} topics`, can('settings')],
     ['users', 'Staff logins', `${users.filter((u) => u.active).length} active`, me.role === 'admin'],
     ['perms', 'Role permissions', 'What managers and staff can do', me.role === 'admin'],
@@ -27,7 +28,7 @@ function renderMore() {
 }
 function renderSub() {
   const back = '<button class="btn small secondary" onclick="go(\'vMore\')" style="margin-bottom:12px">‹ More</button>';
-  const fn = { gems: subLists, lists: subLists, mk: subMk, rem: subRem, review: subReviewCfg, rates: subRates, vendors: subVendors, grand: subGrand, policy: subPolicy, validity: subValidity, users: subUsers, perms: subPerms, backup: subBackup, links: subLinks, pin: subPin }[sub];
+  const fn = { gems: subLists, lists: subLists, mk: subMk, rem: subRem, review: subReviewCfg, special: subSpecial, rates: subRates, vendors: subVendors, grand: subGrand, policy: subPolicy, validity: subValidity, users: subUsers, perms: subPerms, backup: subBackup, links: subLinks, pin: subPin }[sub];
   $('vSub').innerHTML = back + '<div id="subBody"></div>';
   if (fn) fn();
 }

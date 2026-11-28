@@ -23,8 +23,10 @@ function nextActions(o) {
     add('enquiry', 'Revise items', `editOrder('${o.id}')`);
   }
   if (s === 'approved') {
-    if (verified(o, 'advance') < num(est.minAdv) || !(o.pays || []).length) add('advance', 'Record advance', "shPay('advance')", 'main');
-    add('confirm', 'Confirm order', 'shConfirm()', verified(o, 'advance') >= num(est.minAdv) ? 'main' : '');
+    const short = verified(o, 'advance') < num(est.minAdv), wv = noAdvWaived(o);
+    if ((short && !wv) || !(o.pays || []).length) add('advance', 'Record advance', "shPay('advance')", wv ? '' : 'main');
+    add('confirm', wv && short ? 'Confirm order (without advance)' : 'Confirm order', 'shConfirm()', !short || wv ? 'main' : '');
+    if (short && !wv && noAdvState(o) !== 'wait' && isSpecialCust(o.cust.phone) && (can('noadvance') || me.role === 'admin')) add('', '⭐ Confirm without advance (special customer)', 'shNoAdv()');
     add('enquiry', 'Revise items (needs re-approval)', `editOrder('${o.id}')`);
   }
   if (s === 'confirmed') add('vendor', 'Assign vendor & ETD', 'shVendor()', 'main');
@@ -78,7 +80,8 @@ function renderDetail() {
       ${o.vendor && o.vendor.etd ? `<div class="kv"><span>Vendor ETD</span><span>${dt(o.vendor.etd)} · ${esc(o.vendor.name)}</span></div>` : ''}
       ${o.fromPc && !o.fromPc.seen ? `<div class="okBox">Sent from Price Check by ${esc(o.fromPc.by)} · ${dtt(o.fromPc.at)}${o.cust.notes ? ' · ' + esc(o.cust.notes) : ''}${can('enquiry') ? ` <button class="btn small" style="margin-left:8px" onclick="step(cur.id,(x)=>{x.fromPc.seen=true},'Taken up from Price Check','Taken up')">Take it up</button>` : ''}</div>` : ''}
       ${['hold', 'lost'].includes(o.status) && o.outcome ? `<div class="warnBox">${esc(stLabel(o.status))}: ${esc(o.outcome.reason)}</div>` : ''}
-      <div class="actions"><button class="btn small soft" onclick="waChat('${o.id}')">WhatsApp</button><button class="btn small soft" onclick="callCust('${o.id}')">Call</button><button class="btn small soft" onclick="saveToContacts(getO().cust.name, getO().cust.phone, 'Yamie customer · ' + refOf(getO()))">Save to contacts</button>
+      ${noAdvHtml(o)}
+      <div class="actions"><button class="btn small soft" onclick="waChat('${o.id}')">WhatsApp</button>${me.role === 'admin' ? `<button class="btn small soft" onclick="shSpecial()">${isSpecialCust(o.cust.phone) ? '⭐ Special' : '☆ Mark special'}</button>` : isSpecialCust(o.cust.phone) ? '<span class="badge g" style="align-self:center">⭐ Special customer</span>' : ''}<button class="btn small soft" onclick="callCust('${o.id}')">Call</button><button class="btn small soft" onclick="saveToContacts(getO().cust.name, getO().cust.phone, 'Yamie customer · ' + refOf(getO()))">Save to contacts</button>
         ${can('delete') && !o.ono && me.role !== 'admin' ? `<button class="btn small danger" onclick="delOrder('${o.id}')">Delete</button>` : ''}
         ${!['closed', 'lost'].includes(o.status) ? `<button class="btn small soft" onclick="shReview()">Ask for review${openReviews(o).length ? ' (' + openReviews(o).length + ' open)' : ''}</button>` : ''}
         ${me.role === 'admin' ? `<button class="btn small secondary" onclick="shAdmin()">Admin: edit / reset / delete</button>` : ''}</div>
@@ -212,15 +215,15 @@ function doPay(kind, ok) {
 }
 function shConfirm() {
   const o = getO(), est = lastOf(o.ests), adv = verified(o, 'advance');
-  const canLock = adv >= est.lock;
+  const canLock = adv >= est.lock, wv = noAdvWaived(o) && adv < est.minAdv;
   openSheet(`<h2>Confirm order</h2>
     <div class="kv"><span>Estimate</span><span>${esc(est.no || '')} · ${rupee(est.total)}</span></div>
     <div class="kv"><span>Verified advance</span><span><b>${rupee(adv)}</b></span></div>
     <div class="kv"><span>Minimum (${S.minAdv}%)</span><span style="color:${adv >= est.minAdv ? 'var(--ok)' : 'var(--bad)'}">${rupee(est.minAdv)}</span></div>
     <div class="kv"><span>Promised delivery</span><span>${dt(addWorkDays(today(), S.leadDays))} (${S.leadDays} working days)</span></div>
-    ${adv < est.minAdv ? `<div class="badBox">The verified advance is below ${S.minAdv}%. Record and verify the advance first.</div>` : ''}
+    ${wv ? `<div class="okBox">⭐ Special customer — admin ${esc(o.noAdv.ok.by)} approved confirming without advance.</div>` : adv < est.minAdv ? `<div class="badBox">The verified advance is below ${S.minAdv}%. Record and verify the advance first${isSpecialCust(o.cust.phone) ? ', or ask an admin to approve confirming without advance' : ''}.</div>` : ''}
     <label class="check"><input type="checkbox" id="cfLock" ${canLock ? '' : 'disabled'}><span><b>Lock the gold rate</b><br>${canLock ? 'The customer has paid the metal value; the final price uses today\'s rate.' : `Needs ${rupee(est.lock)} verified (metal value). Without it the final price uses the rate on delivery.`}</span></label>
-    <button class="btn block" ${adv < est.minAdv ? 'disabled' : ''} onclick="doConfirm()">Confirm & issue order number</button>`);
+    <button class="btn block" ${adv < est.minAdv && !wv ? 'disabled' : ''} onclick="doConfirm()">Confirm & issue order number${wv ? ' (without advance)' : ''}</button>`);
 }
 function doConfirm() {
   const lock = $('cfLock') && $('cfLock').checked;

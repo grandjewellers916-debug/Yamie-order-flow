@@ -17,8 +17,8 @@ export const config = { path: '/api/*' };
 
 /** Lowest APK that can run the current web page; raise it only when the Android (Kotlin) part changes. */
 const APK_MIN = '2.8';
-const SERVER_VERSION = '3.0';
-const PERM_KEYS = ['enquiry', 'estimate', 'approve', 'advance', 'verify', 'discount', 'confirm', 'vendor', 'production', 'receive', 'qc',
+const SERVER_VERSION = '3.1';
+const PERM_KEYS = ['enquiry', 'estimate', 'approve', 'advance', 'verify', 'discount', 'confirm', 'noadvance', 'vendor', 'production', 'receive', 'qc',
   'finalprice', 'approvefinal', 'ready', 'close', 'cancel', 'rates', 'vendors', 'vendorcontact', 'review', 'viewcost', 'reports', 'delete', 'settings', 'grand', 'grandCreate', 'grandSend', 'grandRecv', 'grandQc', 'grandLabel', 'grandMark', 'grandPack', 'grandDispatch', 'grandAcct', 'grandcfg'];
 const DEF_ROLE_PERMS: Record<string, string[]> = {
   manager: PERM_KEYS.filter((k) => k !== 'settings' && !k.startsWith('grand')),
@@ -30,7 +30,7 @@ const DEF_SETTINGS: any = {
   rates: { k22: 0, k18: 0, k14: 0, k9: 0, pt: 0, ag: 0, at: 0, by: '', src: '', kioskAt: '' },
   kioskAuto: true, kioskUrl: 'https://grandjewellers.com/api/kiosk-rates',
   gst: 3, minAdv: 20, roundTo: 50, finalRoundTo: 100, gems: null, lists: null, mkRules: [], mkShow: 'type', verifyPay: true, huidRate: 80, shipRates: [{ name: 'Courier (Kerala)', rate: 150 }, { name: 'Courier (rest of India)', rate: 300 }, { name: 'India Post (insured)', rate: 400 }], shopPhone2: '', shopLandline: '', woPhone: '', rem: {}, reviewDesks: [{ name: 'Owner / Admin', users: [] }, { name: 'Design desk', users: [] }], reviewTopics: ['Pricing', 'Making charge', 'Design style', 'Stones', 'Size / weight', 'Other'], mkOnStone: false, leadDays: 20, qcBuffer: 2, weeklyOff: [0], holidays: [],
-  estValid: 7, validCount: 'cal', estExpired: 'block', finalValid: 0, roundMode: 'up', finalRoundMode: 'up', advRound: 1, tol: 2, discLimit: 0, karatRef: { k22: 32.6, k18: 28.4, k14: 24.3, k9: 18.7 },
+  specialCust: [], estValid: 7, validCount: 'cal', estExpired: 'block', finalValid: 0, roundMode: 'up', finalRoundMode: 'up', advRound: 1, tol: 2, discLimit: 0, karatRef: { k22: 32.6, k18: 28.4, k14: 24.3, k9: 18.7 },
   approveDays: 2, etdWarnDays: 2, collectDays: 7, autoLock: 20,
   priceCheckUrl: 'https://yamie-price-check.netlify.app', repairUrl: 'https://yamie-repair-desk.netlify.app',
 };
@@ -181,6 +181,10 @@ const minAdvance = (est: any, st: any) => { const r = num(st.advRound) || 1; ret
 /** Last valid date: N calendar or working days from today (0 = today only). */
 const validTill = (n: any, st: any) => (st.validCount === 'work' ? addWorkDays(istDate(now()), num(n), st) : istDate(now() + num(n) * 864e5));
 
+/** Special (trusted) customers, kept by admin in Settings — phone digits, Indian numbers as 10 digits. */
+const phoneKey = (p: any) => { let d = String(p || '').replace(/\D/g, ''); if (d.startsWith('00')) d = d.slice(2); if (d.length === 12 && d.startsWith('91')) d = d.slice(2); if (d.length === 11 && d[0] === '0') d = d.slice(1); return d; };
+const isSpecial = (st: any, phone: any) => { const k = phoneKey(phone); return !!k && (st.specialCust || []).some((c: any) => phoneKey(c.phone) === k); };
+
 function checkOrder(o: any, old: any, me: any, can: (p: string) => boolean, st: any, notes: string[]) {
   const need = (p: string, what: string) => { if (!can(p)) throw new HttpError(`Your role cannot ${what}`, 403); };
   const from = old?.status || 'new', to = o.status;
@@ -231,6 +235,32 @@ function checkOrder(o: any, old: any, me: any, can: (p: string) => boolean, st: 
   if (num(o.disc) !== num(old?.disc) || num(lastOf(o.ests)?.mkSave) !== num(lastOf(old?.ests || [])?.mkSave)) o.discOk = null;
   if (o.discOk && !old?.discOk) { need('discount', 'approve discounts'); o.discOk = { by: me.name, at: now() }; }
 
+  // --- confirm without advance: special customer + staff permission to ask + admin approval ---
+  {
+    const na = o.noAdv || null, ona = old?.noAdv || null;
+    if (JSON.stringify(na) !== JSON.stringify(ona)) {
+      if (!na) { if (me.role !== 'admin' && !can('noadvance')) o.noAdv = ona; else notes.push('Request to confirm without advance withdrawn'); }
+      else {
+        const fresh = !!(na.req && (!ona || !ona.req || ona.req.at !== na.req.at));
+        if (fresh) {
+          need('noadvance', 'ask to confirm an order without advance');
+          if (!isSpecial(st, o.cust?.phone)) throw new HttpError('Only a special customer can be confirmed without advance. An admin marks special customers.', 400);
+          na.req = { by: me.name, at: now(), reason: String(na.req.reason || '').slice(0, 300), v: est?.v || 0 }; na.ok = me.role === 'admin' && na.ok ? { at: -1 } : null; na.rej = null;
+          notes.push(`Asked to confirm without advance: ${na.req.reason}`);
+        } else if (ona) na.req = ona.req;
+        if (na.ok && !(ona && ona.ok && ona.ok.at === na.ok.at)) {
+          if (me.role !== 'admin') throw new HttpError('Only an admin can approve an order without advance', 403);
+          if (!na.req) throw new HttpError('There is no request to approve', 400);
+          na.ok = { by: me.name, at: now(), v: est?.v || 0 }; na.rej = null; notes.push('Admin approved confirming without advance');
+        } else if (!fresh && !na.ok && ona?.ok && me.role !== 'admin') na.ok = ona.ok;
+        if (na.rej && !(ona && ona.rej && ona.rej.at === na.rej.at)) {
+          if (me.role !== 'admin') throw new HttpError('Only an admin can reject this request', 403);
+          na.rej = { by: me.name, at: now(), why: String(na.rej.why || '').slice(0, 200) }; na.ok = null; notes.push('Admin rejected confirming without advance' + (na.rej.why ? ': ' + na.rej.why : ''));
+        }
+      }
+    }
+  }
+
   // --- validity dates: only an admin (or Settings permission) can extend them ---
   for (const [arr, lbl] of [['ests', 'Estimate'], ['finals', 'Final price']] as const) {
     const a = lastOf((o as any)[arr]), b = lastOf((old as any)?.[arr] || []);
@@ -278,7 +308,9 @@ function checkOrder(o: any, old: any, me: any, can: (p: string) => boolean, st: 
   if (to === 'confirmed') {
     if (!o.approval || o.approval.v !== est?.v) throw new HttpError('Customer approval is missing for the latest estimate', 400);
     const adv = verifiedNet(o, 'advance'), min = minAdvance(est, st);
-    if (adv < min) throw new HttpError(`Verified advance ₹${adv.toLocaleString('en-IN')} is below the minimum ₹${min.toLocaleString('en-IN')} (${st.minAdv}%)`, 400);
+    const na = o.noAdv, waived = !!(na && na.ok && num(na.ok.v) === num(est?.v) && isSpecial(st, o.cust?.phone));
+    if (adv < min && !waived) throw new HttpError(`Verified advance ₹${adv.toLocaleString('en-IN')} is below the minimum ₹${min.toLocaleString('en-IN')} (${st.minAdv}%)${na && na.ok ? '. The admin approval is for an older estimate — ask again.' : ''}`, 400);
+    if (adv < min) { o.noAdvUsed = { by: na.ok.by, at: now(), adv }; notes.push(`Confirmed without the minimum advance (special customer, approved by ${na.ok.by})`); }
     if (o.lock === 'full') {
       const need2 = Math.ceil(num(est.metal));
       if (adv < need2) throw new HttpError(`Rate lock needs a verified advance of ₹${need2.toLocaleString('en-IN')} (metal value)`, 400);
@@ -809,6 +841,15 @@ export default async (req: Request) => {
       const n: any = { ...o, id: crypto.randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase(), no: 'GJO-' + String(seq).padStart(4, '0'), at: now(), upd: now(), user: me.name, rev: 1, log: [{ at: now(), by: me.name, t: 'Created' }] };
       await s.setJSON('grand/o/' + n.id, n); return J({ o: n });
     }
+    if (path === 'special' && method === 'POST') {
+      // mark / unmark a special (trusted) customer — admin only
+      if (me.role !== 'admin') return err('Only an admin can mark special customers', 403);
+      const st = await getSettings(s), k = phoneKey(body.phone); if (k.length < 10) return err('Enter the customer phone number', 400);
+      const list = (st.specialCust || []).filter((c: any) => phoneKey(c.phone) !== k);
+      if (body.on !== false) list.unshift({ phone: String(body.phone).slice(0, 20), name: String(body.name || '').slice(0, 60), note: String(body.note || '').slice(0, 120), by: me.name, at: now() });
+      st.specialCust = list.slice(0, 500); await s.setJSON('cfg/settings', st);
+      return J({ settings: st });
+    }
     if (path === 'grand/step' && method === 'POST') {
       need('grand');
       const k = 'grand/o/' + String(body.id || '').replace(/[^A-Z0-9]/gi, ''), o: any = await s.get(k, { type: 'json' });
@@ -976,6 +1017,9 @@ export default async (req: Request) => {
         st.lists = L;
       } else st.lists = cur.lists || null;
       if (!Array.isArray(st.mkRules)) st.mkRules = cur.mkRules || [];
+      // special customers: admin only
+      if (me.role !== 'admin' || !Array.isArray(st.specialCust)) st.specialCust = cur.specialCust || [];
+      st.specialCust = (st.specialCust || []).slice(0, 500).map((c: any) => ({ phone: String(c.phone || '').slice(0, 20), name: String(c.name || '').slice(0, 60), note: String(c.note || '').slice(0, 120), by: String(c.by || '').slice(0, 40), at: num(c.at) })).filter((c: any) => phoneKey(c.phone).length >= 10);
       for (const k of ['estValid', 'finalValid']) st[k] = Math.min(365, Math.max(0, Math.round(num(st[k]))));
       for (const k of ['roundTo', 'finalRoundTo', 'advRound']) st[k] = [1, 10, 50, 100, 500, 1000].includes(num(st[k])) ? num(st[k]) : (DEF_SETTINGS as any)[k];
       for (const k of ['roundMode', 'finalRoundMode']) if (!['up', 'nearest', 'down'].includes(st[k])) st[k] = 'up';
