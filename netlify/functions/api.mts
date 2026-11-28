@@ -5,7 +5,7 @@ import { runDocReminders } from '../lib/reminders.mjs';
 import {
   DEFAULT_SETTINGS, ROLE_PERMS, PERMS, SECTIONS, TXN_TYPES, deriveLocMeta, JTYPES, normJts, applyJewelleryTypes, mainLocsOf, placeLoc29, defaultPlace, keyText, lineKey, itemOf, jtOfLine, purOfLine, summarize, closingVerified, computeExpected, erpCompare,
   latestCounts, locStatus, sumLines, istDate, r3, CASH_DENOMS, cashCalc, isMorning,
-  teamsForLoc, CLAIM_MS, ccOf, periodCats, ccValidate, CC_LABEL,
+  teamsForLoc, CLAIM_MS, saOf, ccOf, periodCats, ccValidate, CC_LABEL,
 } from '../../web/core.mjs';
 
 export const config = { path: '/api/*' };
@@ -847,6 +847,7 @@ export default async (req: Request) => {
       if (typeof b.shopName === 'string') next.shopName = b.shopName.slice(0, 60);
       if (b.erpBasis === 'lbl' || b.erpBasis === 'pcs') next.erpBasis = b.erpBasis;
       for (const k of ['erpItemMap', 'erpCatMap']) if (b[k] && typeof b[k] === 'object') next[k] = Object.fromEntries(Object.entries(b[k]).slice(0, 60).map(([a, v]: any) => [String(a).trim().slice(0, 30), String(v).trim().slice(0, 60)]).filter(([a]) => a));
+      if (Array.isArray(b.erpOrder)) next.erpOrder = b.erpOrder.map((x: any) => String(x).trim().slice(0, 60)).filter(Boolean).slice(0, 80);
       for (const k of ['itemTypes', 'purities', 'categories', 'reasons']) if (Array.isArray(b[k])) next[k] = b[k].map((x: any) => String(x).trim().slice(0, 30)).filter(Boolean);
       if (b.wtTol != null) next.wtTol = Math.max(0, r3(b.wtTol));
       if (b.blind != null) next.blind = !!b.blind;
@@ -877,6 +878,10 @@ export default async (req: Request) => {
         const nc = ccOf({ cc: b.cc }); const errs = ccValidate(nc); if (errs.length) return err(errs.join('. '));
         const before = ccOf(cur); next.cc = nc;
         if (JSON.stringify(before) !== JSON.stringify(nc)) await s.setJSON(`cch/${now()}-${rid().slice(0, 4)}`, { at: now(), by: me.id, byName: me.name, before, after: nc, note: String(b.ccNote || '').slice(0, 200) });
+      }
+      if (b.sa && typeof b.sa === 'object') {   // v1.64 sound alerts (admin)
+        if (me.role !== 'admin') return err('Only admin can change sound alerts', 403);
+        next.sa = saOf({ sa: b.sa });
       }
       if (Array.isArray(b.teams)) next.teams = b.teams.slice(0, 30).map((t: any, i: number) => ({ id: str(t.id, 20).replace(/[^a-z0-9-]/gi, '') || `t${now()}${i}`, name: str(t.name) || `Team ${i + 1}`,
         members: (Array.isArray(t.members) ? t.members : []).map((x: any) => str(x, 40)).filter((x: string) => users.some((u: any) => u.id === x)),

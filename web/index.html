@@ -438,12 +438,24 @@ main.ccmp{padding-bottom:20px;padding-top:8px}
 .seg{display:flex;flex-wrap:wrap;gap:4px;background:#F3ECE4;border-radius:12px;padding:3px}.seg button{flex:1 1 auto;border:0;background:none;border-radius:9px;padding:8px 10px;font:inherit;font-size:13px;cursor:pointer;color:var(--ink)}.seg button.on{background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.1);font-weight:600;color:var(--m)}
 .ccord{margin-top:8px;display:grid;gap:6px}.ccoi{display:flex;align-items:center;gap:8px;border:1px solid var(--ln);border-radius:10px;padding:8px 10px;background:#fff;cursor:grab}.ccoi.drg{opacity:.5}.ccoi button{border:1px solid var(--ln);background:#fff;border-radius:8px;width:32px;height:30px;cursor:pointer}.ccoi button:disabled{opacity:.35}
 .ccsum{margin:0;padding-left:18px;line-height:1.6;font-size:14px}
+
+/* v1.64 sound alerts */
+#pendBar{position:fixed;z-index:60;right:16px;top:calc(env(safe-area-inset-top,0px) + 70px);max-width:min(420px,calc(100vw - 24px));background:var(--card,#fff);border:1px solid var(--warn,#c80);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.16);font-size:14px}
+#pendBar .pbh{display:flex;gap:8px;align-items:center;width:100%;padding:9px 14px;background:none;border:0;font:inherit;cursor:pointer;color:inherit}
+#pendBar .pbh .late,#pendBar .pbr.late b{color:var(--bad,#b00)}#pendBar .pbh .late{font-weight:700;font-size:12px;text-transform:uppercase}
+#pendBar .pbh .mut{margin-left:auto}
+#pendBar .pbl{display:none;border-top:1px solid var(--line,#eee);padding:6px 10px 10px}#pendBar.open .pbl{display:block}
+#pendBar .pbr{display:flex;gap:6px;align-items:center;padding:7px 2px;border-bottom:1px dashed var(--line,#eee)}#pendBar .pbr span{display:block;font-size:12px;color:var(--mut,#777)}
+#pendBar .pbf{display:flex;gap:8px;justify-content:flex-end;align-items:center;padding-top:8px}
+@media(max-width:700px){#pendBar{right:12px;left:12px;max-width:none;top:calc(env(safe-area-inset-top,0px) + 62px)}}
+.snd h3{margin:18px 0 6px}.snd .sndr{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line,#eee);flex-wrap:wrap}.snd .sndr span{display:block}
+.snd .sndr input[type=time]{padding:2px 6px;font:inherit;font-size:13px;border:1px solid var(--line,#ddd);border-radius:6px}
 </style>
 </head>
 <body>
 <div id="app"></div>
 <script type="module">
-import { ccOf, periodCats, ccValidate, CC_CATS, CC_LABEL, teamCovers, teamsForLoc, teamsOfUser, CLAIM_MS, itemLbl, DOC_TYPES, VEHICLE_DOC_TYPES, isVehicleDoc, docDaysLeft, docWatch, DOC_REMIND_DEFAULT, CASH_DENOMS, CASH_COUNTERS, CASH_SHIFTS, cashCalc, cashNotes, isMorning, SECTIONS, PERMS, ROLE_PERMS, REASONS, TXN_TYPES, metalOf, erpMetal, JTYPES, LINE_JTYPES, JT_SHORT, JT_LABEL, JT_CLS, JT_METAL, JT_CODE, JT_FREE_CODES, applyJewelleryTypes, holidayOf, mainLocsOf, placesFor, defaultPlace, LOC_KINDS, METALS, jtMetal, locJts, normJts, itemOf, jtOfLine, purOfLine, defaultPur, lineKey, keyText, defaultJt, roundOf, roundCounts, summarize, sumLines, r3, locStatus, istDate, erpCompare, erpKey } from './core.mjs';
+import { DEFAULT_SETTINGS, SA_TASKS, SA_TONES, saOf, ccOf, periodCats, ccValidate, CC_CATS, CC_LABEL, teamCovers, teamsForLoc, teamsOfUser, CLAIM_MS, itemLbl, DOC_TYPES, VEHICLE_DOC_TYPES, isVehicleDoc, docDaysLeft, docWatch, DOC_REMIND_DEFAULT, CASH_DENOMS, CASH_COUNTERS, CASH_SHIFTS, cashCalc, cashNotes, isMorning, SECTIONS, PERMS, ROLE_PERMS, REASONS, TXN_TYPES, metalOf, erpMetal, JTYPES, LINE_JTYPES, JT_SHORT, JT_LABEL, JT_CLS, JT_METAL, JT_CODE, JT_FREE_CODES, applyJewelleryTypes, holidayOf, mainLocsOf, placesFor, defaultPlace, LOC_KINDS, METALS, jtMetal, locJts, normJts, itemOf, jtOfLine, purOfLine, defaultPur, lineKey, keyText, defaultJt, roundOf, roundCounts, summarize, sumLines, r3, locStatus, istDate, erpCompare, erpKey } from './core.mjs';
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -466,7 +478,7 @@ const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 
   apply();
 })();
 const STLBL = { pending: 'Not checked', ok: 'Verified', var: 'Discrepancy', stale: 'Recount' };
-const VERSION = '1.62';
+const VERSION = '1.64';
 const ICON = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   counter: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/>',
@@ -591,6 +603,7 @@ async function load(quiet) {
     S.eodCount = j.mvs.filter((m) => m.eod && !m.void).length;
     S.locById = Object.fromEntries(j.locs.map((l) => [l.id, l]));
     if (quiet && j.alerts.unread > prevUnread) notify(j.alerts.unread - prevUnread);
+    if (quiet && j.alerts.unread > prevUnread && sndDev() && saOf(j.settings).on && saOf(j.settings).al && can('alerts')) { const A = saOf(j.settings); playTone(A.tone, A.vol, false); }
     if (!quiet) render();
     else if (S.modal || typingNow()) { renderTop(); pendingRender = !S.modal || pendingRender; }
     else keepScroll(render);
@@ -602,6 +615,75 @@ function notify(n) {
   } else toast(`🔔 ${n} new alert${n > 1 ? 's' : ''}`);
 }
 setInterval(() => { if (S.me && document.visibilityState === 'visible' && !S.modal) load(true); }, 40000);
+// ---------- v1.64 sound alerts for pending tasks ----------
+let AC = null;
+const acx = () => { try { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); } catch {} return AC; };
+['pointerdown', 'keydown', 'touchstart'].forEach((e) => window.addEventListener(e, () => acx(), { passive: true }));   // browsers need one tap before sound
+const sndDev = () => localStorage.ysc_snd !== 'off';                                     // this device: on / off
+function playTone(tone, vol, urgent) {
+  const c = acx(); if (!c) return; const g0 = Math.max(0.01, (vol ?? 80) / 100) * 0.5; const t0 = c.currentTime + 0.02;
+  const note = (f, at, dur, type = 'sine', g = g0) => { const o = c.createOscillator(), v = c.createGain(); o.type = type; o.frequency.value = f; v.gain.setValueAtTime(0.0001, at); v.gain.exponentialRampToValueAtTime(g, at + 0.02); v.gain.exponentialRampToValueAtTime(0.0001, at + dur); o.connect(v).connect(c.destination); o.start(at); o.stop(at + dur + 0.05); };
+  const T = { chime: [[880, 0, .5], [1175, .18, .7], [1568, .36, .9]], bell: [[660, 0, 1.6], [1320, 0, 1.2, 'sine', g0 * .4], [990, .8, 1.6], [1980, .8, 1.2, 'sine', g0 * .4]],
+    beep: [[1000, 0, .15, 'square', g0 * .5], [1000, .25, .15, 'square', g0 * .5], [1000, .5, .15, 'square', g0 * .5]],
+    alarm: [[880, 0, .22, 'sawtooth', g0 * .5], [660, .25, .22, 'sawtooth', g0 * .5], [880, .5, .22, 'sawtooth', g0 * .5], [660, .75, .22, 'sawtooth', g0 * .5]] };
+  const seq = T[tone] || T.chime; const reps = urgent ? 3 : 1; const len = Math.max(...seq.map((n) => n[1] + n[2])) + 0.25;
+  for (let r = 0; r < reps; r++) seq.forEach(([f, at, d, ty, g]) => note(f, t0 + r * len + at, d, ty, g));
+}
+function saBuzz(urgent) { const A = saOf(S.D?.settings); if (A.vib && navigator.vibrate) try { navigator.vibrate(urgent ? [300, 150, 300, 150, 300] : [250, 120, 250]); } catch {} }
+const nowMin = () => { const [h, m] = nowHM().split(':').map(Number); return h * 60 + m; };
+const hmMin = (t) => { const [h, m] = String(t || '00:00').split(':').map(Number); return h * 60 + m; };
+let saCash = { at: 0, recs: null };
+async function saTasks() {               // tasks that are due now and not done, for this user
+  if (!S.me || !S.D || !isToday()) return [];
+  const A = saOf(S.D.settings), C = S.cc || ccOf(S.D.settings), R = S.rounds || {}, closed = S.D.day.status === 'closed', out = [];
+  if (!A.on || closed) return out;
+  const canDo = (perm) => perm === 'close' ? can('close') : perm === 'cash' ? (can('cash') || can('cashVerify')) : can(perm);
+  if ((A.tasks.cm.on || A.tasks.ce.on) && canDo('cash') && Date.now() - saCash.at > 120000) { try { saCash = { at: Date.now(), recs: (await api(`cash?from=${S.D.today}&to=${S.D.today}`)).records }; } catch { saCash.at = Date.now(); } }
+  const cashDone = (sh) => (saCash.recs || []).some((r) => sessOf(r) === sh && r.state === 'closed');
+  for (const [k, name, perm] of SA_TASKS) {
+    const t = A.tasks[k]; if (!t.on || !canDo(perm)) continue;
+    let at = t.at, due = null, pend = false, go = 'home';
+    if (k === 'mc') { const P = C.morning; if (!P.on) continue; at = P.start; due = P.due; pend = S.round === 'morning' && R.morning && !R.morning.off && R.morning.done < R.morning.locs; go = 'stock'; }
+    if (k === 'ec') { const P = C.evening; if (!P.on) continue; at = P.start; due = P.due; pend = S.round !== 'evening' || (R.evening && !R.evening.off && R.evening.done < R.evening.locs); go = 'stock'; }
+    if (k === 'eod') { pend = S.round === 'morning' && !S.eodCount; go = 'eod'; }
+    if (k === 'cm') { if (!saCash.recs) continue; pend = !cashDone('Morning'); go = 'cash'; }
+    if (k === 'ce') { if (!saCash.recs) continue; pend = !cashDone('Evening'); go = 'cash'; }
+    if (k === 'cd') { pend = true; go = 'stock'; }
+    if (!pend || nowMin() < hmMin(at)) continue;
+    out.push({ k, name, at, due, go, late: due ? nowMin() > hmMin(due) : nowMin() > hmMin(at) + 60 });
+  }
+  return out;
+}
+const saSnz = () => { try { const x = JSON.parse(localStorage.ysc_snz || '{}'); return x.d === S.D?.today ? x : { d: S.D?.today }; } catch { return { d: S.D?.today }; } };
+let saLast = {};
+async function saTick(force) {
+  const list = await saTasks(); const A = saOf(S.D?.settings); const sz = saSnz(); const t = Date.now();
+  const live = list.filter((x) => !(sz[x.k] > t));
+  saBar(list, sz);
+  if (!sndDev() || !live.length) return;
+  const rep = (A.repeat || 0) * 60000;
+  const ring = live.filter((x) => !saLast[x.k] || (rep && t - saLast[x.k] >= rep));
+  if (!ring.length && !force) return;
+  ring.forEach((x) => saLast[x.k] = t);
+  const urgent = A.urgent && ring.some((x) => x.late);
+  playTone(urgent ? 'alarm' : A.tone, A.vol, urgent); saBuzz(urgent);
+}
+function saBar(list, sz) {
+  let el = $('#pendBar'); const t = Date.now();
+  if (!list.length || ['login'].includes(S.view)) { if (el) el.remove(); return; }
+  if (!el) { el = document.createElement('div'); el.id = 'pendBar'; document.body.appendChild(el); }
+  const open = el.classList.contains('open');
+  el.innerHTML = `<button class="pbh" id="pbT">🔔 <b>${list.length}</b> pending task${list.length > 1 ? 's' : ''}${list.some((x) => x.late) ? ' <span class="late">late</span>' : ''}<span class="mut">${open ? '▾' : '▸'}</span></button>
+    <div class="pbl">${list.map((x) => `<div class="pbr ${x.late ? 'late' : ''}"><div class="grow"><b>${esc(x.name)}</b><span>${x.due ? `${x.at}–${x.due}` : `from ${x.at}`}${sz[x.k] > t ? ` · snoozed till ${new Date(sz[x.k]).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}` : ''}</span></div><button class="btn sm" data-pbgo="${x.go}">Open</button><button class="btn sm ghost" data-pbsz="${x.k}">Snooze 15m</button></div>`).join('')}
+    <div class="pbf"><button class="btn sm ghost" id="pbAll">Snooze all 15m</button>${sndDev() ? '<button class="btn sm ghost" id="pbMute">🔇 Mute this device</button>' : '<span class="mut sm">Sound off on this device</span>'}</div></div>`;
+  el.querySelector('#pbT').onclick = () => { el.classList.toggle('open'); saBar(list, sz); };
+  el.querySelectorAll('[data-pbgo]').forEach((b) => b.onclick = () => { el.classList.remove('open'); go(b.dataset.pbgo); });
+  const snooze = (ks) => { const x = saSnz(); ks.forEach((k) => x[k] = Date.now() + 15 * 60000); localStorage.ysc_snz = JSON.stringify(x); saBar(list, x); };
+  el.querySelectorAll('[data-pbsz]').forEach((b) => b.onclick = () => snooze([b.dataset.pbsz]));
+  el.querySelector('#pbAll').onclick = () => snooze(list.map((x) => x.k));
+  el.querySelector('#pbMute') && (el.querySelector('#pbMute').onclick = () => { localStorage.ysc_snd = 'off'; toast('🔇 Sound alerts off on this device — turn on in Settings › This device'); saBar(list, sz); });
+}
+setInterval(() => { if (S.me && S.D) saTick(); }, 30000);
 document.addEventListener('visibilitychange', () => { if (S.me && document.visibilityState === 'visible' && !S.modal && Date.now() - lastLoadAt > 15000) load(true); });
 
 const activeLocs = (sec) => S.D.locs.filter((l) => (l.active !== false || sumLines(S.sum.exp[l.id]?.lines)) && (!sec || l.sec === sec)).sort((a, b) => (a.order || 0) - (b.order || 0));
@@ -3566,10 +3648,10 @@ function vMore() {
     ['Gold & bullion', [['coins', 'coin', 'Gold coins', 'Our price vs Bhima, rate card', can('coins') || can('coinSet')], ['sx', 'gold', 'Bullion & Grand', 'Bullion boxes, Grand stock', can('special') || can('grandBul')]]],
     ['Business', [['docs', 'doc', 'Documents', 'Licences, GST, bank, UPI, vehicles', can('docs') || can('docsEdit')]]],
     ['Stock setup', [[adm('lists', 'ml'), 'pin', 'Locations', 'Main & sub locations', can('setup')], [adm('lists', 'jt'), 'gem', 'Classifications', 'Gold, Diamond, Lab-grown…', can('setup')], [adm('lists', 'item'), 'ring', 'Products', 'Ring, Stud, Pendant…', can('setup')], [adm('lists', 'pur'), 'scale', 'Purities', '22K, 18K, 14K, PT950…', can('setup')], [adm('locs'), 'tray', 'Counters, trays & boxes', 'Add, edit, move', can('setup')], [adm('lists', 'lc'), 'tag', 'Label codes', 'ERP barcode prefixes', can('setup')], [adm('cc'), 'clock', 'Counting configuration', 'Morning / evening, categories, rules', S.me.role === 'admin']]],
-    ['Administration', [[adm('users'), 'user', 'Users', 'Logins & permissions', can('users')], [adm('settings'), 'gear', 'App & ERP settings', 'Tolerances, ERP mapping', can('setup')], [adm('teams'), 'user', 'Counting teams', 'Teams, locations, phones', can('users') || can('setup')], [adm('share'), 'share', 'Holidays & sharing', 'Report recipients, holidays', can('setup')], [adm('coins'), 'coin', 'Gold coin margin', 'Margin, rounding, disclaimers', can('coinSet')], [adm('backup'), 'dl', 'Backup', 'Download / restore data', S.me.role === 'admin']]],
+    ['Administration', [[adm('users'), 'user', 'Users', 'Logins & permissions', can('users')], [adm('settings'), 'gear', 'App & ERP settings', 'Tolerances, ERP mapping', can('setup')], [adm('teams'), 'user', 'Counting teams', 'Teams, locations, phones', can('users') || can('setup')], [adm('share'), 'share', 'Holidays & sharing', 'Report recipients, holidays', can('setup')], [adm('coins'), 'coin', 'Gold coin margin', 'Margin, rounding, disclaimers', can('coinSet')], [adm('snd'), 'bell', 'Sound alerts', 'Pending-task alarms, tone, times', S.me.role === 'admin'], [adm('backup'), 'dl', 'Backup', 'Download / restore data', S.me.role === 'admin']]],
   ].map(([g, it]) => [g, it.filter((x) => x[4])]).filter(([, it]) => it.length);
   // v1.57 search: every tile carries its words (title, description, group, extra keywords)
-  const KW = { 'adm:cc:': 'stock taking morning evening session category mode sequence reminder deadline partial resume pin recount',  eod: 'sales return smith sample entries', 'adm:lists:ml': 'main location sub location counter shelf floating tray box grand', 'adm:lists:jt': 'gold diamond lab grown platinum silver jewellery type', 'adm:lists:item': 'ring stud pendant set bracelet necklace bangle chain nosepin coin item', 'adm:lists:pur': '22k 18k 14k 9k pt950 925 purity karat', 'adm:locs:': 'add edit move tray counter box location', 'adm:users:': 'staff login pin permission role', 'adm:teams:': 'team counting phone assign', 'adm:share:': 'whatsapp email report holiday sunday', 'adm:coins:': 'margin rounding disclaimer', 'adm:backup:': 'restore download', 'adm:settings:': 'erp tolerance weight blind', coins: 'bhima rate card', sx: 'bullion 999 995 grand stock', docs: 'gst licence bank upi vehicle insurance location review', total: 'consolidated item count print', reports: 'excel pdf share' };
+  const KW = { 'adm:snd:': 'sound alarm alert ring tone beep reminder pending task snooze mute volume', 'adm:cc:': 'stock taking morning evening session category mode sequence reminder deadline partial resume pin recount',  eod: 'sales return smith sample entries', 'adm:lists:ml': 'main location sub location counter shelf floating tray box grand', 'adm:lists:jt': 'gold diamond lab grown platinum silver jewellery type', 'adm:lists:item': 'ring stud pendant set bracelet necklace bangle chain nosepin coin item', 'adm:lists:pur': '22k 18k 14k 9k pt950 925 purity karat', 'adm:locs:': 'add edit move tray counter box location', 'adm:users:': 'staff login pin permission role', 'adm:teams:': 'team counting phone assign', 'adm:share:': 'whatsapp email report holiday sunday', 'adm:coins:': 'margin rounding disclaimer', 'adm:backup:': 'restore download', 'adm:settings:': 'erp tolerance weight blind', coins: 'bhima rate card', sx: 'bullion 999 995 grand stock', docs: 'gst licence bank upi vehicle insurance location review', total: 'consolidated item count print', reports: 'excel pdf share' };
   let curG = '';
   const tile = (k, ic, t, d, id = '', extra = '') => `<button class="stt" data-s="${esc(`${t} ${d} ${curG} ${KW[k] || ''} ${id}`.toLowerCase())}" ${k ? `data-go="${k}"` : ''} ${id ? `id="${id}"` : ''}><span class="stic">${svg(ic, 22)}</span><span class="stt1">${t}</span><span class="stt2">${d}</span>${extra}</button>`;
   const ini = String(S.me.name || '?').trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
@@ -3580,6 +3662,7 @@ function vMore() {
   ${(curG = 'This device', '')}<section class="sts"><div class="stg">This device</div><div class="sttg">
     ${tile('', 'lock', 'Change my PIN', 'Your login PIN', 'pinBtn')}
     ${tile('', 'bell', 'Notifications', noti ? 'On — alerts while open' : 'Off', 'notiBtn', `<span class="tgl ${noti ? 'on' : ''}"><i></i></span>`)}
+    ${tile('', 'bell', 'Sound alerts on this device', sndDev() ? 'On — rings for pending tasks' : 'Off on this device', 'sndBtn', `<span class="tgl ${sndDev() ? 'on' : ''}"><i></i></span>`)}
     ${tile('', 'sync', 'Reload app', 'Get the latest version', 'rldBtn')}
     ${tile('', 'out', 'Log out', esc(S.me.name), 'outBtn')}
   </div></section><div class="card mut" id="stNone" style="display:none;margin-top:16px">No setting matches that search.</div></div>`;
@@ -3590,6 +3673,7 @@ function vMore() {
   $('#stQ').onkeydown = (e) => { if (e.key === 'Enter') { const v = [...$('#main').querySelectorAll('.stt')].filter((t) => t.style.display !== 'none'); if (v.length === 1) v[0].click(); } else if (e.key === 'Escape') { $('#stQ').value = ''; stFilter(); } };
   $('#main').querySelectorAll('[data-go]').forEach((b) => b.onclick = () => { const g = b.dataset.go; if (g.startsWith('adm:')) { const [, tab, f] = g.split(':'); S.tab = tab; S.lfocus = f || null; go('admin'); } else go(g); });
   $('#outBtn').onclick = logout;
+  $('#sndBtn').onclick = () => { if (sndDev()) localStorage.ysc_snd = 'off'; else { localStorage.ysc_snd = 'on'; const A = saOf(S.D.settings); playTone(A.tone, A.vol); } render(); };
   $('#rldBtn').onclick = () => { if (window.YamieStock?.reload) window.YamieStock.reload(); else location.reload(); };
   $('#notiBtn').onclick = async () => { if (localStorage.ysc_notify === '1') localStorage.ysc_notify = '0'; else { if ('Notification' in window) { const p = await Notification.requestPermission(); if (p !== 'granted') toast('Notifications blocked in browser settings — in-app alerts still work'); } localStorage.ysc_notify = '1'; } vMore(); };
   $('#pinBtn').onclick = () => modal('Change my PIN', '', `<label class="f">Current PIN</label><input type="password" inputmode="numeric" id="p0"><label class="f">New PIN (4–6 digits)</label><input type="password" inputmode="numeric" id="p1"><button class="btn" style="width:100%;margin-top:14px" id="pS">Save</button>`, () => { $('#pS').onclick = async () => { try { await api('me/pin', { old: $('#p0').value, pin: $('#p1').value }); toast('PIN changed'); closeModal(); } catch (e) { fail(e); } }; });
@@ -3626,11 +3710,11 @@ async function vHistory() {
   } catch (e) { fail(e); }
 }
 async function vAdmin() {
-  const tabs = [['users', 'Users', can('users')], ['locs', 'Locations', can('setup')], ['settings', 'Settings', can('setup')], ['lists', 'Lists', can('setup')], ['share', 'Holidays & sharing', can('setup')], ['cc', 'Counting configuration', S.me.role === 'admin'], ['teams', 'Counting teams', can('users') || can('setup')], ['coins', 'Gold coins', can('coinSet')], ['backup', 'Backup', S.me.role === 'admin']].filter((x) => x[2]);
+  const tabs = [['users', 'Users', can('users')], ['locs', 'Locations', can('setup')], ['settings', 'Settings', can('setup')], ['lists', 'Lists', can('setup')], ['share', 'Holidays & sharing', can('setup')], ['cc', 'Counting configuration', S.me.role === 'admin'], ['snd', 'Sound alerts', S.me.role === 'admin'], ['teams', 'Counting teams', can('users') || can('setup')], ['coins', 'Gold coins', can('coinSet')], ['backup', 'Backup', S.me.role === 'admin']].filter((x) => x[2]);
   if (!tabs.find((t) => t[0] === S.tab)) S.tab = tabs[0]?.[0];
   $('#main').innerHTML = `<h1 style="margin-bottom:12px">Admin</h1><div class="tabs">${tabs.map(([k, t]) => `<button data-t="${k}" class="${S.tab === k ? 'on' : ''}">${t}</button>`).join('')}</div><div id="adm"></div>`;
   $('#main').querySelectorAll('[data-t]').forEach((b) => b.onclick = () => { S.tab = b.dataset.t; vAdmin(); });
-  if (S.tab === 'users') admUsers(); else if (S.tab === 'locs') admLocs(); else if (S.tab === 'backup') admBackup(); else if (S.tab === 'lists') admLists(); else if (S.tab === 'share') admShare(); else if (S.tab === 'coins') admCoins(); else if (S.tab === 'teams') admTeams(); else if (S.tab === 'cc') admCC(); else admSettings();
+  if (S.tab === 'users') admUsers(); else if (S.tab === 'locs') admLocs(); else if (S.tab === 'backup') admBackup(); else if (S.tab === 'lists') admLists(); else if (S.tab === 'share') admShare(); else if (S.tab === 'coins') admCoins(); else if (S.tab === 'teams') admTeams(); else if (S.tab === 'cc') admCC(); else if (S.tab === 'snd') admSnd(); else admSettings();
 }
 // ---------- v1.56 Admin › Counting teams: who counts which main / sub location, counter or tray group; live progress from all phones ----------
 function teamTree() {
@@ -3688,6 +3772,37 @@ function teamEdit(t0) {
   });
 }
 // ---------- v1.60 Settings → Stock taking → Counting configuration (admin) ----------
+function admSnd() {   // v1.64 sound alerts for pending tasks (admin)
+  if (!S.saEdit) S.saEdit = JSON.parse(JSON.stringify(saOf(S.D.settings)));
+  const A = S.saEdit, C = S.cc, sw = (id, on) => `<input type="checkbox" class="sw" id="${id}" ${on ? 'checked' : ''}>`;
+  const when = (k) => k === 'mc' ? (C.morning.on ? `${C.morning.start}–${C.morning.due} · from Counting configuration` : 'Morning count is off') : k === 'ec' ? (C.evening.on ? `${C.evening.start}–${C.evening.due} · from Counting configuration` : 'Evening count is off') : '';
+  $('#adm').innerHTML = `<div class="card snd">
+    <div class="row sp"><div><h2 style="margin:0">Sound alerts</h2><div class="mut sm">Rings on phones and computers (app open) while a task is pending after its time. Each person hears only the tasks they have permission for.</div></div>${sw('saOn', A.on)}</div>
+    <div class="sndg" style="${A.on ? '' : 'opacity:.45;pointer-events:none'}">
+      <h3>Pending tasks</h3>
+      ${SA_TASKS.map(([k, name, perm, fromCC]) => `<div class="sndr"><div class="grow"><b>${name}</b><span class="mut sm">${fromCC ? when(k) : `Rings from <input type="time" data-sat="${k}" value="${A.tasks[k].at}"> until done`} · ${perm === 'close' ? 'users who can close the day' : perm === 'cash' ? 'cash staff' : perm === 'move' ? 'users who enter stock in / out' : 'counting staff'}</span></div>${sw('sat_' + k, A.tasks[k].on)}</div>`).join('')}
+      <div class="sndr"><div class="grow"><b>New alerts</b><span class="mut sm">Short ring when a new alert arrives (variance, cash mismatch, recount…) — users with “Receive alerts”</span></div>${sw('saAl', A.al)}</div>
+      <h3>Sound</h3>
+      <div class="sndr"><div class="grow"><b>Tone</b></div><div class="seg">${Object.entries(SA_TONES).map(([k, v]) => `<button data-tone="${k}" class="${A.tone === k ? 'on' : ''}">${v}</button>`).join('')}</div><button class="btn sm sec" id="saTest">▶ Test</button></div>
+      <div class="sndr"><div class="grow"><b>Volume</b> <span class="mut sm" id="saVolT">${A.vol}%</span></div><input type="range" min="10" max="100" step="5" id="saVol" value="${A.vol}" style="width:180px"></div>
+      <div class="sndr"><div class="grow"><b>Repeat</b><span class="mut sm">Ring again while still pending</span></div><select id="saRep" style="width:auto;min-width:170px">${[[0, 'Once only'], [5, 'Every 5 min'], [10, 'Every 10 min'], [15, 'Every 15 min'], [30, 'Every 30 min'], [60, 'Every hour']].map(([v, t]) => `<option value="${v}" ${A.repeat === v ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
+      <div class="sndr"><div class="grow"><b>Urgent alarm when late</b><span class="mut sm">Louder alarm tone after the deadline (counts) or 1 hour after the time (others)</span></div>${sw('saUrg', A.urgent)}</div>
+      <div class="sndr"><div class="grow"><b>Vibrate phones</b></div>${sw('saVib', A.vib)}</div>
+    </div>
+    <div class="mut sm" style="margin-top:10px">Staff can snooze a task for 15 min from the 🔔 bar, or turn sound off on their own device in Settings › This device. Sound plays only while the app or web page is open (a phone with the screen locked won't ring).</div>
+    <div class="row" style="gap:8px;margin-top:14px;justify-content:flex-end"><button class="btn ghost" id="saUndo">Undo changes</button><button class="btn" id="saSave">Save</button></div></div>`;
+  const re = () => admSnd(), tg = (id, f) => $('#' + id).onchange = () => { f(); re(); };
+  tg('saOn', () => A.on = !A.on); tg('saAl', () => A.al = !A.al); tg('saUrg', () => A.urgent = !A.urgent); tg('saVib', () => A.vib = !A.vib);
+  SA_TASKS.forEach(([k]) => tg('sat_' + k, () => A.tasks[k].on = !A.tasks[k].on));
+  $('#adm').querySelectorAll('[data-sat]').forEach((i) => i.onchange = () => { A.tasks[i.dataset.sat].at = i.value || A.tasks[i.dataset.sat].at; });
+  $('#adm').querySelectorAll('[data-tone]').forEach((b) => b.onclick = () => { A.tone = b.dataset.tone; playTone(A.tone, A.vol); re(); });
+  $('#saVol').oninput = (e) => { A.vol = +e.target.value; $('#saVolT').textContent = A.vol + '%'; };
+  $('#saVol').onchange = () => playTone(A.tone, A.vol);
+  $('#saRep').onchange = (e) => A.repeat = +e.target.value;
+  $('#saTest').onclick = () => playTone(A.tone, A.vol);
+  $('#saUndo').onclick = () => { S.saEdit = null; re(); };
+  $('#saSave').onclick = async () => { try { await api('settings', { settings: { sa: A } }); S.saEdit = null; toast('🔔 Sound alerts saved'); await load(true); saLast = {}; render(); } catch (e) { fail(e); } };
+}
 function admCC() {
   if (S.me.role !== 'admin') return $('#adm').innerHTML = '<div class="card">Admin only</div>';
   const E = (S.ccEdit ||= JSON.parse(JSON.stringify(S.cc)));
@@ -4161,6 +4276,7 @@ function admSettings() {
     <label class="f">Match app count against ERP</label><select id="sE"><option value="lbl" ${st.erpBasis !== 'pcs' ? 'selected' : ''}>Labels (Lbl)</option><option value="pcs" ${st.erpBasis === 'pcs' ? 'selected' : ''}>Pieces (Pc)</option></select>
     <label class="f">App item type → ERP ornament (one per line, e.g. Ring = G-Ring)</label><textarea id="sM" style="min-height:150px">${esc(Object.entries(st.erpItemMap || {}).map(([a, b]) => `${a} = ${b}`).join('\n'))}</textarea>
     <label class="f">Category → ERP ornament (overrides item type; use - for "not in this ERP report")</label><textarea id="sCM">${esc(Object.entries(st.erpCatMap || {}).map(([a, b]) => `${a} = ${b}`).join('\n'))}</textarea>
+    <label class="f">ERP ornament order — Match with ERP table and reports (one per line, top first)</label><textarea id="sOrd" style="min-height:150px">${esc((st.erpOrder?.length ? st.erpOrder : DEFAULT_SETTINGS.erpOrder).join('\n'))}</textarea>
     <div class="banner" style="margin-top:12px">Stock locations, sub displays, jewellery types and items are edited in <b>Admin → Lists</b>.</div>
     <label class="f">ERP ornament for Platinum</label><input type="text" id="sPt" value="${esc(st.erpPlatinum || 'YFJ - PLATINUM MM')}">
     <label class="f">ERP ornament for Tanih - CVD Jewellery</label><input type="text" id="sTn" value="${esc(st.erpTanih || 'Tanih - CVD Jewellery')}">
@@ -4172,7 +4288,7 @@ function admSettings() {
     <button class="btn" style="width:100%;margin-top:14px" id="sS">Save settings</button></div>`;
   const list = (v) => v.split(',').map((x) => x.trim()).filter(Boolean);
   const kv = (v) => Object.fromEntries(v.split('\n').map((x) => x.split('=').map((y) => y.trim())).filter((x) => x[0] && x.length > 1));
-  $('#sS').onclick = async () => { try { await api('settings', { settings: { shopName: $('#sN').value, waNumber: $('#sW').value, wtTol: +$('#sT').value, blind: $('#sB').checked, reqPhotos: $('#sPh').checked, erpBasis: $('#sE').value, erpPlatinum: $('#sPt').value, erpTanih: $('#sTn').value, erpSilver: $('#sAg').value, erpItemMap: kv($('#sM').value), erpCatMap: kv($('#sCM').value), reasons: list($('#sR').value), purities: list($('#sP').value), categories: list($('#sC').value) } }); toast('Settings saved'); load(true); } catch (e) { fail(e); } };
+  $('#sS').onclick = async () => { try { await api('settings', { settings: { shopName: $('#sN').value, waNumber: $('#sW').value, wtTol: +$('#sT').value, blind: $('#sB').checked, reqPhotos: $('#sPh').checked, erpBasis: $('#sE').value, erpPlatinum: $('#sPt').value, erpTanih: $('#sTn').value, erpSilver: $('#sAg').value, erpItemMap: kv($('#sM').value), erpCatMap: kv($('#sCM').value), erpOrder: $('#sOrd').value.split('\n').map((x) => x.trim()).filter(Boolean), reasons: list($('#sR').value), purities: list($('#sP').value), categories: list($('#sC').value) } }); toast('Settings saved'); load(true); } catch (e) { fail(e); } };
 }
 
 // ---------------- boot ----------------

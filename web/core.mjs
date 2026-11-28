@@ -15,6 +15,7 @@ export const DEFAULT_SETTINGS = {
   waNumber: '',        // admin WhatsApp number for reports
   erpBasis: 'lbl',
   erpItemMap: { Ring: 'G-Ring', Stud: 'G-Earring', Pendant: 'G-Pendant', Set: 'G- Jewellery Set', Bracelet: 'G-Bracelet', Necklace: 'G-Necklace', Bangle: 'G-Bangle', Chain: 'G-Chain', Nosepin: 'G-Nosepins', Coin: 'G-Gold Coin', Findings: 'Findings', Mixed: 'G-Diamond Jewellery' },
+  erpOrder: ['Findings', 'G- Jewellery Set', 'G-Bangle', 'G-Bracelet', 'G-Chain', 'G-Diamond Jewellery', 'G-Earring', 'G-Gold Coin', 'G-Necklace', 'G-Nosepins', 'G-Pendant', 'G-Ring', 'Tanih - CVD Jewellery'],   // v1.63 Praveen's report order
   erpCatMap: { Diamond: 'G-Diamond Jewellery', 'Lab-grown': 'Tanih - CVD Jewellery' },
   erpTanih: 'Tanih - CVD Jewellery', erpSilver: 'Silver Jewellery', erpPlatinum: 'YFJ - PLATINUM MM',   // ERP ornament for all Platinum jewellery
   // Location model (v1.8)
@@ -393,7 +394,8 @@ export function erpCompare(erp, locs, sm, settings, which = 'closing', opening =
   }
   const list = [...rows.values()].filter((r) => r.erp || r.app);
   for (const r of list) { const bv = r[basis]; r.basisVal = r.erp ? +(bv || 0) : null; r.diff = r.erp ? r.app - r.basisVal : null; }
-  list.sort((a, b) => (b.erp - a.erp) || a.name.localeCompare(b.name));
+  const ord = (settings?.erpOrder?.length ? settings.erpOrder : DEFAULT_SETTINGS.erpOrder).map(erpKey); const ix = (r) => { const i = ord.indexOf(erpKey(r.name)); return i < 0 ? 1e6 : i; };
+  list.sort((a, b) => (ix(a) - ix(b)) || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));   // v1.63 ERP report order (Settings › ERP order)
   const app = list.reduce((a, r) => a + r.app, 0);
   const sumOf = (k) => list.reduce((a, r) => a + (+r[k] || 0), 0);
   const total = { app, pcs: erp?.total?.pcs ?? sumOf('pcs'), lbl: erp?.total?.lbl ?? sumOf('lbl'), gr: erp?.total?.gr ?? null, net: erp?.total?.net ?? null };
@@ -446,4 +448,27 @@ export function ccValidate(cc) {
   for (const k of ['morning', 'evening']) if (cc[k].on && !periodCats(cc, k).length) errs.push(`${k === 'morning' ? 'Morning' : 'Evening'} count is on but has no enabled stock category`);
   for (const k of ['morning', 'evening']) if (cc[k].on && cc[k].start >= cc[k].due) errs.push(`${k === 'morning' ? 'Morning' : 'Evening'} deadline must be after its start time`);
   return errs;
+}
+
+// ---------- v1.64 sound alerts for pending tasks ----------
+// Shop-wide settings `sa` (admin). Count times come from the counting configuration (cc); the others have their own time.
+export const SA_TASKS = [
+  ['mc', 'Morning stock count', 'count', true],          // from cc.morning.start
+  ['cm', 'Cash morning count', 'cash', false],
+  ['eod', 'End-of-day entries', 'move', false],
+  ['ec', 'Evening stock count', 'count', true],          // from cc.evening.start
+  ['ce', 'Cash evening closing', 'cash', false],
+  ['cd', 'Close the day', 'close', false],
+];
+export const SA_TONES = { chime: 'Chime', bell: 'Bell', beep: 'Beep', alarm: 'Alarm' };
+export const SA_DEFAULT = {
+  on: true, tone: 'chime', vol: 80, repeat: 10, urgent: true, vib: true, al: true,
+  tasks: { mc: { on: true }, cm: { on: true, at: '10:00' }, eod: { on: true, at: '18:00' }, ec: { on: true }, ce: { on: true, at: '20:30' }, cd: { on: true, at: '21:00' } },
+};
+export function saOf(st) {
+  const x = st?.sa || {}; const D = SA_DEFAULT; const hm = (v, d) => (/^\d\d:\d\d$/.test(v || '') ? v : d);
+  const tasks = {};
+  for (const [k] of SA_TASKS) { const t = x.tasks?.[k] || {}; tasks[k] = { on: t.on ?? D.tasks[k].on }; if (D.tasks[k].at) tasks[k].at = hm(t.at, D.tasks[k].at); }
+  return { on: x.on ?? D.on, tone: SA_TONES[x.tone] ? x.tone : D.tone, vol: Math.max(0, Math.min(100, +(x.vol ?? D.vol) || 0)),
+    repeat: [0, 5, 10, 15, 30, 60].includes(+x.repeat) ? +x.repeat : D.repeat, urgent: x.urgent ?? D.urgent, vib: x.vib ?? D.vib, al: x.al ?? D.al, tasks };
 }
