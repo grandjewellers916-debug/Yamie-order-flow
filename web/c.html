@@ -125,7 +125,7 @@ fetch(api('col'),{cache:'no-store'}).then(async r=>{const j=await r.json().catch
   C=j;document.title=`${C.title} · ${B.full||B.name||''}`;
   $('ttl').textContent=C.title;$('sub').textContent=`${C.shop||B.full||''}${C.exp?` · link valid till ${new Date(C.exp).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}`:''}`;
   if(C.note){$('note').textContent=C.note;$('note').hidden=false}
-  $('foot').innerHTML=esc((B.addr2||[]).join(' · '))+'<br>Prices as on the day this link was made; the final price is confirmed at billing.';
+  $('foot').innerHTML=esc((B.addr2||[]).join(' · '))+((C.items||[]).some(x=>x.p||x.f)?'<br>Prices as on the day this link was made; the final price is confirmed at billing.':'<br>Message us for prices.');
   if(C.wa){$('fab').href=wa(`Hi ${C.shop||''}, I saw your collection “${C.title}”.`);$('fab').hidden=false}
   paint();
 }).catch(()=>fail('Could not load','Check your internet and open the link again.'));

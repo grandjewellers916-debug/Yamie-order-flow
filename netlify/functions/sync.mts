@@ -118,7 +118,9 @@ export default async (req: Request) => {
     if (c.exp && c.exp < Date.now()) return json(req, { error: "expired", title: c.title || "", exp: c.exp }, 410)
     if (op === "col") {
       const views = (Number(c.views) || 0) + 1; c.views = views; c.seen = Date.now(); await st.setJSON("col/" + id, c)
-      return json(req, { title: c.title, note: c.note, shop: c.shop, wa: c.wa, by: c.byName, exp: c.exp, at: c.at, items: c.items })
+      // V1.9.33 price mode: both | label | fair | none (the shop can change it while the link is live)
+      const pm = c.pm || "both", sl = pm === "both" || pm === "label", sf = pm === "both" || pm === "fair"
+      return json(req, { title: c.title, note: c.note, shop: c.shop, wa: c.wa, by: c.byName, exp: c.exp, at: c.at, pm, items: (c.items || []).map((x: any) => ({ ...x, p: sl ? x.p : 0, f: sf ? x.f : 0 })) })
     }
     const k = String(sp.get("k") || "").toUpperCase().replace(/[^A-Z0-9]/g, ""), i = Math.max(1, Math.min(IMG_MAX, Number(sp.get("i")) || 1))
     if (!(c.items || []).some((x: any) => x.k === k)) return new Response("no", { status: 404 })
@@ -345,7 +347,7 @@ export default async (req: Request) => {
         const idx: any[] = ((await st.get("cols", { type: "json" })) as any[]) || []
         const live = idx.filter((x) => x.exp > Date.now())
         const out = await Promise.all(live.map(async (x) => { const c: any = await st.get("col/" + x.id, { type: "json" }); return c ? { ...x, views: c.views || 0, seen: c.seen || 0 } : null }))
-        return json(req, { cols: out.filter(Boolean) })
+        return json(req, { cols: out.filter(Boolean).map((x: any) => ({ ...x, pm: x.pm || "both" })) })
       }
       // V1.9.22 which rate-publishing links are set up (yes/no only, never the values)
       if (op === "pubcheck") return json(req, { kiosk: !!process.env.KIOSK_RATES_PIN, shopify: !!(process.env.SHOPIFY_STORE_DOMAIN && (process.env.SHOPIFY_ADMIN_TOKEN || (process.env.SHOPIFY_CLIENT_ID && process.env.SHOPIFY_CLIENT_SECRET))) })
@@ -533,9 +535,17 @@ export default async (req: Request) => {
       return json(req, { v: meta.quotes, quote: q })
     }
 
-    if (op === "colnew" || op === "colrevoke") {
+    if (op === "colnew" || op === "colrevoke" || op === "colset") {
       // V1.9.32 make / stop a customer collection link (items are a snapshot of what the staff chose to show)
       const idx: any[] = ((await st.get("cols", { type: "json" })) as any[]) || []
+      const PM = ["both", "label", "fair", "none"], pmOf = (v: any) => (PM.includes(v) ? v : "both")
+      if (op === "colset") {
+        const id = cleanStr(body?.id, 32), c: any = await st.get("col/" + id, { type: "json" })
+        if (!c) return json(req, { error: "not_found" }, 404)
+        c.pm = pmOf(body?.pm); await st.setJSON("col/" + id, c)
+        const next = idx.map((x) => (x.id === id ? { ...x, pm: c.pm } : x)); await st.setJSON("cols", next)
+        return json(req, { ok: 1, pm: c.pm })
+      }
       if (op === "colrevoke") { const id = cleanStr(body?.id, 32); await st.delete("col/" + id); const next = idx.filter((x) => x.id !== id); await st.setJSON("cols", next); return json(req, { cols: next }) }
       const c = body?.col || {}
       const id = Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) => "abcdefghjkmnpqrstuvwxyz23456789"[b % 31]).join("")
@@ -545,9 +555,9 @@ export default async (req: Request) => {
         l: (Array.isArray(x?.l) ? x.l : []).slice(0, 16).map((r: any) => [cleanStr(r?.[0], 30), cleanStr(r?.[1], 80)]).filter((r: any) => r[0] && r[1]) })).filter((x: any) => x.k)
       if (!items.length) return json(req, { error: "no_items" }, 400)
       const days = Math.max(1, Math.min(90, cleanNum(c.days) || 7))
-      const col = { id, title: cleanStr(c.title, 80) || "Our collection", note: cleanStr(c.note, 400), shop: cleanStr(c.shop, 60), wa: cleanStr(c.wa, 20).replace(/[^\d+]/g, ""), by: cleanStr(c.by, 40), byName: cleanStr(c.byName, 60), at: Date.now(), exp: Date.now() + days * 864e5, items, views: 0 }
+      const col = { id, title: cleanStr(c.title, 80) || "Our collection", note: cleanStr(c.note, 400), shop: cleanStr(c.shop, 60), wa: cleanStr(c.wa, 20).replace(/[^\d+]/g, ""), by: cleanStr(c.by, 40), byName: cleanStr(c.byName, 60), at: Date.now(), exp: Date.now() + days * 864e5, items, views: 0, pm: pmOf(c.pm) }
       await st.setJSON("col/" + id, col)
-      const next = [{ id, title: col.title, n: items.length, by: col.by, byName: col.byName, at: col.at, exp: col.exp }, ...idx.filter((x) => x.exp > Date.now())].slice(0, 300)
+      const next = [{ id, title: col.title, pm: col.pm, n: items.length, by: col.by, byName: col.byName, at: col.at, exp: col.exp }, ...idx.filter((x) => x.exp > Date.now())].slice(0, 300)
       await st.setJSON("cols", next)
       return json(req, { id, exp: col.exp, cols: next })
     }

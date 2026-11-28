@@ -2050,7 +2050,7 @@ body[data-view="dash"] .hero{display:none}
 .st-task{background:#FFF4E5!important;border-color:#F0C987!important}.sh-upd{display:block;margin-top:8px}
 @media (max-width:640px){.il-row{grid-template-columns:1fr}.il-a{justify-content:flex-start}}
 :where(.find-in){position:relative}.find-x{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:32px;height:32px;border-radius:50%;border:0;background:var(--dbl,#F6EEF0);color:var(--db,#6E1E33);font:600 20px/32px var(--body);cursor:pointer;padding:0}.find-x:hover{filter:brightness(.96)}#findQ::-webkit-search-cancel-button{display:none}#findQ{padding-right:46px}
-.cw-row input,.cw-row select{flex:1;min-width:150px}.cw-url{word-break:break-all;font-size:13px}.cw-live{margin-top:16px;border-top:1px solid var(--line);padding-top:10px}.cw-live h5{margin:0 0 8px}
+.cw-row input,.cw-row select{flex:1;min-width:150px}.cw-url{word-break:break-all;font-size:13px}.cw-live{margin-top:16px;border-top:1px solid var(--line);padding-top:10px}.cw-live h5{margin:0 0 8px}.cw-pm{font-size:13px;padding:4px 6px;max-width:190px}.cw-live .il-row{grid-template-columns:1fr}.cw-live .il-a{justify-content:flex-start}
 .dh-cust{display:flex;align-items:center;gap:10px;justify-content:center}.dh-cust>span{color:var(--muted)}#dhArr.on{font-weight:700}
 .dh-grid.arr .dh-t{cursor:grab;touch-action:none;outline:2px dashed color-mix(in srgb,var(--db) 35%,transparent);outline-offset:-4px;animation:dhWig .28s ease-in-out infinite alternate}
 .dh-grid.arr .dh-t:nth-child(2n){animation-delay:.14s}.dh-grid .dh-t.drag{cursor:grabbing;animation:none;opacity:.92;transform:scale(1.04);box-shadow:0 12px 28px rgba(60,20,15,.22);z-index:3;position:relative}
@@ -6778,11 +6778,14 @@ async function openLists(){
   paint();
   // V1.9.32 the shop's live customer links
   try{const r=await syncApi('cols');const L=(r&&r.cols)||[];const box=document.createElement('div');box.className='cw-live';
-    box.innerHTML=`<h5>Customer web links <small class="note">· live</small></h5>`+(L.length?L.map(c=>`<div class="il-row" data-c="${esc(c.id)}"><div class="il-t"><b>${esc(c.title)}</b><small>${c.n} item${c.n===1?'':'s'} · ${esc(c.byName||'')} · opened ${c.views||0}× · till ${new Date(c.exp).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</small></div><div class="il-a"><a class="btn sm" target="_blank" rel="noopener" href="${esc((SYNC_BASE||location.origin)+'/c.html?id='+c.id)}">Open</a><button type="button" class="btn sm" data-cc>Copy</button><button type="button" class="btn sm pl-del" data-cs>Stop</button></div></div>`).join(''):'<p class="note">No live links. Make one from Share… › Customer web link.</p>');
+    box.innerHTML=`<h5>Customer web links <small class="note">· live</small></h5>`+(L.length?L.map(c=>`<div class="il-row" data-c="${esc(c.id)}"><div class="il-t"><b>${esc(c.title)}</b><small>${c.n} item${c.n===1?'':'s'} · ${esc(c.byName||'')} · opened ${c.views||0}× · till ${new Date(c.exp).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</small></div><div class="il-a"><select class="cw-pm" data-cp aria-label="Prices on the page">${cwPmOpts(c.pm||'both')}</select><a class="btn sm" target="_blank" rel="noopener" href="${esc((SYNC_BASE||location.origin)+'/c.html?id='+c.id)}">Open</a><button type="button" class="btn sm" data-cc>Copy</button><button type="button" class="btn sm pl-del" data-cs>Stop</button></div></div>`).join(''):'<p class="note">No live links. Make one from Share… › Customer web link.</p>');
     $('modalBody').appendChild(box);
     box.querySelectorAll('[data-c]').forEach(row=>{const c=L.find(x=>x.id===row.dataset.c),url=(SYNC_BASE||location.origin)+'/c.html?id='+c.id;
       row.querySelector('[data-cc]').onclick=async()=>{try{await navigator.clipboard.writeText(url);toast('Link copied')}catch(e){prompt('Copy the link:',url)}};
+      row.querySelector('[data-cp]').onchange=async e=>{const pm=e.target.value;try{await syncApi('colset','POST',{id:c.id,pm});c.pm=pm;toast(pm==='none'?'Prices hidden on this link':'Prices updated on this link')}catch(x){e.target.value=c.pm||'both';toast('Could not change — check the internet',null,true)}};
       row.querySelector('[data-cs]').onclick=async()=>{if(!confirm(`Stop the link “${c.title}”? The customer will see “link expired”.`))return;try{await syncApi('colrevoke','POST',{id:c.id});row.remove();toast('Link stopped')}catch(e){toast('Could not stop — check the internet',null,true)}}})}catch(e){}}
+// V1.9.33 what prices a customer web link shows
+function cwPmOpts(cur){const o=[['both','Show label + fair price'],['label','Show label price only'],['fair','Show fair price only'],['none','Hide prices']].filter(x=>can('fva')||x[0]==='label'||x[0]==='none');if(!o.some(x=>x[0]===cur))cur=o[0][0];return o.map(([v,l])=>`<option value="${v}"${v===cur?' selected':''}>${l}</option>`).join('')}
 window.__qSel=()=>{stLastRows.forEach(r=>stSel.add(r.key));runFind();paintSelBar()};
 /* V1.9.30 many labels at once: paste or scan a list, see those items selected, then Update… (design, size, collection…) or Photo… */
 const lblSplit=t=>[...new Set(String(t||'').split(/[\s,;]+/).map(x=>x.trim()).filter(Boolean))];
@@ -6887,7 +6890,8 @@ function openShareSel(only){
     <div class="sh-sec"${can('shareItems')?'':' hidden'}><h5>Customer web link <small class="note">· the customer browses these items, with photos</small></h5>
       <div class="sh-row cw-row"><input id="cwTitle" maxlength="80" autocomplete="off" placeholder="Collection title" aria-label="Collection title" value="${esc(store.get('cwTitle','')||'Designs for you')}"><select id="cwDays" aria-label="Link valid for">${[[1,'1 day'],[3,'3 days'],[7,'7 days'],[15,'15 days'],[30,'30 days']].map(([d,l])=>`<option value="${d}"${d===store.get('cwDays',7)?' selected':''}>Valid ${l}</option>`).join('')}</select></div>
       <div class="sh-row cw-row"><input id="cwWa" inputmode="tel" autocomplete="off" placeholder="Shop WhatsApp for enquiries" aria-label="Shop WhatsApp for enquiries" value="${esc(store.get('cwWa','')||(BRAND.ship&&BRAND.ship.phone)||'')}"><input id="cwNote" maxlength="400" autocomplete="off" placeholder="Message on the page (optional)" aria-label="Message on the page"></div>
-      <div class="sh-row"><button type="button" class="btn primary" id="cwGo">Create link</button><span class="note" id="cwOut" aria-live="polite">Uses the details ticked above. Prices are as of today.</span></div></div>
+      <div class="sh-row cw-row"><select id="cwPm" aria-label="Prices on the page">${cwPmOpts(store.get('cwPm',can('fva')?'both':'label'))}</select></div>
+      <div class="sh-row"><button type="button" class="btn primary" id="cwGo">Create link</button><span class="note" id="cwOut" aria-live="polite">Uses the details ticked above. Prices are as of today; you can hide or show them later from Lists.</span></div></div>
     <div class="sh-sec"${can('shareUser')?'':' hidden'}><h5>Another app user</h5><div class="sh-row"><select id="shUser" aria-label="Send to user">${staff.length?staff.map(u=>`<option value="${esc(u.id)}">${esc(u.name||u.username)} · ${esc(roleName(u.role))}</option>`).join(''):'<option value="">No other users yet</option>'}</select>
       <input id="shNote" autocomplete="off" placeholder="Note (optional)" aria-label="Note"><button type="button" class="btn" id="shUserGo"${staff.length?'':' disabled'}>Send to user</button></div>
       <label class="rc-p sh-upd"><input type="checkbox" id="shTask"> Ask them to <b>update</b> these items (photos, design, size…) and tell me when done</label></div></div>`;
@@ -6918,12 +6922,12 @@ function openShareSel(only){
   if($('shPdf'))$('shPdf').onclick=async()=>{const v=pick();if(!v.length){toast('Pick what to share',null,true);return}const b=$('shPdf');b.disabled=true;b.textContent='Making the PDF…';try{await shareItemsPdf(list,v)}catch(e){toast('Could not make the PDF',null,true)}b.disabled=false;b.textContent='PDF'};
   // V1.9.32 customer web link: a snapshot of the picked items with the ticked details; photos are served while the link is valid
   $('cwGo').onclick=async()=>{const v=pick(),days=+$('cwDays').value||7,title=$('cwTitle').value.replace(/\s+/g,' ').trim()||'Designs for you',wa=$('cwWa').value.replace(/[^\d+]/g,'');
-    store.set('cwTitle',title);store.set('cwDays',days);store.set('cwWa',wa);
-    const fvOk=can('fva')&&(v.includes('fv')||v.includes('save'));
-    const items=list.slice(0,300).map(r=>{const o=stPrice(r);return {k:r.key,t:shTitle(r),c:r.category||r.item||'',n:imgCount(r.key),p:v.includes('price')&&!isNaN(o.lp)?Math.round(o.lp):0,f:fvOk&&!isNaN(o.fv)?Math.round(o.fv):0,
+    const pm=$('cwPm').value;store.set('cwTitle',title);store.set('cwDays',days);store.set('cwWa',wa);store.set('cwPm',pm);
+    const fvOk=can('fva');   // V1.9.33 both prices are kept with the link; the price setting decides what the customer sees
+    const items=list.slice(0,300).map(r=>{const o=stPrice(r);return {k:r.key,t:shTitle(r),c:r.category||r.item||'',n:imgCount(r.key),p:!isNaN(o.lp)?Math.round(o.lp):0,f:fvOk&&!isNaN(o.fv)?Math.round(o.fv):0,
       l:v.filter(k=>!['img','item','pname','price','fv','save','key','shop','category'].includes(k)).map(k=>{const x=shVal(r,k);return x?[SH_F.find(c=>c[0]===k)[1],String(x)]:null}).filter(Boolean)}});
     $('cwGo').disabled=true;$('cwOut').textContent='Making the link…';
-    try{const r=await syncApi('colnew','POST',{col:{title,days,wa,note:$('cwNote').value.trim(),shop:BRAND.full||BRAND.name,by:curUser?curUser.id:'',byName:meName(),items}});
+    try{const r=await syncApi('colnew','POST',{col:{title,days,wa,pm,note:$('cwNote').value.trim(),shop:BRAND.full||BRAND.name,by:curUser?curUser.id:'',byName:meName(),items}});
       const url=`${SYNC_BASE||location.origin}/c.html?id=${r.id}`,ph=($('shPh').value||'').replace(/\D/g,'').slice(-10);
       const msg=`${title} — ${items.length} design${items.length===1?'':'s'} from ${BRAND.full||BRAND.name}:\n${url}\n(Link valid till ${new Date(r.exp).toLocaleDateString('en-IN',{day:'numeric',month:'short'})})`;
       $('cwOut').innerHTML=`<a href="${esc(url)}" target="_blank" rel="noopener" class="cw-url">${esc(url)}</a> <button type="button" class="btn sm" id="cwCopy">Copy</button> <a class="btn sm primary" id="cwWaGo" target="_blank" rel="noopener" href="https://wa.me/${ph?'91'+ph:''}?text=${encodeURIComponent(msg)}">Send on WhatsApp</a>`;
@@ -9249,7 +9253,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.9.32',APP_BUILD='__BUILD__';
+const APP_VERSION='1.9.33',APP_BUILD='__BUILD__';
 /* V1.9.16 phone book on every customer number box (share, report, wishlist, lead, quote, order), like Order Desk */
 const canPickContact=()=>!!((NATIVE&&NATIVE.pickContact)||(navigator.contacts&&navigator.contacts.select));
 const pbClean=p=>{const d=String(p||'').replace(/[^\d+]/g,'');return d.replace(/^\+?91(?=\d{10}$)/,'').replace(/^0(?=\d{10}$)/,'')};
