@@ -2653,7 +2653,7 @@ body:not([data-view="quote"]):not([data-view="home"]) #bill.qv{display:none!impo
     <p class="note">Check if a label is available. Search by label no., product name, item name, item type or stone.</p>
     <div class="find-top">
       <div class="find-in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input id="findQ" type="search" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. FRG382 or ring" aria-label="Search stock"></div>
-      <span class="find-acts"><button class="btn sm" type="button" id="findRep" hidden>Report</button><button class="btn sm" type="button" id="findPhotos" hidden>Photos</button><button class="btn sm" type="button" id="findBulk" hidden>Bulk update</button><button class="btn sm" type="button" id="findNew" hidden>+ New item</button></span>
+      <span class="find-acts"><button class="btn sm" type="button" id="findLbl" hidden>Labels…</button><button class="btn sm" type="button" id="findRep" hidden>Report</button><button class="btn sm" type="button" id="findPhotos" hidden>Photos</button><button class="btn sm" type="button" id="findBulk" hidden>Bulk update</button><button class="btn sm" type="button" id="findNew" hidden>+ New item</button></span>
     </div>
     <p class="note" id="findNote"></p>
     <div class="find-list" id="findList"></div>
@@ -5796,8 +5796,11 @@ function openDiscCheck(){
 $('pdDel').onclick=()=>$('clearTag').click();
 $('findNew').onclick=()=>stockForm(null);$('findPhotos').onclick=openPhotoTools;
 $('findRep').onclick=()=>{if(!stLastRows.length){toast('Search for items first',null,true);return}openReport(stLastRows.slice(0,RP_MAX))};
-function paintFindNew(){const b=$('findNew');if(b)b.hidden=!can('stockAdd');{const q=$('findRep');if(q)q.hidden=!can('stReport')}const c=$('findBulk');if(c)c.hidden=!can('stockBulk');const p=$('findPhotos');if(p)p.hidden=!(can('imgBulk')||can('images')||Object.keys(imgIdx).length)}
+function paintFindNew(){const b=$('findNew');if(b)b.hidden=!can('stockAdd');{const l=$('findLbl');if(l)l.hidden=!can('stSelect')}{const q=$('findRep');if(q)q.hidden=!can('stReport')}const c=$('findBulk');if(c)c.hidden=!can('stockBulk');const p=$('findPhotos');if(p)p.hidden=!(can('imgBulk')||can('images')||Object.keys(imgIdx).length)}
 $('findBulk').onclick=()=>bulkForm();
+$('findLbl').onclick=()=>openLabels();
+// several labels pasted into the search box: keep them apart (a one-line box would join them)
+$('findQ').addEventListener('paste',e=>{const t=(e.clipboardData||window.clipboardData).getData('text');if(!/[\r\n\t]/.test(t))return;e.preventDefault();const L=lblSplit(t);if(L.length>1&&L.every(x=>findStock(x))){$('findQ').value='';showLabels(L,true)}else{$('findQ').value=L.join(' ');runFind()}});
 $('pdDb').onclick=()=>{const r=stockMap.get(cur.stockKey);if(r)stockForm(r)};
 $('pdClose').onclick=()=>{$('clearTag').click();window.scrollTo({top:0,behavior:'smooth'})};
 $('pdSave').onclick=()=>$('addTag').click();
@@ -6726,9 +6729,28 @@ document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest
 // ---- V1.7.88 Search: pick items, then share them on WhatsApp, as a PDF or with another app user ----
 function sharedBanner(){
   if(!shareList)return '';const n=shareList.keys.size;
+  if(shareList.mine)return `<span class="st-shared">📋 <b>${n} label${n===1?'':'s'}</b>&nbsp;from your list${shareList.miss&&shareList.miss.length?` · <span class="bad-t">${shareList.miss.length} not in stock: ${esc(shareList.miss.slice(0,6).join(', '))}${shareList.miss.length>6?'…':''}</span>`:''}<button type="button" class="linkbtn" onclick="window.__lblSel&&window.__lblSel()">Select all ${n}</button><button type="button" class="linkbtn" onclick="window.__clrShared&&window.__clrShared()">Show all stock</button></span> `;
   return `<span class="st-shared">📦 <b>${n} item${n===1?'':'s'}</b>&nbsp;sent by ${esc(shareList.from||'a user')}${shareList.note?` · “${esc(shareList.note)}”`:''}<button type="button" class="linkbtn" onclick="window.__clrShared&&window.__clrShared()">Show all stock</button></span> `;
 }
 window.__clrShared=()=>{shareList=null;stPage=1;runFind()};
+window.__qSel=()=>{stLastRows.forEach(r=>stSel.add(r.key));runFind();paintSelBar()};
+/* V1.9.30 many labels at once: paste or scan a list, see those items selected, then Update… (design, size, collection…) or Photo… */
+const lblSplit=t=>[...new Set(String(t||'').split(/[\s,;]+/).map(x=>x.trim()).filter(Boolean))];
+window.__lblSel=()=>{if(!shareList)return;shareList.keys.forEach(k=>stSel.add(k));runFind();paintSelBar()};
+function showLabels(list,select){const found=[],miss=[];for(const t of list){const r=findStock(t);if(r){if(!found.includes(r.key))found.push(r.key)}else miss.push(t)}
+  if(!found.length){toast(miss.length?`None of these labels are in stock`:'No labels',null,true);return false}
+  findType='';Object.keys(findF).forEach(k=>findF[k]='');const g=document.querySelector('#stFilters .st-rng');if(g)g.remove();stPage=1;
+  shareList={keys:new Set(found),mine:true,miss};if(select){stSel.clear();found.forEach(k=>stSel.add(k))}
+  openFind('');if(miss.length)toast(`${found.length} found · ${miss.length} not in stock`,null,true);return true}
+function openLabels(){
+  const LB=`<p class="note" style="margin-top:0">Paste or scan label numbers — one per line, or separated by spaces or commas. The items open in Search, all selected, ready for <b>Update…</b> (design, size, collection and more) or <b>Photo…</b>.</p>
+    <textarea id="lblIn" rows="8" style="width:100%;font:500 15px var(--mono,monospace)" placeholder="CHN1006&#10;CHN1015&#10;FRG1000" autocapitalize="characters" spellcheck="false"></textarea><p class="note" id="lblN" aria-live="polite">0 labels</p>`;
+  showModal('Find many labels','',
+    [{label:'Cancel',cls:'ghost'},{label:'Show & select',cls:'primary',run:()=>{const L=lblSplit($('lblIn').value);if(!L.length){toast('Paste or scan some label numbers');return}showLabels(L,true)}}]);
+  $('modalBody').innerHTML=LB;
+  const upd=()=>{const L=lblSplit($('lblIn').value),f=L.filter(t=>findStock(t)).length;$('lblN').innerHTML=L.length?`${L.length} label${L.length===1?'':'s'} · <b class="ok-t">${f} in stock</b>${L.length-f?` · <b class="bad-t">${L.length-f} not found</b>`:''}`:'0 labels'};
+  setTimeout(()=>{const t=$('lblIn');if(t){t.addEventListener('input',upd);t.focus()}},60)}
+
 function wireSel(el,show){
   const okS=can('stSelect');el.querySelectorAll('.st-ck,.stg-ck,.fc-ck,.mr-ck').forEach(x=>x.hidden=!okS);if(!okS){stSel.clear();paintSelBar();}
   const okW=can('shareItems');el.querySelectorAll('[data-wa]').forEach(x=>x.hidden=!okW);
@@ -7231,7 +7253,7 @@ function stmActive(){
 function stmBar(total){
   let b=$('stMBar');if(!b){b=document.createElement('div');b.id='stMBar';b.className='stm-bar';document.querySelector('.find-view .find-in').after(b)}
   const act=stmActive(),srt=ST_ALL.find(c=>c[0]===stSort.k),okF=can('stFilters')||can('stRanges');
-  const more=['findRep','findPhotos','findBulk','findNew'].filter(id=>$(id)&&!$(id).hidden).length+(can('stExport')?1:0);
+  const more=['findLbl','findRep','findPhotos','findBulk','findNew'].filter(id=>$(id)&&!$(id).hidden).length+(can('stExport')?1:0);
   b.innerHTML=`<div class="stm-tools">
     ${okF?`<button type="button" class="stm-b${act.length?' on':''}" id="stmFilt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filters${act.length?`<b>${act.length}</b>`:''}</button>`:''}
     <button type="button" class="stm-b" id="stmSort"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4"/></svg><span>${esc(srt?srt[1]:'Sort')}</span>${stSort.d>0?'↑':'↓'}</button>
@@ -7264,7 +7286,7 @@ function stmSortSheet(){
   $('soDir').onclick=()=>{stSort={k:stSort.k,d:-stSort.d};store.set('stSort',stSort);closeModal();runFindTable()};$('soOk').onclick=()=>closeModal();
 }
 function stmMoreSheet(){
-  const it=[['findRep','Product report of these items'],['findNew','+ New item'],['findBulk','Bulk update'],['findPhotos','Photos · bulk upload / save on phone']].filter(([id])=>$(id)&&!$(id).hidden);
+  const it=[['findLbl','Labels… · many label numbers at once'],['findRep','Product report of these items'],['findNew','+ New item'],['findBulk','Bulk update'],['findPhotos','Photos · bulk upload / save on phone']].filter(([id])=>$(id)&&!$(id).hidden);
   showModal('More','',[{label:'Close',cls:'ghost'}]);
   $('modalBody').innerHTML=`<div class="stm-sort">${it.map(([id,l])=>`<button type="button" class="stm-so" data-id="${id}">${esc(l)}</button>`).join('')}${can('stExport')?'<button type="button" class="stm-so" data-id="xlsx">Export these items to Excel</button>':''}</div>`;
   $('modalBody').querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>{closeModal();const id=b.dataset.id;if(id==='xlsx')withPerm('stExport','Needs permission: Export Search to Excel.',()=>stExport(stLastRows));else $(id).click()});
@@ -7640,7 +7662,9 @@ function runFindTable(){
   const exact=q?findStock(q):null,all=[...stockMap.values()];
   stFilterBar(all);
   let rows=all.filter(stPass);
-  if(q)rows=rows.filter(r=>r===exact||(k.length>=2&&(r.key.includes(k)||keyOf(r.label||'').includes(k)))||stQMatch(r,q));
+  let qMulti=null;{const T=lblSplit(q);if(T.length>1){const H=T.map(t=>findStock(t));if(H.every(Boolean))qMulti=new Set(H.map(r=>r.key))}}   // V1.9.30 several label numbers
+  if(qMulti)rows=rows.filter(r=>qMulti.has(r.key));
+  else if(q)rows=rows.filter(r=>r===exact||(k.length>=2&&(r.key.includes(k)||keyOf(r.label||'').includes(k)))||stQMatch(r,q));
   rows.sort((a,b)=>{const x=stVal(a,stSort.k),y=stVal(b,stSort.k);if(x==null||y==null){if(x==null&&y==null)return a.key<b.key?-1:1;return x==null?1:-1}
     const c=typeof x==='number'&&typeof y==='number'?x-y:String(x).localeCompare(String(y),'en',{numeric:true});return (c||(a.key<b.key?-1:1)*(stSort.d))*stSort.d});
   if(exact&&rows.includes(exact)){rows=[exact,...rows.filter(r=>r!==exact)]}
@@ -7649,7 +7673,7 @@ function runFindTable(){
   const mob0=!DESK.matches;
   if(mob0){const sg=JSON.stringify([q,findType,findF,stSort,shareList&&shareList.keys.size]);if(sg!==stMSig){stMSig=sg;stMShown=30}}
   const show=mob0?rows.slice(0,stMShown):rows.slice((stPage-1)*stPer,stPage*stPer);
-  $('findNote').innerHTML=sharedBanner()+(exact?`<b class="ok-t">✓ ${esc(exact.barcode||exact.key)} is in stock.</b> Press Enter to price it. `:q&&!total?`<b class="bad-t">✗ Not in stock.</b> No item matches “${esc(q)}”. `:'')+
+  $('findNote').innerHTML=sharedBanner()+(qMulti?`<span class="st-shared">📋 <b>${qMulti.size} labels</b>&nbsp;<button type="button" class="linkbtn" onclick="window.__qSel&&window.__qSel()">Select all ${qMulti.size}</button></span> `:'')+(exact&&!qMulti?`<b class="ok-t">✓ ${esc(exact.barcode||exact.key)} is in stock.</b> Press Enter to price it. `:q&&!total?`<b class="bad-t">✗ Not in stock.</b> No item matches “${esc(q)}”. `:'')+
     `<span class="st-count"><b>${total.toLocaleString('en-IN')}</b> item${total===1?'':'s'} found${total<all.length?` <small>of ${all.length.toLocaleString('en-IN')}</small>`:''}</span>`+
     `<span class="st-tools"><label>Sort by <select id="stSortSel">${ST_ALL.filter(([c])=>c!=='img'&&(!ST_ADMIN.includes(c)||can('pdHidden'))&&(!['fv','save'].includes(c)||can('fva'))).map(([c,l])=>`<option value="${c}"${stSort.k===c?' selected':''}>${l}${['mk'].includes(c)?' (₹)':''}</option>`).join('')}</select></label><button type="button" class="st-dir" id="stDir" aria-label="${stSort.d>0?'Ascending, change to descending':'Descending, change to ascending'}" title="${stSort.d>0?'Low to high / A to Z':'High to low / Z to A'}">${ST_SORT_NUM.includes(stSort.k)?(stSort.d>0?'0→9':'9→0'):(stSort.d>0?'A→Z':'Z→A')}<span aria-hidden="true">${stSort.d>0?'↑':'↓'}</span></button><button type="button" class="btn sm st-colb" id="stColsB">Columns</button>${can('export')?'<button type="button" class="btn sm st-colb" id="stXlsx">Export Excel</button>':''}<button type="button" class="st-view${stGrid?'':' on'}" id="stList" aria-label="List view" aria-pressed="${!stGrid}">${'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>'}</button><button type="button" class="st-view${stGrid?' on':''}" id="stGridB" aria-label="Photo grid" aria-pressed="${stGrid}">${'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>'}</button></span>`;
   const W=v=>num(v)>0?num(v).toFixed(3):'–',ed=can('stockEdit');
@@ -9153,7 +9177,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.9.29',APP_BUILD='__BUILD__';
+const APP_VERSION='1.9.30',APP_BUILD='__BUILD__';
 /* V1.9.16 phone book on every customer number box (share, report, wishlist, lead, quote, order), like Order Desk */
 const canPickContact=()=>!!((NATIVE&&NATIVE.pickContact)||(navigator.contacts&&navigator.contacts.select));
 const pbClean=p=>{const d=String(p||'').replace(/[^\d+]/g,'');return d.replace(/^\+?91(?=\d{10}$)/,'').replace(/^0(?=\d{10}$)/,'')};
