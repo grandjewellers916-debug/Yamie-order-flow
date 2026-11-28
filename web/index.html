@@ -2046,6 +2046,10 @@ body[data-view="dash"] .hero{display:none}
 .fl-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 8px}
 .xp-row{border:1px solid #EFE2D8;border-radius:12px;padding:10px 12px;margin:0 0 10px;background:#FFFCFA}.xp-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.xp-n,.xp-o{border:1px solid var(--line,#E5DED6);border-radius:10px;padding:9px 12px;font:inherit;background:#fff;color:var(--fg)}.xp-n{flex:1;min-width:140px;font-weight:600;font-size:15px}.xp-o{font-size:14px;resize:vertical}.xp-g{margin-top:8px}.xp-g summary{cursor:pointer;color:var(--db);font-weight:600;font-size:13.5px}.xp-g summary small{color:var(--muted);font-weight:400}.xp-gr{display:grid;grid-template-columns:150px 140px 1fr;gap:8px;align-items:start;margin-top:8px}.xp-gr b{font-size:13px;padding-top:9px}.xp-gl,.xp-go{border:1px solid var(--line,#E5DED6);border-radius:10px;padding:8px 10px;font:inherit;font-size:13.5px;background:#fff}@media (max-width:640px){.xp-gr{grid-template-columns:1fr 1fr}.xp-gr .xp-go{grid-column:1/-1}}
 .xp-ol{display:block;margin-top:8px;font-size:13px;color:var(--muted)}.xp-ol textarea{width:100%;margin-top:4px}
+.il-list{display:flex;flex-direction:column;gap:8px}.il-row{border:1px solid #EFE2D8;border-radius:12px;padding:10px 12px;background:#FFFCFA}.il-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}.il-t b{display:block}.il-t small{color:var(--muted)}.il-a{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.il-send{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap;align-items:center}.il-send select,.il-send input[maxlength]{flex:1;min-width:160px;min-height:40px;border:1px solid var(--line,#E5DED6);border-radius:10px;padding:0 10px;font:inherit}
+.st-task{background:#FFF4E5!important;border-color:#F0C987!important}.sh-upd{display:block;margin-top:8px}
+@media (max-width:640px){.il-row{grid-template-columns:1fr}.il-a{justify-content:flex-start}}
+:where(.find-in){position:relative}.find-x{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:32px;height:32px;border-radius:50%;border:0;background:var(--dbl,#F6EEF0);color:var(--db,#6E1E33);font:600 20px/32px var(--body);cursor:pointer;padding:0}.find-x:hover{filter:brightness(.96)}#findQ::-webkit-search-cancel-button{display:none}#findQ{padding-right:46px}
 .dh-cust{display:flex;align-items:center;gap:10px;justify-content:center}.dh-cust>span{color:var(--muted)}#dhArr.on{font-weight:700}
 .dh-grid.arr .dh-t{cursor:grab;touch-action:none;outline:2px dashed color-mix(in srgb,var(--db) 35%,transparent);outline-offset:-4px;animation:dhWig .28s ease-in-out infinite alternate}
 .dh-grid.arr .dh-t:nth-child(2n){animation-delay:.14s}.dh-grid .dh-t.drag{cursor:grabbing;animation:none;opacity:.92;transform:scale(1.04);box-shadow:0 12px 28px rgba(60,20,15,.22);z-index:3;position:relative}
@@ -2652,8 +2656,8 @@ body:not([data-view="quote"]):not([data-view="home"]) #bill.qv{display:none!impo
     <div class="sec-head"><h2>Search stock</h2></div>
     <p class="note">Check if a label is available. Search by label no., product name, item name, item type or stone.</p>
     <div class="find-top">
-      <div class="find-in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input id="findQ" type="search" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. FRG382 or ring" aria-label="Search stock"></div>
-      <span class="find-acts"><button class="btn sm" type="button" id="findLbl" hidden>Labels…</button><button class="btn sm" type="button" id="findRep" hidden>Report</button><button class="btn sm" type="button" id="findPhotos" hidden>Photos</button><button class="btn sm" type="button" id="findBulk" hidden>Bulk update</button><button class="btn sm" type="button" id="findNew" hidden>+ New item</button></span>
+      <div class="find-in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><input id="findQ" type="search" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. FRG382 or ring" aria-label="Search stock"><button type="button" class="find-x" id="findX" aria-label="Clear search" title="Clear search (text, list and filters)" hidden>×</button></div>
+      <span class="find-acts"><button class="btn sm" type="button" id="findLists" hidden>Lists</button><button class="btn sm" type="button" id="findLbl" hidden>Labels…</button><button class="btn sm" type="button" id="findRep" hidden>Report</button><button class="btn sm" type="button" id="findPhotos" hidden>Photos</button><button class="btn sm" type="button" id="findBulk" hidden>Bulk update</button><button class="btn sm" type="button" id="findNew" hidden>+ New item</button></span>
     </div>
     <p class="note" id="findNote"></p>
     <div class="find-list" id="findList"></div>
@@ -5796,9 +5800,14 @@ function openDiscCheck(){
 $('pdDel').onclick=()=>$('clearTag').click();
 $('findNew').onclick=()=>stockForm(null);$('findPhotos').onclick=openPhotoTools;
 $('findRep').onclick=()=>{if(!stLastRows.length){toast('Search for items first',null,true);return}openReport(stLastRows.slice(0,RP_MAX))};
-function paintFindNew(){const b=$('findNew');if(b)b.hidden=!can('stockAdd');{const l=$('findLbl');if(l)l.hidden=!can('stSelect')}{const q=$('findRep');if(q)q.hidden=!can('stReport')}const c=$('findBulk');if(c)c.hidden=!can('stockBulk');const p=$('findPhotos');if(p)p.hidden=!(can('imgBulk')||can('images')||Object.keys(imgIdx).length)}
+function paintFindNew(){const b=$('findNew');if(b)b.hidden=!can('stockAdd');{const l=$('findLbl');if(l)l.hidden=!can('stSelect');const m=$('findLists');if(m)m.hidden=!can('stSelect')}{const q=$('findRep');if(q)q.hidden=!can('stReport')}const c=$('findBulk');if(c)c.hidden=!can('stockBulk');const p=$('findPhotos');if(p)p.hidden=!(can('imgBulk')||can('images')||Object.keys(imgIdx).length)}
 $('findBulk').onclick=()=>bulkForm();
 $('findLbl').onclick=()=>openLabels();
+$('findLists').onclick=()=>openLists();
+/* V1.9.31 clear search: the text, a pasted / saved list and every filter (the selection stays until you clear it) */
+function findXPaint(){const x=$('findX');if(!x)return;x.hidden=!($('findQ').value||shareList||findType||Object.values(findF).some(v=>v))}
+$('findX').onclick=()=>{$('findQ').value='';shareList=null;findType='';Object.keys(findF).forEach(k=>findF[k]='');const g=document.querySelector('#stFilters .st-rng');if(g)g.remove();stPage=1;runFind();try{paintWtop()}catch(e){}findXPaint();$('findQ').focus()};
+$('findQ').addEventListener('input',findXPaint);setInterval(()=>{if(document.body.dataset.view==='search')findXPaint()},800);
 // several labels pasted into the search box: keep them apart (a one-line box would join them)
 $('findQ').addEventListener('paste',e=>{const t=(e.clipboardData||window.clipboardData).getData('text');if(!/[\r\n\t]/.test(t))return;e.preventDefault();const L=lblSplit(t);if(L.length>1&&L.every(x=>findStock(x))){$('findQ').value='';showLabels(L,true)}else{$('findQ').value=L.join(' ');runFind()}});
 $('pdDb').onclick=()=>{const r=stockMap.get(cur.stockKey);if(r)stockForm(r)};
@@ -6729,13 +6738,47 @@ document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest
 // ---- V1.7.88 Search: pick items, then share them on WhatsApp, as a PDF or with another app user ----
 function sharedBanner(){
   if(!shareList)return '';const n=shareList.keys.size;
-  if(shareList.mine)return `<span class="st-shared">📋 <b>${n} label${n===1?'':'s'}</b>&nbsp;from your list${shareList.miss&&shareList.miss.length?` · <span class="bad-t">${shareList.miss.length} not in stock: ${esc(shareList.miss.slice(0,6).join(', '))}${shareList.miss.length>6?'…':''}</span>`:''}<button type="button" class="linkbtn" onclick="window.__lblSel&&window.__lblSel()">Select all ${n}</button><button type="button" class="linkbtn" onclick="window.__clrShared&&window.__clrShared()">Show all stock</button></span> `;
+  if(shareList.mine)return `<span class="st-shared">📋 <b>${n} label${n===1?'':'s'}</b>&nbsp;from your list${shareList.miss&&shareList.miss.length?` · <span class="bad-t">${shareList.miss.length} not in stock: ${esc(shareList.miss.slice(0,6).join(', '))}${shareList.miss.length>6?'…':''}</span>`:''}<button type="button" class="linkbtn" onclick="window.__lblSel&&window.__lblSel()">Select all ${n}</button><button type="button" class="linkbtn" onclick="window.__lblSave&&window.__lblSave()">Save list</button><button type="button" class="linkbtn" onclick="window.__clrShared&&window.__clrShared()">Show all stock</button></span> `;
+  if(shareList.task==='update'){const L=shareList.lead;return `<span class="st-shared st-task">📝 <b>Please update ${n} item${n===1?'':'s'}</b>&nbsp;· from ${esc(shareList.from||'a user')}${shareList.note?` · “${esc(shareList.note)}”`:''}${L&&L.state!=='done'?'<button type="button" class="btn sm primary" onclick="window.__taskDone&&window.__taskDone()">Mark as done</button>':' · <b class="ok-t">done ✓</b>'}<button type="button" class="linkbtn" onclick="window.__clrShared&&window.__clrShared()">Show all stock</button></span> `}
+  if(shareList.task==='done')return `<span class="st-shared">✓ <b>${esc(shareList.from||'A user')} updated ${n} item${n===1?'':'s'}</b>${shareList.note?` · “${esc(shareList.note)}”`:''}<button type="button" class="linkbtn" onclick="window.__clrShared&&window.__clrShared()">Show all stock</button></span> `;
   return `<span class="st-shared">📦 <b>${n} item${n===1?'':'s'}</b>&nbsp;sent by ${esc(shareList.from||'a user')}${shareList.note?` · “${esc(shareList.note)}”`:''}<button type="button" class="linkbtn" onclick="window.__clrShared&&window.__clrShared()">Show all stock</button></span> `;
 }
 window.__clrShared=()=>{shareList=null;stPage=1;runFind()};
+/* V1.9.31 update requests: the receiver marks the list done; the sender gets a ✓ notification */
+window.__taskDone=async()=>{const L=shareList&&shareList.lead;if(!L)return;const note=(prompt('Note for '+(L.byName||'the sender')+' (optional):','')??null);if(note===null)return;
+  L.state='done';store.set('leads',leads);const a=await pushLead(L);
+  const back={id:uid(),kind:'items',task:'done',reply:L.id,keys:L.keys||[],name:(L.name||'Items').replace(/^Update\s*(·\s*)?/,''),phone:'',note:note.trim(),to:L.by,toName:L.byName||'',by:curUser?curUser.id:'',byName:meName(),at:Date.now(),state:'new'};
+  leads.unshift(back);store.set('leads',leads);const b=await pushLead(back);toast(a&&b?`Done — ${L.byName||'the sender'} is told`:'Saved here; it will send when online',null,!(a&&b));runFind();try{pollInbox(true)}catch(e){}};
+/* V1.9.31 saved item lists: Save list (from a selection), Lists window: open, send, delete */
+let ilists=store.get('ilists',[]);
+async function pullIlists(){if(!sync.key)return ilists;try{const r=await syncApi('ilists');if(r&&Array.isArray(r.lists)){ilists=r.lists;store.set('ilists',ilists)}}catch(e){}return ilists}
+async function pushIlist(body){if(!sync.key){if(body.del)ilists=ilists.filter(x=>x.id!==body.del);else ilists=[body.list,...ilists.filter(x=>x.id!==body.list.id)];store.set('ilists',ilists);return true}
+  try{const r=await syncApi('ilists','POST',body);if(r&&Array.isArray(r.lists)){ilists=r.lists;store.set('ilists',ilists)}return true}catch(e){return false}}
+async function saveItemList(keys,id,name0){keys=(keys||[]).filter(Boolean);if(!keys.length){toast('Select items first',null,true);return}
+  const name=(prompt(`Name for this list of ${keys.length} item${keys.length===1?'':'s'}:`,name0||`Items ${new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short'})}`)||'').replace(/\s+/g,' ').trim().slice(0,60);if(!name)return;
+  const l={id:id||uid(),name,keys:keys.slice(0,500),by:curUser?curUser.id:'',byName:meName(),at:Date.now()};
+  toast((await pushIlist({list:l}))?`List “${name}” saved · Search › Lists`:'Could not save — check the internet',null,false)}
+function openIlistItems(l,select){findType='';Object.keys(findF).forEach(k=>findF[k]='');const g=document.querySelector('#stFilters .st-rng');if(g)g.remove();stPage=1;
+  shareList={keys:new Set(l.keys||[]),mine:true,miss:(l.keys||[]).filter(k=>!stockMap.has(k))};if(select){stSel.clear();(l.keys||[]).forEach(k=>{if(stockMap.has(k))stSel.add(k)})}openFind('')}
+async function openLists(){
+  showModal('Saved lists','',[{label:'Close',cls:'ghost'}]);$('modalBody').innerHTML='<p class="note">Loading…</p>';await pullIlists();
+  const staff=users.filter(u=>u.active!==false&&(!curUser||u.id!==curUser.id)),me=curUser&&curUser.id;
+  const paint=()=>{$('modalBody').innerHTML=ilists.length?`<p class="note" style="margin-top:0">Lists are shared by all phones. Open one to see the items selected, or send it to a colleague to update.</p><div class="il-list">${ilists.map(l=>`<div class="il-row" data-id="${esc(l.id)}"><div class="il-t"><b>${esc(l.name)}</b><small>${l.keys.length} item${l.keys.length===1?'':'s'} · ${esc(l.byName||'')} · ${esc(ago(l.updated||l.at))}</small></div><div class="il-a"><button type="button" class="btn sm primary" data-a="open">Open</button>${can('shareUser')&&staff.length?'<button type="button" class="btn sm" data-a="send">Send…</button>':''}${(l.by===me||can('theme'))?'<button type="button" class="btn sm" data-a="ren">Rename</button><button type="button" class="btn sm pl-del" data-a="del">Delete</button>':''}</div>
+      <div class="il-send" hidden><select aria-label="Send to">${staff.map(u=>`<option value="${esc(u.id)}">${esc(u.name||u.username)} · ${esc(roleName(u.role))}</option>`).join('')}</select><input maxlength="200" placeholder="Note, e.g. add photos and size" aria-label="Note"><label class="rc-p"><input type="checkbox" checked> Ask to update and tell me when done</label><button type="button" class="btn sm primary" data-a="go">Send</button></div></div>`).join('')}</div>`:'<p class="note">No saved lists yet. In Search, select items (or use <b>Labels…</b>) and tap <b>Save list</b>.</p>';
+    $('modalBody').querySelectorAll('.il-row').forEach(row=>{const l=ilists.find(x=>x.id===row.dataset.id);
+      row.querySelectorAll('[data-a]').forEach(b=>b.onclick=async()=>{const a=b.dataset.a;
+        if(a==='open'){closeModal();openIlistItems(l,true)}
+        else if(a==='send'){row.querySelector('.il-send').hidden=!row.querySelector('.il-send').hidden}
+        else if(a==='ren'){const n=(prompt('Rename list:',l.name)||'').trim().slice(0,60);if(n&&n!==l.name){await pushIlist({list:{...l,name:n}});paint()}}
+        else if(a==='del'){if(!confirm(`Delete the list “${l.name}”? The items are not changed.`))return;await pushIlist({del:l.id});paint()}
+        else if(a==='go'){const sel=row.querySelector('.il-send select'),u=users.find(x=>x.id===sel.value),upd=row.querySelector('.il-send input[type=checkbox]').checked;
+          const ld={id:uid(),kind:'items',task:upd?'update':'',list:l.id,keys:l.keys.slice(0,500),name:l.name,phone:'',note:row.querySelector('.il-send input[maxlength]').value.trim(),to:sel.value,toName:u?(u.name||u.username):'',by:me||'',byName:meName(),at:Date.now(),state:'new'};
+          leads.unshift(ld);store.set('leads',leads);const ok=await pushLead(ld);toast(ok?`“${l.name}” sent to ${ld.toName}${upd?' to update':''}`:'Could not send. Check the internet.',null,!ok);if(ok)closeModal()}})})};
+  paint()}
 window.__qSel=()=>{stLastRows.forEach(r=>stSel.add(r.key));runFind();paintSelBar()};
 /* V1.9.30 many labels at once: paste or scan a list, see those items selected, then Update… (design, size, collection…) or Photo… */
 const lblSplit=t=>[...new Set(String(t||'').split(/[\s,;]+/).map(x=>x.trim()).filter(Boolean))];
+window.__lblSave=()=>{if(shareList)saveItemList([...shareList.keys])};
 window.__lblSel=()=>{if(!shareList)return;shareList.keys.forEach(k=>stSel.add(k));runFind();paintSelBar()};
 function showLabels(list,select){const found=[],miss=[];for(const t of list){const r=findStock(t);if(r){if(!found.includes(r.key))found.push(r.key)}else miss.push(t)}
   if(!found.length){toast(miss.length?`None of these labels are in stock`:'No labels',null,true);return false}
@@ -6765,8 +6808,9 @@ function paintSelBar(){
   for(const k of [...stSel])if(!stockMap.has(k))stSel.delete(k);
   const on=document.body.dataset.view==='search'&&stSel.size>0&&can('stSelect');b.hidden=!on;if(!on)return;
   const tot=stLastRows.length,more=stLastRows.some(r=>!stSel.has(r.key));
-  b.innerHTML=`<span class="ss-n"><b>${stSel.size.toLocaleString('en-IN')}</b> selected</span>${more&&tot>1?`<button type="button" class="linkbtn" id="ssAll">${DESK.matches?'Select all '+tot.toLocaleString('en-IN')+' found':'All '+tot.toLocaleString('en-IN')}</button>`:''}<button type="button" class="btn primary" id="ssShare">Share…</button>${can('stReport')?'<button type="button" class="btn" id="ssRep">Report…</button>':''}${can('stockBulk')?'<button type="button" class="btn" id="ssUpd">Update…</button>':''}${can('images')?'<button type="button" class="btn" id="ssPh">Photo…</button>':''}<button type="button" class="btn ss-clr" id="ssClr">Clear</button>`;
+  b.innerHTML=`<span class="ss-n"><b>${stSel.size.toLocaleString('en-IN')}</b> selected</span>${more&&tot>1?`<button type="button" class="linkbtn" id="ssAll">${DESK.matches?'Select all '+tot.toLocaleString('en-IN')+' found':'All '+tot.toLocaleString('en-IN')}</button>`:''}<button type="button" class="btn primary" id="ssShare">Share…</button>${can('stReport')?'<button type="button" class="btn" id="ssRep">Report…</button>':''}<button type="button" class="btn" id="ssList">Save list</button>${can('stockBulk')?'<button type="button" class="btn" id="ssUpd">Update…</button>':''}${can('images')?'<button type="button" class="btn" id="ssPh">Photo…</button>':''}<button type="button" class="btn ss-clr" id="ssClr">Clear</button>`;
   if($('ssPh'))$('ssPh').onclick=()=>multiPhoto([...stSel]);
+  if($('ssList'))$('ssList').onclick=()=>saveItemList([...stSel]);
   if($('ssUpd'))$('ssUpd').onclick=()=>bulkForm([...stSel].map(k=>stockMap.get(k)).filter(Boolean));
   if($('ssAll'))$('ssAll').onclick=()=>{stLastRows.slice(0,500).forEach(r=>stSel.add(r.key));if(tot>500)toast('First 500 items selected',null,true);runFind()};
   $('ssClr').onclick=()=>{stSel.clear();runFind();paintSelBar()};
@@ -6775,7 +6819,8 @@ function paintSelBar(){
 }
 {const sv=setView;setView=function(v){if(v==='search'&&curUser&&!can('search')){withPerm('search','Needs permission: Search page.',()=>{sv(v);try{paintSelBar()}catch(e){}});return}sv(v);try{paintSelBar()}catch(e){}}}
 function openSharedList(l){
-  shareList={keys:new Set(l.keys||[]),from:l.byName||'',note:l.note||''};
+  shareList={keys:new Set(l.keys||[]),from:l.byName||'',note:l.note||'',task:l.task||'',lead:l};
+  if(l.task==='update'){if(l.state==='new'){l.state='open';store.set('leads',leads);pushLead(l)}stSel.clear();(l.keys||[]).forEach(k=>{if(stockMap.has(k))stSel.add(k)});openFind('');return}
   findType='';Object.keys(findF).forEach(k=>findF[k]='');const g=document.querySelector('#stFilters .st-rng');if(g)g.remove();stPage=1;stSel.clear();
   if(l.state==='new'){l.state='done';store.set('leads',leads);pushLead(l)}
   openFind('');
@@ -6832,7 +6877,8 @@ function openShareSel(only){
     <div class="sh-sec"><h5>Customer · WhatsApp or PDF</h5><div class="sh-row"><input id="shPh" inputmode="tel" autocomplete="off" placeholder="Customer WhatsApp no. (optional)" aria-label="Customer WhatsApp number">
       ${can('shareItems')?'<button type="button" class="btn primary" id="shWa">WhatsApp</button>':''}${can('sharePdf')?'<button type="button" class="btn" id="shPdf">PDF</button>':''}${can('shareStatus')&&list.length===1?'<button type="button" class="btn" id="shStatus">Status card</button>':''}</div></div>
     <div class="sh-sec"${can('shareUser')?'':' hidden'}><h5>Another app user</h5><div class="sh-row"><select id="shUser" aria-label="Send to user">${staff.length?staff.map(u=>`<option value="${esc(u.id)}">${esc(u.name||u.username)} · ${esc(roleName(u.role))}</option>`).join(''):'<option value="">No other users yet</option>'}</select>
-      <input id="shNote" autocomplete="off" placeholder="Note (optional)" aria-label="Note"><button type="button" class="btn" id="shUserGo"${staff.length?'':' disabled'}>Send to user</button></div></div></div>`;
+      <input id="shNote" autocomplete="off" placeholder="Note (optional)" aria-label="Note"><button type="button" class="btn" id="shUserGo"${staff.length?'':' disabled'}>Send to user</button></div>
+      <label class="rc-p sh-upd"><input type="checkbox" id="shTask"> Ask them to <b>update</b> these items (photos, design, size…) and tell me when done</label></div></div>`;
   const pick=()=>{const v=[...$('modalBody').querySelectorAll('.sh-f input:checked')].map(i=>i.value);store.set('shFields',v);return v};
   const prev=()=>{const v=pick(),r=list[0];$('shPrev').textContent=v.length?'Preview · '+[shTitle(r),...v.filter(k=>k!=='img'&&k!=='item'&&k!=='pname').map(k=>{const x=shVal(r,k);return x?`${SH_F.find(c=>c[0]===k)[1]}: ${x}`:''}).filter(Boolean)].join(' · '):'Pick at least one detail'};
   let cvT=0;const cardPrev=()=>{clearTimeout(cvT);cvT=setTimeout(async()=>{const v=pick(),r=list[0];const all=v.includes('img')?await getProdImgs(r.key).catch(()=>[]):[];const ims=(await Promise.all(all.slice(0,5).map(u=>loadImg(u)))).filter(Boolean);const cv=await shCard(r,v,ims[0]||null,ims.slice(1));const o=$('shCardCv');if(!o)return;o.width=cv.width;o.height=cv.height;o.getContext('2d').drawImage(cv,0,0)},120)};
@@ -6859,7 +6905,8 @@ function openShareSel(only){
   if($('shStatus'))$('shStatus').onclick=()=>{closeModal();openStatus(scFromStock(list[0]))};
   if($('shPdf'))$('shPdf').onclick=async()=>{const v=pick();if(!v.length){toast('Pick what to share',null,true);return}const b=$('shPdf');b.disabled=true;b.textContent='Making the PDF…';try{await shareItemsPdf(list,v)}catch(e){toast('Could not make the PDF',null,true)}b.disabled=false;b.textContent='PDF'};
   $('shUserGo').onclick=async()=>{const to=$('shUser').value,u=users.find(x=>x.id===to);if(!to)return;const v=pick();
-    const l={id:uid(),kind:'items',keys:list.map(r=>r.key).slice(0,500),name:`${list.length} item${list.length===1?'':'s'}`,phone:'',note:$('shNote').value.trim(),to,toName:u?(u.name||u.username):'',by:curUser?curUser.id:'',byName:meName(),at:Date.now(),state:'new',fields:v};
+    const upd=$('shTask')&&$('shTask').checked;
+    const l={id:uid(),kind:'items',task:upd?'update':'',keys:list.map(r=>r.key).slice(0,500),name:`${list.length} item${list.length===1?'':'s'}`,phone:'',note:$('shNote').value.trim(),to,toName:u?(u.name||u.username):'',by:curUser?curUser.id:'',byName:meName(),at:Date.now(),state:'new',fields:v};
     closeModal();leads.unshift(l);store.set('leads',leads);const done=await pushLead(l);toast(done?`${list.length} item${list.length===1?'':'s'} sent to ${l.toName}`:'Could not send. Check the internet.',null,!done)};
 }
 function shText(list,f){
@@ -7253,7 +7300,7 @@ function stmActive(){
 function stmBar(total){
   let b=$('stMBar');if(!b){b=document.createElement('div');b.id='stMBar';b.className='stm-bar';document.querySelector('.find-view .find-in').after(b)}
   const act=stmActive(),srt=ST_ALL.find(c=>c[0]===stSort.k),okF=can('stFilters')||can('stRanges');
-  const more=['findLbl','findRep','findPhotos','findBulk','findNew'].filter(id=>$(id)&&!$(id).hidden).length+(can('stExport')?1:0);
+  const more=['findLists','findLbl','findRep','findPhotos','findBulk','findNew'].filter(id=>$(id)&&!$(id).hidden).length+(can('stExport')?1:0);
   b.innerHTML=`<div class="stm-tools">
     ${okF?`<button type="button" class="stm-b${act.length?' on':''}" id="stmFilt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filters${act.length?`<b>${act.length}</b>`:''}</button>`:''}
     <button type="button" class="stm-b" id="stmSort"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4"/></svg><span>${esc(srt?srt[1]:'Sort')}</span>${stSort.d>0?'↑':'↓'}</button>
@@ -7286,7 +7333,7 @@ function stmSortSheet(){
   $('soDir').onclick=()=>{stSort={k:stSort.k,d:-stSort.d};store.set('stSort',stSort);closeModal();runFindTable()};$('soOk').onclick=()=>closeModal();
 }
 function stmMoreSheet(){
-  const it=[['findLbl','Labels… · many label numbers at once'],['findRep','Product report of these items'],['findNew','+ New item'],['findBulk','Bulk update'],['findPhotos','Photos · bulk upload / save on phone']].filter(([id])=>$(id)&&!$(id).hidden);
+  const it=[['findLists','Lists · saved item lists'],['findLbl','Labels… · many label numbers at once'],['findRep','Product report of these items'],['findNew','+ New item'],['findBulk','Bulk update'],['findPhotos','Photos · bulk upload / save on phone']].filter(([id])=>$(id)&&!$(id).hidden);
   showModal('More','',[{label:'Close',cls:'ghost'}]);
   $('modalBody').innerHTML=`<div class="stm-sort">${it.map(([id,l])=>`<button type="button" class="stm-so" data-id="${id}">${esc(l)}</button>`).join('')}${can('stExport')?'<button type="button" class="stm-so" data-id="xlsx">Export these items to Excel</button>':''}</div>`;
   $('modalBody').querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>{closeModal();const id=b.dataset.id;if(id==='xlsx')withPerm('stExport','Needs permission: Export Search to Excel.',()=>stExport(stLastRows));else $(id).click()});
@@ -9177,7 +9224,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.9.30',APP_BUILD='__BUILD__';
+const APP_VERSION='1.9.31',APP_BUILD='__BUILD__';
 /* V1.9.16 phone book on every customer number box (share, report, wishlist, lead, quote, order), like Order Desk */
 const canPickContact=()=>!!((NATIVE&&NATIVE.pickContact)||(navigator.contacts&&navigator.contacts.select));
 const pbClean=p=>{const d=String(p||'').replace(/[^\d+]/g,'');return d.replace(/^\+?91(?=\d{10}$)/,'').replace(/^0(?=\d{10}$)/,'')};
@@ -9956,7 +10003,7 @@ function myInbox(){
   const me=curUser&&curUser.id;if(!me)return [];const out=[];
   if(canApprove())(inbox.pending||[]).filter(p=>p.by!==me&&(!p.to||p.to===me)&&(p.kind!=='special'||can('special'))).forEach(p=>out.push({k:'p:'+p.id+':'+p.at,kind:'pending',id:p.id,t:`${p.kind==='special'?'Special price':'Approve'} ${p.no||'quote'}${p.name?' · '+p.name:''}`,s:`From ${p.byName||'staff'} · ${ago(p.at)}`,at:p.at,act:true}));
   (inbox.approved||[]).filter(a=>a.to===me).forEach(a=>out.push({k:'a:'+a.id+':'+a.at,kind:'approved',id:a.id,t:`${a.no||'Quote'} approved${a.name?' · '+a.name:''}`,s:`By ${a.byName||'manager'} · ready to share · ${ago(a.at)}`,at:a.at}));
-  (inbox.leads||[]).filter(l=>l.to===me).forEach(l=>out.push({k:'l:'+l.id,kind:'lead',id:l.id,t:l.kind==='items'?`Items shared with you · ${l.n||''} item${l.n===1?'':'s'}`:`New WhatsApp lead${l.name?' · '+l.name:''}`,s:`From ${l.byName||'manager'} · ${ago(l.at)}`,at:l.at,act:true}));
+  (inbox.leads||[]).filter(l=>l.to===me).forEach(l=>out.push({k:'l:'+l.id+':'+(l.state||''),kind:'lead',id:l.id,t:l.task==='update'?`📝 Please update · ${l.name||((l.n||'')+' items')}${l.state==='open'?' · in progress':''}${l.note?' — '+l.note:''}`:l.task==='done'?`✓ Updated · ${l.name||'items'}${l.note?' — '+l.note:''}`:l.kind==='items'?`Items shared with you · ${l.n||''} item${l.n===1?'':'s'}`:`New WhatsApp lead${l.name?' · '+l.name:''}`,s:`From ${l.byName||'manager'} · ${ago(l.at)}`,at:l.at,act:true}));
   return out.sort((a,b)=>b.at-a.at);
 }
 function paintBell(){

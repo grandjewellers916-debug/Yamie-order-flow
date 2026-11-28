@@ -324,6 +324,7 @@ export default async (req: Request) => {
       // V1.8.31 gold coin prices: Bhima benchmark entries (history) and the admin's margin / disclaimers
       if (op === "coins") return json(req, { v: (meta as any).coins || 0, log: (await st.get("coins", { type: "json" })) || [], set: (await st.get("coinset", { type: "json" })) || null })
       if (op === "settings") return json(req, { v: meta.settings, settings: (await st.get("settings", { type: "json" })) || null })
+      if (op === "ilists") return json(req, { lists: (await st.get("ilists", { type: "json" })) || [] })
       // V1.9.22 which rate-publishing links are set up (yes/no only, never the values)
       if (op === "pubcheck") return json(req, { kiosk: !!process.env.KIOSK_RATES_PIN, shopify: !!(process.env.SHOPIFY_STORE_DOMAIN && (process.env.SHOPIFY_ADMIN_TOKEN || (process.env.SHOPIFY_CLIENT_ID && process.env.SHOPIFY_CLIENT_SECRET))) })
       if (op === "users") {
@@ -421,7 +422,7 @@ export default async (req: Request) => {
           .map((q) => ({ id: q.id, no: q.no || "", name: cleanStr(q.cust?.name, 40), by: q.appr.reqBy || "", byName: cleanStr(q.appr.reqName, 40), to: cleanStr(q.appr.to, 40), kind: cleanStr(q.appr.kind, 12), at: q.appr.reqAt || q.updated || 0 }))
         const approved = qs.filter((q) => q?.appr?.state === "approved" && q.appr.at > Date.now() - 3 * 864e5).slice(0, 50)
           .map((q) => ({ id: q.id, no: q.no || "", name: cleanStr(q.cust?.name, 40), to: q.appr.reqBy || "", byName: cleanStr(q.appr.by, 40), at: q.appr.at || 0 }))
-        const leads = ls.filter((l) => l.state === "new").slice(0, 50).map((l) => ({ id: l.id, to: l.to || "", name: cleanStr(l.name, 40), byName: cleanStr(l.byName, 40), at: l.at || 0, kind: l.kind || "", n: Array.isArray(l.keys) ? l.keys.length : 0 }))
+        const leads = ls.filter((l) => l.state === "new" || (l.task === "update" && l.state === "open")).slice(0, 50).map((l) => ({ id: l.id, to: l.to || "", name: cleanStr(l.name, 40), byName: cleanStr(l.byName, 40), at: l.at || 0, kind: l.kind || "", n: Array.isArray(l.keys) ? l.keys.length : 0, task: l.task || "", state: l.state || "new", note: cleanStr(l.note, 80) }))
         return json(req, { q: meta.quotes, l: meta.leads || 0, u: meta.users || 0, s: meta.settings || 0, st: meta.stock || 0, sd: (meta as any).sold || 0, pn: (meta as any).pnames || 0, pa: (meta as any).pattrs || 0, pl: (meta as any).plists || 0, pending, approved, leads })
       }
       return json(req, { error: "bad_op" }, 400)
@@ -510,6 +511,19 @@ export default async (req: Request) => {
       return json(req, { v: meta.quotes, quote: q })
     }
 
+    if (op === "ilists") {
+      // V1.9.31 saved item lists (label numbers) shared by the shop: {list} adds / renames, {del} removes
+      const all: any[] = ((await st.get("ilists", { type: "json" })) as any[]) || []
+      let next = all
+      if (body?.del) next = all.filter((x) => x.id !== cleanStr(body.del, 24))
+      else if (body?.list && typeof body.list.id === "string") {
+        const L = body.list, it = { id: cleanStr(L.id, 24), name: cleanStr(L.name, 60) || "List", keys: Array.isArray(L.keys) ? [...new Set(L.keys.slice(0, 500).map((k: any) => cleanStr(k, 40).toUpperCase().replace(/[^A-Z0-9]/g, "")).filter(Boolean))] : [], by: cleanStr(L.by, 40), byName: cleanStr(L.byName, 60), at: cleanNum(L.at) || Date.now(), updated: Date.now() }
+        if (!it.id || !it.keys.length) return json(req, { error: "bad_list" }, 400)
+        next = [it, ...all.filter((x) => x.id !== it.id)].slice(0, 300)
+      }
+      await st.setJSON("ilists", next)
+      return json(req, { lists: next })
+    }
     if (op === "lead") {
       // WhatsApp leads given to a staff member (open to phones with the shop key, like quotes)
       const l = body?.lead
@@ -520,6 +534,8 @@ export default async (req: Request) => {
         at: cleanNum(l.at) || Date.now(), state: ["new", "open", "done"].includes(l.state) ? l.state : "new", quoteId: cleanStr(l.quoteId, 24), updated: Date.now(),
         // V1.7.88 items picked in Search and sent to a user
         kind: l.kind === "items" ? "items" : "", keys: Array.isArray(l.keys) ? l.keys.slice(0, 500).map((k: any) => cleanStr(k, 40)).filter(Boolean) : [],
+        // V1.9.31 "please update these items" requests, and the "done" reply back to the sender
+        task: ["update", "done"].includes(l.task) ? l.task : "", list: cleanStr(l.list, 24), reply: cleanStr(l.reply, 24),
       }
       const list: any[] = ((await st.get("leads", { type: "json" })) as any[]) || []
       const next = [lead, ...list.filter((x) => x.id !== lead.id)].sort((a, b) => (b.at || 0) - (a.at || 0)).slice(0, 500)
