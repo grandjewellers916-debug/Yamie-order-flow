@@ -2037,6 +2037,7 @@ body[data-view="dash"] .hero{display:none}
 .dw-head,.dw-side,.dh-pd{display:none}
 .dh-rg2{display:flex;justify-content:center;gap:18px;margin-top:8px;padding-top:8px;border-top:1px dashed #EADBD0;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}.dh-rg2 b{color:var(--db);font-weight:600;margin-right:2px}
 .pub-miss{color:#9A3B2E!important;font-weight:600}
+.dw-hb{display:flex;gap:10px}
 .dh-cust{display:flex;align-items:center;gap:10px;justify-content:center}.dh-cust>span{color:var(--muted)}#dhArr.on{font-weight:700}
 .dh-grid.arr .dh-t{cursor:grab;touch-action:none;outline:2px dashed color-mix(in srgb,var(--db) 35%,transparent);outline-offset:-4px;animation:dhWig .28s ease-in-out infinite alternate}
 .dh-grid.arr .dh-t:nth-child(2n){animation-delay:.14s}.dh-grid .dh-t.drag{cursor:grabbing;animation:none;opacity:.92;transform:scale(1.04);box-shadow:0 12px 28px rgba(60,20,15,.22);z-index:3;position:relative}
@@ -2775,7 +2776,7 @@ body:not([data-view="quote"]):not([data-view="home"]) #bill.qv{display:none!impo
   </section>
   <div class="qw-nav" id="qNav" data-pane="quote" hidden><button type="button" class="btn" id="qBack">‹ Back</button><button type="button" class="btn primary" id="qNext">Next ›</button></div>
     <section class="dash" data-pane="dash" id="dashView">
-      <div class="dw-head" id="dwHead"><div><h2 id="dwHi">Welcome</h2><p id="dwWhen"></p></div><button class="btn dw-cust" type="button" id="dwCust">Customise</button></div>
+      <div class="dw-head" id="dwHead"><div><h2 id="dwHi">Welcome</h2><p id="dwWhen"></p></div><span class="dw-hb"><button class="btn dw-cust" type="button" id="dwArr">Arrange tiles</button><button class="btn dw-cust" type="button" id="dwCust">Customise</button></span></div>
       <div class="dh-top">
         <button class="dh-ic" type="button" id="dhMenu" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
         <div class="dh-brand"><img class="dh-logo" id="dhLogo" alt=""><div class="dh-sub"><i></i><span>Price Check</span><i></i></div></div>
@@ -7311,7 +7312,7 @@ function stFilterBar(rowsAll){
   const uniq=f=>[...new Set(rowsAll.map(f).filter(Boolean))].sort();
   const ci=(f)=>{const m=new Map();rowsAll.forEach(r=>{const v=String(r[f]||'').trim();if(v&&!m.has(v.toLowerCase()))m.set(v.toLowerCase(),v)});return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1],'en',{numeric:true}))};
   const mOpt=(f,L)=>{const m=new Map();rowsAll.forEach(r=>attrOf(r)[f].forEach(v=>m.set(v.toLowerCase(),v)));const ix=v=>{const i=L.indexOf(v);return i<0?99:i};return [...m.entries()].sort((a,b)=>ix(a[1])-ix(b[1])||a[1].localeCompare(b[1]))};
-  const opts={cl:(()=>{const m=new Map();rowsAll.forEach(r=>attrOf(r).cl.forEach(v=>m.set(v.toLowerCase(),v)));return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1]))})(),shp:mOpt('sh',SHP_LIST),sst:mOpt('ss',SST_LIST),cat:ci('category').filter(([k])=>!findF.item||rowsAll.some(r=>String(r.category||'').trim().toLowerCase()===k&&String(r.item||'').trim().toLowerCase()===findF.item)),item:ci('item'),imp:[['yes','Imported'],['no','Not imported']],pn:[['yes','Named'],['no','No name yet']],jt:(()=>{const m=new Map(),ok=findF.item?jtDesignsFor([findF.item]):null;rowsAll.forEach(r=>{const j=attrOf(r).jt;if(j&&(!ok||ok.has(j.toLowerCase())||lcT(r.item)===findF.item||j.toLowerCase()===findF.jt))m.set(j.toLowerCase(),j)});return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1]))})(),stt:(()=>{const m=new Map();rowsAll.forEach(r=>attrOf(r).st.forEach(v=>m.set(v.toLowerCase(),v)));const ix=v=>{const i=STT_LIST.indexOf(v);return i<0?99:i};return [...m.entries()].sort((a,b)=>ix(a[1])-ix(b[1])||a[1].localeCompare(b[1]))})(),mc:(()=>{const m=new Map();rowsAll.forEach(r=>{const v=attrOf(r).mc;if(v)m.set(v.toLowerCase(),v)});return [...m.entries()].sort((a,b)=>{const ia=MC_LIST.findIndex(x=>x[0]===a[1]),ib=MC_LIST.findIndex(x=>x[0]===b[1]);return (ia<0?99:ia)-(ib<0?99:ib)})})(),sc:(()=>{const m=new Set();rowsAll.forEach(r=>attrOf(r).sc.forEach(c=>m.add(c)));return [...m].sort((a,b)=>{const ia=SC_LIST.findIndex(x=>x[0]===a),ib=SC_LIST.findIndex(x=>x[0]===b);return (ia<0?99:ia)-(ib<0?99:ib)}).map(c=>[c.toLowerCase(),c])})(),type:wtCodes().map(c=>[c,CAT[c]||c]),pur:uniq(r=>caratToPurity(r.carat)).map(p=>[p,PLABEL[p]||p]),stone:[['any','With stone'],['dia','Diamond'],['clr','Colour stone'],['none','No stone']],
+  const opts={cl:(()=>{const m=new Map();rowsAll.forEach(r=>attrOf(r).cl.forEach(v=>m.set(v.toLowerCase(),v)));return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1]))})(),shp:mOpt('sh',SHP_LIST),sst:mOpt('ss',SST_LIST),cat:ci('category').filter(([k])=>!findF.item||rowsAll.some(r=>String(r.category||'').trim().toLowerCase()===k&&String(r.item||'').trim().toLowerCase()===findF.item)),item:ci('item'),imp:[['yes','Imported'],['no','Not imported']],pn:[['yes','Named'],['no','No name yet']],jt:(()=>{const m=new Map(),ok=findF.item?jtDesignsFor([findF.item]):null;if(ok)jtGroupsFor([findF.item]).forEach(([,l])=>l.forEach(v=>m.set(v.toLowerCase(),v)));rowsAll.forEach(r=>{const j=attrOf(r).jt;if(j&&(!ok||ok.has(j.toLowerCase())||lcT(r.item)===findF.item||j.toLowerCase()===findF.jt))m.set(j.toLowerCase(),j)});return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1]))})(),stt:(()=>{const m=new Map();rowsAll.forEach(r=>attrOf(r).st.forEach(v=>m.set(v.toLowerCase(),v)));const ix=v=>{const i=STT_LIST.indexOf(v);return i<0?99:i};return [...m.entries()].sort((a,b)=>ix(a[1])-ix(b[1])||a[1].localeCompare(b[1]))})(),mc:(()=>{const m=new Map();rowsAll.forEach(r=>{const v=attrOf(r).mc;if(v)m.set(v.toLowerCase(),v)});return [...m.entries()].sort((a,b)=>{const ia=MC_LIST.findIndex(x=>x[0]===a[1]),ib=MC_LIST.findIndex(x=>x[0]===b[1]);return (ia<0?99:ia)-(ib<0?99:ib)})})(),sc:(()=>{const m=new Set();rowsAll.forEach(r=>attrOf(r).sc.forEach(c=>m.add(c)));return [...m].sort((a,b)=>{const ia=SC_LIST.findIndex(x=>x[0]===a),ib=SC_LIST.findIndex(x=>x[0]===b);return (ia<0?99:ia)-(ib<0?99:ib)}).map(c=>[c.toLowerCase(),c])})(),type:wtCodes().map(c=>[c,CAT[c]||c]),pur:uniq(r=>caratToPurity(r.carat)).map(p=>[p,PLABEL[p]||p]),stone:[['any','With stone'],['dia','Diamond'],['clr','Colour stone'],['none','No stone']],
     sup:uniq(r=>r.supplier).map(x=>[x,x]),loc:uniq(r=>r.location).map(x=>[x,x]),lab:[['yes','Labelled'],['no','Not labelled']],img:[['yes','With photo'],['no','No photo']]};
   const val=k=>k==='type'?findType:findF[k];
   const RNG=[['w','Gross wt','g'],['n','Net wt','g'],['p','Label price','₹'],['f','Fair value','₹'],['m','Making','₹'],['d','Diamond','ct']].filter(([k])=>k!=='f'||can('fva'));
@@ -8664,7 +8665,7 @@ function bulkForm(pre){
     $('bkfCat').innerHTML='<option value="">Any</option>'+[...m.entries()].sort((a,b)=>a[1].localeCompare(b[1],'en',{numeric:true})).map(([k,v])=>`<option value="${esc(k)}"${k===was?' selected':''}>${esc(v)}</option>`).join('');if(was&&!m.has(was))$('bkfCat').value='';
     // V1.9.23 Design filter and the Design change list show only the designs of this item's group
     const ok=it?jtDesignsFor([it]):null;
-    if($('bkfJt')){const f=$('bkfJt'),w=f.value,o0=f.querySelector('option[value=""]').textContent,d=new Map();for(const r of stockMap.values()){const j=attrOf(r).jt;if(!j)continue;if(ok&&!ok.has(j.toLowerCase())&&lcT(r.item)!==it)continue;d.set(j.toLowerCase(),j)}
+    if($('bkfJt')){const f=$('bkfJt'),w=f.value,o0=f.querySelector('option[value=""]').textContent,d=new Map();if(ok)jtGroupsFor([it]).forEach(([,l])=>l.forEach(v=>d.set(v.toLowerCase(),v)));for(const r of stockMap.values()){const j=attrOf(r).jt;if(!j)continue;if(ok&&!ok.has(j.toLowerCase())&&lcT(r.item)!==it)continue;d.set(j.toLowerCase(),j)}
       f.innerHTML=`<option value="">${esc(o0)}</option>`+[...d.entries()].sort((a,b)=>a[1].localeCompare(b[1])).map(([k,v])=>`<option value="${esc(k)}"${k===w?' selected':''}>${esc(v)}</option>`).join('')+'<option value="__none">Not set</option>';if(w&&w!=='__none'&&!d.has(w))f.value=''}
     if($('bk_jt')){const c=$('bk_jt'),w=c.value,GS=jtGroupsFor(it?[it]:[]);
       c.innerHTML='<option value="">Keep</option>'+GS.map(([g,l])=>`<optgroup label="${esc(g)}">${l.map(v=>`<option${v===w?' selected':''}>${esc(v)}</option>`).join('')}</optgroup>`).join('')+'<option value="__none">Clear design</option>';if(w==='__none')c.value='__none';
@@ -9035,7 +9036,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.9.24',APP_BUILD='__BUILD__';
+const APP_VERSION='1.9.25',APP_BUILD='__BUILD__';
 /* V1.9.16 phone book on every customer number box (share, report, wishlist, lead, quote, order), like Order Desk */
 const canPickContact=()=>!!((NATIVE&&NATIVE.pickContact)||(navigator.contacts&&navigator.contacts.select));
 const pbClean=p=>{const d=String(p||'').replace(/[^\d+]/g,'');return d.replace(/^\+?91(?=\d{10}$)/,'').replace(/^0(?=\d{10}$)/,'')};
@@ -9335,7 +9336,7 @@ function dashRender(){
   g.innerHTML=tiles.length?tiles.map(t=>`<button type="button" class="dh-t" data-t="${t.id}">${DI(DASH_ICO[t.id])}<span><b>${esc(t.n)}</b><small>${esc(t.d)}</small></span></button>`).join(''):'<p class="note dh-empty">No shortcuts on your home screen. Tap <b>Customise home</b> to add some.</p>';
   v.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{if(dhArr||Date.now()-dhLong<600)return;const t=[...DASH_PRIM,...DASH_TILES].find(x=>x.id===b.dataset.t);if(t)try{t.go()}catch(e){toast('This screen is not available on this app',null,true)}});
   g.classList.toggle('arr',dhArr);g.querySelectorAll('.dh-t').forEach(b=>{b.addEventListener('pointerdown',dhTileDown);b.setAttribute('aria-roledescription',dhArr?'Movable tile':'')});
-  $('dhArr').textContent=dhArr?'Done arranging':'Arrange tiles';$('dhArr').classList.toggle('on',dhArr);if($('dhArrN'))$('dhArrN').hidden=!dhArr;
+  $('dhArr').textContent=dhArr?'Done arranging':'Arrange tiles';if($('dwArr')){$('dwArr').textContent=dhArr?'Done arranging':'Arrange tiles';$('dwArr').classList.toggle('primary',dhArr)}$('dhArr').classList.toggle('on',dhArr);if($('dhArrN'))$('dhArrN').hidden=!dhArr;
   dashRates();dashClock();try{dwPaint()}catch(e){console.error(e)}
 }
 /* V1.9.24 drag tiles on the home screen: "Arrange tiles" (or press and hold a tile), drag, Done; order is saved for this user */
@@ -9404,6 +9405,7 @@ $('dsLay').querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{const q=dashPr
 $('dsSize').querySelectorAll('[data-z]').forEach(b=>b.onclick=()=>{const q=dashPrefs();q.size=b.dataset.z;dashSave(q,'Tile size saved');dsPaint()});
 $('dsPrev').onclick=()=>setView('dash');
 $('dhArr').onclick=()=>dhArrange(!dhArr);
+$('dwArr').onclick=()=>{dhArrange(!dhArr);if(dhArr)$('dhGrid').scrollIntoView({block:'nearest',behavior:'smooth'})};
 $('dsReset').onclick=()=>showModal('Reset your home screen?','Shortcuts, order, columns and tile size go back to the standard layout. Nothing else changes.',[{label:'Cancel',cls:'ghost'},{label:'Reset to default',cls:'primary',run:()=>{store.set(dashKey(),null);dashRender();dsPaint();toast('Home screen reset')}}]);
 $('setDash').addEventListener('toggle',()=>{if($('setDash').open)dsPaint()});
 // ---- wiring: phones land on the dashboard; Home tab and the back arrow come back to it ----
