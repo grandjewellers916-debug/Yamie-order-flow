@@ -324,6 +324,8 @@ export default async (req: Request) => {
       // V1.8.31 gold coin prices: Bhima benchmark entries (history) and the admin's margin / disclaimers
       if (op === "coins") return json(req, { v: (meta as any).coins || 0, log: (await st.get("coins", { type: "json" })) || [], set: (await st.get("coinset", { type: "json" })) || null })
       if (op === "settings") return json(req, { v: meta.settings, settings: (await st.get("settings", { type: "json" })) || null })
+      // V1.9.22 which rate-publishing links are set up (yes/no only, never the values)
+      if (op === "pubcheck") return json(req, { kiosk: !!process.env.KIOSK_RATES_PIN, shopify: !!(process.env.SHOPIFY_STORE_DOMAIN && (process.env.SHOPIFY_ADMIN_TOKEN || (process.env.SHOPIFY_CLIENT_ID && process.env.SHOPIFY_CLIENT_SECRET))) })
       if (op === "users") {
         // Staff PIN hashes go to every phone for offline login; admin hashes only to admins
         const isAdm = await adminOk()
@@ -799,7 +801,10 @@ export default async (req: Request) => {
         const pin = process.env.KIOSK_RATES_PIN, url = process.env.KIOSK_URL || "https://grandjewellers.com"
         if (!pin) out.kiosk = { ok: false, msg: "Not set up: add KIOSK_RATES_PIN in Netlify" }
         else try {
-          const r = await fetch(url + "/api/kiosk-rates", { method: "POST", headers: { "content-type": "application/json", "x-admin-pin": pin }, body: JSON.stringify({ pin, ...rates }) })
+          // the kiosk replaces its whole list: keep its own rate for anything not set today (e.g. silver)
+          let keep: Record<string, number> = {}
+          try { const g: any = await (await fetch(url + "/api/kiosk-rates")).json(); for (const k of ["r22", "r18", "r14", "r9", "silver", "platinum"]) if (typeof g?.[k] === "number" && g[k] > 0) keep[k] = g[k] } catch (e) { }
+          const r = await fetch(url + "/api/kiosk-rates", { method: "POST", headers: { "content-type": "application/json", "x-admin-pin": pin }, body: JSON.stringify({ pin, ...keep, ...rates }) })
           out.kiosk = r.ok ? { ok: true, msg: "Kiosk updated" } : { ok: false, msg: r.status === 401 ? "Kiosk PIN is wrong" : "Kiosk said " + r.status }
         } catch (e) { out.kiosk = { ok: false, msg: "Kiosk not reachable" } }
       }
@@ -904,7 +909,7 @@ export default async (req: Request) => {
         // V1.8.20 the shop's picture card: which details, in which order (admin)
         shCard: s?.shCard && typeof s.shCard === "object" ? { f: (Array.isArray(s.shCard.f) ? s.shCard.f : []).filter((x: any) => typeof x === "string" && /^\w{1,20}$/.test(x)).slice(0, 40), order: (Array.isArray(s.shCard.order) ? s.shCard.order : []).filter((x: any) => typeof x === "string" && /^\w{1,20}$/.test(x)).slice(0, 40), at: Number(s.shCard.at) || Date.now() } : null,
         rpCard: s?.rpCard && typeof s.rpCard === "object" ? { f: (Array.isArray(s.rpCard.f) ? s.rpCard.f : []).filter((x: any) => typeof x === "string" && /^\w{1,20}$/.test(x)).slice(0, 40), order: (Array.isArray(s.rpCard.order) ? s.rpCard.order : []).filter((x: any) => typeof x === "string" && /^\w{1,20}$/.test(x)).slice(0, 40), ph: ["lg", "md", "sm"].includes(String(s.rpCard.ph)) ? String(s.rpCard.ph) : "md", at: Number(s.rpCard.at) || Date.now() } : null,
-        tabHide: Object.fromEntries(Object.entries(s?.tabHide && typeof s.tabHide === "object" ? s.tabHide : {}).slice(0, 20).filter(([k]) => /^[\w-]{1,40}$/.test(k)).map(([k, v]) => [k, (Array.isArray(v) ? v : []).filter((x: any) => ["tabScan", "tabFind", "tabQuote", "tabQuotes", "tabShop", "tabRates", "tabSet"].includes(x))])),
+        tabHide: Object.fromEntries(Object.entries(s?.tabHide && typeof s.tabHide === "object" ? s.tabHide : {}).slice(0, 20).filter(([k]) => /^[\w-]{1,40}$/.test(k)).map(([k, v]) => [k, (Array.isArray(v) ? v : []).filter((x: any) => ["tabDash", "tabScan", "tabFind", "tabQuote", "tabQuotes", "tabOrders", "tabRep", "tabShop", "tabRates", "tabCoins", "tabCourier", "tabSet"].includes(x) && !(k === "admin" && x === "tabSet"))])),
         apprOn: s?.apprOn !== false,
         // Special promotions (admin): applied to every quote while running
         // Pricing rules (admin): making / wastage / labour, fair value and diamond rate by purity, weight, type, supplier, NLC…

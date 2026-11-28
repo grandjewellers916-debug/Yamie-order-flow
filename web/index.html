@@ -2035,6 +2035,9 @@ body[data-view="dash"] .hero{display:none}
 /* Settings › Home dashboard */
 /* V1.9.19 Dashboard on the web (900px and wider): own header, actions + shortcuts on the left, rates / today / recent quotes on the right */
 .dw-head,.dw-side,.dh-pd{display:none}
+.dh-rg2{display:flex;justify-content:center;gap:18px;margin-top:8px;padding-top:8px;border-top:1px dashed #EADBD0;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}.dh-rg2 b{color:var(--db);font-weight:600;margin-right:2px}
+.pub-miss{color:#9A3B2E!important;font-weight:600}
+@media (max-width:899px){body:has(#rsheet:not([hidden])) .tabbar,body:has(#ssheet:not([hidden])) .tabbar{z-index:16}#rsheet .in,#ssheet .in{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}}
 .bk-phs{flex-wrap:wrap}.bk-pt{position:relative;display:inline-block}.bk-px{position:absolute;top:-6px;right:-6px;width:24px;height:24px;border-radius:50%;border:0;background:var(--maroon);color:#fff;font:600 15px/24px var(--body);cursor:pointer;padding:0}
 /* V1.9.20 search on the home dashboard */
 .dh-srch{position:relative;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #EADBD0;border-radius:16px;padding:0 6px 0 14px;min-height:52px;box-shadow:0 2px 10px rgba(109,43,34,.07)}
@@ -2048,7 +2051,7 @@ body[data-view="dash"] .hero{display:none}
 .dh-so:hover,.dh-so.on{background:#FBF4EF}
 .dh-so b{font:600 14px var(--mono,monospace);color:var(--db);grid-row:span 2}.dh-so span{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dh-so small{grid-column:2;color:var(--muted);font-size:12px}.dh-so i{font-style:normal;font-size:12px;color:var(--muted);grid-row:span 2}
 .dh-sall{width:100%;border:0;border-top:1px solid #F0E4DB;background:none;padding:10px;margin-top:4px;color:var(--db);font:600 13.5px var(--body);cursor:pointer;text-align:left;border-radius:0 0 10px 10px}
-body[data-view="dash"] #bill.qv{display:none!important}
+body:not([data-view="quote"]):not([data-view="home"]) #bill.qv{display:none!important}
 @media (max-width:899px){#tabDash{display:none}}
 @media (min-width:900px){
   body[data-view="dash"] .dk-head{display:none}
@@ -2775,6 +2778,7 @@ body[data-view="dash"] #bill.qv{display:none!important}
       <div class="dh-rates" id="dhRates" role="button" tabindex="0" aria-label="Today's gold rates">
         <div class="dh-rh"><span class="dh-rt1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4h12l3 5-9 11L3 9z"/><path d="M3 9h18M9 4l3 16 3-16"/></svg>Today’s gold rates</span><span class="dh-upd" id="dhUpd"></span><button type="button" class="dh-ref" id="dhRef" aria-label="Refresh rates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button></div>
         <div class="dh-rg" id="dhRg"></div>
+        <div class="dh-rg2" id="dhRg2" hidden></div>
         <p class="dh-rnote" id="dhRNote" hidden></p>
       </div>
       <div class="dh-prim" id="dhPrim"></div>
@@ -2977,8 +2981,8 @@ body[data-view="dash"] #bill.qv{display:none!important}
       <div class="seg" id="apprPick" style="margin-top:8px"><button type="button" data-v="on">On</button><button type="button" data-v="off">Off</button></div>
   </details>
   <details class="card datacard setcard" id="setFoot" data-pane="settings" data-perm="footer">
-    <summary><span class="dc-t">Footer · tabs for staff</span><span class="dc-s" id="setFootMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
-      <p class="note" style="margin-block:4px 0">Tap a tab to show or hide it for that role. Home is always shown; admins see every tab.</p>
+    <summary><span class="dc-t">Modules · show or hide</span><span class="dc-s" id="setFootMini"></span><span class="dc-chev" aria-hidden="true">▾</span></summary>
+      <p class="note" style="margin-block:4px 0">Tap a module to show or hide it for everyone in that role, admin included: it goes from the menu, the footer and the dashboard. Price Check is always shown; admins always keep Settings.</p>
       <div id="footPick"></div>
   </details>
   <details class="card datacard setcard" id="setPd" data-pane="settings" data-perm="pdRows">
@@ -3519,14 +3523,16 @@ $('rateReset').onclick=e=>{e.stopPropagation();bill.overrides={};saveBill();pain
 function setSrc(t){$('rateSrc').textContent=t}
 
 // ---------- day's rates screen ----------
+/* V1.9.22 the day's rates sheet always has Platinum and Silver too, so they are saved and published (kiosk, Shopify, WhatsApp) */
+const RATE_ALL=()=>{const sh=SHOWN();return PURITIES.filter(p=>sh.includes(p)||p.id==='platinum'||p.id==='silver')};
 function reqText(){const r=SHOWN().filter(isReq).map(p=>p.label);return r.length?`Enter today's rate per gram. ${r.length>1?r.slice(0,-1).join(', ')+' and '+r[r.length-1]+' are':r[0]+' is'} required.`:'Enter today\'s rate per gram.'}
-function buildRateSheet(){$('rsGrid').innerHTML=SHOWN().map(p=>`<div class="f"><label for="rs_${p.id}"${isReq(p)?' class="req"':''}>${p.name||p.label} ₹/g</label><input class="num" id="rs_${p.id}" inputmode="decimal" autocomplete="off"><span class="prev" id="rsp_${p.id}"></span></div>`).join('')}
+function buildRateSheet(){$('rsGrid').innerHTML=RATE_ALL().map(p=>`<div class="f"><label for="rs_${p.id}"${isReq(p)?' class="req"':''}>${p.name||p.label} ₹/g</label><input class="num" id="rs_${p.id}" inputmode="decimal" autocomplete="off"><span class="prev" id="rsp_${p.id}"></span></div>`).join('')}
 function openRates(){
   // V1.8.9 only users allowed to set the day's rates can open this
   if(!can('rates')){toast(rateFor('22k')==null?"Today's rates are not set yet. Ask a manager to set them.":"The day's rates are set by a manager.",null,true);return}
   const e=dayEntry(),prev=rateLog.find(x=>x.day!==dayKey())||null;
   $('rsDate').textContent=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+(e?' · already set today':'');
-  SHOWN().forEach(p=>{
+  RATE_ALL().forEach(p=>{
     const v=e&&e.rates[p.id]>0?e.rates[p.id]:(live.rates[p.id]>0?live.rates[p.id]:(prev&&prev.rates[p.id]>0?prev.rates[p.id]:null));
     $('rs_'+p.id).value=v==null?'':v;
     $('rsp_'+p.id).textContent=prev&&prev.rates[p.id]>0?`Last: ${inr(prev.rates[p.id])} (${new Date(prev.at).toLocaleDateString('en-IN',{day:'numeric',month:'short'})})`:'';
@@ -3544,17 +3550,17 @@ window.addEventListener('popstate',()=>closeRates(true));
 $('band').addEventListener('click',()=>{if(can('rates'))openRates()});
 $('band').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&can('rates')){e.preventDefault();openRates()}});
 $('rsClose').onclick=()=>closeRates();
-$('rsKiosk').onclick=()=>{SHOWN().forEach(p=>{if(live.rates[p.id]>0)$('rs_'+p.id).value=live.rates[p.id]});
+$('rsKiosk').onclick=()=>{RATE_ALL().forEach(p=>{if(live.rates[p.id]>0)$('rs_'+p.id).value=live.rates[p.id]});
   $('rsStatus').textContent=`Filled from the kiosk (${whenText(live.at)}). Check, then Save.`;$('rsStatus').className='status'};
 $('rsSave').onclick=()=>withPerm('rates',"Needs a user allowed to set the day's rates.",()=>saveDayRates(),true);
 function saveDayRates(){
   const rates={},miss=[];
   // keep any rate set today for a purity that is not shown, so hiding one never wipes it
-  const today=dayEntry();if(today)PURITIES.forEach(p=>{if(!SHOWN().includes(p)&&today.rates[p.id]>0)rates[p.id]=today.rates[p.id]});
-  SHOWN().forEach(p=>{const v=num($('rs_'+p.id).value);if(v>0)rates[p.id]=v;else if(isReq(p))miss.push(p.label)});
+  const today=dayEntry();if(today)PURITIES.forEach(p=>{if(!RATE_ALL().includes(p)&&today.rates[p.id]>0)rates[p.id]=today.rates[p.id]});
+  RATE_ALL().forEach(p=>{const v=num($('rs_'+p.id).value);if(v>0)rates[p.id]=v;else if(isReq(p))miss.push(p.label)});
   if(miss.length){$('rsStatus').textContent='Required: '+miss.join(', ')+' rate';$('rsStatus').className='status err';toast('Enter '+miss.join(', ')+' rate',null,true);return}
   // Guard against a typo: a rate more than 10% away from the last saved one needs a second tap
-  const prev=rateLog[0],big=prev?SHOWN().filter(p=>rates[p.id]&&prev.rates[p.id]&&Math.abs(rates[p.id]/prev.rates[p.id]-1)>0.1):[];
+  const prev=rateLog[0],big=prev?RATE_ALL().filter(p=>rates[p.id]&&prev.rates[p.id]&&Math.abs(rates[p.id]/prev.rates[p.id]-1)>0.1):[];
   const commit=async()=>{
     if(!can('rates')&&!credsOk('rates')){toast("Needs a user allowed to set the day's rates",null,true);return}
     // online: the database must accept it first, so a user without the permission changes nothing anywhere
@@ -3585,12 +3591,12 @@ function renderRateHist(){
   if(!rateLog.length){el.innerHTML='<div class="empty">Saved rates appear here, newest first.</div>';return}
   el.innerHTML=rateLog.slice(0,120).map((e,i)=>{
     const older=rateLog[i+1];
-    const vals=SHOWN().map(p=>{const v=e.rates[p.id];if(!(v>0))return `<span><b>${p.label}</b>—</span>`;
+    const vals=RATE_ALL().map(p=>{const v=e.rates[p.id];if(!(v>0))return `<span><b>${p.label}</b>—</span>`;
       const o=older&&older.rates[p.id];const arrow=o&&v!==o?(v>o?' <i class="up">▲</i>':' <i class="down">▼</i>'):'';
       return `<span><b>${p.label}</b>${v.toLocaleString('en-IN')}${arrow}</span>`}).join('');
     return `<div class="h-row"><div class="d">${new Date(e.at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}<small>${new Date(e.at).toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'})}${e.by?' · '+esc(e.by):''}</small></div><button class="linkbtn" type="button" data-use="${e.id}">Use</button><div class="vals">${vals}</div></div>`}).join('');
   el.querySelectorAll('[data-use]').forEach(b=>b.onclick=()=>{const e=rateLog.find(x=>x.id===b.dataset.use);if(!e)return;
-    SHOWN().forEach(p=>$('rs_'+p.id).value=e.rates[p.id]>0?e.rates[p.id]:'');
+    RATE_ALL().forEach(p=>$('rs_'+p.id).value=e.rates[p.id]>0?e.rates[p.id]:'');
     $('rsStatus').textContent='Copied into the form. Check, then Save to use them today.';$('rsStatus').className='status';
     $('rsheet').scrollTo({top:0,behavior:'smooth'})});
 }
@@ -5964,7 +5970,10 @@ $('menu').addEventListener('click',e=>{if(e.target.closest('.menu-acts button'))
 // Views: Home (price check), Quote, Settings (stock data + admin settings)
 const VIEW_TITLE={dash:'Home',courier:'Courier label',coins:'Gold Coins',orders:'Orders',shop:'Shop links',quotes:'All quotations',home:'Price Check',quote:'Quote',settings:'Settings',search:'Search',reports:'Reports'};
 const VIEW_SUB={dash:'Your home screen.',courier:'Print the parcel address label. Addresses are saved for every phone.',coins:'22K gold coin prices from the Bhima benchmark, with our margin. Rate card for WhatsApp.',orders:'Orders and customisation sent to Yamie Order Desk, with their status.',shop:'Website, catalogue and collection links to share with customers.',quotes:'Every quote. Tap one to make it the current quote.',home:'Scan or type a label to price it at today\u2019s gold rate.',quote:'Create a bill or price quote for jewellery items.',settings:'Configure pricing, charges, products, users and application preferences.',search:'Find items by label no., item name, item type, supplier or stone.',reports:'Sales, quotes and staff performance.'};
-function setView(v){
+/* V1.9.22 the Gold Rates, Stock data and Making guide sheets close when you pick another page (no need to press Back first) */
+function closeSheets(){try{if(!$('rsheet').hidden)closeRates()}catch(e){}try{if(!$('ssheet').hidden)closeStock()}catch(e){}try{if(!$('helper').hidden)closeHelper()}catch(e){}}
+document.querySelectorAll('.tab,#menu button').forEach(b=>{if(b.id!=='tabRates'&&b.id!=='menuRates')b.addEventListener('click',closeSheets,true)});
+function setView(v){closeSheets();
   const was=document.body.dataset.view;document.body.dataset.view=v;
   $('viewTitle').textContent=VIEW_TITLE[v];$('dkTitle').textContent=VIEW_TITLE[v];$('dkSub').textContent=VIEW_SUB[v]||'';try{paintWtop()}catch(e){}{const t=$({dash:'tabHome',courier:'tabCourier',coins:'tabCoins',orders:'tabOrders',shop:'tabShop',quotes:'tabQuotes',home:'tabHome',quote:'tabQuote',settings:'tabSet',search:'tabFind',reports:'tabRep'}[v]);const g=t&&t.querySelector('svg');if(g)$('dkIco').innerHTML=g.outerHTML}$('heroBack').hidden=v==='home'||v==='dash';
   [['tabDash','dash'],['tabHome','home'],['tabFind','search'],['tabQuote','quote'],['tabQuotes','quotes'],['tabOrders','orders'],['tabShop','shop'],['tabSet','settings'],['tabRep','reports'],['tabCoins','coins'],['tabCourier','courier']].forEach(([id,k])=>$(id).classList.toggle('on',k===v||(v==='dash'&&k==='home'&&!WIDE.matches)));
@@ -7361,7 +7370,7 @@ $('dkKeys').onclick=showKeys;$('keysOpen').onclick=showKeys;
 // shortcut hints on the buttons (computer only; hidden by CSS elsewhere)
 [['pdSave','F4'],['dkNew','F6'],['saveBill','F8'],['dkPrint','F9'],['dkQuote','F7']].forEach(([id,k])=>{const b=$(id);if(b)b.dataset.kb=k});
 $('tabRep').onclick=()=>withPerm('reports','Needs permission: Reports.',()=>setView('reports'));
-function paintRepTab(){$('tabRep').hidden=!(curUser&&can('reports'));const m=$('repBtnM');if(m)m.hidden=!can('reports')}
+function paintRepTab(){$('tabRep').hidden=!(curUser&&can('reports'))||modOff('tabRep');const m=$('repBtnM');if(m)m.hidden=!can('reports')}
 $('repBtnM').onclick=()=>withPerm('reports','Needs permission: Reports.',()=>DESK.matches?setView('reports'):openSettings('setReports'));
 
 // ---- Search: the whole stock list as a table (sortable; click or Enter prices the item) ----
@@ -8147,6 +8156,12 @@ function publishRates(e){
     ${yam?'<label class="ap-opt"><input type="checkbox" id="pubShop" checked> Update Shopify <small>yamie.in prices</small></label>':''}
     <label class="ap-opt"><input type="checkbox" id="pubWa" checked> Share on WhatsApp <small>rate message</small></label></div>
     <p class="note" id="pubOut" aria-live="polite"></p>`;
+  // V1.9.22 show what is not set up on the server yet (Netlify settings), so a tick that cannot work is clear
+  syncApi('pubcheck').then(c=>{if(!c)return;
+    const miss=(id,txt)=>{const i=$(id);if(!i)return;i.checked=false;const l=i.closest('label'),sm=l&&l.querySelector('small');if(sm){sm.textContent=txt;sm.classList.add('pub-miss')}};
+    if(!c.kiosk)miss('pubKiosk','Not set up yet');if(yam&&!c.shopify)miss('pubShop','Not set up yet');
+    const t=[!c.kiosk&&'kiosk: add <b>KIOSK_RATES_PIN</b> (the kiosk rates PIN)',yam&&!c.shopify&&'Shopify: add <b>SHOPIFY_STORE_DOMAIN</b> with <b>SHOPIFY_CLIENT_ID</b> + <b>SHOPIFY_CLIENT_SECRET</b>'].filter(Boolean);
+    if(t.length&&!$('pubOut').textContent)$('pubOut').innerHTML='To switch on, an admin adds these in Netlify › Site configuration › Environment variables: '+t.join('; ')+'.'}).catch(()=>{});
   const a=$('modalActs');a.innerHTML='';
   const go=document.createElement('button');go.className='btn primary';go.type='button';go.textContent='Publish';
   const cl=document.createElement('button');cl.className='btn ghost';cl.type='button';cl.textContent='Close';cl.onclick=closeModal;a.append(go,cl);$('modal').hidden=false;
@@ -8972,7 +8987,7 @@ setView('home');
 window.__pc={totals:()=>totals(),qimg:()=>makeQuoteImage(false),shareText:()=>shareText(),openSettings:c=>openSettings(c),inbox:()=>({inbox,me:curUser&&curUser.id,ca:canApprove(),items:myInbox(),busy:inboxBusy}),poll:()=>pollInbox(true)}; // used by the automated checks
 
 // ---------- version ----------
-const APP_VERSION='1.9.21',APP_BUILD='__BUILD__';
+const APP_VERSION='1.9.22',APP_BUILD='__BUILD__';
 /* V1.9.16 phone book on every customer number box (share, report, wishlist, lead, quote, order), like Order Desk */
 const canPickContact=()=>!!((NATIVE&&NATIVE.pickContact)||(navigator.contacts&&navigator.contacts.select));
 const pbClean=p=>{const d=String(p||'').replace(/[^\d+]/g,'');return d.replace(/^\+?91(?=\d{10}$)/,'').replace(/^0(?=\d{10}$)/,'')};
@@ -9266,8 +9281,8 @@ function dashSave(p,msg){store.set(dashKey(),{order:p.order,hidden:p.hidden,lay:
 let dashUser='';
 function dashRender(){
   const v=$('dashView');if(!v)return;dashUser=dashKey();
-  const p=dashPrefs(),tiles=p.order.filter(i=>!p.hidden.includes(i)).map(i=>DASH_TILES.find(t=>t.id===i)).filter(Boolean);
-  $('dhPrim').innerHTML=DASH_PRIM.map(t=>`<button type="button" class="dh-p dh-p-${t.id}" data-t="${t.id}">${DI(DASH_ICO[t.id])}<b>${esc(t.n.split(' ')[0])}<br><span class="dh-nw">${esc(t.n.split(' ').slice(1).join(' '))}<span class="dh-ch">${DI(DASH_ICO.chev)}</span></span><small class="dh-pd">${esc(t.d)}</small></b></button>`).join('');
+  const p=dashPrefs(),tiles=p.order.filter(i=>!p.hidden.includes(i)&&!modOff(MOD_OF[i])).map(i=>DASH_TILES.find(t=>t.id===i)).filter(Boolean);
+  $('dhPrim').innerHTML=DASH_PRIM.filter(t=>!modOff(MOD_OF[t.id])).map(t=>`<button type="button" class="dh-p dh-p-${t.id}" data-t="${t.id}">${DI(DASH_ICO[t.id])}<b>${esc(t.n.split(' ')[0])}<br><span class="dh-nw">${esc(t.n.split(' ').slice(1).join(' '))}<span class="dh-ch">${DI(DASH_ICO.chev)}</span></span><small class="dh-pd">${esc(t.d)}</small></b></button>`).join('');
   const g=$('dhGrid');g.className=`dh-grid lay-${p.lay} sz-${p.size}`;
   g.innerHTML=tiles.length?tiles.map(t=>`<button type="button" class="dh-t" data-t="${t.id}">${DI(DASH_ICO[t.id])}<span><b>${esc(t.n)}</b><small>${esc(t.d)}</small></span></button>`).join(''):'<p class="note dh-empty">No shortcuts on your home screen. Tap <b>Customise home</b> to add some.</p>';
   v.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{const t=[...DASH_PRIM,...DASH_TILES].find(x=>x.id===b.dataset.t);if(t)try{t.go()}catch(e){toast('This screen is not available on this app',null,true)}});
@@ -9279,6 +9294,7 @@ function dashRates(){
   g.innerHTML=list.map(p=>{const v=baseRate(p.id);return `<div class="dh-r"><span class="dh-k">${esc(p.label)}</span><b>${v==null?'—':'₹ '+v.toLocaleString('en-IN')}</b></div>`}).join('');
   const e=dayEntry(),t=x=>new Date(x).toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'});
   const any=list.some(p=>baseRate(p.id)!=null);
+  {const ex=PURITIES.filter(p=>(p.id==='platinum'||p.id==='silver')&&baseRate(p.id)>0),el=$('dhRg2');if(el){el.hidden=!ex.length;el.innerHTML=ex.map(p=>`<span><b>${esc(p.name||p.label)}</b> ₹ ${baseRate(p.id).toLocaleString('en-IN')}</span>`).join('')}}
   $('dhUpd').innerHTML=e?`<span class="dh-lu">Last updated: </span>${t(e.at)}`:live.at?`<span class="dh-lu">Kiosk: </span>${t(live.at)}`:rateLog.length?`Last set ${new Date(rateLog[0].at).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}`:'';
   $('dhRNote').hidden=any&&!!e;$('dhRNote').textContent=!any?'No rates yet. '+(can('rates')?'Tap to set the day’s rates.':'Ask a manager to set the day’s rates.'):!e?(can('rates')?'Day’s rates not set · tap to set them.':'Day’s rates not set yet.'):'';
 }
@@ -9334,7 +9350,7 @@ WIDE.addEventListener('change',()=>{if(document.body.dataset.view==='dash')dashR
 document.documentElement.dataset.brand=BRAND.id;$('dhVer').textContent='v'+APP_VERSION;
 if(BRAND.labelLogo||BRAND.logoHeaderColor)$('dhLogo').src=BRAND.labelLogo||BRAND.logoHeaderColor;
 $('dhLogo').alt=BRAND.full;$('dhTag').hidden=BRAND.id!=='yamie';
-setTimeout(()=>{if(document.body.dataset.view==='home')setView('dash')},0);
+setTimeout(()=>{if(document.body.dataset.view==='home'&&!modOff('tabDash'))setView('dash')},0);
 /* ===== V1.9.20 search on the home dashboard: a label number prices the item; anything else opens Search ===== */
 function dhMatches(q){
   const k=keyOf(q),t=q.toLowerCase(),out=[];if(q.length<2)return out;
@@ -9808,23 +9824,32 @@ setInterval(()=>pollInbox(),30000);
 // faster while this phone waits for an approval
 setInterval(()=>{try{if(needsAppr()&&apprState(bill)==='pending')pollInbox()}catch(e){}},8000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pollInbox()});
-// Footer tabs each role sees (admin chooses; admins always see all). Home is always shown.
-const FOOT_TABS=[['tabScan','Scan'],['tabFind','Search'],['tabQuote','Quote'],['tabQuotes','All quotes'],['tabOrders','Orders'],['tabShop','Shop'],['tabRates','Gold Rates'],['tabCoins','Gold Coins'],['tabSet','Settings']];
+// V1.9.22 Modules each role sees, admin included (admin chooses). Price Check is always shown; admins always keep Settings.
+const FOOT_TABS=[['tabDash','Dashboard'],['tabScan','Scan'],['tabFind','Search'],['tabQuote','Quote'],['tabShop','Shop'],['tabQuotes','All quotes'],['tabOrders','Orders'],['tabRep','Reports'],['tabRates','Gold Rates'],['tabCoins','Gold Coins'],['tabCourier','Courier label'],['tabSet','Settings']];
+const MOD_OF={scan:'tabScan',quote:'tabQuote',inventory:'tabFind',add:'tabFind',orders:'tabOrders',courier:'tabCourier',shop:'tabShop',rates:'tabRates',reports:'tabRep',quotes:'tabQuotes',coins:'tabCoins',settings:'tabSet',stock:'tabSet'};
+const VIEW_MOD={search:'tabFind',quote:'tabQuote',quotes:'tabQuotes',orders:'tabOrders',shop:'tabShop',reports:'tabRep',coins:'tabCoins',courier:'tabCourier',settings:'tabSet',dash:'tabDash'};
+function modsHidden(){const role=curUser?curUser.role:'';if(!role)return [];return ((settings.tabHide||{})[role]||[]).filter(t=>!(role==='admin'&&t==='tabSet'))}
+const modOff=id=>!!id&&modsHidden().includes(id);
 function applyTabs(){
-  const role=curUser?curUser.role:'',hid=role&&role!=='admin'?((settings.tabHide||{})[role]||[]):[];
-  FOOT_TABS.forEach(([id])=>{const b=$(id);if(b)b.hidden=hid.includes(id)});
+  const hid=modsHidden();
+  FOOT_TABS.forEach(([id])=>{const b=$(id);if(b&&id!=='tabRep')b.hidden=hid.includes(id)});
+  if($('tabRep')&&hid.includes('tabRep'))$('tabRep').hidden=true;
+  [['menuRates','tabRates'],['menuCoins','tabCoins'],['menuCourier','tabCourier']].forEach(([m,t])=>{const b=$(m);if(b)b.hidden=hid.includes(t)});
+  document.body.classList.toggle('no-dash',hid.includes('tabDash'));
+  const v=document.body.dataset.view;if(VIEW_MOD[v]&&hid.includes(VIEW_MOD[v]))setView(v==='dash'||hid.includes('tabDash')||WIDE.matches?'home':'dash');
+  else if(v==='dash'){try{dashRender()}catch(e){}}
   if($('tabShop')&&!can('shopTab'))$('tabShop').hidden=true;
   if($('tabOrders')&&!BRAND.orderDesk)$('tabOrders').hidden=true;
   try{paintFooterSet()}catch(e){}
 }
 function paintFooterSet(){
   const el=$('footPick');if(!el)return;const th=settings.tabHide||{};
-  const rs=roles.filter(r=>r.id!=='admin');
-  el.innerHTML=rs.length?rs.map(r=>`<div class="fp-role"><b>${esc(r.name)}</b><div class="fp-tabs">${FOOT_TABS.map(([id,l])=>`<button type="button" class="chip" data-r="${esc(r.id)}" data-t="${id}" aria-pressed="${!(th[r.id]||[]).includes(id)}">${l}</button>`).join('')}</div></div>`).join(''):'<p class="note">No staff roles yet. Add roles in Roles &amp; permissions.</p>';
-  $('setFootMini').textContent=Object.values(th).some(a=>a&&a.length)?'Some tabs hidden':'All tabs shown';
+  const rs=[...roles.filter(r=>r.id==='admin'),...roles.filter(r=>r.id!=='admin')];if(!rs.some(r=>r.id==='admin'))rs.unshift({id:'admin',name:'Admin'});
+  el.innerHTML=rs.map(r=>`<div class="fp-role"><b>${esc(r.name)}</b>${r.id==='admin'?' <small class="note">(Settings always stays on)</small>':''}<div class="fp-tabs">${FOOT_TABS.filter(([id])=>!(r.id==='admin'&&id==='tabSet')&&(id!=='tabOrders'||BRAND.orderDesk)).map(([id,l])=>`<button type="button" class="chip" data-r="${esc(r.id)}" data-t="${id}" aria-pressed="${!(th[r.id]||[]).includes(id)}">${l}</button>`).join('')}</div></div>`).join('');
+  $('setFootMini').textContent=Object.values(th).some(a=>a&&a.length)?'Some modules hidden':'All modules shown';
   el.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>withPerm('footer','Only an admin can change the footer.',()=>{
     const t=Object.assign({},settings.tabHide||{}),cur=new Set(t[b.dataset.r]||[]);cur.has(b.dataset.t)?cur.delete(b.dataset.t):cur.add(b.dataset.t);
-    t[b.dataset.r]=[...cur];settings.tabHide=t;saveSettings();applyTabs();toast('Footer updated')},true));
+    t[b.dataset.r]=[...cur];settings.tabHide=t;saveSettings();applyTabs();toast(`${b.textContent} ${cur.has(b.dataset.t)?'hidden':'shown'} for ${b.closest('.fp-role').querySelector('b').textContent}`)},true));
 }
 function paintUserChip(){try{applyTabs()}catch(e){}try{paintWtop()}catch(e){}try{paintRepTab()}catch(e){}try{paintFindNew()}catch(e){}try{paintPromoBar();if(curUser)setTimeout(()=>promoPopup(),1500)}catch(e){}try{if(curUser&&bill&&!billIsEmpty()&&!canSeeQuote(bill))startNewQuote('New quote.')}catch(e){}try{paintBell();nativeInbox();if(curUser)setTimeout(()=>pollInbox(true),800)}catch(e){}const c=$('userChip');c.hidden=!curUser;if(curUser)c.textContent='👤 '+(curUser.name||curUser.username)+' · Log out';$('heroName').textContent=$('sbName').textContent=curUser?(curUser.name||curUser.username):'—'}
 $('heroUser').onclick=()=>{if(curUser)$('userChip').click()};
