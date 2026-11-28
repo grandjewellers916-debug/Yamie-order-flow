@@ -87,7 +87,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const inr=n=>'₹'+Math.round(n).toLocaleString('en-IN');
 try{const L=B.light||{};for(const [k,v] of Object.entries(L))if(/^--(maroon|band|gold|bg|surface|sunk|fg|muted|line)$/.test(k))document.documentElement.style.setProperty(k,v)}catch(e){}
 const logo=B.labelLogo||B.logoHeaderColor||B.logoHeader||'';if(logo)$('logo').src=logo;else $('logo').remove();
-const id=(new URLSearchParams(location.search).get('id')||location.hash.slice(1)||'').replace(/[^A-Za-z0-9]/g,'');
+const id=(window.COL_ID||new URLSearchParams(location.search).get('id')||(location.pathname.match(/\/c\/([A-Za-z0-9]+)/)||[])[1]||location.hash.slice(1)||'').replace(/[^A-Za-z0-9]/g,'');
 const api=(op,extra)=>'/api/sync?op='+op+'&id='+encodeURIComponent(id)+(extra||'');
 const img=(k,i)=>api('colimg','&k='+encodeURIComponent(k)+'&i='+i);
 let C=null,cat='',cur=null,ci=1;

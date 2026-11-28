@@ -548,14 +548,14 @@ export default async (req: Request) => {
       }
       if (op === "colrevoke") { const id = cleanStr(body?.id, 32); await st.delete("col/" + id); const next = idx.filter((x) => x.id !== id); await st.setJSON("cols", next); return json(req, { cols: next }) }
       const c = body?.col || {}
-      const id = Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) => "abcdefghjkmnpqrstuvwxyz23456789"[b % 31]).join("")
+      const id = Array.from(crypto.getRandomValues(new Uint8Array(9)), (b) => "abcdefghjkmnpqrstuvwxyz23456789"[b % 31]).join("")
       const items = (Array.isArray(c.items) ? c.items : []).slice(0, 300).map((x: any) => ({
         k: cleanStr(x?.k, 40).toUpperCase().replace(/[^A-Z0-9]/g, ""), t: cleanStr(x?.t, 80), c: cleanStr(x?.c, 40), n: Math.max(0, Math.min(IMG_MAX, cleanNum(x?.n) || 0)),
         p: cleanNum(x?.p) || 0, f: cleanNum(x?.f) || 0,
         l: (Array.isArray(x?.l) ? x.l : []).slice(0, 16).map((r: any) => [cleanStr(r?.[0], 30), cleanStr(r?.[1], 80)]).filter((r: any) => r[0] && r[1]) })).filter((x: any) => x.k)
       if (!items.length) return json(req, { error: "no_items" }, 400)
       const days = Math.max(1, Math.min(90, cleanNum(c.days) || 7))
-      const col = { id, title: cleanStr(c.title, 80) || "Our collection", note: cleanStr(c.note, 400), shop: cleanStr(c.shop, 60), wa: cleanStr(c.wa, 20).replace(/[^\d+]/g, ""), by: cleanStr(c.by, 40), byName: cleanStr(c.byName, 60), at: Date.now(), exp: Date.now() + days * 864e5, items, views: 0, pm: pmOf(c.pm) }
+      const col = { id, title: cleanStr(c.title, 80) || "Our collection", note: cleanStr(c.note, 400), shop: cleanStr(c.shop, 60), wa: cleanStr(c.wa, 20).replace(/[^\d+]/g, ""), by: cleanStr(c.by, 40), byName: cleanStr(c.byName, 60), at: Date.now(), exp: Date.now() + days * 864e5, items, views: 0, pm: pmOf(c.pm), brand: c.brand === "grand" ? "grand" : "yamie" }
       await st.setJSON("col/" + id, col)
       const next = [{ id, title: col.title, pm: col.pm, n: items.length, by: col.by, byName: col.byName, at: col.at, exp: col.exp }, ...idx.filter((x) => x.exp > Date.now())].slice(0, 300)
       await st.setJSON("cols", next)
@@ -984,6 +984,8 @@ export default async (req: Request) => {
         rpCard: s?.rpCard && typeof s.rpCard === "object" ? { f: (Array.isArray(s.rpCard.f) ? s.rpCard.f : []).filter((x: any) => typeof x === "string" && /^\w{1,20}$/.test(x)).slice(0, 40), order: (Array.isArray(s.rpCard.order) ? s.rpCard.order : []).filter((x: any) => typeof x === "string" && /^\w{1,20}$/.test(x)).slice(0, 40), ph: ["lg", "md", "sm"].includes(String(s.rpCard.ph)) ? String(s.rpCard.ph) : "md", at: Number(s.rpCard.at) || Date.now() } : null,
         tabHide: Object.fromEntries(Object.entries(s?.tabHide && typeof s.tabHide === "object" ? s.tabHide : {}).slice(0, 20).filter(([k]) => /^[\w-]{1,40}$/.test(k)).map(([k, v]) => [k, (Array.isArray(v) ? v : []).filter((x: any) => ["tabDash", "tabScan", "tabFind", "tabQuote", "tabQuotes", "tabOrders", "tabRep", "tabShop", "tabRates", "tabCoins", "tabCourier", "tabSet"].includes(x) && !(k === "admin" && x === "tabSet"))])),
         apprOn: s?.apprOn !== false,
+        // V1.9.34 each shop's own address for customer web links
+        look: Object.fromEntries(["yamie", "grand"].map((b) => { const v = String(s?.look?.[b] || ""); return [b, /^https:\/\/[a-z0-9.-]{3,80}$/i.test(v) ? v.toLowerCase() : ""] })),
         // Special promotions (admin): applied to every quote while running
         // Pricing rules (admin): making / wastage / labour, fair value and diamond rate by purity, weight, type, supplier, NLC…
         priceRules: (Array.isArray(s?.priceRules) ? s.priceRules : []).slice(0, 80).map((r: any) => ({
