@@ -29,6 +29,29 @@ function cors(req: Request): Record<string, string> {
 const json = (req: Request, body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...cors(req), "content-type": "application/json" } })
 
+// V1.9.35 customer page look (per shop): background, gold rates strip, headings and offer badges
+const CP_BG = ["silk", "velvet", "blush", "plain", "custom"], CP_COL = ["maroon", "gold", "green", "rose", "navy", "black"]
+function cleanCp(v: any) {
+  const o = v && typeof v === "object" ? v : {}
+  const s = (x: any, n: number) => String(x ?? "").replace(/[\u0000-\u001f]/g, " ").trim().slice(0, n)
+  return {
+    bg: CP_BG.includes(o.bg) ? o.bg : "silk", bgv: Number(o.bgv) || 0, hasD: !!o.hasD, hasM: !!o.hasM,
+    rates: o.rates !== false, rk: (Array.isArray(o.rk) ? o.rk : ["r22", "r18", "r14", "r9"]).filter((x: any) => ["r22", "r18", "r14", "r9", "platinum", "silver"].includes(x)).slice(0, 6),
+    tag: s(o.tag ?? "Everyday fine jewellery", 50), head: s(o.head ?? "Your Curated Jewellery Edit", 70), sub: s(o.sub ?? "Handpicked designs, selected just for you", 100),
+    cta: s(o.cta ?? "To purchase, call / chat with us", 60),
+    offers: (Array.isArray(o.offers) ? o.offers : []).slice(0, 20).map((x: any) => ({
+      id: s(x?.id, 20) || Math.random().toString(36).slice(2, 9), t: s(x?.t, 32), c: CP_COL.includes(x?.c) ? x.c : "maroon", on: x?.on !== false,
+      to: ["all", "type", "labels"].includes(x?.to) ? x.to : "all", v: (Array.isArray(x?.v) ? x.v : []).map((y: any) => s(y, 60)).filter(Boolean).slice(0, 200),
+      till: /^\d{4}-\d{2}-\d{2}$/.test(String(x?.till || "")) ? String(x.till) : "",
+    })).filter((x: any) => x.t),
+  }
+}
+function cpBadges(cp: any, x: any) {
+  const today = new Date(Date.now() + 5.5 * 36e5).toISOString().slice(0, 10)
+  const low = (v: any) => String(v || "").toLowerCase()
+  return (cp?.offers || []).filter((o: any) => o.on && (!o.till || o.till >= today) && (o.to === "all" || (o.to === "labels" ? o.v.map((y: string) => y.toUpperCase()).includes(x.k) : o.v.some((y: string) => [low(x.c), low(x.it)].includes(low(y)))))).slice(0, 2).map((o: any) => ({ t: o.t, c: o.c }))
+}
+
 async function sha(s: string) {
   const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s))
   return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, "0")).join("")
@@ -111,6 +134,14 @@ export default async (req: Request) => {
   const op = new URL(req.url).searchParams.get("op") || ""
   const st = getStore({ name: "yamie-price-check", consistency: "strong" })
   // V1.9.32 customer collection links: read-only, no shop key, only the items in that link and only until it expires
+  // V1.9.35 the shop's own background picture for the customer page (public, like the logo)
+  if (req.method === "GET" && op === "cpbgimg") {
+    const sp = new URL(req.url).searchParams, b = sp.get("b") === "grand" ? "grand" : "yamie", sl = sp.get("s") === "m" ? "m" : "d"
+    const d = (await st.get(`cpbg/${b}/${sl}`)) as string | null
+    const m = d ? /^data:(image\/(?:jpeg|png|webp));base64,(.*)$/s.exec(d) : null
+    if (!m) return new Response("no", { status: 404, headers: { "access-control-allow-origin": "*" } })
+    return new Response(Buffer.from(m[2], "base64"), { status: 200, headers: { "content-type": m[1], "cache-control": "public, max-age=86400", "access-control-allow-origin": "*" } })
+  }
   if (req.method === "GET" && (op === "col" || op === "colimg")) {
     const sp = new URL(req.url).searchParams, id = String(sp.get("id") || "").replace(/[^A-Za-z0-9]/g, "").slice(0, 32)
     const c: any = id ? await st.get("col/" + id, { type: "json" }) : null
@@ -120,7 +151,9 @@ export default async (req: Request) => {
       const views = (Number(c.views) || 0) + 1; c.views = views; c.seen = Date.now(); await st.setJSON("col/" + id, c)
       // V1.9.33 price mode: both | label | fair | none (the shop can change it while the link is live)
       const pm = c.pm || "both", sl = pm === "both" || pm === "label", sf = pm === "both" || pm === "fair"
-      return json(req, { title: c.title, note: c.note, shop: c.shop, wa: c.wa, by: c.byName, exp: c.exp, at: c.at, pm, items: (c.items || []).map((x: any) => ({ ...x, p: sl ? x.p : 0, f: sf ? x.f : 0 })) })
+      const set: any = (await st.get("settings", { type: "json" })) || {}, cp = cleanCp(set?.cpage?.[c.brand === "grand" ? "grand" : "yamie"])
+      const { offers, ...look } = cp
+      return json(req, { title: c.title, note: c.note, shop: c.shop, wa: c.wa, by: c.byName, exp: c.exp, at: c.at, pm, brand: c.brand || "yamie", cp: look, items: (c.items || []).map((x: any) => ({ ...x, p: sl ? x.p : 0, f: sf ? x.f : 0, b: cpBadges(cp, x) })) })
     }
     const k = String(sp.get("k") || "").toUpperCase().replace(/[^A-Z0-9]/g, ""), i = Math.max(1, Math.min(IMG_MAX, Number(sp.get("i")) || 1))
     if (!(c.items || []).some((x: any) => x.k === k)) return new Response("no", { status: 404 })
@@ -551,7 +584,7 @@ export default async (req: Request) => {
       const id = Array.from(crypto.getRandomValues(new Uint8Array(9)), (b) => "abcdefghjkmnpqrstuvwxyz23456789"[b % 31]).join("")
       const items = (Array.isArray(c.items) ? c.items : []).slice(0, 300).map((x: any) => ({
         k: cleanStr(x?.k, 40).toUpperCase().replace(/[^A-Z0-9]/g, ""), t: cleanStr(x?.t, 80), c: cleanStr(x?.c, 40), n: Math.max(0, Math.min(IMG_MAX, cleanNum(x?.n) || 0)),
-        p: cleanNum(x?.p) || 0, f: cleanNum(x?.f) || 0,
+        p: cleanNum(x?.p) || 0, f: cleanNum(x?.f) || 0, pu: cleanStr(x?.pu, 20), it: cleanStr(x?.it, 60),
         l: (Array.isArray(x?.l) ? x.l : []).slice(0, 16).map((r: any) => [cleanStr(r?.[0], 30), cleanStr(r?.[1], 80)]).filter((r: any) => r[0] && r[1]) })).filter((x: any) => x.k)
       if (!items.length) return json(req, { error: "no_items" }, 400)
       const days = Math.max(1, Math.min(90, cleanNum(c.days) || 7))
@@ -614,6 +647,7 @@ export default async (req: Request) => {
     const OP_PERM: Record<string, string> = { addrdel: "addrDel", courierset: "courierSet", imgmany: "images", plists: "plists", coins: "coins", coindel: "coinSet", coinset: "coinSet", unsell: "stock", release: "approve", img: "images", quotedel: "delQuote", stock: "stock", stockdel: "stockdel", ratelog: "rates", pubrates: "rates", stockrow: "stockEdit", stocksold: "closeSale", pname: "images", pattr: "images" }
     const role = await callerRole()
     if (op === "settings") { if (!role || ![...SETTINGS_PERMS, "theme", "footer", "apprSet", "promos", "rules"].some((p) => roleHas(role, p))) return json(req, { error: "bad_pin" }, 403) }
+    else if (op === "cpbg") { if (!role || !["theme", "users", "footer"].some((p) => roleHas(role, p))) return json(req, { error: "bad_pin" }, 403) }
     else if (op === "users") { if (!role || !(roleHas(role, "users") || roleHas(role, "roles"))) return json(req, { error: "bad_pin" }, 403) }
     else if (op === "pattr") { if (!(await permOk("images")) && !(await permOk("stockEdit")) && !(await permOk("stockAdd")) && !(await permOk("stockBulk"))) return json(req, { error: "bad_pin" }, 403) }
     else if (op === "pname") { if (!(await permOk("images")) && !(await permOk("stockEdit")) && !(await permOk("stockAdd")) && !(await permOk("stockBulk"))) return json(req, { error: "bad_pin" }, 403) }
@@ -963,6 +997,13 @@ export default async (req: Request) => {
       return json(req, { v: meta.rates })
     }
 
+    if (op === "cpbg") {
+      const b = body?.brand === "grand" ? "grand" : "yamie", sl = body?.slot === "m" ? "m" : "d", d = String(body?.img || "")
+      if (!d) { await st.delete(`cpbg/${b}/${sl}`); return json(req, { ok: 1 }) }
+      if (!/^data:image\/(jpeg|png|webp);base64,/.test(d) || d.length > 2_800_000) return json(req, { error: "bad_image" }, 400)
+      await st.set(`cpbg/${b}/${sl}`, d)
+      return json(req, { ok: 1, v: Date.now() })
+    }
     if (op === "settings") {
       const s = body?.settings || {}
       const out = {
@@ -984,6 +1025,8 @@ export default async (req: Request) => {
         rpCard: s?.rpCard && typeof s.rpCard === "object" ? { f: (Array.isArray(s.rpCard.f) ? s.rpCard.f : []).filter((x: any) => typeof x === "string" && /^\w{1,20}$/.test(x)).slice(0, 40), order: (Array.isArray(s.rpCard.order) ? s.rpCard.order : []).filter((x: any) => typeof x === "string" && /^\w{1,20}$/.test(x)).slice(0, 40), ph: ["lg", "md", "sm"].includes(String(s.rpCard.ph)) ? String(s.rpCard.ph) : "md", at: Number(s.rpCard.at) || Date.now() } : null,
         tabHide: Object.fromEntries(Object.entries(s?.tabHide && typeof s.tabHide === "object" ? s.tabHide : {}).slice(0, 20).filter(([k]) => /^[\w-]{1,40}$/.test(k)).map(([k, v]) => [k, (Array.isArray(v) ? v : []).filter((x: any) => ["tabDash", "tabScan", "tabFind", "tabQuote", "tabQuotes", "tabOrders", "tabRep", "tabShop", "tabRates", "tabCoins", "tabCourier", "tabSet"].includes(x) && !(k === "admin" && x === "tabSet"))])),
         apprOn: s?.apprOn !== false,
+        // V1.9.35 customer web link page look, per shop
+        cpage: Object.fromEntries(["yamie", "grand"].map((b) => [b, cleanCp(s?.cpage?.[b])])),
         // V1.9.34 each shop's own address for customer web links
         look: Object.fromEntries(["yamie", "grand"].map((b) => { const v = String(s?.look?.[b] || ""); return [b, /^https:\/\/[a-z0-9.-]{3,80}$/i.test(v) ? v.toLowerCase() : ""] })),
         // Special promotions (admin): applied to every quote while running
