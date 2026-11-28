@@ -90,6 +90,11 @@ The page talks to `localStorage.yod_api` when set (tests set it to the local ser
 - Final price → manager approves → "Order ready: send card with final price". Customer-OK step and final price card removed (server no longer needs finals[].cust).
 - Phones on cards: shopPhone (estimate), shopPhone2 + shopLandline (ready), woPhone (work order).
 
+## V3.0 (28-11-2026)
+- Grand order form: one item is entered at a time ("New item"). **✓ Add to list** checks it (item, weight, quantity, emergency date) and moves it to **Items in this order** at the bottom — one compact row per item (photo or number, item · model · length, weight × qty = line weight, emergency date) with **✎ Edit** and **Delete**. A fresh empty line is then ready for the next item.
+- Edit opens the item in the entry card ("Edit item n" → Update item / Cancel). Items already received from the vendor cannot be deleted.
+- "More of the same design" buttons above an empty entry line copy item + model from the list; the new row is grouped under its design.
+
 ## V2.9 (26-11-2026)
 - Cards (estimate, work order, order ready) for orders with several items: all item photos in a grid at the top, each tagged with its item number (at least the first photo of every item, up to 12). Single-item orders keep the large photo + thumbnails.
 - Web-only change: V2.8 apps update through Reload app.

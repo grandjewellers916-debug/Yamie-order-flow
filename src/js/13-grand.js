@@ -52,10 +52,10 @@ function renderGrand() {
 function gBlankLine() { return { item: '', model: '', img: '', purity: '', wt: '', size: '', qty: 1, urgent: false, due: '', note: '' }; }
 function gNew() {
   const c = GC();
-  GF = { type: 'stock', vendor: '', vphone: '', by: c.staff.includes(me.name) ? me.name : (c.staff.length === 1 ? c.staff[0] : ''), purity: gStdPur(), lockPur: true, photos: true, due: '', note: '', refs: [], lines: [gBlankLine()] };
+  GF = { type: 'stock', vendor: '', vphone: '', by: c.staff.includes(me.name) ? me.name : (c.staff.length === 1 ? c.staff[0] : ''), purity: gStdPur(), lockPur: true, photos: true, due: '', note: '', refs: [], edit: 0, isEdit: false, lines: [gBlankLine()] };
   renderGrand(); window.scrollTo(0, 0);
 }
-function gEdit(id) { const o = gOrders.find((x) => x.id === id); if (!o) return; closeSheet(); GF = clone(o); go('vGrand'); }
+function gEdit(id) { const o = gOrders.find((x) => x.id === id); if (!o) return; closeSheet(); GF = clone(o); GF.lines.push(gBlankLine()); GF.edit = GF.lines.length - 1; GF.isEdit = false; go('vGrand'); }
 const gLineWt = (l) => Math.round(num(l.wt) * Math.max(1, num(l.qty) || 1) * 1000) / 1000;
 function gTotals() { const ls = GF.lines.filter((l) => l.item); return { n: ls.length, qty: ls.reduce((t, l) => t + (Math.max(1, num(l.qty) || 1)), 0), wt: Math.round(ls.reduce((t, l) => t + gLineWt(l), 0) * 1000) / 1000 }; }
 function gForm() {
@@ -72,8 +72,8 @@ function gForm() {
       ${GF.type === 'custom' ? `<div class="field"><label>Reference photos (customer / design)</label><div class="phRow">${GF.refs.map((r, i) => `<span class="ph"><img src="${esc(imgUrl(r))}" alt=""><button onclick="GF.refs.splice(${i},1);gForm()">✕</button></span>`).join('')}<button class="addPh" onclick="pickPhoto((r)=>{GF.refs.push(r);gForm()})">＋ Photo</button></div></div>` : ''}
       <label class="check" style="margin:4px 0 10px"><input type="checkbox" ${GF.photos !== false ? 'checked' : ''} onchange="GF.photos=this.checked"><span>Show item photos on the order card</span></label>
       <div class="field"><label>Note to vendor</label><textarea rows="2" oninput="GF.note=this.value" placeholder="e.g. Hallmark with HUID, polish finish">${esc(GF.note)}</textarea></div></div>
-    ${GF.lines.map((l, i) => gLineHtml(l, i, c)).join('')}
-    <button class="btn soft block" onclick="GF.lines.push(gBlankLine());gForm()">+ Add item</button>
+    <div id="gEntry">${gSameHtml()}${gLineHtml(GF.lines[GF.edit], GF.edit, c)}</div>
+    ${gListHtml()}
     <div class="card gTot"><div class="kv"><span>Items</span><span>${t.n}</span></div><div class="kv"><span>Total quantity</span><span>${t.qty} pc</span></div><div class="kv tot"><span>Total weight</span><span>${fmtN(t.wt)} g</span></div></div>
     <div class="actions"><button class="btn secondary" onclick="GF=null;renderGrand()">Cancel</button><button class="btn" onclick="gSave()">${GF.id ? 'Save & make card' : 'Create order & make card'}</button></div>`;
 }
@@ -93,19 +93,19 @@ function gAddVariant(i) {
 function gSyncSubs(i) { const l = GF.lines[i]; for (let j = i + 1; j < GF.lines.length && GF.lines[j].sub; j++) Object.assign(GF.lines[j], { item: l.item, model: l.model, purity: l.purity }, GF.lines[j].ownImg ? {} : { img: l.ownImg ? '' : l.img }); }
 function gLineHtml(l, i, c) {
   const it = gItem(l.item), models = it.models || [];
-  const sizes = (it.sizes || []), custom = l.size && !sizes.includes(l.size), sub = gIsSub(i);
+  const sizes = (it.sizes || []), custom = l.size && !sizes.includes(l.size), sub = gIsSub(i) || (i === GF.edit && l.sub && l.item);
   const wq = `<div class="two"><div class="field"><label>f. Weight per piece (g)</label><input inputmode="decimal" value="${esc(l.wt)}" oninput="gL(${i},'wt',this.value);gLineTot(${i});gAsk(${i})"></div>
       <div class="field"><label>h. Quantity</label><input inputmode="numeric" value="${esc(l.qty)}" oninput="gL(${i},'qty',this.value);gLineTot(${i});gAsk(${i})"></div></div>`;
   const rmB = GF.lines.length > 1 && !num(l.rq) && !l.nr && !GF.lines.slice(i + 1, sub ? i + 1 : gGroupEnd(i) + 1).some((x) => num(x.rq) || x.nr) ? ` <button class="btn small secondary" style="float:right" onclick="GF.lines.splice(${i},${sub ? 1 : gGroupEnd(i) - i + 1});gForm()">Remove</button>` : '';
-  if (sub) return `<div class="card gLine gSub ${l.urgent ? 'urg' : ''}"><h3>↳ ${esc(l.item)} · ${esc(l.model)} <small class="hint">same design, another weight / length</small>${rmB}</h3>${wq}
+  if (sub) return `<div class="card gLine gSub ${l.urgent ? 'urg' : ''}"><h3>${GF.isEdit ? 'Edit · ' : ''}↳ ${esc(l.item)} · ${esc(l.model)} <small class="hint">same design, another weight / length</small></h3>${wq}
     <div class="field"><label>g. Length / size</label><div class="choiceRow">${sizes.map((s) => `<button class="chip ${l.size === s ? 'active' : ''}" onclick="gL(${i},'size',${esc(JSON.stringify(s))});gForm()">${esc(s)}</button>`).join('')}<button class="chip ${custom ? 'active' : ''}" onclick="GF.lines[${i}]._cs=1;gForm()">Custom length / size</button></div>
       ${custom || l._cs ? `<input style="margin-top:6px" value="${esc(custom ? l.size : '')}" placeholder="e.g. 8 pidi, first length 15 inches" oninput="gL(${i},'size',this.value)">` : ''}</div>
     <div class="kv tot"><span>i. Line weight</span><span id="gLt${i}">${fmtN(gLineWt(l))} g</span></div>
     <label class="check" style="margin-top:8px"><input type="checkbox" ${l.urgent ? 'checked' : ''} onchange="gL(${i},'urgent',this.checked);gForm()"><span>j. 🚨 Emergency order</span></label>
     ${l.urgent ? `<div class="field"><label>Delivery date <i class="req">*</i></label><input type="date" value="${esc(l.due)}" min="${today()}" onchange="gL(${i},'due',this.value)"></div>` : ''}
     <div class="field"><label>Note</label><input value="${esc(l.note)}" oninput="gL(${i},'note',this.value)" placeholder="Optional"></div>
-    <div id="gAsk${i}">${gAskHtml(i)}</div></div>`;
-  return `<div class="card gLine ${l.urgent ? 'urg' : ''}"><h3>Item ${GF.lines.slice(0, i + 1).filter((x, j) => !gIsSub(j)).length}${rmB}</h3>
+    ${gEntryBtns(i)}</div>`;
+  return `<div class="card gLine ${l.urgent ? 'urg' : ''}"><h3>${GF.isEdit ? 'Edit item ' + gNo(i) : 'New item'}</h3>
     <div class="field"><label>d. Item <i class="req">*</i></label><div class="choiceRow">${c.items.map((x) => `<button class="chip ${l.item === x.name ? 'active' : ''}" onclick="gL(${i},'item',${esc(JSON.stringify(x.name))});GF.lines[${i}].model='';GF.lines[${i}].img='';GF.lines[${i}].size='';gSyncSubs(${i});gForm()">${esc(x.name)}</button>`).join('')}</div></div>
     ${l.item ? gModelField(l, i, models) : ''}
     ${wq}
@@ -117,7 +117,7 @@ function gLineHtml(l, i, c) {
     ${l.urgent ? `<div class="field"><label>Delivery date <i class="req">*</i></label><input type="date" value="${esc(l.due)}" min="${today()}" onchange="gL(${i},'due',this.value)"></div>` : ''}
     <div class="field"><label>Photo of item</label><div class="phRow">${l.img ? `<span class="ph"><img src="${esc(imgUrl(l.img))}" alt=""><button onclick="gL(${i},'img','');gL(${i},'ownImg',0);gForm()">✕</button></span>` : ''}<button class="addPh" onclick="pickPhoto((r)=>{gL(${i},'img',r);gL(${i},'ownImg',1);gForm()},true)">📷 Camera</button><button class="addPh" onclick="pickPhoto((r)=>{gL(${i},'img',r);gL(${i},'ownImg',1);gForm()})">＋ Gallery</button></div></div>
     <div class="field"><label>Note</label><input value="${esc(l.note)}" oninput="gL(${i},'note',this.value)" placeholder="Optional"></div>
-    <div id="gAsk${i}">${gAskHtml(i)}</div>
+    ${gEntryBtns(i)}
   </div>`;
 }
 function gL(i, k, v) { GF.lines[i][k] = v; }
@@ -548,4 +548,62 @@ function gSettle(id) {
     <div class="field"><label>Reference <small>(UTR / invoice no.)</small></label><input id="gsRef" value="${esc(a.ref || '')}"></div>
     <div class="field"><label>Note</label><input id="gsNt" value="${esc(a.note || '')}"></div>
     <button class="btn block" onclick="if(!_gm)return toast('Pick the mode of payment');gAcct('${id}','settle',{recvWt:f('gsR'),balWt:f('gsW'),balAmt:f('gsA'),mode:_gm,ref:f('gsRef'),note:f('gsNt')},'Saved')">Save</button>`);
+}
+
+// ---------- item entry: one item at a time; finished items drop into a compact list below ----------
+const gFilled = (l) => !!(l && l.item);
+function gNo(i) { return GF.lines.slice(0, i + 1).filter((x, j) => gFilled(x) && !gIsSub(j)).length; }
+function gEntryBtns(i) {
+  return `<div class="actions" style="margin-top:12px">${GF.isEdit ? `<button class="btn secondary" onclick="gEntryCancel()">Cancel</button>` : `<button class="btn secondary" onclick="gEntryClear()">Clear</button>`}<button class="btn" onclick="gCommit()">✓ ${GF.isEdit ? 'Update item' : 'Add to list'}</button></div>`;
+}
+function gSameHtml() {
+  const e = GF.lines[GF.edit]; if (GF.isEdit || gFilled(e)) return '';
+  const seen = new Set(), ds = [];
+  for (let j = GF.lines.length - 1; j >= 0 && ds.length < 4; j--) { const l = GF.lines[j]; if (j === GF.edit || !gFilled(l) || !l.model) continue; const k = l.item + '|' + l.model; if (!seen.has(k)) { seen.add(k); ds.push(j); } }
+  if (!ds.length) return '';
+  return `<div class="gAsk"><span>More of the same design in another weight / length?</span><span class="choiceRow" style="margin:0">${ds.map((j) => `<button class="chip" onclick="gSameAs(${j})">${esc(GF.lines[j].item)} · ${esc(GF.lines[j].model)}</button>`).join('')}</span></div>`;
+}
+function gSameAs(j) { const l = GF.lines[j]; Object.assign(GF.lines[GF.edit], { item: l.item, model: l.model, img: l.ownImg ? '' : l.img, purity: l.purity, sub: 1 }); gForm(); gFocusEntry(); }
+function gFocusEntry() { setTimeout(() => { const el = $('gEntry'); if (el) { el.scrollIntoView({ block: 'start', behavior: 'smooth' }); const w = el.querySelector('.gLine input[inputmode="decimal"]'); if (w) w.focus({ preventScroll: true }); } }, 60); }
+function gCommit() {
+  const i = GF.edit, l = GF.lines[i];
+  if (!l.item) return toast('Select the item');
+  if (!(num(l.wt) > 0)) return toast('Enter the weight per piece');
+  if (!(num(l.qty) > 0)) return toast('Enter the quantity');
+  if (l.urgent && !l.due) return toast('Give the emergency delivery date');
+  if (!GF.isEdit) {
+    // a "same design" row goes right under its design so the card groups them
+    GF.lines.splice(i, 1);
+    let j = -1; if (l.sub) for (let k = 0; k < GF.lines.length; k++) if (gFilled(GF.lines[k]) && GF.lines[k].item === l.item && GF.lines[k].model === l.model) j = k;
+    if (l.sub && j < 0) l.sub = 0;
+    if (j >= 0) GF.lines.splice(j + 1, 0, l); else GF.lines.push(l);
+    toast('Added to the list');
+  } else toast('Item updated');
+  GF.lines = GF.lines.filter((x, k) => gFilled(x)); GF.lines.push(gBlankLine()); GF.edit = GF.lines.length - 1; GF.isEdit = false; GF._backup = null;
+  gForm(); gFocusEntry();
+}
+function gEntryClear() { GF.lines[GF.edit] = gBlankLine(); gForm(); }
+function gEntryCancel() { if (GF._backup) GF.lines[GF.edit] = GF._backup; GF.lines = GF.lines.filter(gFilled); GF.lines.push(gBlankLine()); GF.edit = GF.lines.length - 1; GF.isEdit = false; GF._backup = null; gForm(); }
+function gEditLine(i) {
+  const e = GF.lines[GF.edit];
+  if (GF.isEdit || gFilled(e)) return toast(GF.isEdit ? 'Finish the item you are editing first' : 'Add or clear the item being entered first');
+  GF.lines.splice(GF.edit, 1); if (i > GF.edit) i--;
+  GF.edit = i; GF.isEdit = true; GF._backup = clone(GF.lines[i]); gForm(); gFocusEntry();
+}
+function gDelLine(i) {
+  const l = GF.lines[i]; if (num(l.rq) || l.nr) return toast('Goods already received for this item');
+  if (!confirm(`Delete ${l.item}${l.model ? ' · ' + l.model : ''} (${fmtN(l.wt)} g × ${l.qty})?`)) return;
+  const nx = GF.lines[i + 1]; if (!gIsSub(i) && nx && nx.sub && nx.item === l.item && nx.model === l.model) nx.sub = 0;
+  GF.lines.splice(i, 1); if (i < GF.edit) GF.edit--; gForm();
+}
+function gListHtml() {
+  const rows = GF.lines.map((l, i) => ({ l, i })).filter(({ l, i }) => i !== GF.edit && gFilled(l));
+  if (!rows.length) return '';
+  let n = 0;
+  return `<details class="sec gList" open><summary>Items in this order (${rows.length})</summary><div class="in">${rows.map(({ l, i }) => {
+    const sub = gIsSub(i); if (!sub) n++;
+    const lock = num(l.rq) || l.nr;
+    return `<div class="gRow ${sub ? 'sub' : ''} ${l.urgent ? 'urg' : ''}">${l.img ? `<img src="${esc(imgUrl(l.img))}" alt="">` : `<span class="no">${sub ? '↳' : n}</span>`}
+      <span class="t"><b>${sub ? '↳ ' : ''}${esc(l.item)}${l.model ? ' · ' + esc(l.model) : ''}</b>${l.size ? ' · ' + esc(l.size) : ''}<small>${fmtN(l.wt)} g × ${l.qty} = <b>${fmtN(gLineWt(l))} g</b>${!GF.lockPur && l.purity ? ' · ' + esc(l.purity) : ''}${l.urgent ? ` · <span class="bad">🚨 by ${dshort(l.due)}</span>` : ''}${lock ? ' · received ' + num(l.rq) : ''}${l.note ? ' · ' + esc(l.note) : ''}</small></span>
+      <span class="a"><button class="btn small soft" onclick="gEditLine(${i})">✎ Edit</button>${lock ? '' : `<button class="btn small secondary" onclick="gDelLine(${i})">Delete</button>`}</span></div>`; }).join('')}</div></details>`;
 }
